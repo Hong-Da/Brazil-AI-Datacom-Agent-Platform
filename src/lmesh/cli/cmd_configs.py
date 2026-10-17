@@ -65,7 +65,7 @@ def register(app: typer.Typer, config_app: typer.Typer) -> None:
             if res.ok:
                 target = out if single else out / name.replace("/", "_")
                 target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_text(text, encoding="utf-8")
+                target.write_bytes(text.encode("utf-8"))  # 统一 LF 换行，不随系统转换
                 results.append({**res.as_dict(), "output": str(target)})
             else:
                 results.append({**res.as_dict(), "error": c.t(res.error)})
