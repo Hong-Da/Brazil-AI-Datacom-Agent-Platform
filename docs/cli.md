@@ -63,6 +63,11 @@
 | `lmesh config show` | 当前生效的配置及来源（default / file / env），敏感值只显示是否已设置 |
 | `lmesh config example [--check]` | 生成 `config/config.example.toml` |
 | `lmesh db upgrade` | 把数据库升级到最新结构 |
+| `lmesh sanitize <文件\|目录\|zip> -o <输出> [--level basic\|strict] [--redact 词或正则]… [--map-out 文件]` | 配置脱敏，行数不变；`basic` 替换密文、口令、团体字、密钥块、公网 IP，`strict` 另外替换全部 IP（前缀保持）、主机名、描述、用户名、网元 ID；`--redact` 追加客户名、站点编码等组织相关的词；`--map-out` 把原值与替换值的对照写到本机文件（敏感） |
+| `lmesh config import <文件\|目录\|zip> [--level basic\|strict]` | 导入配置：识别厂商与版本 → 脱敏 → 按设备保存为新的配置版本；无法识别的文件单独报告 |
+| `lmesh config list` | 已导入的设备、软件版本、Profile 与配置版本数 |
+
+同一台机器上，脱敏使用 `config/sanitize.key` 中的密钥：同一原值在不同批次里替换成同一个值，跨设备的引用关系保持。
 
 配置也可以用环境变量覆盖：`LMESH_<分组>__<名称>`，例如 `LMESH_SERVER__PORT=9001`。
 
@@ -154,5 +159,42 @@ lmesh --output json db upgrade
 JSON 输出中的关键字段：
 
 - `data.backend` = `"sqlite"`
+
+### 脱敏单个配置文件（严格模式）
+
+```bash
+lmesh --output json sanitize tests/inputs/configs/huawei/basic.cfg -o out/basic.cfg --level strict
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.files.0.vendor` = `"huawei"`
+- `data.files.0.ok` = `true`
+
+### 输入文件不存在
+
+```bash
+lmesh sanitize tests/inputs/configs/no-such.cfg -o out/x.cfg
+```
+
+退出码：`4`
+
+错误提示（stderr）包含：`no-such.cfg`
+
+### 导入整个目录（无法识别的文件单独报告）
+
+```bash
+lmesh --output json config import tests/inputs/configs
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.files.0.ok` = `false`
+- `data.files.2.vendor` = `"cisco"`
+- `data.files.3.profile` = `"huawei-atn-v800r023"`
 
 <!-- examples:end -->

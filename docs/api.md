@@ -35,6 +35,9 @@
 | `GET /setup` | 否（仅未配置时） | 首次运行向导的参数定义 |
 | `POST /setup` | 否（仅未配置时） | 提交向导结果；`dry_run: true` 时只校验 |
 | `GET /config` | 是 | 当前生效的配置，敏感值只显示是否已设置 |
+| `POST /sanitize` | 是 | 脱敏一段配置文本：`{"text": "…", "level": "basic\|strict"}`；返回脱敏后的文本、厂商、各类替换数量和不含原值的替换报告 |
+| `POST /configs` | 是 | 上传并导入配置（multipart：一个或多个 `files`，可以是 zip；`level` 默认 basic） |
+| `GET /devices` | 是 | 已导入的设备与最新配置版本 |
 
 ## 示例
 
@@ -204,5 +207,86 @@ print(r.status_code, r.json())
 HTTP 状态：`401`；返回中的关键字段：
 
 - `code` = `1002`
+
+### 脱敏一段配置文本
+
+`POST /api/v1/sanitize`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/sanitize' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "sysname PE-01\n#\nbgp 65000\n peer 203.0.113.10 password cipher %^%#Fake%^%#\n#\nreturn", "level": "basic"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/sanitize' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "sysname PE-01\n#\nbgp 65000\n peer 203.0.113.10 password cipher %^%#Fake%^%#\n#\nreturn", "level": "basic"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/sanitize', headers={'Authorization': 'Bearer <令牌>'}, json={'text': 'sysname PE-01\n#\nbgp 65000\n peer 203.0.113.10 password cipher %^%#Fake%^%#\n#\nreturn', 'level': 'basic'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.vendor` = `"huawei"`
+- `data.summary.secret` = `1`
+- `data.summary.ip` = `1`
+
+### 上传并导入配置文件
+
+`POST /api/v1/configs`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/configs' \
+  -H 'Authorization: Bearer <令牌>' \
+  -F 'files=@tests/inputs/configs/huawei/basic.cfg' \
+  -F 'files=@tests/inputs/configs/bad/notes.txt' \
+  -F 'level=strict'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/configs' -Headers @{'Authorization'='Bearer <令牌>'} -Form @{'files'=Get-Item 'tests/inputs/configs/huawei/basic.cfg'; 'level'='strict'}
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/configs', headers={'Authorization': 'Bearer <令牌>'}, files=[('files', open('tests/inputs/configs/huawei/basic.cfg', 'rb')), ('files', open('tests/inputs/configs/bad/notes.txt', 'rb'))], data={'level': 'strict'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.files.0.ok` = `true`
+- `data.files.0.vendor` = `"huawei"`
+- `data.files.1.ok` = `false`
+
+### 列出已导入的设备
+
+`GET /api/v1/devices`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/devices' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/devices' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/devices', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.devices` = `[]`
 
 <!-- examples:end -->

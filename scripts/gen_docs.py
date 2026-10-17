@@ -35,7 +35,8 @@ def cli_examples() -> str:
     out = []
     for c in cases("cli_cases.toml"):
         env = " ".join(f"{k}={v}" for k, v in c.get("env", {}).items())
-        cmd = (env + " " if env else "") + "lmesh " + " ".join(shlex.quote(a) for a in c["args"])
+        args = [a.replace("{inputs}", "tests/inputs").replace("{out}", "out") for a in c["args"]]
+        cmd = (env + " " if env else "") + "lmesh " + " ".join(shlex.quote(a) for a in args)
         out += [f"### {c['title']['zh-CN']}", "", "```bash", cmd, "```", "", f"退出码：`{c['expect_exit']}`"]
         if c.get("expect_json"):
             out += ["", "JSON 输出中的关键字段：", "", *_expect_lines(c["expect_json"])]
@@ -56,19 +57,30 @@ def api_examples() -> str:
             headers["Authorization"] = "Bearer <令牌>"
         body = json.dumps(c["body"], ensure_ascii=False) if c.get("body") is not None else None
         curl = [f"curl -X {c['method']} '{url}'"] + [f"  -H '{k}: {v}'" for k, v in headers.items()]
+        files = [f"tests/inputs/{f}" for f in c.get("files", [])]
         if body:
             curl += ["  -H 'Content-Type: application/json'", f"  -d '{body}'"]
+        curl += [f"  -F 'files=@{f}'" for f in files] + [f"  -F '{k}={v}'" for k, v in c.get("form", {}).items()]
         ps_headers = "; ".join(f"'{k}'='{v}'" for k, v in headers.items())
         ps = f"Invoke-RestMethod -Method {c['method']} -Uri '{url}'"
         if headers:
             ps += f" -Headers @{{{ps_headers}}}"
         if body:
             ps += f" -ContentType 'application/json; charset=utf-8' -Body '{body}'"
+        if files:
+            form = "; ".join(
+                [f"'files'=Get-Item '{f}'" for f in files[:1]] + [f"'{k}'='{v}'" for k, v in c.get("form", {}).items()]
+            )
+            ps += f" -Form @{{{form}}}"
         py = ["import requests", f"r = requests.request({c['method']!r}, {url!r}"]
         if headers:
             py[-1] += f", headers={headers!r}"
         if body:
             py[-1] += f", json={c['body']!r}"
+        if files:
+            py[-1] += ", files=[" + ", ".join(f"('files', open({f!r}, 'rb'))" for f in files) + "]"
+            if c.get("form"):
+                py[-1] += f", data={c['form']!r}"
         py[-1] += ")"
         py.append("print(r.status_code, r.json())")
         out += [

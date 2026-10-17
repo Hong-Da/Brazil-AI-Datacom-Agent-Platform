@@ -21,6 +21,12 @@ def jget(obj: Any, path: str) -> Any:
     cur = obj
     i = 0
     while i < len(parts):
+        if isinstance(cur, list) and parts[i].isdigit():  # 列表下标：files.0.vendor
+            idx = int(parts[i])
+            if idx >= len(cur):
+                return _MISSING
+            cur, i = cur[idx], i + 1
+            continue
         if not isinstance(cur, dict):
             return _MISSING
         for j in range(len(parts), i, -1):

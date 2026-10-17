@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.conftest import run_cli
+from tests.conftest import INPUTS, run_cli
 from tests.helpers import check_json, load_cases
 
 CASES = load_cases("cli_cases.toml")
@@ -18,7 +18,9 @@ CASES = load_cases("cli_cases.toml")
 def test_cli_case(case: dict, tmp_root: Path, request: pytest.FixtureRequest) -> None:
     if case.get("setup") == "configured":
         request.getfixturevalue("configured_root")
-    r = run_cli(case["args"], tmp_root, env=case.get("env"))
+    out = tmp_root / "out"
+    args = [a.replace("{inputs}", str(INPUTS)).replace("{out}", str(out)) for a in case["args"]]
+    r = run_cli(args, tmp_root, env=case.get("env"))
     assert r.returncode == case["expect_exit"], f"退出码 {r.returncode}\nstdout:\n{r.stdout}\nstderr:\n{r.stderr}"
     for s in case.get("expect_stdout", []):
         assert s in r.stdout, f"stdout 中没有 {s!r}:\n{r.stdout}"

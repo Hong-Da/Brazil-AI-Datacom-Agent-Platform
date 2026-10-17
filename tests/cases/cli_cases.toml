@@ -89,3 +89,54 @@ setup = "configured"
 expect_exit = 0
 expect_json = { "data.backend" = "sqlite" }
 in_docs = true
+
+[[case]]
+id = "sanitize-file"
+title = { zh-CN = "脱敏单个配置文件（严格模式）", en = "Sanitize one config (strict)", pt-BR = "Anonimizar uma configuração (estrito)" }
+args = ["--output", "json", "sanitize", "{inputs}/configs/huawei/basic.cfg", "-o", "{out}/basic.cfg", "--level", "strict"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.files.0.vendor" = "huawei", "data.files.0.ok" = true }
+in_docs = true
+
+[[case]]
+id = "sanitize-missing"
+title = { zh-CN = "输入文件不存在", en = "Input file not found", pt-BR = "Arquivo de entrada inexistente" }
+args = ["sanitize", "{inputs}/configs/no-such.cfg", "-o", "{out}/x.cfg"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["no-such.cfg"]
+in_docs = true
+
+[[case]]
+id = "sanitize-bad-level"
+title = { zh-CN = "错误的脱敏强度", en = "Invalid sanitize level", pt-BR = "Nível de anonimização inválido" }
+args = ["sanitize", "{inputs}/configs/huawei/basic.cfg", "-o", "{out}/x.cfg", "--level", "max"]
+setup = "configured"
+expect_exit = 2
+expect_stderr = ["basic"]
+
+[[case]]
+id = "import-dir"
+title = { zh-CN = "导入整个目录（无法识别的文件单独报告）", en = "Import a folder (unrecognized files reported)", pt-BR = "Importar uma pasta (arquivos não reconhecidos são relatados)" }
+args = ["--output", "json", "config", "import", "{inputs}/configs"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.files.0.ok" = false, "data.files.2.vendor" = "cisco", "data.files.3.profile" = "huawei-atn-v800r023" }
+in_docs = true
+
+[[case]]
+id = "import-not-configured"
+title = { zh-CN = "未配置时导入", en = "Import before setup", pt-BR = "Importar antes da configuração" }
+args = ["config", "import", "{inputs}/configs/huawei/basic.cfg"]
+setup = "fresh"
+expect_exit = 3
+expect_stderr = ["setup"]
+
+[[case]]
+id = "config-list-empty"
+title = { zh-CN = "还没有导入时列出设备", en = "List devices when nothing is imported", pt-BR = "Listar dispositivos sem importações" }
+args = ["--lang", "pt-BR", "config", "list"]
+setup = "configured"
+expect_exit = 0
+expect_stdout = ["Nenhuma configuração ainda"]

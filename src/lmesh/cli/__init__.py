@@ -214,6 +214,11 @@ def cmd_db_upgrade(ctx: typer.Context) -> None:
     )
 
 
+from lmesh.cli import cmd_configs  # noqa: E402
+
+cmd_configs.register(app, config_app)
+
+
 def main() -> None:
     if os.name == "nt":  # Windows 控制台输出中文与葡语
         for stream in (sys.stdout, sys.stderr):

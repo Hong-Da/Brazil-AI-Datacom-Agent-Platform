@@ -66,8 +66,14 @@ def validate_answers(
             clean[f.key] = config.validate(f.key, answers[f.key])
         except ConfigError as e:
             errors[f.key] = f"config.invalid.{e.args[0]}"
-    if check_port and "server.port" in clean and "server.host" in clean and clean["server.port"] != current_port and not port_free(clean["server.host"], clean["server.port"]):
-            errors["server.port"] = "config.invalid.port_busy"
+    if (
+        check_port
+        and "server.port" in clean
+        and "server.host" in clean
+        and clean["server.port"] != current_port
+        and not port_free(clean["server.host"], clean["server.port"])
+    ):
+        errors["server.port"] = "config.invalid.port_busy"
     if clean.get("ai.provider") in ("openai", "local") and not str(answers.get("ai.base_url") or "").strip():
         errors["ai.base_url"] = "config.invalid.required"
     return errors

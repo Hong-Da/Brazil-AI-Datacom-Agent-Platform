@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from tests.conftest import TEST_TOKEN
+from tests.conftest import INPUTS, TEST_TOKEN
 from tests.helpers import check_json, load_cases
 
 CASES = load_cases("api_cases.toml")
@@ -18,6 +18,9 @@ def _request(client: Any, case: dict[str, Any], token: str) -> Any:
     headers = dict(case.get("headers", {}))
     if case.get("auth"):
         headers["Authorization"] = f"Bearer {token}"
+    if case.get("files"):
+        files = [("files", (Path(f).name, (INPUTS / f).read_bytes(), "text/plain")) for f in case["files"]]
+        return client.request(case["method"], case["path"], headers=headers, files=files, data=case.get("form", {}))
     return client.request(case["method"], case["path"], headers=headers, json=case.get("body"))
 
 

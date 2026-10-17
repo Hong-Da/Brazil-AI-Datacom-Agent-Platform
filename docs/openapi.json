@@ -115,10 +115,145 @@
           }
         }
       }
+    },
+    "/api/v1/sanitize": {
+      "post": {
+        "tags": [
+          "configs"
+        ],
+        "summary": "配置脱敏（返回脱敏后的文本与不含原值的替换报告）",
+        "operationId": "sanitize_api_v1_sanitize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SanitizeBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Sanitize Api V1 Sanitize Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/configs": {
+      "post": {
+        "tags": [
+          "configs"
+        ],
+        "summary": "导入配置（可多个文件或 zip；识别厂商 → 脱敏 → 入库）",
+        "operationId": "import_configs_api_v1_configs_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_configs_api_v1_configs_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Import Configs Api V1 Configs Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices": {
+      "get": {
+        "tags": [
+          "configs"
+        ],
+        "summary": "已导入的设备与最新配置版本",
+        "operationId": "devices_api_v1_devices_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Devices Api V1 Devices Get"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "Body_import_configs_api_v1_configs_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "strict"
+            ],
+            "title": "Level",
+            "default": "basic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_import_configs_api_v1_configs_post"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -131,6 +266,29 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "SanitizeBody": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 20971520,
+            "title": "Text"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "strict"
+            ],
+            "title": "Level",
+            "default": "basic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "SanitizeBody"
       },
       "SetupBody": {
         "properties": {

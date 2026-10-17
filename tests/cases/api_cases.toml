@@ -111,3 +111,61 @@ headers = { Authorization = "Bearer wrong-token" }
 expect_status = 401
 expect_json = { "code" = 1002 }
 live = true
+
+[[case]]
+id = "sanitize-ok"
+title = { zh-CN = "脱敏一段配置文本", en = "Sanitize config text", pt-BR = "Anonimizar texto de configuração" }
+method = "POST"
+path = "/api/v1/sanitize"
+setup = "configured"
+auth = true
+body = { text = "sysname PE-01\n#\nbgp 65000\n peer 203.0.113.10 password cipher %^%#Fake%^%#\n#\nreturn", level = "basic" }
+expect_status = 200
+expect_json = { "code" = 0, "data.vendor" = "huawei", "data.summary.secret" = 1, "data.summary.ip" = 1 }
+in_docs = true
+
+[[case]]
+id = "sanitize-bad-level"
+title = { zh-CN = "脱敏强度不合法", en = "Invalid sanitize level", pt-BR = "Nível de anonimização inválido" }
+method = "POST"
+path = "/api/v1/sanitize"
+setup = "configured"
+auth = true
+body = { text = "sysname X", level = "max" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "import-upload"
+title = { zh-CN = "上传并导入配置文件", en = "Upload and import config files", pt-BR = "Enviar e importar arquivos de configuração" }
+method = "POST"
+path = "/api/v1/configs"
+setup = "configured"
+auth = true
+files = ["configs/huawei/basic.cfg", "configs/bad/notes.txt"]
+form = { level = "strict" }
+expect_status = 200
+expect_json = { "code" = 0, "data.files.0.ok" = true, "data.files.0.vendor" = "huawei", "data.files.1.ok" = false }
+in_docs = true
+
+[[case]]
+id = "import-no-token"
+title = { zh-CN = "导入需要令牌", en = "Import requires a token", pt-BR = "Importar exige token" }
+method = "POST"
+path = "/api/v1/configs"
+setup = "configured"
+files = ["configs/huawei/basic.cfg"]
+expect_status = 401
+expect_json = { "code" = 1002 }
+
+[[case]]
+id = "devices-ok"
+title = { zh-CN = "列出已导入的设备", en = "List imported devices", pt-BR = "Listar dispositivos importados" }
+method = "GET"
+path = "/api/v1/devices"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.devices" = [] }
+in_docs = true
+live = true
