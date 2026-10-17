@@ -72,8 +72,12 @@ def iter_bytes(name: str, data: bytes) -> Iterator[tuple[str, bytes]]:
     yield name, data
 
 
-def guess_profile(vendor: str, version: str) -> str:
-    """按厂商与版本选 Profile。M1-4 起改为读取知识库中各 Profile 的匹配规则。"""
+def guess_profile(vendor: str, version: str, kb: Any = None) -> str:
+    """按厂商与版本选 Profile：优先用知识库中各 Profile 的匹配规则；没有知识库时按命名约定推断。"""
+    if kb is not None:
+        found = kb.match_profile(vendor, version)
+        if found:
+            return str(found)
     if vendor == "huawei":
         m = re.search(r"V(\d{3})R(\d{3})", version)
         if m:
@@ -84,7 +88,7 @@ def guess_profile(vendor: str, version: str) -> str:
     return ""
 
 
-def sanitize_one(name: str, raw: bytes, sanitizer: Sanitizer) -> tuple[ImportResult, str]:
+def sanitize_one(name: str, raw: bytes, sanitizer: Sanitizer, kb: Any = None) -> tuple[ImportResult, str]:
     if len(raw) > MAX_BYTES:
         return ImportResult(name, False, error="import.too_large"), ""
     text = decode(raw)
@@ -101,19 +105,26 @@ def sanitize_one(name: str, raw: bytes, sanitizer: Sanitizer) -> tuple[ImportRes
         device=device,
         vendor=vendor,
         version=version,
-        profile=guess_profile(vendor, version),
+        profile=guess_profile(vendor, version, kb),
         lines=text.count("\n") + 1,
         sanitized=result.summary(),
     ), result.text
 
 
-def import_sources(sources: list[tuple[str, bytes]], db_url: str, level: Level = "basic") -> list[ImportResult]:
+def import_sources(
+    sources: list[tuple[str, bytes]], db_url: str, level: Level = "basic", kb_root: Path | None = None
+) -> list[ImportResult]:
     """一批文件共用一个脱敏器：同一原值在不同设备上替换成同一个值，跨设备的引用关系保持。"""
     sanitizer = Sanitizer(level, local_key())
+    kb = None
+    if kb_root is not None and (kb_root / "kb.yaml").exists():
+        from lmesh.core import kb as kbmod
+
+        kb = kbmod.load(kb_root)
     results: list[ImportResult] = []
     with store.session(db_url) as s:
         for name, raw in sources:
-            res, text = sanitize_one(name, raw, sanitizer)
+            res, text = sanitize_one(name, raw, sanitizer, kb)
             if res.ok:
                 dev = s.scalar(select(Device).where(Device.name == res.device))
                 if dev is None:

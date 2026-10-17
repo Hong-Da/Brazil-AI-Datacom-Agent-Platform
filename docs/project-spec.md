@@ -204,6 +204,20 @@ Profile 规划：`huawei-atn-v800r025`（以产品文档为准）、`huawei-atn-
 | 没有 AI 接口 | 华为命令参考格式固定，规则抽取即可覆盖；Cisco 公开命令参考结构不同，规则抽取覆盖率可能偏低，需要更多人工审核 |
 | ATN 样本与文档版本不一致（R023 / R025） | R023 Profile 继承 R025，只记录差异 |
 
+### 知识库文件格式
+
+| 文件 | 内容 |
+|---|---|
+| `kb.yaml` | 知识库版本 `kb_version`、功能域列表 |
+| `commands/<平台族>/views.yaml` | 平台族的书写习惯（块分隔符 `#` / `!`、结尾 `return` / `end`、缩进单位）与视图树（父视图、进入视图的命令卡、显式退出命令） |
+| `commands/<平台族>/<功能域>.yaml` | 命令卡：`id`、`syntax`、`view`、`enters_view`、`params`（类型、范围、可选值）、`default`、`maps`（参数 → Schema 节点，`@` 表示整条命令对应的开关节点）、`depends_on`、`side_effects`、`source`、`status` |
+| `schema/<功能域>.yaml` | 统一节点：`parent`、`type`、`semantic`（按语义归并）、`key`、`range`、`ordered`、`ref`、`deprecated` / `replaced_by`；以及 `deps` 依赖规则 |
+| `profiles/<Profile>.yaml` | `match`（厂商、版本正则、`fallback`）、`inherits`、`entries`（各节点的支持情况、默认值、显示规则、对应命令卡、来源与可信度；人工条目 `manual: true`）、`side_effects` |
+
+命令语法（厂商无关）：关键字直接写，参数 `<名称>`，可选 `[ ]`，多选一 `{ a | b }`；参数类型 `integer`（带 `range`）、`ipv4`、`mask`、`wildcard`、`prefix`、`mask-length`、`asn`、`rd`、`community`、`interface`、`word`、`text`（吃掉行尾全部内容，含空格）。匹配时记录每个可选组是否出现、多选组选了哪一支，渲染时按同样的选择重放，保证往返逐字一致；多种匹配时取关键字最多的一种。
+
+Profile 匹配：版本正则匹配上的优先；都不匹配时用标了 `fallback` 的 Profile（华为 → `huawei-atn-v800r025`，Cisco → `cisco-iosxe-asr920-17.15`）。
+
 ### 知识库的存放
 
 仓库中的 `knowledge/` 是程序自带的知识库，随版本发布；首次启动时复制到 `data/knowledge/`（独立的 dulwich 仓库），管理界面的修改提交到那里；需要合回程序自带的知识库时，用知识库包导出再导入开发仓库。部署后的机器不需要代码仓库也能维护知识库。

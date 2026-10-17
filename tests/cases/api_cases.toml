@@ -169,3 +169,97 @@ expect_status = 200
 expect_json = { "code" = 0, "data.devices" = [] }
 in_docs = true
 live = true
+
+[[case]]
+id = "kb-validate"
+title = { zh-CN = "校验知识库", en = "Validate the knowledge base", pt-BR = "Validar a base de conhecimento" }
+method = "POST"
+path = "/api/v1/kb/validate"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.errors" = 0 }
+in_docs = true
+live = true
+
+[[case]]
+id = "kb-release"
+title = { zh-CN = "发布知识库版本", en = "Publish a release", pt-BR = "Publicar uma versão" }
+method = "POST"
+path = "/api/v1/kb/releases"
+setup = "configured"
+auth = true
+body = { message = "primeira versão" }
+expect_status = 200
+expect_json = { "code" = 0, "data.version" = "0.1.0" }
+in_docs = true
+
+[[case]]
+id = "kb-releases"
+title = { zh-CN = "已发布的版本与提交历史", en = "Releases and history", pt-BR = "Versões e histórico" }
+method = "GET"
+path = "/api/v1/kb/releases"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.releases" = [] }
+in_docs = true
+live = true
+
+[[case]]
+id = "kb-diff-missing"
+title = { zh-CN = "对比不存在的版本", en = "Diff an unknown version", pt-BR = "Comparar versão inexistente" }
+method = "GET"
+path = "/api/v1/kb/diff?from=9.9.9"
+setup = "configured"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+in_docs = true
+
+[[case]]
+id = "kb-coverage"
+title = { zh-CN = "覆盖矩阵", en = "Coverage matrix", pt-BR = "Matriz de cobertura" }
+method = "GET"
+path = "/api/v1/kb/coverage"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0 }
+in_docs = true
+live = true
+
+[[case]]
+id = "review-list"
+title = { zh-CN = "审核队列", en = "Review queue", pt-BR = "Fila de revisão" }
+method = "GET"
+path = "/api/v1/review"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.total" = 0 }
+in_docs = true
+live = true
+
+[[case]]
+id = "review-decide-missing"
+title = { zh-CN = "审核不存在的条目", en = "Decide a missing item", pt-BR = "Decidir item inexistente" }
+method = "POST"
+path = "/api/v1/review/999"
+setup = "configured"
+auth = true
+body = { action = "approve" }
+expect_status = 404
+expect_json = { "code" = 1004 }
+in_docs = true
+
+[[case]]
+id = "review-bad-action"
+title = { zh-CN = "审核动作不合法", en = "Invalid review action", pt-BR = "Ação de revisão inválida" }
+method = "POST"
+path = "/api/v1/review/1"
+setup = "configured"
+auth = true
+body = { action = "maybe" }
+expect_status = 422
+expect_json = { "code" = 1001 }

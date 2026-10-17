@@ -1,0 +1,8 @@
+profile: t-base
+vendor: huawei
+family: huawei-vrp8
+match: {vendor: huawei, version: V800R025, fallback: "true"}
+entries:
+  bgp.peer.keepalive: {default: 60, cards: [t.peer-timer]}
+  bgp.peer.hold: {default: 180, cards: [t.peer-timer]}
+  bgp.peer.remote_as: {cards: [t.peer-as]}

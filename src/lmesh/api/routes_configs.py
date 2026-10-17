@@ -45,7 +45,10 @@ async def import_configs(
     store.upgrade(url)
     lang = lang_of(request)
     results = []
-    for r in importer.import_sources(sources, url, level):
+    from lmesh.core import kbservice
+
+    kb_root = kbservice.runtime_root(settings_of(request))
+    for r in importer.import_sources(sources, url, level, kb_root):
         d = r.as_dict()
         if not r.ok:
             d["error"] = i18n.t(r.error, lang)

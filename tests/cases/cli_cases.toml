@@ -140,3 +140,72 @@ args = ["--lang", "pt-BR", "config", "list"]
 setup = "configured"
 expect_exit = 0
 expect_stdout = ["Nenhuma configuração ainda"]
+
+[[case]]
+id = "kb-validate"
+title = { zh-CN = "校验知识库", en = "Validate the knowledge base", pt-BR = "Validar a base de conhecimento" }
+args = ["--output", "json", "kb", "validate"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.errors" = 0, "data.counts.profiles" = 3 }
+in_docs = true
+
+[[case]]
+id = "kb-release"
+title = { zh-CN = "发布知识库版本（版本号按差异自动建议）", en = "Publish a knowledge base release", pt-BR = "Publicar uma versão da base" }
+args = ["--output", "json", "kb", "release", "-m", "primeira versão"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.version" = "0.1.0", "data.tag" = "kb-v0.1.0" }
+in_docs = true
+
+[[case]]
+id = "kb-coverage"
+title = { zh-CN = "查看覆盖矩阵", en = "Show the coverage matrix", pt-BR = "Mostrar a matriz de cobertura" }
+args = ["--output", "json", "kb", "coverage", "--profile", "huawei-atn-v800r023"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.profiles" = ["huawei-atn-v800r023"] }
+in_docs = true
+
+[[case]]
+id = "kb-coverage-unknown"
+title = { zh-CN = "不存在的 Profile", en = "Unknown profile", pt-BR = "Profile inexistente" }
+args = ["kb", "coverage", "--profile", "nope"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["nope"]
+
+[[case]]
+id = "kb-diff-unknown"
+title = { zh-CN = "对比不存在的版本", en = "Diff an unknown version", pt-BR = "Comparar versão inexistente" }
+args = ["kb", "diff", "9.9.9"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["9.9.9"]
+in_docs = true
+
+[[case]]
+id = "kb-import-missing"
+title = { zh-CN = "导入不存在的知识库包", en = "Import a missing package", pt-BR = "Importar pacote inexistente" }
+args = ["kb", "import", "{out}/nope.zip"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["nope.zip"]
+
+[[case]]
+id = "review-list-empty"
+title = { zh-CN = "列出审核队列", en = "List the review queue", pt-BR = "Listar a fila de revisão" }
+args = ["--output", "json", "review", "list"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.total" = 0 }
+in_docs = true
+
+[[case]]
+id = "review-approve-missing"
+title = { zh-CN = "通过不存在的审核条目", en = "Approve a missing item", pt-BR = "Aprovar item inexistente" }
+args = ["--lang", "en", "review", "approve", "999"]
+setup = "configured"
+expect_exit = 1
+expect_stderr = ["Review item not found"]

@@ -66,6 +66,18 @@
 | `lmesh sanitize <文件\|目录\|zip> -o <输出> [--level basic\|strict] [--redact 词或正则]… [--map-out 文件]` | 配置脱敏，行数不变；`basic` 替换密文、口令、团体字、密钥块、公网 IP，`strict` 另外替换全部 IP（前缀保持）、主机名、描述、用户名、网元 ID；`--redact` 追加客户名、站点编码等组织相关的词；`--map-out` 把原值与替换值的对照写到本机文件（敏感） |
 | `lmesh config import <文件\|目录\|zip> [--level basic\|strict]` | 导入配置：识别厂商与版本 → 脱敏 → 按设备保存为新的配置版本；无法识别的文件单独报告 |
 | `lmesh config list` | 已导入的设备、软件版本、Profile 与配置版本数 |
+| `lmesh kb validate` | 校验知识库：YAML 格式、编号唯一、引用完整、语法、继承无环；有错误时退出码 1 |
+| `lmesh kb export -o <zip>` | 导出知识库包 |
+| `lmesh kb import <zip> [--dry-run]` | 导入知识库包：先校验；新文件直接加入，内容不同的文件作为冲突送审核队列，不直接覆盖 |
+| `lmesh kb release [--version X] [-m 说明]` | 发布知识库版本：校验 → 回归测试 → 写入版本号 → 打标签 `kb-v<版本>`；不填版本号时按差异建议（删除节点或改语义升主版本，新增升次版本，修正默认值升修订号） |
+| `lmesh kb releases` / `lmesh kb history` | 已发布的版本 / 提交历史 |
+| `lmesh kb diff <版本> [<版本>]` | 两个版本之间新增、删除、修改的节点与命令卡、默认值变化；只给一个时与当前工作区对比 |
+| `lmesh kb rollback <版本>` | 回滚到某个已发布版本（恢复文件后再提交一次，历史保留；需要确认，`--yes` 跳过） |
+| `lmesh kb coverage [--profile P]` | 覆盖矩阵：各 Profile（继承展开后）对 Schema 节点支持、不支持、未填写的数量 |
+| `lmesh review list [--kind K] [--status S]` / `review show <编号>` | 审核队列 |
+| `lmesh review approve <编号>… [--note]` / `review reject <编号>…` | 通过或驳回；通过时写回知识库并提交 |
+
+知识库命令操作的是运行时知识库（默认 `data/knowledge/`，首次使用时从程序自带的 `knowledge/` 复制，并作为独立的 Git 仓库管理）。
 
 同一台机器上，脱敏使用 `config/sanitize.key` 中的密钥：同一原值在不同批次里替换成同一个值，跨设备的引用关系保持。
 
@@ -196,5 +208,65 @@ JSON 输出中的关键字段：
 - `data.files.0.ok` = `false`
 - `data.files.2.vendor` = `"cisco"`
 - `data.files.3.profile` = `"huawei-atn-v800r023"`
+
+### 校验知识库
+
+```bash
+lmesh --output json kb validate
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.errors` = `0`
+- `data.counts.profiles` = `3`
+
+### 发布知识库版本（版本号按差异自动建议）
+
+```bash
+lmesh --output json kb release -m 'primeira versão'
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.version` = `"0.1.0"`
+- `data.tag` = `"kb-v0.1.0"`
+
+### 查看覆盖矩阵
+
+```bash
+lmesh --output json kb coverage --profile huawei-atn-v800r023
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.profiles` = `["huawei-atn-v800r023"]`
+
+### 对比不存在的版本
+
+```bash
+lmesh kb diff 9.9.9
+```
+
+退出码：`4`
+
+错误提示（stderr）包含：`9.9.9`
+
+### 列出审核队列
+
+```bash
+lmesh --output json review list
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.total` = `0`
 
 <!-- examples:end -->

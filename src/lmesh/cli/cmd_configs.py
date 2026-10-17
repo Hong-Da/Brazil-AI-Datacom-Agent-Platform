@@ -101,8 +101,12 @@ def register(app: typer.Typer, config_app: typer.Typer) -> None:
         if not source.exists():
             fail(c, output.EXIT_NOT_FOUND, c.t("common.not_found", path=source))
         url = require_db(c)
+        from lmesh.core import kbservice
+
+        kb_root = kbservice.runtime_root(config.load())
         results = [
-            r.as_dict() for r in importer.import_sources(list(importer.iter_sources(source)), url, _level(c, level))
+            r.as_dict()
+            for r in importer.import_sources(list(importer.iter_sources(source)), url, _level(c, level), kb_root)
         ]
         for r in results:
             if not r["ok"]:

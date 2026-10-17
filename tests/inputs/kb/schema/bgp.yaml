@@ -1,0 +1,10 @@
+domain: bgp
+nodes:
+  bgp.instance: {type: object, key: [asn], semantic: {zh-CN: BGP 实例, en: BGP instance}}
+  bgp.peer: {parent: bgp.instance, type: object, key: [address], semantic: {zh-CN: BGP 对等体}}
+  bgp.peer.remote_as: {parent: bgp.peer, type: asn, semantic: {zh-CN: 对端 AS 号}}
+  bgp.peer.keepalive: {parent: bgp.peer, type: integer, range: [0, 21845], semantic: {zh-CN: keepalive 间隔（秒）}}
+  bgp.peer.hold: {parent: bgp.peer, type: integer, range: [0, 65535], semantic: {zh-CN: hold 时间（秒）}}
+  bgp.peer.description: {parent: bgp.peer, type: text, semantic: {zh-CN: 对等体描述}}
+deps:
+  - {kind: prerequisite, from: bgp.peer.keepalive, to: bgp.peer.remote_as, note: 先配置对端 AS}

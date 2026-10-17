@@ -1,0 +1,37 @@
+# 华为 VRP8（ATN）的书写习惯与 0.1.0 功能域涉及的视图。
+# enter 是进入该视图的命令卡（M1-5 抽取命令卡后填写）；exit 是显式退出视图的命令。
+vendor: huawei
+separator: "#"       # 顶层块之间的分隔行
+end: return          # 配置结尾
+indent: 1            # 每级缩进一个空格
+root_view: system
+views:
+  system:
+    title: 系统视图
+  interface:
+    parent: system
+    title: 接口视图
+  vpn-instance:
+    parent: system
+    title: VPN 实例视图
+  vpn-instance-af-ipv4:
+    parent: vpn-instance
+    title: VPN 实例 IPv4 地址族视图
+  bgp:
+    parent: system
+    title: BGP 视图
+  bgp-af-ipv4:
+    parent: bgp
+    title: BGP-IPv4 单播地址族视图
+  bgp-af-vpnv4:
+    parent: bgp
+    title: BGP-VPNv4 地址族视图
+  bgp-vpn-instance:
+    parent: bgp
+    title: BGP-VPN 实例视图
+  bgp-af-vpn-instance-ipv4:
+    parent: bgp
+    title: BGP-VPN 实例 IPv4 地址族视图
+  route-policy:
+    parent: system
+    title: Route-Policy 视图

@@ -38,6 +38,17 @@
 | `POST /sanitize` | 是 | 脱敏一段配置文本：`{"text": "…", "level": "basic\|strict"}`；返回脱敏后的文本、厂商、各类替换数量和不含原值的替换报告 |
 | `POST /configs` | 是 | 上传并导入配置（multipart：一个或多个 `files`，可以是 zip；`level` 默认 basic） |
 | `GET /devices` | 是 | 已导入的设备与最新配置版本 |
+| `POST /kb/validate` | 是 | 校验知识库 |
+| `GET /kb/export` | 是 | 下载知识库包（zip） |
+| `POST /kb/import?dry_run=false` | 是 | 上传知识库包（multipart 字段 `file`）；冲突送审核队列 |
+| `GET /kb/releases` | 是 | 已发布的版本、提交历史、当前版本号 |
+| `POST /kb/releases` | 是 | 发布：`{"version": null, "message": "…"}`，版本号为空时自动建议 |
+| `GET /kb/diff?from=X&to=Y` | 是 | 版本对比；省略 `to` 时与工作区对比 |
+| `POST /kb/rollback` | 是 | 回滚：`{"ref": "0.1.0"}` |
+| `GET /kb/coverage?profile=P` | 是 | 覆盖矩阵 |
+| `GET /review?status=pending&kind=…` | 是 | 审核队列（含各类型待审数量） |
+| `GET /review/{id}` | 是 | 审核条目详情 |
+| `POST /review/{id}` | 是 | `{"action": "approve" \| "reject", "note": "", "edited": {…}}` |
 
 ## 示例
 
@@ -288,5 +299,174 @@ HTTP 状态：`200`；返回中的关键字段：
 
 - `code` = `0`
 - `data.devices` = `[]`
+
+### 校验知识库
+
+`POST /api/v1/kb/validate`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/kb/validate' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/kb/validate' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/kb/validate', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.errors` = `0`
+
+### 发布知识库版本
+
+`POST /api/v1/kb/releases`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/kb/releases' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "primeira versão"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/kb/releases' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"message": "primeira versão"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/kb/releases', headers={'Authorization': 'Bearer <令牌>'}, json={'message': 'primeira versão'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.version` = `"0.1.0"`
+
+### 已发布的版本与提交历史
+
+`GET /api/v1/kb/releases`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/kb/releases' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/kb/releases' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/kb/releases', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.releases` = `[]`
+
+### 对比不存在的版本
+
+`GET /api/v1/kb/diff?from=9.9.9`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/kb/diff?from=9.9.9' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/kb/diff?from=9.9.9' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/kb/diff?from=9.9.9', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`404`；返回中的关键字段：
+
+- `code` = `1004`
+
+### 覆盖矩阵
+
+`GET /api/v1/kb/coverage`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/kb/coverage' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/kb/coverage' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/kb/coverage', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+
+### 审核队列
+
+`GET /api/v1/review`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/review' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/review' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/review', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.total` = `0`
+
+### 审核不存在的条目
+
+`POST /api/v1/review/999`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/review/999' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"action": "approve"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/review/999' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"action": "approve"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/review/999', headers={'Authorization': 'Bearer <令牌>'}, json={'action': 'approve'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`404`；返回中的关键字段：
+
+- `code` = `1004`
 
 <!-- examples:end -->

@@ -1,0 +1,33 @@
+# Cisco IOS-XE（ASR 920）的书写习惯与 0.1.0 功能域涉及的配置模式。
+vendor: cisco
+separator: "!"
+end: end
+indent: 1
+root_view: system
+views:
+  system:
+    title: 全局配置模式 (config)
+  interface:
+    parent: system
+    title: 接口配置模式 (config-if)
+  service-instance:
+    parent: interface
+    title: 业务实例模式 (config-if-srv)
+    exit: [exit]
+  vrf:
+    parent: system
+    title: VRF 配置模式 (config-vrf)
+  vrf-af:
+    parent: vrf
+    title: VRF 地址族模式 (config-vrf-af)
+    exit: [exit-address-family]
+  router-bgp:
+    parent: system
+    title: BGP 配置模式 (config-router)
+  bgp-af:
+    parent: router-bgp
+    title: BGP 地址族模式 (config-router-af)
+    exit: [exit-address-family]
+  route-map:
+    parent: system
+    title: Route-map 配置模式 (config-route-map)

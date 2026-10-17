@@ -218,6 +218,10 @@ from lmesh.cli import cmd_configs  # noqa: E402
 
 cmd_configs.register(app, config_app)
 
+from lmesh.cli import cmd_kb  # noqa: E402
+
+cmd_kb.register(app)
+
 
 def main() -> None:
     if os.name == "nt":  # Windows 控制台输出中文与葡语

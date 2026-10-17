@@ -1,0 +1,29 @@
+domain: bgp
+cards:
+  - id: t.bgp
+    syntax: bgp <as-number>
+    view: system
+    enters_view: bgp
+    params: {as-number: {type: asn}}
+    maps: {as-number: bgp.instance}
+    status: reviewed
+  - id: t.peer-as
+    syntax: peer <peer> as-number <as-number>
+    view: bgp
+    params: {peer: {type: ipv4}, as-number: {type: asn}}
+    maps: {peer: bgp.peer, as-number: bgp.peer.remote_as}
+    status: reviewed
+  - id: t.peer-timer
+    syntax: peer <peer> timer keepalive <keepalive-time> hold <hold-time>
+    view: bgp
+    params:
+      peer: {type: ipv4}
+      keepalive-time: {type: integer, range: [0, 21845]}
+      hold-time: {type: integer, range: [0, 65535]}
+    default: keepalive 60, hold 180
+    maps: {peer: bgp.peer, keepalive-time: bgp.peer.keepalive, hold-time: bgp.peer.hold}
+  - id: t.peer-desc
+    syntax: peer <peer> description <text>
+    view: bgp
+    params: {peer: {type: ipv4}, text: {type: text}}
+    maps: {peer: bgp.peer, text: bgp.peer.description}

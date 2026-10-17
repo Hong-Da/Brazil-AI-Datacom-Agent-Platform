@@ -13,6 +13,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from lmesh import __version__, paths
 from lmesh.api.common import E_INTERNAL, E_NOT_FOUND, E_PARAM, ApiError, error_response
 from lmesh.api.routes_configs import router as configs_router
+from lmesh.api.routes_kb import router as kb_router
 from lmesh.api.routes_system import router as system_router
 from lmesh.core import config
 
@@ -58,6 +59,7 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
 
     app.include_router(system_router, prefix=API_PREFIX, tags=["system"])
     app.include_router(configs_router, prefix=API_PREFIX, tags=["configs"])
+    app.include_router(kb_router, prefix=API_PREFIX, tags=["knowledge"])
     _mount_web(app)
     return app
 
