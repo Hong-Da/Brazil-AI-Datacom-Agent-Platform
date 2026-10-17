@@ -1,0 +1,33 @@
+<!-- project-dev-spec:begin 由 project-dev-spec 生成；要调整请修改选项后重新生成，区块外的内容不受影响 -->
+## 项目约定
+- 文档：需求以 DevelopDocs/透网（LucidMesh）开发文档.md 为准（只读）；实现以 docs/project-spec.md 为准
+- 先想后做：动手前想清楚做法，有待确认点先问；结论写入项目规范
+- 文件位置：配置 config/、数据 data/、日志 logs/、缓存 cache/、临时文件 tmp/ 都在项目内，不写入用户目录或系统临时目录
+- DevelopDocs/ 是单独的本地 git 仓库，主仓库忽略它，不推送到远程
+- 新需求先登记到需求清单（REQ 编号），再决定放进哪个里程碑
+- 替用户做的决定（自动模式、用户说“你定”、开发中的取舍）都用 log_decision.py 记入 DevelopDocs/decisions/，写明依据和备选项，不只在对话中说明
+- 技术栈：Python、Node / TypeScript；各部分的目录、工具和命令见项目规范“技术栈”一节
+- 执行构建、测试、运行命令前先加载 scripts/env（缓存与工具链都在项目内的 .toolchain/）
+- 兼容 Windows 与 Linux：路径用标准库拼接，脚本成对提供 .bat 与 .sh
+- .bat 用 UTF-8 无 BOM + chcp 65001 + CRLF；.ps1 用 UTF-8 带 BOM
+- 编码遵循 Karpathy guidelines
+- 版本：里程碑验收后提醒打次版本号（0.x.0）；开发阶段完成、新需求、问题修复后提醒打修订号（0.x.y）；先问再打，不能遗漏
+- 生成的文档使用中文，并使用全角标点
+- 界面文案必须包含这些语言，缺一不可：中文、English、Português (Brasil)
+- 界面支持自动 / 明 / 暗主题，新组件都要检查暗色
+- 界面用 frontend-design 设计
+- 界面先在 DevelopDocs/ui-preview/ 做预览页给用户确认，全部通过后再编码
+- 默认监听 0.0.0.0:9000；密码、令牌不写入日志和任何文件
+- 报告语言：中英双语，页面分别提供下载链接
+- 新增配置项必须有默认值，并同步更新首次运行向导和 config.example（TOML）
+- 日志写入 logs/，保留 14 天，不记录敏感信息
+- CLI 与 API 共用 core；CLI 支持 --output json，退出码见 docs/cli.md
+- API 前缀 /api/v1，认证方式：API 令牌；调用文档示例来自测试用例
+- 每完成一项功能就补测试（单元测试、CLI 测试、API 测试、文档测试）并更新调用文档；目录变化时更新 README
+- Linux 环境：root@linux-test-host，工作目录 ~/lmesh/（密码不记录）
+- 开工前和每步完成后展示里程碑进度，并更新 DevelopDocs/progress/progress.html
+- 版本号：M1 开发期间用 0.0.x，M1 验收打 0.1.0，之后 M2–M5 依次对应 0.2.0–0.5.0
+- 确定性结论（解析、对比、翻译、校验）由代码在图上计算；AI 输出一律先入图经代码校验再展示；未配置 AI 时核心功能照常可用
+- 知识库：命令卡是唯一事实来源，Schema 由命令卡归并、Profile 由命令卡汇总；YAML 用 ruamel.yaml 写回，保留注释和顺序；功能域外的配置行作为原文节点原样保留
+- 真实设备配置只放在 DevelopDocs/；进入 knowledge/samples/ 或 tests/ 的样本必须先用 lmesh sanitize 脱敏，发给 AI 的配置也一律先脱敏
+<!-- project-dev-spec:end -->
