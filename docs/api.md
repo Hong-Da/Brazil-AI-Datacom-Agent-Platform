@@ -46,8 +46,14 @@
 | `GET /kb/diff?from=X&to=Y` | 是 | 版本对比；省略 `to` 时与工作区对比 |
 | `POST /kb/rollback` | 是 | 回滚：`{"ref": "0.1.0"}` |
 | `GET /kb/coverage?profile=P` | 是 | 覆盖矩阵 |
+| `POST /kb/ingest` | 是 | 导入产品文档：`{"doc_dir": "服务器上的目录", "rules": "huawei-vrp8-md", "domains": null, "version": "", "use_ai": false}`；后台任务，返回 `task_id` |
+| `GET /tasks/{id}` | 是 | 耗时任务的状态（queued / running / done / failed）、进度、结果 |
 | `GET /review?status=pending&kind=…` | 是 | 审核队列（含各类型待审数量） |
 | `GET /review/{id}` | 是 | 审核条目详情 |
+| `POST /review/batch` | 是 | 批量通过：`{"kind": "card", "contains": null, "rules": null}` |
+| `GET /ai/status` | 是 | AI 是否已配置、各任务使用的模型 |
+| `POST /ai/test` | 是 | 测试 AI 接口（未配置时 409） |
+| `GET /ai/calls?limit=100` | 是 | AI 调用记录 |
 | `POST /review/{id}` | 是 | `{"action": "approve" \| "reject", "note": "", "edited": {…}}` |
 
 ## 示例
@@ -468,5 +474,126 @@ print(r.status_code, r.json())
 HTTP 状态：`404`；返回中的关键字段：
 
 - `code` = `1004`
+
+### 导入不存在的文档目录
+
+`POST /api/v1/kb/ingest`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/kb/ingest' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"doc_dir": "/no/such/dir", "rules": "huawei-vrp8-md"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/kb/ingest' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"doc_dir": "/no/such/dir", "rules": "huawei-vrp8-md"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/kb/ingest', headers={'Authorization': 'Bearer <令牌>'}, json={'doc_dir': '/no/such/dir', 'rules': 'huawei-vrp8-md'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`404`；返回中的关键字段：
+
+- `code` = `1004`
+
+### 查询不存在的任务
+
+`GET /api/v1/tasks/nope`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/tasks/nope' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/tasks/nope' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/tasks/nope', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`404`；返回中的关键字段：
+
+- `code` = `1004`
+
+### 批量通过
+
+`POST /api/v1/review/batch`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/review/batch' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"kind": "card", "contains": "vpn-target"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/review/batch' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"kind": "card", "contains": "vpn-target"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/review/batch', headers={'Authorization': 'Bearer <令牌>'}, json={'kind': 'card', 'contains': 'vpn-target'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.approved` = `0`
+
+### AI 状态
+
+`GET /api/v1/ai/status`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/ai/status' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/ai/status' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/ai/status', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.configured` = `false`
+
+### 测试 AI 接口（未配置）
+
+`POST /api/v1/ai/test`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/ai/test' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/ai/test' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/ai/test', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`409`；返回中的关键字段：
+
+- `code` = `1003`
 
 <!-- examples:end -->

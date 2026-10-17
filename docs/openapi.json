@@ -3,7 +3,7 @@
   "info": {
     "title": "LucidMesh API",
     "description": "透网 LucidMesh 远程 API。除 /health 与首次运行向导外，所有接口都需要 Authorization: Bearer <令牌>。",
-    "version": "0.0.2"
+    "version": "0.0.3"
   },
   "paths": {
     "/api/v1/health": {
@@ -218,6 +218,227 @@
                   "additionalProperties": true,
                   "type": "object",
                   "title": "Response Devices Api V1 Devices Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks/{task_id}": {
+      "get": {
+        "tags": [
+          "tasks-ai"
+        ],
+        "summary": "耗时任务的状态、进度与结果",
+        "operationId": "task_get_api_v1_tasks__task_id__get",
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Task Get Api V1 Tasks  Task Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/ingest": {
+      "post": {
+        "tags": [
+          "tasks-ai"
+        ],
+        "summary": "导入产品文档并抽取命令卡（后台任务，返回任务编号）",
+        "operationId": "kb_ingest_api_v1_kb_ingest_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IngestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Kb Ingest Api V1 Kb Ingest Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/review/batch": {
+      "post": {
+        "tags": [
+          "tasks-ai"
+        ],
+        "summary": "批量通过（按类型、标题关键字、抽取规则筛选）",
+        "operationId": "review_batch_api_v1_review_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Review Batch Api V1 Review Batch Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/status": {
+      "get": {
+        "tags": [
+          "tasks-ai"
+        ],
+        "summary": "AI 是否已配置、各任务使用的模型",
+        "operationId": "ai_status_api_v1_ai_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Ai Status Api V1 Ai Status Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/test": {
+      "post": {
+        "tags": [
+          "tasks-ai"
+        ],
+        "summary": "测试 AI 接口是否可用",
+        "operationId": "ai_test_api_v1_ai_test_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Ai Test Api V1 Ai Test Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/calls": {
+      "get": {
+        "tags": [
+          "tasks-ai"
+        ],
+        "summary": "AI 调用记录",
+        "operationId": "ai_calls_api_v1_ai_calls_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Ai Calls Api V1 Ai Calls Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -716,6 +937,39 @@
   },
   "components": {
     "schemas": {
+      "BatchBody": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "title": "Kind",
+            "default": "card"
+          },
+          "contains": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contains"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules"
+          }
+        },
+        "type": "object",
+        "title": "BatchBody"
+      },
       "Body_import_configs_api_v1_configs_post": {
         "properties": {
           "files": {
@@ -802,6 +1056,48 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "IngestBody": {
+        "properties": {
+          "doc_dir": {
+            "type": "string",
+            "title": "Doc Dir"
+          },
+          "rules": {
+            "type": "string",
+            "title": "Rules"
+          },
+          "domains": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domains"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": ""
+          },
+          "use_ai": {
+            "type": "boolean",
+            "title": "Use Ai",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "doc_dir",
+          "rules"
+        ],
+        "title": "IngestBody"
       },
       "ReleaseBody": {
         "properties": {

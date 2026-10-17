@@ -1,0 +1,23 @@
+# 测试用抽取规则：与 knowledge/extractors/huawei-vrp8-md.yaml 写法相同，只是文件路径换成测试文档
+name: huawei-test
+family: huawei-vrp8
+sections: {syntax: [Format], params: [Parameters], views: [Views], function: [Function]}
+default_regex: 'By default[^.]*\.'
+negative_prefix: undo
+exclude_titles: '^(display|reset)\b'
+enum_marker: enumerated type
+enum_item: '(?:^|\s)-\s*([\w\-]+)\s*:'
+views_map:
+  - {match: '^System view$', view: system}
+  - {match: '^BGP view$', view: bgp}
+  - {match: '^VPN instance view$', view: vpn-instance}
+  - {match: '^VPN instance IPv4 address family view$', view: vpn-instance-af-ipv4}
+enters:
+  - {view: system, syntax: '^ip vpn-instance\b', enters: vpn-instance}
+param_types:
+  - {name: '(ipv4-address)$', type: ipv4}
+  - {name: 'vpn-target', type: community}
+  - {value: 'integer[^.]*?ranging from\s*(\d+)\s*to\s*(\d+)', type: integer, range_groups: [1, 2]}
+domains:
+  vrf:
+    - {path: '*.md', sections: [Basic Commands]}

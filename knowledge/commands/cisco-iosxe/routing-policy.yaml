@@ -1,0 +1,561 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: routing-policy
+cards:
+  - id: cisco-iosxe.ip-as-path-access-list
+    syntax: ip as-path access-list <acl-number> { permit | deny } <regexp>
+    view: system
+    undo: no ip as-path access-list <acl-number>
+    params:
+      acl-number:
+        type: word
+      regexp:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: No autonomous system path filter is created.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip as-path access-list.md
+      title: ip as-path access-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-community-list.1
+    syntax: Standard Community Lists
+    view: system
+    default: BGP community exchange is not enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip community-list.md
+      title: ip community-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-community-list.2
+    syntax: 'ip community-list { <standard> | standard <list-name> } { deny | permit } [ <community-number> ] [ <AA> : <NN> ] [ internet ] [ local-as ] [ no-advertise ] [ no-export ] [ gshut ]'
+    view: system
+    undo: no ip community-list { <standard> | standard <list-name> }
+    params:
+      standard:
+        type: word
+      list-name: &id001
+        type: word
+      community-number:
+        type: word
+      AA:
+        type: word
+      NN:
+        type: word
+    default: BGP community exchange is not enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip community-list.md
+      title: ip community-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-community-list.3
+    syntax: Expanded Community Lists
+    view: system
+    default: BGP community exchange is not enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip community-list.md
+      title: ip community-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-community-list.4
+    syntax: ip community-list { <expanded> | expanded <list-name> } { deny | permit } <regexp>
+    view: system
+    undo: no ip community-list { <expanded> | expanded <list-name> }
+    params:
+      expanded:
+        type: word
+      list-name: *id001
+      regexp:
+        type: word
+    default: BGP community exchange is not enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip community-list.md
+      title: ip community-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-extcommunity-list.1
+    syntax: Global Configuration Mode CLI
+    view: system
+    default: Extended community exchange is not enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip extcommunity-list.md
+      title: ip extcommunity-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-extcommunity-list.2
+    syntax: ip extcommunity-list { <expanded-list> [ permit | deny ] [ <regular-expression> ] | expanded <list-name> [ permit | deny ] [ <regular-expression> ] | <standard-list> [ permit | deny ] [ rt <value> ] [ soo <value> ] | standard <list-name> [ permit | deny ] [ rt <value> ] [ soo <value> ] }
+    view: system
+    undo: no ip extcommunity-list { <expanded-list> | expanded <list-name> | <standard-list> | standard <list-name> }
+    params:
+      expanded-list: &id002
+        type: word
+      regular-expression: &id005
+        type: word
+      list-name: &id003
+        type: word
+      standard-list: &id004
+        type: word
+      value: &id009
+        type: word
+    default: Extended community exchange is not enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip extcommunity-list.md
+      title: ip extcommunity-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-extcommunity-list.3
+    syntax: ip extcommunity-list { <expanded-list> | expanded <list-name> | <standard-list> | standard <list-name> }
+    view: system
+    undo: no ip extcommunity-list { <expanded-list> | expanded <list-name> | <standard-list> | standard <list-name> }
+    params:
+      expanded-list: *id002
+      list-name: *id003
+      standard-list: *id004
+    default: Extended community exchange is not enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip extcommunity-list.md
+      title: ip extcommunity-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-extcommunity-list.4
+    syntax: Expanded IP Extended Community-List Configuration Mode CLI
+    view: system
+    default: Extended community exchange is not enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip extcommunity-list.md
+      title: ip extcommunity-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-extcommunity-list.5
+    syntax: '[ <sequence-number> ] { deny [ <regular-expression> ] | permit [ <regular-expression> ] | resequence [ <starting-sequence> ] [ <sequence-increment> ] }'
+    view: system
+    undo: no { <sequence-number> | deny [ <regular-expression> ] | permit [ <regular-expression> ] | resequence [ <starting-sequence> ] [ <sequence-increment> ] }
+    params:
+      sequence-number: &id006
+        type: word
+      regular-expression: *id005
+      starting-sequence: &id007
+        type: word
+      sequence-increment: &id008
+        type: word
+    default: Extended community exchange is not enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip extcommunity-list.md
+      title: ip extcommunity-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-extcommunity-list.6
+    syntax: default { <sequence-number> | deny [ <regular-expression> ] | permit [ <regular-expression> ] | resequence [ <starting-sequence> ] [ <sequence-increment> ] }
+    view: system
+    params:
+      sequence-number: *id006
+      regular-expression: *id005
+      starting-sequence: *id007
+      sequence-increment: *id008
+    default: Extended community exchange is not enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip extcommunity-list.md
+      title: ip extcommunity-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-extcommunity-list.7
+    syntax: Standard IP Extended Community-List Configuration Mode CLI
+    view: system
+    default: Extended community exchange is not enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip extcommunity-list.md
+      title: ip extcommunity-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-extcommunity-list.8
+    syntax: default { <sequence-number> | deny [ rt <value> ] [ soo <value> ] | permit [ rt <value> ] [ soo <value> ] | resequence [ <starting-sequence> ] [ <sequence-increment> ] }
+    view: system
+    params:
+      sequence-number: *id006
+      value: *id009
+      starting-sequence: *id007
+      sequence-increment: *id008
+    default: Extended community exchange is not enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip extcommunity-list.md
+      title: ip extcommunity-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-prefix-list-description
+    syntax: ip prefix-list <list-name> description <text>
+    view: system
+    undo: no ip prefix-list <list-name> description
+    params:
+      list-name:
+        type: word
+      text:
+        type: text
+    default: No default behavior or values
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip prefix-list description.md
+      title: ip prefix-list description
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-prefix-list-sequence-number
+    syntax: ip prefix-list sequence-number
+    view: system
+    undo: no ip prefix-list sequence-number
+    default: Default sequence numbers are generated when an IP prefix list is configured.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip prefix-list sequence-number.md
+      title: ip prefix-list sequence-number
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-prefix-list
+    syntax: ip prefix-list { <list-name> [ seq <number> ] { deny | permit } <network> / <length> [ ge <ge-length> ] [ le <le-length> ] | description <description> | sequence-number }
+    view: system
+    undo: no ip prefix-list { <list-name> [ seq <number> ] [ { deny | permit } <network> / <length> [ ge <ge-length> ] [ le <le-length> ] ] | description <description> | sequence-number }
+    params:
+      list-name:
+        type: word
+      number:
+        type: integer
+      network:
+        type: word
+      length:
+        type: mask-length
+      ge-length:
+        type: mask-length
+      le-length:
+        type: mask-length
+      description:
+        type: text
+    default: No prefix lists or prefix-list entries are created.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/ip prefix-list.md
+      title: ip prefix-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.match-as-path
+    syntax: match as-path <path-list-number>
+    view: route-map
+    undo: no match as-path <path-list-number>
+    params:
+      path-list-number:
+        type: integer
+    default: No matching occurs on an autonomous system path specified by an access list.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/match as-path.md
+      title: match as-path
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.match-community
+    syntax: match community { <standard-list-number> | <expanded-list-number> | <community-list-name> [ exact ] }
+    view: route-map
+    undo: no match community { <standard-list-number> | <expanded-list-number> | <community-list-name> [ exact ] }
+    params:
+      standard-list-number:
+        type: word
+      expanded-list-number:
+        type: word
+      community-list-name:
+        type: word
+    default: No community list is matched by the route map.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/match community.md
+      title: match community
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.match-extcommunity
+    syntax: match extcommunity <extended-community-list-name>
+    view: route-map
+    undo: no match extcommunity <extended-community-list-name>
+    params:
+      extended-community-list-name:
+        type: word
+    default: BGP and EIGRP extended community list attributes are not matched.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/match extcommunity.md
+      title: match extcommunity
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.match-ip-address
+    syntax: match ip address { <access-list-number> [ <access-list-number> . . . | <access-list-name> . . . ] | <access-list-name> [ <access-list-number> . . . | <access-list-name> ] | prefix-list <prefix-list-name> [ <prefix-list-name> . . . ] }
+    view: route-map
+    undo: no match ip address { <access-list-number> [ <access-list-number> . . . | <access-list-name> . . . ] | <access-list-name> [ <access-list-number> . . . | <access-list-name> ] | prefix-list <prefix-list-name> [ <prefix-list-name> . . . ] }
+    params:
+      access-list-number:
+        type: integer
+      access-list-name:
+        type: integer
+      prefix-list-name:
+        type: word
+    default: No access list numbers or prefix lists are specified.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/match ip address.md
+      title: match ip address
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.route-map
+    syntax: route-map <map-tag> [ permit | deny ] [ <sequence-number> ] ordering-seq <sequence-name>
+    view: system
+    enters_view: route-map
+    undo: no route-map <map-tag> [ permit | deny ] [ <sequence-number> ] ordering-seq <sequence-name>
+    params:
+      map-tag:
+        type: word
+      sequence-number:
+        type: word
+      sequence-name:
+        type: word
+    default: Policy routing is not enabled and conditions for redistributing routes from one routing protocol to another routing protocol are not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/route-map.md
+      title: route-map
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-as-path.1
+    syntax: set as-path { tag | prepend <as-path-string> }
+    view: route-map
+    undo: no set as-path { tag | prepend <as-path-string> }
+    params:
+      as-path-string:
+        type: text
+    default: An autonomous system path is not modified automatically when you manually set an OSPF route tag. You must convert the OSPF route tag into an autonomous system path.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set as-path.md
+      title: set as-path
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-as-path.2
+    syntax: The set as-path command and the associated no command have no effect when the OSPF route tag is automatically set through IBGP. When the ASN is received from an IBGP peer, the ASN is set as the OSPF route tag and converted into an autonomous system path for BGP routers.
+    view: route-map
+    default: An autonomous system path is not modified automatically when you manually set an OSPF route tag. You must convert the OSPF route tag into an autonomous system path.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set as-path.md
+      title: set as-path
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-comm-list-delete
+    syntax: set comm-list { <community-list-number> | <community-list-name> } delete
+    view: route-map
+    undo: no set comm-list { <community-list-number> | <community-list-name> } delete
+    params:
+      community-list-number:
+        type: word
+      community-list-name:
+        type: word
+    default: No communities are removed.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set comm-list delete.md
+      title: set comm-list delete
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-community
+    syntax: set community { <community-number> [ additive ] [ <well-known-community> ] | none }
+    view: route-map
+    undo: no set community
+    params:
+      community-number:
+        type: word
+      well-known-community:
+        type: word
+    default: No BGP communities attributes exist.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set community.md
+      title: set community
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-extcommunity-rt
+    syntax: set extcommunity rt { <extended-community-value-1> [ . . . <extended-community-value-n> ] | range <start-range-value> <end-range-value> } [ additiive ]
+    view: route-map
+    undo: no set extcommunity
+    params:
+      extended-community-value-1:
+        type: integer
+        range:
+          - 65536
+          - 4294967295
+      extended-community-value-n:
+        type: word
+      start-range-value:
+        type: word
+      end-range-value:
+        type: word
+    default: No RT extended community attributes are set.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set extcommunity rt.md
+      title: set extcommunity rt
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-ip-next-hop
+    syntax: set ip next-hop <ip-address> [ <ip-address> ] [ peer-address ]
+    view: route-map
+    undo: no set ip next-hop <ip-address> [ <ip-address> ] [ peer-address ]
+    params:
+      ip-address:
+        type: ipv4
+    default: This command is disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set ip next-hop (BGP).md
+      title: set ip next-hop (BGP)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-ip-next-hop.1
+    syntax: set ip next-hop { <ip-address> [ <ip-address> ] | dynamic dhcp | encapsulate l3vpn <profile-name> | peer-address | recursive [ global | vrf <vrf-name> ] <ip-address> | verify-availability [ <ip-address> <sequence> track <track-object-number> ] }
+    view: route-map
+    undo: no set ip next-hop { <ip-address> [ <ip-address> ] | dynamic dhcp | encapsulate l3vpn <profile-name> | peer-address | recursive [ global | vrf <vrf-name> ] <ip-address> | verify-availability [ <ip-address> <sequence> track <track-object-number> ] }
+    params:
+      ip-address: &id010
+        type: ipv4
+      profile-name:
+        type: word
+      vrf-name:
+        type: word
+      sequence:
+        type: word
+      track-object-number:
+        type: word
+    default: Packets are forwarded to the next-hop router in the routing table.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set ip next-hop.md
+      title: set ip next-hop
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-ip-next-hop.2
+    syntax: Catalyst 3850 Switches
+    view: route-map
+    default: Packets are forwarded to the next-hop router in the routing table.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set ip next-hop.md
+      title: set ip next-hop
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-ip-next-hop.3
+    syntax: set ip next-hop <ip-address> [ <ip-address> ]
+    view: route-map
+    undo: no set ip next-hop { <ip-address> [ <ip-address> ] | dynamic dhcp | encapsulate l3vpn <profile-name> | peer-address | recursive [ global | vrf <vrf-name> ] <ip-address> | verify-availability [ <ip-address> <sequence> track <track-object-number> ] }
+    params:
+      ip-address: *id010
+    default: Packets are forwarded to the next-hop router in the routing table.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set ip next-hop.md
+      title: set ip next-hop
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-local-preference
+    syntax: set local-preference <number>
+    view: route-map
+    undo: no set local-preference
+    params:
+      number:
+        type: integer
+    default: Preference value of 100
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set local-preference.md
+      title: set local-preference
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-metric
+    syntax: set metric <metric-value>
+    view: route-map
+    undo: no set metric <metric-value>
+    params:
+      metric-value:
+        type: integer
+    default: The dynamically learned metric value.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set metric (BGP-OSPF-RIP).md
+      title: set metric (BGP-OSPF-RIP)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-origin
+    syntax: set origin { igp | egp <autonomous-system-number> | incomplete }
+    view: route-map
+    undo: no set origin { igp | egp <autonomous-system-number> | incomplete }
+    params:
+      autonomous-system-number:
+        type: asn
+    default: The origin of the route is based on the path information of the route in the main IP routing table.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set origin (BGP).md
+      title: set origin (BGP)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-weight
+    syntax: set weight <number>
+    view: route-map
+    undo: no set weight <number>
+    params:
+      number:
+        type: integer
+    default: The weight is not changed by the specified route map.
+    source:
+      doc: cisco-iosxe-md
+      file: routing-policy/set weight.md
+      title: set weight
+      line: 5
+      version: '17.15'
+    status: draft

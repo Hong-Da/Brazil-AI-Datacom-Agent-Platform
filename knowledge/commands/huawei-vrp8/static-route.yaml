@@ -1,0 +1,479 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: static-route
+cards:
+  - id: huawei-vrp8.ip-route-recursive-lookup-arp-vlink-direct-route-protocol-static
+    syntax: ip route recursive-lookup arp vlink-direct-route protocol static
+    view: system
+    undo: undo ip route recursive-lookup arp vlink-direct-route protocol static
+    default: By default, static routes cannot recurse to ARP Vlink routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route recursive-lookup arp vlink-direct-route protocol static
+      line: 416
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-recursive-lookup-bgp-vpnv4-route
+    syntax: ip route recursive-lookup bgp-vpnv4-route { enable | disable }
+    view: system
+    undo: undo ip route recursive-lookup bgp-vpnv4-route disable
+    default: By default, a static route can recurse to a remotely leaked VPN route.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route recursive-lookup bgp-vpnv4-route
+      line: 473
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-recursive-lookup-inherit-label-route-enable
+    syntax: ip route recursive-lookup inherit-label-route enable
+    view: system
+    undo: undo ip route recursive-lookup inherit-label-route enable
+    default: By default, non-static routes cannot recurse to remotely leaked VPN routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route recursive-lookup inherit-label-route enable
+      line: 539
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-bfd.1
+    syntax: ip route-static bfd { <interface-name> | <interface-type> <interface-number> } { <nexthop-address> | dhcp } [ local-address <address> ] [ min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> ]
+    view: system
+    undo: undo ip route-static bfd { <interface-name> | <interface-type> <interface-number> } { <nexthop-address> | dhcp }
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      nexthop-address: &id001
+        type: ipv4
+      address: &id002
+        type: ipv4
+      min-rx-interval: &id003
+        type: integer
+        range:
+          - 3
+          - 20000
+      min-tx-interval: &id004
+        type: integer
+        range:
+          - 3
+          - 20000
+      multiplier: &id005
+        type: integer
+        range:
+          - 3
+          - 50
+    default: By default, BFD parameters of a static route are not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static bfd
+      line: 949
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-bfd.2
+    syntax: ip route-static bfd [ vpn-instance <vpn-instance-name> ] <nexthop-address> local-address <address> [ min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> ]
+    view: system
+    undo: undo ip route-static bfd [ vpn-instance <vpn-instance-name> ] <nexthop-address>
+    params:
+      vpn-instance-name:
+        type: word
+      nexthop-address: *id001
+      address: *id002
+      min-rx-interval: *id003
+      min-tx-interval: *id004
+      multiplier: *id005
+    default: By default, BFD parameters of a static route are not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static bfd
+      line: 949
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-default-bfd
+    syntax: ip route-static default-bfd { min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> }
+    view: system
+    undo: undo ip route-static default-bfd
+    params:
+      min-rx-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      min-tx-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      multiplier:
+        type: integer
+        range:
+          - 3
+          - 50
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static default-bfd
+      line: 1032
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-default-preference
+    syntax: ip route-static default-preference <preference>
+    view: system
+    undo: undo ip route-static default-preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the default priority of static routes is 60.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static default-preference
+      line: 1096
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-frr
+    syntax: ip route-static frr
+    view: system
+    undo: undo ip route-static frr
+    default: By default, FRR is disabled for an IPv4 static route.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static frr
+      line: 1153
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-frr-vpn-instance.1
+    syntax: ip route-static frr vpn-instance <vpn-instance-name>
+    view: system
+    undo: undo ip route-static frr vpn-instance <vpn-instance-name>
+    params:
+      vpn-instance-name: &id006
+        type: word
+    default: By default, FRR is disabled for an IPv4 static route.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static frr vpn-instance
+      line: 1204
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-frr-vpn-instance.2
+    syntax: ip rpf-route-static frr [ vpn-instance <vpn-instance-name> ]
+    view: system
+    undo: undo ip rpf-route-static frr [ vpn-instance <vpn-instance-name> ]
+    params:
+      vpn-instance-name: *id006
+    default: By default, FRR is disabled for an IPv4 static route.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static frr vpn-instance
+      line: 1204
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-recursive-lookup-inherit-label-route-segment-routing-ipv6
+    syntax: ip route-static recursive-lookup inherit-label-route segment-routing-ipv6
+    view: system
+    undo: undo ip route-static recursive-lookup inherit-label-route segment-routing-ipv6
+    default: By default, IPv4 static routes cannot recurse to SRv6 routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static recursive-lookup inherit-label-route segment-routing-ipv6
+      line: 1372
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-recursive-lookup-tunnel
+    syntax: ip route-static recursive-lookup tunnel [ [ ip-prefix <ip-prefix-name> ] [ tunnel-policy <policy-name> ] ]
+    view: system
+    undo: undo ip route-static recursive-lookup tunnel
+    params:
+      ip-prefix-name:
+        type: word
+      policy-name:
+        type: word
+    default: By default, static routes cannot recurse to tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static recursive-lookup tunnel
+      line: 1423
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-selection-rule-compare-inherit-cost
+    syntax: ip route-static selection-rule compare-inherit-cost
+    view: system
+    undo: undo ip route-static selection-rule compare-inherit-cost
+    default: By default, the device is disabled from comparing the costs of inherited routes during static route selection.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static selection-rule compare-inherit-cost
+      line: 1492
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-selection-rule-relay-depth
+    syntax: ip route-static selection-rule relay-depth
+    view: system
+    undo: undo ip route-static selection-rule relay-depth
+    default: By default, static routes are not selected based on recursion depths.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static selection-rule relay-depth
+      line: 1543
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-track-bfd-session-admindown-invalid
+    syntax: ip route-static track bfd-session session-name <bfd-name> admindown invalid
+    view: system
+    undo: undo ip route-static track bfd-session [ session-name <bfd-name> ] admindown invalid
+    params:
+      bfd-name:
+        type: word
+    default: By default, a static route can still be selected by the Router even though the BFD session associated with it is in the AdminDown state.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static track bfd-session admindown invalid
+      line: 1722
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-recursive-lookup-inherit-label-route-enable
+    syntax: ipv6 route recursive-lookup inherit-label-route enable
+    view: system
+    undo: undo ipv6 route recursive-lookup inherit-label-route enable
+    default: By default, IPv6 routes cannot recurse to remotely leaked VPN routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route recursive-lookup inherit-label-route enable
+      line: 2147
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-recursive-lookup-nd-vlink-direct-route-protocol-static
+    syntax: ipv6 route recursive-lookup nd vlink-direct-route protocol static
+    view: system
+    undo: undo ipv6 route recursive-lookup nd vlink-direct-route protocol static
+    default: By default, IPv6 static routes are not recursed to ND Vlink direct routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route recursive-lookup nd vlink-direct-route protocol static
+      line: 2198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-bfd.1
+    syntax: ipv6 route-static bfd { <interface-name> | <interface-type> <interface-number> } <nexthop-address> [ local-address <ipv6-address> ] [ min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> ]
+    view: system
+    undo: undo ipv6 route-static bfd { <interface-name> | <interface-type> <interface-number> } <nexthop-address>
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      nexthop-address: &id007
+        type: ipv4
+      ipv6-address: &id008
+        type: word
+      min-rx-interval: &id009
+        type: integer
+        range:
+          - 3
+          - 20000
+      min-tx-interval: &id010
+        type: integer
+        range:
+          - 3
+          - 20000
+      multiplier: &id011
+        type: integer
+    default: By default, no BFD parameters are configured for an IPv6 static route.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static bfd
+      line: 2382
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-bfd.2
+    syntax: ipv6 route-static bfd [ vpn-instance <vpn-instance-name> ] <nexthop-address> local-address <ipv6-address> [ min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> ]
+    view: system
+    undo: undo ipv6 route-static bfd [ vpn-instance <vpn-instance-name> ] <nexthop-address>
+    params:
+      vpn-instance-name:
+        type: word
+      nexthop-address: *id007
+      ipv6-address: *id008
+      min-rx-interval: *id009
+      min-tx-interval: *id010
+      multiplier: *id011
+    default: By default, no BFD parameters are configured for an IPv6 static route.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static bfd
+      line: 2382
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-default-bfd
+    syntax: ipv6 route-static default-bfd { min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> }
+    view: system
+    undo: undo ipv6 route-static default-bfd
+    params:
+      min-rx-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      min-tx-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      multiplier:
+        type: integer
+        range:
+          - 3
+          - 50
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static default-bfd
+      line: 2464
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-default-preference
+    syntax: ipv6 route-static default-preference <preference>
+    view: system
+    undo: undo ipv6 route-static default-preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the default priority of static routes is 60.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static default-preference
+      line: 2527
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-frr
+    syntax: ipv6 route-static frr [ vpn-instance <vpn-instance-name> ]
+    view: system
+    undo: undo ipv6 route-static frr [ vpn-instance <vpn-instance-name> ]
+    params:
+      vpn-instance-name:
+        type: word
+    default: By default, FRR is disabled for IPv6 static routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static frr
+      line: 2584
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-recursive-lookup-inherit-label-route-segment-routing-ipv6
+    syntax: ipv6 route-static recursive-lookup inherit-label-route segment-routing-ipv6
+    view: system
+    undo: undo ipv6 route-static recursive-lookup inherit-label-route segment-routing-ipv6
+    default: By default, IPv6 static routes cannot recurse to SRv6 routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static recursive-lookup inherit-label-route segment-routing-ipv6
+      line: 2647
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-track-bfd-session-admindown-invalid
+    syntax: ipv6 route-static track bfd-session session-name <bfd-name> admindown invalid
+    view: system
+    undo: undo ipv6 route-static track bfd-session [ session-name <bfd-name> ] admindown invalid
+    params:
+      bfd-name:
+        type: word
+    default: By default, an IPv6 static route can still be selected by the Router even though the BFD session associated with it is in the AdminDown state.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static track bfd-session admindown invalid
+      line: 2698
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-rpf-route-static-frr
+    syntax: ipv6 rpf-route-static frr [ vpn-instance <vpn-instance-name> ]
+    view: system
+    undo: undo ipv6 rpf-route-static frr [ vpn-instance <vpn-instance-name> ]
+    params:
+      vpn-instance-name:
+        type: word
+    default: By default, FRR is disabled for IPv6 multicast static routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 rpf-route-static frr
+      line: 2990
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.poison-reverse-enable
+    syntax: poison-reverse enable
+    view: interface
+    undo: undo poison-reverse enable
+    default: By default, IP FRR poison reverse is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: poison-reverse enable
+      line: 3052
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-recursive-lookup-tunnel
+    syntax: route recursive-lookup tunnel [ ip-prefix <ip-prefix-name> ] [ tunnel-policy <policy-name> ]
+    view: system
+    undo: undo route recursive-lookup tunnel
+    params:
+      ip-prefix-name:
+        type: word
+      policy-name:
+        type: word
+    default: By default, tunnel recursion is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: route recursive-lookup tunnel
+      line: 3116
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.static-route-timer-ldp-sync-hold-down
+    syntax: static-route timer ldp-sync hold-down { <timer> | infinite }
+    view: interface
+    undo: undo static-route timer ldp-sync hold-down
+    params:
+      timer:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, the time during which a static route remains inactive and waits for an LDP session to be established is 10 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: static-route timer ldp-sync hold-down
+      line: 3188
+      version: V800R025C00SPC500
+    status: draft

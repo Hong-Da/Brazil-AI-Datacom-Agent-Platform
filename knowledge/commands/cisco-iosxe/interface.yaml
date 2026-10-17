@@ -1,0 +1,1070 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: interface
+cards:
+  - id: cisco-iosxe.channel-group.1
+    syntax: channel-group <channel-group-number> mode { active | on | passive }
+    view: interface
+    undo: no channel-group <channel-group-number>
+    params:
+      channel-group-number: &id001
+        type: integer
+    default: No channel groups are assigned.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/channel-group (interface).md
+      title: channel-group (interface)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.channel-group.2
+    syntax: Cisco 2600 Series, Cisco 3600 Series, and Cisco 3700 Series Routers
+    view: interface
+    default: No channel groups are assigned.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/channel-group (interface).md
+      title: channel-group (interface)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.channel-group.3
+    syntax: channel-group <channel-group-number> mode on
+    view: interface
+    undo: no channel-group <channel-group-number>
+    params:
+      channel-group-number: *id001
+    default: No channel groups are assigned.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/channel-group (interface).md
+      title: channel-group (interface)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.channel-group.4
+    syntax: Cisco ASR 1000 Series Routers
+    view: interface
+    default: No channel groups are assigned.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/channel-group (interface).md
+      title: channel-group (interface)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.channel-group.5
+    syntax: channel-group <channel-group-number> mode { active | passive }
+    view: interface
+    undo: no channel-group <channel-group-number>
+    params:
+      channel-group-number: *id001
+    default: No channel groups are assigned.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/channel-group (interface).md
+      title: channel-group (interface)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.channel-group.6
+    syntax: Cisco Catalyst Switches
+    view: interface
+    default: No channel groups are assigned.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/channel-group (interface).md
+      title: channel-group (interface)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.channel-group.7
+    syntax: channel-group <channel-group-number> mode { active | on | auto [ non-silent ] | desirable [ non-silent ] | passive }
+    view: interface
+    undo: no channel-group <channel-group-number>
+    params:
+      channel-group-number: *id001
+    default: No channel groups are assigned.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/channel-group (interface).md
+      title: channel-group (interface)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.description
+    syntax: description <string>
+    view: interface
+    undo: no description
+    params:
+      string:
+        type: text
+    default: No description is added.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/description (interface configuration).md
+      title: description (interface configuration)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.duplex
+    syntax: duplex { full | half | auto }
+    view: interface
+    undo: no duplex
+    default: Half-duplex mode is enabled. For the 4-port 10/100 Fast Ethernet Shared Port Adapter (SPA) and the 2-port 10/100/1000 Gigabit Ethernet SPA on the Cisco 7304 router, autonegotiation is enabled. The command is set to auto .
+    source:
+      doc: cisco-iosxe-md
+      file: interface/duplex.md
+      title: duplex
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface-range
+    syntax: interface range { <type> <number> [ [ - interface <number> ] ] [ , ] <type> <number> | macro <word> }
+    view: system
+    enters_view: interface
+    undo: no interface range <type> <number>
+    params:
+      type:
+        type: word
+      number:
+        type: word
+      word:
+        type: word
+    default: No interface range is set.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface range.md
+      title: interface range
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.1
+    syntax: Standard Syntax
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.2
+    syntax: interface <type> <number> [ <name-tag> ]
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: &id004
+        type: word
+      number: &id005
+        type: word
+      name-tag:
+        type: word
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.3
+    syntax: Module-Specific and Platform-Specific Syntax
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.4
+    syntax: Analysis Module Network Module
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.5
+    syntax: interface analysis-module <slot> / <unit>
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      slot: &id002
+        type: word
+      unit: &id003
+        type: word
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.6
+    syntax: Content Engine Network Module
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.7
+    syntax: interface content-engine <slot> / <unit>
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      slot: *id002
+      unit: *id003
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.8
+    syntax: Cisco 830 Series
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.9
+    syntax: interface <type> [ <number> ]
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: *id004
+      number: *id005
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.10
+    syntax: Cisco 2600 Series
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.11
+    syntax: interface <type> <slot> / { <port-adapter> | <port> . <subinterface-number> }
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: *id004
+      slot: *id002
+      port-adapter: &id008
+        type: word
+      port: &id006
+        type: word
+      subinterface-number: &id007
+        type: integer
+        range:
+          - 1
+          - 4294967293
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.12
+    syntax: Cisco 2600 Series on Voice Interfaces
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.13
+    syntax: interface <type> <slot> / <voice-module-slot> / <voice-interface-slot>
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: *id004
+      slot: *id002
+      voice-module-slot:
+        type: word
+      voice-interface-slot:
+        type: word
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.14
+    syntax: Cisco 3600 Series
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.15
+    syntax: interface <type> <slot> / { <port> | <port> . <subinterface-number> }
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: *id004
+      slot: *id002
+      port: *id006
+      subinterface-number: *id007
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.16
+    syntax: Cisco 3600 Series on Voice Interfaces
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.18
+    syntax: Cisco 4400 Series Integrated Services Router (ISR)
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.19
+    syntax: interface <type> <number>
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: *id004
+      number: *id005
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.20
+    syntax: Cisco 7100 Series
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.22
+    syntax: Cisco 7200 Series and Cisco 7500 Series with a Packet over SONET Interface Processor
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.23
+    syntax: interface <type> <slot> / <port>
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: *id004
+      slot: *id002
+      port: *id006
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.24
+    syntax: Cisco 7200 VXR Router Used as a Router Shelf in a Cisco AS5800 Universal Access Server
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.25
+    syntax: interface <type> <router-shelf> / <slot> / <port>
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: *id004
+      router-shelf:
+        type: word
+      slot: *id002
+      port: *id006
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.26
+    syntax: Cisco 7500 Series with Channelized T1 or E1
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.27
+    syntax: 'interface serial <slot> / <port> : <channel-group>'
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      slot: *id002
+      port: *id006
+      channel-group:
+        type: word
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.28
+    syntax: Cisco 7500 Series with Ports on VIP Cards
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.29
+    syntax: interface <type> <slot> / <port-adapter> / <port>
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: *id004
+      slot: *id002
+      port-adapter: *id008
+      port: *id006
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.30
+    syntax: Cisco 7600 Series
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.32
+    syntax: 'Note: The number format varies depending on the network module or line card type and the router’s chassis slot it is installed in. Refer to the appropriate hardware manual for numbering information'
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.33
+    syntax: Cisco 7600 Series with Ports on Ethernet Service Cards
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.34
+    syntax: interface type <slot> / <bay> / <port> access
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      slot: *id002
+      bay:
+        type: word
+      port: *id006
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.35
+    syntax: 'Note: The syntax may vary depending on the Ethernet service line card type. Refer to the appropriate hardware manual for numbering information. For example, for the ES20 line card the syntax takes the following format:'
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.36
+    syntax: Subinterface Syntax Forms in Global Configuration Mode
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.37
+    syntax: Cisco 7200 Series
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.38
+    syntax: interface <type> <slot> / <port> . <subinterface-number> [ multipoint | point-to-point ]
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: *id004
+      slot: *id002
+      port: *id006
+      subinterface-number: *id007
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.39
+    syntax: Cisco 7500 Series
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.40
+    syntax: interface <type> <slot> / <port-adapter> . <subinterface-number> [ multipoint | point-to-point ]
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: *id004
+      slot: *id002
+      port-adapter: *id008
+      subinterface-number: *id007
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.42
+    syntax: interface <type> <slot> / <port-adapter> / <port> . <subinterface-number> [ multipoint | point-to-point ]
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: *id004
+      slot: *id002
+      port-adapter: *id008
+      port: *id006
+      subinterface-number: *id007
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.43
+    syntax: Cisco ASR 901 Series Aggregation Services Routers
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.44
+    syntax: Shared Port Adapters
+    view: system
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface.45
+    syntax: interface <type> <slot> / <subslot> / <port> [ . <subinterface-number> ]
+    view: system
+    enters_view: interface
+    undo: no interface <type> <number>
+    params:
+      type: *id004
+      slot: *id002
+      subslot:
+        type: word
+      port: *id006
+      subinterface-number: *id007
+    default: No interface types are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/interface.md
+      title: interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-address
+    syntax: ip address <ip-address> <mask> [ secondary [ vrf <vrf-name> ] ]
+    view: interface
+    undo: no ip address <ip-address> <mask> [ secondary [ vrf <vrf-name> ] ]
+    params:
+      ip-address:
+        type: ipv4
+      mask:
+        type: mask
+      vrf-name:
+        type: word
+    default: No IP address is defined for the interface.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/ip address.md
+      title: ip address
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-mtu
+    syntax: ip mtu <bytes>
+    view: interface
+    undo: no ip mtu
+    params:
+      bytes:
+        type: word
+    default: The default MTU value depends on the interface type. | Interface Type | Default MTU (Bytes) | |---|---| | ATM | 4470 | | Ethernet | 1500 | | FDDI | 4470 | | High-Speed Serial Interface High Speed Access (HSSI HSA) | 4470 | | Serial | 1500 | | Token Ring | 4464 | | VRF-Aware Service Infrastructure (VASI) | 9216 |
+    source:
+      doc: cisco-iosxe-md
+      file: interface/ip mtu.md
+      title: ip mtu
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-redirects
+    syntax: ip redirects
+    view: interface
+    undo: no ip redirects
+    default: ICMP redirect messages are sent.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/ip redirects.md
+      title: ip redirects
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.load-interval
+    syntax: load-interval <seconds>
+    view: interface
+    undo: no load-interval <seconds>
+    params:
+      seconds:
+        type: word
+    default: Enabled
+    source:
+      doc: cisco-iosxe-md
+      file: interface/load-interval.md
+      title: load-interval
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.mtu
+    syntax: mtu <bytes> mtu command
+    view: interface
+    undo: no mtu
+    params:
+      bytes:
+        type: word
+    default: The table below lists default MTU values according to media type. | Media Type | Default MTU (Bytes) | |---|---| | Ethernet | 1500 | | Serial | 1500 | | Token Ring | 4464 | | ATM | 4470 | | FDDI | 4470 | | HSSI (HSA) | 4470 |
+    source:
+      doc: cisco-iosxe-md
+      file: interface/mtu.md
+      title: mtu
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.negotiation
+    syntax: negotiation { forced | auto }
+    view: interface
+    undo: no negotiation auto
+    default: Autonegotiation is enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/negotiation.md
+      title: negotiation
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.shutdown
+    syntax: shutdown
+    view: interface
+    undo: no shutdown
+    default: Using this command assumes that the interface is already enabled. By default, if this command is not issued, the interface remains enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: interface/shutdown (interface).md
+      title: shutdown (interface)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bridge-domain
+    syntax: bridge-domain { <bridge-id> [ c-mac ] | c-mac aging-time <minutes> }
+    view: system
+    undo: no bridge-domain { <bridge-id> [ c-mac ] | c-mac aging-time }
+    params:
+      bridge-id:
+        type: integer
+      minutes:
+        type: integer
+    default: No components are configured on the bridge domain.
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/bridge-domain (global).md
+      title: bridge-domain (global)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bridge-domain~2
+    syntax: bridge-domain <vlan-id> { dot1q | dot1q-tunnel } [ bpdu { drop | transparent } ] [ split-horizon ]
+    view: interface
+    undo: no bridge-domain <vlan-id> { dot1q | dot1q-tunnel } [ bpdu { drop | transparent } ] [ split-horizon ]
+    params:
+      vlan-id:
+        type: word
+    default: Bridging is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/bridge-domain (subinterface).md
+      title: bridge-domain (subinterface)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.encapsulation.1
+    syntax: encapsulation { default | dot1q | priority-tagged | untagged }
+    view: service-instance
+    default: 'No EFPs are configured. No service instances or bridge domains are configured. (Source section: "Default EVC Configuration")'
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/encapsulation (service instance).md
+      title: encapsulation (service instance)
+      line: 7
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.encapsulation.2
+    syntax: encapsulation dot1q <vlan-id> [ <vlan-id> [ <-vlan-id> ] ]
+    view: service-instance
+    params:
+      vlan-id: &id009
+        type: word
+      -vlan-id: &id010
+        type: word
+    default: 'No EFPs are configured. No service instances or bridge domains are configured. (Source section: "Default EVC Configuration")'
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/encapsulation (service instance).md
+      title: encapsulation (service instance)
+      line: 7
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.encapsulation.3
+    syntax: encapsulation dot1q <vlan-id> second-dot1q <vlan-id> [ <vlan-id> [ <-vlan-id> ] ]
+    view: service-instance
+    params:
+      vlan-id: *id009
+      -vlan-id: *id010
+    default: 'No EFPs are configured. No service instances or bridge domains are configured. (Source section: "Default EVC Configuration")'
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/encapsulation (service instance).md
+      title: encapsulation (service instance)
+      line: 7
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.encapsulation.4
+    syntax: encapsulation dot1q { any | <vlan-id> [ <vlan-id> [ <-vlan-id> ] ] } ext-etype <ethertype>
+    view: service-instance
+    params:
+      vlan-id: *id009
+      -vlan-id: *id010
+      ethertype:
+        type: word
+    default: 'No EFPs are configured. No service instances or bridge domains are configured. (Source section: "Default EVC Configuration")'
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/encapsulation (service instance).md
+      title: encapsulation (service instance)
+      line: 7
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.encapsulation.5
+    syntax: encapsulation dot1q <vlan_id> cos <cos_value> second-dot1q <vlan-id> <cos> <cos_value>
+    view: service-instance
+    params:
+      vlan_id:
+        type: word
+      cos_value:
+        type: word
+      vlan-id: *id009
+      cos:
+        type: word
+    default: 'No EFPs are configured. No service instances or bridge domains are configured. (Source section: "Default EVC Configuration")'
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/encapsulation (service instance).md
+      title: encapsulation (service instance)
+      line: 7
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.encapsulation.6
+    syntax: encapsulation dot1q any
+    view: service-instance
+    default: 'No EFPs are configured. No service instances or bridge domains are configured. (Source section: "Default EVC Configuration")'
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/encapsulation (service instance).md
+      title: encapsulation (service instance)
+      line: 7
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.encapsulation.7
+    syntax: encapsulation untagged
+    view: service-instance
+    default: 'No EFPs are configured. No service instances or bridge domains are configured. (Source section: "Default EVC Configuration")'
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/encapsulation (service instance).md
+      title: encapsulation (service instance)
+      line: 7
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.encapsulation.8
+    syntax: encapsulation default
+    view: service-instance
+    default: 'No EFPs are configured. No service instances or bridge domains are configured. (Source section: "Default EVC Configuration")'
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/encapsulation (service instance).md
+      title: encapsulation (service instance)
+      line: 7
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.encapsulation.9
+    syntax: encapsulation priority-tagged
+    view: service-instance
+    default: 'No EFPs are configured. No service instances or bridge domains are configured. (Source section: "Default EVC Configuration")'
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/encapsulation (service instance).md
+      title: encapsulation (service instance)
+      line: 7
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface-bdi@system
+    syntax: interface bdi <bridge-domain-number>
+    view: system
+    enters_view: interface
+    params: &id011
+      bridge-domain-number:
+        type: word
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/interface BDI.md
+      title: interface BDI
+      line: 6
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.interface-bdi@interface
+    syntax: interface bdi <bridge-domain-number>
+    view: interface
+    params: *id011
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/interface BDI.md
+      title: interface BDI
+      line: 6
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.rewrite-ingress-tag.1
+    syntax: rewrite ingress tag { pop | { 1 | 2 } | [ symmetric ] | push { dot1ad <vlan-id> | [ dot1q <vlan-id> ] | [ symmetric ] | dot1q <vlan-id> | [ second-dot1q <vlan-id> ] | [ symmetric ] } | translate { 1-to-1 | { dot1ad <vlan-id> | dot1q <vlan-id> | [ symmetric ] } } | 1-to-2 { dot1ad <vlan-id> dot1q <vlan-id> } | dot1q <vlan-id> second-dot1q <vlan-id> | [ symmetric ] | 2-to-1 { dot1ad <vlan-id> | dot1q <vlan-id> | [ symmetric ] } | 2-to-2 { dot1q <vlan-id> | second-dot1q <vlan-id> | [ symmetric ] } }
+    view: service-instance
+    undo: no rewrite ingress tag
+    params:
+      vlan-id:
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: The frame is left intact on ingress (the service instance is equivalent to a trunk port).
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/rewrite ingress tag.md
+      title: rewrite ingress tag
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.rewrite-ingress-tag.2
+    syntax: Syntax on the Cisco ASR 1000 Series Aggregation Router
+    view: service-instance
+    default: The frame is left intact on ingress (the service instance is equivalent to a trunk port).
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/rewrite ingress tag.md
+      title: rewrite ingress tag
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.service-instance-ethernet.1
+    syntax: service instance [ trunk ] <id> ethernet [ <evc-name> ]
+    view: interface
+    enters_view: service-instance
+    undo: no service instance [ trunk ] <id> ethernet
+    params:
+      id:
+        type: integer
+      evc-name: &id012
+        type: word
+    default: No Ethernet service instances are defined.
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/service instance ethernet.md
+      title: service instance ethernet
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.service-instance-ethernet.2
+    syntax: Cisco ASR 901 Series Aggregation Services Router
+    view: interface
+    default: No Ethernet service instances are defined.
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/service instance ethernet.md
+      title: service instance ethernet
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.service-instance-ethernet.3
+    syntax: service instance <instance-id> ethernet [ <evc-name> ]
+    view: interface
+    enters_view: service-instance
+    undo: no service instance [ trunk ] <id> ethernet
+    params:
+      instance-id:
+        type: word
+      evc-name: *id012
+    default: No Ethernet service instances are defined.
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/service instance ethernet.md
+      title: service instance ethernet
+      line: 5
+      version: '17.15'
+    status: draft

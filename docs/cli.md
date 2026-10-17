@@ -74,8 +74,11 @@
 | `lmesh kb diff <版本> [<版本>]` | 两个版本之间新增、删除、修改的节点与命令卡、默认值变化；只给一个时与当前工作区对比 |
 | `lmesh kb rollback <版本>` | 回滚到某个已发布版本（恢复文件后再提交一次，历史保留；需要确认，`--yes` 跳过） |
 | `lmesh kb coverage [--profile P]` | 覆盖矩阵：各 Profile（继承展开后）对 Schema 节点支持、不支持、未填写的数量 |
+| `lmesh kb ingest <文档> --rules <规则> [--domain D]… [--version V] [--ai]` | 导入产品文档（Markdown / HTML / PDF / CHM），按 `knowledge/extractors/` 中的规则抽取命令卡，以 draft 写入知识库并送审核队列；重复导入时没变化的卡跳过，已审核的卡有变化时只生成“更新”审核记录；`--ai` 把规则抽取失败的命令交给 AI 修正（结果必须能通过语法解析） |
 | `lmesh review list [--kind K] [--status S]` / `review show <编号>` | 审核队列 |
 | `lmesh review approve <编号>… [--note]` / `review reject <编号>…` | 通过或驳回；通过时写回知识库并提交 |
+| `lmesh review approve-all [--kind card] [--contains 文字] [--rules 规则]` | 批量通过符合条件的待审条目（需要确认，`--yes` 跳过） |
+| `lmesh ai test` / `lmesh ai calls` | 测试 AI 接口 / 最近的 AI 调用记录（任务、模型、token 用量、成功与否） |
 
 知识库命令操作的是运行时知识库（默认 `data/knowledge/`，首次使用时从程序自带的 `knowledge/` 复制，并作为独立的 Git 仓库管理）。
 
@@ -268,5 +271,51 @@ lmesh --output json review list
 JSON 输出中的关键字段：
 
 - `data.total` = `0`
+
+### 导入产品文档并抽取命令卡
+
+```bash
+lmesh --output json kb ingest tests/inputs/docs/huawei --rules tests/inputs/docs/rules-huawei-test.yaml --version V800R025C00SPC500
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.merge.new` = `4`
+- `data.review_items` = `4`
+- `data.skipped.excluded` = `1`
+
+### 抽取规则不存在
+
+```bash
+lmesh kb ingest tests/inputs/docs/huawei --rules no-such-rules
+```
+
+退出码：`4`
+
+错误提示（stderr）包含：`no-such-rules`
+
+### 批量通过命令卡（无可通过的条目时）
+
+```bash
+lmesh --output json --yes review approve-all --kind card
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.approved` = `0`
+
+### 测试 AI 接口（未配置）
+
+```bash
+lmesh ai test
+```
+
+退出码：`3`
+
+错误提示（stderr）包含：`AI`
 
 <!-- examples:end -->

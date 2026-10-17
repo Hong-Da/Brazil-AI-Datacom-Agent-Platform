@@ -1,0 +1,202 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: vrf
+cards:
+  - id: cisco-iosxe.address-family.1
+    syntax: VPN-IPv4 Unicast
+    view: bgp-af
+    default: Routing information for address family IPv4 is advertised by default when you configure a BGP session using the neighbor remote-as command unless you execute the no bgp default ipv4-activate command.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/address-family.md
+      title: address-family
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.address-family.2
+    syntax: address-family vpnv4 [ unicast ]
+    view: bgp-af
+    undo: no address-family vpnv4 [ unicast ]
+    default: Routing information for address family IPv4 is advertised by default when you configure a BGP session using the neighbor remote-as command unless you execute the no bgp default ipv4-activate command.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/address-family.md
+      title: address-family
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.address-family.3
+    syntax: IPv4 Unicast
+    view: bgp-af
+    default: Routing information for address family IPv4 is advertised by default when you configure a BGP session using the neighbor remote-as command unless you execute the no bgp default ipv4-activate command.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/address-family.md
+      title: address-family
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.address-family.4
+    syntax: address-family ipv4 [ unicast ]
+    view: bgp-af
+    undo: no address-family ipv4 [ unicast ]
+    default: Routing information for address family IPv4 is advertised by default when you configure a BGP session using the neighbor remote-as command unless you execute the no bgp default ipv4-activate command.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/address-family.md
+      title: address-family
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.address-family.5
+    syntax: IPv4 Unicast with CE router
+    view: bgp-af
+    default: Routing information for address family IPv4 is advertised by default when you configure a BGP session using the neighbor remote-as command unless you execute the no bgp default ipv4-activate command.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/address-family.md
+      title: address-family
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.address-family.6
+    syntax: address-family ipv4 [ unicast ] vrf <vrf-name>
+    view: bgp-af
+    undo: no address-family ipv4 [ unicast ] vrf <vrf-name>
+    params:
+      vrf-name:
+        type: word
+    default: Routing information for address family IPv4 is advertised by default when you configure a BGP session using the neighbor remote-as command unless you execute the no bgp default ipv4-activate command.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/address-family.md
+      title: address-family
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.export-map
+    syntax: export map <map-name>
+    view: vrf
+    undo: no export map <map-name>
+    params:
+      map-name:
+        type: word
+    default: No export maps are associated with a VRF instance.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/export map.md
+      title: export map
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.import-map
+    syntax: import [ ipv4 ] [ unicast | multicast ] [ <prefix-limit> ] map <map-name>
+    view: vrf
+    undo: no import [ ipv4 ] [ unicast | multicast ] [ <prefix-limit> ] map <map-name>
+    params:
+      prefix-limit:
+        type: word
+      map-name:
+        type: word
+    default: A VRF has no import route map unless one is configured using the import map command.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/import map.md
+      title: import map
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-vrf-forwarding
+    syntax: ip vrf forwarding <vrf-name> [ downstream <vrf-name2> ]
+    view: interface
+    undo: no ip vrf forwarding <vrf-name> [ downstream <vrf-name2> ]
+    params:
+      vrf-name:
+        type: word
+      vrf-name2:
+        type: word
+    default: The default for an interface is the global routing table.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/ip vrf forwarding (interface configuration).md
+      title: ip vrf forwarding (interface configuration)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-vrf
+    syntax: ip vrf <vrf-name>
+    view: system
+    undo: no ip vrf <vrf-name>
+    params:
+      vrf-name:
+        type: word
+    default: No VRFs are defined. No import or export lists are associated with a VRF. No route maps are associated with a VRF.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/ip vrf.md
+      title: ip vrf
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.rd
+    syntax: rd <route-distinguisher>
+    view: vrf
+    undo: no rd <route-distinguisher>
+    params:
+      route-distinguisher:
+        type: rd
+    default: No RD is specified.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/rd.md
+      title: rd
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.route-target
+    syntax: route-target [ import | export | both ] <route-target-ext-community>
+    view: vrf
+    undo: no route-target [ import | export | both ] [ <route-target-ext-community> ]
+    params:
+      route-target-ext-community:
+        type: word
+    default: A VRF has no route-target extended community attributes associated with it.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/route-target.md
+      title: route-target
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.vrf-definition
+    syntax: vrf definition <vrf-name>
+    view: system
+    enters_view: vrf
+    undo: no vrf definition <vrf-name>
+    params:
+      vrf-name:
+        type: word
+    default: No VRFs are defined. No import or export lists are associated with a VRF. No route maps are associated with a VRF.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/vrf definition.md
+      title: vrf definition
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.vrf-forwarding
+    syntax: vrf forwarding <vrf-name> [ downstream <vrf-name2> ]
+    view: interface
+    undo: no vrf forwarding
+    params:
+      vrf-name:
+        type: word
+      vrf-name2:
+        type: word
+    default: The default for an interface is the global routing table.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/vrf forwarding.md
+      title: vrf forwarding
+      line: 5
+      version: '17.15'
+    status: draft

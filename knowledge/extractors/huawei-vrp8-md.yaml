@@ -1,0 +1,87 @@
+# 华为 VRP8 产品文档（Markdown 版）的命令卡抽取规则。
+# 文档结构：每条命令一个标题，下面有 Function / Format / Parameters / Views / Default Level / Usage Guidelines / Example 小节。
+# BGP 一章是每条命令一个文件；其余章节是整章一个文件，命令是其中的二级或三级标题。抽取器按“带 Format 小节的标题”识别命令。
+name: huawei-vrp8-md
+family: huawei-vrp8
+doc_root_hint: 12_Reference/01_Command Reference/06_Command Reference
+
+sections:
+  syntax: [Format]
+  params: [Parameters]
+  views: [Views]
+  function: [Function]
+  default: []
+  usage: [Usage Guidelines]
+  example: [Example]
+
+# Function 小节里“By default, …”那一句作为缺省值说明
+default_regex: '(?:By default|The default (?:value|setting|configuration)[^.]*?is)[^.]*\.'
+negative_prefix: undo
+
+# 只要配置命令：排除查看、复位、调试、测试类命令
+exclude_titles: '^(display|reset|debugging|undo debugging|terminal|ping|tracert|refresh|clear|save|compare|check|test|dir|cd|copy|delete|startup|schedule|quit|return|commit|abort|end)\b'
+
+views_split: ',\s*|;\s*|\s+and\s+|/'
+
+# 视图名 → views.yaml 中的视图编号（第一条命中生效；映射不上的视图丢弃，例如 IPv6 与多实例视图不在 0.1.0 范围内）
+views_map:
+  - {match: '^System view$', view: system}
+  - {match: '^BGP view$', view: bgp}
+  - {match: '^BGP-IPv4 unicast address family view$', view: bgp-af-ipv4}
+  - {match: '^BGP-VPNv4 address family view$', view: bgp-af-vpnv4}
+  - {match: '^BGP-VPN instance view$', view: bgp-vpn-instance}
+  - {match: '^BGP-VPN instance IPv4 address family view$', view: bgp-af-vpn-instance-ipv4}
+  - {match: '^VPN instance view$', view: vpn-instance}
+  - {match: '^VPN instance IPv4 address family view$', view: vpn-instance-af-ipv4}
+  - {match: '^Route-policy view$', view: route-policy}
+  # 各类接口视图（GE / 10GE / 50|100GE / Eth-Trunk / Loopback / 子接口 / 二层接口等）都归到通用的接口视图
+  - {match: '(?i)^(?!.*(tunnel|mtunnel|cpos|serial|mp-group|global-ve|pw-ve|ve sub)).*(interface|sub-interface|-L2) view$', view: interface}
+
+# 进入子视图的命令
+enters:
+  - {view: system, syntax: '^interface\b', enters: interface}
+  - {view: system, syntax: '^bgp\b', enters: bgp}
+  - {view: system, syntax: '^ip vpn-instance\b', enters: vpn-instance}
+  - {view: system, syntax: '^route-policy\b', enters: route-policy}
+  - {view: vpn-instance, syntax: '^ipv4-family\b', enters: vpn-instance-af-ipv4}
+  - {view: bgp, syntax: '^ipv4-family unicast\b', enters: bgp-af-ipv4}
+  - {view: bgp, syntax: '^ipv4-family vpnv4\b', enters: bgp-af-vpnv4}
+  - {view: bgp, syntax: '^ipv4-family vpn-instance\b', enters: bgp-af-vpn-instance-ipv4}
+  - {view: bgp, syntax: '^vpn-instance\b', enters: bgp-vpn-instance}
+
+# 参数类型推断：先按参数名，再按取值说明；第一条命中生效
+param_types:
+  - {name: '(mask-length|prefix-length|masklen)$', type: mask-length}
+  - {name: '(^|-)mask$', type: mask}
+  - {name: 'wildcard', type: wildcard}
+  - {name: '(as-number|as-num|asn)$', type: asn}
+  - {name: '(route-distinguisher|^rd$)', type: rd}
+  - {name: '(vpn-target|extcommunity|community-number)', type: community}
+  - {name: '^(interface-type|interface-name|interface-type interface-number)$', type: word}
+  - {name: '^interface-number$', type: word}
+  - {name: '(ipv4-address|ip-address|peer-address|nexthop-address|next-hop|router-id|destination-address|source-address|ipv4)$', type: ipv4}
+  - {name: '(description|desc-text|text|alias)$', type: text}
+  - {value: 'integer[^.]*?(?:ranging from|ranges from|in the range of|in the range from|from)\s*(\d+)\s*(?:to|-)\s*(\d+)', type: integer, range_groups: [1, 2]}
+  - {value: 'dotted decimal notation', type: ipv4}
+  - {value: '\binteger\b', type: integer}
+
+# 功能域 → 文件（路径相对上面的文档根，支持 * 通配；sections 只取这些章节）
+domains:
+  bgp:
+    - {path: '09_IP Routing Commands/01_BGP Configuration Commands/*.md'}
+  routing-policy:
+    - {path: '09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md'}
+  static-route:
+    - {path: '09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md'}
+  vrf:
+    - {path: '16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md'}
+  interface:
+    - path: '05_Interface and Data Link Commands.md'
+      sections: [Ethernet Interface Configuration Commands, Basic Interface Configuration Commands]
+    - {path: '08_IP Services Commands/14_IPv4 Basic Configuration Commands.md'}
+    - path: '06_LAN Access and MAN Access Commands.md'
+      sections: [Eth-Trunk Interface Configuration Commands, QinQ Configuration Commands, VLAN Configuration Commands, EVC Configuration Commands]
+
+# 枚举类型参数：取值说明里列出的每一项（“- deny: …”）作为可选值
+enum_marker: enumerated type
+enum_item: '(?:^|\s)-\s*([\w\-]+)\s*:'

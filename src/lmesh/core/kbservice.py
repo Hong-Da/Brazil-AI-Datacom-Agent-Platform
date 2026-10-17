@@ -19,11 +19,40 @@ from lmesh.core.kb.validate import summary, validate
 
 def runtime_root(settings: config.Settings) -> Path:
     """运行时知识库：首次使用时从程序自带的 knowledge/ 复制，并初始化为独立的 Git 仓库。"""
-    setup.ensure_runtime_knowledge(settings)
+    copied = setup.ensure_runtime_knowledge(settings)
     root = settings.knowledge_dir
     root.mkdir(parents=True, exist_ok=True)
     repo.ensure_repo(root)
+    if copied:
+        queue_drafts(root, settings.database_url)
     return root
+
+
+def queue_drafts(root: Path, db_url: str) -> int:
+    """为还没有审核记录的 draft 命令卡补上审核记录（程序自带知识库里的卡首次复制到运行时目录时）。"""
+    from sqlalchemy import select
+
+    from lmesh.core import store
+    from lmesh.core.store.models import ReviewItem
+
+    store.upgrade(db_url)
+    kb = kbmod.load(root)
+    with store.session(db_url) as s:
+        have = {t for (t,) in s.execute(select(ReviewItem.target).where(ReviewItem.kind == "card"))}
+        n = 0
+        for c in kb.cards.values():
+            if c.status == "draft" and c.id not in have:
+                s.add(
+                    ReviewItem(
+                        kind="card",
+                        title=f"{c.id}：{c.syntax}"[:400],
+                        target=c.id,
+                        payload={"action": "new", "file": c.file},
+                        source=dict(c.source, rules=str(c.source.get("doc", ""))),
+                    )
+                )
+                n += 1
+    return n
 
 
 def load(root: Path) -> kbmod.KnowledgeBase:

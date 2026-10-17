@@ -1,0 +1,827 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: vrf
+cards:
+  - id: huawei-vrp8.apply-label
+    syntax: apply-label { per-instance | per-nexthop | per-route }
+    view: vpn-instance
+    undo: undo apply-label per-instance
+    default: By default, the VPN instance IPv4 address family assigns the same label to all routes in the VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: apply-label
+      line: 9
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-label~2
+    syntax: apply-label { per-instance | per-nexthop | per-route }
+    view: vpn-instance-af-ipv4
+    undo: undo apply-label per-instance
+    default: By default, the label distribution mode is one-label-per-instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: apply-label (VPN instance IPv4 address family view)
+      line: 93
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-label-per-instance-static
+    syntax: apply-label per-instance static <static-label-value>
+    view: vpn-instance
+    params:
+      static-label-value:
+        type: integer
+        range:
+          - 16
+          - 32783
+    default: By default, the device assigns a specific label to each route destined for a remote PE in a VPN instance IPv4 address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: apply-label per-instance static
+      line: 177
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-label-per-instance-static~2
+    syntax: apply-label per-instance static <static-label-value>
+    view: vpn-instance-af-ipv4
+    params:
+      static-label-value:
+        type: integer
+        range:
+          - 16
+          - 147455
+    default: By default, the device assigns a specific label to each route destined for a remote PE in a VPN instance IPv4 address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: apply-label per-instance static (VPN instance IPv4 address family view)
+      line: 230
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-label-per-nexthop
+    syntax: apply-label per-nexthop
+    view: bgp-af-vpnv4
+    undo: undo apply-label per-nexthop
+    default: By default, one-label-per-next-hop label distribution is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: apply-label per-nexthop (BGP-VPNv4 address family view)
+      line: 345
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-label-pop-go
+    syntax: apply-label { per-nexthop | per-route } pop-go
+    view: vpn-instance
+    undo: undo apply-label { per-nexthop | per-route } pop-go
+    default: By default, after a device receives a labeled data packet, the device removes the label of the data packet and forwards the packet based on a forwarding entry found in its IP forwarding table.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: apply-label pop-go
+      line: 411
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-label-pop-go~2
+    syntax: apply-label { per-nexthop | per-route } pop-go
+    view: vpn-instance-af-ipv4
+    undo: undo apply-label { per-nexthop | per-route } pop-go
+    default: By default, after a device receives a labeled data packet, the device removes the label of the data packet and forwards the packet based on a forwarding entry found in its IP forwarding table.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: apply-label pop-go (VPN instance IPv4 address family view)
+      line: 494
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.as-notation-plain
+    syntax: as-notation plain
+    view: system
+    undo: undo as-notation plain
+    default: By default, BGP 4-byte AS numbers are displayed in dotted notation (in the format of x.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: as-notation plain
+      line: 577
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.description~2
+    syntax: description <description-information>
+    view: vpn-instance
+    undo: undo description
+    params:
+      description-information:
+        type: word
+    default: By default, no description is specified for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: description (VPN instance view)
+      line: 654
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.export-route-filter
+    syntax: export route-filter <route-filter-name> [ add-ert-first ]
+    view: vpn-instance
+    undo: undo export route-filter <route-filter-name> [ add-ert-first ]
+    params:
+      route-filter-name:
+        type: word
+    default: By default, the current VPN instance IPv4 address family is not associated with any export route-filter.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: export route-filter
+      line: 1346
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.export-route-filter~2
+    syntax: export route-filter <route-filter-name> [ add-ert-first ]
+    view: vpn-instance-af-ipv4
+    undo: undo export route-filter <route-filter-name> [ add-ert-first ]
+    params:
+      route-filter-name:
+        type: word
+    default: By default, the current VPN instance IPv4 address family is not associated with any export route-filter.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: export route-filter (VPN instance IPv4 address family view)
+      line: 1417
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.export-route-policy
+    syntax: export route-policy <policy-name> [ add-ert-first ]
+    view: vpn-instance-af-ipv4
+    undo: undo export route-policy
+    params:
+      policy-name:
+        type: word
+    default: By default, the current VPN instance IPv4 address family is not associated with any export route-policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: export route-policy (VPN instance IPv4 address family view)
+      line: 1488
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.export-route-policy~2
+    syntax: export route-policy <policy-name> [ add-ert-first ]
+    view: vpn-instance
+    undo: undo export route-policy
+    params:
+      policy-name:
+        type: word
+    default: By default, the current VPN instance IPv4 address family is not associated with any export route-policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: export route-policy (VPN instance view)
+      line: 1600
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route-filter
+    syntax: import route-filter <route-filter-name>
+    view: vpn-instance-af-ipv4
+    undo: undo import route-filter <route-filter-name>
+    params:
+      route-filter-name:
+        type: word
+    default: By default, the current VPN instance IPv4 address family is not associated with any import route-filter.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: import route-filter
+      line: 1717
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route-filter~2
+    syntax: import route-filter <route-filter-name>
+    view: vpn-instance
+    undo: undo import route-filter <route-filter-name>
+    params:
+      route-filter-name:
+        type: word
+    default: By default, the current VPN instance IPv4 address family is not associated with any import route-filter.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: import route-filter (VPN instance view)
+      line: 1783
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route-policy
+    syntax: import route-policy <policy-name>
+    view: vpn-instance-af-ipv4
+    undo: undo import route-policy
+    params:
+      policy-name:
+        type: word
+    default: By default, the current VPN instance IPv4 address family is not associated with any import route-policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: import route-policy (VPN instance IPv4 address family view)
+      line: 1850
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route-policy~2
+    syntax: import route-policy <policy-name>
+    view: vpn-instance
+    undo: undo import route-policy
+    params:
+      policy-name:
+        type: word
+    default: By default, the current VPN instance IPv4 address family is not associated with any import route-policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: import route-policy (VPN instance view)
+      line: 1924
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-rib-protocol-direct
+    syntax: import-rib { vpn-instance <vpn-instance-name> | public } protocol direct [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    view: vpn-instance-af-ipv4
+    undo: undo import-rib { vpn-instance <vpn-instance-name> | public } protocol direct
+    params:
+      vpn-instance-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, public network or other VPN instance routes are not imported to VPN instance routing tables.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: import-rib protocol direct
+      line: 2036
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-rib-protocol-static
+    syntax: import-rib { vpn-instance <vpn-instance-name> | public } protocol static [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    view: vpn-instance-af-ipv4
+    undo: undo import-rib { vpn-instance <vpn-instance-name> | public } protocol static
+    params:
+      vpn-instance-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, public network or other VPN instance routes are not imported to VPN instance routing tables.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: import-rib protocol static
+      line: 2102
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-rib-protocol-vlink-direct-route
+    syntax: import-rib { public | vpn-instance <vpn-instance-name> } protocol vlink-direct-route [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    view: vpn-instance-af-ipv4
+    undo: undo import-rib { public | vpn-instance <vpn-instance-name> } protocol vlink-direct-route [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    params:
+      vpn-instance-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, public network or other VPN instance routes are not imported to VPN instance routing tables.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: import-rib protocol vlink-direct-route
+      line: 2171
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ingress-lsp-protect-mode-bgp-frr@bgp-af-ipv4
+    syntax: ingress-lsp protect-mode bgp-frr
+    view: bgp-af-ipv4
+    undo: undo ingress-lsp protect-mode
+    default: By default, BGP LSP FRR protection is disabled on the ingress.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ingress-lsp protect-mode bgp-frr
+      line: 2305
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ingress-lsp-protect-mode-bgp-frr@bgp
+    syntax: ingress-lsp protect-mode bgp-frr
+    view: bgp
+    undo: undo ingress-lsp protect-mode
+    default: By default, BGP LSP FRR protection is disabled on the ingress.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ingress-lsp protect-mode bgp-frr
+      line: 2305
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-binding-vpn-instance
+    syntax: ip binding vpn-instance <vpn-instance-name>
+    view: interface
+    undo: undo ip binding vpn-instance <vpn-instance-name>
+    params:
+      vpn-instance-name:
+        type: word
+    default: By default, an interface is a public network interface and is not associated with any VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ip binding vpn-instance
+      line: 2427
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-dcn-vpn-instance
+    syntax: ip dcn vpn-instance <vpn-instance-name>
+    view: system
+    undo: undo ip dcn vpn-instance <vpn-instance-name>
+    params:
+      vpn-instance-name:
+        type: word
+    default: By default, no VPN instance is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ip dcn vpn-instance
+      line: 2569
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-direct-routing-table@vpn-instance-af-ipv4
+    syntax: ip direct-routing-table route-policy <route-policy-name>
+    view: vpn-instance-af-ipv4
+    undo: undo ip direct-routing-table
+    params: &id001
+      route-policy-name:
+        type: word
+    default: By default, no routing policy is applied to direct in the VPN instance IPv4 address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ip direct-routing-table
+      line: 2702
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-direct-routing-table@vpn-instance
+    syntax: ip direct-routing-table route-policy <route-policy-name>
+    view: vpn-instance
+    undo: undo ip direct-routing-table
+    params: *id001
+    default: By default, no routing policy is applied to direct in the VPN instance IPv4 address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ip direct-routing-table
+      line: 2702
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-import-rib-vpn-instance-protocol-direct
+    syntax: ip import-rib vpn-instance <vpn-instance-name> protocol direct [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    view: system
+    undo: undo ip import-rib vpn-instance <vpn-instance-name> protocol direct
+    params:
+      vpn-instance-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, routes in VPN instance routing tables are not imported to the public network routing table.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ip import-rib vpn-instance protocol direct
+      line: 2775
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-import-rib-vpn-instance-protocol-static
+    syntax: ip import-rib vpn-instance <vpn-instance-name> protocol static [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    view: system
+    undo: undo ip import-rib vpn-instance <vpn-instance-name> protocol static
+    params:
+      vpn-instance-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, routes in VPN instance routing tables are not imported to the public network routing table.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ip import-rib vpn-instance protocol static
+      line: 2846
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-import-rib-vpn-instance-protocol-vlink-direct-route
+    syntax: ip import-rib vpn-instance <vpn-instance-name> protocol vlink-direct-route [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    view: system
+    undo: undo ip import-rib vpn-instance <vpn-instance-name> protocol vlink-direct-route [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    params:
+      vpn-instance-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, routes in VPN instance routing tables are not imported to the public network routing table.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ip import-rib vpn-instance protocol vlink-direct-route
+      line: 2918
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-static-routing-table-route-policy@vpn-instance-af-ipv4
+    syntax: ip static-routing-table route-policy <route-policy-name>
+    view: vpn-instance-af-ipv4
+    undo: undo ip static-routing-table
+    params: &id002
+      route-policy-name:
+        type: word
+    default: By default, no routing policy is applied to static routes in the VPN instance IPv4 address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ip static-routing-table route-policy (VPN instance view)
+      line: 2989
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-static-routing-table-route-policy@vpn-instance
+    syntax: ip static-routing-table route-policy <route-policy-name>
+    view: vpn-instance
+    undo: undo ip static-routing-table
+    params: *id002
+    default: By default, no routing policy is applied to static routes in the VPN instance IPv4 address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ip static-routing-table route-policy (VPN instance view)
+      line: 2989
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-vpn-instance
+    syntax: ip vpn-instance <vpn-instance-name>
+    view: system
+    enters_view: vpn-instance
+    undo: undo ip vpn-instance <vpn-instance-name>
+    params:
+      vpn-instance-name:
+        type: word
+    default: By default, no VPN instance is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ip vpn-instance(System view)
+      line: 3063
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-vpn-instance-limit
+    syntax: ip vpn-instance-limit <limit-value>
+    view: system
+    enters_view: vpn-instance
+    undo: undo ip vpn-instance-limit
+    params:
+      limit-value:
+        type: integer
+        range:
+          - 1
+          - 2047
+    default: By default, the limit of a VPN instance is the maximum value of limit-value.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ip vpn-instance-limit
+      line: 3139
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv4-family
+    syntax: ipv4-family [ unicast ]
+    view: vpn-instance
+    enters_view: vpn-instance-af-ipv4
+    undo: undo ipv4-family [ unicast ]
+    default: By default, no IPv4 address family is configured for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ipv4-family
+      line: 3194
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-import-rib-vpn-instance-protocol-vlink-direct-route
+    syntax: ipv6 import-rib vpn-instance <vpn-instance-name> protocol vlink-direct-route [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    view: system
+    undo: undo ipv6 import-rib vpn-instance <vpn-instance-name> protocol vlink-direct-route [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    params:
+      vpn-instance-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, a device does not import IPv6 routes from a VPN instance to the public network instance's IPv6 routing table.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: ipv6 import-rib vpn-instance protocol vlink-direct-route
+      line: 3259
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-cross-unicast-disable
+    syntax: local-cross unicast disable
+    view: vpn-instance-af-ipv4
+    undo: undo local-cross unicast disable
+    default: By default, local route leaking is enabled in an L3VPN scenario.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: local-cross unicast disable (VPN instance IPv4 address family view/VPN instance IPv6 address family view)
+      line: 3329
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-routing-disable
+    syntax: mpls routing-disable
+    view: vpn-instance-af-ipv4
+    undo: undo mpls routing-disable
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: mpls routing-disable (VPN instance IPv4 address family view/VPN instance IPv6 address family view)
+      line: 3402
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated-vpnv4
+    syntax: peer <ipv4-address> advertise route-reoriginated vpnv4
+    view: bgp-af-vpnv4
+    undo: undo peer <ipv4-address> advertise route-reoriginated vpnv4
+    params:
+      ipv4-address:
+        type: ipv4
+    default: By default, the local device does not advertise regenerated routes in the VPNv4 address family to a BGP VPNv4 peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: peer advertise route-reoriginated vpnv4
+      line: 3476
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated-vpnv4~2
+    syntax: peer <peerIpv6Addr> advertise route-reoriginated vpnv4
+    view: bgp-af-vpnv4
+    undo: undo peer <peerIpv6Addr> advertise route-reoriginated vpnv4
+    params:
+      peerIpv6Addr:
+        type: word
+    default: By default, the local device does not advertise regenerated routes in the VPNv4 address family to a BGP VPNv4 peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: peer advertise route-reoriginated vpnv4 (BGP-VPNv4 address family view) (IPv6)
+      line: 3539
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.prefix-limit
+    syntax: prefix limit <number> { <alert-percent> [ route-unchanged ] | simply-alert }
+    view: vpn-instance-af-ipv4
+    undo: undo prefix limit
+    params:
+      number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      alert-percent:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, the maximum number of VPN route prefixes allowed for a VPN instance IPv4 address family is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: prefix limit (VPN instance IPv4 address family view)
+      line: 3602
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.prefix-limit~2
+    syntax: prefix limit <number> { <alert-percent> [ route-unchanged ] | simply-alert }
+    view: vpn-instance
+    undo: undo prefix limit
+    params:
+      number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      alert-percent:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, the maximum number of VPN route prefixes allowed for a VPN instance address family is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: prefix limit (VPN instance view)
+      line: 3671
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-distinguisher
+    syntax: route-distinguisher <route-distinguisher>
+    view: vpn-instance-af-ipv4
+    undo: undo route-distinguisher <route-distinguisher>
+    params:
+      route-distinguisher:
+        type: rd
+    default: By default, no RD is configured for a VPN instance IPv4 address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: route-distinguisher (VPN instance IPv4 address family view)
+      line: 3793
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-distinguisher~2
+    syntax: route-distinguisher <route-distinguisher>
+    view: vpn-instance
+    undo: undo route-distinguisher <route-distinguisher>
+    params:
+      route-distinguisher:
+        type: rd
+    default: By default, no RD is configured for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: route-distinguisher (VPN instance view)
+      line: 3860
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.service-id
+    syntax: service-id <id>
+    view: vpn-instance
+    undo: undo service-id <id>
+    params:
+      id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no service ID is set for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: service-id
+      line: 3924
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tnl-policy
+    syntax: tnl-policy <policy-name>
+    view: vpn-instance-af-ipv4
+    undo: undo tnl-policy
+    params:
+      policy-name:
+        type: word
+    default: By default, the VPN instance IPv4 address family uses the default tunnel policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: tnl-policy (VPN instance IPv4 address family view)
+      line: 3980
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tnl-policy~2
+    syntax: tnl-policy <policy-name>
+    view: vpn-instance
+    undo: undo tnl-policy
+    params:
+      policy-name:
+        type: word
+    default: By default, the VPN instance IPv4 address family uses the default tunnel policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: tnl-policy (VPN instance view)
+      line: 4053
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-statistics-enable
+    syntax: traffic-statistics enable
+    view: vpn-instance
+    undo: undo traffic-statistics enable
+    default: By default, the traffic statistics collection function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: traffic-statistics enable (VPN instance view)
+      line: 4126
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.transit-vpn@vpn-instance-af-ipv4
+    syntax: transit-vpn
+    view: vpn-instance-af-ipv4
+    undo: undo transit-vpn
+    default: By default, the status of a VRF obtained from the MIB is Up only if it is bound to at least one interface in the Up state.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: transit-vpn
+      line: 4180
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.transit-vpn@vpn-instance
+    syntax: transit-vpn
+    view: vpn-instance
+    undo: undo transit-vpn
+    default: By default, the status of a VRF obtained from the MIB is Up only if it is bound to at least one interface in the Up state.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: transit-vpn
+      line: 4180
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpn-frr
+    syntax: vpn frr
+    view: vpn-instance-af-ipv4
+    undo: undo vpn frr
+    default: By default, VPN FRR is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: vpn frr (VPN instance IPv4 address family view)
+      line: 4236
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpn-frr~2
+    syntax: vpn frr
+    view: vpn-instance
+    undo: undo vpn frr
+    default: By default, VPN FRR is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: vpn frr (VPN instance view)
+      line: 4299
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpn-orf-disable
+    syntax: vpn-orf disable
+    view: bgp-af-vpnv4
+    undo: undo vpn-orf disable
+    default: By default, VPN ORF is enabled for VPNv4 and VPNv6.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: vpn-orf disable (BGP-VPNv4 address family view/BGP-VPNv6 address family view)
+      line: 4362
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpn-target
+    syntax: vpn-target { <vpn-target> } &<1-8> [ <vrfRtType> ]
+    view: vpn-instance-af-ipv4
+    undo: undo vpn-target { <vpn-target> } &<1-8> [ <vrfRtType> ]
+    params:
+      vpn-target:
+        type: community
+      vrfRtType:
+        type: enum
+        choices:
+          - both
+          - export-extcommunity
+          - import-extcommunity
+    default: By default, the import and export VPN targets are not configured for the VPN instance IPv4 address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: vpn-target (VPN instance IPv4 address family view)
+      line: 4419
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpn-target~2
+    syntax: vpn-target { <vpn-target> } &<1-8> [ <vrfRtType> ]
+    view: vpn-instance
+    undo: undo vpn-target { <vpn-target> } &<1-8> [ <vrfRtType> ]
+    params:
+      vpn-target:
+        type: community
+      vrfRtType:
+        type: enum
+        choices:
+          - both
+          - export-extcommunity
+          - import-extcommunity
+    default: By default, the import and export VPN targets are not configured for the VPN instance IPv4 address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
+      title: vpn-target (VPN instance view)
+      line: 4500
+      version: V800R025C00SPC500
+    status: draft

@@ -1,0 +1,66 @@
+# Cisco IOS / IOS XE 公开命令参考（整理成 Markdown，每条命令一个文件）的命令卡抽取规则。
+# 文件结构：# 命令名 / ## Syntax / ## Syntax Description / ## Command Default / ## Command Modes / ## Usage Guidelines / ## Examples
+name: cisco-iosxe-md
+family: cisco-iosxe
+
+sections:
+  syntax: [Syntax]
+  params: [Syntax Description]
+  views: [Command Modes]
+  default: [Command Default]
+  function: [Description]
+  usage: [Usage Guidelines]
+  example: [Examples]
+
+negative_prefix: "no"
+exclude_titles: '^(show|clear|debug|undebug|ping|traceroute|copy|write|reload|terminal)\b'
+
+# Command Modes 例如 “Router configuration (config-router)”，按括号里的模式名映射
+views_split: ',\s*|;\s*|\s+and\s+|/|\s+or\s+'
+views_map:
+  - {match: '\(config\)', view: system}
+  - {match: '\(config-(if|subif)\)', view: interface}
+  - {match: '\(config-if-srv\)', view: service-instance}
+  - {match: '\(config-vrf\)', view: vrf}
+  - {match: '\(config-vrf-af\)', view: vrf-af}
+  - {match: '\(config-router\)', view: router-bgp}
+  - {match: '\(config-router-af\)', view: bgp-af}
+  - {match: '\(config-route-map\)', view: route-map}
+  - {match: '^Global configuration', view: system}
+  - {match: '^Interface configuration', view: interface}
+  - {match: '^Router configuration', view: router-bgp}
+  - {match: '^Address family configuration', view: bgp-af}
+  - {match: '^Route-map configuration', view: route-map}
+
+enters:
+  - {view: system, syntax: '^interface\b', enters: interface}
+  - {view: interface, syntax: '^service instance\b', enters: service-instance}
+  - {view: system, syntax: '^vrf definition\b', enters: vrf}
+  - {view: vrf, syntax: '^address-family\b', enters: vrf-af}
+  - {view: system, syntax: '^router bgp\b', enters: router-bgp}
+  - {view: router-bgp, syntax: '^address-family\b', enters: bgp-af}
+  - {view: system, syntax: '^route-map\b', enters: route-map}
+
+param_types:
+  - {name: '(mask-length|prefix-length|length)$', type: mask-length}
+  - {name: '(^|-)mask$|^mask$', type: mask}
+  - {name: 'wildcard', type: wildcard}
+  - {name: '(autonomous-system|as-number|asn)', type: asn}
+  - {name: '(route-distinguisher|^rd$)', type: rd}
+  - {name: '(ip-address|ipv4-address|address|prefix|next-hop|router-id)$', type: ipv4}
+  - {name: '(text|string|description|line)$', type: text}
+  - {value: 'range (?:is |from )?(\d+)\s*(?:to|-|through)\s*(\d+)', type: integer, range_groups: [1, 2]}
+  - {value: '\binteger\b', type: integer}
+
+domains:
+  bgp:
+    - {path: 'bgp/*.md'}
+  routing-policy:
+    - {path: 'routing-policy/*.md'}
+  static-route:
+    - {path: 'static-route/*.md'}
+  vrf:
+    - {path: 'vrf/*.md'}
+  interface:
+    - {path: 'interface/*.md'}
+    - {path: 'carrier-ethernet/*.md'}

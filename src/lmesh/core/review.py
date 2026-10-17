@@ -93,12 +93,24 @@ class ReviewError(ValueError):
     pass
 
 
+def _load_actions() -> None:
+    """各类型的通过动作分散在各自模块里注册，用到前先导入。"""
+    from lmesh.core.ingest import service  # noqa: F401  命令卡
+
+
 def decide(
-    db_url: str, kb_root: Path, item_id: int, approve: bool, note: str = "", edited: dict[str, Any] | None = None
+    db_url: str,
+    kb_root: Path,
+    item_id: int,
+    approve: bool,
+    note: str = "",
+    edited: dict[str, Any] | None = None,
+    commit: bool = True,
 ) -> dict[str, Any]:
-    """通过（可带修改后的内容）或驳回。通过时执行该类型的动作并提交知识库。"""
+    """通过（可带修改后的内容）或驳回。通过时执行该类型的动作；commit=True 时随即提交知识库（批量审核时最后统一提交）。"""
     from lmesh.core.kb import repo
 
+    _load_actions()
     with store.session(db_url) as s:
         item = s.get(ReviewItem, item_id)
         if item is None:
@@ -116,7 +128,7 @@ def decide(
         if edited:
             item.payload = {**(item.payload or {}), "edited": edited}
         result = as_dict(item)
-    if approve and (kb_root / ".git").exists():
+    if approve and commit and (kb_root / ".git").exists():
         repo.commit_all(kb_root, f"审核通过 #{item_id}：{result['title']}")
     return result
 

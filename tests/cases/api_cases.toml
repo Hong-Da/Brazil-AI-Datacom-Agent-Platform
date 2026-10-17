@@ -263,3 +263,61 @@ auth = true
 body = { action = "maybe" }
 expect_status = 422
 expect_json = { "code" = 1001 }
+
+[[case]]
+id = "kb-ingest-missing-doc"
+title = { zh-CN = "导入不存在的文档目录", en = "Ingest a missing folder", pt-BR = "Importar pasta inexistente" }
+method = "POST"
+path = "/api/v1/kb/ingest"
+setup = "configured"
+auth = true
+body = { doc_dir = "/no/such/dir", rules = "huawei-vrp8-md" }
+expect_status = 404
+expect_json = { "code" = 1004 }
+in_docs = true
+
+[[case]]
+id = "task-missing"
+title = { zh-CN = "查询不存在的任务", en = "Unknown task", pt-BR = "Tarefa inexistente" }
+method = "GET"
+path = "/api/v1/tasks/nope"
+setup = "configured"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+in_docs = true
+
+[[case]]
+id = "review-batch"
+title = { zh-CN = "批量通过", en = "Batch approve", pt-BR = "Aprovar em lote" }
+method = "POST"
+path = "/api/v1/review/batch"
+setup = "configured"
+auth = true
+body = { kind = "card", contains = "vpn-target" }
+expect_status = 200
+expect_json = { "code" = 0, "data.approved" = 0 }
+in_docs = true
+
+[[case]]
+id = "ai-status"
+title = { zh-CN = "AI 状态", en = "AI status", pt-BR = "Status da IA" }
+method = "GET"
+path = "/api/v1/ai/status"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.configured" = false }
+in_docs = true
+live = true
+
+[[case]]
+id = "ai-test-not-configured"
+title = { zh-CN = "测试 AI 接口（未配置）", en = "Test AI (not configured)", pt-BR = "Testar IA (não configurada)" }
+method = "POST"
+path = "/api/v1/ai/test"
+setup = "configured"
+auth = true
+expect_status = 409
+expect_json = { "code" = 1003 }
+in_docs = true

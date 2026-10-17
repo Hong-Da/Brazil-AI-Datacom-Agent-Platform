@@ -1,0 +1,883 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: bgp
+cards:
+  - id: cisco-iosxe.address-family-ipv4.1
+    syntax: Syntax Available Under Router Configuration Mode
+    view: router-bgp
+    default: IPv4 address prefixes are not enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/address-family ipv4 (BGP).md
+      title: address-family ipv4 (BGP)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.address-family-ipv4.2
+    syntax: address-family ipv4 [ mdt | tunnel | { multicast | unicast } [ vrf <vrf-name> ] | vrf <vrf-name> ]
+    view: router-bgp
+    enters_view: bgp-af
+    undo: no address-family ipv4 [ mdt | tunnel | { multicast | unicast } [ vrf <vrf-name> ] | vrf <vrf-name> ]
+    params:
+      vrf-name:
+        type: word
+    default: IPv4 address prefixes are not enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/address-family ipv4 (BGP).md
+      title: address-family ipv4 (BGP)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.address-family-ipv4.3
+    syntax: Syntax Available Under Router Scope Configuration Mode
+    view: router-bgp
+    default: IPv4 address prefixes are not enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/address-family ipv4 (BGP).md
+      title: address-family ipv4 (BGP)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.address-family-ipv4.4
+    syntax: address-family ipv4 [ mdt | multicast | unicast ]
+    view: router-bgp
+    enters_view: bgp-af
+    undo: no address-family ipv4 [ mdt | multicast | unicast ]
+    default: IPv4 address prefixes are not enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/address-family ipv4 (BGP).md
+      title: address-family ipv4 (BGP)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.address-family-vpnv4
+    syntax: address-family vpnv4 multicast unicast
+    view: router-bgp
+    enters_view: bgp-af
+    undo: no address-family vpnv4 multicast unicast
+    default: Unicast prefix support is enabled by default when this command is entered without any optional keywords. | | | |---|---| | Note | Routing information for address family IPv4 is advertised by default for each Border Gateway Protocol (BGP) routing session configured with the neighbor remote-as command unless you configure the no bgp default ipv4-unicast command before configuring the neighbor remote-as command. |
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/address-family vpnv4.md
+      title: address-family vpnv4
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.aggregate-address
+    syntax: aggregate-address <address> <mask> [ as-set ] [ as-confed-set ] [ summary-only ] [ suppress-map <map-name> ] [ advertise-map <map-name> ] [ attribute-map <map-name> ]
+    view: router-bgp
+    undo: no aggregate-address <address> <mask> [ as-set ] [ as-confed-set ] [ summary-only ] [ suppress-map <map-name> ] [ advertise-map <map-name> ] [ attribute-map <map-name> ]
+    params:
+      address:
+        type: ipv4
+      mask:
+        type: mask
+      map-name:
+        type: word
+    default: The atomic aggregate attribute is set automatically when an aggregate route is created with this command unless the as-set keyword is specified.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/aggregate-address.md
+      title: aggregate-address
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bgp-default-ipv4-unicast
+    syntax: bgp default ipv4-unicast
+    view: router-bgp
+    undo: no bgp default ipv4-unicast
+    default: IPv4 address family routing information is advertised by default for each BGP routing session configured with the neighbor remote-as command, unless you first configure the no bgp default ipv4-unicast command before configuring the neighbor remote-as command.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/bgp default ipv4-unicast.md
+      title: bgp default ipv4-unicast
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bgp-default-local-preference
+    syntax: bgp default local-preference <number>
+    view: router-bgp
+    undo: no bgp default local-preference <number>
+    params:
+      number:
+        type: word
+    default: Cisco IOS software applies a local preference value of 100 if this command is not enabled or if the no form of this command is entered.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/bgp default local-preference.md
+      title: bgp default local-preference
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bgp-graceful-restart
+    syntax: bgp graceful-restart [ extended | restart-time <seconds> | stalepath-time <seconds> ] [ all ]
+    view: router-bgp
+    undo: no bgp graceful-restart
+    params:
+      seconds:
+        type: word
+    default: 'The following default values are used when this command is entered without any keywords or arguments: restart-time : 120 seconds stalepath-time : 360 seconds | | | |---|---| | Note | Changing the restart and stalepath timer values is not required to enable the BGP graceful restart capability. The default values are optimal for most network deployments, and these values should be adjusted only by an experienced network operator. |'
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/bgp graceful-restart.md
+      title: bgp graceful-restart
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bgp-log-neighbor-changes
+    syntax: bgp log-neighbor-changes
+    view: router-bgp
+    undo: no bgp log-neighbor-changes
+    default: Logging of BGP neighbor resets is not enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/bgp log-neighbor-changes.md
+      title: bgp log-neighbor-changes
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bgp-router-id.1
+    syntax: Router Configuration
+    view: router-bgp
+    default: 'The following behavior determines local router ID selection when this command is not enabled: - If a loopback interface is configured, the router ID is set to the IP address of the loopback interface. If multiple loopback interfaces are configured, the router ID is set to the IP address of the loopback interface with the highest IP address. - If no loopback interface is configured, the router ID is set to the highest IP address on a physical interface.'
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/bgp router-id.md
+      title: bgp router-id
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bgp-router-id.2
+    syntax: bgp router-id { <ip-address> | vrf auto-assign }
+    view: router-bgp
+    undo: no bgp router-id [ vrf auto-assign ]
+    params:
+      ip-address: &id001
+        type: ipv4
+    default: 'The following behavior determines local router ID selection when this command is not enabled: - If a loopback interface is configured, the router ID is set to the IP address of the loopback interface. If multiple loopback interfaces are configured, the router ID is set to the IP address of the loopback interface with the highest IP address. - If no loopback interface is configured, the router ID is set to the highest IP address on a physical interface.'
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/bgp router-id.md
+      title: bgp router-id
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bgp-router-id.3
+    syntax: Address Family Configuration
+    view: router-bgp
+    default: 'The following behavior determines local router ID selection when this command is not enabled: - If a loopback interface is configured, the router ID is set to the IP address of the loopback interface. If multiple loopback interfaces are configured, the router ID is set to the IP address of the loopback interface with the highest IP address. - If no loopback interface is configured, the router ID is set to the highest IP address on a physical interface.'
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/bgp router-id.md
+      title: bgp router-id
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bgp-router-id.4
+    syntax: bgp router-id { <ip-address> | auto-assign }
+    view: router-bgp
+    undo: no bgp router-id [ vrf auto-assign ]
+    params:
+      ip-address: *id001
+    default: 'The following behavior determines local router ID selection when this command is not enabled: - If a loopback interface is configured, the router ID is set to the IP address of the loopback interface. If multiple loopback interfaces are configured, the router ID is set to the IP address of the loopback interface with the highest IP address. - If no loopback interface is configured, the router ID is set to the highest IP address on a physical interface.'
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/bgp router-id.md
+      title: bgp router-id
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.default-information-originate
+    syntax: default-information originate
+    view: router-bgp
+    undo: no default-information originate
+    default: No default behavior or values
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/default-information originate (BGP).md
+      title: default-information originate (BGP)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.distance-bgp
+    syntax: distance bgp <external-distance> <internal-distance> <local-distance>
+    view: router-bgp
+    undo: no distance bgp
+    params:
+      external-distance:
+        type: word
+      internal-distance:
+        type: word
+      local-distance:
+        type: word
+    default: 'The following values are used if this command is not configured or if the no form is entered: external-distance : 20 internal-distance : 200 local-distance: 200 Routes with a distance of 255 are not installed in the routing table.'
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/distance bgp.md
+      title: distance bgp
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.maximum-paths-eibgp
+    syntax: maximum-paths eibgp <number-of-paths> [ import <number-of-import-paths> ]
+    view: bgp-af
+    undo: no maximum-paths eibgp <number-of-paths> [ import <number-of-import-paths> ]
+    params:
+      number-of-paths:
+        type: word
+      number-of-import-paths:
+        type: word
+    default: BGP, by default, will install only one best path in the routing table.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/maximum-paths eibgp.md
+      title: maximum-paths eibgp
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.maximum-paths-ibgp.1
+    syntax: Router Configuration Mode
+    view: router-bgp
+    default: BGP, by default, will install only one best path in the routing table.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/maximum-paths ibgp.md
+      title: maximum-paths ibgp
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.maximum-paths-ibgp.2
+    syntax: maximum-paths ibgp <number-of-paths>
+    view: router-bgp
+    undo: no maximum-paths ibgp <number-of-paths>
+    params:
+      number-of-paths: &id002
+        type: word
+    default: BGP, by default, will install only one best path in the routing table.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/maximum-paths ibgp.md
+      title: maximum-paths ibgp
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.maximum-paths-ibgp.3
+    syntax: Under VRF in Address Family Configuration Mode
+    view: router-bgp
+    default: BGP, by default, will install only one best path in the routing table.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/maximum-paths ibgp.md
+      title: maximum-paths ibgp
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.maximum-paths-ibgp.4
+    syntax: maximum-paths ibgp { <number-of-paths> [ import <number-of-import-paths> ] | unequal-cost <number-of-import-paths> }
+    view: router-bgp
+    undo: no maximum-paths ibgp { <number-of-paths> [ import <number-of-import-paths> ] | unequal-cost <number-of-import-paths> }
+    params:
+      number-of-paths: *id002
+      number-of-import-paths:
+        type: word
+    default: BGP, by default, will install only one best path in the routing table.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/maximum-paths ibgp.md
+      title: maximum-paths ibgp
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.maximum-paths
+    syntax: maximum-paths <number-of-paths>
+    view: router-bgp
+    undo: no maximum-paths <number-of-paths>
+    params:
+      number-of-paths:
+        type: word
+    default: The default number of parallel routes vary by Cisco IOS release and platform.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/maximum-paths.md
+      title: maximum-paths
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-activate
+    syntax: neighbor { <ip-address> | <peer-group-name> | <ipv6-address> % } activate
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> | <ipv6-address> % } activate
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      ipv6-address:
+        type: ipv4
+    default: The exchange of addresses with BGP neighbors is enabled for the IPv4 address family. Enabling address exchange for all other address families is disabled. | | | |---|---| | Note | Address exchange for address family IPv4 is enabled by default for each BGP routing session configured with the neighbor remote-as command unless you configure the no bgp default ipv4-activate command before configuring the neighbor remote-as command, or you disable address exchange for address family IPv4 with a specific neighbor by using the no neighbor activate command. |
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor activate.md
+      title: neighbor activate
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-allowas-in
+    syntax: neighbor <ip-address> allowas-in [ <number> ]
+    view: router-bgp
+    undo: no neighbor allowas-in [ <number> ]
+    params:
+      ip-address:
+        type: ipv4
+      number:
+        type: integer
+        range:
+          - 1
+          - 10
+    default: Readvertisement of all prefixes containing duplicate ASNs is disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor allowas-in.md
+      title: neighbor allowas-in
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-as-override
+    syntax: neighbor <ip-address> as-override
+    view: router-bgp
+    undo: no neighbor <ip-address> as-override
+    params:
+      ip-address:
+        type: ipv4
+    default: Automatic override of the ASN is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor as-override.md
+      title: neighbor as-override
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-default-originate
+    syntax: neighbor { <ip-address> | <peer-group-name> } default-originate [ route-map <map-name> ]
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> } default-originate [ route-map <map-name> ]
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      map-name:
+        type: word
+    default: No default route is sent to the neighbor.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor default-originate.md
+      title: neighbor default-originate
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-description
+    syntax: neighbor { <ip-address> | <peer-group-name> } description <text>
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> } description [ <text> ]
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      text:
+        type: text
+    default: There is no description of the neighbor.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor description.md
+      title: neighbor description
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-ebgp-multihop
+    syntax: neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } ebgp-multihop [ <ttl> ]
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } ebgp-multihop
+    params:
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      ttl:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: Only directly connected neighbors are allowed.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor ebgp-multihop.md
+      title: neighbor ebgp-multihop
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-filter-list
+    syntax: neighbor { <ip-address> | <peer-group-name> } filter-list <access-list-number> { in | out }
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> } filter-list <access-list-number> { in | out }
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      access-list-number:
+        type: word
+    default: No BGP filter is used.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor filter-list.md
+      title: neighbor filter-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-local-as
+    syntax: neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } local-as [ <autonomous-system-number> [ no-prepend [ replace-as [ dual-as ] ] ] ]
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } local-as
+    params:
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      autonomous-system-number:
+        type: asn
+    default: The autonomous system number from the local BGP routing process is prepended to all external routes by default.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor local-as.md
+      title: neighbor local-as
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-maximum-prefix
+    syntax: neighbor { <ip-address> | <peer-group-name> } maximum-prefix <maximum> [ <threshold> ] [ discard-extra ] [ restart <restart-interval> ] [ warning-only ]
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> } maximum-prefix <maximum>
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      maximum:
+        type: word
+      threshold:
+        type: integer
+      restart-interval:
+        type: word
+    default: 'This command is disabled by default. Peering sessions are disabled when the maximum number of prefixes is exceeded. If the restart-interval argument is not configured, a disabled session will stay down after the maximum-prefix limit is exceeded. threshold : 75 percent'
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor maximum-prefix (BGP).md
+      title: neighbor maximum-prefix (BGP)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-next-hop-self
+    syntax: neighbor { <ip-address> | <peer-group-name> } next-hop-self [ all ]
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> } next-hop-self [ all ]
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+    default: This command is disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor next-hop-self.md
+      title: neighbor next-hop-self
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-password
+    syntax: neighbor { <ip-address> | <peer-group-name> } password <string>
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> } password
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      string:
+        type: text
+    default: MD5 is not authenticated on a TCP connection between two BGP peers.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor password.md
+      title: neighbor password
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-peer-group
+    syntax: neighbor { <ip-address> | <ipv6-address> } peer-group <peer-group-name>
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <ipv6-address> } peer-group <peer-group-name>
+    params:
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+    default: There are no BGP neighbors in a peer group.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor peer-group (assigning members).md
+      title: neighbor peer-group (assigning members)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-peer-group~2
+    syntax: neighbor <peer-group-name> peer-group
+    view: router-bgp
+    undo: no neighbor <peer-group-name> peer-group
+    params:
+      peer-group-name:
+        type: word
+    default: There is no BGP peer group.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor peer-group (creating).md
+      title: neighbor peer-group (creating)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-prefix-list
+    syntax: neighbor { <ip-address> | <peer-group-name> } prefix-list { <prefix-list-name> | <clns-filter-expr-name> | <clns-filter-set-name> } { in | out }
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> } prefix-list { <prefix-list-name> | <clns-filter-expr-name> | <clns-filter-set-name> } { in | out }
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      prefix-list-name:
+        type: word
+      clns-filter-expr-name:
+        type: word
+      clns-filter-set-name:
+        type: word
+    default: All external and advertised address prefixes are distributed to BGP neighbors.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor prefix-list.md
+      title: neighbor prefix-list
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-remote-as
+    syntax: neighbor { <ip-address> | <ipv6-address> % | <peer-group-name> } remote-as <autonomous-system-number> [ alternate-as <autonomous-system-number> ]
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <ipv6-address> % | <peer-group-name> } remote-as <autonomous-system-number> [ alternate-as <autonomous-system-number> ]
+    params:
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      autonomous-system-number:
+        type: asn
+    default: There are no BGP or multiprotocol BGP neighbor peers.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor remote-as.md
+      title: neighbor remote-as
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-remove-private-as
+    syntax: neighbor { <ip-address> | <peer-group-name> } remove-private-as [ all [ replace-as ] ]
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> } remove-private-as
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+    default: No private AS numbers are removed from the AS path.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor remove-private-as.md
+      title: neighbor remove-private-as
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-route-map
+    syntax: neighbor { <ip-address> | <peer-group-name> | <ipv6-address> [ % ] } route-map <map-name> { in | out }
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> | <ipv6-address> [ % ] } route-map <map-name> { in | out }
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      ipv6-address:
+        type: ipv4
+      map-name:
+        type: word
+    default: No route maps are applied to a peer.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor route-map.md
+      title: neighbor route-map
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-route-reflector-client
+    syntax: neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } route-reflector-client
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } route-reflector-client
+    params:
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+    default: There is no route reflector in the autonomous system.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor route-reflector-client.md
+      title: neighbor route-reflector-client
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-send-community
+    syntax: neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } send-community [ both | standard | extended ]
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } send-community
+    params:
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+    default: No communities attribute is sent to any neighbor.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor send-community.md
+      title: neighbor send-community
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-send-label
+    syntax: neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } send-label [ explicit-null ]
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } send-label [ explicit-null ]
+    params:
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+    default: BGP routers distribute only BGP routes.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor send-label.md
+      title: neighbor send-label
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-shutdown
+    syntax: neighbor { <ip-address> | <peer-group-name> } shutdown graceful <seconds> community <value> [ local-preference <value> ] [ community <value> ] local-preference <value>
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> } shutdown graceful <seconds> community <value> [ local-preference <value> ] [ community <value> ] local-preference <value>
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      seconds:
+        type: integer
+        range:
+          - 30
+          - 65535
+      value:
+        type: word
+    default: No change is made to the status of any BGP neighbor or peer group.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor shutdown.md
+      title: neighbor shutdown
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-soft-reconfiguration
+    syntax: neighbor { <ip-address> | <peer-group-name> } soft-reconfiguration inbound
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> } soft-reconfiguration inbound
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+    default: Soft reconfiguration is not enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor soft-reconfiguration.md
+      title: neighbor soft-reconfiguration
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-timers
+    syntax: neighbor [ <ip-address> | <p> <eer-group-name> ] timers <keepalive> <holdtime> [ <min-holdtime> ]
+    view: router-bgp
+    undo: no neighbor [ <ip-address> | <peer-group-name> ] timers
+    params:
+      ip-address:
+        type: ipv4
+      p:
+        type: word
+      eer-group-name:
+        type: word
+      keepalive:
+        type: word
+      holdtime:
+        type: word
+      min-holdtime:
+        type: word
+    default: 'keepalive : 60 secondsholdtime : 180 seconds'
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor timers.md
+      title: neighbor timers
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-update-source.1
+    syntax: neighbor { <ip-address> | <ipv6-address> [ % ] | <peer-group-name> } update-source <interface-type> <interface-number>
+    view: router-bgp
+    params:
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: Best local address
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor update-source.md
+      title: neighbor update-source
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor-weight
+    syntax: neighbor { <ip-address> | <peer-group-name> } weight number
+    view: router-bgp
+    undo: no neighbor { <ip-address> | <peer-group-name> } weight <number>
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+    default: Routes learned through another BGP peer have a default weight of 0 and routes sourced by the local router have a default weight of 32768.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/neighbor weight.md
+      title: neighbor weight
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.network
+    syntax: network { <network-number> [ mask <network-mask> ] | <nsap-prefix> } [ route-map <map-tag> ]
+    view: router-bgp
+    undo: no network { <network-number> [ mask <network-mask> ] | <nsap-prefix> } [ route-map <map-tag> ]
+    params:
+      network-number:
+        type: word
+      network-mask:
+        type: mask
+      nsap-prefix:
+        type: ipv4
+      map-tag:
+        type: word
+    default: No networks are specified.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/network (BGP and multiprotocol BGP).md
+      title: network (BGP and multiprotocol BGP)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.redistribute
+    syntax: redistribute <protocol> [ <process-id> ] { level-1 | level-1-2 | level-2 } [ <autonomous-system-number> ] [ metric { <metric-value> | transparent } ] [ metric-type <type-value> ] [ match { internal | external 1 | external 2 } ] [ tag <tag-value> ] [ route-map <map-tag> ] [ registered ] [ resolved ] [ summary ] [ subnets ] [ nssa-only ]
+    view: router-bgp
+    undo: no redistribute <protocol> [ <process-id> ] { level-1 | level-1-2 | level-2 } [ <autonomous-system-number> ] [ metric { <metric-value> | transparent } ] [ metric-type <type-value> ] [ match { internal | external 1 | external 2 } ] [ tag <tag-value> ] [ route-map <map-tag> ] [ registered ] [ resolved ] [ summary ] [ subnets ] [ nssa-only ]
+    params:
+      protocol:
+        type: word
+      process-id:
+        type: word
+      autonomous-system-number:
+        type: asn
+      metric-value:
+        type: word
+      type-value:
+        type: word
+      tag-value:
+        type: word
+      map-tag:
+        type: word
+    default: Route redistribution is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/redistribute (IP).md
+      title: redistribute (IP)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.router-bgp
+    syntax: router bgp <autonomous-system-number>
+    view: system
+    enters_view: router-bgp
+    undo: no router bgp <autonomous-system-number>
+    params:
+      autonomous-system-number:
+        type: asn
+    default: No BGP routing process is enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/router bgp.md
+      title: router bgp
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.timers-bgp
+    syntax: timers bgp <keepalive> <holdtime> [ <min-holdtime> ]
+    view: router-bgp
+    undo: no timers bgp
+    params:
+      keepalive:
+        type: word
+      holdtime:
+        type: word
+      min-holdtime:
+        type: word
+    default: 'keepalive : 60 secondsholdtime : 180 seconds'
+    source:
+      doc: cisco-iosxe-md
+      file: bgp/timers bgp.md
+      title: timers bgp
+      line: 5
+      version: '17.15'
+    status: draft

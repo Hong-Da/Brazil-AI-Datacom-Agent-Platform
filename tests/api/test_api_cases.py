@@ -59,3 +59,30 @@ def test_api_live(case: dict[str, Any]) -> None:
 
     with httpx.Client(base_url=base, timeout=30) as client:
         _check(_request(client, case, token), case)
+
+
+@pytest.mark.api
+def test_ingest_background_task(configured_root: Path) -> None:
+    """后台任务：提交导入 → 轮询到完成 → 结果中有新增的命令卡。"""
+    import time
+
+    from fastapi.testclient import TestClient
+
+    from lmesh.api import create_app
+    from tests.conftest import INPUTS
+
+    client = TestClient(create_app())
+    h = {"Authorization": f"Bearer {TEST_TOKEN}"}
+    r = client.post("/api/v1/kb/ingest", headers=h,
+                    json={"doc_dir": str(INPUTS / "docs" / "huawei"), "rules": str(INPUTS / "docs" / "rules-huawei-test.yaml")})
+    assert r.status_code == 200, r.text
+    task_id = r.json()["data"]["task_id"]
+    for _ in range(100):
+        t = client.get(f"/api/v1/tasks/{task_id}", headers=h).json()["data"]
+        if t["status"] in ("done", "failed"):
+            break
+        time.sleep(0.1)
+    assert t["status"] == "done", t
+    assert t["result"]["merge"]["new"] == 4
+    exp = client.get("/api/v1/kb/export", headers=h)
+    assert exp.status_code == 200 and exp.headers["content-type"] == "application/zip"

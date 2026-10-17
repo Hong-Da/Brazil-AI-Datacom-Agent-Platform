@@ -209,3 +209,55 @@ args = ["--lang", "en", "review", "approve", "999"]
 setup = "configured"
 expect_exit = 1
 expect_stderr = ["Review item not found"]
+
+[[case]]
+id = "kb-ingest"
+title = { zh-CN = "导入产品文档并抽取命令卡", en = "Ingest product docs into command cards", pt-BR = "Importar documentação e extrair fichas de comando" }
+args = ["--output", "json", "kb", "ingest", "{inputs}/docs/huawei", "--rules", "{inputs}/docs/rules-huawei-test.yaml", "--version", "V800R025C00SPC500"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.merge.new" = 4, "data.review_items" = 4, "data.skipped.excluded" = 1 }
+in_docs = true
+
+[[case]]
+id = "kb-ingest-bad-rules"
+title = { zh-CN = "抽取规则不存在", en = "Unknown extraction rules", pt-BR = "Regras de extração inexistentes" }
+args = ["kb", "ingest", "{inputs}/docs/huawei", "--rules", "no-such-rules"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["no-such-rules"]
+in_docs = true
+
+[[case]]
+id = "kb-ingest-ai-not-configured"
+title = { zh-CN = "未配置 AI 时要求 AI 通道", en = "AI channel without AI configured", pt-BR = "Canal de IA sem IA configurada" }
+args = ["--lang", "pt-BR", "kb", "ingest", "{inputs}/docs/huawei", "--rules", "{inputs}/docs/rules-huawei-test.yaml", "--ai"]
+setup = "configured"
+expect_exit = 3
+expect_stderr = ["IA"]
+
+[[case]]
+id = "review-approve-all"
+title = { zh-CN = "批量通过命令卡（无可通过的条目时）", en = "Batch approve cards (nothing pending)", pt-BR = "Aprovar fichas em lote (nada pendente)" }
+args = ["--output", "json", "--yes", "review", "approve-all", "--kind", "card"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.approved" = 0 }
+in_docs = true
+
+[[case]]
+id = "ai-test-not-configured"
+title = { zh-CN = "测试 AI 接口（未配置）", en = "Test AI (not configured)", pt-BR = "Testar IA (não configurada)" }
+args = ["ai", "test"]
+setup = "configured"
+expect_exit = 3
+expect_stderr = ["AI"]
+in_docs = true
+
+[[case]]
+id = "ai-calls-empty"
+title = { zh-CN = "AI 调用记录", en = "AI call log", pt-BR = "Registro de chamadas de IA" }
+args = ["--output", "json", "ai", "calls"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.calls" = [] }

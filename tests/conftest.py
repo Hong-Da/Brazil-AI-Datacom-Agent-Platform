@@ -116,7 +116,13 @@ def tmp_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
     for d in ("config", "data", "logs"):
         (root / d).mkdir(parents=True)
     if (ROOT / "knowledge").exists():
-        shutil.copytree(ROOT / "knowledge", root / "knowledge")
+        # 复制知识库时不带抽取出的命令卡文件（几千张卡会拖慢测试，并与测试用的卡冲突）；视图、Schema、Profile 保留
+        def _skip_cards(directory: str, names: list[str]) -> set[str]:
+            if Path(directory).parent.name == "commands":
+                return {n for n in names if n.endswith(".yaml") and n != "views.yaml"}
+            return set()
+
+        shutil.copytree(ROOT / "knowledge", root / "knowledge", ignore=_skip_cards)
     monkeypatch.setenv("LMESH_ROOT", str(root))
     for k in list(os.environ):
         if k.startswith("LMESH_") and "__" in k:

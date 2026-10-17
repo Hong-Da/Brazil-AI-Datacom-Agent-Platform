@@ -1,0 +1,128 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: static-route
+cards:
+  - id: cisco-iosxe.ip-route-static-bfd.1
+    syntax: ip route static bfd { <interface-type> <interface-number> <ip-address> | vrf <vrf-name> } [ <multihop-destination-address> <multihop-source-address> ] [ group <group-name> ] [ passive ] [ unassociate ]
+    view: system
+    undo: no ip route static bfd { <interface-type> <interface-number> <ip-address> | vrf <vrf-name> } [ <multihop-destination-address> <multihop-source-address> ] [ group <group-name> ] [ passive ] [ unassociate ]
+    params:
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      ip-address:
+        type: ipv4
+      vrf-name:
+        type: word
+      multihop-destination-address:
+        type: ipv4
+      multihop-source-address:
+        type: ipv4
+      group-name:
+        type: word
+    default: No static route BFD neighbors are specified.
+    source:
+      doc: cisco-iosxe-md
+      file: static-route/ip route static bfd.md
+      title: ip route static bfd
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-route-vrf
+    syntax: ip route vrf <vrf-name> <prefix> <mask> [ <next-hop-address> ] [ <interface> <interface-number> ] [ global ] [ <distance> ] [ permanent ] [ tag <tag> ]
+    view: system
+    undo: no ip route vrf <vrf-name> <prefix> <mask> [ <next-hop-address> ] [ <interface> <interface-number> ] [ global ] [ <distance> ] [ permanent ] [ tag <tag> ]
+    params:
+      vrf-name:
+        type: word
+      prefix:
+        type: ipv4
+      mask:
+        type: mask
+      next-hop-address:
+        type: ipv4
+      interface:
+        type: word
+      interface-number:
+        type: word
+      distance:
+        type: word
+      tag:
+        type: word
+    default: No default behavior or values.
+    source:
+      doc: cisco-iosxe-md
+      file: static-route/ip route vrf.md
+      title: ip route vrf
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-route.1
+    syntax: ip route [ vrf <vrf-name> ] <prefix> <mask> { <ip-address> | <interface-type> <interface-number> [ <ip-address> ] } [ dhcp ] [ global ] [ <distance> ] [ multicast ] [ name <next-hop-name> ] [ permanent | track <number> ] [ tag <tag> ]
+    view: system
+    undo: no ip route [ vrf <vrf-name> ] <prefix> <mask> { <ip-address> | <interface-type> <interface-number> [ <ip-address> ] } [ dhcp ] [ global ] [ <distance> ] multicast [ name <next-hop-name> ] [ permanent | track <number> ] [ tag <tag> ]
+    params:
+      vrf-name:
+        type: word
+      prefix: &id001
+        type: ipv4
+      mask: &id002
+        type: mask
+      ip-address:
+        type: ipv4
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      distance:
+        type: integer
+        range:
+          - 1
+          - 255
+      next-hop-name:
+        type: word
+      number:
+        type: integer
+        range:
+          - 1
+          - 500
+      tag:
+        type: word
+    default: No static routes are established.
+    source:
+      doc: cisco-iosxe-md
+      file: static-route/ip route.md
+      title: ip route
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-route.2
+    syntax: To establish static routes, use the ip route command in global configuration mode. To remove static routes, use the no form of this command.
+    view: system
+    default: No static routes are established.
+    source:
+      doc: cisco-iosxe-md
+      file: static-route/ip route.md
+      title: ip route
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-route.3
+    syntax: ip route <prefix> <mask> segment-routing policy [ <policy> <name> ]
+    view: system
+    undo: no ip route [ vrf <vrf-name> ] <prefix> <mask> { <ip-address> | <interface-type> <interface-number> [ <ip-address> ] } [ dhcp ] [ global ] [ <distance> ] multicast [ name <next-hop-name> ] [ permanent | track <number> ] [ tag <tag> ]
+    params:
+      prefix: *id001
+      mask: *id002
+      policy:
+        type: word
+      name:
+        type: word
+    default: No static routes are established.
+    source:
+      doc: cisco-iosxe-md
+      file: static-route/ip route.md
+      title: ip route
+      line: 5
+      version: '17.15'
+    status: draft

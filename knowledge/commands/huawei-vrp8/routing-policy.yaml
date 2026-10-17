@@ -1,0 +1,2679 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: routing-policy
+cards:
+  - id: huawei-vrp8.apply-add-path-path-number
+    syntax: apply add-path path-number <path-number-value>
+    view: route-policy
+    undo: undo apply add-path path-number [ <path-number-value> ]
+    params:
+      path-number-value:
+        type: integer
+        range:
+          - 2
+          - 64
+    default: By default, the maximum number of BGP Add-Path routes that can be preferentially selected is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply add-path path-number
+      line: 9
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-aigp
+    syntax: apply aigp { [ + | - ] <cost> | inherit-cost }
+    view: route-policy
+    undo: undo apply aigp [ [ + | - ] <cost> ]
+    params:
+      cost:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no AIGP value is configured for BGP routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply aigp
+      line: 75
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-as-path
+    syntax: apply as-path { <as-path-value> } &<1-128> { additive | overwrite | delete }
+    view: route-policy
+    undo: undo apply as-path
+    params:
+      as-path-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, the original AS_Path attribute is not replaced or cleared and no AS number is added to or deleted from the AS_Path attribute.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply as-path
+      line: 150
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-as-path~2
+    syntax: apply as-path <asValues> { additive | overwrite | delete }
+    view: route-policy
+    undo: undo apply as-path <asValues> { additive | overwrite | delete }
+    params:
+      asValues:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, the original AS_Path attribute is not replaced and no AS number is added to or deleted from the AS_Path attribute.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply as-path (Route-policy view)
+      line: 227
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-as-path-most-recent
+    syntax: apply as-path most-recent <most-recent-value>
+    view: route-policy
+    undo: undo apply as-path most-recent [ <most-recent-value> ]
+    params:
+      most-recent-value:
+        type: integer
+        range:
+          - 1
+          - 32
+    default: By default, the number of times the most recent AS number is appended is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply as-path most-recent
+      line: 298
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-as-path-none-overwrite
+    syntax: apply as-path none overwrite
+    view: route-policy
+    default: By default, the original AS_Path attribute is not cleared.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply as-path none overwrite
+      line: 366
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-as-path-prepend
+    syntax: apply as-path prepend <asValues>
+    view: route-policy
+    undo: undo apply as-path prepend [ <asValues> ]
+    params:
+      asValues:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no AS number is prepended to the local AS number.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply as-path prepend
+      line: 434
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-comm-filter-delete.1
+    syntax: apply comm-filter { <basIndex> | <advIndex> } delete
+    view: route-policy
+    undo: undo apply comm-filter
+    params:
+      basIndex:
+        type: integer
+        range:
+          - 1
+          - 99
+      advIndex:
+        type: integer
+        range:
+          - 100
+          - 199
+    default: By default, the community attributes of BGP routes are not deleted.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply comm-filter delete
+      line: 523
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-comm-filter-delete.2
+    syntax: apply comm-filter <cmntyName> delete
+    view: route-policy
+    undo: undo apply comm-filter
+    params:
+      cmntyName:
+        type: word
+    default: By default, the community attributes of BGP routes are not deleted.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply comm-filter delete
+      line: 523
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-community.1
+    syntax: apply community none
+    view: route-policy
+    undo: undo apply community
+    default: By default, no BGP community attributes are applied.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply community
+      line: 603
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-community.2
+    syntax: apply community { <cmntyValue> | <cmntyNum> | internet | no-advertise | no-export | no-export-subconfed } &<1-32> [ additive | delete ]
+    view: route-policy
+    undo: undo apply community
+    params:
+      cmntyValue:
+        type: integer
+        range:
+          - 0
+          - 65535
+      cmntyNum:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no BGP community attributes are applied.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply community
+      line: 603
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-community-community-list
+    syntax: apply community community-list <community-list-name> [ additive ]
+    view: route-policy
+    params:
+      community-list-name:
+        type: word
+    default: By default, no BGP community attributes are applied.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply community community-list
+      line: 689
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-cost.1
+    syntax: apply cost [ + | - ] <cost>
+    view: route-policy
+    undo: undo apply cost
+    params:
+      cost:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no MED value is set for BGP routes nor cost value is set for routes of other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply cost
+      line: 761
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-cost.2
+    syntax: apply cost inherit
+    view: route-policy
+    undo: undo apply cost
+    default: By default, no MED value is set for BGP routes nor cost value is set for routes of other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply cost
+      line: 761
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-cost.3
+    syntax: apply cost none
+    view: route-policy
+    undo: undo apply cost
+    default: By default, no MED value is set for BGP routes nor cost value is set for routes of other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply cost
+      line: 761
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-cost-type
+    syntax: apply cost-type { external | internal | type-1 | type-2 | internal-inc-ibgp | med-plus-igp [ cost { + | - } <costVal> ] | med-inherit-aigp }
+    view: route-policy
+    undo: undo apply cost-type
+    params:
+      costVal:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no cost type of a route is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply cost-type
+      line: 840
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-dampening
+    syntax: apply dampening <half-life-reach> <reuse> <suppress> <ceiling>
+    view: route-policy
+    undo: undo apply dampening
+    params:
+      half-life-reach:
+        type: integer
+        range:
+          - 1
+          - 45
+      reuse:
+        type: integer
+        range:
+          - 1
+          - 19998
+      suppress:
+        type: integer
+        range:
+          - 2
+          - 19999
+      ceiling:
+        type: integer
+        range:
+          - 1001
+          - 20000
+    default: By default, BGP route dampening parameters are not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply dampening
+      line: 947
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-entropy-label-none
+    syntax: apply entropy-label none
+    view: route-policy
+    undo: undo apply entropy-label none
+    default: By default, the entropy label of BGP routes is not discarded.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply entropy-label none
+      line: 1022
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-extcommunity.1
+    syntax: apply extcommunity { rt <extCmntyValue> } &<1-16> [ additive | delete ]
+    view: route-policy
+    undo: undo apply extcommunity [ rt ]
+    params:
+      extCmntyValue:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, no BGP VPN-Target extended community attributes are configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply extcommunity
+      line: 1082
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-extcommunity.2
+    syntax: apply extcommunity rt none
+    view: route-policy
+    undo: undo apply extcommunity [ rt ]
+    default: By default, no BGP VPN-Target extended community attributes are configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply extcommunity
+      line: 1082
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-extcommunity-bandwidth.1
+    syntax: apply extcommunity bandwidth { <extCmntyString> | none }
+    view: route-policy
+    undo: undo apply extcommunity bandwidth [ <extCmntyString> | none ]
+    params:
+      extCmntyString:
+        type: word
+    default: By default, no bandwidth extended community attribute values are set for routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply extcommunity bandwidth
+      line: 1158
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-extcommunity-bandwidth.2
+    syntax: apply extcommunity bandwidth aggregate [ limit <bandwidth-value> ]
+    view: route-policy
+    undo: undo apply extcommunity bandwidth aggregate [ limit <bandwidth-value> ]
+    params:
+      bandwidth-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no bandwidth extended community attribute values are set for routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply extcommunity bandwidth
+      line: 1158
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-extcommunity-bandwidth.3
+    syntax: apply extcommunity bandwidth aggregate-upstream [ limit <upstream-bandwidth> ]
+    view: route-policy
+    undo: undo apply extcommunity bandwidth aggregate-upstream [ limit <upstream-bandwidth> ]
+    params:
+      upstream-bandwidth:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no bandwidth extended community attribute values are set for routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply extcommunity bandwidth
+      line: 1158
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-extcommunity-color
+    syntax: apply extcommunity color <color>
+    view: route-policy
+    undo: undo apply extcommunity color
+    params:
+      color:
+        type: word
+    default: By default, no color extended community attribute is set for BGP routes matching specified filtering rules.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply extcommunity color
+      line: 1261
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-extcommunity-redirect-ip
+    syntax: apply extcommunity redirect ip <ipv4-address:nn>
+    view: route-policy
+    undo: undo apply extcommunity redirect ip
+    params:
+      ipv4-address:nn:
+        type: ipv4
+    default: By default, no redirection extended community attribute is set for BGP Flow Specification routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply extcommunity redirect ip
+      line: 1329
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-extcommunity-redirect-vpn-target
+    syntax: apply extcommunity redirect vpn-target <extCmntyValue>
+    view: route-policy
+    undo: undo apply extcommunity redirect vpn-target
+    params:
+      extCmntyValue:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, no redirection VPN-Target extended community attribute is applied to BGP Flow Specification routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply extcommunity redirect vpn-target
+      line: 1395
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-extcommunity-soo
+    syntax: apply extcommunity soo { <site-of-origin> } &<1-16> additive
+    view: route-policy
+    undo: undo apply extcommunity soo
+    params:
+      site-of-origin:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, no SoO extended community attributes are configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply extcommunity soo
+      line: 1462
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-extcommunity-filter-rt
+    syntax: apply extcommunity-filter rt <filter-name> delete
+    view: route-policy
+    undo: undo apply extcommunity-filter rt [ <filter-name> [ delete ] ]
+    params:
+      filter-name:
+        type: word
+    default: By default, BGP extended community attributes are not deleted.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply extcommunity-filter rt
+      line: 1524
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-flex-algo
+    syntax: apply flex-algo <flex-algo-id>
+    view: route-policy
+    undo: undo apply flex-algo [ <flex-algo-id> ]
+    params:
+      flex-algo-id:
+        type: integer
+        range:
+          - 128
+          - 255
+    default: By default, no Flex-Algo ID is set for a route.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply flex-algo
+      line: 1592
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-gateway-ip
+    syntax: apply gateway-ip { origin-nexthop | <address> | none }
+    view: route-policy
+    undo: undo apply gateway-ip [ <address> | origin-nexthop | none ]
+    params:
+      address:
+        type: ipv4
+    default: By default, no gateway IP address is set for routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply gateway-ip
+      line: 1658
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-ip-address-next-hop
+    syntax: apply ip-address next-hop { <address> | peer-address | original }
+    view: route-policy
+    undo: undo apply ip-address next-hop { <address> | peer-address | original }
+    params:
+      address:
+        type: ipv4
+    default: By default, no next hop address is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply ip-address next-hop
+      line: 1728
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-ipv6-gateway-ip
+    syntax: apply ipv6 gateway-ip { origin-nexthop | <address> | none }
+    view: route-policy
+    undo: undo apply ipv6 gateway-ip [ <address> | origin-nexthop | none ]
+    params:
+      address:
+        type: word
+    default: By default, no gateway IPv6 address is set for routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply ipv6 gateway-ip
+      line: 1800
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-ipv6-next-hop
+    syntax: apply ipv6 next-hop { <address> | peer-address | original }
+    view: route-policy
+    undo: undo apply ipv6 next-hop { <address> | peer-address | original }
+    params:
+      address:
+        type: word
+    default: By default, IPv6 next hop addresses of BGP routes are not configured using a route-policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply ipv6 next-hop
+      line: 1870
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-isis
+    syntax: apply isis { level-1 | level-2 | level-1-2 }
+    view: route-policy
+    undo: undo apply { isis | ospf }
+    default: By default, no level is set for the routes imported to IS-IS.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply isis
+      line: 1940
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-large-community.1
+    syntax: apply large-community { <aa:bb:cc> } &<1-16> { additive | overwrite | delete }
+    view: route-policy
+    undo: undo apply large-community
+    params:
+      aa:bb:cc:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, the BGP Large-Community attribute is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply large-community
+      line: 2008
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-large-community.2
+    syntax: apply large-community none
+    view: route-policy
+    undo: undo apply large-community
+    default: By default, the BGP Large-Community attribute is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply large-community
+      line: 2008
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-large-community-list
+    syntax: apply large-community-list <large-community-list-name> { additive | overwrite | delete }
+    view: route-policy
+    undo: undo apply large-community-list [ <large-community-list-name> ]
+    params:
+      large-community-list-name:
+        type: word
+    default: By default, the BGP Large-Community list is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply large-community-list
+      line: 2085
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-local-preference
+    syntax: apply local-preference [ + | - ] <preference>
+    view: route-policy
+    undo: undo apply local-preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, for a locally generated route and route learned from an EBGP peer (such routes do not carry the Local-Pref attribute), the device uses 100 as the local preference of those routes during route selection; for a route learned from an IBGP peer (such a route carries the Local-Pref attribute), the device uses the carried Local-Pref attribute value as the local preference of the route.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply local-preference
+      line: 2154
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-mpls-label
+    syntax: apply mpls-label
+    view: route-policy
+    undo: undo apply mpls-label
+    default: By default, no MPLS label is allocated to public routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply mpls-label
+      line: 2228
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-mpls-label-mode
+    syntax: apply mpls-label-mode { per-route | per-path }
+    view: route-policy
+    undo: undo apply mpls-label-mode [ per-route | per-path ]
+    default: By default, no MPLS label mode is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply mpls-label-mode
+      line: 2288
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-origin
+    syntax: apply origin { egp { <egpVal> } | igp | incomplete }
+    view: route-policy
+    undo: undo apply origin
+    params:
+      egpVal:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no Origin attribute is set for BGP routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply origin
+      line: 2361
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-preference
+    syntax: apply preference <preference>
+    view: route-policy
+    undo: undo apply preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the preference of routes is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply preference
+      line: 2430
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-preferred-value
+    syntax: apply preferred-value <preferredVal>
+    view: route-policy
+    undo: undo apply preferred-value
+    params:
+      preferredVal:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, the preferred value of BGP routes is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply preferred-value
+      line: 2500
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-prefix-sid-delete
+    syntax: apply prefix-sid { anycast | unicast } delete
+    view: route-policy
+    undo: undo apply prefix-sid { anycast | unicast } delete
+    default: By default, no route-policy is configured to delete prefix SID attributes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply prefix-sid delete
+      line: 2570
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-qos-local-id.1
+    syntax: apply ip-precedence <ip-precedence>
+    view: route-policy
+    undo: undo apply { qos-local-id | ip-precedence }
+    params:
+      ip-precedence:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, neither ip-precedence nor qos-local-id is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply qos-local-id
+      line: 2643
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-qos-local-id.2
+    syntax: apply qos-local-id <qos-local-id>
+    view: route-policy
+    undo: undo apply { qos-local-id | ip-precedence }
+    params:
+      qos-local-id:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, neither ip-precedence nor qos-local-id is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply qos-local-id
+      line: 2643
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-stitch-pmsi
+    syntax: apply stitch-pmsi { incoming { rsvp-te p2mp-template <p2mp-template-name> [ mldp root-ip <root-ip-address> ] } | mldp [ root-ip <root-ip-address> ] | rsvp-te p2mp-template <p2mp-template-name> }
+    view: route-policy
+    undo: undo apply stitch-pmsi
+    params:
+      p2mp-template-name:
+        type: word
+      root-ip-address:
+        type: ipv4
+    default: By default, different types of PMSIs are not stitched.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply stitch-pmsi
+      line: 2724
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-tag
+    syntax: apply tag <tag>
+    view: route-policy
+    undo: undo apply tag
+    params:
+      tag:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no tag is set for routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply tag
+      line: 2799
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-traffic-index
+    syntax: apply traffic-index <indexVal>
+    view: route-policy
+    undo: undo apply traffic-index
+    params:
+      indexVal:
+        type: integer
+        range:
+          - 1
+          - 64
+    default: By default, no BGP traffic index is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: apply traffic-index
+      line: 2869
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.description
+    syntax: description <description>
+    view: route-policy
+    undo: undo description
+    params:
+      description:
+        type: text
+    default: By default, no description is configured for a route-policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: description (Route-policy view)
+      line: 3002
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-list-eth-tag
+    syntax: filter-list eth-tag <name>
+    view: system
+    undo: undo filter-list eth-tag <name>
+    params:
+      name:
+        type: word
+    default: By default, no Ethernet tag list is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: filter-list eth-tag
+      line: 4279
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-list-ip-prefix
+    syntax: filter-list ip-prefix <name>
+    view: system
+    undo: undo filter-list ip-prefix <name>
+    params:
+      name:
+        type: word
+    default: By default, no IP prefix list is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: filter-list ip-prefix
+      line: 4338
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-list-ipv6-prefix
+    syntax: filter-list ipv6-prefix <name>
+    view: system
+    undo: undo filter-list ipv6-prefix <name>
+    params:
+      name:
+        type: word
+    default: By default, no IPv6 prefix list is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: filter-list ipv6-prefix
+      line: 4401
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-list-mac
+    syntax: filter-list mac <name>
+    view: system
+    undo: undo filter-list mac <name>
+    params:
+      name:
+        type: word
+    default: By default, no MAC address list is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: filter-list mac
+      line: 4464
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-list-route-exists
+    syntax: filter-list route-exists <name>
+    view: system
+    undo: undo filter-list route-exists <name>
+    params:
+      name:
+        type: word
+    default: By default, no conditional route list is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: filter-list route-exists
+      line: 4527
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-list-vni
+    syntax: filter-list vni <name>
+    view: system
+    undo: undo filter-list vni <name>
+    params:
+      name:
+        type: word
+    default: By default, no VNI list is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: filter-list vni
+      line: 4590
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.goto-next-node
+    syntax: goto next-node [ <node> ]
+    view: route-policy
+    undo: undo goto next-node
+    params:
+      node:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, if a route matches the current node, it matches the route-policy and is no longer matched against other nodes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: goto next-node
+      line: 4653
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-acl
+    syntax: if-match acl { <acl-number> | <acl-name> }
+    view: route-policy
+    undo: undo if-match acl { <acl-number> | <acl-name> }
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name:
+        type: word
+    default: By default, no ACL-based filtering rule is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match acl
+      line: 4726
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-as-path-length.1
+    syntax: if-match as-path length <length-value>
+    view: route-policy
+    undo: undo if-match as-path length [ <length-value> | greater-equal <greater-equal-value> less-equal <less-equal-value> | { greater-equal <greater-equal-value> | less-equal <less-equal-value> } ]
+    params:
+      length-value:
+        type: integer
+        range:
+          - 0
+          - 2047
+    default: By default, no matching rules that are based on the AS_Path length are configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match as-path length
+      line: 4797
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-as-path-length.2
+    syntax: if-match as-path length greater-equal <greater-equal-value> less-equal <less-equal-value>
+    view: route-policy
+    undo: undo if-match as-path length [ <length-value> | greater-equal <greater-equal-value> less-equal <less-equal-value> | { greater-equal <greater-equal-value> | less-equal <less-equal-value> } ]
+    params:
+      greater-equal-value: &id001
+        type: integer
+        range:
+          - 0
+          - 2046
+      less-equal-value: &id002
+        type: integer
+        range:
+          - 1
+          - 2047
+    default: By default, no matching rules that are based on the AS_Path length are configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match as-path length
+      line: 4797
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-as-path-length.3
+    syntax: if-match as-path length { greater-equal <greater-equal-value> | less-equal <less-equal-value> }
+    view: route-policy
+    undo: undo if-match as-path length [ <length-value> | greater-equal <greater-equal-value> less-equal <less-equal-value> | { greater-equal <greater-equal-value> | less-equal <less-equal-value> } ]
+    params:
+      greater-equal-value: *id001
+      less-equal-value: *id002
+    default: By default, no matching rules that are based on the AS_Path length are configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match as-path length
+      line: 4797
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-as-path-filter.1
+    syntax: if-match as-path-filter { <apfIndex> } &<1-16>
+    view: route-policy
+    undo: undo if-match as-path-filter [ <apfIndex> ] &<1-16>
+    params:
+      apfIndex:
+        type: integer
+        range:
+          - 1
+          - 256
+    default: By default, no filtering rule based on the AS_Path filter is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match as-path-filter
+      line: 4863
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-as-path-filter.2
+    syntax: if-match as-path-filter <apfName>
+    view: route-policy
+    undo: undo if-match as-path-filter [ <apfIndex> ] &<1-16>
+    params:
+      apfName:
+        type: word
+    default: By default, no filtering rule based on the AS_Path filter is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match as-path-filter
+      line: 4863
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-community-count.1
+    syntax: if-match community-count { <equal-value> | { greater-equal <greater-equal-value> | less-equal <less-equal-value> } }
+    view: route-policy
+    undo: undo if-match community-count [ <equal-value> | greater-equal <greater-equal-value> less-equal <less-equal-value> ]
+    params:
+      equal-value:
+        type: integer
+        range:
+          - 0
+          - 1024
+      greater-equal-value: &id003
+        type: integer
+        range:
+          - 0
+          - 1023
+      less-equal-value: &id004
+        type: integer
+        range:
+          - 1
+          - 1024
+    default: By default, no matching rule based on the number of community attributes is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match community-count
+      line: 4937
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-community-count.2
+    syntax: if-match community-count greater-equal <greater-equal-value> less-equal <less-equal-value>
+    view: route-policy
+    undo: undo if-match community-count [ <equal-value> | greater-equal <greater-equal-value> less-equal <less-equal-value> ]
+    params:
+      greater-equal-value: *id003
+      less-equal-value: *id004
+    default: By default, no matching rule based on the number of community attributes is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match community-count
+      line: 4937
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-community-filter.1
+    syntax: if-match community-filter { <basIndex> [ whole-match ] | <AdvIndex> [ sort-match ] } &<1-16>
+    view: route-policy
+    undo: undo if-match community-filter { <basIndex> | <AdvIndex> } &<1-16>
+    params:
+      basIndex:
+        type: integer
+        range:
+          - 1
+          - 99
+      AdvIndex:
+        type: integer
+        range:
+          - 100
+          - 199
+    default: By default, no filtering rule based on the community filter is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match community-filter
+      line: 5015
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-community-filter.2
+    syntax: if-match community-filter <cfName> [ whole-match | sort-match ]
+    view: route-policy
+    undo: undo if-match community-filter { <basIndex> | <AdvIndex> } &<1-16>
+    params:
+      cfName:
+        type: word
+    default: By default, no filtering rule based on the community filter is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match community-filter
+      line: 5015
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-cost.1
+    syntax: if-match cost <cost>
+    view: route-policy
+    undo: undo if-match cost
+    params:
+      cost:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no filtering rule based on the route cost is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match cost
+      line: 5124
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-cost.2
+    syntax: if-match cost greater-equal <greater-equal-value> less-equal <less-equal-value>
+    view: route-policy
+    undo: undo if-match cost
+    params:
+      greater-equal-value: &id005
+        type: integer
+        range:
+          - 0
+          - 4294967294
+      less-equal-value: &id006
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no filtering rule based on the route cost is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match cost
+      line: 5124
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-cost.3
+    syntax: if-match cost { greater-equal <greater-equal-value> | less-equal <less-equal-value> }
+    view: route-policy
+    undo: undo if-match cost
+    params:
+      greater-equal-value: *id005
+      less-equal-value: *id006
+    default: By default, no filtering rule based on the route cost is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match cost
+      line: 5124
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-eth-tag-list
+    syntax: if-match eth-tag-list <eth-tag-list-name>
+    view: route-policy
+    undo: undo if-match eth-tag-list [ <eth-tag-list-name> ]
+    params:
+      eth-tag-list-name:
+        type: word
+    default: By default, no matching rule based on an Ethernet tag list is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match eth-tag-list
+      line: 5196
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-extcommunity-filter.1
+    syntax: if-match extcommunity-filter { <basIndex> [ matches-all | whole-match ] | <advIndex> } &<1-16>
+    view: route-policy
+    undo: undo if-match extcommunity-filter { <basIndex> | <advIndex> } &<1-16>
+    params:
+      basIndex:
+        type: integer
+        range:
+          - 1
+          - 199
+      advIndex:
+        type: integer
+        range:
+          - 200
+          - 399
+    default: By default, no filtering rule based on the VPN-Target extended community filter is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match extcommunity-filter
+      line: 5265
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-extcommunity-filter.2
+    syntax: if-match extcommunity-filter <ecfName> [ matches-all | whole-match ]
+    view: route-policy
+    undo: undo if-match extcommunity-filter { <basIndex> | <advIndex> } &<1-16>
+    params:
+      ecfName:
+        type: word
+    default: By default, no filtering rule based on the VPN-Target extended community filter is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match extcommunity-filter
+      line: 5265
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-extcommunity-list-encapsulation
+    syntax: if-match extcommunity-list encapsulation <encapsulation-name>
+    view: route-policy
+    undo: undo if-match extcommunity-list encapsulation <encapsulation-name>
+    params:
+      encapsulation-name:
+        type: word
+    default: By default, no matching rule based on an encapsulation extended community filter is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match extcommunity-list encapsulation
+      line: 5349
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-extcommunity-list-segmented-nh
+    syntax: if-match extcommunity-list segmented-nh <segmented-nh-name>
+    view: route-policy
+    undo: undo if-match extcommunity-list segmented-nh <segmented-nh-name>
+    params:
+      segmented-nh-name:
+        type: word
+    default: By default, no segmented-nh attribute-based match rule is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match extcommunity-list segmented-nh
+      line: 5414
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-extcommunity-list-soo
+    syntax: if-match extcommunity-list soo <extcomm-filter-name>
+    view: route-policy
+    undo: undo if-match extcommunity-list soo <extcomm-filter-name>
+    params:
+      extcomm-filter-name:
+        type: word
+    default: By default, no filtering rule based on the SoO extended community filter is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match extcommunity-list soo
+      line: 5479
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-flowspec-destination-ip-prefix
+    syntax: if-match flowspec destination ip-prefix <ip-prefix-name>
+    view: route-policy
+    undo: undo if-match flowspec destination [ ip-prefix <ip-prefix-name> ]
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, no matching rule based on the destination IP address of the BGP FlowSpec route prefix is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match flowspec destination ip-prefix
+      line: 5548
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-flowspec-destination-ipv6-prefix-list
+    syntax: if-match flowspec destination ipv6 prefix-list <ipv6-prefix-name>
+    view: route-policy
+    undo: undo if-match flowspec destination ipv6 [ prefix-list <ipv6-prefix-name> ]
+    params:
+      ipv6-prefix-name:
+        type: word
+    default: By default, no matching rule based on the destination IPv6 address of the BGP FlowSpec route prefix is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match flowspec destination ipv6 prefix-list
+      line: 5623
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-flowspec-port-list
+    syntax: if-match flowspec { source-port | destination-port | port } port-list <listName> { strict-match [ whole-match ] | logical-match }
+    view: route-policy
+    undo: undo if-match flowspec { source-port | destination-port | port } [ port-list <listName> { strict-match [ whole-match ] | logical-match } ]
+    params:
+      listName:
+        type: word
+    default: By default, no port list-based matching rule is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match flowspec port-list
+      line: 5698
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-flowspec-protocol-protocol-list
+    syntax: if-match flowspec protocol protocol-list <listName> { strict-match [ whole-match ] | logical-match }
+    view: route-policy
+    undo: undo if-match flowspec protocol [ protocol-list <listName> { strict-match [ whole-match ] | logical-match } ]
+    params:
+      listName:
+        type: word
+    default: By default, no protocol list-based matching rule is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match flowspec protocol protocol-list
+      line: 5796
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-flowspec-source-ip-prefix
+    syntax: if-match flowspec source ip-prefix <ip-prefix-name>
+    view: route-policy
+    undo: undo if-match flowspec source [ ip-prefix <ip-prefix-name> ]
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, no matching rule based on the source IP address in the BGP FlowSpec route prefix is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match flowspec source ip-prefix
+      line: 5891
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-flowspec-source-ipv6-prefix-list
+    syntax: if-match flowspec source ipv6 prefix-list <ipv6-prefix-name>
+    view: route-policy
+    undo: undo if-match flowspec source ipv6 [ prefix-list <ipv6-prefix-name> ]
+    params:
+      ipv6-prefix-name:
+        type: word
+    default: By default, no filtering rule based on the source IPv6 address in the BGP FlowSpec route prefix is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match flowspec source ipv6 prefix-list
+      line: 5964
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-interface
+    syntax: if-match interface { { <interface-name> | <interface-type> <interface-number> } &<1-16> }
+    view: route-policy
+    undo: undo if-match interface [ [ <interface-name> | <interface-type> <interface-number> ] &<1-16> ]
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, no filtering rule based on the outbound interface is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match interface
+      line: 6037
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ip-group-address-acl
+    syntax: if-match ip group-address acl { <acl-number> | <acl-name> }
+    view: route-policy
+    undo: undo if-match ip group-address acl { <acl-number> | <acl-name> }
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name:
+        type: word
+    default: By default, no filtering rule based on multicast group addresses is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ip group-address acl
+      line: 6109
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ip-group-address-ip-prefix
+    syntax: if-match ip group-address ip-prefix <ip-prefix-name>
+    view: route-policy
+    undo: undo if-match ip group-address [ ip-prefix <ip-prefix-name> ]
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, no filtering rule based on multicast group addresses is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ip group-address ip-prefix
+      line: 6188
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ip-next-hop-acl
+    syntax: if-match ip next-hop acl { <acl-number> | <acl-name> }
+    view: route-policy
+    undo: undo if-match ip next-hop acl { <acl-number> | <acl-name> }
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name:
+        type: word
+    default: By default, no filtering rule based on next-hop IP addresses is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ip next-hop acl
+      line: 6264
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ip-next-hop-ip-prefix
+    syntax: if-match ip next-hop ip-prefix <ip-prefix-name>
+    view: route-policy
+    undo: undo if-match ip next-hop [ ip-prefix <ip-prefix-name> ]
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, no filtering rule based on next-hop IP addresses is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ip next-hop ip-prefix
+      line: 6341
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ip-route-originator
+    syntax: if-match ip route-originator { ip-prefix <ip-prefix-name> | acl { <acl-number> | <acl-name> } }
+    view: route-policy
+    undo: undo if-match ip route-originator
+    params:
+      ip-prefix-name:
+        type: word
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name:
+        type: word
+    default: By default, no NG MVPN route filtering rule that is based on the IP addresses of route advertising devices is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ip route-originator
+      line: 6415
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ip-route-source-acl
+    syntax: if-match ip route-source acl { <acl-number> | <acl-name> }
+    view: route-policy
+    undo: undo if-match ip route-source acl { <acl-number> | <acl-name> }
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name:
+        type: word
+    default: By default, no filtering rule based on IP addresses of the source devices from which routes are received is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ip route-source acl
+      line: 6483
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ip-route-source-ip-prefix
+    syntax: if-match ip route-source ip-prefix <ip-prefix-name>
+    view: route-policy
+    undo: undo if-match ip route-source [ ip-prefix <ip-prefix-name> ]
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, no filtering rule based on IP addresses of the source devices from which routes are received is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ip route-source ip-prefix
+      line: 6562
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ip-prefix
+    syntax: if-match ip-prefix <ip-prefix-name>
+    view: route-policy
+    undo: undo if-match ip-prefix <ip-prefix-name>
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, no filtering rule based on the IP prefix list is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ip-prefix
+      line: 6638
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ipv6-address-acl
+    syntax: if-match ipv6 address acl { <acl-number> | <acl-name> }
+    view: route-policy
+    undo: undo if-match ipv6 address acl { <acl-number> | <acl-name> }
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name:
+        type: word
+    default: By default, no filtering rule based on destination addresses of IPv6 routes is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ipv6 address acl
+      line: 6710
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ipv6-address-prefix-list
+    syntax: if-match ipv6 address prefix-list <ipv6-prefix-name>
+    view: route-policy
+    undo: undo if-match ipv6 address [ prefix-list <ipv6-prefix-name> ]
+    params:
+      ipv6-prefix-name:
+        type: word
+    default: By default, no filtering rule based on destination addresses of IPv6 routes is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ipv6 address prefix-list
+      line: 6785
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ipv6-next-hop-acl
+    syntax: if-match ipv6 next-hop acl { <acl-number> | <acl-name> }
+    view: route-policy
+    undo: undo if-match ipv6 next-hop acl { <acl-number> | <acl-name> }
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name:
+        type: word
+    default: By default, no filtering rule based on next-hop addresses of IPv6 routes is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ipv6 next-hop acl
+      line: 6853
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ipv6-next-hop-prefix-list
+    syntax: if-match ipv6 next-hop prefix-list <ipv6-prefix-name>
+    view: route-policy
+    undo: undo if-match ipv6 next-hop [ prefix-list <ipv6-prefix-name> ]
+    params:
+      ipv6-prefix-name:
+        type: word
+    default: By default, no filtering rule based on next-hop addresses of IPv6 routes is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ipv6 next-hop prefix-list
+      line: 6930
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ipv6-route-source-acl
+    syntax: if-match ipv6 route-source acl { <acl-number> | <acl-name> }
+    view: route-policy
+    undo: undo if-match ipv6 route-source acl { <acl-number> | <acl-name> }
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name:
+        type: word
+    default: By default, no filtering rule based on IPv6 addresses of the source devices from which routes are received is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ipv6 route-source acl
+      line: 7004
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ipv6-route-source-prefix-list
+    syntax: if-match ipv6 route-source prefix-list <ipv6-prefix-name>
+    view: route-policy
+    undo: undo if-match ipv6 route-source [ prefix-list <ipv6-prefix-name> ]
+    params:
+      ipv6-prefix-name:
+        type: word
+    default: By default, no filtering rule based on IPv6 addresses of the source devices from which routes are received is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match ipv6 route-source prefix-list
+      line: 7083
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-l2vni
+    syntax: if-match l2vni [ <l2vni-list-name> ]
+    view: route-policy
+    undo: undo if-match l2vni [ <l2vni-list-name> ]
+    params:
+      l2vni-list-name:
+        type: word
+    default: By default, no matching rule based on a Layer 2 VNI list is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match l2vni
+      line: 7159
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-l3vni
+    syntax: if-match l3vni [ <l3vni-list-name> ]
+    view: route-policy
+    undo: undo if-match l3vni [ <l3vni-list-name> ]
+    params:
+      l3vni-list-name:
+        type: word
+    default: By default, no matching rule based on a Layer 3 VNI list is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match l3vni
+      line: 7233
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-large-community-filter
+    syntax: if-match large-community-filter <large-comm-filter-name> [ whole-match ]
+    view: route-policy
+    undo: undo if-match large-community-filter <large-comm-filter-name> [ whole-match ]
+    params:
+      large-comm-filter-name:
+        type: word
+    default: By default, no filtering rule based on a Large-Community filter is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match large-community-filter
+      line: 7307
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-mac-list
+    syntax: if-match mac-list <mac-list-name>
+    view: route-policy
+    undo: undo if-match mac-list [ <mac-list-name> ]
+    params:
+      mac-list-name:
+        type: word
+    default: By default, no matching rule based on a MAC address list is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match mac-list
+      line: 7394
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-mpls-label
+    syntax: if-match { mpls-label | mpls-label2 }
+    view: route-policy
+    undo: undo if-match { mpls-label | mpls-label2 }
+    default: By default, no filtering rule based on MPLS labels is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match mpls-label
+      line: 7468
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-preference
+    syntax: if-match preference <preference>
+    view: route-policy
+    undo: undo if-match preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: By default, no route priority-based matching rule is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match preference
+      line: 7533
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-protocol
+    syntax: if-match protocol { direct | static | isis | bgp | ospf | rip | unr | ospfv3 | ripng }
+    view: route-policy
+    undo: undo if-match protocol
+    default: By default, no protocol-based filtering rule is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match protocol
+      line: 7599
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-rd-filter
+    syntax: if-match rd-filter <rd-filter-number>
+    view: route-policy
+    undo: undo if-match rd-filter
+    params:
+      rd-filter-number:
+        type: integer
+        range:
+          - 1
+          - 1024
+    default: By default, no filtering rule based on RD filters is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match rd-filter
+      line: 7669
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-route-exists
+    syntax: if-match route-exists <list-name> [ matches-all ]
+    view: route-policy
+    undo: undo if-match route-exists <list-name> [ matches-all ]
+    params:
+      list-name:
+        type: word
+    default: By default, no conditional route list-based matching rule is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match route-exists
+      line: 7735
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-route-state-bgp-not-best
+    syntax: if-match route-state bgp-not-best
+    view: route-policy
+    undo: undo if-match route-state [ bgp-not-best ]
+    default: By default, no matching rule based on the non-optimal BGP route status is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match route-state bgp-not-best
+      line: 7805
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-route-type.1
+    syntax: if-match route-type { external-type1 | external-type2 | external-type1or2 | is-is-level-1 | is-is-level-2 | internal | nssa-external-type1 | nssa-external-type2 | nssa-external-type1or2 }
+    view: route-policy
+    undo: undo if-match route-type { external-type1 | external-type2 | external-type1or2 | is-is-level-1 | is-is-level-2 | internal | nssa-external-type1 | nssa-external-type2 | nssa-external-type1or2 }
+    default: By default, no filtering rule based on route types is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match route-type
+      line: 7865
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-route-type.2
+    syntax: if-match route-type { ibgp | ebgp }
+    view: route-policy
+    undo: undo if-match route-type { ibgp | ebgp }
+    default: By default, no filtering rule based on route types is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match route-type
+      line: 7865
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-route-type.3
+    syntax: if-match route-type mvpn { 1 | 3 }
+    view: route-policy
+    undo: undo if-match route-type mvpn
+    default: By default, no filtering rule based on route types is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match route-type
+      line: 7865
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-route-type.4
+    syntax: if-match route-type evpn { ad | es | inclusive | join | leave | mac | prefix | smet }
+    view: route-policy
+    undo: undo if-match route-type evpn
+    default: By default, no filtering rule based on route types is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match route-type
+      line: 7865
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-route-type.5
+    syntax: if-match route-type evpn { ad | es | prefix }
+    view: route-policy
+    undo: undo if-match route-type evpn
+    default: By default, no filtering rule based on route types is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match route-type
+      line: 7865
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-route-type-bgp-ls
+    syntax: if-match route-type bgp-ls { node | link | ipv4-prefix | ipv6-prefix | network-slice }
+    view: route-policy
+    undo: undo if-match route-type bgp-ls
+    default: By default, no matching rule based on the BGP-LS route type is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match route-type bgp-ls
+      line: 7983
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-rpki-origin-as-validation
+    syntax: if-match rpki origin-as-validation { valid | invalid | not-found }
+    view: route-policy
+    undo: undo if-match rpki origin-as-validation [ valid | invalid | not-found ]
+    default: By default, no filtering rule based on the BGP origin AS validation result is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match rpki origin-as-validation
+      line: 8047
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-tag
+    syntax: if-match tag <tag>
+    view: route-policy
+    undo: undo if-match tag
+    params:
+      tag:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no filtering rule based on the route tag is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: if-match tag
+      line: 8108
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-as-path-filter
+    syntax: ip as-path-filter { <as-path-filter-number> | <as-path-filter-name> } [ index <index-number> ] <matchMode> <regular-expression>
+    view: system
+    undo: undo ip as-path-filter { <as-path-filter-number> | <as-path-filter-name> } [ index <index-number> ] [ <matchMode> <regular-expression> ]
+    params:
+      as-path-filter-number:
+        type: integer
+        range:
+          - 1
+          - 256
+      as-path-filter-name:
+        type: word
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - deny
+          - permit
+      regular-expression:
+        type: word
+    default: By default, no AS_Path filter exists.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip as-path-filter
+      line: 8174
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-community-filter
+    syntax: ip community-filter <cfIndex> [ index <index-val> ] <matchMode> [ <cmntyStr> | <cmntyNum> | internet | no-advertise | no-export | no-export-subconfed ] &<1-20>
+    view: system
+    undo: undo ip community-filter <cfIndex> [ index <index-val> ] [ <matchMode> ] [ <cmntyStr> | <cmntyNum> | internet | no-advertise | no-export | no-export-subconfed ] &<1-20>
+    params:
+      cfIndex:
+        type: integer
+        range:
+          - 1
+          - 99
+      index-val:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      cmntyStr:
+        type: integer
+        range:
+          - 0
+          - 65535
+      cmntyNum:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no basic community filter exists.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip community-filter
+      line: 8265
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-community-filter~2
+    syntax: ip community-filter <adv-comm-filter-num> [ index <index-number> ] <matchMode> <regular-expression>
+    view: system
+    undo: undo ip community-filter <adv-comm-filter-num> [ index <index-number> ] [ <matchMode> <regular-expression> ]
+    params:
+      adv-comm-filter-num:
+        type: integer
+        range:
+          - 100
+          - 199
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - deny
+          - permit
+      regular-expression:
+        type: word
+    default: By default, no advanced community filter exists.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip community-filter (System view)
+      line: 8340
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-community-filter-advanced
+    syntax: ip community-filter advanced <comm-filter-name> [ index <index-number> ] <matchMode> <regular-expression>
+    view: system
+    undo: undo ip community-filter advanced <comm-filter-name> [ index <index-number> ] [ <matchMode> <regular-expression> ]
+    params:
+      comm-filter-name:
+        type: word
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      regular-expression:
+        type: word
+    default: By default, no advanced community filter exists.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip community-filter advanced
+      line: 8406
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-community-filter-basic
+    syntax: ip community-filter basic <basCfName> [ index <index-val> ] <matchMode> [ <cmntyStr> | <cmntyNum> | internet | no-advertise | no-export | no-export-subconfed ] &<1-20>
+    view: system
+    undo: undo ip community-filter basic <basCfName> [ index <index-val> ] [ <matchMode> ] [ <cmntyStr> | <cmntyNum> | internet | no-advertise | no-export | no-export-subconfed ] &<1-20>
+    params:
+      basCfName:
+        type: word
+      index-val:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      cmntyStr:
+        type: integer
+        range:
+          - 0
+          - 65535
+      cmntyNum:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no basic community filter exists.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip community-filter basic
+      line: 8472
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-community-list
+    syntax: ip community-list <name>
+    view: system
+    undo: undo ip community-list <name>
+    params:
+      name:
+        type: word
+    default: By default, no BGP community list is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip community-list
+      line: 8543
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-extcommunity-filter
+    syntax: ip extcommunity-filter <basic-extcomm-filter-num> [ index <index-number> ] <matchMode> { rt <extCmntyStr> } &<1-16>
+    view: system
+    undo: undo ip extcommunity-filter <basic-extcomm-filter-num> [ index <index-number> ] [ <matchMode> { rt <extCmntyStr> } &<1-16> ]
+    params:
+      basic-extcomm-filter-num:
+        type: integer
+        range:
+          - 1
+          - 199
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      extCmntyStr:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, no basic VPN-Target extended community filter is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip extcommunity-filter
+      line: 8608
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-extcommunity-filter~2
+    syntax: ip extcommunity-filter <advanced-extcomm-filter-num> [ index <index-number> ] <matchMode> <regular-expression>
+    view: system
+    undo: undo ip extcommunity-filter <advanced-extcomm-filter-num> [ index <index-number> ] [ [ <matchMode> ] <regular-expression> ]
+    params:
+      advanced-extcomm-filter-num:
+        type: integer
+        range:
+          - 200
+          - 399
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      regular-expression:
+        type: word
+    default: By default, no advanced VPN-Target extended community filter is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip extcommunity-filter (System view)
+      line: 8676
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-extcommunity-filter-advanced
+    syntax: ip extcommunity-filter advanced <advanced-extcomm-filter-name> [ index <index-number> ] <matchMode> <regular-expression>
+    view: system
+    undo: undo ip extcommunity-filter advanced <advanced-extcomm-filter-name> [ index <index-number> ] [ [ <matchMode> ] <regular-expression> ]
+    params:
+      advanced-extcomm-filter-name:
+        type: word
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      regular-expression:
+        type: word
+    default: By default, no advanced VPN-Target extended community filter is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip extcommunity-filter advanced
+      line: 8747
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-extcommunity-filter-basic
+    syntax: ip extcommunity-filter basic <basic-extcomm-filter-name> [ index <index-number> ] <matchMode> { rt <extCmntyStr> } &<1-16>
+    view: system
+    undo: undo ip extcommunity-filter basic <basic-extcomm-filter-name> [ index <index-number> ] [ <matchMode> { rt <extCmntyStr> } &<1-16> ]
+    params:
+      basic-extcomm-filter-name:
+        type: word
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      extCmntyStr:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, no basic VPN-Target extended community filter is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip extcommunity-filter basic
+      line: 8818
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-extcommunity-list-encapsulation-advanced
+    syntax: ip extcommunity-list encapsulation advanced <encapsulation-name> [ index <index-value> ] <matchMode> <regular>
+    view: system
+    undo: undo ip extcommunity-list encapsulation advanced <encapsulation-name> [ index <index-value> ]
+    params:
+      encapsulation-name:
+        type: word
+      index-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      regular:
+        type: word
+    default: By default, no advanced encapsulation extended community filter is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip extcommunity-list encapsulation advanced
+      line: 8886
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-extcommunity-list-encapsulation-basic
+    syntax: ip extcommunity-list encapsulation basic <encapsulation-name> [ index <index-value> ] <matchMode> { <encapsulation-value> } &<1-16>
+    view: system
+    undo: undo ip extcommunity-list encapsulation basic <encapsulation-name> [ index <index-value> ]
+    params:
+      encapsulation-name:
+        type: word
+      index-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      encapsulation-value:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, no basic encapsulation extended community filter is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip extcommunity-list encapsulation basic
+      line: 8955
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-extcommunity-list-segmented-nh-advanced
+    syntax: ip extcommunity-list segmented-nh advanced <segmented-nh-name> [ index <index-value> ] <matchMode> <regular>
+    view: system
+    undo: undo ip extcommunity-list segmented-nh advanced <segmented-nh-name> [ index <index-value> ]
+    params:
+      segmented-nh-name:
+        type: word
+      index-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      regular:
+        type: word
+    default: By default, no segmented-nh attribute is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip extcommunity-list segmented-nh advanced
+      line: 9026
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-extcommunity-list-segmented-nh-basic
+    syntax: ip extcommunity-list segmented-nh basic <segmented-nh-name> [ index <index-value> ] <matchMode> { <segmented-nh-value> } &<1-16>
+    view: system
+    undo: undo ip extcommunity-list segmented-nh basic <segmented-nh-name> [ index <index-value> ]
+    params:
+      segmented-nh-name:
+        type: word
+      index-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      segmented-nh-value:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, no segmented-nh attribute is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip extcommunity-list segmented-nh basic
+      line: 9096
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-extcommunity-list-soo-advanced
+    syntax: ip extcommunity-list soo advanced <advanced-extcomm-filter-name> [ index <index-number> ] <matchMode> <regular-expression>
+    view: system
+    undo: undo ip extcommunity-list soo advanced <advanced-extcomm-filter-name> [ index <index-number> ]
+    params:
+      advanced-extcomm-filter-name:
+        type: word
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      regular-expression:
+        type: word
+    default: By default, no advanced SoO extended community filter is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip extcommunity-list soo advanced
+      line: 9161
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-extcommunity-list-soo-basic
+    syntax: ip extcommunity-list soo basic <basic-extcomm-filter-name> [ index <index-number> ] <matchMode> { <site-of-origin> } &<1-16>
+    view: system
+    undo: undo ip extcommunity-list soo basic <basic-extcomm-filter-name> [ index <index-number> ]
+    params:
+      basic-extcomm-filter-name:
+        type: word
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      site-of-origin:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, no basic SoO extended community filter is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip extcommunity-list soo basic
+      line: 9228
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-ip-prefix
+    syntax: ip ip-prefix <ip-prefix-name> [ index <index-number> ] <matchMode> <ipv4-address> <masklen> [ match-network ] [ greater-equal <greater-equal-value> ] [ less-equal <less-equal-value> ]
+    view: system
+    undo: undo ip ip-prefix <ip-prefix-name> [ index <index-number> ]
+    params:
+      ip-prefix-name:
+        type: word
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      ipv4-address:
+        type: ipv4
+      masklen:
+        type: mask-length
+      greater-equal-value:
+        type: word
+      less-equal-value:
+        type: word
+    default: By default, no IP prefix list is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip ip-prefix
+      line: 9294
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-ip-prefix-description
+    syntax: ip ip-prefix <ip-prefix-name> description <text>
+    view: system
+    undo: undo ip ip-prefix <ip-prefix-name> description [ <text> ]
+    params:
+      ip-prefix-name:
+        type: word
+      text:
+        type: text
+    default: By default, no description information of the IP prefix list is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip ip-prefix description
+      line: 9397
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-ipv6-prefix
+    syntax: ip ipv6-prefix <ipv6-prefix-name> [ index <index-number> ] <matchMode> <ipv6-address> <masklen> [ match-network ] [ greater-equal <greater-equal-value> ] [ less-equal <less-equal-value> ]
+    view: system
+    undo: undo ip ipv6-prefix <ipv6-prefix-name> [ index <index-number> ]
+    params:
+      ipv6-prefix-name:
+        type: word
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      ipv6-address:
+        type: word
+      masklen:
+        type: mask-length
+      greater-equal-value:
+        type: word
+      less-equal-value:
+        type: word
+    default: By default, no IPv6 prefix list is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip ipv6-prefix
+      line: 9452
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-ipv6-prefix-description
+    syntax: ip ipv6-prefix <ipv6-prefix-name> description <text>
+    view: system
+    undo: undo ip ipv6-prefix <ipv6-prefix-name> description [ <text> ]
+    params:
+      ipv6-prefix-name:
+        type: word
+      text:
+        type: text
+    default: By default, no description information of the IPv6 prefix list is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip ipv6-prefix description
+      line: 9541
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-large-community-filter-advanced
+    syntax: ip large-community-filter advanced <large-comm-filter-name> [ index <index-number> ] <matchMode> <regular-expression>
+    view: system
+    undo: undo ip large-community-filter advanced <large-comm-filter-name> [ index <index-number> ] [ <matchMode> <regular-expression> ]
+    params:
+      large-comm-filter-name:
+        type: word
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      regular-expression:
+        type: word
+    default: By default, no advanced Large-Community filter is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip large-community-filter advanced
+      line: 9614
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-large-community-filter-basic
+    syntax: ip large-community-filter basic <large-comm-filter-name> [ index <index-number> ] <matchMode> { <cmntyStr> } &<1-16>
+    view: system
+    undo: undo ip large-community-filter basic <large-comm-filter-name> [ index <index-number> ] [ <matchMode> { <cmntyStr> } &<1-16> ]
+    params:
+      large-comm-filter-name:
+        type: word
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      cmntyStr:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no basic Large-Community filter is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip large-community-filter basic
+      line: 9685
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-large-community-list
+    syntax: ip large-community-list <large-community-list-name>
+    view: system
+    undo: undo ip large-community-list <large-community-list-name>
+    params:
+      large-community-list-name:
+        type: word
+    default: By default, no BGP Large-Community list is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip large-community-list
+      line: 9756
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-port-list
+    syntax: ip port-list <name>
+    view: system
+    undo: undo ip port-list <name>
+    params:
+      name:
+        type: word
+    default: By default, no port list is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip port-list
+      line: 9815
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-protocol-list
+    syntax: ip protocol-list <name>
+    view: system
+    undo: undo ip protocol-list <name>
+    params:
+      name:
+        type: word
+    default: By default, no protocol list is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip protocol-list
+      line: 9878
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-rd-filter
+    syntax: ip rd-filter <rdfIndex> [ index <index-number> ] <matchMode> { <rdStr> } &<1-10>
+    view: system
+    undo: undo ip rd-filter <rdfIndex> [ index <index-number> ] [ <matchMode> { <rdStr> } &<1-10> ]
+    params:
+      rdfIndex:
+        type: integer
+        range:
+          - 1
+          - 1024
+      index-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      rdStr:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, no RD filter is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip rd-filter
+      line: 9941
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-exists-restrain
+    syntax: ip route-exists restrain [ suppress-interval <suppress-count-time> hold-interval <hold-count-time> clear-interval <clear-count-time> ]
+    view: system
+    undo: undo ip route-exists restrain [ suppress-interval <suppress-count-time> hold-interval <hold-count-time> clear-interval <clear-count-time> ]
+    params:
+      suppress-count-time:
+        type: integer
+        range:
+          - 1
+          - 65533
+      hold-count-time:
+        type: integer
+        range:
+          - 2
+          - 65534
+      clear-count-time:
+        type: integer
+        range:
+          - 3
+          - 65535
+    default: By default, suppression of conditional routes is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: ip route-exists restrain
+      line: 10015
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-policy
+    syntax: route-policy <route-policy-name> <matchMode> node <node>
+    view: system
+    enters_view: route-policy
+    undo: undo route-policy <route-policy-name> [ node <node> ]
+    params:
+      route-policy-name:
+        type: word
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      node:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, no route-policy is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: route-policy
+      line: 10741
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-policy-address-family-mismatch-deny
+    syntax: route-policy <route-policy-name> address-family mismatch-deny
+    view: system
+    enters_view: route-policy
+    undo: undo route-policy <route-policy-name> address-family mismatch-deny
+    params:
+      route-policy-name:
+        type: word
+    default: By default, if the address family that a route belongs to does not match that specified in an if-match clause of a route-policy, the route matches the route-policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: route-policy address-family mismatch-deny
+      line: 10910
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-policy-nonexistent-config-check.1
+    syntax: route-policy nonexistent-config-check disable
+    view: system
+    enters_view: route-policy
+    undo: undo route-policy nonexistent-config-check disable
+    default: By default, a nonexistent route-policy filter cannot be referenced using a command.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: route-policy nonexistent-config-check
+      line: 10977
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-policy-nonexistent-config-check.2
+    syntax: route-policy nonexistent-config-check enable
+    view: system
+    enters_view: route-policy
+    undo: undo route-policy nonexistent-config-check disable
+    default: By default, a nonexistent route-policy filter cannot be referenced using a command.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/08_IP Routing Policy Configuration Commands.md
+      title: route-policy nonexistent-config-check
+      line: 10977
+      version: V800R025C00SPC500
+    status: draft
