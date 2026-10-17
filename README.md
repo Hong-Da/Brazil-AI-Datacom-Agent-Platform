@@ -4,7 +4,7 @@
 
 把不同厂商、不同版本的路由器配置转换成一张统一的配置图，翻译、对比、模板校验和配置检查都在图上完成。命令名 `lmesh`。
 
-> 当前状态：开发中（M1 · 0.1.0 知识库与往返）。下面的“快速开始”在 M1-1 完成后可用。
+> 当前状态：开发中（M1 · 0.1.0 知识库与往返）。
 
 ## 功能
 
@@ -16,7 +16,9 @@
 
 ## 快速开始
 
-需要系统安装的工具：[uv](https://docs.astral.sh/uv/)（没有时 `start` 脚本会询问是否安装）。Python 与 Node 由脚本自动下载到项目内的 `.toolchain/`。
+不需要预先安装任何工具：`start` 脚本会检查 [uv](https://docs.astral.sh/uv/)，没有时询问后安装到项目内的 `.toolchain/bin/`；Python 与 Node 也由脚本自动下载到 `.toolchain/`。
+
+其他参数：`--check` 只检查不启动，`--setup` 重新进入配置向导（加 `--defaults` 不提问），`--reinstall` 重装依赖，`--port <端口>` 临时换端口。
 
 - Windows：双击 `start.bat`
 - Linux：`./start.sh`
@@ -42,28 +44,35 @@ lmesh/
 ├── cli.bat / cli.sh            CLI 包装脚本
 ├── test.bat / test.sh          一键测试
 ├── config/
-│   └── config.example.toml     配置示例
+│   └── config.example.toml     配置示例（实际配置 config.toml 不入库）
 ├── src/lmesh/                  Python 包
-│   ├── core/                   业务逻辑：config、logging、i18n、store、kb、ingest、sanitize、parser、graph、renderer、engine、review、ai
+│   ├── core/                   业务逻辑：config、logging、i18n、setup、status、store（数据库与迁移）
 │   ├── cli/                    Typer 命令
 │   ├── api/                    FastAPI 路由
 │   ├── locales/                后端文案（zh-CN、en、pt-BR）
-│   └── web/static/             前端构建产物（不入库）
-├── frontend/                   Vue 3 + Vite 前端
-├── knowledge/                  程序自带的知识库
-│   ├── sources/                原始资料来源记录
-│   ├── commands/               命令卡
-│   ├── schema/                 统一 Schema
-│   ├── profiles/               厂商 + 版本 Profile
-│   ├── templates/              配置模板
-│   └── samples/                已脱敏的配置样本与往返期望结果
+│   └── web/static/             前端构建产物（不入库，由 start 脚本构建）
+├── frontend/                   Vue 3 + Vite 前端（package.json、pnpm-lock.yaml、.nvmrc、pnpm-workspace.yaml、src/）
+├── knowledge/                  程序自带的知识库（M1-4 起）
+│   ├── sources/                原始资料来源记录（M1-4 起）
+│   ├── extractors/             各厂商文档的命令卡抽取规则（M1-5 起）
+│   ├── commands/               命令卡（M1-5 起）
+│   ├── schema/                 统一 Schema（M1-6 起）
+│   ├── profiles/               厂商 + 版本 Profile（M1-4 起）
+│   ├── templates/              配置模板（M3-4 起）
+│   └── samples/                已脱敏的配置样本与往返期望结果（M1-3 起）
 ├── assets/brand/               Logo 与图标
 ├── docs/
 │   ├── project-spec.md         项目规范
-│   └── cli.md / api.md / openapi.json
+│   ├── cli.md / api.md         CLI 与远程 API 调用文档
+│   └── openapi.json            API 定义（由 scripts/gen_docs.py 导出）
 ├── scripts/
-│   ├── env.bat / env.sh        工具链与缓存位置
+│   ├── env.bat / env.sh        工具链与缓存位置，所有脚本先加载它
 │   ├── version-status.sh       版本检查（SessionStart 钩子）
+│   ├── ensure_node.py          准备项目内的 Node（只用于构建前端）
+│   ├── build_frontend.py       按需构建前端
+│   ├── run_tests.py            一键测试的实际逻辑
+│   ├── gen_docs.py             从测试用例生成调用文档示例、导出 OpenAPI
+│   ├── linux_sync.sh           开发辅助：把代码同步到 Linux 测试机
 │   └── build_icons.py          从 logo.svg 导出图标
 ├── tests/                      测试（见 tests/README.md）
 ├── .claude/settings.json       SessionStart 钩子

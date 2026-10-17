@@ -9,6 +9,9 @@ export UV_CACHE_DIR="$ROOT/.toolchain/cache/uv"
 export UV_PYTHON_INSTALL_DIR="$ROOT/.toolchain/runtime/python"
 export UV_PYTHON_PREFERENCE=only-managed
 export UV_TOOL_DIR="$ROOT/.toolchain/uv-tools"
+# start 脚本安装 uv 时装到项目内
+export UV_INSTALL_DIR="$ROOT/.toolchain/bin"
+[ -d "$ROOT/.toolchain/bin" ] && export PATH="$ROOT/.toolchain/bin:$PATH"
 
 # Node（只用于构建前端）：运行时与缓存放在项目内；pnpm store 写在 frontend/.npmrc
 export npm_config_cache="$ROOT/.toolchain/cache/npm"

@@ -9,6 +9,9 @@ set "UV_CACHE_DIR=%LMESH_ROOT%\.toolchain\cache\uv"
 set "UV_PYTHON_INSTALL_DIR=%LMESH_ROOT%\.toolchain\runtime\python"
 set "UV_PYTHON_PREFERENCE=only-managed"
 set "UV_TOOL_DIR=%LMESH_ROOT%\.toolchain\uv-tools"
+rem start 脚本安装 uv 时装到项目内
+set "UV_INSTALL_DIR=%LMESH_ROOT%\.toolchain\bin"
+if exist "%LMESH_ROOT%\.toolchain\bin" set "PATH=%LMESH_ROOT%\.toolchain\bin;%PATH%"
 
 rem Node（只用于构建前端）：运行时与缓存放在项目内；pnpm store 写在 frontend\.npmrc
 set "npm_config_cache=%LMESH_ROOT%\.toolchain\cache\npm"

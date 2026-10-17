@@ -1,0 +1,113 @@
+# API 用例：离线用 TestClient 执行；live = true 的用例也参与在线测试（--live）。
+# in_docs = true 的用例同时生成 docs/api.md 的示例。auth = true 时自动带上测试令牌。
+
+[[case]]
+id = "health-ok"
+title = { zh-CN = "健康检查（不需要认证）", en = "Health check (no auth)", pt-BR = "Verificação de saúde (sem autenticação)" }
+method = "GET"
+path = "/api/v1/health"
+setup = "configured"
+auth = false
+expect_status = 200
+expect_json = { "code" = 0, "data.configured" = true }
+in_docs = true
+live = true
+
+[[case]]
+id = "health-pt"
+title = { zh-CN = "按 Accept-Language 返回葡萄牙语提示", en = "Message follows Accept-Language", pt-BR = "Mensagem segue o Accept-Language" }
+method = "GET"
+path = "/api/v1/health"
+setup = "configured"
+headers = { Accept-Language = "pt-BR" }
+expect_status = 200
+expect_json = { "code" = 0, "message" = "OK" }
+live = true
+
+[[case]]
+id = "setup-schema-fresh"
+title = { zh-CN = "未配置时读取向导参数", en = "Read wizard fields before setup", pt-BR = "Ler os campos do assistente antes da configuração" }
+method = "GET"
+path = "/api/v1/setup"
+setup = "fresh"
+expect_status = 200
+expect_json = { "code" = 0 }
+in_docs = true
+
+[[case]]
+id = "setup-dry-run-invalid"
+title = { zh-CN = "向导输入即校验：端口超出范围", en = "Wizard validation: port out of range", pt-BR = "Validação do assistente: porta fora do intervalo" }
+method = "POST"
+path = "/api/v1/setup"
+setup = "fresh"
+body = { language = "zh-CN", dry_run = true, values = { "server.port" = 70000 } }
+expect_status = 422
+expect_json = { "code" = 1001 }
+in_docs = true
+
+[[case]]
+id = "setup-apply"
+title = { zh-CN = "提交向导结果", en = "Submit the wizard", pt-BR = "Enviar o assistente" }
+method = "POST"
+path = "/api/v1/setup"
+setup = "fresh"
+body = { language = "en", values = { "server.port" = 9000, "security.api_token" = "my-token-123456" } }
+expect_status = 200
+expect_json = { "code" = 0, "data.api_token" = "my-token-123456", "data.token_generated" = false }
+in_docs = true
+
+[[case]]
+id = "setup-already"
+title = { zh-CN = "已配置时不能再提交向导", en = "Wizard is closed once configured", pt-BR = "O assistente fecha após a configuração" }
+method = "GET"
+path = "/api/v1/setup"
+setup = "configured"
+expect_status = 409
+expect_json = { "code" = 1003 }
+in_docs = true
+live = true
+
+[[case]]
+id = "not-found"
+title = { zh-CN = "不存在的接口", en = "Unknown endpoint", pt-BR = "Endpoint inexistente" }
+method = "GET"
+path = "/api/v1/no-such-thing"
+setup = "configured"
+expect_status = 404
+expect_json = { "code" = 1004 }
+live = true
+
+[[case]]
+id = "config-ok"
+title = { zh-CN = "读取生效的配置（需要令牌）", en = "Read the effective config (token required)", pt-BR = "Ler a configuração efetiva (requer token)" }
+method = "GET"
+path = "/api/v1/config"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.values.security.api_token" = true }
+in_docs = true
+live = true
+
+[[case]]
+id = "config-no-token"
+title = { zh-CN = "缺少令牌", en = "Missing token", pt-BR = "Token ausente" }
+method = "GET"
+path = "/api/v1/config"
+setup = "configured"
+auth = false
+expect_status = 401
+expect_json = { "code" = 1002 }
+in_docs = true
+live = true
+
+[[case]]
+id = "config-wrong-token"
+title = { zh-CN = "错误的令牌", en = "Wrong token", pt-BR = "Token incorreto" }
+method = "GET"
+path = "/api/v1/config"
+setup = "configured"
+headers = { Authorization = "Bearer wrong-token" }
+expect_status = 401
+expect_json = { "code" = 1002 }
+live = true

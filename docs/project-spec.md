@@ -74,7 +74,7 @@
 
 | 部分 | 技术栈 | 目录 | 包管理与锁文件 | 版本固定 | 主要框架与库 | 测试 | 检查与格式化 | 构建与打包 |
 |---|---|---|---|---|---|---|---|---|
-| 后端、CLI、API | Python 3.12 | 根目录，代码在 `src/lmesh/` | uv，`uv.lock` | `.python-version`、`requires-python` | FastAPI、Typer、SQLAlchemy 2.0 + Alembic、networkx、ruamel.yaml、pydantic-settings、dulwich、cryptography（Fernet）、pdfplumber、TTP；可选：anthropic、openai | pytest | Ruff + mypy | PyInstaller（one-folder） |
+| 后端、CLI、API | Python 3.12 | 根目录，代码在 `src/lmesh/` | uv，`uv.lock` | `.python-version`、`requires-python` | FastAPI、Typer、SQLAlchemy 2.0 + Alembic、networkx、ruamel.yaml、tomli-w、dulwich、cryptography（Fernet）、pdfplumber、TTP；可选：anthropic、openai | pytest | Ruff + mypy | PyInstaller（one-folder） |
 | 前端 | Node 24 LTS + TypeScript | `frontend/` | pnpm，`pnpm-lock.yaml` | `frontend/.nvmrc`、`packageManager` | Vue 3 + Vite、Element Plus、Cytoscape.js + elkjs、CodeMirror 6、vue-i18n、Pinia | Vitest + Playwright | ESLint + Prettier | Vite 构建，产物复制到 `src/lmesh/web/static/` |
 
 各项取舍（第二轮全部采用推荐）：
@@ -87,8 +87,8 @@
 - 图渲染：Cytoscape.js 复合节点 + expand-collapse 对应“设备 → 功能域 → 对象 → 属性”的层级折叠，elkjs 做层级布局。
 - 组件库：Element Plus 自带巴西葡萄牙语语言包和暗色模式。
 
-- `scripts/env` 中设置的变量：`UV_CACHE_DIR`、`UV_PYTHON_INSTALL_DIR`、`UV_PYTHON_PREFERENCE=only-managed`、`UV_TOOL_DIR`、`PYTHONUTF8=1`、`npm_config_cache`、`COREPACK_HOME`、`PATH` 前置 `.toolchain/runtime/node`；pnpm store 写在 `frontend/.npmrc`（`store-dir=../.toolchain/cache/pnpm-store`）
-- 需要系统安装的工具：uv（没有时 start 脚本询问安装）；Node 由 start 脚本按 `.nvmrc` 下载到 `.toolchain/runtime/node/`
+- `scripts/env` 中设置的变量：`UV_CACHE_DIR`、`UV_PYTHON_INSTALL_DIR`、`UV_PYTHON_PREFERENCE=only-managed`、`UV_TOOL_DIR`、`PYTHONUTF8=1`、`npm_config_cache`、`COREPACK_HOME`、`PATH` 前置 `.toolchain/runtime/node`；pnpm store 写在 `frontend/pnpm-workspace.yaml`（`storeDir: ../.toolchain/cache/pnpm-store`；pnpm 12 不再读取 .npmrc 中的这项）；`UV_INSTALL_DIR`（start 脚本安装 uv 时装到 `.toolchain/bin/`）
+- 需要系统安装的工具：无。uv 没有时 start 脚本询问后安装到 `.toolchain/bin/`；Node 由 start 脚本按 `frontend/.nvmrc` 下载到 `.toolchain/runtime/node/` 并核对 SHA256；前端构建产物带源码指纹，没变化时不重复构建
 - 版本号文件：`pyproject.toml`（以此为准），`frontend/package.json` 保持一致
 
 ## B 项目形态
@@ -106,7 +106,7 @@
 ## D 数据与运行
 
 - D1 数据存储：SQLite（`data/lmesh.db`）为默认，同一套 SQLAlchemy 代码支持 PostgreSQL（JSONB），在配置中切换；测试在两种数据库上都运行【默认 + 第一轮 Q3】
-- D2 配置文件：`config/config.toml`，仓库只提交 `config/config.example.toml`【默认】
+- D2 配置文件：`config/config.toml`，仓库只提交 `config/config.example.toml`【默认】。所有配置项定义在 `src/lmesh/core/config.py` 的 `FIELDS` 一处，向导、示例配置、校验都从它生成；环境变量 `LMESH_<分组>__<名称>` 优先
 - D3 默认监听：`0.0.0.0:9000`，局域网可访问【用户修改】
 - D4 首次运行向导：Web 向导；引导配置：界面语言、监听地址、数据库类型与连接、API 令牌、AI 接口（可跳过）【默认】
 - D5 日志：INFO，按日期轮转，保留 14 天，写入 `logs/` 并输出到控制台；不记录密码、令牌、API Key 和未脱敏配置【默认】
@@ -170,7 +170,7 @@
 | `core/config`、`core/logging`、`core/i18n` | 配置加载（TOML + 默认值 + 环境变量覆盖）、日志、多语言文案 |
 | `core/store` | SQLAlchemy 模型与访问：devices、config_versions、nodes、edges，以及 review_items、unknown_lines、tasks、ai_calls、kb_releases |
 | `core/kb` | 知识库 YAML 加载、校验、Profile 继承展开、版本（dulwich）、知识库包导入导出 |
-| `core/ingest` | 文档切分（Markdown / PDF / CHM）、命令卡抽取（规则通道 + 可选 AI 通道） |
+| `core/ingest` | 文档切分（Markdown / PDF / CHM）、命令卡抽取：通用抽取器读取 `knowledge/extractors/<厂商>.yaml` 的规则（规则通道），规则覆盖不了时走可选的 AI 通道；接入新厂商一般只需新增一份规则文件 |
 | `core/sanitize` | 厂商识别、保持引用关系的脱敏（同一原值始终映射到同一替换值） |
 | `core/parser` | 命令卡驱动的解析器：按视图（view）识别层级，输出带行号的结构化 JSON、未识别行、原文节点 |
 | `core/graph` | 图构建：Schema 节点、Profile 默认值生成隐藏节点、派生节点、五类依赖边 |
@@ -186,7 +186,7 @@ CLI、API、Web 都只调用 `core`，不重复实现业务逻辑。
 ### 关键流程
 
 1. **导入**：读取文件 → 按特征识别厂商（华为 `#` 分隔与 `sysname`、IOS-XE `!` 与 `hostname`）→ 脱敏 → 选择 Profile（ATN 配置头部的 `!Software Version V800R023C00SPC500` 映射到 `huawei-atn-v800r023`）。
-2. **解析**：按视图切分层级（华为以缩进与 `#` 界定，IOS-XE 以缩进与 `!` 界定）→ 每行用命令卡生成的模式匹配 → 输出结构化 JSON（含行号）；功能域外的行成为“原文节点”，完全不认识的行进入未识别队列。
+2. **解析**：按视图切分层级（华为以缩进与 `#` 界定，IOS-XE 以缩进与 `!` 界定）；缩进只作参考，以命令卡的视图知识为准——真实采集的配置里有终端分页留下的异常缩进（ATN 样本中 `                  import-route direct …`），这类行归入当前视图，原始空白原样保留用于往返→ 每行用命令卡生成的模式匹配 → 输出结构化 JSON（含行号）；功能域外的行成为“原文节点”，完全不认识的行进入未识别队列。
 3. **建图**：结构化 JSON 映射到 Schema 节点 → 按 Profile 补全默认（隐藏）节点、派生节点 → 生成依赖边。
 4. **渲染**：往返模式按原始顺序、缩进和分隔符输出，用于验证“配置 → 图 → 配置”文本一致；规范模式按依赖拓扑排序，供翻译和变更脚本使用。
 5. **知识库构建**：华为命令参考页结构固定（Function / Format / Parameters / Views / Default / Usage Guidelines），规则抽取为命令卡 draft → 归并到 Schema → 汇总 Profile → 审核 → 往返测试回归 → 发布。
@@ -230,7 +230,7 @@ Profile 规划：`huawei-atn-v800r025`（以产品文档为准）、`huawei-atn-
 | M1-2 | 界面预览与评审：知识库管理、审核队列、Schema 视图、设备配置图（左图、右详情、下原文三栏联动） | 用户逐页通过 | — | M1-1 | M |
 | M1-3 | 配置导入与脱敏：厂商识别、文件 / 目录 / zip 导入、保持引用关系的脱敏；ATN 配置作为第一份样本 | ATN 配置脱敏后无密钥、团体字、真实 IP，同一对象替换一致 | 单元：脱敏规则；CLI：sanitize、config import | M1-1 | M |
 | M1-4 | 知识库文件格式：命令卡 / Schema / Profile 的 YAML 结构、加载、校验、Profile 继承展开、知识库包导入导出 | 示例知识库校验通过，继承展开正确 | 单元：校验与继承；CLI：kb validate / export / import | M1-1 | M |
-| M1-5 | 命令卡抽取：华为命令参考规则抽取；Cisco 公开命令参考；AI 通道（可选）；审核队列后端 | 0.1.0 功能域两个平台的命令卡生成为 draft 并可审核 | 单元：抽取器；CLI：kb ingest、review | M1-4 | L |
+| M1-5 | 命令卡抽取：抽取规则按厂商写成 YAML（`knowledge/extractors/<厂商>.yaml`，描述文档中命令格式、参数、视图、缺省值所在的章节与写法），通用抽取器按规则执行；华为命令参考与 Cisco 公开命令参考各一份规则；AI 通道（可选）；审核队列后端 | 0.1.0 功能域两个平台的命令卡生成为 draft 并可审核 | 单元：抽取器；CLI：kb ingest、review | M1-4 | L |
 | M1-6 | Schema 归并与 Profile 生成：0.1.0 功能域统一节点，含业务接入点抽象 | 两个 Profile 覆盖功能域，跨厂商映射经用户审核 | 单元：归并与汇总；kb coverage | M1-5 | L |
 | M1-7 | 结构化解析器：命令卡驱动，保留行号，未识别行入队，功能域外行成为原文节点 | 样本中功能域内的行全部识别 | 单元：解析器；CLI：parse、unknown list | M1-6 | L |
 | M1-8 | 图构建与渲染：隐藏默认 / 派生节点、五类依赖边、往返模式与规范模式渲染、往返测试工具 | 全部样本往返文本一致 | 单元：建图与渲染；CLI：graph show、render、roundtrip | M1-7 | L |
@@ -279,6 +279,9 @@ Profile 规划：`huawei-atn-v800r025`（以产品文档为准）、`huawei-atn-
 | Linux 登录 | 用密码装一次本项目专用密钥，之后用密钥登录 | 2026-10-17 |
 | 版本检查钩子 | 加上（SessionStart → scripts/version-status.sh） | 2026-10-17 |
 | 知识库的存放 | 程序自带 knowledge/ + 运行时副本 data/knowledge/ | 2026-10-17 |
+| 文档抽取规则 | 每个厂商一份 YAML 抽取规则，加入 M1-5 | 2026-10-17 |
+| PostgreSQL 测试环境 | 在 Linux 测试机上用 Docker 临时起 PostgreSQL，用完删除 | 2026-10-17 |
+| M1 推进方式 | 自动推进到 M1 完成；界面预览照常生成并打开，等用户回来评审 | 2026-10-17 |
 
 ## T 测试
 
@@ -343,9 +346,10 @@ lmesh/
 │   ├── api/                    FastAPI 路由
 │   ├── locales/                后端文案（zh-CN、en、pt-BR）
 │   └── web/static/             前端构建产物（不入库，由 start 脚本构建）
-├── frontend/                   Vue 3 + Vite 前端（package.json、pnpm-lock.yaml、.nvmrc、.npmrc、src/）
+├── frontend/                   Vue 3 + Vite 前端（package.json、pnpm-lock.yaml、.nvmrc、pnpm-workspace.yaml、src/）
 ├── knowledge/                  程序自带的知识库
 │   ├── sources/                原始资料来源记录
+│   ├── extractors/             各厂商文档的命令卡抽取规则（YAML）
 │   ├── commands/               命令卡（按厂商版本与功能域分文件）
 │   ├── schema/                 统一 Schema（按功能域分文件）
 │   ├── profiles/               厂商 + 版本 Profile

@@ -1,0 +1,158 @@
+"""公共夹具：临时项目根目录、临时配置、临时数据库（SQLite 与 PostgreSQL）、测试用令牌。
+
+PostgreSQL：从 config/test.env 或环境变量读取 LMESH_TEST_PG_URL；设置了 LMESH_TEST_PG_SSH 时自动建 SSH 隧道。
+没有可用的 PostgreSQL 时，pg 相关用例跳过并在结果中注明。
+"""
+
+from __future__ import annotations
+
+import os
+import shutil
+import socket
+import subprocess
+import sys
+import time
+import uuid
+from collections.abc import Iterator
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parent.parent
+OUTPUT = ROOT / "tests" / "output"
+INPUTS = ROOT / "tests" / "inputs"
+CASES = ROOT / "tests" / "cases"
+TEST_TOKEN = "test-token-0123456789"
+
+
+def _load_test_env() -> None:
+    env_file = ROOT / "config" / "test.env"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and "=" in line:
+            k, v = line.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip())
+
+
+_load_test_env()
+
+
+def _port_open(host: str, port: int) -> bool:
+    with socket.socket() as s:
+        s.settimeout(0.5)
+        return s.connect_ex((host, port)) == 0
+
+
+@pytest.fixture(scope="session")
+def pg_url() -> Iterator[str | None]:
+    url = os.environ.get("LMESH_TEST_PG_URL")
+    if not url:
+        yield None
+        return
+    from sqlalchemy.engine import make_url
+
+    u = make_url(url)
+    host, port = u.host or "127.0.0.1", u.port or 5432
+    proc = None
+    ssh = os.environ.get("LMESH_TEST_PG_SSH")
+    if ssh and not _port_open(host, port):
+        key = os.path.expanduser(os.environ.get("LMESH_TEST_PG_SSH_KEY", "~/.ssh/lmesh_dev_ed25519"))
+        proc = subprocess.Popen(
+            [
+                "ssh",
+                "-N",
+                "-o",
+                "BatchMode=yes",
+                "-o",
+                "ExitOnForwardFailure=yes",
+                "-i",
+                key,
+                "-L",
+                f"{port}:127.0.0.1:{port}",
+                ssh,
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        for _ in range(50):
+            if _port_open(host, port):
+                break
+            time.sleep(0.2)
+    yield url if _port_open(host, port) else None
+    if proc:
+        proc.terminate()
+
+
+@pytest.fixture(params=["sqlite", "pg"])
+def db_url(request: pytest.FixtureRequest, tmp_root: Path, pg_url: str | None) -> Iterator[str]:
+    """每个数据库相关用例在 SQLite 与 PostgreSQL 上各跑一次。PostgreSQL 用独立 schema，用完删除。"""
+    if request.param == "sqlite":
+        yield f"sqlite:///{(tmp_root / 'data' / 'test.db').as_posix()}"
+        return
+    if not pg_url:
+        pytest.skip("没有可用的 PostgreSQL（config/test.env 中的 LMESH_TEST_PG_URL）")
+    from sqlalchemy import create_engine, text
+
+    schema = f"t_{uuid.uuid4().hex[:10]}"
+    admin = create_engine(pg_url)
+    with admin.begin() as conn:
+        conn.execute(text(f'CREATE SCHEMA "{schema}"'))
+    sep = "&" if "?" in pg_url else "?"
+    yield f"{pg_url}{sep}options=-csearch_path%3D{schema}"
+    from lmesh.core import store
+
+    store.dispose_all()
+    with admin.begin() as conn:
+        conn.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))
+    admin.dispose()
+
+
+@pytest.fixture
+def tmp_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
+    """临时项目根目录：不读写开发者本机的 config/ 与 data/。"""
+    root = tmp_path / "root"
+    for d in ("config", "data", "logs"):
+        (root / d).mkdir(parents=True)
+    if (ROOT / "knowledge").exists():
+        shutil.copytree(ROOT / "knowledge", root / "knowledge")
+    monkeypatch.setenv("LMESH_ROOT", str(root))
+    for k in list(os.environ):
+        if k.startswith("LMESH_") and "__" in k:
+            monkeypatch.delenv(k)
+    monkeypatch.delenv("LMESH_CONFIG_FILE", raising=False)
+    from lmesh import paths
+
+    paths.project_root.cache_clear()
+    yield root
+    paths.project_root.cache_clear()
+    from lmesh.core import store
+
+    store.dispose_all()
+
+
+@pytest.fixture
+def configured_root(tmp_root: Path) -> Path:
+    """已完成首次配置的临时项目（SQLite、固定令牌）。"""
+    from lmesh.core import setup
+
+    setup.apply({"security.api_token": TEST_TOKEN, "server.port": 9000}, "zh-CN", check_port=False)
+    return tmp_root
+
+
+def run_cli(
+    args: list[str], root: Path, env: dict[str, str] | None = None, input_text: str | None = None
+) -> subprocess.CompletedProcess[str]:
+    """以子进程执行真实命令（与用户调用方式一致）。"""
+    e = {**os.environ, "LMESH_ROOT": str(root), "PYTHONUTF8": "1", **(env or {})}
+    return subprocess.run(
+        [sys.executable, "-m", "lmesh", *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        env=e,
+        input=input_text,
+        timeout=120,
+        cwd=str(root),
+    )

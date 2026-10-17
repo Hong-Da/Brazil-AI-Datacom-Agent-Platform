@@ -1,0 +1,91 @@
+# CLI 用例：测试读取并执行；in_docs = true 的用例同时生成 docs/cli.md 的示例。
+# setup：fresh = 未配置的新目录；configured = 已完成首次配置（SQLite、固定令牌）。
+# expect_json 按字段路径检查 --output json 的结果；expect_stdout / expect_stderr 检查包含的文字。
+
+[[case]]
+id = "version"
+title = { zh-CN = "查看版本", en = "Show the version", pt-BR = "Mostrar a versão" }
+args = ["--version"]
+setup = "fresh"
+expect_exit = 0
+expect_stdout = ["lmesh "]
+in_docs = true
+
+[[case]]
+id = "status-json"
+title = { zh-CN = "查看运行状态（JSON）", en = "Show status (JSON)", pt-BR = "Mostrar o status (JSON)" }
+args = ["--output", "json", "status"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "ok" = true, "data.configured" = true, "data.database.backend" = "sqlite", "data.database.ok" = true }
+in_docs = true
+
+[[case]]
+id = "status-text-zh"
+title = { zh-CN = "查看运行状态（中文）", en = "Show status (Chinese)", pt-BR = "Mostrar o status (chinês)" }
+args = ["--lang", "zh-CN", "status"]
+setup = "configured"
+expect_exit = 0
+expect_stdout = ["版本", "数据库"]
+
+[[case]]
+id = "status-text-en"
+title = { zh-CN = "查看运行状态（英文）", en = "Show status (English)", pt-BR = "Mostrar o status (inglês)" }
+args = ["--lang", "en", "status"]
+setup = "configured"
+expect_exit = 0
+expect_stdout = ["Version", "Database"]
+
+[[case]]
+id = "status-text-pt"
+title = { zh-CN = "查看运行状态（葡萄牙语）", en = "Show status (Portuguese)", pt-BR = "Mostrar o status (português)" }
+args = ["--lang", "pt-BR", "status"]
+setup = "configured"
+expect_exit = 0
+expect_stdout = ["Versão", "não configurada"]
+
+[[case]]
+id = "bad-output"
+title = { zh-CN = "错误的输出格式", en = "Invalid output format", pt-BR = "Formato de saída inválido" }
+args = ["--output", "xml", "status"]
+setup = "fresh"
+expect_exit = 2
+expect_stderr = ["--output"]
+in_docs = true
+
+[[case]]
+id = "setup-defaults"
+title = { zh-CN = "非交互地完成首次配置（采用默认值与环境变量）", en = "Non-interactive setup with defaults and env vars", pt-BR = "Configuração não interativa com padrões e variáveis de ambiente" }
+args = ["--output", "json", "setup", "--defaults"]
+setup = "fresh"
+env = { LMESH_SERVER__PORT = "9123" }
+expect_exit = 0
+expect_json = { "ok" = true, "data.token_generated" = true }
+in_docs = true
+
+[[case]]
+id = "setup-again"
+title = { zh-CN = "已配置时再次运行向导", en = "Run setup when already configured", pt-BR = "Executar a configuração já configurada" }
+args = ["setup", "--defaults"]
+setup = "configured"
+expect_exit = 3
+expect_stderr = ["--force"]
+in_docs = true
+
+[[case]]
+id = "config-show"
+title = { zh-CN = "查看生效的配置（敏感值只显示是否已设置）", en = "Show the effective configuration", pt-BR = "Mostrar a configuração efetiva" }
+args = ["--output", "json", "config", "show"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.values.security.api_token" = true, "data.sources.server.port" = "file" }
+in_docs = true
+
+[[case]]
+id = "db-upgrade"
+title = { zh-CN = "升级数据库结构", en = "Migrate the database", pt-BR = "Migrar o banco de dados" }
+args = ["--output", "json", "db", "upgrade"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.backend" = "sqlite" }
+in_docs = true
