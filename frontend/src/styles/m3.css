@@ -1,0 +1,130 @@
+/* M3 共用样式（来自 M3 界面预览 assets/m3.css）：翻译告警类别、模板校验结果类别、模板变量与块、生成值、验证横幅。
+   翻译告警：默认值差异 = 琥珀（D）  目标不支持 = 红（✕）  未翻译原文 = 灰虚线（¶）  推导与其他 = 蓝（≈）
+   模板：变量 = 紫色 {x}  可选块 = 虚线括号  重复块 = 双线括号
+   模板校验：违反 = 红 ✕  缺少 = 琥珀 −  模板外 = 蓝 +
+   隐藏的默认配置（REQ-028）：灰色虚线描边 + “默认”标签，不只靠颜色。 */
+
+:root {
+  --var: #7A52C7; --var-ink: #5E3CA8; --var-soft: #EEE7FA; --var-line: #C6B3EC;
+  --raw: #7A8C99; --raw-soft: #EDF2F6;
+}
+:root[data-theme="dark"] {
+  --var: #A88AF0; --var-ink: #C2AAF5; --var-soft: #2A2245; --var-line: #4D3B7A;
+  --raw: #8A9DAA; --raw-soft: #1F303B;
+}
+
+/* ---------- 导航：模板与生成分组 ---------- */
+.stratum.s-tpl { background: repeating-linear-gradient(90deg, var(--blue) 0 3px, transparent 3px 5px); box-shadow: inset 0 0 0 0 transparent; }
+.nav a[data-stratum="tpl"][aria-current="page"]::before { background: var(--blue); }
+
+/* ---------- 翻译告警类别：符号 + 文字 + 颜色 ---------- */
+.wk { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px 0 5px; border-radius: 4px; font-size: 11.5px; font-weight: 600; white-space: nowrap; border: 1px solid; line-height: 1; }
+.wk::before { font: 700 11px/1 var(--font-mono); min-width: 10px; text-align: center; }
+.wk.default { color: var(--amber-ink); background: var(--amber-soft); border-color: var(--amber-line); }
+.wk.default::before { content: "D"; }
+.wk.unsup { color: var(--red-ink); background: var(--red-soft); border-color: var(--red-line); }
+.wk.unsup::before { content: "✕"; font-family: var(--font-ui); }
+.wk.raw { color: var(--ink-2); background: transparent; border-color: var(--line-strong); border-style: dashed; }
+.wk.raw::before { content: "¶"; font-family: var(--font-ui); }
+.wk.infer { color: var(--blue-ink); background: var(--blue-soft); border-color: var(--blue-line); }
+.wk.infer::before { content: "≈"; font-family: var(--font-ui); }
+.wk.ok { color: var(--teal-ink); background: var(--teal-soft); border-color: var(--teal-line); }
+.wk.ok::before { content: "✓"; font-family: var(--font-ui); }
+
+/* 校验结果类别 */
+.rk { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px 0 5px; border-radius: 4px; font-size: 11.5px; font-weight: 600; white-space: nowrap; border: 1px solid; line-height: 1; }
+.rk::before { font: 700 12px/1 var(--font-mono); width: 10px; text-align: center; }
+.rk.match { color: var(--teal-ink); background: var(--teal-soft); border-color: var(--teal-line); }
+.rk.match::before { content: "✓"; font-family: var(--font-ui); }
+.rk.violation { color: var(--red-ink); background: var(--red-soft); border-color: var(--red-line); }
+.rk.violation::before { content: "✕"; font-family: var(--font-ui); }
+.rk.missing { color: var(--amber-ink); background: var(--amber-soft); border-color: var(--amber-line); }
+.rk.missing::before { content: "−"; }
+.rk.extra { color: var(--blue-ink); background: var(--blue-soft); border-color: var(--blue-line); }
+.rk.extra::before { content: "+"; }
+.rk.info { color: var(--ink-2); background: transparent; border-color: var(--line-strong); }
+.rk.info::before { content: "i"; font-family: var(--font-ui); }
+
+/* ---------- 配置文本的行标记（扩展 app.css 的 .code） ---------- */
+.code .l .g { font: 700 11px/20px var(--font-mono); }
+.code .l.w-default { background: color-mix(in srgb, var(--amber-soft) 70%, transparent); }
+.code .l.w-default .n { box-shadow: inset 3px 0 0 #D9962B; color: var(--amber-ink); }
+.code .l.w-default .g::before { content: "D"; color: var(--amber-ink); }
+.code .l.w-unsup { background: color-mix(in srgb, var(--red-soft) 70%, transparent); }
+.code .l.w-unsup .n { box-shadow: inset 3px 0 0 var(--red); color: var(--red-ink); }
+.code .l.w-unsup .g::before { content: "✕"; color: var(--red-ink); font-family: var(--font-ui); }
+.code .l.w-unsup .t { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--red) 55%, transparent); }
+.code .l.w-raw .t { color: var(--ink-2); }
+.code .l.w-raw .n { box-shadow: inset 3px 0 0 var(--raw); }
+.code .l.w-raw .g::before { content: "¶"; color: var(--ink-3); font-family: var(--font-ui); }
+.code .l.w-infer { background: color-mix(in srgb, var(--blue-soft) 60%, transparent); }
+.code .l.w-infer .n { box-shadow: inset 3px 0 0 var(--blue); color: var(--blue-ink); }
+.code .l.w-infer .g::before { content: "≈"; color: var(--blue-ink); font-family: var(--font-ui); }
+.code .l.linked { background: var(--hl-line); }
+.code .l.linked .n { background: var(--hl-line); color: var(--amber-ink); font-weight: 600; box-shadow: inset 3px 0 0 var(--hl-line-edge); }
+.code .l.linked.c-viol, .code .l.linked.c-extra, .code .l.linked.w-unsup, .code .l.linked.w-default, .code .l.linked.w-raw, .code .l.linked.w-infer { box-shadow: inset 0 1px 0 var(--hl-line-edge), inset 0 -1px 0 var(--hl-line-edge); }
+.code .l.c-viol { background: color-mix(in srgb, var(--red-soft) 75%, transparent); }
+.code .l.c-viol .n { box-shadow: inset 3px 0 0 var(--red); color: var(--red-ink); }
+.code .l.c-viol .g::before { content: "✕"; color: var(--red-ink); font-family: var(--font-ui); }
+.code .l.c-extra { background: color-mix(in srgb, var(--blue-soft) 70%, transparent); }
+.code .l.c-extra .n { box-shadow: inset 3px 0 0 var(--blue); color: var(--blue-ink); }
+.code .l.c-extra .g::before { content: "+"; color: var(--blue-ink); }
+.code .l.c-inst .g::before { content: ""; position: absolute; left: 9px; top: 0; bottom: 0; border-left: 1.5px solid var(--var-line); }
+.code .l.c-inst .g { position: relative; }
+
+/* 隐藏的默认配置（REQ-028）：灰色虚线框 + “默认”标签 */
+.code .l.ghost-d { background: transparent; }
+.code .l.ghost-d .n { color: var(--ink-3); background: var(--surface-2); }
+.code .l.ghost-d .t { color: var(--ink-3); }
+.code .l.ghost-d .t .gx { border: 1px dashed var(--line-strong); border-radius: 3px; padding: 0 4px; }
+.gtag { display: inline-flex; align-items: center; height: 16px; padding: 0 5px; margin-left: 8px; border: 1px dashed var(--line-strong); border-radius: 3px; font: 500 10.5px/1 var(--font-ui); color: var(--ink-3); vertical-align: 1px; white-space: nowrap; }
+
+/* 配置文本中的模板变量 */
+.vx { display: inline-block; font: 600 11.5px/17px var(--font-mono); color: var(--var-ink); background: var(--var-soft); border: 1px solid var(--var-line); border-radius: 4px; padding: 0 4px; margin: 0 1px; cursor: pointer; }
+.vx::before { content: "{"; opacity: .55; margin-right: 1px; }
+.vx::after { content: "}"; opacity: .55; margin-left: 1px; }
+.vx.is-hot { background: var(--var); color: #fff; border-color: var(--var); }
+:root[data-theme="dark"] .vx.is-hot { color: #1A1030; }
+.vx.err { color: var(--red-ink); background: var(--red-soft); border-color: var(--red-line); }
+/* 块的开始 / 结束标记行 */
+.code .l.b-mark .t { color: var(--var-ink); font-style: italic; }
+/* 块在行号旁的竖线 */
+.code .l.b-opt .g, .code .l.b-rep .g { position: relative; }
+.code .l.b-opt .g::before, .code .l.b-rep .g::before { content: ""; position: absolute; left: 9px; top: 0; bottom: 0; }
+.code .l.b-opt .g::before { border-left: 1.5px dashed var(--var); }
+.code .l.b-rep .g::before { border-left: 4px double var(--var); }
+.code .l.b-start .g::before { top: 4px; }
+.code .l.b-end .g::before { bottom: 4px; }
+.code .l.b-start .g::after { content: ""; position: absolute; left: 9px; top: 4px; width: 9px; border-top: 1.5px solid var(--var); }
+.code .l.b-opt.b-start .g::after { border-top-style: dashed; }
+.code .l.b-end .g::after { content: ""; position: absolute; left: 9px; bottom: 4px; width: 9px; border-bottom: 1.5px solid var(--var); }
+.code .l.b-opt.b-end .g::after { border-bottom-style: dashed; }
+.blk-tag { display: inline-flex; align-items: center; gap: 4px; height: 16px; padding: 0 5px; margin-left: 10px; border-radius: 3px; font: 600 10.5px/1 var(--font-ui); color: var(--var-ink); border: 1px dashed var(--var-line); vertical-align: 1px; white-space: nowrap; }
+.blk-tag.rep { border-style: double; border-width: 3px; height: 18px; }
+
+/* 代码外的变量名、类型、约束 */
+.vname { font: 600 12px var(--font-mono); color: var(--var-ink); }
+.vtype { font: 11px var(--font-mono); color: var(--ink-2); background: var(--surface-3); border-radius: 3px; padding: 1px 5px; white-space: nowrap; }
+.cons { font: 11.5px var(--font-mono); color: var(--ink-2); overflow-wrap: anywhere; }
+
+/* ---------- 验证横幅 ---------- */
+.verify { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 14px; border-radius: var(--r-panel); border: 1px solid var(--line); background: var(--surface); }
+.verify .vi { width: 34px; height: 34px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; }
+.verify .vi .ico { width: 20px; height: 20px; }
+.verify.ok { border-color: var(--teal-line); }
+.verify.ok .vi { background: var(--teal-soft); color: var(--teal-ink); }
+.verify.diff { border-color: var(--amber-line); }
+.verify.diff .vi { background: var(--amber-soft); color: var(--amber-ink); }
+.verify.off .vi { background: var(--surface-3); color: var(--ink-3); }
+.verify h3 { font-size: 14px; }
+.verify .vnums { display: flex; gap: 6px 16px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); margin-top: 3px; }
+.verify .vnums b { color: var(--ink); font-weight: 600; }
+
+.sec-k { font-size: 12px; font-weight: 600; color: var(--ink-2); margin: 14px 0 6px; display: flex; gap: 8px; align-items: center; }
+.sec-k:first-child { margin-top: 0; }
+
+/* 框（模板页、批量生成共用） */
+.m3box { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.m3box-h { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-bottom: 1px solid var(--line); background: var(--surface-2); flex-wrap: wrap; font-size: 12px; }
+.m3box-h h3 { font-size: 12.5px; margin-right: 4px; }
+.m3box-f { padding: 7px 10px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-2); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }

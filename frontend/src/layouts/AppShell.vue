@@ -21,10 +21,12 @@ const NAV: { g: string; s: string; items: Item[] }[] = [
       { name: 'devices', icon: 'server' },
       { name: 'device-graph', icon: 'graph' },
       { name: 'compare', icon: 'compare' },
+      { name: 'translate', icon: 'swap' },
       { name: 'check', icon: 'shield' },
       { name: 'unknown-lines', icon: 'unknown', count: () => status.summary?.unknown.patterns, tone: 'plain' },
     ],
   },
+  { g: 'tpl', s: 'tpl', items: [{ name: 'templates', icon: 'stencil' }, { name: 'generate', icon: 'rows' }] },
   {
     g: 'kb', s: 'kb', items: [
       { name: 'schema-view', icon: 'layers' },
