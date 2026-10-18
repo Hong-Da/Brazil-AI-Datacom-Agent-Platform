@@ -60,4 +60,7 @@ async def import_configs(
 def devices(request: Request) -> dict[str, Any]:
     url = settings_of(request).database_url
     store.upgrade(url)
-    return ok(request, {"devices": importer.list_devices(url)})
+    from lmesh.core import analysis, kbservice, workbench
+
+    kb = analysis.load_kb(kbservice.runtime_root(settings_of(request)))
+    return ok(request, {"devices": workbench.device_rows(url, kb.version), "kb_version": kb.version})

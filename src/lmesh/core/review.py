@@ -73,6 +73,16 @@ def list_items(
         return {"total": total, "items": items}
 
 
+def list_items_raw(s: Any, kind: str | None = None, status: str | None = None) -> list[ReviewItem]:
+    """在调用方的会话里查询（不转换成字典）。"""
+    q = select(ReviewItem)
+    if kind:
+        q = q.where(ReviewItem.kind == kind)
+    if status:
+        q = q.where(ReviewItem.status == status)
+    return list(s.scalars(q))
+
+
 def get(db_url: str, item_id: int) -> dict[str, Any] | None:
     with store.session(db_url) as s:
         i = s.get(ReviewItem, item_id)
@@ -146,3 +156,29 @@ def _apply_conflict(kb_root: Path, item: ReviewItem, edited: dict[str, Any] | No
         data = base64.b64decode(payload["theirs_b64"])
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(data)
+
+
+@register_action("unknown_line")
+def _apply_unknown_line(kb_root: Path, item: ReviewItem, edited: dict[str, Any] | None) -> None:
+    """未识别行：审核时可附上一张新命令卡（edited.card），通过后写入知识库；不附卡表示确认为功能域外，下次按原文保留。"""
+    from lmesh.core.kb import files as kbfiles
+    from lmesh.core.kb import syntax as syn
+
+    card = (edited or {}).get("card")
+    if not card:
+        return
+    for k in ("id", "syntax", "view"):
+        if not card.get(k):
+            raise ReviewError("review.card_incomplete")
+    syn.parse(str(card["syntax"]))
+    family, domain = str(card.get("family") or ""), str(card.get("domain") or "")
+    if not family or not domain:
+        raise ReviewError("review.card_incomplete")
+    path = kbfiles.card_file(kb_root, family, domain)
+    doc = kbfiles.load_card_doc(path, domain)
+    if any(c.get("id") == card["id"] for c in doc["cards"]):
+        raise ReviewError("review.card_exists")
+    clean = {k: v for k, v in card.items() if k in kbfiles.CARD_FIELDS}
+    clean["status"] = "reviewed"
+    doc["cards"].append(kbfiles.to_card_map(clean))
+    kbfiles.dump_rt(path, doc)

@@ -145,19 +145,23 @@ def import_sources(
                     kb_version=kb.version if kb is not None else "",
                 )
                 if kb is not None and res.profile in kb.profiles:
+                    from lmesh.core import graph as graphmod
                     from lmesh.core import parser
+                    from lmesh.core.renderer import render_roundtrip
 
                     parsed = parser.parse(text, kb, kb.profiles[res.profile].family)
-                    ver.structured = parsed.as_dict()
+                    g = graphmod.build(parsed, kb, res.profile, res.device)
+                    st = parsed.as_dict()
+                    st["roundtrip"] = render_roundtrip(g, kb) == text
+                    st["graph"] = graphmod.summary(g)
+                    ver.structured = st
                     res.unknown = len(parsed.unknown())
                     res.coverage = round(parsed.coverage(), 4)
                 s.add(ver)
                 s.flush()
                 res.version_id = ver.id
                 if kb is not None and ver.structured and res.profile in kb.profiles:
-                    from lmesh.core import graph as graphmod
-
-                    graphs.append((ver.id, graphmod.build(parsed, kb, res.profile, res.device)))
+                    graphs.append((ver.id, g))
                 if kb is not None and ver.structured:
                     for ln in ver.structured["lines"]:
                         if ln["kind"] == "unknown":

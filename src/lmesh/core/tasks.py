@@ -63,3 +63,14 @@ def get(db_url: str, task_id: str) -> dict[str, Any] | None:
             "created_at": t.created_at.isoformat() if t.created_at else None,
             "updated_at": t.updated_at.isoformat() if t.updated_at else None,
         }
+
+
+def recent(db_url: str, kind: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
+    from sqlalchemy import select
+
+    with store.session(db_url) as s:
+        q = select(Task.id).order_by(Task.created_at.desc()).limit(limit)
+        if kind:
+            q = q.where(Task.kind == kind)
+        ids = list(s.scalars(q))
+    return [t for t in (get(db_url, i) for i in ids) if t]

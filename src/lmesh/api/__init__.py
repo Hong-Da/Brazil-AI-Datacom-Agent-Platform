@@ -17,6 +17,7 @@ from lmesh.api.routes_graph import router as graph_router
 from lmesh.api.routes_kb import router as kb_router
 from lmesh.api.routes_system import router as system_router
 from lmesh.api.routes_tasks_ai import router as tasks_ai_router
+from lmesh.api.routes_workbench import router as workbench_router
 from lmesh.core import config
 
 API_PREFIX = "/api/v1"
@@ -64,6 +65,7 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     app.include_router(tasks_ai_router, prefix=API_PREFIX, tags=["tasks-ai"])
     app.include_router(kb_router, prefix=API_PREFIX, tags=["knowledge"])
     app.include_router(graph_router, prefix=API_PREFIX, tags=["graph"])
+    app.include_router(workbench_router, prefix=API_PREFIX, tags=["workbench"])
     _mount_web(app)
     return app
 

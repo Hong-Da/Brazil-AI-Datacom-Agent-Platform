@@ -62,7 +62,9 @@ def run_roundtrip(request: Request, body: RoundtripBody) -> dict[str, Any]:
     kb = _kb(request)
     if body.samples:
         root = kbservice.runtime_root(settings_of(request))
-        task_id = tasks.submit(_db(request), "roundtrip", lambda progress: roundtrip.regression(root, kb=kb))
+        from lmesh.core import workbench
+
+        task_id = tasks.submit(_db(request), "roundtrip", lambda progress: workbench.run_regression(root))
         return ok(request, {"task_id": task_id})
     if not body.text:
         raise ApiError(E_PARAM, 422)
