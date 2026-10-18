@@ -2,14 +2,12 @@
 domain: static-route
 cards:
   - id: cisco-iosxe.ip-route-static-bfd.1
-    syntax: ip route static bfd { <interface-type> <interface-number> <ip-address> | vrf <vrf-name> } [ <multihop-destination-address> <multihop-source-address> ] [ group <group-name> ] [ passive ] [ unassociate ]
+    syntax: ip route static bfd { <interface> <ip-address> | vrf <vrf-name> } [ <multihop-destination-address> <multihop-source-address> ] [ group <group-name> ] [ passive ] [ unassociate ]
     view: system
-    undo: no ip route static bfd { <interface-type> <interface-number> <ip-address> | vrf <vrf-name> } [ <multihop-destination-address> <multihop-source-address> ] [ group <group-name> ] [ passive ] [ unassociate ]
+    undo: no ip route static bfd { <interface> <ip-address> | vrf <vrf-name> } [ <multihop-destination-address> <multihop-source-address> ] [ group <group-name> ] [ passive ] [ unassociate ]
     params:
-      interface-type:
-        type: word
-      interface-number:
-        type: word
+      interface:
+        type: interface
       ip-address:
         type: ipv4
       vrf-name:
@@ -29,9 +27,9 @@ cards:
       version: '17.15'
     status: draft
   - id: cisco-iosxe.ip-route-vrf
-    syntax: ip route vrf <vrf-name> <prefix> <mask> [ <next-hop-address> ] [ <interface> <interface-number> ] [ global ] [ <distance> ] [ permanent ] [ tag <tag> ]
+    syntax: ip route vrf <vrf-name> <prefix> <mask> [ <next-hop-address> ] [ <interface> ] [ global ] [ <distance> ] [ permanent ] [ tag <tag> ]
     view: system
-    undo: no ip route vrf <vrf-name> <prefix> <mask> [ <next-hop-address> ] [ <interface> <interface-number> ] [ global ] [ <distance> ] [ permanent ] [ tag <tag> ]
+    undo: no ip route vrf <vrf-name> <prefix> <mask> [ <next-hop-address> ] [ <interface> ] [ global ] [ <distance> ] [ permanent ] [ tag <tag> ]
     params:
       vrf-name:
         type: word
@@ -42,9 +40,7 @@ cards:
       next-hop-address:
         type: ipv4
       interface:
-        type: word
-      interface-number:
-        type: word
+        type: interface
       distance:
         type: word
       tag:
@@ -57,10 +53,21 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      static.route:
+        vrf: $vrf-name
+        prefix: fmt:{prefix}/{mask}
+        nexthop: $next-hop-address||
+      static.route.vrf: $vrf-name
+      static.route.prefix: fmt:{prefix}/{mask}
+      static.route.nexthop: $next-hop-address
+      static.route.interface: $interface
+      static.route.preference: $distance
+      static.route.tag: $tag
   - id: cisco-iosxe.ip-route.1
-    syntax: ip route [ vrf <vrf-name> ] <prefix> <mask> { <ip-address> | <interface-type> <interface-number> [ <ip-address> ] } [ dhcp ] [ global ] [ <distance> ] [ multicast ] [ name <next-hop-name> ] [ permanent | track <number> ] [ tag <tag> ]
+    syntax: ip route [ vrf <vrf-name> ] <prefix> <mask> { <ip-address> | <interface> [ <ip-address> ] } [ dhcp ] [ global ] [ <distance> ] [ multicast ] [ name <next-hop-name> ] [ permanent | track <number> ] [ tag <tag> ]
     view: system
-    undo: no ip route [ vrf <vrf-name> ] <prefix> <mask> { <ip-address> | <interface-type> <interface-number> [ <ip-address> ] } [ dhcp ] [ global ] [ <distance> ] multicast [ name <next-hop-name> ] [ permanent | track <number> ] [ tag <tag> ]
+    undo: no ip route [ vrf <vrf-name> ] <prefix> <mask> { <ip-address> | <interface> [ <ip-address> ] } [ dhcp ] [ global ] [ <distance> ] multicast [ name <next-hop-name> ] [ permanent | track <number> ] [ tag <tag> ]
     params:
       vrf-name:
         type: word
@@ -70,10 +77,8 @@ cards:
         type: mask
       ip-address:
         type: ipv4
-      interface-type:
-        type: word
-      interface-number:
-        type: word
+      interface:
+        type: interface
       distance:
         type: integer
         range:
@@ -96,6 +101,17 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      static.route:
+        vrf: $vrf-name||
+        prefix: fmt:{prefix}/{mask}
+        nexthop: $ip-address||
+      static.route.vrf: $vrf-name
+      static.route.prefix: fmt:{prefix}/{mask}
+      static.route.nexthop: $ip-address
+      static.route.interface: $interface
+      static.route.preference: $distance
+      static.route.tag: $tag
   - id: cisco-iosxe.ip-route.2
     syntax: To establish static routes, use the ip route command in global configuration mode. To remove static routes, use the no form of this command.
     view: system
@@ -110,7 +126,7 @@ cards:
   - id: cisco-iosxe.ip-route.3
     syntax: ip route <prefix> <mask> segment-routing policy [ <policy> <name> ]
     view: system
-    undo: no ip route [ vrf <vrf-name> ] <prefix> <mask> { <ip-address> | <interface-type> <interface-number> [ <ip-address> ] } [ dhcp ] [ global ] [ <distance> ] multicast [ name <next-hop-name> ] [ permanent | track <number> ] [ tag <tag> ]
+    undo: no ip route [ vrf <vrf-name> ] <prefix> <mask> { <ip-address> | <interface> [ <ip-address> ] } [ dhcp ] [ global ] [ <distance> ] multicast [ name <next-hop-name> ] [ permanent | track <number> ] [ tag <tag> ]
     params:
       prefix: *id001
       mask: *id002

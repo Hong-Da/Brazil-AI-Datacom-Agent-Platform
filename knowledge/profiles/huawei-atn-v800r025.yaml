@@ -9,4 +9,722 @@ match:
   vendor: huawei
   version: V800R025
   fallback: "true"   # 识别不出版本的华为配置也用它
-entries: {}          # 由命令卡汇总生成（M1-6）；人工补充的条目标 manual: true
+# 副作用：接口绑定 vpn-instance 时，设备会删除接口上已有的 IPv4 地址；变更脚本需要在绑定后补发地址
+side_effects:
+  - {from: interface.vrf, to: interface.ipv4, note: 华为接口绑定 vpn-instance 会删除接口 IP，需在绑定后补发}
+# entries 由命令卡汇总生成（lmesh kb map）；人工补充的条目标 manual: true，汇总时保留
+entries:
+  bgp.af:
+    supported: true
+    cards:
+      - huawei-vrp8.ipv4-family-unicast
+      - huawei-vrp8.ipv4-family-vpn-instance
+      - huawei-vrp8.ipv4-family-vpnv4.1
+      - huawei-vrp8.ipv4-family-vpnv4.2
+      - huawei-vrp8.peer-enable
+      - huawei-vrp8.peer-enable~2
+      - huawei-vrp8.vpn-instance
+  bgp.af.network:
+    supported: true
+    cards:
+      - huawei-vrp8.network.1
+      - huawei-vrp8.network.1@bgp-af-ipv4
+      - huawei-vrp8.network.2
+      - huawei-vrp8.network.2@bgp-af-ipv4
+      - huawei-vrp8.network.3@bgp-af-ipv4
+      - huawei-vrp8.network.4@bgp-af-ipv4
+  bgp.af.network.policy:
+    supported: true
+    cards:
+      - huawei-vrp8.network.1
+      - huawei-vrp8.network.1@bgp-af-ipv4
+      - huawei-vrp8.network.3@bgp-af-ipv4
+  bgp.af.network.prefix:
+    supported: true
+    cards:
+      - huawei-vrp8.network.1
+      - huawei-vrp8.network.1@bgp-af-ipv4
+      - huawei-vrp8.network.2
+      - huawei-vrp8.network.2@bgp-af-ipv4
+      - huawei-vrp8.network.3@bgp-af-ipv4
+      - huawei-vrp8.network.4@bgp-af-ipv4
+  bgp.af.peer:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-advertise-community@bgp-af-ipv4
+      - huawei-vrp8.peer-advertise-community@bgp-af-ipv4~2
+      - huawei-vrp8.peer-advertise-community@bgp-af-ipv4~3
+      - huawei-vrp8.peer-advertise-community@bgp-af-vpn-instance-ipv4
+      - huawei-vrp8.peer-advertise-community@bgp-af-vpn-instance-ipv4~2
+      - huawei-vrp8.peer-advertise-community@bgp-af-vpnv4
+      - huawei-vrp8.peer-advertise-community@bgp-af-vpnv4~2
+      - huawei-vrp8.peer-advertise-community@bgp-af-vpnv4~3
+      - huawei-vrp8.peer-enable
+      - huawei-vrp8.peer-enable@bgp-af-ipv4
+      - huawei-vrp8.peer-enable@bgp-af-ipv4~2
+      - huawei-vrp8.peer-enable@bgp-af-ipv4~3
+      - huawei-vrp8.peer-enable@bgp-af-vpn-instance-ipv4
+      - huawei-vrp8.peer-enable@bgp-af-vpn-instance-ipv4~2
+      - huawei-vrp8.peer-enable@bgp-af-vpnv4
+      - huawei-vrp8.peer-enable@bgp-af-vpnv4~2
+      - huawei-vrp8.peer-enable@bgp-af-vpnv4~3
+      - huawei-vrp8.peer-enable~2
+      - huawei-vrp8.peer-group~3
+      - huawei-vrp8.peer-group~4
+      - huawei-vrp8.peer-group~5
+      - huawei-vrp8.peer-group~6
+      - huawei-vrp8.peer-group~7
+      - huawei-vrp8.peer-group~8
+      - huawei-vrp8.peer-group~9
+      - huawei-vrp8.peer-next-hop-local~10
+      - huawei-vrp8.peer-next-hop-local~3
+      - huawei-vrp8.peer-next-hop-local~4
+      - huawei-vrp8.peer-next-hop-local~5
+      - huawei-vrp8.peer-next-hop-local~6
+      - huawei-vrp8.peer-next-hop-local~7
+      - huawei-vrp8.peer-next-hop-local~8
+      - huawei-vrp8.peer-next-hop-local~9
+      - huawei-vrp8.peer-reflect-client~10
+      - huawei-vrp8.peer-reflect-client~3
+      - huawei-vrp8.peer-reflect-client~4
+      - huawei-vrp8.peer-reflect-client~5
+      - huawei-vrp8.peer-reflect-client~6
+      - huawei-vrp8.peer-reflect-client~7
+      - huawei-vrp8.peer-reflect-client~8
+      - huawei-vrp8.peer-reflect-client~9
+      - huawei-vrp8.peer-route-policy-export~3
+      - huawei-vrp8.peer-route-policy-export~4
+      - huawei-vrp8.peer-route-policy-export~6
+      - huawei-vrp8.peer-route-policy-export~7
+      - huawei-vrp8.peer-route-policy-import~10
+      - huawei-vrp8.peer-route-policy-import~3
+      - huawei-vrp8.peer-route-policy-import~5
+      - huawei-vrp8.peer-route-policy-import~6
+      - huawei-vrp8.peer-route-policy-import~7
+      - huawei-vrp8.peer-route-policy-import~8
+      - huawei-vrp8.peer-route-policy-import~9
+  bgp.af.peer.enabled:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-enable
+      - huawei-vrp8.peer-enable@bgp-af-ipv4
+      - huawei-vrp8.peer-enable@bgp-af-ipv4~2
+      - huawei-vrp8.peer-enable@bgp-af-ipv4~3
+      - huawei-vrp8.peer-enable@bgp-af-vpn-instance-ipv4
+      - huawei-vrp8.peer-enable@bgp-af-vpn-instance-ipv4~2
+      - huawei-vrp8.peer-enable@bgp-af-vpnv4
+      - huawei-vrp8.peer-enable@bgp-af-vpnv4~2
+      - huawei-vrp8.peer-enable@bgp-af-vpnv4~3
+      - huawei-vrp8.peer-enable~2
+  bgp.af.peer.export_policy:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-route-policy-export~3
+      - huawei-vrp8.peer-route-policy-export~4
+      - huawei-vrp8.peer-route-policy-export~6
+      - huawei-vrp8.peer-route-policy-export~7
+  bgp.af.peer.group:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-group~3
+      - huawei-vrp8.peer-group~4
+      - huawei-vrp8.peer-group~5
+      - huawei-vrp8.peer-group~6
+      - huawei-vrp8.peer-group~7
+      - huawei-vrp8.peer-group~8
+      - huawei-vrp8.peer-group~9
+  bgp.af.peer.import_policy:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-route-policy-import~10
+      - huawei-vrp8.peer-route-policy-import~3
+      - huawei-vrp8.peer-route-policy-import~5
+      - huawei-vrp8.peer-route-policy-import~6
+      - huawei-vrp8.peer-route-policy-import~7
+      - huawei-vrp8.peer-route-policy-import~8
+      - huawei-vrp8.peer-route-policy-import~9
+  bgp.af.peer.next_hop_self:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-next-hop-local~10
+      - huawei-vrp8.peer-next-hop-local~3
+      - huawei-vrp8.peer-next-hop-local~4
+      - huawei-vrp8.peer-next-hop-local~5
+      - huawei-vrp8.peer-next-hop-local~6
+      - huawei-vrp8.peer-next-hop-local~7
+      - huawei-vrp8.peer-next-hop-local~8
+      - huawei-vrp8.peer-next-hop-local~9
+  bgp.af.peer.rr_client:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-reflect-client~10
+      - huawei-vrp8.peer-reflect-client~3
+      - huawei-vrp8.peer-reflect-client~4
+      - huawei-vrp8.peer-reflect-client~5
+      - huawei-vrp8.peer-reflect-client~6
+      - huawei-vrp8.peer-reflect-client~7
+      - huawei-vrp8.peer-reflect-client~8
+      - huawei-vrp8.peer-reflect-client~9
+  bgp.af.peer.send_community:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-advertise-community@bgp-af-ipv4
+      - huawei-vrp8.peer-advertise-community@bgp-af-ipv4~2
+      - huawei-vrp8.peer-advertise-community@bgp-af-ipv4~3
+      - huawei-vrp8.peer-advertise-community@bgp-af-vpn-instance-ipv4
+      - huawei-vrp8.peer-advertise-community@bgp-af-vpn-instance-ipv4~2
+      - huawei-vrp8.peer-advertise-community@bgp-af-vpnv4
+      - huawei-vrp8.peer-advertise-community@bgp-af-vpnv4~2
+      - huawei-vrp8.peer-advertise-community@bgp-af-vpnv4~3
+  bgp.af.redistribute:
+    supported: true
+    cards:
+      - huawei-vrp8.import-route.1~3
+      - huawei-vrp8.import-route.1~4
+      - huawei-vrp8.import-route.2~3
+  bgp.af.redistribute.metric:
+    supported: true
+    cards:
+      - huawei-vrp8.import-route.1~3
+      - huawei-vrp8.import-route.1~4
+      - huawei-vrp8.import-route.2~3
+  bgp.af.redistribute.policy:
+    supported: true
+    cards:
+      - huawei-vrp8.import-route.1~3
+      - huawei-vrp8.import-route.1~4
+      - huawei-vrp8.import-route.2~3
+  bgp.instance:
+    supported: true
+    cards:
+      - huawei-vrp8.bgp
+  bgp.instance.router_id:
+    supported: true
+    cards:
+      - huawei-vrp8.router-id
+  bgp.peer:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-as-number
+      - huawei-vrp8.peer-as-number~2
+      - huawei-vrp8.peer-as-number~3
+      - huawei-vrp8.peer-connect-interface
+      - huawei-vrp8.peer-connect-interface.1
+      - huawei-vrp8.peer-connect-interface.2
+      - huawei-vrp8.peer-connect-interface~2
+      - huawei-vrp8.peer-description
+      - huawei-vrp8.peer-description~2
+      - huawei-vrp8.peer-description~3
+      - huawei-vrp8.peer-group
+      - huawei-vrp8.peer-group~2
+      - huawei-vrp8.peer-password.2
+      - huawei-vrp8.peer-password.2~2
+      - huawei-vrp8.peer-timer.1
+      - huawei-vrp8.peer-timer.1~2
+      - huawei-vrp8.peer-timer.1~3
+      - huawei-vrp8.peer-timer.2
+      - huawei-vrp8.peer-timer.2~2
+      - huawei-vrp8.peer-timer.2~3
+  bgp.peer.description:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-description
+      - huawei-vrp8.peer-description~2
+      - huawei-vrp8.peer-description~3
+  bgp.peer.group:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-group
+      - huawei-vrp8.peer-group~2
+  bgp.peer.hold:
+    manual: true
+    supported: true
+    default: 180
+    source: 命令参考 peer timer
+    verified: doc
+    cards:
+      - huawei-vrp8.peer-timer.1
+      - huawei-vrp8.peer-timer.1~2
+      - huawei-vrp8.peer-timer.1~3
+      - huawei-vrp8.peer-timer.2
+      - huawei-vrp8.peer-timer.2~2
+      - huawei-vrp8.peer-timer.2~3
+  bgp.peer.keepalive:
+    manual: true
+    supported: true
+    default: 60
+    source: 命令参考 peer timer：By default, the keepalive time is 60s, the hold time is 180s
+    verified: doc
+    cards:
+      - huawei-vrp8.peer-timer.1
+      - huawei-vrp8.peer-timer.1~2
+      - huawei-vrp8.peer-timer.1~3
+      - huawei-vrp8.peer-timer.2
+      - huawei-vrp8.peer-timer.2~2
+      - huawei-vrp8.peer-timer.2~3
+  bgp.peer.password:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-password.2
+      - huawei-vrp8.peer-password.2~2
+  bgp.peer.remote_as:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-as-number
+      - huawei-vrp8.peer-as-number~2
+      - huawei-vrp8.peer-as-number~3
+  bgp.peer.update_source:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-connect-interface
+      - huawei-vrp8.peer-connect-interface.1
+      - huawei-vrp8.peer-connect-interface.2
+      - huawei-vrp8.peer-connect-interface~2
+  bgp.peer_group:
+    supported: true
+    cards:
+      - huawei-vrp8.group.1
+      - huawei-vrp8.peer-as-number
+      - huawei-vrp8.peer-as-number~2
+      - huawei-vrp8.peer-as-number~3
+      - huawei-vrp8.peer-connect-interface
+      - huawei-vrp8.peer-connect-interface.1
+      - huawei-vrp8.peer-connect-interface.2
+      - huawei-vrp8.peer-connect-interface~2
+      - huawei-vrp8.peer-password.2
+      - huawei-vrp8.peer-password.2~2
+      - huawei-vrp8.peer-timer.1
+      - huawei-vrp8.peer-timer.1~2
+      - huawei-vrp8.peer-timer.1~3
+      - huawei-vrp8.peer-timer.2
+      - huawei-vrp8.peer-timer.2~2
+      - huawei-vrp8.peer-timer.2~3
+  bgp.peer_group.hold:
+    manual: true
+    supported: true
+    default: 180
+    source: 命令参考 peer timer（组）
+    verified: doc
+    cards:
+      - huawei-vrp8.peer-timer.1
+      - huawei-vrp8.peer-timer.1~2
+      - huawei-vrp8.peer-timer.1~3
+      - huawei-vrp8.peer-timer.2
+      - huawei-vrp8.peer-timer.2~2
+      - huawei-vrp8.peer-timer.2~3
+  bgp.peer_group.keepalive:
+    manual: true
+    supported: true
+    default: 60
+    source: 命令参考 peer timer（组）：By default, the Keepalive time is 60s, and the hold time is 180s
+    verified: doc
+    cards:
+      - huawei-vrp8.peer-timer.1
+      - huawei-vrp8.peer-timer.1~2
+      - huawei-vrp8.peer-timer.1~3
+      - huawei-vrp8.peer-timer.2
+      - huawei-vrp8.peer-timer.2~2
+      - huawei-vrp8.peer-timer.2~3
+  bgp.peer_group.password:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-password.2
+      - huawei-vrp8.peer-password.2~2
+  bgp.peer_group.remote_as:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-as-number
+      - huawei-vrp8.peer-as-number~2
+      - huawei-vrp8.peer-as-number~3
+  bgp.peer_group.type:
+    supported: true
+    cards:
+      - huawei-vrp8.group.1
+  bgp.peer_group.update_source:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-connect-interface
+      - huawei-vrp8.peer-connect-interface.1
+      - huawei-vrp8.peer-connect-interface.2
+      - huawei-vrp8.peer-connect-interface~2
+  bridge_domain:
+    supported: true
+    cards:
+      - huawei-vrp8.bridge-domain
+  interface:
+    supported: true
+    cards:
+      - huawei-vrp8.interface
+      - huawei-vrp8.interface-l2
+  interface.access:
+    supported: true
+    cards:
+      - huawei-vrp8.bridge-domain~2
+      - huawei-vrp8.encapsulation-dot1q
+      - huawei-vrp8.encapsulation-dot1q-vid-8021p
+      - huawei-vrp8.encapsulation-untag
+      - huawei-vrp8.rewrite.1
+  interface.access.bridge_domain:
+    supported: true
+    cards:
+      - huawei-vrp8.bridge-domain~2
+  interface.access.encapsulation:
+    supported: true
+    cards:
+      - huawei-vrp8.encapsulation-dot1q
+      - huawei-vrp8.encapsulation-dot1q-vid-8021p
+      - huawei-vrp8.encapsulation-untag
+  interface.access.rewrite:
+    supported: true
+    cards:
+      - huawei-vrp8.rewrite.1
+  interface.access.vlan:
+    supported: true
+    cards:
+      - huawei-vrp8.encapsulation-dot1q
+  interface.description:
+    supported: true
+    cards:
+      - huawei-vrp8.description~3
+  interface.dot1q_termination:
+    supported: true
+    cards:
+      - huawei-vrp8.vlan-type-dot1q~2
+  interface.duplex:
+    supported: true
+    cards:
+      - huawei-vrp8.duplex.1
+      - huawei-vrp8.duplex.2
+  interface.ipv4:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-address
+  interface.ipv4.address:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-address
+  interface.ipv4.prefix_length:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-address
+  interface.ipv4.secondary:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-address
+  interface.l2:
+    supported: true
+    cards:
+      - huawei-vrp8.interface-l2
+      - huawei-vrp8.portswitch
+  interface.lag:
+    supported: true
+    cards:
+      - huawei-vrp8.eth-trunk
+  interface.lag_mode:
+    supported: true
+    cards:
+      - huawei-vrp8.eth-trunk
+      - huawei-vrp8.mode
+  interface.mtu:
+    manual: true
+    supported: true
+    default: 1500
+    source: 命令参考 mtu：By default, the MTU value is 1500 bytes
+    verified: doc
+    cards:
+      - huawei-vrp8.mtu
+  interface.negotiation:
+    supported: true
+    cards:
+      - huawei-vrp8.negotiation-auto
+  interface.shutdown:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 shutdown（接口视图）：By default, physical interfaces are initialized and started after a device is powered on
+    verified: doc
+    cards:
+      - huawei-vrp8.shutdown~2
+  interface.speed:
+    supported: true
+    cards:
+      - huawei-vrp8.speed.1
+      - huawei-vrp8.speed.2
+      - huawei-vrp8.speed.3
+      - huawei-vrp8.speed.4
+  interface.vrf:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-binding-vpn-instance
+  rp.community_list:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-community-filter-advanced
+  rp.community_list.entry:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-community-filter-advanced
+  rp.community_list.entry.action:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-community-filter-advanced
+      - huawei-vrp8.ip-community-filter-basic
+  rp.community_list.entry.match:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-community-filter-advanced
+  rp.policy:
+    supported: true
+    cards:
+      - huawei-vrp8.route-policy
+  rp.policy.node:
+    supported: true
+    cards:
+      - huawei-vrp8.route-policy
+  rp.policy.node.action:
+    supported: true
+    cards:
+      - huawei-vrp8.route-policy
+  rp.policy.node.match_community:
+    supported: true
+    cards:
+      - huawei-vrp8.if-match-community-filter.2
+  rp.policy.node.match_prefix_list:
+    supported: true
+    cards:
+      - huawei-vrp8.if-match-ip-prefix
+  rp.policy.node.set_community:
+    supported: true
+    cards:
+      - huawei-vrp8.apply-community.2
+  rp.policy.node.set_community_additive:
+    supported: true
+    cards:
+      - huawei-vrp8.apply-community.2
+  rp.policy.node.set_local_preference:
+    supported: true
+    cards:
+      - huawei-vrp8.apply-local-preference
+  rp.policy.node.set_metric:
+    supported: true
+    cards:
+      - huawei-vrp8.apply-cost.1
+  rp.prefix_list:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-ip-prefix
+  rp.prefix_list.entry:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-ip-prefix
+  rp.prefix_list.entry.action:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-ip-prefix
+  rp.prefix_list.entry.ge:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-ip-prefix
+  rp.prefix_list.entry.le:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-ip-prefix
+  rp.prefix_list.entry.prefix:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-ip-prefix
+  static.route:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-route-static
+      - huawei-vrp8.ip-route-static-vpn-instance.1
+      - huawei-vrp8.ip-route-static-vpn-instance.1~2
+      - huawei-vrp8.ip-route-static-vpn-instance.2
+      - huawei-vrp8.ip-route-static-vpn-instance.2~2
+      - huawei-vrp8.ip-route-static-vpn-instance.3
+      - huawei-vrp8.ip-route-static-vpn-instance.4
+      - huawei-vrp8.ip-route-static-vpn-instance.5
+      - huawei-vrp8.ip-route-static-vpn-instance.6
+      - huawei-vrp8.ip-route-static-vpn-instance.7
+      - huawei-vrp8.ip-route-static.1
+      - huawei-vrp8.ip-route-static.1~2
+      - huawei-vrp8.ip-route-static.2
+      - huawei-vrp8.ip-route-static.2~2
+      - huawei-vrp8.ip-route-static.3
+      - huawei-vrp8.ip-route-static.4
+      - huawei-vrp8.ip-route-static.5
+      - huawei-vrp8.ip-route-static.6
+      - huawei-vrp8.ip-route-static.7
+  static.route.description:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-route-static
+      - huawei-vrp8.ip-route-static-vpn-instance.1
+      - huawei-vrp8.ip-route-static-vpn-instance.1~2
+      - huawei-vrp8.ip-route-static-vpn-instance.2
+      - huawei-vrp8.ip-route-static-vpn-instance.2~2
+      - huawei-vrp8.ip-route-static-vpn-instance.3
+      - huawei-vrp8.ip-route-static-vpn-instance.4
+      - huawei-vrp8.ip-route-static-vpn-instance.5
+      - huawei-vrp8.ip-route-static-vpn-instance.6
+      - huawei-vrp8.ip-route-static-vpn-instance.7
+      - huawei-vrp8.ip-route-static.1
+      - huawei-vrp8.ip-route-static.1~2
+      - huawei-vrp8.ip-route-static.2
+      - huawei-vrp8.ip-route-static.2~2
+      - huawei-vrp8.ip-route-static.3
+      - huawei-vrp8.ip-route-static.4
+      - huawei-vrp8.ip-route-static.5
+      - huawei-vrp8.ip-route-static.6
+      - huawei-vrp8.ip-route-static.7
+  static.route.interface:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-route-static-vpn-instance.1~2
+      - huawei-vrp8.ip-route-static-vpn-instance.2
+      - huawei-vrp8.ip-route-static-vpn-instance.3
+      - huawei-vrp8.ip-route-static-vpn-instance.5
+      - huawei-vrp8.ip-route-static-vpn-instance.6
+      - huawei-vrp8.ip-route-static-vpn-instance.7
+      - huawei-vrp8.ip-route-static.1~2
+      - huawei-vrp8.ip-route-static.2
+      - huawei-vrp8.ip-route-static.3
+      - huawei-vrp8.ip-route-static.5
+      - huawei-vrp8.ip-route-static.6
+      - huawei-vrp8.ip-route-static.7
+  static.route.nexthop:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-route-static-vpn-instance.1
+      - huawei-vrp8.ip-route-static-vpn-instance.1~2
+      - huawei-vrp8.ip-route-static-vpn-instance.2
+      - huawei-vrp8.ip-route-static-vpn-instance.2~2
+      - huawei-vrp8.ip-route-static-vpn-instance.4
+      - huawei-vrp8.ip-route-static-vpn-instance.5
+      - huawei-vrp8.ip-route-static.1
+      - huawei-vrp8.ip-route-static.1~2
+      - huawei-vrp8.ip-route-static.2
+      - huawei-vrp8.ip-route-static.2~2
+      - huawei-vrp8.ip-route-static.4
+      - huawei-vrp8.ip-route-static.5
+  static.route.preference:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-route-static
+      - huawei-vrp8.ip-route-static-vpn-instance.1
+      - huawei-vrp8.ip-route-static-vpn-instance.1~2
+      - huawei-vrp8.ip-route-static-vpn-instance.2
+      - huawei-vrp8.ip-route-static-vpn-instance.2~2
+      - huawei-vrp8.ip-route-static-vpn-instance.3
+      - huawei-vrp8.ip-route-static-vpn-instance.4
+      - huawei-vrp8.ip-route-static-vpn-instance.5
+      - huawei-vrp8.ip-route-static-vpn-instance.6
+      - huawei-vrp8.ip-route-static-vpn-instance.7
+      - huawei-vrp8.ip-route-static.1
+      - huawei-vrp8.ip-route-static.1~2
+      - huawei-vrp8.ip-route-static.2
+      - huawei-vrp8.ip-route-static.2~2
+      - huawei-vrp8.ip-route-static.3
+      - huawei-vrp8.ip-route-static.4
+      - huawei-vrp8.ip-route-static.5
+      - huawei-vrp8.ip-route-static.6
+      - huawei-vrp8.ip-route-static.7
+  static.route.prefix:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-route-static
+      - huawei-vrp8.ip-route-static-vpn-instance.1
+      - huawei-vrp8.ip-route-static-vpn-instance.1~2
+      - huawei-vrp8.ip-route-static-vpn-instance.2
+      - huawei-vrp8.ip-route-static-vpn-instance.2~2
+      - huawei-vrp8.ip-route-static-vpn-instance.3
+      - huawei-vrp8.ip-route-static-vpn-instance.4
+      - huawei-vrp8.ip-route-static-vpn-instance.5
+      - huawei-vrp8.ip-route-static-vpn-instance.6
+      - huawei-vrp8.ip-route-static-vpn-instance.7
+      - huawei-vrp8.ip-route-static.1
+      - huawei-vrp8.ip-route-static.1~2
+      - huawei-vrp8.ip-route-static.2
+      - huawei-vrp8.ip-route-static.2~2
+      - huawei-vrp8.ip-route-static.3
+      - huawei-vrp8.ip-route-static.4
+      - huawei-vrp8.ip-route-static.5
+      - huawei-vrp8.ip-route-static.6
+      - huawei-vrp8.ip-route-static.7
+  static.route.tag:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-route-static
+      - huawei-vrp8.ip-route-static-vpn-instance.1
+      - huawei-vrp8.ip-route-static-vpn-instance.1~2
+      - huawei-vrp8.ip-route-static-vpn-instance.2
+      - huawei-vrp8.ip-route-static-vpn-instance.2~2
+      - huawei-vrp8.ip-route-static-vpn-instance.3
+      - huawei-vrp8.ip-route-static-vpn-instance.4
+      - huawei-vrp8.ip-route-static-vpn-instance.5
+      - huawei-vrp8.ip-route-static-vpn-instance.6
+      - huawei-vrp8.ip-route-static-vpn-instance.7
+      - huawei-vrp8.ip-route-static.1
+      - huawei-vrp8.ip-route-static.1~2
+      - huawei-vrp8.ip-route-static.2
+      - huawei-vrp8.ip-route-static.2~2
+      - huawei-vrp8.ip-route-static.3
+      - huawei-vrp8.ip-route-static.4
+      - huawei-vrp8.ip-route-static.5
+      - huawei-vrp8.ip-route-static.6
+      - huawei-vrp8.ip-route-static.7
+  static.route.vrf:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-route-static-vpn-instance.1
+      - huawei-vrp8.ip-route-static-vpn-instance.1~2
+      - huawei-vrp8.ip-route-static-vpn-instance.2
+      - huawei-vrp8.ip-route-static-vpn-instance.2~2
+      - huawei-vrp8.ip-route-static-vpn-instance.3
+      - huawei-vrp8.ip-route-static-vpn-instance.4
+      - huawei-vrp8.ip-route-static-vpn-instance.5
+      - huawei-vrp8.ip-route-static-vpn-instance.6
+      - huawei-vrp8.ip-route-static-vpn-instance.7
+  vrf.instance:
+    supported: true
+    cards:
+      - huawei-vrp8.ip-vpn-instance
+  vrf.instance.af:
+    supported: true
+    cards:
+      - huawei-vrp8.ipv4-family
+      - huawei-vrp8.vpn-target
+      - huawei-vrp8.vpn-target~2
+  vrf.instance.af.label_mode:
+    manual: true
+    supported: true
+    default: per-instance
+    source: 命令参考 apply-label：By default, the label distribution mode is one-label-per-instance
+    verified: doc
+    cards:
+      - huawei-vrp8.apply-label-per-instance-static~2
+      - huawei-vrp8.apply-label-pop-go~2
+      - huawei-vrp8.apply-label~2
+  vrf.instance.af.rd:
+    supported: true
+    cards:
+      - huawei-vrp8.route-distinguisher
+  vrf.instance.af.rt:
+    supported: true
+    cards:
+      - huawei-vrp8.vpn-target
+      - huawei-vrp8.vpn-target~2
+  vrf.instance.af.rt.direction:
+    supported: true
+    cards:
+      - huawei-vrp8.vpn-target
+      - huawei-vrp8.vpn-target~2
+  vrf.instance.af.rt.value:
+    supported: true
+    cards:
+      - huawei-vrp8.vpn-target
+      - huawei-vrp8.vpn-target~2
+  vrf.instance.description:
+    supported: true
+    cards:
+      - huawei-vrp8.description~2

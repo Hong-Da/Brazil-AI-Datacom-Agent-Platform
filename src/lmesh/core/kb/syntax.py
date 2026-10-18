@@ -315,7 +315,7 @@ def _rep(
         for j, sub in _one(n.node, toks, i, Match(), params, line):
             if j > i:
                 yield from _rep(n, toks, j, m, params, line, [*done, sub])
-    if done:
+    if done or isinstance(n.node, Opt):  # 可选组重复（[ … ] *）允许一次都不出现
         m2 = m.copy()
         m2.reps[n.gid] = done
         m2.keywords += sum(s.keywords for s in done)

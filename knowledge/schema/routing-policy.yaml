@@ -1,0 +1,97 @@
+# 路由策略功能域：华为 route-policy + ip ip-prefix + ip community-filter；Cisco route-map + ip prefix-list + ip community-list。
+# 结构接近：策略由有序节点组成，节点有动作（permit / deny）、匹配条件与设置动作。
+domain: routing-policy
+nodes:
+  rp.policy:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 路由策略（华为 route-policy，Cisco route-map）, en: Route policy}
+    status: reviewed
+  rp.policy.node:
+    parent: rp.policy
+    type: object
+    key: [seq]
+    ordered: true
+    semantic: {zh-CN: 策略节点（按序号依次匹配）, en: Policy node}
+  rp.policy.node.action:
+    parent: rp.policy.node
+    type: enum
+    choices: [permit, deny]
+    semantic: {zh-CN: 匹配后的动作, en: Action}
+  rp.policy.node.match_prefix_list:
+    parent: rp.policy.node
+    type: ref
+    ref: rp.prefix_list
+    semantic: {zh-CN: 匹配前缀列表（华为 if-match ip-prefix，Cisco match ip address prefix-list）, en: Match prefix list}
+  rp.policy.node.match_community:
+    parent: rp.policy.node
+    type: ref
+    ref: rp.community_list
+    semantic: {zh-CN: 匹配团体属性列表, en: Match community list}
+  rp.policy.node.set_local_preference:
+    parent: rp.policy.node
+    type: integer
+    semantic: {zh-CN: 设置本地优先级, en: Set local preference}
+  rp.policy.node.set_metric:
+    parent: rp.policy.node
+    type: integer
+    semantic: {zh-CN: 设置 MED / metric, en: Set metric}
+  rp.policy.node.set_community:
+    parent: rp.policy.node
+    type: string
+    semantic: {zh-CN: 设置团体属性（多个值以空格分隔）, en: Set community}
+  rp.policy.node.set_community_additive:
+    parent: rp.policy.node
+    type: boolean
+    semantic: {zh-CN: 追加而不是替换团体属性, en: Additive}
+  rp.prefix_list:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 前缀列表（华为 ip ip-prefix，Cisco ip prefix-list）, en: Prefix list}
+  rp.prefix_list.entry:
+    parent: rp.prefix_list
+    type: object
+    key: [seq]
+    ordered: true
+    semantic: {zh-CN: 前缀列表的一条规则（华为 index，Cisco seq）, en: Prefix list entry}
+  rp.prefix_list.entry.action:
+    parent: rp.prefix_list.entry
+    type: enum
+    choices: [permit, deny]
+    semantic: {zh-CN: 动作, en: Action}
+  rp.prefix_list.entry.prefix:
+    parent: rp.prefix_list.entry
+    type: prefix
+    semantic: {zh-CN: 前缀, en: Prefix}
+  rp.prefix_list.entry.ge:
+    parent: rp.prefix_list.entry
+    type: integer
+    range: [0, 32]
+    semantic: {zh-CN: 掩码长度下限（华为 greater-equal，Cisco ge）, en: Minimum length}
+  rp.prefix_list.entry.le:
+    parent: rp.prefix_list.entry
+    type: integer
+    range: [0, 32]
+    semantic: {zh-CN: 掩码长度上限（华为 less-equal，Cisco le）, en: Maximum length}
+  rp.community_list:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 团体属性列表（华为 ip community-filter，Cisco ip community-list）, en: Community list}
+  rp.community_list.entry:
+    parent: rp.community_list
+    type: object
+    key: [seq]
+    ordered: true
+    semantic: {zh-CN: 团体属性列表的一条规则, en: Community list entry}
+  rp.community_list.entry.action:
+    parent: rp.community_list.entry
+    type: enum
+    choices: [permit, deny]
+    semantic: {zh-CN: 动作, en: Action}
+  rp.community_list.entry.match:
+    parent: rp.community_list.entry
+    type: string
+    semantic: {zh-CN: 匹配内容（团体值或正则表达式）, en: Match value or regular expression}
+deps:
+  - {kind: reference, from: rp.policy.node.match_prefix_list, to: rp.prefix_list, note: 引用的前缀列表不存在时为悬空引用}
+  - {kind: reference, from: rp.policy.node.match_community, to: rp.community_list}

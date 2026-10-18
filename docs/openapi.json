@@ -3,7 +3,7 @@
   "info": {
     "title": "LucidMesh API",
     "description": "透网 LucidMesh 远程 API。除 /health 与首次运行向导外，所有接口都需要 Authorization: Bearer <令牌>。",
-    "version": "0.0.3"
+    "version": "0.0.4"
   },
   "paths": {
     "/api/v1/health": {
@@ -933,6 +933,253 @@
           }
         }
       }
+    },
+    "/api/v1/parse": {
+      "post": {
+        "tags": [
+          "graph"
+        ],
+        "summary": "解析为带行号的结构化 JSON",
+        "operationId": "parse_api_v1_parse_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Parse Api V1 Parse Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/render": {
+      "post": {
+        "tags": [
+          "graph"
+        ],
+        "summary": "解析建图后渲染回配置文本（往返模式）",
+        "operationId": "render_api_v1_render_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Render Api V1 Render Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/roundtrip": {
+      "post": {
+        "tags": [
+          "graph"
+        ],
+        "summary": "往返测试：给出 text 时同步返回；samples=true 时作为后台任务跑全部样本",
+        "operationId": "run_roundtrip_api_v1_roundtrip_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoundtripBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Run Roundtrip Api V1 Roundtrip Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/graph": {
+      "get": {
+        "tags": [
+          "graph"
+        ],
+        "summary": "设备配置图（最新配置版本，按当前知识库建图）",
+        "operationId": "device_graph_api_v1_devices__device_id__graph_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Domain"
+            }
+          },
+          {
+            "name": "raw",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "包含功能域外的原文节点",
+              "default": false,
+              "title": "Raw"
+            },
+            "description": "包含功能域外的原文节点"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Device Graph Api V1 Devices  Device Id  Graph Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/unknown-lines": {
+      "get": {
+        "tags": [
+          "graph"
+        ],
+        "summary": "已导入配置中的未识别行（按出现次数汇总）",
+        "operationId": "unknown_lines_api_v1_unknown_lines_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Unknown Lines Api V1 Unknown Lines Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1134,6 +1381,40 @@
         ],
         "title": "RollbackBody"
       },
+      "RoundtripBody": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "samples": {
+            "type": "boolean",
+            "title": "Samples",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "RoundtripBody"
+      },
       "SanitizeBody": {
         "properties": {
           "text": {
@@ -1178,6 +1459,31 @@
         },
         "type": "object",
         "title": "SetupBody"
+      },
+      "TextBody": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 20971520,
+            "title": "Text"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "TextBody"
       },
       "ValidationError": {
         "properties": {

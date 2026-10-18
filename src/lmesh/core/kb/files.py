@@ -22,6 +22,7 @@ CARD_FIELDS = (
     "source",
     "status",
     "note",
+    "maps_manual",
 )
 
 

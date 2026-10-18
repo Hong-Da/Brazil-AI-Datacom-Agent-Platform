@@ -55,6 +55,11 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      rp.community_list: $list-name||$standard||$expanded
+      rp.community_list.entry: auto
+      rp.community_list.entry.action: kw:permit|deny
+      rp.community_list.entry.match: $regexp||$community-number
   - id: cisco-iosxe.ip-community-list.3
     syntax: Expanded Community Lists
     view: system
@@ -84,6 +89,11 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      rp.community_list: $list-name||$standard||$expanded
+      rp.community_list.entry: auto
+      rp.community_list.entry.action: kw:permit|deny
+      rp.community_list.entry.match: $regexp||$community-number
   - id: cisco-iosxe.ip-extcommunity-list.1
     syntax: Global Configuration Mode CLI
     view: system
@@ -238,18 +248,16 @@ cards:
       version: '17.15'
     status: draft
   - id: cisco-iosxe.ip-prefix-list
-    syntax: ip prefix-list { <list-name> [ seq <number> ] { deny | permit } <network> / <length> [ ge <ge-length> ] [ le <le-length> ] | description <description> | sequence-number }
+    syntax: ip prefix-list { <list-name> [ seq <number> ] { deny | permit } <prefix> [ ge <ge-length> ] [ le <le-length> ] | description <description> | sequence-number }
     view: system
-    undo: no ip prefix-list { <list-name> [ seq <number> ] [ { deny | permit } <network> / <length> [ ge <ge-length> ] [ le <le-length> ] ] | description <description> | sequence-number }
+    undo: no ip prefix-list { <list-name> [ seq <number> ] [ { deny | permit } <prefix> [ ge <ge-length> ] [ le <le-length> ] ] | description <description> | sequence-number }
     params:
       list-name:
         type: word
       number:
         type: integer
-      network:
-        type: word
-      length:
-        type: mask-length
+      prefix:
+        type: prefix
       ge-length:
         type: mask-length
       le-length:
@@ -264,6 +272,13 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      rp.prefix_list: $list-name
+      rp.prefix_list.entry: $number||auto
+      rp.prefix_list.entry.action: kw:permit|deny
+      rp.prefix_list.entry.prefix: $prefix
+      rp.prefix_list.entry.ge: $ge-length
+      rp.prefix_list.entry.le: $le-length
   - id: cisco-iosxe.match-as-path
     syntax: match as-path <path-list-number>
     view: route-map
@@ -298,6 +313,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      rp.policy.node.match_community: $community-list-name||$standard-list-number||$expanded-list-number
   - id: cisco-iosxe.match-extcommunity
     syntax: match extcommunity <extended-community-list-name>
     view: route-map
@@ -314,15 +331,13 @@ cards:
       version: '17.15'
     status: draft
   - id: cisco-iosxe.match-ip-address
-    syntax: match ip address { <access-list-number> [ <access-list-number> . . . | <access-list-name> . . . ] | <access-list-name> [ <access-list-number> . . . | <access-list-name> ] | prefix-list <prefix-list-name> [ <prefix-list-name> . . . ] }
+    syntax: match ip address { prefix-list { <prefix-list-name> } &<1-32> | { <access-list> } &<1-32> }
     view: route-map
     undo: no match ip address { <access-list-number> [ <access-list-number> . . . | <access-list-name> . . . ] | <access-list-name> [ <access-list-number> . . . | <access-list-name> ] | prefix-list <prefix-list-name> [ <prefix-list-name> . . . ] }
     params:
-      access-list-number:
-        type: integer
-      access-list-name:
-        type: integer
       prefix-list-name:
+        type: word
+      access-list:
         type: word
     default: No access list numbers or prefix lists are specified.
     source:
@@ -331,9 +346,12 @@ cards:
       title: match ip address
       line: 5
       version: '17.15'
+      patched: 原文用 “. . .” 表示可重复，改成 &<1-32> 重复写法
     status: draft
+    maps:
+      rp.policy.node.match_prefix_list: $prefix-list-name
   - id: cisco-iosxe.route-map
-    syntax: route-map <map-tag> [ permit | deny ] [ <sequence-number> ] ordering-seq <sequence-name>
+    syntax: route-map <map-tag> [ permit | deny ] [ <sequence-number> ]
     view: system
     enters_view: route-map
     undo: no route-map <map-tag> [ permit | deny ] [ <sequence-number> ] ordering-seq <sequence-name>
@@ -341,9 +359,10 @@ cards:
       map-tag:
         type: word
       sequence-number:
-        type: word
-      sequence-name:
-        type: word
+        type: integer
+        range:
+          - 0
+          - 65535
     default: Policy routing is not enabled and conditions for redistributing routes from one routing protocol to another routing protocol are not configured.
     source:
       doc: cisco-iosxe-md
@@ -351,7 +370,12 @@ cards:
       title: route-map
       line: 5
       version: '17.15'
+      patched: 原文把 ordering-seq 写成了必选；运行配置中是 route-map 名称 permit|deny 序号
     status: draft
+    maps:
+      rp.policy: $map-tag
+      rp.policy.node: $sequence-number||10
+      rp.policy.node.action: kw:permit|deny:permit
   - id: cisco-iosxe.set-as-path.1
     syntax: set as-path { tag | prepend <as-path-string> }
     view: route-map
@@ -412,22 +436,20 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      rp.policy.node.set_community: $community-number
+      rp.policy.node.set_community_additive: kw:additive=true:false
   - id: cisco-iosxe.set-extcommunity-rt
-    syntax: set extcommunity rt { <extended-community-value-1> [ . . . <extended-community-value-n> ] | range <start-range-value> <end-range-value> } [ additiive ]
+    syntax: set extcommunity rt { { <extended-community-value> } &<1-32> | range <start-range-value> <end-range-value> } [ additive ]
     view: route-map
     undo: no set extcommunity
     params:
-      extended-community-value-1:
-        type: integer
-        range:
-          - 65536
-          - 4294967295
-      extended-community-value-n:
-        type: word
+      extended-community-value:
+        type: rd
       start-range-value:
-        type: word
+        type: rd
       end-range-value:
-        type: word
+        type: rd
     default: No RT extended community attributes are set.
     source:
       doc: cisco-iosxe-md
@@ -435,6 +457,7 @@ cards:
       title: set extcommunity rt
       line: 5
       version: '17.15'
+      patched: 原文用 “. . .” 表示可重复，且 additive 拼写为 additiive
     status: draft
   - id: cisco-iosxe.set-ip-next-hop
     syntax: set ip next-hop <ip-address> [ <ip-address> ] [ peer-address ]
@@ -514,6 +537,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      rp.policy.node.set_local_preference: $number
   - id: cisco-iosxe.set-metric
     syntax: set metric <metric-value>
     view: route-map
@@ -529,6 +554,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      rp.policy.node.set_metric: $metric-value
   - id: cisco-iosxe.set-origin
     syntax: set origin { igp | egp <autonomous-system-number> | incomplete }
     view: route-map

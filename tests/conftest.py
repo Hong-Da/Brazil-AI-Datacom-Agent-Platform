@@ -21,6 +21,7 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 OUTPUT = ROOT / "tests" / "output"
 INPUTS = ROOT / "tests" / "inputs"
+SAMPLES = ROOT / "knowledge" / "samples"
 CASES = ROOT / "tests" / "cases"
 TEST_TOKEN = "test-token-0123456789"
 
@@ -136,6 +137,21 @@ def tmp_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
     from lmesh.core import store
 
     store.dispose_all()
+
+
+@pytest.fixture
+def full_kb_root(tmp_root: Path) -> Path:
+    """带上全部抽取出的命令卡（解析、建图、往返相关的用例需要）。"""
+    shutil.copytree(ROOT / "knowledge" / "commands", tmp_root / "knowledge" / "commands", dirs_exist_ok=True)
+    return tmp_root
+
+
+def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
+    """用例的准备方式：fresh / configured / fresh-fullkb / configured-fullkb。"""
+    if setup and setup.endswith("fullkb"):
+        request.getfixturevalue("full_kb_root")
+    if setup and setup.startswith("configured"):
+        request.getfixturevalue("configured_root")
 
 
 @pytest.fixture

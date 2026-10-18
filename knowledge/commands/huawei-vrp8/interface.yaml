@@ -155,6 +155,8 @@ cards:
       line: 1193
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.duplex: kw:full|half|auto
   - id: huawei-vrp8.duplex.2
     syntax: duplex auto
     view: interface
@@ -166,6 +168,8 @@ cards:
       line: 1193
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.duplex: kw:full|half|auto
   - id: huawei-vrp8.error-down-auto-recovery
     syntax: error-down auto-recovery cause <error-down-type> interval <interval-value>
     view: system
@@ -391,6 +395,8 @@ cards:
       line: 2138
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.negotiation: flag
   - id: huawei-vrp8.optical-pn-reverse-enable
     syntax: optical pn-reverse enable
     view: interface
@@ -589,6 +595,8 @@ cards:
       line: 2971
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.speed: kw:10|100|1000|10000
   - id: huawei-vrp8.speed.2
     syntax: speed 100
     view: interface
@@ -601,6 +609,8 @@ cards:
       line: 2971
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.speed: kw:10|100|1000|10000
   - id: huawei-vrp8.speed.3
     syntax: speed 1000
     view: interface
@@ -613,6 +623,8 @@ cards:
       line: 2971
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.speed: kw:10|100|1000|10000
   - id: huawei-vrp8.speed.4
     syntax: speed auto
     view: interface
@@ -625,6 +637,8 @@ cards:
       line: 2971
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.speed: kw:10|100|1000|10000
   - id: huawei-vrp8.statistic-enable-mode
     syntax: statistic enable mode { single | multiple }
     view: interface
@@ -975,6 +989,8 @@ cards:
       line: 4306
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.description: $description
   - id: huawei-vrp8.enable-snmp-trap-updown
     syntax: enable snmp trap updown
     view: interface
@@ -1045,6 +1061,8 @@ cards:
       line: 8194
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface: $interface-name||fmt:{interface-type}{interface-number}
   - id: huawei-vrp8.interface-history-traffic-rate-statistics-disable
     syntax: interface history traffic-rate statistics disable
     view: system
@@ -1125,7 +1143,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.laser-auto-shutdown-interval
-    syntax: laser auto-shutdown-interval { open <open-value> | close <close-value> }
+    syntax: laser auto-shutdown-interval { open <open-value> | close <close-value> } &<1-9>
     view: interface
     undo: undo laser auto-shutdown-interval
     params:
@@ -1359,6 +1377,8 @@ cards:
       line: 10260
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.mtu: $mtu
   - id: huawei-vrp8.mtu-spread
     syntax: mtu <mtu> spread
     view: interface
@@ -1415,9 +1435,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.port-alarm-disable-optical-module
-    syntax: port-alarm disable optical-module { rx-power-high-warning | rx-power-low-warning | tx-power-high-warning | tx-power-low-warning | voltage-high-warning | voltage-low-warning }
+    syntax: port-alarm disable optical-module { rx-power-high-warning | rx-power-low-warning | tx-power-high-warning | tx-power-low-warning | voltage-high-warning | voltage-low-warning } &<1-9>
     view: interface
-    undo: undo port-alarm disable optical-module { rx-power-high-warning | rx-power-low-warning | tx-power-high-warning | tx-power-low-warning | voltage-high-warning | voltage-low-warning }
+    undo: undo port-alarm disable optical-module { rx-power-high-warning | rx-power-low-warning | tx-power-high-warning | tx-power-low-warning | voltage-high-warning | voltage-low-warning } &<1-9>
     default: By default, warnings are reported when the receive power exceeds the upper threshold, the receive power falls behind the lower threshold, the send power exceeds the upper threshold, the send power falls behind the lower threshold,the voltage exceeds the upper threshold and the voltage falls behind the lower threshold.
     source:
       doc: huawei-vrp8-md
@@ -1565,6 +1585,8 @@ cards:
       line: 11443
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.shutdown: flag
   - id: huawei-vrp8.shutdown-interface
     syntax: shutdown interface { <ifname> | <beginIfType> <beginIfNum> } <to> { <endIfname> | <endIfType> <endIfNum> }
     view: system
@@ -3004,6 +3026,11 @@ cards:
       line: 2865
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.ipv4: $ip-address
+      interface.ipv4.address: $ip-address
+      interface.ipv4.prefix_length: $mask||$mask-length
+      interface.ipv4.secondary: kw:sub=true:false
   - id: huawei-vrp8.ip-address-ignore-primary-sub-enable
     syntax: ip address ignore primary-sub enable
     view: system
@@ -3924,6 +3951,9 @@ cards:
       line: 8488
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.lag: $trunk-id
+      interface.lag_mode: kw:active|passive
   - id: huawei-vrp8.inactive-port-shutdown-enable
     syntax: inactive-port shutdown enable
     view: interface
@@ -4627,6 +4657,8 @@ cards:
       line: 11593
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.lag_mode: kw:lacp-static|manual
   - id: huawei-vrp8.mode-channel-bandwidth-maximize
     syntax: mode channel bandwidth maximize
     view: interface
@@ -4766,9 +4798,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.whitelist-session-car-e-trunk-ipv4
-    syntax: whitelist session-car e-trunk-ipv4 { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> }
+    syntax: whitelist session-car e-trunk-ipv4 { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9>
     view: system
-    undo: undo whitelist session-car e-trunk-ipv4 [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } ]
+    undo: undo whitelist session-car e-trunk-ipv4 [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9> ]
     params:
       cir-value:
         type: integer
@@ -4811,9 +4843,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.whitelist-session-car-e-trunk-ipv6
-    syntax: whitelist session-car e-trunk-ipv6 { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> }
+    syntax: whitelist session-car e-trunk-ipv6 { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9>
     view: system
-    undo: undo whitelist session-car e-trunk-ipv6 [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } ]
+    undo: undo whitelist session-car e-trunk-ipv6 [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9> ]
     params:
       cir-value:
         type: integer
@@ -4873,6 +4905,8 @@ cards:
       line: 17350
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bridge_domain: $bd-id
   - id: huawei-vrp8.bridge-domain~2
     syntax: bridge-domain <bd-id>
     view: interface
@@ -4891,6 +4925,9 @@ cards:
       line: 17416
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.access: _
+      interface.access.bridge_domain: $bd-id
   - id: huawei-vrp8.encapsulation-default
     syntax: encapsulation default
     view: interface
@@ -4926,6 +4963,10 @@ cards:
       line: 18103
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.access: _
+      interface.access.encapsulation: dot1q
+      interface.access.vlan: $low-pe-vid
   - id: huawei-vrp8.encapsulation-dot1q-vid-8021p
     syntax: encapsulation dot1q vid <pevid1> [ to <pevid2> ] 8021p { <val8021p1> [ to <val8021p2> ] } &<1-8>
     view: interface
@@ -4959,6 +5000,9 @@ cards:
       line: 18174
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.access: _
+      interface.access.encapsulation: dot1q
   - id: huawei-vrp8.encapsulation-qinq.1
     syntax: encapsulation qinq [ vid <pe-vid> ce-vid { <low-ce-vid> [ to <high-ce-vid> ] | default } ]
     view: interface
@@ -5015,6 +5059,9 @@ cards:
       line: 18328
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.access: _
+      interface.access.encapsulation: untagged
   - id: huawei-vrp8.forward-mode
     syntax: forward-mode loopback
     view: interface
@@ -5049,6 +5096,9 @@ cards:
       line: 18455
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface: $interface-name||fmt:{interface-type}{interface-number}
+      interface.l2: 'true'
   - id: huawei-vrp8.local-switch-enable
     syntax: local-switch enable
     view: interface
@@ -5073,6 +5123,9 @@ cards:
       line: 18758
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.access: _
+      interface.access.rewrite: kw:single=pop 1|double=pop 2
   - id: huawei-vrp8.rewrite.2
     syntax: rewrite swap
     view: interface
@@ -5628,6 +5681,8 @@ cards:
       line: 34813
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.l2: flag
   - id: huawei-vrp8.portswitch-batch.1
     syntax: portswitch batch <interface-type> { <interface-number1> [ to <interface-number2> ] } &<1-10>
     view: system
@@ -5835,3 +5890,5 @@ cards:
       line: 35704
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.dot1q_termination: $vlan-id

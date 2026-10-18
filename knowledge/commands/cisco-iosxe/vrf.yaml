@@ -152,6 +152,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.rd: $route-distinguisher
   - id: cisco-iosxe.route-target
     syntax: route-target [ import | export | both ] <route-target-ext-community>
     view: vrf
@@ -167,6 +169,12 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      vrf.instance.af.rt: &id003
+        value: $route-target-ext-community
+        direction: kw:import|export|both:both
+      vrf.instance.af.rt.value: $route-target-ext-community
+      vrf.instance.af.rt.direction: kw:import|export|both:both
   - id: cisco-iosxe.vrf-definition
     syntax: vrf definition <vrf-name>
     view: system
@@ -183,6 +191,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      vrf.instance: $vrf-name
   - id: cisco-iosxe.vrf-forwarding
     syntax: vrf forwarding <vrf-name> [ downstream <vrf-name2> ]
     view: interface
@@ -200,3 +210,114 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      interface.vrf: $vrf-name
+  - id: cisco-iosxe.export-map@vrf
+    syntax: export map <map-name>
+    view: vrf
+    undo: no export map <map-name>
+    params: &id001
+      map-name:
+        type: word
+    default: No export maps are associated with a VRF instance.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/export map.md
+      title: export map
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.export-map@vrf-af
+    syntax: export map <map-name>
+    view: vrf-af
+    undo: no export map <map-name>
+    params: *id001
+    default: No export maps are associated with a VRF instance.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/export map.md
+      title: export map
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      vrf.instance.af.export_policy: $map-name
+  - id: cisco-iosxe.import-map@vrf
+    syntax: import [ ipv4 ] [ unicast | multicast ] [ <prefix-limit> ] map <map-name>
+    view: vrf
+    undo: no import [ ipv4 ] [ unicast | multicast ] [ <prefix-limit> ] map <map-name>
+    params: &id002
+      prefix-limit:
+        type: word
+      map-name:
+        type: word
+    default: A VRF has no import route map unless one is configured using the import map command.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/import map.md
+      title: import map
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.import-map@vrf-af
+    syntax: import [ ipv4 ] [ unicast | multicast ] [ <prefix-limit> ] map <map-name>
+    view: vrf-af
+    undo: no import [ ipv4 ] [ unicast | multicast ] [ <prefix-limit> ] map <map-name>
+    params: *id002
+    default: A VRF has no import route map unless one is configured using the import map command.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/import map.md
+      title: import map
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      vrf.instance.af.import_policy: $map-name
+  - id: cisco-iosxe.route-target@vrf-af
+    syntax: route-target [ import | export | both ] <route-target-ext-community>
+    view: vrf-af
+    undo: no route-target [ import | export | both ] [ <route-target-ext-community> ]
+    params: &id004
+      route-target-ext-community:
+        type: word
+    default: A VRF has no route-target extended community attributes associated with it.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/route-target.md
+      title: route-target
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      vrf.instance.af.rt: *id003
+      vrf.instance.af.rt.value: $route-target-ext-community
+      vrf.instance.af.rt.direction: kw:import|export|both:both
+  - id: cisco-iosxe.route-target@vrf
+    syntax: route-target [ import | export | both ] <route-target-ext-community>
+    view: vrf
+    undo: no route-target [ import | export | both ] [ <route-target-ext-community> ]
+    params: *id004
+    default: A VRF has no route-target extended community attributes associated with it.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/route-target.md
+      title: route-target
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      vrf.instance.af.rt: *id003
+      vrf.instance.af.rt.value: $route-target-ext-community
+      vrf.instance.af.rt.direction: kw:import|export|both:both
+  - id: cisco-iosxe.vrf-address-family-ipv4
+    syntax: address-family { ipv4 | ipv6 } [ unicast ]
+    view: vrf
+    enters_view: vrf-af
+    undo: no address-family { ipv4 | ipv6 } [ unicast ]
+    source:
+      patched: vrf/address-family 页面错误（内容是 VPN-IPv4），VRF 下的 IPv4 地址族按 IOS-XE 运行配置补充
+      added_by_patch: true
+    status: draft
+    maps:
+      vrf.instance.af: kw:ipv4|ipv6

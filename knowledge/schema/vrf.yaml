@@ -1,0 +1,54 @@
+# VRF 功能域：华为 ip vpn-instance / Cisco vrf definition。
+# RD 在华为写在 ipv4-family 下、在 Cisco 写在 vrf 下；语义上都是“这个 VRF 的 IPv4 RD”，统一挂在 vrf.instance.af 下。
+domain: vrf
+nodes:
+  vrf.instance:
+    type: object
+    key: [name]
+    semantic: {zh-CN: VRF（VPN 实例）, en: VRF instance}
+    status: reviewed
+  vrf.instance.description:
+    parent: vrf.instance
+    type: text
+    semantic: {zh-CN: VRF 描述, en: VRF description}
+  vrf.instance.af:
+    parent: vrf.instance
+    type: object
+    key: [afi]
+    semantic: {zh-CN: VRF 地址族（ipv4 / ipv6）, en: VRF address family}
+  vrf.instance.af.rd:
+    parent: vrf.instance.af
+    type: rd
+    semantic: {zh-CN: 路由区分符 RD, en: Route distinguisher}
+  vrf.instance.af.rt:
+    parent: vrf.instance.af
+    type: object
+    key: [value, direction]
+    semantic: {zh-CN: 路由目标 RT（值 + 方向 import / export）, en: Route target}
+  vrf.instance.af.rt.value:
+    parent: vrf.instance.af.rt
+    type: rd
+    semantic: {zh-CN: RT 值, en: RT value}
+  vrf.instance.af.rt.direction:
+    parent: vrf.instance.af.rt
+    type: enum
+    choices: [import, export, both]
+    semantic: {zh-CN: RT 方向（both 表示同时 import 与 export）, en: RT direction}
+  vrf.instance.af.label_mode:
+    parent: vrf.instance.af
+    type: enum
+    choices: [per-instance, per-route, per-nexthop]
+    semantic: {zh-CN: VPN 标签分配方式, en: Label allocation mode}
+  vrf.instance.af.import_policy:
+    parent: vrf.instance.af
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 引入路由时应用的路由策略, en: Import route policy}
+  vrf.instance.af.export_policy:
+    parent: vrf.instance.af
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 发布路由时应用的路由策略, en: Export route policy}
+deps:
+  - {kind: reference, from: vrf.instance.af.import_policy, to: rp.policy}
+  - {kind: reference, from: vrf.instance.af.export_policy, to: rp.policy}

@@ -176,10 +176,7 @@ cards:
     undo: undo apply community
     params:
       cmntyValue:
-        type: integer
-        range:
-          - 0
-          - 65535
+        type: community
       cmntyNum:
         type: integer
         range:
@@ -193,6 +190,9 @@ cards:
       line: 603
       version: V800R025C00SPC500
     status: draft
+    maps:
+      rp.policy.node.set_community: $cmntyValue||$cmntyNum
+      rp.policy.node.set_community_additive: kw:additive=true:false
   - id: huawei-vrp8.apply-community-community-list
     syntax: apply community community-list <community-list-name> [ additive ]
     view: route-policy
@@ -225,6 +225,8 @@ cards:
       line: 761
       version: V800R025C00SPC500
     status: draft
+    maps:
+      rp.policy.node.set_metric: $cost||$cost-value
   - id: huawei-vrp8.apply-cost.2
     syntax: apply cost inherit
     view: route-policy
@@ -237,6 +239,7 @@ cards:
       line: 761
       version: V800R025C00SPC500
     status: draft
+    maps: {}
   - id: huawei-vrp8.apply-cost.3
     syntax: apply cost none
     view: route-policy
@@ -249,6 +252,7 @@ cards:
       line: 761
       version: V800R025C00SPC500
     status: draft
+    maps: {}
   - id: huawei-vrp8.apply-cost-type
     syntax: apply cost-type { external | internal | type-1 | type-2 | internal-inc-ibgp | med-plus-igp [ cost { + | - } <costVal> ] | med-inherit-aigp }
     view: route-policy
@@ -318,10 +322,7 @@ cards:
     undo: undo apply extcommunity [ rt ]
     params:
       extCmntyValue:
-        type: integer
-        range:
-          - 0
-          - 65535
+        type: community
     default: By default, no BGP VPN-Target extended community attributes are configured.
     source:
       doc: huawei-vrp8-md
@@ -429,10 +430,7 @@ cards:
     undo: undo apply extcommunity redirect vpn-target
     params:
       extCmntyValue:
-        type: integer
-        range:
-          - 0
-          - 65535
+        type: community
     default: By default, no redirection VPN-Target extended community attribute is applied to BGP Flow Specification routes.
     source:
       doc: huawei-vrp8-md
@@ -627,6 +625,8 @@ cards:
       line: 2154
       version: V800R025C00SPC500
     status: draft
+    maps:
+      rp.policy.node.set_local_preference: $preference
   - id: huawei-vrp8.apply-mpls-label
     syntax: apply mpls-label
     view: route-policy
@@ -1104,6 +1104,7 @@ cards:
       line: 5015
       version: V800R025C00SPC500
     status: draft
+    maps: {}
   - id: huawei-vrp8.if-match-community-filter.2
     syntax: if-match community-filter <cfName> [ whole-match | sort-match ]
     view: route-policy
@@ -1119,6 +1120,8 @@ cards:
       line: 5015
       version: V800R025C00SPC500
     status: draft
+    maps:
+      rp.policy.node.match_community: $cfName||$basic-comm-filter-num||$adv-comm-filter-num
   - id: huawei-vrp8.if-match-cost.1
     syntax: if-match cost <cost>
     view: route-policy
@@ -1524,6 +1527,8 @@ cards:
       line: 6638
       version: V800R025C00SPC500
     status: draft
+    maps:
+      rp.policy.node.match_prefix_list: $ip-prefix-name
   - id: huawei-vrp8.if-match-ipv6-address-acl
     syntax: if-match ipv6 address acl { <acl-number> | <acl-name> }
     view: route-policy
@@ -1690,9 +1695,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.if-match-mpls-label
-    syntax: if-match { mpls-label | mpls-label2 }
+    syntax: if-match { mpls-label | mpls-label2 } &<1-9>
     view: route-policy
-    undo: undo if-match { mpls-label | mpls-label2 }
+    undo: undo if-match { mpls-label | mpls-label2 } &<1-9>
     default: By default, no filtering rule based on MPLS labels is configured.
     source:
       doc: huawei-vrp8-md
@@ -1720,7 +1725,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.if-match-protocol
-    syntax: if-match protocol { direct | static | isis | bgp | ospf | rip | unr | ospfv3 | ripng }
+    syntax: if-match protocol { direct | static | isis | bgp | ospf | rip | unr | ospfv3 | ripng } &<1-9>
     view: route-policy
     undo: undo if-match protocol
     default: By default, no protocol-based filtering rule is configured.
@@ -1801,7 +1806,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.if-match-route-type.3
-    syntax: if-match route-type mvpn { 1 | 3 }
+    syntax: if-match route-type mvpn { 1 | 3 } &<1-9>
     view: route-policy
     undo: undo if-match route-type mvpn
     default: By default, no filtering rule based on route types is configured.
@@ -1813,7 +1818,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.if-match-route-type.4
-    syntax: if-match route-type evpn { ad | es | inclusive | join | leave | mac | prefix | smet }
+    syntax: if-match route-type evpn { ad | es | inclusive | join | leave | mac | prefix | smet } &<1-9>
     view: route-policy
     undo: undo if-match route-type evpn
     default: By default, no filtering rule based on route types is configured.
@@ -1825,7 +1830,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.if-match-route-type.5
-    syntax: if-match route-type evpn { ad | es | prefix }
+    syntax: if-match route-type evpn { ad | es | prefix } &<1-9>
     view: route-policy
     undo: undo if-match route-type evpn
     default: By default, no filtering rule based on route types is configured.
@@ -1837,7 +1842,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.if-match-route-type-bgp-ls
-    syntax: if-match route-type bgp-ls { node | link | ipv4-prefix | ipv6-prefix | network-slice }
+    syntax: if-match route-type bgp-ls { node | link | ipv4-prefix | ipv6-prefix | network-slice } &<1-9>
     view: route-policy
     undo: undo if-match route-type bgp-ls
     default: By default, no matching rule based on the BGP-LS route type is configured.
@@ -2005,6 +2010,11 @@ cards:
       line: 8406
       version: V800R025C00SPC500
     status: draft
+    maps:
+      rp.community_list: $comm-filter-name||$basic-comm-filter-name
+      rp.community_list.entry: $index-number||auto
+      rp.community_list.entry.action: $matchMode
+      rp.community_list.entry.match: $regular-expression||$cmntyValue
   - id: huawei-vrp8.ip-community-filter-basic
     syntax: ip community-filter basic <basCfName> [ index <index-val> ] <matchMode> [ <cmntyStr> | <cmntyNum> | internet | no-advertise | no-export | no-export-subconfed ] &<1-20>
     view: system
@@ -2040,6 +2050,8 @@ cards:
       line: 8472
       version: V800R025C00SPC500
     status: draft
+    maps:
+      rp.community_list.entry.action: $matchMode
   - id: huawei-vrp8.ip-community-list
     syntax: ip community-list <name>
     view: system
@@ -2379,6 +2391,13 @@ cards:
       line: 9294
       version: V800R025C00SPC500
     status: draft
+    maps:
+      rp.prefix_list: $ip-prefix-name
+      rp.prefix_list.entry: $index-number||auto
+      rp.prefix_list.entry.action: $matchMode
+      rp.prefix_list.entry.prefix: fmt:{ipv4-address}/{masklen}
+      rp.prefix_list.entry.ge: $greater-equal-value
+      rp.prefix_list.entry.le: $less-equal-value
   - id: huawei-vrp8.ip-ip-prefix-description
     syntax: ip ip-prefix <ip-prefix-name> description <text>
     view: system
@@ -2635,6 +2654,10 @@ cards:
       line: 10741
       version: V800R025C00SPC500
     status: draft
+    maps:
+      rp.policy: $route-policy-name
+      rp.policy.node: $node
+      rp.policy.node.action: $matchMode
   - id: huawei-vrp8.route-policy-address-family-mismatch-deny
     syntax: route-policy <route-policy-name> address-family mismatch-deny
     view: system

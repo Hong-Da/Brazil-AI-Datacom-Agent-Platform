@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from tests.conftest import INPUTS, TEST_TOKEN
+from tests.conftest import INPUTS, TEST_TOKEN, prepare
 from tests.helpers import check_json, load_cases
 
 CASES = load_cases("api_cases.toml")
@@ -39,8 +39,7 @@ def test_api_case(case: dict[str, Any], tmp_root: Path, request: pytest.FixtureR
 
     from lmesh.api import create_app
 
-    if case.get("setup") == "configured":
-        request.getfixturevalue("configured_root")
+    prepare(case.get("setup"), request)
     client = TestClient(create_app())
     _check(_request(client, case, TEST_TOKEN), case)
 
@@ -73,8 +72,11 @@ def test_ingest_background_task(configured_root: Path) -> None:
 
     client = TestClient(create_app())
     h = {"Authorization": f"Bearer {TEST_TOKEN}"}
-    r = client.post("/api/v1/kb/ingest", headers=h,
-                    json={"doc_dir": str(INPUTS / "docs" / "huawei"), "rules": str(INPUTS / "docs" / "rules-huawei-test.yaml")})
+    r = client.post(
+        "/api/v1/kb/ingest",
+        headers=h,
+        json={"doc_dir": str(INPUTS / "docs" / "huawei"), "rules": str(INPUTS / "docs" / "rules-huawei-test.yaml")},
+    )
     assert r.status_code == 200, r.text
     task_id = r.json()["data"]["task_id"]
     for _ in range(100):
@@ -86,3 +88,26 @@ def test_ingest_background_task(configured_root: Path) -> None:
     assert t["result"]["merge"]["new"] == 4
     exp = client.get("/api/v1/kb/export", headers=h)
     assert exp.status_code == 200 and exp.headers["content-type"] == "application/zip"
+
+
+@pytest.mark.api
+def test_import_then_device_graph(tmp_root: Path, request: pytest.FixtureRequest) -> None:
+    """导入配置 → 建图入库 → GET /devices/{id}/graph 返回节点、依赖边与原文。"""
+    from fastapi.testclient import TestClient
+
+    from lmesh.api import create_app
+    from tests.conftest import INPUTS
+
+    prepare("configured-fullkb", request)
+    client = TestClient(create_app())
+    h = {"Authorization": f"Bearer {TEST_TOKEN}"}
+    files = [("files", ("hw.cfg", (INPUTS / "configs" / "huawei" / "basic.cfg").read_bytes(), "text/plain"))]
+    r = client.post("/api/v1/configs", headers=h, files=files, data={"level": "basic"})
+    assert r.status_code == 200, r.text
+    f = r.json()["data"]["files"][0]
+    assert f["ok"] and f["unknown"] == 0 and f["coverage"] == 1.0
+    dev = client.get("/api/v1/devices", headers=h).json()["data"]["devices"][0]
+    g = client.get(f"/api/v1/devices/{dev['id']}/graph?raw=true", headers=h).json()["data"]
+    kinds = {e["kind"] for e in g["edges"]}
+    assert {"contains", "reference", "prerequisite", "side_effect"} <= kinds
+    assert g["text"].startswith("!Software Version") and g["summary"]["nodes"] > 20

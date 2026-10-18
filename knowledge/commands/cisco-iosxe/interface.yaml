@@ -2,12 +2,15 @@
 domain: interface
 cards:
   - id: cisco-iosxe.channel-group.1
-    syntax: channel-group <channel-group-number> mode { active | on | passive }
+    syntax: channel-group <channel-group-number> [ mode { active | on | passive } ]
     view: interface
     undo: no channel-group <channel-group-number>
     params:
-      channel-group-number: &id001
+      channel-group-number:
         type: integer
+        range:
+          - 1
+          - 64
     default: No channel groups are assigned.
     source:
       doc: cisco-iosxe-md
@@ -15,7 +18,11 @@ cards:
       title: channel-group (interface)
       line: 5
       version: '17.15'
+      patched: IOS 运行配置中可以只有组号（公开样本 Batfish 如此），mode 改为可选
     status: draft
+    maps:
+      interface.lag: $channel-group-number
+      interface.lag_mode: kw:active|passive|on
   - id: cisco-iosxe.channel-group.2
     syntax: Cisco 2600 Series, Cisco 3600 Series, and Cisco 3700 Series Routers
     view: interface
@@ -32,7 +39,8 @@ cards:
     view: interface
     undo: no channel-group <channel-group-number>
     params:
-      channel-group-number: *id001
+      channel-group-number: &id001
+        type: integer
     default: No channel groups are assigned.
     source:
       doc: cisco-iosxe-md
@@ -41,6 +49,9 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      interface.lag: $channel-group-number
+      interface.lag_mode: kw:active|passive|on
   - id: cisco-iosxe.channel-group.4
     syntax: Cisco ASR 1000 Series Routers
     view: interface
@@ -66,6 +77,9 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      interface.lag: $channel-group-number
+      interface.lag_mode: kw:active|passive|on
   - id: cisco-iosxe.channel-group.6
     syntax: Cisco Catalyst Switches
     view: interface
@@ -91,6 +105,9 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      interface.lag: $channel-group-number
+      interface.lag_mode: kw:active|passive|on
   - id: cisco-iosxe.description
     syntax: description <string>
     view: interface
@@ -106,6 +123,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      interface.description: $string||$text
   - id: cisco-iosxe.duplex
     syntax: duplex { full | half | auto }
     view: interface
@@ -118,6 +137,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      interface.duplex: kw:full|half|auto
   - id: cisco-iosxe.interface-range
     syntax: interface range { <type> <number> [ [ - interface <number> ] ] [ , ] <type> <number> | macro <word> }
     view: system
@@ -382,13 +403,13 @@ cards:
       version: '17.15'
     status: draft
   - id: cisco-iosxe.interface.19
-    syntax: interface <type> <number>
+    syntax: interface <interface>
     view: system
     enters_view: interface
     undo: no interface <type> <number>
     params:
-      type: *id004
-      number: *id005
+      interface:
+        type: interface
     default: No interface types are configured.
     source:
       doc: cisco-iosxe-md
@@ -397,6 +418,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      interface: $interface
   - id: cisco-iosxe.interface.20
     syntax: Cisco 7100 Series
     view: system
@@ -735,6 +758,11 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      interface.ipv4: $ip-address
+      interface.ipv4.address: $ip-address
+      interface.ipv4.prefix_length: $mask
+      interface.ipv4.secondary: kw:secondary=true:false
   - id: cisco-iosxe.ip-mtu
     syntax: ip mtu <bytes>
     view: interface
@@ -778,12 +806,15 @@ cards:
       version: '17.15'
     status: draft
   - id: cisco-iosxe.mtu
-    syntax: mtu <bytes> mtu command
+    syntax: mtu <bytes>
     view: interface
     undo: no mtu
     params:
       bytes:
-        type: word
+        type: integer
+        range:
+          - 64
+          - 9216
     default: The table below lists default MTU values according to media type. | Media Type | Default MTU (Bytes) | |---|---| | Ethernet | 1500 | | Serial | 1500 | | Token Ring | 4464 | | ATM | 4470 | | FDDI | 4470 | | HSSI (HSA) | 4470 |
     source:
       doc: cisco-iosxe-md
@@ -791,7 +822,10 @@ cards:
       title: mtu
       line: 5
       version: '17.15'
+      patched: 原文语法行混入了说明文字（mtu command）
     status: draft
+    maps:
+      interface.mtu: $bytes
   - id: cisco-iosxe.negotiation
     syntax: negotiation { forced | auto }
     view: interface
@@ -804,6 +838,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      interface.negotiation: kw:auto=true|forced=false
   - id: cisco-iosxe.shutdown
     syntax: shutdown
     view: interface
@@ -816,6 +852,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      interface.shutdown: flag
   - id: cisco-iosxe.bridge-domain
     syntax: bridge-domain { <bridge-id> [ c-mac ] | c-mac aging-time <minutes> }
     view: system
@@ -859,6 +897,8 @@ cards:
       line: 7
       version: '17.15'
     status: draft
+    maps:
+      interface.access.encapsulation: kw:default|dot1q|priority-tagged|untagged
   - id: cisco-iosxe.encapsulation.2
     syntax: encapsulation dot1q <vlan-id> [ <vlan-id> [ <-vlan-id> ] ]
     view: service-instance
@@ -875,6 +915,9 @@ cards:
       line: 7
       version: '17.15'
     status: draft
+    maps:
+      interface.access.encapsulation: dot1q
+      interface.access.vlan: $vlan-id
   - id: cisco-iosxe.encapsulation.3
     syntax: encapsulation dot1q <vlan-id> second-dot1q <vlan-id> [ <vlan-id> [ <-vlan-id> ] ]
     view: service-instance
@@ -889,6 +932,9 @@ cards:
       line: 7
       version: '17.15'
     status: draft
+    maps:
+      interface.access.encapsulation: dot1q
+      interface.access.vlan: $vlan-id
   - id: cisco-iosxe.encapsulation.4
     syntax: encapsulation dot1q { any | <vlan-id> [ <vlan-id> [ <-vlan-id> ] ] } ext-etype <ethertype>
     view: service-instance
@@ -946,6 +992,8 @@ cards:
       line: 7
       version: '17.15'
     status: draft
+    maps:
+      interface.access.encapsulation: untagged
   - id: cisco-iosxe.encapsulation.8
     syntax: encapsulation default
     view: service-instance
@@ -994,11 +1042,16 @@ cards:
       version: '17.15'
     status: draft
   - id: cisco-iosxe.rewrite-ingress-tag.1
-    syntax: rewrite ingress tag { pop | { 1 | 2 } | [ symmetric ] | push { dot1ad <vlan-id> | [ dot1q <vlan-id> ] | [ symmetric ] | dot1q <vlan-id> | [ second-dot1q <vlan-id> ] | [ symmetric ] } | translate { 1-to-1 | { dot1ad <vlan-id> | dot1q <vlan-id> | [ symmetric ] } } | 1-to-2 { dot1ad <vlan-id> dot1q <vlan-id> } | dot1q <vlan-id> second-dot1q <vlan-id> | [ symmetric ] | 2-to-1 { dot1ad <vlan-id> | dot1q <vlan-id> | [ symmetric ] } | 2-to-2 { dot1q <vlan-id> | second-dot1q <vlan-id> | [ symmetric ] } }
+    syntax: rewrite ingress tag { pop { 1 | 2 } | push dot1q <vlan-id> [ second-dot1q <second-vlan-id> ] | translate 1-to-1 dot1q <vlan-id> } [ symmetric ]
     view: service-instance
     undo: no rewrite ingress tag
     params:
       vlan-id:
+        type: integer
+        range:
+          - 1
+          - 4094
+      second-vlan-id:
         type: integer
         range:
           - 1
@@ -1010,7 +1063,10 @@ cards:
       title: rewrite ingress tag
       line: 5
       version: '17.15'
+      patched: 原文第一条语法的分隔符错乱，按 Syntax Description 与配置举例改写
     status: draft
+    maps:
+      interface.access.rewrite: kw:2=pop 2|1=pop 1
   - id: cisco-iosxe.rewrite-ingress-tag.2
     syntax: Syntax on the Cisco ASR 1000 Series Aggregation Router
     view: service-instance
@@ -1040,6 +1096,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      interface.access: $id||$instance-id
   - id: cisco-iosxe.service-instance-ethernet.2
     syntax: Cisco ASR 901 Series Aggregation Services Router
     view: interface
@@ -1068,3 +1126,81 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      interface.access: $id||$instance-id
+  - id: cisco-iosxe.bridge-domain.1
+    syntax: bridge-domain <bridge-id> [ split-horizon [ group <group-id> ] ]
+    view: service-instance
+    undo: no bridge-domain <bridge-id> [ split-horizon [ group <group-id> ] ]
+    params:
+      bridge-id:
+        type: integer
+      group-id: &id013
+        type: integer
+        range:
+          - 1
+          - 65533
+    default: Service instances and MAC tunnels are not bound to a bridge domain instance.
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/bridge-domain (service instance).md
+      title: bridge-domain (service instance)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.access.bridge_domain: $bridge-id
+  - id: cisco-iosxe.bridge-domain.2
+    syntax: Syntax on the Cisco ASR 1000 Series Aggregation Device
+    view: service-instance
+    default: Service instances and MAC tunnels are not bound to a bridge domain instance.
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/bridge-domain (service instance).md
+      title: bridge-domain (service instance)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bridge-domain.3
+    syntax: bridge-domain bridge-id [ split-horizon group <group-id> ]
+    view: service-instance
+    undo: no bridge-domain <bridge-id> [ split-horizon [ group <group-id> ] ]
+    params:
+      group-id: *id013
+    default: Service instances and MAC tunnels are not bound to a bridge domain instance.
+    source:
+      doc: cisco-iosxe-md
+      file: carrier-ethernet/bridge-domain (service instance).md
+      title: bridge-domain (service instance)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.service-instance-description
+    syntax: description <text>
+    view: service-instance
+    params:
+      text:
+        type: text
+    source:
+      patched: 公开命令参考没有业务实例模式下的 description 页面，按 ASR 920 配置指南补充
+      added_by_patch: true
+    status: draft
+    maps:
+      interface.access.description: $text
+  - id: cisco-iosxe.service-instance-bridge-domain
+    syntax: bridge-domain <bridge-id> [ split-horizon [ group <group-id> ] ]
+    view: service-instance
+    params:
+      bridge-id:
+        type: integer
+        range:
+          - 1
+          - 16000
+      group-id:
+        type: integer
+    source:
+      patched: Command Modes 写成 config-if-svc 的旧写法之外，ASR 920 运行配置中 bridge-domain 只带编号
+      added_by_patch: true
+    status: draft
+    maps:
+      interface.access.bridge_domain: $bridge-id

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from lmesh.core.kb import KnowledgeBase
+from lmesh.core.kb import KnowledgeBase, mapping
 from lmesh.core.kb import syntax as syn
 from lmesh.core.kb.model import DEP_KINDS, NODE_TYPES, SHOW_RULES, STATUSES, Issue
 
@@ -73,11 +73,17 @@ def validate(kb: KnowledgeBase) -> list[Issue]:
         for pname in c.params:
             if pname not in params:
                 warn("card.param_unused", f"{c.id} 定义了参数 {pname}，但语法中没有", c.file)
-        for pname, node in c.maps.items():
-            if pname != "@" and pname not in params:
-                err("card.map_param", f"{c.id} 映射的参数 {pname} 不在语法中", c.file)
-            if node not in kb.nodes:
-                err("card.map_node", f"{c.id} 映射到的节点 {node} 不存在", c.file)
+        for target, expr in c.maps.items():
+            for t in mapping.parse_target(target):
+                if t.node not in kb.nodes:
+                    err("card.map_node", f"{c.id} 映射到的节点 {t.node} 不存在", c.file)
+                for obj in t.fixed:
+                    if obj not in kb.nodes:
+                        err("card.map_node", f"{c.id} 映射路径中的对象 {obj} 不存在", c.file)
+            # 一条映射规则会套到同一命令的多个变体上，参数名可能不同（$a||$b）：只要有一个存在即可
+            used = mapping.params_in_expr(expr)
+            if used and not used & params:
+                err("card.map_param", f"{c.id} 映射表达式用到的参数 {', '.join(sorted(used))} 都不在语法中", c.file)
         if c.status not in STATUSES:
             err("status", f"{c.id} 的状态 {c.status} 不合法", c.file)
         if c.status != "rejected" and not c.maps:

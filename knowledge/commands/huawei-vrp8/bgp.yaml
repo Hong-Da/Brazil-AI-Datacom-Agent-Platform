@@ -1209,6 +1209,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.update_source | bgp.peer_group.update_source: $interface-name||fmt:{interface-type}{interface-number}
   - id: huawei-vrp8.peer-connect-interface.2
     syntax: peer <group-name> connect-interface { <ipv6-source-addr> | <interface-name> <ipv6-source-addr> | <interface-type> <interface-number> <ipv6-source-addr> }
     view: bgp
@@ -1228,6 +1231,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.update_source | bgp.peer_group.update_source: $interface-name||fmt:{interface-type}{interface-number}
   - id: huawei-vrp8.peer-connect-interface
     syntax: peer <ipv6-address> connect-interface { <interface-name> | <ipv6-source-address> | <interface-type> <interface-number> | <interface-name> <ipv6-source-address> | <interface-type> <interface-number> <ipv6-source-address> }
     view: bgp
@@ -1251,6 +1257,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.update_source | bgp.peer_group.update_source: $interface-name||fmt:{interface-type}{interface-number}
   - id: huawei-vrp8.peer-connect-interface~2
     syntax: peer <ipv4-address> connect-interface { <interface-name> | <ipv4-source-address> | <interface-type> <interface-number> | <interface-name> <ipv4-source-address> | <interface-type> <interface-number> <ipv4-source-address> }
     view: bgp
@@ -1274,6 +1283,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.update_source | bgp.peer_group.update_source: $interface-name||fmt:{interface-type}{interface-number}
   - id: huawei-vrp8.peer-connect-interface~3
     syntax: peer <group-name> connect-interface { <interface-name> | <ipv4-source-addr> | <interface-type> <interface-number> | <interface-name> <ipv4-source-addr> | <interface-type> <interface-number> <ipv4-source-addr> }
     view: bgp-af-vpn-instance-ipv4
@@ -1964,6 +1976,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.description: $description-text||$description
   - id: huawei-vrp8.peer-description~2
     syntax: peer <ipv4-address> description <description-text>
     view: bgp
@@ -1981,6 +1996,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.description: $description-text||$description
   - id: huawei-vrp8.peer-description~3
     syntax: peer <ipv6-address> description <description-text>
     view: bgp
@@ -1998,6 +2016,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.description: $description-text||$description
   - id: huawei-vrp8.peer-description~4
     syntax: peer <group-name> description <description-text>
     view: bgp-af-vpn-instance-ipv4
@@ -2485,11 +2506,12 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-egress-engineering-srv6.3
-    syntax: peer <peerIpv6Addr> egress-engineering srv6 static-sid { psp <psp-sid> | no-flavor <no-flavor-sid> }
+    syntax: peer <peerIpv6Addr> egress-engineering srv6 static-sid { psp <psp-sid> | no-flavor <no-flavor-sid> } &<1-9>
     view: bgp
-    undo: undo peer <peerIpv6Addr> egress-engineering srv6 static-sid { psp <psp-sid> | no-flavor <no-flavor-sid> }
+    undo: undo peer <peerIpv6Addr> egress-engineering srv6 static-sid { psp <psp-sid> | no-flavor <no-flavor-sid> } &<1-9>
     params:
-      peerIpv6Addr: *id072
+      peerIpv6Addr:
+        type: word
       psp-sid:
         type: word
       no-flavor-sid:
@@ -2582,6 +2604,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af{afi=ipv4,vrf=}.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af{afi=ipv4,vrf=}.peer.enabled: flag
   - id: huawei-vrp8.bestroute-med-none-as-maximum~3
     syntax: bestroute med-none-as-maximum
     view: bgp-af-vpn-instance-ipv4
@@ -2609,6 +2634,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af{afi=ipv4,vrf=}.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af{afi=ipv4,vrf=}.peer.enabled: flag
   - id: huawei-vrp8.peer-enable@bgp-af-ipv4
     syntax: peer <peerGroupName> enable
     view: bgp-af-ipv4
@@ -2624,6 +2652,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.enabled: flag
   - id: huawei-vrp8.peer-enable@bgp-af-vpnv4
     syntax: peer <peerGroupName> enable
     view: bgp-af-vpnv4
@@ -2637,6 +2668,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.enabled: flag
   - id: huawei-vrp8.peer-enable@bgp-af-vpn-instance-ipv4
     syntax: peer <peerGroupName> enable
     view: bgp-af-vpn-instance-ipv4
@@ -2650,6 +2684,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.enabled: flag
   - id: huawei-vrp8.peer-enable@bgp-af-ipv4~2
     syntax: peer <ipv4-address> enable
     view: bgp-af-ipv4
@@ -2665,6 +2702,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.enabled: flag
   - id: huawei-vrp8.peer-enable@bgp-af-vpnv4~2
     syntax: peer <ipv4-address> enable
     view: bgp-af-vpnv4
@@ -2678,6 +2718,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.enabled: flag
   - id: huawei-vrp8.peer-enable@bgp-af-vpn-instance-ipv4~2
     syntax: peer <ipv4-address> enable
     view: bgp-af-vpn-instance-ipv4
@@ -2691,6 +2734,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.enabled: flag
   - id: huawei-vrp8.peer-enable@bgp-af-ipv4~3
     syntax: peer <peerIpv6Addr> enable
     view: bgp-af-ipv4
@@ -2706,6 +2752,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.enabled: flag
   - id: huawei-vrp8.peer-enable@bgp-af-vpnv4~3
     syntax: peer <peerIpv6Addr> enable
     view: bgp-af-vpnv4
@@ -2719,6 +2768,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.enabled: flag
   - id: huawei-vrp8.peer-entropy-label
     syntax: peer <peerGroupName> entropy-label
     view: bgp
@@ -3163,9 +3215,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.bestroute-med-plus-igp@bgp-af-ipv4
-    syntax: bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ]
+    syntax: bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ] &<1-9>
     view: bgp-af-ipv4
-    undo: undo bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ]
+    undo: undo bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ] &<1-9>
     params: &id087
       igp-multiplier:
         type: integer
@@ -3186,9 +3238,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.bestroute-med-plus-igp@bgp
-    syntax: bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ]
+    syntax: bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ] &<1-9>
     view: bgp
-    undo: undo bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ]
+    undo: undo bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ] &<1-9>
     params: *id087
     default: By default, the MED and IGP cost of each route are used as separate route selection criteria.
     source:
@@ -3637,9 +3689,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.bestroute-med-plus-igp
-    syntax: bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ]
+    syntax: bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ] &<1-9>
     view: bgp-af-vpn-instance-ipv4
-    undo: undo bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ]
+    undo: undo bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ] &<1-9>
     params:
       igp-multiplier:
         type: integer
@@ -3952,9 +4004,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.bestroute-med-plus-igp~2
-    syntax: bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ]
+    syntax: bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ] &<1-9>
     view: bgp-af-vpnv4
-    undo: undo bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ]
+    undo: undo bestroute med-plus-igp [ igp-multiplier <igp-multiplier> | med-multiplier <med-multiplier> ] &<1-9>
     params:
       igp-multiplier:
         type: integer
@@ -4936,6 +4988,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr
+      bgp.peer.group: $group-name||$peerGroupName
   - id: huawei-vrp8.peer-group~2
     syntax: peer <ipv4-address> group <group-name>
     view: bgp
@@ -4953,6 +5008,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr
+      bgp.peer.group: $group-name||$peerGroupName
   - id: huawei-vrp8.peer-group~3
     syntax: peer <peerIpv6Addr> group <peerGroupName>
     view: bgp-af-ipv4
@@ -4970,6 +5028,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr
+      bgp.af.peer.group: $group-name||$peerGroupName
   - id: huawei-vrp8.peer-group~4
     syntax: peer <ipv4-address> group <group-name>
     view: bgp-af-ipv4
@@ -4987,6 +5048,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr
+      bgp.af.peer.group: $group-name||$peerGroupName
   - id: huawei-vrp8.peer-group~5
     syntax: peer <ipv4-address> group <group-name>
     view: bgp-af-vpn-instance-ipv4
@@ -5004,6 +5068,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr
+      bgp.af.peer.group: $group-name||$peerGroupName
   - id: huawei-vrp8.peer-group~6
     syntax: peer <ipv6-address> group <group-name>
     view: bgp-vpn-instance
@@ -5021,6 +5088,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr
+      bgp.af.peer.group: $group-name||$peerGroupName
   - id: huawei-vrp8.peer-group~7
     syntax: peer <ipv4-address> group <group-name>
     view: bgp-vpn-instance
@@ -5038,6 +5108,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr
+      bgp.af.peer.group: $group-name||$peerGroupName
   - id: huawei-vrp8.peer-group~8
     syntax: peer <peerIpv6Addr> group <peerGroupName>
     view: bgp-af-vpnv4
@@ -5055,6 +5128,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr
+      bgp.af.peer.group: $group-name||$peerGroupName
   - id: huawei-vrp8.peer-group~9
     syntax: peer <ipv4-address> group <group-name>
     view: bgp-af-vpnv4
@@ -5072,6 +5148,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr
+      bgp.af.peer.group: $group-name||$peerGroupName
   - id: huawei-vrp8.bestroute-nexthop-recursive-priority-longer-mask@bgp-af-ipv4
     syntax: bestroute nexthop-recursive-priority longer-mask
     view: bgp-af-ipv4
@@ -7275,7 +7354,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-next-hop-invariable@bgp-af-ipv4
-    syntax: peer <group-name> next-hop-invariable [ include-static-route | include-unicast-route ]
+    syntax: peer <group-name> next-hop-invariable [ include-static-route | include-unicast-route ] &<1-9>
     view: bgp-af-ipv4
     undo: undo peer <group-name> next-hop-invariable
     params: &id147
@@ -7290,7 +7369,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-next-hop-invariable@bgp
-    syntax: peer <group-name> next-hop-invariable [ include-static-route | include-unicast-route ]
+    syntax: peer <group-name> next-hop-invariable [ include-static-route | include-unicast-route ] &<1-9>
     view: bgp
     undo: undo peer <group-name> next-hop-invariable
     params: *id147
@@ -7303,7 +7382,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-next-hop-invariable@bgp-af-ipv4~2
-    syntax: peer <ipv4-address> next-hop-invariable [ include-static-route | include-unicast-route ]
+    syntax: peer <ipv4-address> next-hop-invariable [ include-static-route | include-unicast-route ] &<1-9>
     view: bgp-af-ipv4
     undo: undo peer <ipv4-address> next-hop-invariable
     params: &id148
@@ -7318,7 +7397,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-next-hop-invariable@bgp~2
-    syntax: peer <ipv4-address> next-hop-invariable [ include-static-route | include-unicast-route ]
+    syntax: peer <ipv4-address> next-hop-invariable [ include-static-route | include-unicast-route ] &<1-9>
     view: bgp
     undo: undo peer <ipv4-address> next-hop-invariable
     params: *id148
@@ -7447,6 +7526,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.next_hop_self: flag
   - id: huawei-vrp8.peer-next-hop-local~4
     syntax: peer <peerIpv6Addr> next-hop-local
     view: bgp-af-ipv4
@@ -7462,6 +7544,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.next_hop_self: flag
   - id: huawei-vrp8.bestroute-region-validation.1
     syntax: bestroute region-validation
     view: bgp
@@ -7501,6 +7586,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.next_hop_self: flag
   - id: huawei-vrp8.bestroute-region-validation.1~2
     syntax: bestroute region-validation
     view: bgp-af-ipv4
@@ -7540,6 +7628,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.next_hop_self: flag
   - id: huawei-vrp8.peer-next-hop-local~7
     syntax: peer <ipv4-address> next-hop-local
     view: bgp-af-vpn-instance-ipv4
@@ -7555,6 +7646,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.next_hop_self: flag
   - id: huawei-vrp8.peer-next-hop-local~8
     syntax: peer <group-name> next-hop-local
     view: bgp-af-vpnv4
@@ -7570,6 +7664,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.next_hop_self: flag
   - id: huawei-vrp8.peer-next-hop-local~9
     syntax: peer <ipv6-address> next-hop-local
     view: bgp-af-vpnv4
@@ -7585,6 +7682,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.next_hop_self: flag
   - id: huawei-vrp8.peer-next-hop-local~10
     syntax: peer <ipv4-address> next-hop-local
     view: bgp-af-vpnv4
@@ -7600,6 +7700,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.next_hop_self: flag
   - id: huawei-vrp8.bestroute-region-validation.1~3
     syntax: bestroute region-validation
     view: bgp-af-vpn-instance-ipv4
@@ -7998,6 +8101,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.password | bgp.peer_group.password: $cipher-password
   - id: huawei-vrp8.peer-password.1~2
     syntax: peer <ipv6-address> password simple <simple-password>
     view: bgp
@@ -8031,6 +8137,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.password | bgp.peer_group.password: $cipher-password
   - id: huawei-vrp8.peer-password
     syntax: peer <ipv4-address> password { cipher <cipher-password> | simple <simple-password> }
     view: bgp
@@ -8888,9 +8997,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-prefix-sid~2
-    syntax: peer <peerGroupName> prefix-sid [ sid-type5 [ advertise-srv6-locator | advertise-anycast-sid ] ]
+    syntax: peer <peerGroupName> prefix-sid [ sid-type5 [ advertise-srv6-locator | advertise-anycast-sid ] &<1-9> ]
     view: bgp-af-vpnv4
-    undo: undo peer <peerGroupName> prefix-sid [ sid-type5 [ advertise-srv6-locator | advertise-anycast-sid ] ]
+    undo: undo peer <peerGroupName> prefix-sid [ sid-type5 [ advertise-srv6-locator | advertise-anycast-sid ] &<1-9> ]
     params:
       peerGroupName:
         type: word
@@ -8903,11 +9012,11 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-prefix-sid.1~3
-    syntax: peer <ipv6-address> prefix-sid [ sid-type5 [ advertise-srv6-locator | advertise-anycast-sid ] ]
+    syntax: peer <ipv6-address> prefix-sid [ sid-type5 [ advertise-srv6-locator | advertise-anycast-sid ] &<1-9> ]
     view: bgp-af-vpnv4
-    undo: undo peer <ipv6-address> prefix-sid [ sid-type5 [ advertise-srv6-locator | advertise-anycast-sid ] ]
+    undo: undo peer <ipv6-address> prefix-sid [ sid-type5 [ advertise-srv6-locator | advertise-anycast-sid ] &<1-9> ]
     params:
-      ipv6-address: &id176
+      ipv6-address:
         type: word
     default: by default.
     source:
@@ -8922,7 +9031,8 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <ipv6-address> prefix-sid disable
     params:
-      ipv6-address: *id176
+      ipv6-address:
+        type: word
     default: by default.
     source:
       doc: huawei-vrp8-md
@@ -8936,7 +9046,7 @@ cards:
     view: bgp
     undo: undo peer <group-name> public-as-only
     params:
-      group-name: &id177
+      group-name: &id176
         type: word
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
@@ -8951,7 +9061,7 @@ cards:
     view: bgp
     undo: undo peer <group-name> public-as-only force [ replace ] [ include-peer-as ]
     params:
-      group-name: *id177
+      group-name: *id176
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -8965,7 +9075,7 @@ cards:
     view: bgp
     undo: undo peer <group-name> public-as-only limited [ replace ] [ include-peer-as ]
     params:
-      group-name: *id177
+      group-name: *id176
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -8979,7 +9089,7 @@ cards:
     view: bgp
     undo: undo peer <ipv4-address> public-as-only
     params:
-      ipv4-address: &id178
+      ipv4-address: &id177
         type: ipv4
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
@@ -8994,7 +9104,7 @@ cards:
     view: bgp
     undo: undo peer <ipv4-address> public-as-only force [ replace ] [ include-peer-as ]
     params:
-      ipv4-address: *id178
+      ipv4-address: *id177
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9008,7 +9118,7 @@ cards:
     view: bgp
     undo: undo peer <ipv4-address> public-as-only limited [ replace ] [ include-peer-as ]
     params:
-      ipv4-address: *id178
+      ipv4-address: *id177
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9022,7 +9132,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <group-name> public-as-only
     params:
-      group-name: &id179
+      group-name: &id178
         type: word
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
@@ -9037,7 +9147,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <group-name> public-as-only force [ replace ] [ include-peer-as ]
     params:
-      group-name: *id179
+      group-name: *id178
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9051,7 +9161,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <group-name> public-as-only limited [ replace ] [ include-peer-as ]
     params:
-      group-name: *id179
+      group-name: *id178
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9065,7 +9175,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <peerIpv6Addr> public-as-only
     params:
-      peerIpv6Addr: &id180
+      peerIpv6Addr: &id179
         type: word
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
@@ -9080,7 +9190,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <peerIpv6Addr> public-as-only force [ replace ] [ include-peer-as ]
     params:
-      peerIpv6Addr: *id180
+      peerIpv6Addr: *id179
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9094,7 +9204,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <peerIpv6Addr> public-as-only limited [ replace ] [ include-peer-as ]
     params:
-      peerIpv6Addr: *id180
+      peerIpv6Addr: *id179
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9108,7 +9218,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <ipv4-address> public-as-only
     params:
-      ipv4-address: &id181
+      ipv4-address: &id180
         type: ipv4
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
@@ -9123,7 +9233,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <ipv4-address> public-as-only force [ replace ] [ include-peer-as ]
     params:
-      ipv4-address: *id181
+      ipv4-address: *id180
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9137,7 +9247,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <ipv4-address> public-as-only limited [ replace ] [ include-peer-as ]
     params:
-      ipv4-address: *id181
+      ipv4-address: *id180
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9163,7 +9273,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <group-name> public-as-only
     params:
-      group-name: &id182
+      group-name: &id181
         type: word
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
@@ -9178,7 +9288,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <group-name> public-as-only force [ replace ] [ include-peer-as ]
     params:
-      group-name: *id182
+      group-name: *id181
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9192,7 +9302,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <group-name> public-as-only limited [ replace ] [ include-peer-as ]
     params:
-      group-name: *id182
+      group-name: *id181
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9206,7 +9316,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <ipv4-address> public-as-only
     params:
-      ipv4-address: &id183
+      ipv4-address: &id182
         type: ipv4
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
@@ -9221,7 +9331,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <ipv4-address> public-as-only force [ replace ] [ include-peer-as ]
     params:
-      ipv4-address: *id183
+      ipv4-address: *id182
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9235,7 +9345,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <ipv4-address> public-as-only limited [ replace ] [ include-peer-as ]
     params:
-      ipv4-address: *id183
+      ipv4-address: *id182
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9249,7 +9359,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <group-name> public-as-only
     params:
-      group-name: &id184
+      group-name: &id183
         type: word
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
@@ -9264,7 +9374,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <group-name> public-as-only force [ replace ] [ include-peer-as ]
     params:
-      group-name: *id184
+      group-name: *id183
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9278,7 +9388,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <group-name> public-as-only limited [ replace ] [ include-peer-as ]
     params:
-      group-name: *id184
+      group-name: *id183
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9292,7 +9402,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <ipv6-address> public-as-only
     params:
-      ipv6-address: &id185
+      ipv6-address: &id184
         type: word
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
@@ -9307,7 +9417,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <ipv6-address> public-as-only force [ replace ] [ include-peer-as ]
     params:
-      ipv6-address: *id185
+      ipv6-address: *id184
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9321,7 +9431,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <ipv6-address> public-as-only limited [ replace ] [ include-peer-as ]
     params:
-      ipv6-address: *id185
+      ipv6-address: *id184
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9335,7 +9445,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <ipv4-address> public-as-only
     params:
-      ipv4-address: &id186
+      ipv4-address: &id185
         type: ipv4
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
@@ -9350,7 +9460,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <ipv4-address> public-as-only force [ replace ] [ include-peer-as ]
     params:
-      ipv4-address: *id186
+      ipv4-address: *id185
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9364,7 +9474,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <ipv4-address> public-as-only limited [ replace ] [ include-peer-as ]
     params:
-      ipv4-address: *id186
+      ipv4-address: *id185
     default: By default, the AS-Path attribute in a BGP Update message is allowed to carry private AS numbers.
     source:
       doc: huawei-vrp8-md
@@ -9405,7 +9515,7 @@ cards:
     view: bgp
     undo: undo peer <peerIpv4Addr> public-as-only import [ force ]
     params:
-      peerIpv4Addr: &id187
+      peerIpv4Addr: &id186
         type: ipv4
     default: By default, a device does not remove private AS numbers from the AS_Path list when receiving BGP Update messages.
     source:
@@ -9420,7 +9530,7 @@ cards:
     view: bgp
     undo: undo peer <peerIpv4Addr> public-as-only import disable
     params:
-      peerIpv4Addr: *id187
+      peerIpv4Addr: *id186
     default: By default, a device does not remove private AS numbers from the AS_Path list when receiving BGP Update messages.
     source:
       doc: huawei-vrp8-md
@@ -9434,7 +9544,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <peerIpv4Addr> public-as-only import disable
     params:
-      peerIpv4Addr: &id188
+      peerIpv4Addr: &id187
         type: ipv4
     default: By default, a device does not remove private AS numbers from the AS_Path list when receiving BGP Update messages.
     source:
@@ -9449,7 +9559,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <peerIpv4Addr> public-as-only import [ force ]
     params:
-      peerIpv4Addr: *id188
+      peerIpv4Addr: *id187
     default: By default, a device does not remove private AS numbers from the AS_Path list when receiving BGP Update messages.
     source:
       doc: huawei-vrp8-md
@@ -9478,7 +9588,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <peerIpv6Addr> public-as-only import [ force ]
     params:
-      peerIpv6Addr: &id189
+      peerIpv6Addr: &id188
         type: word
     default: By default, a device does not remove private AS numbers from the AS_Path list when receiving BGP Update messages.
     source:
@@ -9493,7 +9603,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <peerIpv6Addr> public-as-only import disable
     params:
-      peerIpv6Addr: *id189
+      peerIpv6Addr: *id188
     default: By default, a device does not remove private AS numbers from the AS_Path list when receiving BGP Update messages.
     source:
       doc: huawei-vrp8-md
@@ -9522,7 +9632,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <peerIpv4Addr> public-as-only import [ force ]
     params:
-      peerIpv4Addr: &id190
+      peerIpv4Addr: &id189
         type: ipv4
     default: By default, a device does not remove private AS numbers from the AS_Path list when receiving BGP Update messages.
     source:
@@ -9537,7 +9647,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <peerIpv4Addr> public-as-only import disable
     params:
-      peerIpv4Addr: *id190
+      peerIpv4Addr: *id189
     default: By default, a device does not remove private AS numbers from the AS_Path list when receiving BGP Update messages.
     source:
       doc: huawei-vrp8-md
@@ -9566,7 +9676,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <peerIpv6Addr> public-as-only import disable
     params:
-      peerIpv6Addr: &id191
+      peerIpv6Addr: &id190
         type: word
     default: By default, a device does not remove private AS numbers from the AS_Path list when receiving BGP Update messages.
     source:
@@ -9581,7 +9691,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <peerIpv6Addr> public-as-only import [ force ]
     params:
-      peerIpv6Addr: *id191
+      peerIpv6Addr: *id190
     default: By default, a device does not remove private AS numbers from the AS_Path list when receiving BGP Update messages.
     source:
       doc: huawei-vrp8-md
@@ -9595,7 +9705,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <peerIpv4Addr> public-as-only import [ force ]
     params:
-      peerIpv4Addr: &id192
+      peerIpv4Addr: &id191
         type: ipv4
     default: By default, a device does not remove private AS numbers from the AS_Path list when receiving BGP Update messages.
     source:
@@ -9610,7 +9720,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <peerIpv4Addr> public-as-only import disable
     params:
-      peerIpv4Addr: *id192
+      peerIpv4Addr: *id191
     default: By default, a device does not remove private AS numbers from the AS_Path list when receiving BGP Update messages.
     source:
       doc: huawei-vrp8-md
@@ -9676,6 +9786,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.rr_client: flag
   - id: huawei-vrp8.peer-reflect-client~4
     syntax: peer <peerIpv6Addr> reflect-client
     view: bgp-af-ipv4
@@ -9691,6 +9804,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.rr_client: flag
   - id: huawei-vrp8.peer-reflect-client~5
     syntax: peer <ipv4-address> reflect-client
     view: bgp-af-ipv4
@@ -9706,6 +9822,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.rr_client: flag
   - id: huawei-vrp8.advertise-community-gshut.1
     syntax: advertise-community-gshut
     view: bgp
@@ -9745,6 +9864,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.rr_client: flag
   - id: huawei-vrp8.peer-reflect-client~7
     syntax: peer <ipv4-address> reflect-client
     view: bgp-af-vpn-instance-ipv4
@@ -9760,6 +9882,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.rr_client: flag
   - id: huawei-vrp8.bestroute-routerid-prior-clusterlist~4
     syntax: bestroute routerid-prior-clusterlist
     view: bgp-af-vpnv4
@@ -9787,6 +9912,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.rr_client: flag
   - id: huawei-vrp8.peer-reflect-client~9
     syntax: peer <ipv6-address> reflect-client
     view: bgp-af-vpnv4
@@ -9802,6 +9930,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.rr_client: flag
   - id: huawei-vrp8.peer-reflect-client~10
     syntax: peer <ipv4-address> reflect-client
     view: bgp-af-vpnv4
@@ -9817,12 +9948,15 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.rr_client: flag
   - id: huawei-vrp8.peer-role.1
     syntax: peer <peerIpv4Addr> role { provider | rs | rs-client | customer | lateral-peer | sibling }
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <peerIpv4Addr> role { provider | rs | rs-client | customer | lateral-peer | sibling }
     params:
-      peerIpv4Addr: &id193
+      peerIpv4Addr: &id192
         type: ipv4
     default: By default, no role is configured for a BGP peer.
     source:
@@ -9837,7 +9971,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <peerIpv4Addr> role disable
     params:
-      peerIpv4Addr: *id193
+      peerIpv4Addr: *id192
     default: By default, no role is configured for a BGP peer.
     source:
       doc: huawei-vrp8-md
@@ -9851,9 +9985,9 @@ cards:
     view: bgp
     undo: undo peer { <peerIpv4Addr> | <peerIpv6Addr> } role { provider | rs | rs-client | customer | lateral-peer | sibling }
     params:
-      peerIpv4Addr: &id194
+      peerIpv4Addr: &id193
         type: ipv4
-      peerIpv6Addr: &id195
+      peerIpv6Addr: &id194
         type: word
     default: By default, no role is configured for a BGP peer.
     source:
@@ -9868,8 +10002,8 @@ cards:
     view: bgp
     undo: undo peer { <peerIpv4Addr> | <peerIpv6Addr> } role disable
     params:
-      peerIpv4Addr: *id194
-      peerIpv6Addr: *id195
+      peerIpv4Addr: *id193
+      peerIpv6Addr: *id194
     default: By default, no role is configured for a BGP peer.
     source:
       doc: huawei-vrp8-md
@@ -9913,9 +10047,9 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer { <peerIpv4Addr> | <peerIpv6Addr> } role { provider | rs | rs-client | customer | lateral-peer | sibling }
     params:
-      peerIpv4Addr: &id196
+      peerIpv4Addr: &id195
         type: ipv4
-      peerIpv6Addr: &id197
+      peerIpv6Addr: &id196
         type: word
     default: By default, no role is configured for a BGP peer.
     source:
@@ -9930,8 +10064,8 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer { <peerIpv4Addr> | <peerIpv6Addr> } role disable
     params:
-      peerIpv4Addr: *id196
-      peerIpv6Addr: *id197
+      peerIpv4Addr: *id195
+      peerIpv6Addr: *id196
     default: By default, no role is configured for a BGP peer.
     source:
       doc: huawei-vrp8-md
@@ -9988,6 +10122,8 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.instance: $as-number
   - id: huawei-vrp8.peer-route-filter-export~2
     syntax: peer <group-name> route-filter <route-filter-name> export
     view: bgp
@@ -10090,7 +10226,7 @@ cards:
     syntax: peer <ipv4-address> route-filter <route-filter-name> export
     view: bgp-af-ipv4
     undo: undo peer <ipv4-address> route-filter <route-filter-name> export
-    params: &id198
+    params: &id197
       ipv4-address:
         type: ipv4
       route-filter-name:
@@ -10107,7 +10243,7 @@ cards:
     syntax: peer <ipv4-address> route-filter <route-filter-name> export
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <ipv4-address> route-filter <route-filter-name> export
-    params: *id198
+    params: *id197
     default: By default, no route-filter is specified for the routes to be advertised to a specified peer.
     source:
       doc: huawei-vrp8-md
@@ -10120,7 +10256,7 @@ cards:
     syntax: peer <peerGroupName> route-filter <route-filter-name> export
     view: bgp-af-ipv4
     undo: undo peer <peerGroupName> route-filter <route-filter-name> export
-    params: &id199
+    params: &id198
       peerGroupName:
         type: word
       route-filter-name:
@@ -10137,7 +10273,7 @@ cards:
     syntax: peer <peerGroupName> route-filter <route-filter-name> export
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <peerGroupName> route-filter <route-filter-name> export
-    params: *id199
+    params: *id198
     default: By default, no route-filter is specified for the routes to be advertised to a specified peer group.
     source:
       doc: huawei-vrp8-md
@@ -10168,7 +10304,7 @@ cards:
     syntax: peer <peerIpv6Addr> route-filter <route-filter-name> import
     view: bgp-af-ipv4
     undo: undo peer <peerIpv6Addr> route-filter <route-filter-name> import
-    params: &id200
+    params: &id199
       peerIpv6Addr:
         type: word
       route-filter-name:
@@ -10184,7 +10320,7 @@ cards:
     syntax: peer <peerIpv6Addr> route-filter <route-filter-name> import
     view: bgp-af-vpnv4
     undo: undo peer <peerIpv6Addr> route-filter <route-filter-name> import
-    params: *id200
+    params: *id199
     source:
       doc: huawei-vrp8-md
       file: 09_IP Routing Commands/01_BGP Configuration Commands/1850_peer route-filter import (IPv6).md
@@ -10262,7 +10398,7 @@ cards:
     syntax: peer <peerGroupName> route-filter <route-filter-name> import
     view: bgp-af-ipv4
     undo: undo peer <peerGroupName> route-filter <route-filter-name> import
-    params: &id201
+    params: &id200
       peerGroupName:
         type: word
       route-filter-name:
@@ -10279,7 +10415,7 @@ cards:
     syntax: peer <peerGroupName> route-filter <route-filter-name> import
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <peerGroupName> route-filter <route-filter-name> import
-    params: *id201
+    params: *id200
     default: By default, no route-filter is specified for the routes to be advertised to a specified peer group.
     source:
       doc: huawei-vrp8-md
@@ -10292,7 +10428,7 @@ cards:
     syntax: peer <ipv4-address> route-filter <route-filter-name> import
     view: bgp-af-ipv4
     undo: undo peer <ipv4-address> route-filter <route-filter-name> import
-    params: &id202
+    params: &id201
       ipv4-address:
         type: ipv4
       route-filter-name:
@@ -10308,7 +10444,7 @@ cards:
     syntax: peer <ipv4-address> route-filter <route-filter-name> import
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <ipv4-address> route-filter <route-filter-name> import
-    params: *id202
+    params: *id201
     source:
       doc: huawei-vrp8-md
       file: 09_IP Routing Commands/01_BGP Configuration Commands/1869_peer route-filter import (IPv4).md
@@ -10809,6 +10945,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.export_policy: $route-policy-name
   - id: huawei-vrp8.peer-route-policy-export~4
     syntax: peer <group-name> route-policy <route-policy-name> export
     view: bgp-af-ipv4
@@ -10826,6 +10965,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.export_policy: $route-policy-name
   - id: huawei-vrp8.bgp-route-policy-effective-apply-peer-export-cost-type-med-inherit-aigp
     syntax: bgp route-policy-effective apply peer-export cost-type med-inherit-aigp
     view: system
@@ -10886,6 +11028,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.export_policy: $route-policy-name
   - id: huawei-vrp8.peer-route-policy-export~7
     syntax: peer <group-name> route-policy <route-policy-name> export
     view: bgp-af-vpn-instance-ipv4
@@ -10903,6 +11048,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.export_policy: $route-policy-name
   - id: huawei-vrp8.peer-route-policy-export~8
     syntax: peer <ipv4-address> route-policy <route-policy-name> export [ ignore-bit-error ]
     view: bgp-af-vpnv4
@@ -10976,7 +11124,7 @@ cards:
     syntax: bgp-lsp mtu <mtu>
     view: bgp-af-ipv4
     undo: undo bgp-lsp mtu
-    params: &id203
+    params: &id202
       mtu:
         type: integer
         range:
@@ -10994,7 +11142,7 @@ cards:
     syntax: bgp-lsp mtu <mtu>
     view: bgp
     undo: undo bgp-lsp mtu
-    params: *id203
+    params: *id202
     default: By default, the MTU of BGP LSPs is 1500.
     source:
       doc: huawei-vrp8-md
@@ -11054,6 +11202,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.import_policy: $route-policy-name
   - id: huawei-vrp8.peer-route-policy-import~4
     syntax: peer <peerIpv6Addr> route-policy <policy-name> import
     view: bgp-af-ipv4
@@ -11088,6 +11239,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.import_policy: $route-policy-name
   - id: huawei-vrp8.peer-route-policy-import~6
     syntax: peer <group-name> route-policy <route-policy-name> import
     view: bgp-af-vpn-instance-ipv4
@@ -11105,6 +11259,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.import_policy: $route-policy-name
   - id: huawei-vrp8.peer-route-policy-import~7
     syntax: peer <ipv4-address> route-policy <route-policy-name> import
     view: bgp-af-vpn-instance-ipv4
@@ -11122,6 +11279,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.import_policy: $route-policy-name
   - id: huawei-vrp8.bgp-lsp-mtu
     syntax: bgp-lsp mtu <lspmtuVal>
     view: bgp-af-vpn-instance-ipv4
@@ -11157,6 +11317,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.import_policy: $route-policy-name
   - id: huawei-vrp8.peer-route-policy-import~9
     syntax: peer <ipv6-address> route-policy <route-policy-name> import
     view: bgp-af-vpnv4
@@ -11174,6 +11337,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.import_policy: $route-policy-name
   - id: huawei-vrp8.peer-route-policy-import~10
     syntax: peer <ipv4-address> route-policy <route-policy-name> import
     view: bgp-af-vpnv4
@@ -11191,6 +11357,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.import_policy: $route-policy-name
   - id: huawei-vrp8.bgp-lsp-wtr
     syntax: bgp-lsp wtr [ <wtr-timer> ]
     view: bgp-af-ipv4
@@ -11214,7 +11383,7 @@ cards:
     view: bgp
     undo: undo peer <ipv4-address> route-server-client [ context-policy <policy-name> | context-filter <filter-name> ]
     params:
-      ipv4-address: &id204
+      ipv4-address: &id203
         type: ipv4
       policy-name:
         type: word
@@ -11233,7 +11402,7 @@ cards:
     view: bgp
     undo: undo peer <ipv4-address> route-server-client disable
     params:
-      ipv4-address: *id204
+      ipv4-address: *id203
     default: the default configuration and takes effect only when the peer route-server-client disable command is run.
     source:
       doc: huawei-vrp8-md
@@ -11266,7 +11435,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <ipv4-address> route-server-client [ context-policy <policy-name> | context-filter <filter-name> ]
     params:
-      ipv4-address: &id205
+      ipv4-address: &id204
         type: ipv4
       policy-name:
         type: word
@@ -11285,7 +11454,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <ipv4-address> route-server-client disable
     params:
-      ipv4-address: *id205
+      ipv4-address: *id204
     default: the default configuration and takes effect only when the peer route-server-client disable command is run.
     source:
       doc: huawei-vrp8-md
@@ -11330,7 +11499,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <peerIpv4Addr> route-server-client [ context-policy <policy-name> | context-filter <filter-name> ]
     params:
-      peerIpv4Addr: &id206
+      peerIpv4Addr: &id205
         type: ipv4
       policy-name:
         type: word
@@ -11349,7 +11518,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <peerIpv4Addr> route-server-client disable
     params:
-      peerIpv4Addr: *id206
+      peerIpv4Addr: *id205
     default: the default configuration and takes effect only when the peer route-server-client disable command is run.
     source:
       doc: huawei-vrp8-md
@@ -11605,7 +11774,7 @@ cards:
     syntax: peer <ipv4-address> rpd-policy export enable
     view: bgp-af-ipv4
     undo: undo peer <ipv4-address> rpd-policy export enable
-    params: &id207
+    params: &id206
       ipv4-address:
         type: ipv4
     default: By default, the RPD export route-policy function is disabled.
@@ -11620,7 +11789,7 @@ cards:
     syntax: peer <ipv4-address> rpd-policy export enable
     view: bgp
     undo: undo peer <ipv4-address> rpd-policy export enable
-    params: *id207
+    params: *id206
     default: By default, the RPD export route-policy function is disabled.
     source:
       doc: huawei-vrp8-md
@@ -11691,9 +11860,9 @@ cards:
     view: bgp
     undo: undo peer { <ipv4-address> | <ipv6-address> } ssl-policy name <ssl-policy-name>
     params:
-      ipv4-address: &id208
+      ipv4-address: &id207
         type: ipv4
-      ipv6-address: &id209
+      ipv6-address: &id208
         type: word
       ssl-policy-name:
         type: word
@@ -11710,8 +11879,8 @@ cards:
     view: bgp
     undo: undo peer { <ipv4-address> | <ipv6-address> } ssl-policy disable
     params:
-      ipv4-address: *id208
-      ipv6-address: *id209
+      ipv4-address: *id207
+      ipv6-address: *id208
     default: the default configuration and takes effect only when the peer ssl-policy disable command is run.
     source:
       doc: huawei-vrp8-md
@@ -11742,9 +11911,9 @@ cards:
     view: bgp
     undo: undo peer { <ipv4-address> | <ipv6-address> } ssl-policy role server
     params:
-      ipv4-address: &id210
+      ipv4-address: &id209
         type: ipv4
-      ipv6-address: &id211
+      ipv6-address: &id210
         type: word
     default: By default, the local device is not specified as an SSL client or server when it establishes a connection with a peer.
     source:
@@ -11759,8 +11928,8 @@ cards:
     view: bgp
     undo: undo peer { <ipv4-address> | <ipv6-address> } ssl-policy role client
     params:
-      ipv4-address: *id210
-      ipv6-address: *id211
+      ipv4-address: *id209
+      ipv6-address: *id210
     default: By default, the local device is not specified as an SSL client or server when it establishes a connection with a peer.
     source:
       doc: huawei-vrp8-md
@@ -11774,8 +11943,8 @@ cards:
     view: bgp
     undo: undo peer { <ipv4-address> | <ipv6-address> } ssl-policy role disable
     params:
-      ipv4-address: *id210
-      ipv6-address: *id211
+      ipv4-address: *id209
+      ipv6-address: *id210
     default: By default, the local device is not specified as an SSL client or server when it establishes a connection with a peer.
     source:
       doc: huawei-vrp8-md
@@ -11789,7 +11958,7 @@ cards:
     view: bgp
     undo: undo peer <group-name> ssl-policy role server
     params:
-      group-name: &id212
+      group-name: &id211
         type: word
     default: By default, the local device is not specified as an SSL client or server when it establishes a connection with a peer group.
     source:
@@ -11804,7 +11973,7 @@ cards:
     view: bgp
     undo: undo peer <group-name> ssl-policy role client
     params:
-      group-name: *id212
+      group-name: *id211
     default: By default, the local device is not specified as an SSL client or server when it establishes a connection with a peer group.
     source:
       doc: huawei-vrp8-md
@@ -11818,9 +11987,9 @@ cards:
     view: bgp
     undo: undo peer { <ipv4-address> | <ipv6-address> } ssl-server certificate
     params:
-      ipv4-address: &id213
+      ipv4-address: &id212
         type: ipv4
-      ipv6-address: &id214
+      ipv6-address: &id213
         type: word
     default: By default, SSL/TLS authentication is disabled on an SSL server.
     source:
@@ -11835,8 +12004,8 @@ cards:
     view: bgp
     undo: undo peer { <ipv4-address> | <ipv6-address> } ssl-server certificate disable
     params:
-      ipv4-address: *id213
-      ipv6-address: *id214
+      ipv4-address: *id212
+      ipv6-address: *id213
     default: By default, SSL/TLS authentication is disabled on an SSL server.
     source:
       doc: huawei-vrp8-md
@@ -11864,7 +12033,7 @@ cards:
     syntax: peer <ipv4-address> substitute-as
     view: bgp-af-ipv4
     undo: undo peer <ipv4-address> substitute-as
-    params: &id215
+    params: &id214
       ipv4-address:
         type: ipv4
     default: By default, AS number substitution is disabled.
@@ -11879,7 +12048,7 @@ cards:
     syntax: peer <ipv4-address> substitute-as
     view: bgp
     undo: undo peer <ipv4-address> substitute-as
-    params: *id215
+    params: *id214
     default: By default, AS number substitution is disabled.
     source:
       doc: huawei-vrp8-md
@@ -11892,7 +12061,7 @@ cards:
     syntax: peer <group-name> substitute-as
     view: bgp-af-ipv4
     undo: undo peer <group-name> substitute-as
-    params: &id216
+    params: &id215
       group-name:
         type: word
     default: By default, AS number substitution is disabled.
@@ -11907,7 +12076,7 @@ cards:
     syntax: peer <group-name> substitute-as
     view: bgp
     undo: undo peer <group-name> substitute-as
-    params: *id216
+    params: *id215
     default: By default, AS number substitution is disabled.
     source:
       doc: huawei-vrp8-md
@@ -11966,7 +12135,7 @@ cards:
     view: bgp
     undo: undo peer <ipv4-address> tcp-ao policy <tcp-ao-name>
     params:
-      ipv4-address: &id217
+      ipv4-address: &id216
         type: ipv4
       tcp-ao-name:
         type: word
@@ -11983,7 +12152,7 @@ cards:
     view: bgp
     undo: undo peer <ipv4-address> tcp-ao disable
     params:
-      ipv4-address: *id217
+      ipv4-address: *id216
     default: By default, the TCP-AO authentication is not configured for BGP peers.
     source:
       doc: huawei-vrp8-md
@@ -11997,7 +12166,7 @@ cards:
     view: bgp
     undo: undo peer <ipv6-address> tcp-ao policy <tcp-ao-name>
     params:
-      ipv6-address: &id218
+      ipv6-address: &id217
         type: word
       tcp-ao-name:
         type: word
@@ -12014,7 +12183,7 @@ cards:
     view: bgp
     undo: undo peer <ipv6-address> tcp-ao disable
     params:
-      ipv6-address: *id218
+      ipv6-address: *id217
     default: By default, the TCP-AO authentication is not configured for BGP peers.
     source:
       doc: huawei-vrp8-md
@@ -12028,7 +12197,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <peerIpv4Addr> tcp-ao policy <tcp-ao-name>
     params:
-      peerIpv4Addr: &id219
+      peerIpv4Addr: &id218
         type: ipv4
       tcp-ao-name:
         type: word
@@ -12045,7 +12214,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <peerIpv4Addr> tcp-ao disable
     params:
-      peerIpv4Addr: *id219
+      peerIpv4Addr: *id218
     default: By default, the TCP-AO authentication is not configured for BGP peers.
     source:
       doc: huawei-vrp8-md
@@ -12076,7 +12245,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer <peerIpv4Addr> tcp-ao policy <tcp-ao-name>
     params:
-      peerIpv4Addr: &id220
+      peerIpv4Addr: &id219
         type: ipv4
       tcp-ao-name:
         type: word
@@ -12093,7 +12262,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer <peerIpv4Addr> tcp-ao disable
     params:
-      peerIpv4Addr: *id220
+      peerIpv4Addr: *id219
     default: By default, the TCP-AO authentication is not configured for BGP peers.
     source:
       doc: huawei-vrp8-md
@@ -12124,7 +12293,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer <peerIpv6Addr> tcp-ao policy <tcp-ao-name>
     params:
-      peerIpv6Addr: &id221
+      peerIpv6Addr: &id220
         type: word
       tcp-ao-name:
         type: word
@@ -12141,7 +12310,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer <peerIpv6Addr> tcp-ao disable
     params:
-      peerIpv6Addr: *id221
+      peerIpv6Addr: *id220
     default: By default, the TCP-AO authentication is not configured for BGP peers.
     source:
       doc: huawei-vrp8-md
@@ -12356,14 +12525,14 @@ cards:
     view: bgp
     undo: undo peer <ipv4-address> timer keepalive hold [ min-holdtime ]
     params:
-      ipv4-address: &id222
+      ipv4-address: &id221
         type: ipv4
-      keepalive-time: &id223
+      keepalive-time: &id222
         type: integer
         range:
           - 0
           - 21845
-      hold-time: &id224
+      hold-time: &id223
         type: integer
         range:
           - 3
@@ -12376,14 +12545,18 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.keepalive | bgp.peer_group.keepalive: $keepalive-time
+      bgp.peer.hold | bgp.peer_group.hold: $hold-time
   - id: huawei-vrp8.peer-timer.2
     syntax: peer <ipv4-address> timer keepalive <keepalive-time> hold <hold-time> min-holdtime <min-hold-value>
     view: bgp
     undo: undo peer <ipv4-address> timer keepalive hold [ min-holdtime ]
     params:
-      ipv4-address: *id222
-      keepalive-time: *id223
-      hold-time: *id224
+      ipv4-address: *id221
+      keepalive-time: *id222
+      hold-time: *id223
       min-hold-value:
         type: integer
         range:
@@ -12397,12 +12570,16 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.keepalive | bgp.peer_group.keepalive: $keepalive-time
+      bgp.peer.hold | bgp.peer_group.hold: $hold-time
   - id: huawei-vrp8.peer-timer.3
     syntax: peer <ipv4-address> timer send-hold <send-hold-time>
     view: bgp
     undo: undo peer <ipv4-address> timer send-hold <send-hold-time>
     params:
-      ipv4-address: *id222
+      ipv4-address: *id221
       send-hold-time:
         type: integer
         range:
@@ -12421,14 +12598,14 @@ cards:
     view: bgp
     undo: undo peer <group-name> timer keepalive hold [ min-holdtime ]
     params:
-      group-name: &id225
+      group-name: &id224
         type: word
-      keepalive-time: &id226
+      keepalive-time: &id225
         type: integer
         range:
           - 0
           - 21845
-      hold-time: &id227
+      hold-time: &id226
         type: integer
         range:
           - 3
@@ -12441,14 +12618,18 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.keepalive | bgp.peer_group.keepalive: $keepalive-time
+      bgp.peer.hold | bgp.peer_group.hold: $hold-time
   - id: huawei-vrp8.peer-timer.2~2
     syntax: peer <group-name> timer keepalive <keepalive-time> hold <hold-time> min-holdtime <min-hold-value>
     view: bgp
     undo: undo peer <group-name> timer keepalive hold [ min-holdtime ]
     params:
-      group-name: *id225
-      keepalive-time: *id226
-      hold-time: *id227
+      group-name: *id224
+      keepalive-time: *id225
+      hold-time: *id226
       min-hold-value:
         type: integer
         range:
@@ -12462,19 +12643,23 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.keepalive | bgp.peer_group.keepalive: $keepalive-time
+      bgp.peer.hold | bgp.peer_group.hold: $hold-time
   - id: huawei-vrp8.peer-timer.1~3
     syntax: peer <ipv6-address> timer keepalive <keepalive-time> hold <hold-time>
     view: bgp
     undo: undo peer <ipv6-address> timer keepalive hold [ min-holdtime ]
     params:
-      ipv6-address: &id228
+      ipv6-address: &id227
         type: word
-      keepalive-time: &id229
+      keepalive-time: &id228
         type: integer
         range:
           - 0
           - 21845
-      hold-time: &id230
+      hold-time: &id229
         type: integer
         range:
           - 3
@@ -12487,14 +12672,18 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.keepalive | bgp.peer_group.keepalive: $keepalive-time
+      bgp.peer.hold | bgp.peer_group.hold: $hold-time
   - id: huawei-vrp8.peer-timer.2~3
     syntax: peer <ipv6-address> timer keepalive <keepalive-time> hold <hold-time> min-holdtime <min-hold-value>
     view: bgp
     undo: undo peer <ipv6-address> timer keepalive hold [ min-holdtime ]
     params:
-      ipv6-address: *id228
-      keepalive-time: *id229
-      hold-time: *id230
+      ipv6-address: *id227
+      keepalive-time: *id228
+      hold-time: *id229
       min-hold-value:
         type: integer
         range:
@@ -12508,12 +12697,16 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.keepalive | bgp.peer_group.keepalive: $keepalive-time
+      bgp.peer.hold | bgp.peer_group.hold: $hold-time
   - id: huawei-vrp8.peer-timer.3~2
     syntax: peer <ipv6-address> timer send-hold <send-hold-time>
     view: bgp
     undo: undo peer <ipv6-address> timer send-hold <send-hold-time>
     params:
-      ipv6-address: *id228
+      ipv6-address: *id227
       send-hold-time:
         type: integer
         range:
@@ -12532,14 +12725,14 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <ipv4-address> timer keepalive hold [ min-holdtime ]
     params:
-      ipv4-address: &id231
+      ipv4-address: &id230
         type: ipv4
-      keepalive-time: &id232
+      keepalive-time: &id231
         type: integer
         range:
           - 0
           - 21845
-      hold-time: &id233
+      hold-time: &id232
         type: integer
         range:
           - 3
@@ -12557,9 +12750,9 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <ipv4-address> timer keepalive hold [ min-holdtime ]
     params:
-      ipv4-address: *id231
-      keepalive-time: *id232
-      hold-time: *id233
+      ipv4-address: *id230
+      keepalive-time: *id231
+      hold-time: *id232
       min-hold-value:
         type: integer
         range:
@@ -12578,7 +12771,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <ipv4-address> timer send-hold <send-hold-time>
     params:
-      ipv4-address: *id231
+      ipv4-address: *id230
       send-hold-time:
         type: integer
         range:
@@ -12597,14 +12790,14 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <group-name> timer keepalive hold [ min-holdtime ]
     params:
-      group-name: &id234
+      group-name: &id233
         type: word
-      keepalive-time: &id235
+      keepalive-time: &id234
         type: integer
         range:
           - 0
           - 21845
-      hold-time: &id236
+      hold-time: &id235
         type: integer
         range:
           - 3
@@ -12622,9 +12815,9 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <group-name> timer keepalive hold [ min-holdtime ]
     params:
-      group-name: *id234
-      keepalive-time: *id235
-      hold-time: *id236
+      group-name: *id233
+      keepalive-time: *id234
+      hold-time: *id235
       min-hold-value:
         type: integer
         range:
@@ -12643,14 +12836,14 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer <ipv4-address> timer keepalive hold [ min-holdtime ]
     params:
-      ipv4-address: &id237
+      ipv4-address: &id236
         type: ipv4
-      keepalive-time: &id238
+      keepalive-time: &id237
         type: integer
         range:
           - 0
           - 21845
-      hold-time: &id239
+      hold-time: &id238
         type: integer
         range:
           - 3
@@ -12668,9 +12861,9 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer <ipv4-address> timer keepalive hold [ min-holdtime ]
     params:
-      ipv4-address: *id237
-      keepalive-time: *id238
-      hold-time: *id239
+      ipv4-address: *id236
+      keepalive-time: *id237
+      hold-time: *id238
       min-hold-value:
         type: integer
         range:
@@ -12689,7 +12882,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer <ipv4-address> timer send-hold <send-hold-time>
     params:
-      ipv4-address: *id237
+      ipv4-address: *id236
       send-hold-time:
         type: integer
         range:
@@ -12708,14 +12901,14 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer <group-name> timer keepalive hold [ min-holdtime ]
     params:
-      group-name: &id240
+      group-name: &id239
         type: word
-      keepalive-time: &id241
+      keepalive-time: &id240
         type: integer
         range:
           - 0
           - 21845
-      hold-time: &id242
+      hold-time: &id241
         type: integer
         range:
           - 3
@@ -12733,9 +12926,9 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer <group-name> timer keepalive hold [ min-holdtime ]
     params:
-      group-name: *id240
-      keepalive-time: *id241
-      hold-time: *id242
+      group-name: *id239
+      keepalive-time: *id240
+      hold-time: *id241
       min-hold-value:
         type: integer
         range:
@@ -12754,14 +12947,14 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer <ipv6-address> timer keepalive hold [ min-holdtime ]
     params:
-      ipv6-address: &id243
+      ipv6-address: &id242
         type: word
-      keepalive-time: &id244
+      keepalive-time: &id243
         type: integer
         range:
           - 0
           - 21845
-      hold-time: &id245
+      hold-time: &id244
         type: integer
         range:
           - 3
@@ -12779,9 +12972,9 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer <ipv6-address> timer keepalive hold [ min-holdtime ]
     params:
-      ipv6-address: *id243
-      keepalive-time: *id244
-      hold-time: *id245
+      ipv6-address: *id242
+      keepalive-time: *id243
+      hold-time: *id244
       min-hold-value:
         type: integer
         range:
@@ -12800,7 +12993,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo peer <ipv6-address> timer send-hold <send-hold-time>
     params:
-      ipv6-address: *id243
+      ipv6-address: *id242
       send-hold-time:
         type: integer
         range:
@@ -13072,7 +13265,7 @@ cards:
     params:
       ipv4-address:
         type: ipv4
-      delay-time: &id246
+      delay-time: &id245
         type: integer
         range:
           - 0
@@ -13092,7 +13285,7 @@ cards:
     params:
       ipv6-address:
         type: word
-      delay-time: *id246
+      delay-time: *id245
     default: By default, BGP Peer Tracking is disabled.
     source:
       doc: huawei-vrp8-md
@@ -13159,7 +13352,7 @@ cards:
     view: bgp
     undo: undo peer <ipv4-address> update-group-independent enable
     params:
-      ipv4-address: &id247
+      ipv4-address: &id246
         type: ipv4
     default: By default, no peer is set as an independent update peer-group.
     source:
@@ -13174,7 +13367,7 @@ cards:
     view: bgp
     undo: undo peer <ipv4-address> update-group-independent disable
     params:
-      ipv4-address: *id247
+      ipv4-address: *id246
     default: By default, no peer is set as an independent update peer-group.
     source:
       doc: huawei-vrp8-md
@@ -13203,7 +13396,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <ipv4-address> update-group-independent enable
     params:
-      ipv4-address: &id248
+      ipv4-address: &id247
         type: ipv4
     default: By default, no peer is set as an independent update peer-group.
     source:
@@ -13218,7 +13411,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <ipv4-address> update-group-independent disable
     params:
-      ipv4-address: *id248
+      ipv4-address: *id247
     default: By default, no peer is set as an independent update peer-group.
     source:
       doc: huawei-vrp8-md
@@ -13247,7 +13440,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <peerIpv6Addr> update-group-independent enable
     params:
-      peerIpv6Addr: &id249
+      peerIpv6Addr: &id248
         type: word
     default: By default, no peer is set as an independent update peer-group.
     source:
@@ -13262,7 +13455,7 @@ cards:
     view: bgp-af-ipv4
     undo: undo peer <peerIpv6Addr> update-group-independent disable
     params:
-      peerIpv6Addr: *id249
+      peerIpv6Addr: *id248
     default: By default, no peer is set as an independent update peer-group.
     source:
       doc: huawei-vrp8-md
@@ -13291,7 +13484,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <ipv4-address> update-group-independent enable
     params:
-      ipv4-address: &id250
+      ipv4-address: &id249
         type: ipv4
     default: By default, no peer is set as an independent update peer-group.
     source:
@@ -13306,7 +13499,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo peer <ipv4-address> update-group-independent disable
     params:
-      ipv4-address: *id250
+      ipv4-address: *id249
     default: By default, no peer is set as an independent update peer-group.
     source:
       doc: huawei-vrp8-md
@@ -13335,7 +13528,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <ipv4-address> update-group-independent enable
     params:
-      ipv4-address: &id251
+      ipv4-address: &id250
         type: ipv4
     default: By default, no peer is set as an independent update peer-group.
     source:
@@ -13350,7 +13543,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <ipv4-address> update-group-independent disable
     params:
-      ipv4-address: *id251
+      ipv4-address: *id250
     default: By default, no peer is set as an independent update peer-group.
     source:
       doc: huawei-vrp8-md
@@ -13379,7 +13572,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <ipv6-address> update-group-independent enable
     params:
-      ipv6-address: &id252
+      ipv6-address: &id251
         type: word
     default: By default, no peer is set as an independent update peer-group.
     source:
@@ -13394,7 +13587,7 @@ cards:
     view: bgp-af-vpnv4
     undo: undo peer <ipv6-address> update-group-independent disable
     params:
-      ipv6-address: *id252
+      ipv6-address: *id251
     default: By default, no peer is set as an independent update peer-group.
     source:
       doc: huawei-vrp8-md
@@ -13628,7 +13821,7 @@ cards:
     view: bgp
     undo: undo peer <peerIpv6Addr> virtual-link te link administrative group <group-value>
     params:
-      peerIpv6Addr: &id253
+      peerIpv6Addr: &id252
         type: word
       group-value:
         type: word
@@ -13645,7 +13838,7 @@ cards:
     view: bgp
     undo: undo peer <peerIpv6Addr> virtual-link te link administrative group name { <name-string> } &<1-32>
     params:
-      peerIpv6Addr: *id253
+      peerIpv6Addr: *id252
       name-string:
         type: word
     default: By default, no affinity is configured for a virtual link.
@@ -14476,7 +14669,7 @@ cards:
     syntax: route-select delay <delay-value>
     view: bgp-af-ipv4
     undo: undo route-select delay
-    params: &id254
+    params: &id253
       delay-value:
         type: integer
         range:
@@ -14493,7 +14686,7 @@ cards:
     syntax: route-select delay <delay-value>
     view: bgp
     undo: undo route-select delay
-    params: *id254
+    params: *id253
     source:
       doc: huawei-vrp8-md
       file: 09_IP Routing Commands/01_BGP Configuration Commands/2367_route-select delay (BGP view).md
@@ -14586,6 +14779,8 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.instance.router_id: $ipv4-address
   - id: huawei-vrp8.router-id~2
     syntax: router-id { <router-id-value> | auto-select }
     view: bgp-af-vpn-instance-ipv4
@@ -14719,15 +14914,15 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.aggregate.1
-    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed | attribute-policy <route-policy-name1> | origin-policy <route-policy-name2> | suppress-policy <route-policy-name3> | distribute-delay <delay-time> ]
+    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed | attribute-policy <route-policy-name1> | origin-policy <route-policy-name2> | suppress-policy <route-policy-name3> | distribute-delay <delay-time> ] &<1-9>
     view: bgp
-    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed | attribute-policy <route-policy-name1> | origin-policy <route-policy-name2> | suppress-policy <route-policy-name3> | distribute-delay <delay-time> ]
+    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed | attribute-policy <route-policy-name1> | origin-policy <route-policy-name2> | suppress-policy <route-policy-name3> | distribute-delay <delay-time> ] &<1-9>
     params:
-      ipv4-address: &id255
+      ipv4-address: &id254
         type: ipv4
-      mask-length: &id256
+      mask-length: &id255
         type: mask-length
-      mask: &id257
+      mask: &id256
         type: mask
       route-policy-name1:
         type: word
@@ -14735,7 +14930,7 @@ cards:
         type: word
       route-policy-name3:
         type: word
-      delay-time: &id258
+      delay-time: &id257
         type: integer
         range:
           - 1
@@ -14749,20 +14944,20 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.aggregate.2
-    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> }
+    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> } &<1-9>
     view: bgp
-    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> }
+    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> } &<1-9>
     params:
-      ipv4-address: *id255
-      mask-length: *id256
-      mask: *id257
-      attr-filter-name: &id259
+      ipv4-address: *id254
+      mask-length: *id255
+      mask: *id256
+      attr-filter-name: &id258
         type: word
-      orig-filter-name: &id260
+      orig-filter-name: &id259
         type: word
-      supp-filter-name: &id261
+      supp-filter-name: &id260
         type: word
-      delay-time: *id258
+      delay-time: *id257
     default: By default, no routes are summarized.
     source:
       doc: huawei-vrp8-md
@@ -14772,17 +14967,17 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.aggregate.3
-    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } as-set detail-suppressed { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> }
+    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } as-set detail-suppressed { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> } &<1-9>
     view: bgp
-    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> }
+    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> } &<1-9>
     params:
-      ipv4-address: *id255
-      mask-length: *id256
-      mask: *id257
-      attr-filter-name: *id259
-      orig-filter-name: *id260
-      supp-filter-name: *id261
-      delay-time: *id258
+      ipv4-address: *id254
+      mask-length: *id255
+      mask: *id256
+      attr-filter-name: *id258
+      orig-filter-name: *id259
+      supp-filter-name: *id260
+      delay-time: *id257
     default: By default, no routes are summarized.
     source:
       doc: huawei-vrp8-md
@@ -14822,7 +15017,7 @@ cards:
     syntax: rpd-policy change notify-delay <delay-time>
     view: bgp-af-ipv4
     undo: undo rpd-policy change notify-delay <delay-time>
-    params: &id262
+    params: &id261
       delay-time:
         type: integer
         range:
@@ -14840,7 +15035,7 @@ cards:
     syntax: rpd-policy change notify-delay <delay-time>
     view: bgp
     undo: undo rpd-policy change notify-delay <delay-time>
-    params: *id262
+    params: *id261
     default: By default, if an RPD route-policy changes, protocols delay applying the updated policy for 30s.
     source:
       doc: huawei-vrp8-md
@@ -14903,9 +15098,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.segment-routing-ipv6@bgp-af-ipv4
-    syntax: segment-routing ipv6 { best-effort | traffic-engineer }
+    syntax: segment-routing ipv6 { best-effort | traffic-engineer } &<1-9>
     view: bgp-af-ipv4
-    undo: undo segment-routing ipv6 { best-effort | traffic-engineer }
+    undo: undo segment-routing ipv6 { best-effort | traffic-engineer } &<1-9>
     default: By default, this function of recursing public network routes based on the SIDs carried in the routes is disabled.
     source:
       doc: huawei-vrp8-md
@@ -14915,9 +15110,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.segment-routing-ipv6@bgp
-    syntax: segment-routing ipv6 { best-effort | traffic-engineer }
+    syntax: segment-routing ipv6 { best-effort | traffic-engineer } &<1-9>
     view: bgp
-    undo: undo segment-routing ipv6 { best-effort | traffic-engineer }
+    undo: undo segment-routing ipv6 { best-effort | traffic-engineer } &<1-9>
     default: By default, this function of recursing public network routes based on the SIDs carried in the routes is disabled.
     source:
       doc: huawei-vrp8-md
@@ -14927,9 +15122,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.segment-routing-ipv6
-    syntax: segment-routing ipv6 { best-effort | traffic-engineer }
+    syntax: segment-routing ipv6 { best-effort | traffic-engineer } &<1-9>
     view: bgp-af-vpn-instance-ipv4
-    undo: undo segment-routing ipv6 { best-effort | traffic-engineer }
+    undo: undo segment-routing ipv6 { best-effort | traffic-engineer } &<1-9>
     default: By default, VPN route recursion based on SIDs carried in routes is disabled.
     source:
       doc: huawei-vrp8-md
@@ -15164,9 +15359,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.segment-routing-ipv6-egress-engineering-sid-flavor
-    syntax: segment-routing ipv6 egress-engineering sid-flavor { no-flavor | psp | psp-usp-usd | psp-usp-usd-coc | coc | psp-coc | psp-usp-usd-coc-next | psp-usd-next | usp-usd }
+    syntax: segment-routing ipv6 egress-engineering sid-flavor { no-flavor | psp | psp-usp-usd | psp-usp-usd-coc | coc | psp-coc | psp-usp-usd-coc-next | psp-usd-next | usp-usd } &<1-9>
     view: bgp
-    undo: undo segment-routing ipv6 egress-engineering sid-flavor [ no-flavor | psp | psp-usp-usd | psp-usp-usd-coc | coc | psp-coc | psp-usp-usd-coc-next | psp-usd-next | usp-usd ]
+    undo: undo segment-routing ipv6 egress-engineering sid-flavor [ no-flavor | psp | psp-usp-usd | psp-usp-usd-coc | coc | psp-coc | psp-usp-usd-coc-next | psp-usd-next | usp-usd ] &<1-9>
     default: By default, no SID flavor is configured globally for BGP EPE.
     source:
       doc: huawei-vrp8-md
@@ -15179,8 +15374,8 @@ cards:
     syntax: segment-routing ipv6 locator <locator-name>
     view: bgp-af-ipv4
     undo: undo segment-routing ipv6 locator [ <locator-name> ]
-    params: &id263
-      locator-name: &id264
+    params: &id262
+      locator-name: &id263
         type: word
     default: By default, the public network routes do not have SIDs.
     source:
@@ -15194,7 +15389,7 @@ cards:
     syntax: segment-routing ipv6 locator <locator-name>
     view: bgp
     undo: undo segment-routing ipv6 locator [ <locator-name> ]
-    params: *id263
+    params: *id262
     default: By default, the public network routes do not have SIDs.
     source:
       doc: huawei-vrp8-md
@@ -15207,8 +15402,8 @@ cards:
     syntax: segment-routing ipv6 locator <locator-name> compress
     view: bgp-af-ipv4
     undo: undo segment-routing ipv6 locator <locator-name> compress
-    params: &id265
-      locator-name: *id264
+    params: &id264
+      locator-name: *id263
     default: By default, the public network routes do not have SIDs.
     source:
       doc: huawei-vrp8-md
@@ -15221,7 +15416,7 @@ cards:
     syntax: segment-routing ipv6 locator <locator-name> compress
     view: bgp
     undo: undo segment-routing ipv6 locator <locator-name> compress
-    params: *id265
+    params: *id264
     default: By default, the public network routes do not have SIDs.
     source:
       doc: huawei-vrp8-md
@@ -15235,7 +15430,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo segment-routing ipv6 locator [ [ <locator-name> ] | [ <locator-name> auto-sid-disable ] ]
     params:
-      locator-name: &id266
+      locator-name: &id265
         type: word
     default: By default, the private network routes do not have SIDs.
     source:
@@ -15250,7 +15445,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo segment-routing ipv6 locator <locator-name> compress
     params:
-      locator-name: *id266
+      locator-name: *id265
     default: By default, the private network routes do not have SIDs.
     source:
       doc: huawei-vrp8-md
@@ -15264,7 +15459,7 @@ cards:
     view: bgp
     undo: undo segment-routing ipv6 locator <locator-name> end-dt46
     params:
-      locator-name: &id267
+      locator-name: &id266
         type: word
     default: By default, public network IPv4 and IPv6 routes do not carry the SID attribute.
     source:
@@ -15279,7 +15474,7 @@ cards:
     view: bgp
     undo: undo segment-routing ipv6 locator <locator-name> compress end-dt46
     params:
-      locator-name: *id267
+      locator-name: *id266
     default: By default, public network IPv4 and IPv6 routes do not carry the SID attribute.
     source:
       doc: huawei-vrp8-md
@@ -15293,7 +15488,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo segment-routing ipv6 locator <locator-name> end-dt46
     params:
-      locator-name: &id268
+      locator-name: &id267
         type: word
     default: By default, VPN IPv4 and IPv6 routes do not carry the SID attribute.
     source:
@@ -15308,7 +15503,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo segment-routing ipv6 locator <locator-name> compress end-dt46
     params:
-      locator-name: *id268
+      locator-name: *id267
     default: By default, VPN IPv4 and IPv6 routes do not carry the SID attribute.
     source:
       doc: huawei-vrp8-md
@@ -15375,7 +15570,7 @@ cards:
     syntax: slow-peer absolute-detection threshold <threshold>
     view: bgp-af-ipv4
     undo: undo slow-peer absolute-detection threshold <threshold>
-    params: &id269
+    params: &id268
       threshold:
         type: integer
         range:
@@ -15393,7 +15588,7 @@ cards:
     syntax: slow-peer absolute-detection threshold <threshold>
     view: bgp
     undo: undo slow-peer absolute-detection threshold <threshold>
-    params: *id269
+    params: *id268
     default: By default, slow peer detection in absolute mode is enabled, and the threshold for slow peer detection in absolute mode is 9s.
     source:
       doc: huawei-vrp8-md
@@ -15502,7 +15697,7 @@ cards:
     syntax: default med <medVal>
     view: bgp-af-ipv4
     undo: undo default med
-    params: &id270
+    params: &id269
       medVal:
         type: integer
         range:
@@ -15520,7 +15715,7 @@ cards:
     syntax: default med <medVal>
     view: bgp-af-vpnv4
     undo: undo default med
-    params: *id270
+    params: *id269
     default: By default, the MED value of an imported route equals the cost of the imported route; the MED value carried in a route learned.
     source:
       doc: huawei-vrp8-md
@@ -15533,7 +15728,7 @@ cards:
     syntax: default med <medVal>
     view: bgp-af-vpn-instance-ipv4
     undo: undo default med
-    params: *id270
+    params: *id269
     default: By default, the MED value of an imported route equals the cost of the imported route; the MED value carried in a route learned.
     source:
       doc: huawei-vrp8-md
@@ -15546,7 +15741,7 @@ cards:
     syntax: slow-peer detection threshold <threshold-value>
     view: bgp-af-ipv4
     undo: undo slow-peer detection [ threshold <threshold-value> ]
-    params: &id271
+    params: &id270
       threshold-value:
         type: integer
         range:
@@ -15564,7 +15759,7 @@ cards:
     syntax: slow-peer detection threshold <threshold-value>
     view: bgp
     undo: undo slow-peer detection [ threshold <threshold-value> ]
-    params: *id271
+    params: *id270
     default: By default, slow peer detection is enabled, and the slow peer detection threshold is 300s.
     source:
       doc: huawei-vrp8-md
@@ -15685,7 +15880,7 @@ cards:
     syntax: slow-peer single-group detection threshold <threshold-value>
     view: bgp-af-vpnv4
     undo: undo slow-peer single-group detection threshold <threshold-value>
-    params: &id272
+    params: &id271
       threshold-value:
         type: integer
         range:
@@ -15703,7 +15898,7 @@ cards:
     syntax: slow-peer single-group detection threshold <threshold-value>
     view: bgp-af-vpn-instance-ipv4
     undo: undo slow-peer single-group detection threshold <threshold-value>
-    params: *id272
+    params: *id271
     default: By default, the absolute threshold for slower peer detection in a slow update peer-group is 300s.
     source:
       doc: huawei-vrp8-md
@@ -15731,15 +15926,15 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.aggregate.1~2
-    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed | attribute-policy <route-policy-name1> | origin-policy <route-policy-name2> | suppress-policy <route-policy-name3> | distribute-delay <delay-time> ]
+    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed | attribute-policy <route-policy-name1> | origin-policy <route-policy-name2> | suppress-policy <route-policy-name3> | distribute-delay <delay-time> ] &<1-9>
     view: bgp-af-ipv4
-    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed | attribute-policy <route-policy-name1> | origin-policy <route-policy-name2> | suppress-policy <route-policy-name3> | distribute-delay <delay-time> ]
+    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed | attribute-policy <route-policy-name1> | origin-policy <route-policy-name2> | suppress-policy <route-policy-name3> | distribute-delay <delay-time> ] &<1-9>
     params:
-      ipv4-address: &id273
+      ipv4-address: &id272
         type: ipv4
-      mask-length: &id274
+      mask-length: &id273
         type: mask-length
-      mask: &id275
+      mask: &id274
         type: mask
       route-policy-name1:
         type: word
@@ -15747,7 +15942,7 @@ cards:
         type: word
       route-policy-name3:
         type: word
-      delay-time: &id276
+      delay-time: &id275
         type: integer
         range:
           - 1
@@ -15761,20 +15956,20 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.aggregate.2~2
-    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> }
+    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> } &<1-9>
     view: bgp-af-ipv4
-    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> }
+    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> } &<1-9>
     params:
-      ipv4-address: *id273
-      mask-length: *id274
-      mask: *id275
-      attr-filter-name: &id277
+      ipv4-address: *id272
+      mask-length: *id273
+      mask: *id274
+      attr-filter-name: &id276
         type: word
-      orig-filter-name: &id278
+      orig-filter-name: &id277
         type: word
-      supp-filter-name: &id279
+      supp-filter-name: &id278
         type: word
-      delay-time: *id276
+      delay-time: *id275
     default: By default, no routes are summarized.
     source:
       doc: huawei-vrp8-md
@@ -15784,17 +15979,17 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.aggregate.3~2
-    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } as-set detail-suppressed { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> }
+    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } as-set detail-suppressed { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> } &<1-9>
     view: bgp-af-ipv4
-    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> }
+    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> } &<1-9>
     params:
-      ipv4-address: *id273
-      mask-length: *id274
-      mask: *id275
-      attr-filter-name: *id277
-      orig-filter-name: *id278
-      supp-filter-name: *id279
-      delay-time: *id276
+      ipv4-address: *id272
+      mask-length: *id273
+      mask: *id274
+      attr-filter-name: *id276
+      orig-filter-name: *id277
+      supp-filter-name: *id278
+      delay-time: *id275
     default: By default, no routes are summarized.
     source:
       doc: huawei-vrp8-md
@@ -15807,7 +16002,7 @@ cards:
     syntax: slow-peer single-group detection threshold <threshold-value>
     view: bgp-af-ipv4
     undo: undo slow-peer single-group detection threshold <threshold-value>
-    params: &id280
+    params: &id279
       threshold-value:
         type: integer
         range:
@@ -15825,7 +16020,7 @@ cards:
     syntax: slow-peer single-group detection threshold <threshold-value>
     view: bgp
     undo: undo slow-peer single-group detection threshold <threshold-value>
-    params: *id280
+    params: *id279
     default: By default, the absolute threshold for slower peer detection in a slow update peer-group is 300s.
     source:
       doc: huawei-vrp8-md
@@ -15838,7 +16033,7 @@ cards:
     syntax: slow-peer single-group number <number-value>
     view: bgp-af-vpnv4
     undo: undo slow-peer single-group number <number-value>
-    params: &id281
+    params: &id280
       number-value:
         type: integer
         range:
@@ -15856,7 +16051,7 @@ cards:
     syntax: slow-peer single-group number <number-value>
     view: bgp-af-vpn-instance-ipv4
     undo: undo slow-peer single-group number <number-value>
-    params: *id281
+    params: *id280
     default: By default, a maximum of five slow BGP peers can be automatically switched to single-peer update peer-groups.
     source:
       doc: huawei-vrp8-md
@@ -15869,7 +16064,7 @@ cards:
     syntax: slow-peer single-group number <number-value>
     view: bgp-af-ipv4
     undo: undo slow-peer single-group number <number-value>
-    params: &id282
+    params: &id281
       number-value:
         type: integer
         range:
@@ -15887,7 +16082,7 @@ cards:
     syntax: slow-peer single-group number <number-value>
     view: bgp
     undo: undo slow-peer single-group number <number-value>
-    params: *id282
+    params: *id281
     default: By default, a maximum of five slow BGP peers can be automatically switched to single-peer update peer-groups.
     source:
       doc: huawei-vrp8-md
@@ -16237,7 +16432,7 @@ cards:
     syntax: unicast-route recursive-lookup tunnel [ tunnel-selector <tunnel-selector-name> ]
     view: bgp-af-ipv4
     undo: undo unicast-route recursive-lookup tunnel [ tunnel-selector <tunnel-selector-name> ]
-    params: &id283
+    params: &id282
       tunnel-selector-name:
         type: word
     default: By default, non-labeled public BGP routes cannot recurse to LSPs.
@@ -16252,7 +16447,7 @@ cards:
     syntax: unicast-route recursive-lookup tunnel [ tunnel-selector <tunnel-selector-name> ]
     view: bgp
     undo: undo unicast-route recursive-lookup tunnel [ tunnel-selector <tunnel-selector-name> ]
-    params: *id283
+    params: *id282
     default: By default, non-labeled public BGP routes cannot recurse to LSPs.
     source:
       doc: huawei-vrp8-md
@@ -16280,7 +16475,7 @@ cards:
     syntax: unicast-route recursive-lookup tunnel-v6 tunnel-selector <tunnel-selector-name>
     view: bgp-af-ipv4
     undo: undo unicast-route recursive-lookup tunnel-v6 tunnel-selector <tunnel-selector-name>
-    params: &id284
+    params: &id283
       tunnel-selector-name:
         type: word
     default: By default, the device can recurse the BGP IPv4 unicast routes received from BGP IPv6 peers to outbound interfaces and next hops, but not to tunnels.
@@ -16295,7 +16490,7 @@ cards:
     syntax: unicast-route recursive-lookup tunnel-v6 tunnel-selector <tunnel-selector-name>
     view: bgp
     undo: undo unicast-route recursive-lookup tunnel-v6 tunnel-selector <tunnel-selector-name>
-    params: *id284
+    params: *id283
     default: By default, the device can recurse the BGP IPv4 unicast routes received from BGP IPv6 peers to outbound interfaces and next hops, but not to tunnels.
     source:
       doc: huawei-vrp8-md
@@ -16332,6 +16527,10 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af:
+        afi: ipv4
+        vrf: $vpn-instance-name
   - id: huawei-vrp8.vrf-route-distribute-disable
     syntax: vrf-route-distribute { vpnv4 | vpnv6 } disable
     view: bgp
@@ -16345,9 +16544,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.whitelist-session-car-bgp
-    syntax: whitelist session-car bgp { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> }
+    syntax: whitelist session-car bgp { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9>
     view: system
-    undo: undo whitelist session-car bgp [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } ]
+    undo: undo whitelist session-car bgp [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9> ]
     params:
       cir-value:
         type: word
@@ -16378,9 +16577,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.whitelist-session-car-bmp
-    syntax: whitelist session-car bmp { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> }
+    syntax: whitelist session-car bmp { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9>
     view: system
-    undo: undo whitelist session-car bmp [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } ]
+    undo: undo whitelist session-car bmp [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9> ]
     params:
       cir-value:
         type: word
@@ -16411,9 +16610,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.whitelist-session-car-rpki
-    syntax: whitelist session-car rpki { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> }
+    syntax: whitelist session-car rpki { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9>
     view: system
-    undo: undo whitelist session-car rpki [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } ]
+    undo: undo whitelist session-car rpki [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9> ]
     params:
       cir-value:
         type: word
@@ -16480,15 +16679,15 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.aggregate.1~3
-    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed | attribute-policy <route-policy-name1> | origin-policy <route-policy-name2> | suppress-policy <route-policy-name3> | distribute-delay <delay-time> ]
+    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed | attribute-policy <route-policy-name1> | origin-policy <route-policy-name2> | suppress-policy <route-policy-name3> | distribute-delay <delay-time> ] &<1-9>
     view: bgp-af-vpn-instance-ipv4
-    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed | attribute-policy <route-policy-name1> | origin-policy <route-policy-name2> | suppress-policy <route-policy-name3> | distribute-delay <delay-time> ]
+    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed | attribute-policy <route-policy-name1> | origin-policy <route-policy-name2> | suppress-policy <route-policy-name3> | distribute-delay <delay-time> ] &<1-9>
     params:
-      ipv4-address: &id285
+      ipv4-address: &id284
         type: ipv4
-      mask-length: &id286
+      mask-length: &id285
         type: mask-length
-      mask: &id287
+      mask: &id286
         type: mask
       route-policy-name1:
         type: word
@@ -16496,7 +16695,7 @@ cards:
         type: word
       route-policy-name3:
         type: word
-      delay-time: &id288
+      delay-time: &id287
         type: integer
         range:
           - 1
@@ -16510,20 +16709,20 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.aggregate.2~3
-    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> }
+    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> } &<1-9>
     view: bgp-af-vpn-instance-ipv4
-    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> }
+    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> } &<1-9>
     params:
-      ipv4-address: *id285
-      mask-length: *id286
-      mask: *id287
-      attr-filter-name: &id289
+      ipv4-address: *id284
+      mask-length: *id285
+      mask: *id286
+      attr-filter-name: &id288
         type: word
-      orig-filter-name: &id290
+      orig-filter-name: &id289
         type: word
-      supp-filter-name: &id291
+      supp-filter-name: &id290
         type: word
-      delay-time: *id288
+      delay-time: *id287
     default: By default, no routes are summarized.
     source:
       doc: huawei-vrp8-md
@@ -16533,17 +16732,17 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.aggregate.3~3
-    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } as-set detail-suppressed { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> }
+    syntax: aggregate <ipv4-address> { <mask-length> | <mask> } as-set detail-suppressed { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> } &<1-9>
     view: bgp-af-vpn-instance-ipv4
-    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> }
+    undo: undo aggregate <ipv4-address> { <mask-length> | <mask> } [ as-set | detail-suppressed ] { attribute-filter <attr-filter-name> | origin-filter <orig-filter-name> | suppress-filter <supp-filter-name> | distribute-delay <delay-time> } &<1-9>
     params:
-      ipv4-address: *id285
-      mask-length: *id286
-      mask: *id287
-      attr-filter-name: *id289
-      orig-filter-name: *id290
-      supp-filter-name: *id291
-      delay-time: *id288
+      ipv4-address: *id284
+      mask-length: *id285
+      mask: *id286
+      attr-filter-name: *id288
+      orig-filter-name: *id289
+      supp-filter-name: *id290
+      delay-time: *id287
     default: By default, no routes are summarized.
     source:
       doc: huawei-vrp8-md
@@ -16556,7 +16755,7 @@ cards:
     syntax: aggregate default-route origin-ip-prefix <ip-prefix-name> [ attribute-policy <attribute-policy-name> ]
     view: bgp-af-ipv4
     undo: undo aggregate default-route origin-ip-prefix <ip-prefix-name> [ attribute-policy <attribute-policy-name> ]
-    params: &id292
+    params: &id291
       ip-prefix-name:
         type: word
       attribute-policy-name:
@@ -16573,7 +16772,7 @@ cards:
     syntax: aggregate default-route origin-ip-prefix <ip-prefix-name> [ attribute-policy <attribute-policy-name> ]
     view: bgp
     undo: undo aggregate default-route origin-ip-prefix <ip-prefix-name> [ attribute-policy <attribute-policy-name> ]
-    params: *id292
+    params: *id291
     default: By default, BGP cannot summarize the routes that match a specified IPv4 prefix list into a summary default route.
     source:
       doc: huawei-vrp8-md
@@ -16627,7 +16826,7 @@ cards:
     syntax: arp vlink-direct-route advertise [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
     view: vpn-instance-af-ipv4
     undo: undo arp vlink-direct-route advertise
-    params: &id293
+    params: &id292
       route-policy-name:
         type: word
       route-filter-name:
@@ -16644,7 +16843,7 @@ cards:
     syntax: arp vlink-direct-route advertise [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
     view: vpn-instance
     undo: undo arp vlink-direct-route advertise
-    params: *id293
+    params: *id292
     default: By default, ARP Vlink direct routes are not advertised in a VPN.
     source:
       doc: huawei-vrp8-md
@@ -16862,7 +17061,7 @@ cards:
     view: bgp
     undo: undo egress-engineering peer-set <peer-set-name>
     params:
-      peer-set-name: &id294
+      peer-set-name: &id293
         type: word
     default: By default, no BGP peer set is created.
     source:
@@ -16877,7 +17076,7 @@ cards:
     view: bgp
     undo: undo egress-engineering peer-set <peer-set-name> label <static-label>
     params:
-      peer-set-name: *id294
+      peer-set-name: *id293
       static-label:
         type: integer
         range:
@@ -16911,9 +17110,9 @@ cards:
     view: bgp
     undo: undo egress-engineering srv6 peer-set <peer-set-name> static-sid { no-flavor | psp | psp-usp-usd | usp-usd } <sid-value>
     params:
-      peer-set-name: &id295
+      peer-set-name: &id294
         type: word
-      sid-value: &id296
+      sid-value: &id295
         type: word
     default: By default, no static End.
     source:
@@ -16928,8 +17127,8 @@ cards:
     view: bgp
     undo: undo egress-engineering srv6 peer-set <peer-set-name> static-sid { no-flavor | psp | psp-usp-usd | psp-usp-usd-coc | coc | psp-coc | psp-usp-usd-coc-next | psp-usd-next | usp-usd } compress <sid-value>
     params:
-      peer-set-name: *id295
-      sid-value: *id296
+      peer-set-name: *id294
+      sid-value: *id295
     default: By default, no static End.
     source:
       doc: huawei-vrp8-md
@@ -16943,8 +17142,8 @@ cards:
     view: bgp
     undo: undo egress-engineering srv6 peer-set <peer-set-name> static-sid { no-flavor | psp | psp-usp-usd | usp-usd } <sid-value>
     params:
-      peer-set-name: *id295
-      sid-value: *id296
+      peer-set-name: *id294
+      sid-value: *id295
     default: By default, no static End.
     source:
       doc: huawei-vrp8-md
@@ -17192,7 +17391,7 @@ cards:
     view: bgp
     undo: undo group <group-name>
     params:
-      group-name: &id297
+      group-name: &id296
         type: word
     default: By default, no peer group is created.
     source:
@@ -17202,12 +17401,15 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer_group: $group-name
+      bgp.peer_group.type: kw:internal|external
   - id: huawei-vrp8.group.2
     syntax: group <group-name>
     view: bgp
     undo: undo group <group-name>
     params:
-      group-name: *id297
+      group-name: *id296
     default: By default, no peer group is created.
     source:
       doc: huawei-vrp8-md
@@ -17221,7 +17423,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo group <group-name>
     params:
-      group-name: &id298
+      group-name: &id297
         type: word
     default: By default, no peer group is created.
     source:
@@ -17236,7 +17438,7 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo group <group-name>
     params:
-      group-name: *id298
+      group-name: *id297
     default: By default, no peer group is created.
     source:
       doc: huawei-vrp8-md
@@ -17262,7 +17464,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo group <group-name> [ internal | external ]
     params:
-      group-name: &id299
+      group-name: &id298
         type: word
     default: By default, no peer group is created.
     source:
@@ -17277,7 +17479,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo group <group-name> [ internal | external ]
     params:
-      group-name: *id299
+      group-name: *id298
     default: By default, no peer group is created.
     source:
       doc: huawei-vrp8-md
@@ -17291,7 +17493,7 @@ cards:
     view: bgp
     undo: undo group <group-name> listen [ internal | external | confederation-external ]
     params:
-      group-name: &id300
+      group-name: &id299
         type: word
     default: By default, no dynamic BGP peer groups are created.
     source:
@@ -17306,7 +17508,7 @@ cards:
     view: bgp
     undo: undo group <group-name> listen [ internal | external | confederation-external ]
     params:
-      group-name: *id300
+      group-name: *id299
     default: By default, no dynamic BGP peer groups are created.
     source:
       doc: huawei-vrp8-md
@@ -17320,7 +17522,7 @@ cards:
     view: bgp
     undo: undo group <group-name> listen ipv6 [ internal | external | confederation-external ]
     params:
-      group-name: *id300
+      group-name: *id299
     default: By default, no dynamic BGP peer groups are created.
     source:
       doc: huawei-vrp8-md
@@ -17334,7 +17536,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo group <group-name> listen [ internal | external ]
     params:
-      group-name: &id301
+      group-name: &id300
         type: word
     default: By default, no dynamic BGP peer groups are created.
     source:
@@ -17349,7 +17551,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo group <group-name> listen [ internal | external ]
     params:
-      group-name: *id301
+      group-name: *id300
     default: By default, no dynamic BGP peer groups are created.
     source:
       doc: huawei-vrp8-md
@@ -17363,7 +17565,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo group <group-name> listen ipv6 [ internal | external ]
     params:
-      group-name: *id301
+      group-name: *id300
     default: By default, no dynamic BGP peer groups are created.
     source:
       doc: huawei-vrp8-md
@@ -17377,7 +17579,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo group <peerGroupName> unnumbered [ internal | external ]
     params:
-      peerGroupName: &id302
+      peerGroupName: &id301
         type: word
     default: By default, no unnumbered peer group is created.
     source:
@@ -17392,7 +17594,7 @@ cards:
     view: bgp-vpn-instance
     undo: undo group <peerGroupName> unnumbered [ internal | external ]
     params:
-      peerGroupName: *id302
+      peerGroupName: *id301
     default: By default, no unnumbered peer group is created.
     source:
       doc: huawei-vrp8-md
@@ -17405,12 +17607,12 @@ cards:
     syntax: import-rib vpn-instance <vpn-instance-name> [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
     view: bgp-af-ipv4
     undo: undo import-rib vpn-instance <vpn-instance-name> [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
-    params: &id303
-      vpn-instance-name: &id304
+    params: &id302
+      vpn-instance-name: &id303
         type: word
-      route-policy-name: &id305
+      route-policy-name: &id304
         type: word
-      route-filter-name: &id306
+      route-filter-name: &id305
         type: word
     default: By default, a device does not import public network BGP routes or BGP routes in a VPN instance into the public network BGP routing table.
     source:
@@ -17424,7 +17626,7 @@ cards:
     syntax: import-rib vpn-instance <vpn-instance-name> [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
     view: bgp
     undo: undo import-rib vpn-instance <vpn-instance-name> [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
-    params: *id303
+    params: *id302
     default: By default, a device does not import public network BGP routes or BGP routes in a VPN instance into the public network BGP routing table.
     source:
       doc: huawei-vrp8-md
@@ -17437,10 +17639,10 @@ cards:
     syntax: import-rib { public | vpn-instance <vpn-instance-name> } labeled-unicast [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
     view: bgp-af-ipv4
     undo: undo import-rib { public | vpn-instance <vpn-instance-name> } labeled-unicast [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
-    params: &id307
-      vpn-instance-name: *id304
-      route-policy-name: *id305
-      route-filter-name: *id306
+    params: &id306
+      vpn-instance-name: *id303
+      route-policy-name: *id304
+      route-filter-name: *id305
     default: By default, a device does not import public network BGP routes or BGP routes in a VPN instance into the public network BGP routing table.
     source:
       doc: huawei-vrp8-md
@@ -17453,7 +17655,7 @@ cards:
     syntax: import-rib { public | vpn-instance <vpn-instance-name> } labeled-unicast [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
     view: bgp
     undo: undo import-rib { public | vpn-instance <vpn-instance-name> } labeled-unicast [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
-    params: *id307
+    params: *id306
     default: By default, a device does not import public network BGP routes or BGP routes in a VPN instance into the public network BGP routing table.
     source:
       doc: huawei-vrp8-md
@@ -17479,11 +17681,11 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo import-rib { public | vpn-instance <vpn-instance-name> } [ include-label-route ] [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
     params:
-      vpn-instance-name: &id308
+      vpn-instance-name: &id307
         type: word
-      route-policy-name: &id309
+      route-policy-name: &id308
         type: word
-      route-filter-name: &id310
+      route-filter-name: &id309
         type: word
     default: By default, a device does not import public network BGP routes or BGP routes in a VPN instance into a BGP-VPN instance routing table.
     source:
@@ -17498,9 +17700,9 @@ cards:
     view: bgp-af-vpn-instance-ipv4
     undo: undo import-rib { public | vpn-instance <vpn-instance-name> } labeled-unicast [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
     params:
-      vpn-instance-name: *id308
-      route-policy-name: *id309
-      route-filter-name: *id310
+      vpn-instance-name: *id307
+      route-policy-name: *id308
+      route-filter-name: *id309
     default: By default, a device does not import public network BGP routes or BGP routes in a VPN instance into a BGP-VPN instance routing table.
     source:
       doc: huawei-vrp8-md
@@ -17552,18 +17754,18 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.import-route.1
-    syntax: import-route { direct | static | unr } [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ]
+    syntax: import-route { direct | static | unr } [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ] &<1-9>
     view: bgp
     undo: undo import-route { direct | static | unr }
     params:
-      med:
+      med: &id310
         type: integer
         range:
           - 0
           - 4294967295
-      route-policy-name:
+      route-policy-name: &id311
         type: word
-      route-filter-name:
+      route-filter-name: &id312
         type: word
     default: By default, BGP does not import routes from other protocols.
     source:
@@ -17574,23 +17776,23 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.import-route.1~2
-    syntax: import-route { ospf | isis | rip } <process-id> [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ]
+    syntax: import-route { ospf | isis | rip } <process-id> [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ] &<1-9>
     view: bgp-af-ipv4
     undo: undo import-route { ospf | isis | rip } <process-id>
     params:
-      process-id:
+      process-id: &id410
         type: integer
         range:
           - 1
           - 4294967295
-      med:
+      med: &id411
         type: integer
         range:
           - 0
           - 4294967295
-      route-policy-name:
+      route-policy-name: &id412
         type: word
-      route-filter-name:
+      route-filter-name: &id413
         type: word
     default: By default, BGP does not import routes from other protocols.
     source:
@@ -17601,18 +17803,18 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.import-route.1~3
-    syntax: import-route { direct | static | unr } [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ]
+    syntax: import-route { direct | static | unr } [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ] &<1-9>
     view: bgp-af-ipv4
     undo: undo import-route { direct | static | unr }
     params:
-      med:
+      med: &id414
         type: integer
         range:
           - 0
           - 4294967295
-      route-policy-name:
+      route-policy-name: &id415
         type: word
-      route-filter-name:
+      route-filter-name: &id416
         type: word
     default: By default, BGP does not import routes from other protocols.
     source:
@@ -17622,10 +17824,14 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.redistribute: kw:direct=connected|static|unr
+      bgp.af.redistribute.policy: $route-policy-name
+      bgp.af.redistribute.metric: $med
   - id: huawei-vrp8.import-route
-    syntax: import-route { unr | { ospf | isis | rip } <process-id> } [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ]
-    view: bgp-af-vpn-instance-ipv4
-    undo: undo import-route { unr | { ospf | isis | rip } <process-id> }
+    syntax: import-route { rip | isis | ospf } <process-id> [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ] &<1-9> [ non-relay-tunnel ]
+    view: bgp
+    undo: undo import-route { rip | isis | ospf } <process-id>
     params:
       process-id:
         type: integer
@@ -17644,24 +17850,24 @@ cards:
     default: By default, BGP does not import routes from other protocols.
     source:
       doc: huawei-vrp8-md
-      file: 09_IP Routing Commands/01_BGP Configuration Commands/585_import-route (BGP-VPN instance IPv4 address family view).md
-      title: import-route (BGP-VPN instance IPv4 address family view)
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/580_import-route (BGP view).md
+      title: import-route (BGP view)
       line: 3
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.import-route.1~4
-    syntax: import-route { static | direct | unr } [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ]
+    syntax: import-route { static | direct | unr } [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ] &<1-9>
     view: bgp-af-vpn-instance-ipv4
     undo: undo import-route { static | direct | unr }
     params:
-      med: &id311
+      med: &id417
         type: integer
         range:
           - 0
           - 4294967295
-      route-policy-name: &id312
+      route-policy-name: &id418
         type: word
-      route-filter-name: &id313
+      route-filter-name: &id419
         type: word
     default: By default, BGP does not import routes from other protocols.
     source:
@@ -17671,19 +17877,23 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.redistribute: kw:direct=connected|static|unr
+      bgp.af.redistribute.policy: $route-policy-name
+      bgp.af.redistribute.metric: $med
   - id: huawei-vrp8.import-route.2
-    syntax: import-route direct exclude vlink [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ]
-    view: bgp-af-vpn-instance-ipv4
-    undo: undo import-route { static | direct | unr }
+    syntax: import-route { direct | static } [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ] &<1-9> [ non-relay-tunnel ]
+    view: bgp
+    undo: undo import-route { direct | static | unr }
     params:
-      med: *id311
-      route-policy-name: *id312
-      route-filter-name: *id313
+      med: *id310
+      route-policy-name: *id311
+      route-filter-name: *id312
     default: By default, BGP does not import routes from other protocols.
     source:
       doc: huawei-vrp8-md
-      file: 09_IP Routing Commands/01_BGP Configuration Commands/586_import-route (BGP-VPN instance IPv4 address family view) (Non-IGP).md
-      title: import-route (BGP-VPN instance IPv4 address family view) (Non-IGP)
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/581_import-route (BGP view) (Non-IGP).md
+      title: import-route (BGP view) (Non-IGP)
       line: 3
       version: V800R025C00SPC500
     status: draft
@@ -17703,7 +17913,7 @@ cards:
     syntax: ingress-lsp trigger route-policy <route-policy-name>
     view: bgp-af-ipv4
     undo: undo ingress-lsp trigger
-    params: &id314
+    params: &id313
       route-policy-name:
         type: word
     default: By default, ingress LSPs are created based on all received BGP labeled routes.
@@ -17718,7 +17928,7 @@ cards:
     syntax: ingress-lsp trigger route-policy <route-policy-name>
     view: bgp
     undo: undo ingress-lsp trigger
-    params: *id314
+    params: *id313
     default: By default, ingress LSPs are created based on all received BGP labeled routes.
     source:
       doc: huawei-vrp8-md
@@ -17731,7 +17941,7 @@ cards:
     syntax: ingress-lsp trigger route-filter <route-filter-name>
     view: bgp-af-ipv4
     undo: undo ingress-lsp trigger route-filter <route-filter-name>
-    params: &id315
+    params: &id314
       route-filter-name:
         type: word
     default: By default, ingress LSPs are created based on all received BGP labeled routes.
@@ -17746,7 +17956,7 @@ cards:
     syntax: ingress-lsp trigger route-filter <route-filter-name>
     view: bgp
     undo: undo ingress-lsp trigger route-filter <route-filter-name>
-    params: *id315
+    params: *id314
     default: By default, ingress LSPs are created based on all received BGP labeled routes.
     source:
       doc: huawei-vrp8-md
@@ -17857,6 +18067,10 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af:
+        afi: ipv4
+        vrf: ''
   - id: huawei-vrp8.ipv4-family-vpn-instance
     syntax: ipv4-family vpn-instance <vpn-instance-name>
     view: bgp
@@ -17873,6 +18087,10 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af:
+        afi: ipv4
+        vrf: $vpn-instance-name
   - id: huawei-vrp8.ipv4-family-vpn-target
     syntax: ipv4-family vpn-target
     view: bgp
@@ -17898,6 +18116,10 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af: &id315
+        afi: vpnv4
+        vrf: ''
   - id: huawei-vrp8.ipv4-family-vpnv4.2
     syntax: ipv4-family vpnv4 unicast
     view: bgp
@@ -17911,6 +18133,8 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af: *id315
   - id: huawei-vrp8.ipv4-family-vpnv4-multicast
     syntax: ipv4-family vpnv4-multicast
     view: bgp
@@ -18717,9 +18941,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.micro-isolation-protocol-car-bgp
-    syntax: micro-isolation protocol-car bgp { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> }
+    syntax: micro-isolation protocol-car bgp { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9>
     view: system
-    undo: undo micro-isolation protocol-car bgp [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } ]
+    undo: undo micro-isolation protocol-car bgp [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9> ]
     params:
       cir-value:
         type: word
@@ -18809,6 +19033,10 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.network: fmt:{ipv4-address}/{mask|mask-length}
+      bgp.af.network.prefix: fmt:{ipv4-address}/{mask|mask-length}
+      bgp.af.network.policy: $route-policy-name
   - id: huawei-vrp8.network.1@bgp
     syntax: network { <ipv4-address> [ <mask> | <mask-length> ] } [ route-policy <route-policy-name> ] [ non-relay-tunnel ]
     view: bgp
@@ -18840,6 +19068,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.network: fmt:{ipv4-address}/{mask|mask-length}
+      bgp.af.network.prefix: fmt:{ipv4-address}/{mask|mask-length}
   - id: huawei-vrp8.network.2@bgp
     syntax: network { <ipv4-address> [ <mask> | <mask-length> ] } route-filter <route-filter-name> [ non-relay-tunnel ]
     view: bgp
@@ -18875,6 +19106,10 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.network: fmt:{ipv4-address}/{mask|mask-length}
+      bgp.af.network.prefix: fmt:{ipv4-address}/{mask|mask-length}
+      bgp.af.network.policy: $route-policy-name
   - id: huawei-vrp8.network.3@bgp
     syntax: network { <ipv4-address> [ <mask> | <mask-length> ] } [ route-policy <route-policy-name> ] [ non-relay-tunnel ] label-index <label-index-value>
     view: bgp
@@ -18906,6 +19141,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.network: fmt:{ipv4-address}/{mask|mask-length}
+      bgp.af.network.prefix: fmt:{ipv4-address}/{mask|mask-length}
   - id: huawei-vrp8.network.4@bgp
     syntax: network { <ipv4-address> [ <mask> | <mask-length> ] } route-filter <route-filter-name> [ non-relay-tunnel ] label-index <label-index-value>
     view: bgp
@@ -18940,6 +19178,10 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.network: fmt:{ipv4-address}/{mask|mask-length}
+      bgp.af.network.prefix: fmt:{ipv4-address}/{mask|mask-length}
+      bgp.af.network.policy: $route-policy-name
   - id: huawei-vrp8.network.2
     syntax: network { <ipv4-address> [ <mask> | <mask-length> ] } route-filter <route-filter-name>
     view: bgp-af-vpn-instance-ipv4
@@ -18958,22 +19200,25 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.network: fmt:{ipv4-address}/{mask|mask-length}
+      bgp.af.network.prefix: fmt:{ipv4-address}/{mask|mask-length}
   - id: huawei-vrp8.nexthop-recursive-lookup-bit-error-detection.2
-    syntax: nexthop recursive-lookup bit-error-detection { med + <med-adjust-value> | local-preference - <localpref-adjust-value> } <route-filter> route-filter-name
+    syntax: nexthop recursive-lookup bit-error-detection { med + <med-adjust-value> | local-preference - <localpref-adjust-value> } &<1-9> route-filter <route-filter-name>
     view: bgp-af-vpnv4
     undo: undo nexthop recursive-lookup bit-error-detection
     params:
-      med-adjust-value:
+      med-adjust-value: &id420
         type: integer
         range:
           - 1
           - 4294967295
-      localpref-adjust-value:
+      localpref-adjust-value: &id421
         type: integer
         range:
           - 1
           - 4294967295
-      route-filter:
+      route-filter-name:
         type: word
     default: By default, bit error events are not associated with the adjustment of VPN route local preference or MED values.
     source:
@@ -20470,6 +20715,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.send_community: standard
   - id: huawei-vrp8.peer-advertise-community@bgp-af-vpnv4
     syntax: peer <peerGroupName> advertise-community
     view: bgp-af-vpnv4
@@ -20483,6 +20731,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.send_community: standard
   - id: huawei-vrp8.peer-advertise-community@bgp-af-vpn-instance-ipv4
     syntax: peer <peerGroupName> advertise-community
     view: bgp-af-vpn-instance-ipv4
@@ -20496,6 +20747,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.send_community: standard
   - id: huawei-vrp8.peer-advertise-community@bgp-af-ipv4~2
     syntax: peer <ipv4-address> advertise-community
     view: bgp-af-ipv4
@@ -20511,6 +20765,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.send_community: standard
   - id: huawei-vrp8.peer-advertise-community@bgp-af-vpnv4~2
     syntax: peer <ipv4-address> advertise-community
     view: bgp-af-vpnv4
@@ -20524,6 +20781,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.send_community: standard
   - id: huawei-vrp8.peer-advertise-community@bgp-af-vpn-instance-ipv4~2
     syntax: peer <ipv4-address> advertise-community
     view: bgp-af-vpn-instance-ipv4
@@ -20537,6 +20797,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.send_community: standard
   - id: huawei-vrp8.peer-advertise-community@bgp-af-ipv4~3
     syntax: peer <peerIpv6Addr> advertise-community
     view: bgp-af-ipv4
@@ -20552,6 +20815,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.send_community: standard
   - id: huawei-vrp8.peer-advertise-community@bgp-af-vpnv4~3
     syntax: peer <peerIpv6Addr> advertise-community
     view: bgp-af-vpnv4
@@ -20565,6 +20831,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.send_community: standard
   - id: huawei-vrp8.peer-advertise-entropy-label.1
     syntax: peer <peerIpv4Addr> advertise-entropy-label elc [ padding <paddingValue> ]
     view: bgp-af-ipv4
@@ -21279,6 +21548,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.remote_as | bgp.peer_group.remote_as: $as-number
   - id: huawei-vrp8.peer-as-number~2
     syntax: peer <group-name> as-number <as-number>
     view: bgp
@@ -21296,6 +21568,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.remote_as | bgp.peer_group.remote_as: $as-number
   - id: huawei-vrp8.peer-as-number~3
     syntax: peer <ipv6-address> as-number <as-number>
     view: bgp
@@ -21313,6 +21588,9 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.peer.remote_as | bgp.peer_group.remote_as: $as-number
   - id: huawei-vrp8.peer-as-number~4
     syntax: peer <ipv4-address> as-number <as-number>
     view: bgp-af-vpn-instance-ipv4
@@ -21948,9 +22226,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-bfd
-    syntax: peer <ipv4-address> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> }
+    syntax: peer <ipv4-address> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> } &<1-9>
     view: bgp
-    undo: undo peer <ipv4-address> bfd { min-tx-interval | min-rx-interval | detect-multiplier }
+    undo: undo peer <ipv4-address> bfd { min-tx-interval | min-rx-interval | detect-multiplier } &<1-9>
     params:
       ipv4-address:
         type: ipv4
@@ -21977,9 +22255,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-bfd~2
-    syntax: peer <group-name> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> }
+    syntax: peer <group-name> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> } &<1-9>
     view: bgp
-    undo: undo peer <group-name> bfd { min-tx-interval | min-rx-interval | detect-multiplier }
+    undo: undo peer <group-name> bfd { min-tx-interval | min-rx-interval | detect-multiplier } &<1-9>
     params:
       group-name:
         type: word
@@ -22004,9 +22282,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-bfd~3
-    syntax: peer <ipv6-address> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> }
+    syntax: peer <ipv6-address> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> } &<1-9>
     view: bgp
-    undo: undo peer <ipv6-address> bfd { min-tx-interval | min-rx-interval | detect-multiplier }
+    undo: undo peer <ipv6-address> bfd { min-tx-interval | min-rx-interval | detect-multiplier } &<1-9>
     params:
       ipv6-address:
         type: word
@@ -22033,9 +22311,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-bfd~4
-    syntax: peer <ipv4-address> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> }
+    syntax: peer <ipv4-address> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> } &<1-9>
     view: bgp-af-vpn-instance-ipv4
-    undo: undo peer <ipv4-address> bfd { min-tx-interval | min-rx-interval | detect-multiplier }
+    undo: undo peer <ipv4-address> bfd { min-tx-interval | min-rx-interval | detect-multiplier } &<1-9>
     params:
       ipv4-address:
         type: ipv4
@@ -22062,9 +22340,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-bfd~5
-    syntax: peer <group-name> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> }
+    syntax: peer <group-name> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> } &<1-9>
     view: bgp-af-vpn-instance-ipv4
-    undo: undo peer <group-name> bfd { min-tx-interval | min-rx-interval | detect-multiplier }
+    undo: undo peer <group-name> bfd { min-tx-interval | min-rx-interval | detect-multiplier } &<1-9>
     params:
       group-name:
         type: word
@@ -22091,9 +22369,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-bfd.1
-    syntax: peer <ipv4-address> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> }
+    syntax: peer <ipv4-address> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> } &<1-9>
     view: bgp-vpn-instance
-    undo: undo peer <ipv4-address> bfd { min-tx-interval | min-rx-interval | detect-multiplier }
+    undo: undo peer <ipv4-address> bfd { min-tx-interval | min-rx-interval | detect-multiplier } &<1-9>
     params:
       ipv4-address:
         type: ipv4
@@ -22121,9 +22399,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-bfd.2
-    syntax: peer <ipv6-address> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> }
+    syntax: peer <ipv6-address> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> } &<1-9>
     view: bgp-vpn-instance
-    undo: undo peer <ipv4-address> bfd { min-tx-interval | min-rx-interval | detect-multiplier }
+    undo: undo peer <ipv4-address> bfd { min-tx-interval | min-rx-interval | detect-multiplier } &<1-9>
     params:
       ipv6-address:
         type: word
@@ -22139,9 +22417,9 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.peer-bfd~6
-    syntax: peer <group-name> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> }
+    syntax: peer <group-name> bfd { min-tx-interval <min-tx-interval> | min-rx-interval <min-rx-interval> | detect-multiplier <multiplier> } &<1-9>
     view: bgp-vpn-instance
-    undo: undo peer <group-name> bfd { min-tx-interval | min-rx-interval | detect-multiplier }
+    undo: undo peer <group-name> bfd { min-tx-interval | min-rx-interval | detect-multiplier } &<1-9>
     params:
       group-name:
         type: word
@@ -22327,6 +22605,377 @@ cards:
       doc: huawei-vrp8-md
       file: 09_IP Routing Commands/01_BGP Configuration Commands/99_bestroute best-external (BGP-VPNv4 address family view).md
       title: bestroute best-external (BGP-VPNv4 address family view)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening.1
+    syntax: dampening [ <half-life-reach> <reuse> <suppress> <ceiling> | [ route-policy <route-policy-name> | route-filter <route-filter-name> ] ] &<1-9> [ update-standard ]
+    view: bgp
+    undo: undo dampening
+    params:
+      half-life-reach: &id392
+        type: integer
+        range:
+          - 1
+          - 45
+      reuse: &id393
+        type: integer
+        range:
+          - 1
+          - 20000
+      suppress: &id394
+        type: integer
+        range:
+          - 1
+          - 20000
+      ceiling: &id395
+        type: integer
+        range:
+          - 1001
+          - 20000
+      route-policy-name: &id396
+        type: word
+      route-filter-name: &id397
+        type: word
+    default: By default, BGP route flapping suppression is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/224_dampening (BGP view).md
+      title: dampening (BGP view)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening.2
+    syntax: dampening ibgp [ <half-life-reach> <reuse> <suppress> <ceiling> | [ route-policy <route-policy-name> | route-filter <route-filter-name> ] ] &<1-9> [ update-standard ]
+    view: bgp
+    undo: undo dampening ibgp
+    params:
+      half-life-reach: *id392
+      reuse: *id393
+      suppress: *id394
+      ceiling: *id395
+      route-policy-name: *id396
+      route-filter-name: *id397
+    default: By default, BGP route flapping suppression is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/224_dampening (BGP view).md
+      title: dampening (BGP view)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening.1~2
+    syntax: dampening [ <half-life-reach> <reuse> <suppress> <ceiling> | [ route-policy <route-policy-name> | route-filter <route-filter-name> ] ] &<1-9> [ update-standard ]
+    view: bgp-af-ipv4
+    undo: undo dampening
+    params:
+      half-life-reach: &id398
+        type: integer
+        range:
+          - 1
+          - 45
+      reuse: &id399
+        type: integer
+        range:
+          - 1
+          - 20000
+      suppress: &id400
+        type: integer
+        range:
+          - 1
+          - 20000
+      ceiling: &id401
+        type: integer
+        range:
+          - 1001
+          - 20000
+      route-policy-name: &id402
+        type: word
+      route-filter-name: &id403
+        type: word
+    default: By default, BGP route flapping suppression is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/225_dampening (BGP-IPv4 unicast address family view).md
+      title: dampening (BGP-IPv4 unicast address family view)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening.2~2
+    syntax: dampening ibgp [ <half-life-reach> <reuse> <suppress> <ceiling> | [ route-policy <route-policy-name> | route-filter <route-filter-name> ] ] &<1-9> [ update-standard ]
+    view: bgp-af-ipv4
+    undo: undo dampening ibgp
+    params:
+      half-life-reach: *id398
+      reuse: *id399
+      suppress: *id400
+      ceiling: *id401
+      route-policy-name: *id402
+      route-filter-name: *id403
+    default: By default, BGP route flapping suppression is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/225_dampening (BGP-IPv4 unicast address family view).md
+      title: dampening (BGP-IPv4 unicast address family view)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening.1~3
+    syntax: dampening [ <half-life-reach> <reuse> <suppress> <ceiling> | [ route-policy <route-policy-name> | route-filter <route-filter-name> ] ] &<1-9> [ update-standard ]
+    view: bgp-af-vpn-instance-ipv4
+    undo: undo dampening
+    params:
+      half-life-reach: &id404
+        type: integer
+        range:
+          - 1
+          - 45
+      reuse: &id405
+        type: integer
+        range:
+          - 1
+          - 20000
+      suppress: &id406
+        type: integer
+        range:
+          - 1
+          - 20000
+      ceiling: &id407
+        type: integer
+        range:
+          - 1001
+          - 20000
+      route-policy-name: &id408
+        type: word
+      route-filter-name: &id409
+        type: word
+    default: By default, BGP route flapping suppression is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/227_dampening (BGP-VPN instance IPv4 address family view).md
+      title: dampening (BGP-VPN instance IPv4 address family view)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening.2~3
+    syntax: dampening ibgp [ <half-life-reach> <reuse> <suppress> <ceiling> | [ route-policy <route-policy-name> | route-filter <route-filter-name> ] ] &<1-9> [ update-standard ]
+    view: bgp-af-vpn-instance-ipv4
+    undo: undo dampening ibgp
+    params:
+      half-life-reach: *id404
+      reuse: *id405
+      suppress: *id406
+      ceiling: *id407
+      route-policy-name: *id408
+      route-filter-name: *id409
+    default: By default, BGP route flapping suppression is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/227_dampening (BGP-VPN instance IPv4 address family view).md
+      title: dampening (BGP-VPN instance IPv4 address family view)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening
+    syntax: dampening [ <half-life-reach> <reuse> <suppress> <ceiling> | [ route-policy <route-policy-name> | route-filter <route-filter-name> ] ] &<1-9> [ update-standard ]
+    view: bgp-af-vpnv4
+    undo: undo dampening
+    params:
+      half-life-reach:
+        type: integer
+        range:
+          - 1
+          - 45
+      reuse:
+        type: integer
+        range:
+          - 1
+          - 20000
+      suppress:
+        type: integer
+        range:
+          - 1
+          - 20000
+      ceiling:
+        type: integer
+        range:
+          - 1001
+          - 20000
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, BGP route flapping suppression is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/229_dampening (BGP-VPNv4 address family view).md
+      title: dampening (BGP-VPNv4 address family view)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening-ibgp
+    syntax: dampening ibgp [ <half-life-reach> <reuse> <suppress> <ceiling> | [ route-policy <route-policy-name> | route-filter <route-filter-name> ] ] &<1-9> [ update-standard ]
+    view: bgp-af-vpnv4
+    undo: undo dampening ibgp
+    params:
+      half-life-reach:
+        type: integer
+        range:
+          - 1
+          - 45
+      reuse:
+        type: integer
+        range:
+          - 1
+          - 20000
+      suppress:
+        type: integer
+        range:
+          - 1
+          - 20000
+      ceiling:
+        type: integer
+        range:
+          - 1001
+          - 20000
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, BGP route dampening is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/231_dampening ibgp (BGP-VPNv4 address family view).md
+      title: dampening ibgp (BGP-VPNv4 address family view)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route.3
+    syntax: import-route direct exclude vlink [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ] &<1-9> [ non-relay-tunnel ]
+    view: bgp
+    undo: undo import-route { direct | static | unr }
+    params:
+      med: *id310
+      route-policy-name: *id311
+      route-filter-name: *id312
+    default: By default, BGP does not import routes from other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/581_import-route (BGP view) (Non-IGP).md
+      title: import-route (BGP view) (Non-IGP)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route.2~2
+    syntax: import-route { ospf | isis | rip } <process-id> [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ] &<1-9> [ non-relay-tunnel ]
+    view: bgp-af-ipv4
+    undo: undo import-route { ospf | isis | rip } <process-id>
+    params:
+      process-id: *id410
+      med: *id411
+      route-policy-name: *id412
+      route-filter-name: *id413
+    default: By default, BGP does not import routes from other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/582_import-route (BGP-IPv4 unicast address family view).md
+      title: import-route (BGP-IPv4 unicast address family view)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route.2~3
+    syntax: import-route { direct | static } [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ] &<1-9> [ non-relay-tunnel ]
+    view: bgp-af-ipv4
+    undo: undo import-route { direct | static | unr }
+    params:
+      med: *id414
+      route-policy-name: *id415
+      route-filter-name: *id416
+    default: By default, BGP does not import routes from other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/583_import-route (BGP-IPv4 unicast address family view) (Non-IGP).md
+      title: import-route (BGP-IPv4 unicast address family view) (Non-IGP)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.redistribute: kw:direct=connected|static|unr
+      bgp.af.redistribute.policy: $route-policy-name
+      bgp.af.redistribute.metric: $med
+  - id: huawei-vrp8.import-route.3~2
+    syntax: import-route direct exclude vlink [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ] &<1-9> [ non-relay-tunnel ]
+    view: bgp-af-ipv4
+    undo: undo import-route { direct | static | unr }
+    params:
+      med: *id414
+      route-policy-name: *id415
+      route-filter-name: *id416
+    default: By default, BGP does not import routes from other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/583_import-route (BGP-IPv4 unicast address family view) (Non-IGP).md
+      title: import-route (BGP-IPv4 unicast address family view) (Non-IGP)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route~2
+    syntax: import-route { unr | { ospf | isis | rip } <process-id> } [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ] &<1-9>
+    view: bgp-af-vpn-instance-ipv4
+    undo: undo import-route { unr | { ospf | isis | rip } <process-id> }
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      med:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, BGP does not import routes from other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/585_import-route (BGP-VPN instance IPv4 address family view).md
+      title: import-route (BGP-VPN instance IPv4 address family view)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route.2~4
+    syntax: import-route direct exclude vlink [ [ med <med> ] | [ [ route-policy <route-policy-name> ] | [ route-filter <route-filter-name> ] ] ] &<1-9>
+    view: bgp-af-vpn-instance-ipv4
+    undo: undo import-route { static | direct | unr }
+    params:
+      med: *id417
+      route-policy-name: *id418
+      route-filter-name: *id419
+    default: By default, BGP does not import routes from other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/586_import-route (BGP-VPN instance IPv4 address family view) (Non-IGP).md
+      title: import-route (BGP-VPN instance IPv4 address family view) (Non-IGP)
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.nexthop-recursive-lookup-bit-error-detection.1
+    syntax: nexthop recursive-lookup bit-error-detection { med + <med-adjust-value> | local-preference - <localpref-adjust-value> } &<1-9> [ route-policy <route-policy-name> ]
+    view: bgp-af-vpnv4
+    undo: undo nexthop recursive-lookup bit-error-detection
+    params:
+      med-adjust-value: *id420
+      localpref-adjust-value: *id421
+      route-policy-name:
+        type: word
+    default: By default, bit error events are not associated with the adjustment of VPN route local preference or MED values.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/679_nexthop recursive-lookup bit-error-detection (BGP-VPNv4 address family.md
+      title: nexthop recursive-lookup bit-error-detection (BGP-VPNv4 address family view)
       line: 3
       version: V800R025C00SPC500
     status: draft

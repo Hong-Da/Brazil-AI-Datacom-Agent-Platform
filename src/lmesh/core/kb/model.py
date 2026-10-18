@@ -43,7 +43,9 @@ class Card:
     enters_view: str | None = None
     params: dict[str, dict[str, Any]] = field(default_factory=dict)
     default: str | None = None
-    maps: dict[str, str] = field(default_factory=dict)  # 参数名 → Schema 节点；"@" 表示整条命令对应的节点（开关类）
+    maps: dict[str, Any] = field(
+        default_factory=dict
+    )  # Schema 节点（目标）→ 取值表达式；写法见 lmesh/core/kb/mapping.py
     depends_on: list[str] = field(default_factory=list)
     side_effects: list[str] = field(default_factory=list)
     source: dict[str, Any] = field(default_factory=dict)
@@ -78,6 +80,7 @@ class Family:
     separator: str  # 华为 "#"，Cisco "!"
     end: str  # 华为 "return"，Cisco "end"
     indent: int = 1
+    negative: str = "undo"  # 取消命令的前缀：华为 undo，Cisco no
     views: dict[str, View] = field(default_factory=dict)
     root_view: str = "system"
 
@@ -135,6 +138,7 @@ class Profile:
     title: str = ""
     entries: dict[str, ProfileEntry] = field(default_factory=dict)
     side_effects: list[DepRule] = field(default_factory=list)
+    implicit: list[str] = field(default_factory=list)  # 被引用时隐式创建的对象类型（派生节点），例如 ASR 920 的桥域
 
 
 @dataclass

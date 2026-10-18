@@ -78,8 +78,10 @@ class KnowledgeBase:
         base = self.profiles[profile_id]
         merged: dict[str, ProfileEntry] = {}
         side: list[DepRule] = []
+        implicit: list[str] = []
         for pid in reversed(self.lineage(profile_id)):
             p = self.profiles[pid]
+            implicit += [x for x in p.implicit if x not in implicit]
             for node, e in p.entries.items():
                 merged[node] = ProfileEntry(**{**e.__dict__, "origin": pid})
             side.extend(p.side_effects)
@@ -95,6 +97,7 @@ class KnowledgeBase:
             title=base.title,
             entries=merged,
             side_effects=side,
+            implicit=implicit,
         )
 
 
@@ -159,6 +162,7 @@ def _load_family(kb: KnowledgeBase, d: Path, issues: list[Issue]) -> None:
         separator=str(data.get("separator", "#")),
         end=str(data.get("end", "")),
         indent=int(data.get("indent", 1)),
+        negative=str(data.get("negative", "undo")),
         root_view=str(data.get("root_view", "system")),
     )
     for vid, v in (data.get("views") or {}).items():
@@ -191,7 +195,9 @@ def _load_family(kb: KnowledgeBase, d: Path, issues: list[Issue]) -> None:
                     enters_view=raw.get("enters_view"),
                     params={str(k): dict(v or {}) for k, v in (raw.get("params") or {}).items()},
                     default=None if raw.get("default") is None else str(raw.get("default")),
-                    maps={str(k): str(v) for k, v in (raw.get("maps") or {}).items()},
+                    maps={
+                        str(k): (dict(v) if isinstance(v, dict) else str(v)) for k, v in (raw.get("maps") or {}).items()
+                    },
                     depends_on=list(raw.get("depends_on") or []),
                     side_effects=list(raw.get("side_effects") or []),
                     source=dict(raw.get("source") or {}),
@@ -293,6 +299,7 @@ def _load_profile(kb: KnowledgeBase, f: Path, issues: list[Issue]) -> None:
             )
         except (KeyError, TypeError):
             _err(issues, "profile.side_effect", "副作用规则缺少 from / to", f)
+    p.implicit = [str(x) for x in (doc.get("implicit") or [])]
     if p.id in kb.profiles:
         _err(issues, "profile.duplicate", f"Profile 重复：{p.id}", f)
     kb.profiles[p.id] = p

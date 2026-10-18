@@ -1,0 +1,162 @@
+# BGP 功能域：实例、对等体、对等体组、地址族（IPv4 单播 / VPNv4 / VRF 内 IPv4）与地址族内的对等体设置。
+# 对等体在两家厂商都既可以用地址也可以用组名指定（peer X / neighbor X）：映射写成 bgp.peer | bgp.peer_group，按取值是不是 IP 地址区分。
+domain: bgp
+nodes:
+  bgp.instance:
+    type: object
+    key: [asn]
+    semantic: {zh-CN: BGP 实例（本地 AS 号）, en: BGP instance}
+    status: reviewed
+  bgp.instance.router_id:
+    parent: bgp.instance
+    type: ipv4
+    semantic: {zh-CN: Router ID, en: Router ID}
+  bgp.instance.log_neighbor_changes:
+    parent: bgp.instance
+    type: boolean
+    semantic: {zh-CN: 记录邻居状态变化（华为默认开启，Cisco 需显式配置）, en: Log neighbor changes}
+  bgp.peer:
+    parent: bgp.instance
+    type: object
+    key: [address]
+    semantic: {zh-CN: BGP 对等体（按地址）, en: BGP peer}
+  bgp.peer.remote_as:
+    parent: bgp.peer
+    type: asn
+    semantic: {zh-CN: 对端 AS 号, en: Remote AS}
+  bgp.peer.group:
+    parent: bgp.peer
+    type: ref
+    ref: bgp.peer_group
+    semantic: {zh-CN: 所属对等体组, en: Peer group}
+  bgp.peer.update_source:
+    parent: bgp.peer
+    type: interface
+    semantic: {zh-CN: 建立会话使用的源接口（华为 connect-interface，Cisco update-source）, en: Update source}
+  bgp.peer.password:
+    parent: bgp.peer
+    type: string
+    semantic: {zh-CN: MD5 认证密码（脱敏后的值）, en: Session password}
+  bgp.peer.description:
+    parent: bgp.peer
+    type: text
+    semantic: {zh-CN: 对等体描述, en: Peer description}
+  bgp.peer.keepalive:
+    parent: bgp.peer
+    type: integer
+    range: [0, 65535]
+    semantic: {zh-CN: keepalive 间隔（秒）, en: Keepalive interval (s)}
+  bgp.peer.hold:
+    parent: bgp.peer
+    type: integer
+    range: [0, 65535]
+    semantic: {zh-CN: hold 时间（秒）, en: Hold time (s)}
+  bgp.peer_group:
+    parent: bgp.instance
+    type: object
+    key: [name]
+    semantic: {zh-CN: BGP 对等体组, en: BGP peer group}
+  bgp.peer_group.type:
+    parent: bgp.peer_group
+    type: enum
+    choices: [internal, external]
+    semantic: {zh-CN: 组类型（IBGP / EBGP），华为显式写出，Cisco 由 remote-as 推出, en: Group type}
+  bgp.peer_group.remote_as:
+    parent: bgp.peer_group
+    type: asn
+    semantic: {zh-CN: 组的对端 AS 号, en: Remote AS}
+  bgp.peer_group.update_source:
+    parent: bgp.peer_group
+    type: interface
+    semantic: {zh-CN: 组的源接口, en: Update source}
+  bgp.peer_group.password:
+    parent: bgp.peer_group
+    type: string
+    semantic: {zh-CN: 组的认证密码（脱敏后的值）, en: Session password}
+  bgp.peer_group.keepalive:
+    parent: bgp.peer_group
+    type: integer
+    semantic: {zh-CN: 组的 keepalive 间隔（秒）, en: Keepalive (s)}
+  bgp.peer_group.hold:
+    parent: bgp.peer_group
+    type: integer
+    semantic: {zh-CN: 组的 hold 时间（秒）, en: Hold time (s)}
+  bgp.af:
+    parent: bgp.instance
+    type: object
+    key: [afi, vrf]
+    semantic: {zh-CN: BGP 地址族（afi：ipv4 / vpnv4；VRF 内的 IPv4 地址族带 vrf）, en: BGP address family}
+  bgp.af.network:
+    parent: bgp.af
+    type: object
+    key: [prefix]
+    semantic: {zh-CN: 宣告的网段, en: Advertised network}
+  bgp.af.network.prefix:
+    parent: bgp.af.network
+    type: prefix
+    semantic: {zh-CN: 网段前缀, en: Prefix}
+  bgp.af.network.policy:
+    parent: bgp.af.network
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 宣告时应用的路由策略, en: Route policy}
+  bgp.af.redistribute:
+    parent: bgp.af
+    type: object
+    key: [protocol]
+    semantic: {zh-CN: 引入其他协议的路由（华为 import-route，Cisco redistribute）, en: Route redistribution}
+  bgp.af.redistribute.policy:
+    parent: bgp.af.redistribute
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 引入时应用的路由策略, en: Route policy}
+  bgp.af.redistribute.metric:
+    parent: bgp.af.redistribute
+    type: integer
+    semantic: {zh-CN: 引入路由的 MED / metric, en: Metric}
+  bgp.af.peer:
+    parent: bgp.af
+    type: object
+    key: [peer]
+    semantic: {zh-CN: 地址族内的对等体或对等体组设置, en: Per-address-family peer settings}
+  bgp.af.peer.enabled:
+    parent: bgp.af.peer
+    type: boolean
+    semantic: {zh-CN: 在该地址族中启用（华为 peer enable，Cisco activate）, en: Activated}
+  bgp.af.peer.import_policy:
+    parent: bgp.af.peer
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 入方向路由策略, en: Inbound route policy}
+  bgp.af.peer.export_policy:
+    parent: bgp.af.peer
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 出方向路由策略, en: Outbound route policy}
+  bgp.af.peer.next_hop_self:
+    parent: bgp.af.peer
+    type: boolean
+    semantic: {zh-CN: 发布路由时下一跳改为自己（华为 next-hop-local，Cisco next-hop-self）, en: Next-hop self}
+  bgp.af.peer.send_community:
+    parent: bgp.af.peer
+    type: enum
+    choices: [standard, extended, both]
+    semantic: {zh-CN: 发布团体属性（华为 advertise-community 为标准团体，VPNv4 的扩展团体默认发布）, en: Send community}
+  bgp.af.peer.rr_client:
+    parent: bgp.af.peer
+    type: boolean
+    semantic: {zh-CN: 路由反射器客户端, en: Route-reflector client}
+  bgp.af.peer.group:
+    parent: bgp.af.peer
+    type: ref
+    ref: bgp.peer_group
+    semantic: {zh-CN: 地址族内重复声明的组成员关系（华为写法）, en: Group membership inside the address family}
+deps:
+  - {kind: reference, from: bgp.peer.group, to: bgp.peer_group}
+  - {kind: prerequisite, from: bgp.peer.group, to: bgp.peer_group, note: 先创建对等体组再加入}
+  - {kind: reference, from: bgp.af.peer.group, to: bgp.peer_group}
+  - {kind: reference, from: bgp.af.peer.import_policy, to: rp.policy, note: 引用的路由策略不存在时为悬空引用}
+  - {kind: reference, from: bgp.af.peer.export_policy, to: rp.policy}
+  - {kind: reference, from: bgp.af.network.policy, to: rp.policy}
+  - {kind: reference, from: bgp.af.redistribute.policy, to: rp.policy}
+  - {kind: cross_device, from: bgp.peer, to: interface.ipv4.address, note: 对等体地址应是另一台设备的接口地址，且对端 AS 一致}

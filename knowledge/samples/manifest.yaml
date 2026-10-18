@@ -1,0 +1,16 @@
+# 往返测试样本清单。gate: true 的样本参与发布前的回归测试与 0.1.0 验收门槛（全部往返一致、功能域内无未识别行）；
+# gate: false 的是解析器压力测试片段（Batfish 的单元测试配置），只统计、不作为门槛。
+samples:
+  - {file: huawei-atn-v800r023/atn-access-01.cfg, profile: huawei-atn-v800r023, gate: true, note: 现网 ATN 配置（严格脱敏）}
+  - {file: cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg, profile: cisco-iosxe-asr920-17.15, gate: true, note: 合成的 ASR 920 配置}
+  - {file: cisco-ios-public/batfish_example_as1border1.txt, profile: cisco-iosxe-asr920-17.15, gate: true}
+  - {file: cisco-ios-public/batfish_example_as2border1.txt, profile: cisco-iosxe-asr920-17.15, gate: true}
+  - {file: cisco-ios-public/batfish_example_as2core1.txt, profile: cisco-iosxe-asr920-17.15, gate: true}
+  - {file: cisco-ios-public/batfish_example_as2dist1.txt, profile: cisco-iosxe-asr920-17.15, gate: true}
+  - {file: cisco-ios-public/batfish_example_as3border1.txt, profile: cisco-iosxe-asr920-17.15, gate: true}
+  - {file: cisco-ios-public/batfish_hybrid-cloud_lhr-border-02.txt, profile: cisco-iosxe-asr920-17.15, gate: true}
+  - {file: cisco-ios-public/batfish_testconfig_bgp-default-information-originate.txt, profile: cisco-iosxe-asr920-17.15, gate: true}
+  - {file: cisco-ios-public/batfish_testconfig_ios-vrf-leaking.txt, profile: cisco-iosxe-asr920-17.15, gate: true}
+  - {file: cisco-ios-public/batfish_testconfig_ios_interface_show_run_all.txt, profile: cisco-iosxe-asr920-17.15, gate: true}
+  - {file: cisco-ios-public/batfish_testconfig_ios_bgp_show_run_all.txt, profile: cisco-iosxe-asr920-17.15, gate: false, note: show run all 片段，含 0.1.0 以外的 bgp default 写法}
+  - {file: cisco-ios-public/batfish_unit-tests_cisco_interface.txt, profile: cisco-iosxe-asr920-17.15, gate: false, note: 解析器单元测试片段，含罕见写法}

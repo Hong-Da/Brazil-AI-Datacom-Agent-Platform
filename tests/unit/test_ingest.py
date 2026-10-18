@@ -110,7 +110,8 @@ def test_ingest_merge_and_review(kb_root: Path) -> None:
     r1 = ingest(DOCS / "huawei", rules, kb_root, s.database_url, s)
     n = r1["merge"]["new"]
     assert n == len(r1 and _huawei().cards) and r1["review_items"] == n and r1["commit"]
-    assert not [i for i in validate(kbmod.load(kb_root)) if i.level == "error"]
+    # 测试目录里没有自带的全部命令卡，Profile 对它们的引用不在这里检查
+    assert not [i for i in validate(kbmod.load(kb_root)) if i.level == "error" and i.code != "profile.card_missing"]
     # 再导入一次：没有变化
     r2 = ingest(DOCS / "huawei", rules, kb_root, s.database_url, s)
     assert r2["merge"] == {"unchanged": n} and r2["review_items"] == 0 and r2["commit"] is None

@@ -38,7 +38,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.ip-route-static-bfd.1
-    syntax: ip route-static bfd { <interface-name> | <interface-type> <interface-number> } { <nexthop-address> | dhcp } [ local-address <address> ] [ min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> ]
+    syntax: ip route-static bfd { <interface-name> | <interface-type> <interface-number> } { <nexthop-address> | dhcp } [ local-address <address> ] [ min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> ] &<1-9>
     view: system
     undo: undo ip route-static bfd { <interface-name> | <interface-type> <interface-number> } { <nexthop-address> | dhcp }
     params:
@@ -76,7 +76,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.ip-route-static-bfd.2
-    syntax: ip route-static bfd [ vpn-instance <vpn-instance-name> ] <nexthop-address> local-address <address> [ min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> ]
+    syntax: ip route-static bfd [ vpn-instance <vpn-instance-name> ] <nexthop-address> local-address <address> [ min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> ] &<1-9>
     view: system
     undo: undo ip route-static bfd [ vpn-instance <vpn-instance-name> ] <nexthop-address>
     params:
@@ -96,7 +96,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.ip-route-static-default-bfd
-    syntax: ip route-static default-bfd { min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> }
+    syntax: ip route-static default-bfd { min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> } &<1-9>
     view: system
     undo: undo ip route-static default-bfd
     params:
@@ -274,7 +274,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.ipv6-route-static-bfd.1
-    syntax: ipv6 route-static bfd { <interface-name> | <interface-type> <interface-number> } <nexthop-address> [ local-address <ipv6-address> ] [ min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> ]
+    syntax: ipv6 route-static bfd { <interface-name> | <interface-type> <interface-number> } <nexthop-address> [ local-address <ipv6-address> ] [ min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> ] &<1-9>
     view: system
     undo: undo ipv6 route-static bfd { <interface-name> | <interface-type> <interface-number> } <nexthop-address>
     params:
@@ -309,7 +309,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.ipv6-route-static-bfd.2
-    syntax: ipv6 route-static bfd [ vpn-instance <vpn-instance-name> ] <nexthop-address> local-address <ipv6-address> [ min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> ]
+    syntax: ipv6 route-static bfd [ vpn-instance <vpn-instance-name> ] <nexthop-address> local-address <ipv6-address> [ min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> ] &<1-9>
     view: system
     undo: undo ipv6 route-static bfd [ vpn-instance <vpn-instance-name> ] <nexthop-address>
     params:
@@ -329,7 +329,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.ipv6-route-static-default-bfd
-    syntax: ipv6 route-static default-bfd { min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> }
+    syntax: ipv6 route-static default-bfd { min-rx-interval <min-rx-interval> | min-tx-interval <min-tx-interval> | detect-multiplier <multiplier> } &<1-9>
     view: system
     undo: undo ipv6 route-static default-bfd
     params:
@@ -475,5 +475,1576 @@ cards:
       file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
       title: static-route timer ldp-sync hold-down
       line: 3188
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static.1
+    syntax: ip route-static <ip-address> { <mask> | <mask-length> } <nexthop-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | efm-state { <efm-interface-name> | <efm-interface-type> <efm-interface-number> } | nqa-group <group-name> } ] [ inherit-cost ] | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static <ip-address> { <mask> | <mask-length> } vpn-instance <vpn-instance-name>
+    params:
+      ip-address: &id012
+        type: ipv4
+      mask: &id013
+        type: mask
+      mask-length: &id014
+        type: mask-length
+      nexthop-address: &id015
+        type: ipv4
+      preference: &id016
+        type: integer
+        range:
+          - 1
+          - 255
+      tag: &id017
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cfg-name: &id018
+        type: word
+      admin-name: &id019
+        type: word
+      test-name: &id020
+        type: word
+      efm-interface-name:
+        type: word
+      efm-interface-type: &id021
+        type: word
+      efm-interface-number: &id022
+        type: word
+      group-name: &id023
+        type: word
+      text: &id024
+        type: text
+    default: By default, no IPv4 unicast static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static
+      line: 590
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: &id028
+        vrf: ''
+        prefix: fmt:{ip-address}/{mask|mask-length}
+        nexthop: $nexthop-address||
+      static.route.prefix: fmt:{ip-address}/{mask|mask-length}
+      static.route.nexthop: $nexthop-address
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static.2
+    syntax: ip route-static <ip-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } <nexthop-address> [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | efm-state { <efm-interface-name> | <efm-interface-type> <efm-interface-number> } | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static <ip-address> { <mask> | <mask-length> } vpn-instance <vpn-instance-name>
+    params:
+      ip-address: *id012
+      mask: *id013
+      mask-length: *id014
+      interface-name:
+        type: word
+      interface-type: &id025
+        type: word
+      interface-number: &id026
+        type: word
+      nexthop-address: *id015
+      preference: *id016
+      tag: *id017
+      cost-value: &id027
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cfg-name: *id018
+      admin-name: *id019
+      test-name: *id020
+      efm-interface-name:
+        type: word
+      efm-interface-type: *id021
+      efm-interface-number: *id022
+      group-name: *id023
+      text: *id024
+    default: By default, no IPv4 unicast static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static
+      line: 590
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: &id029
+        vrf: ''
+        prefix: fmt:{ip-address}/{mask|mask-length}
+        nexthop: $nexthop-address||
+      static.route.prefix: fmt:{ip-address}/{mask|mask-length}
+      static.route.nexthop: $nexthop-address
+      static.route.interface: $interface-name||fmt:{interface-type}{interface-number}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static.3
+    syntax: ip route-static <ip-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } dhcp [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | efm-state { <efm-interface-name> | <efm-interface-type> <efm-interface-number> } | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static <ip-address> { <mask> | <mask-length> } vpn-instance <vpn-instance-name>
+    params:
+      ip-address: *id012
+      mask: *id013
+      mask-length: *id014
+      interface-name:
+        type: word
+      interface-type: *id025
+      interface-number: *id026
+      preference: *id016
+      tag: *id017
+      cost-value: *id027
+      cfg-name: *id018
+      admin-name: *id019
+      test-name: *id020
+      efm-interface-name:
+        type: word
+      efm-interface-type: *id021
+      efm-interface-number: *id022
+      group-name: *id023
+      text: *id024
+    default: By default, no IPv4 unicast static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static
+      line: 590
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id028
+      static.route.prefix: fmt:{ip-address}/{mask|mask-length}
+      static.route.interface: $interface-name||fmt:{interface-type}{interface-number}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static.4
+    syntax: ip route-static <ip-address> { <mask> | <mask-length> } <nexthop-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } ] [ inherit-cost ] | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static <ip-address> { <mask> | <mask-length> } vpn-instance <vpn-instance-name>
+    params:
+      ip-address: *id012
+      mask: *id013
+      mask-length: *id014
+      nexthop-address: *id015
+      preference: *id016
+      tag: *id017
+      cfg-name: *id018
+      admin-name: *id019
+      test-name: *id020
+      group-name: *id023
+      text: *id024
+    default: By default, no IPv4 unicast static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static
+      line: 590
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id028
+      static.route.prefix: fmt:{ip-address}/{mask|mask-length}
+      static.route.nexthop: $nexthop-address
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static.5
+    syntax: ip route-static <ip-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } <nexthop-address> [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static <ip-address> { <mask> | <mask-length> } vpn-instance <vpn-instance-name>
+    params:
+      ip-address: *id012
+      mask: *id013
+      mask-length: *id014
+      interface-name:
+        type: word
+      interface-type: *id025
+      interface-number: *id026
+      nexthop-address: *id015
+      preference: *id016
+      tag: *id017
+      cost-value: *id027
+      cfg-name: *id018
+      admin-name: *id019
+      test-name: *id020
+      group-name: *id023
+      text: *id024
+    default: By default, no IPv4 unicast static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static
+      line: 590
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id029
+      static.route.prefix: fmt:{ip-address}/{mask|mask-length}
+      static.route.nexthop: $nexthop-address
+      static.route.interface: $interface-name||fmt:{interface-type}{interface-number}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static.6
+    syntax: ip route-static <ip-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } dhcp [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static <ip-address> { <mask> | <mask-length> } vpn-instance <vpn-instance-name>
+    params:
+      ip-address: *id012
+      mask: *id013
+      mask-length: *id014
+      interface-name:
+        type: word
+      interface-type: *id025
+      interface-number: *id026
+      preference: *id016
+      tag: *id017
+      cost-value: *id027
+      cfg-name: *id018
+      admin-name: *id019
+      test-name: *id020
+      group-name: *id023
+      text: *id024
+    default: By default, no IPv4 unicast static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static
+      line: 590
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id028
+      static.route.prefix: fmt:{ip-address}/{mask|mask-length}
+      static.route.interface: $interface-name||fmt:{interface-type}{interface-number}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static.7
+    syntax: ip route-static <ip-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | efm-state { <efm-interface-name> | <efm-interface-type> <efm-interface-number> } | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static <ip-address> { <mask> | <mask-length> } vpn-instance <vpn-instance-name>
+    params:
+      ip-address: *id012
+      mask: *id013
+      mask-length: *id014
+      interface-name:
+        type: word
+      interface-type: *id025
+      interface-number: *id026
+      preference: *id016
+      tag: *id017
+      cost-value: *id027
+      cfg-name: *id018
+      admin-name: *id019
+      test-name: *id020
+      efm-interface-name:
+        type: word
+      efm-interface-type: *id021
+      efm-interface-number: *id022
+      group-name: *id023
+      text: *id024
+    default: By default, no IPv4 unicast static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static
+      line: 590
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id028
+      static.route.prefix: fmt:{ip-address}/{mask|mask-length}
+      static.route.interface: $interface-name||fmt:{interface-type}{interface-number}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static
+    syntax: ip route-static <ip-address> { <mask> | <mask-length> } vpn-instance <vpn-instance-name> [ preference <preference> | tag <tag> ] &<1-9> [ track nqa-group <group-name> ] [ no-advertise | no-install ] [ description <text> ]
+    view: system
+    params:
+      ip-address:
+        type: ipv4
+      mask:
+        type: mask
+      mask-length:
+        type: mask-length
+      vpn-instance-name:
+        type: word
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      group-name:
+        type: word
+      text:
+        type: text
+    default: By default, no IPv4 unicast static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static (System view)
+      line: 757
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id028
+      static.route.prefix: fmt:{ip-address}/{mask|mask-length}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static.1~2
+    syntax: ip route-static <ip-address> { <mask> | <mask-length> } vpn-instance <vpn-instance-name> <nexthop-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | efm-state { <interface-name> | <interface-type> <interface-number> } | nqa-group <group-name> } ] [ inherit-cost ] | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    params:
+      ip-address: &id030
+        type: ipv4
+      mask: &id031
+        type: mask
+      mask-length: &id032
+        type: mask-length
+      vpn-instance-name: &id033
+        type: word
+      nexthop-address: &id034
+        type: ipv4
+      preference: &id035
+        type: integer
+        range:
+          - 1
+          - 255
+      tag: &id036
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cfg-name: &id037
+        type: word
+      admin-name: &id038
+        type: word
+      test-name: &id039
+        type: word
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      group-name: &id040
+        type: word
+      text: &id041
+        type: text
+    default: By default, no IPv4 static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static (VPN)
+      line: 830
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id029
+      static.route.prefix: fmt:{ip-address}/{mask|mask-length}
+      static.route.nexthop: $nexthop-address
+      static.route.interface: $interface-name||fmt:{interface-type}{interface-number}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static.2~2
+    syntax: ip route-static <ip-address> { <mask> | <mask-length> } vpn-instance <vpn-instance-name> <nexthop-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } ] [ inherit-cost ] | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    params:
+      ip-address: *id030
+      mask: *id031
+      mask-length: *id032
+      vpn-instance-name: *id033
+      nexthop-address: *id034
+      preference: *id035
+      tag: *id036
+      cfg-name: *id037
+      admin-name: *id038
+      test-name: *id039
+      group-name: *id040
+      text: *id041
+    default: By default, no IPv4 static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static (VPN)
+      line: 830
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id028
+      static.route.prefix: fmt:{ip-address}/{mask|mask-length}
+      static.route.nexthop: $nexthop-address
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static-ldp-sync.1
+    syntax: ip route-static [ vpn-instance <vpn-source-name> ] <ip-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } [ preference <preference> | tag <tag> ] &<1-9> ldp-sync [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    params:
+      vpn-source-name: &id042
+        type: word
+      ip-address: &id043
+        type: ipv4
+      mask: &id044
+        type: mask
+      mask-length: &id045
+        type: mask-length
+      interface-name:
+        type: word
+      interface-type: &id046
+        type: word
+      interface-number: &id047
+        type: word
+      preference: &id048
+        type: integer
+        range:
+          - 1
+          - 255
+      tag: &id049
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      text: &id050
+        type: text
+    default: By default, synchronization between LDP and static routes is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static ldp-sync
+      line: 1300
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-ldp-sync.2
+    syntax: ip route-static [ vpn-instance <vpn-source-name> ] <ip-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } <nexthop-address> [ preference <preference> | tag <tag> ] &<1-9> ldp-sync [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    params:
+      vpn-source-name: *id042
+      ip-address: *id043
+      mask: *id044
+      mask-length: *id045
+      interface-name:
+        type: word
+      interface-type: *id046
+      interface-number: *id047
+      nexthop-address:
+        type: ipv4
+      preference: *id048
+      tag: *id049
+      text: *id050
+    default: By default, synchronization between LDP and static routes is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static ldp-sync
+      line: 1300
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-topology.1
+    syntax: ip route-static topology <topology-name> <ip-address> { <mask> | <mask-length> } <nexthop-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ no-advertise | no-install ] [ description <text> ]
+    view: system
+    undo: undo ip route-static [ topology <topology-name> ] <ip-address> { <mask> | <mask-length> }
+    params:
+      topology-name: &id051
+        type: word
+      ip-address: &id052
+        type: ipv4
+      mask: &id053
+        type: mask
+      mask-length: &id054
+        type: mask-length
+      nexthop-address: &id055
+        type: ipv4
+      preference: &id056
+        type: integer
+        range:
+          - 1
+          - 255
+      tag: &id057
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      text: &id058
+        type: text
+    default: By default, the system does not configure IPv4 unicast static routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static topology
+      line: 1609
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-topology.2
+    syntax: ip route-static topology <topology-name> <ip-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } <nexthop-address> [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ no-advertise | no-install ] [ description <text> ]
+    view: system
+    undo: undo ip route-static [ topology <topology-name> ] <ip-address> { <mask> | <mask-length> }
+    params:
+      topology-name: *id051
+      ip-address: *id052
+      mask: *id053
+      mask-length: *id054
+      interface-name:
+        type: word
+      interface-type: &id059
+        type: word
+      interface-number: &id060
+        type: word
+      nexthop-address: *id055
+      preference: *id056
+      tag: *id057
+      cost-value: &id061
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      text: *id058
+    default: By default, the system does not configure IPv4 unicast static routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static topology
+      line: 1609
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-topology.3
+    syntax: ip route-static topology <topology-name> <ip-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } dhcp [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ no-advertise | no-install ] [ description <text> ]
+    view: system
+    undo: undo ip route-static [ topology <topology-name> ] <ip-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } dhcp
+    params:
+      topology-name: *id051
+      ip-address: *id052
+      mask: *id053
+      mask-length: *id054
+      interface-name:
+        type: word
+      interface-type: *id059
+      interface-number: *id060
+      preference: *id056
+      tag: *id057
+      cost-value: *id061
+      text: *id058
+    default: By default, the system does not configure IPv4 unicast static routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static topology
+      line: 1609
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-topology.4
+    syntax: ip route-static topology <topology-name> <ip-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ no-advertise | no-install ] [ description <text> ]
+    view: system
+    undo: undo ip route-static [ topology <topology-name> ] <ip-address> { <mask> | <mask-length> }
+    params:
+      topology-name: *id051
+      ip-address: *id052
+      mask: *id053
+      mask-length: *id054
+      interface-name:
+        type: word
+      interface-type: *id059
+      interface-number: *id060
+      preference: *id056
+      tag: *id057
+      cost-value: *id061
+      text: *id058
+    default: By default, the system does not configure IPv4 unicast static routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static topology
+      line: 1609
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-route-static-vpn-instance.1
+    syntax: ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } <nexthop-address> [ public ] [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | efm-state { <efm-interface-name> | <efm-interface-type> <efm-interface-number> } | nqa-group <group-name> } ] [ inherit-cost ] | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } <nexthop-address> [ public ] [ inherit-cost ]
+    params:
+      vpn-source-name: &id062
+        type: word
+      destination-address: &id063
+        type: ipv4
+      mask: &id064
+        type: mask
+      mask-length: &id065
+        type: mask-length
+      nexthop-address: &id066
+        type: ipv4
+      preference: &id067
+        type: integer
+        range:
+          - 1
+          - 255
+      tag: &id068
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cfg-name: &id069
+        type: word
+      admin-name: &id070
+        type: word
+      test-name: &id071
+        type: word
+      efm-interface-name:
+        type: word
+      efm-interface-type: &id072
+        type: word
+      efm-interface-number: &id073
+        type: word
+      group-name: &id074
+        type: word
+      text: &id075
+        type: text
+    default: By default, no IPv4 static routes are configured for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static vpn-instance
+      line: 1793
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: &id079
+        vrf: $vpn-source-name
+        prefix: fmt:{destination-address}/{mask|mask-length}
+        nexthop: $nexthop-address||
+      static.route.vrf: $vpn-source-name
+      static.route.prefix: fmt:{destination-address}/{mask|mask-length}
+      static.route.nexthop: $nexthop-address
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static-vpn-instance.2
+    syntax: ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } <nexthop-address> [ preference <preference> | tag <tag> | cost <cost> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | efm-state { <efm-interface-name> | <efm-interface-type> <efm-interface-number> } | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } <nexthop-address> [ public ] [ inherit-cost ]
+    params:
+      vpn-source-name: *id062
+      destination-address: *id063
+      mask: *id064
+      mask-length: *id065
+      interface-name:
+        type: word
+      interface-type: &id076
+        type: word
+      interface-number: &id077
+        type: word
+      nexthop-address: *id066
+      preference: *id067
+      tag: *id068
+      cost: &id078
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cfg-name: *id069
+      admin-name: *id070
+      test-name: *id071
+      efm-interface-name:
+        type: word
+      efm-interface-type: *id072
+      efm-interface-number: *id073
+      group-name: *id074
+      text: *id075
+    default: By default, no IPv4 static routes are configured for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static vpn-instance
+      line: 1793
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: &id080
+        vrf: $vpn-source-name
+        prefix: fmt:{destination-address}/{mask|mask-length}
+        nexthop: $nexthop-address||
+      static.route.vrf: $vpn-source-name
+      static.route.prefix: fmt:{destination-address}/{mask|mask-length}
+      static.route.nexthop: $nexthop-address
+      static.route.interface: $interface-name||fmt:{interface-type}{interface-number}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static-vpn-instance.3
+    syntax: ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } dhcp [ preference <preference> | tag <tag> | cost <cost> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | efm-state { <efm-interface-name> | <efm-interface-type> <efm-interface-number> } | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } dhcp
+    params:
+      vpn-source-name: *id062
+      destination-address: *id063
+      mask: *id064
+      mask-length: *id065
+      interface-name:
+        type: word
+      interface-type: *id076
+      interface-number: *id077
+      preference: *id067
+      tag: *id068
+      cost: *id078
+      cfg-name: *id069
+      admin-name: *id070
+      test-name: *id071
+      efm-interface-name:
+        type: word
+      efm-interface-type: *id072
+      efm-interface-number: *id073
+      group-name: *id074
+      text: *id075
+    default: By default, no IPv4 static routes are configured for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static vpn-instance
+      line: 1793
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id079
+      static.route.vrf: $vpn-source-name
+      static.route.prefix: fmt:{destination-address}/{mask|mask-length}
+      static.route.interface: $interface-name||fmt:{interface-type}{interface-number}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static-vpn-instance.4
+    syntax: ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } <nexthop-address> [ public ] [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } ] [ inherit-cost ] | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } <nexthop-address> [ public ] [ inherit-cost ]
+    params:
+      vpn-source-name: *id062
+      destination-address: *id063
+      mask: *id064
+      mask-length: *id065
+      nexthop-address: *id066
+      preference: *id067
+      tag: *id068
+      cfg-name: *id069
+      admin-name: *id070
+      test-name: *id071
+      group-name: *id074
+      text: *id075
+    default: By default, no IPv4 static routes are configured for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static vpn-instance
+      line: 1793
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id079
+      static.route.vrf: $vpn-source-name
+      static.route.prefix: fmt:{destination-address}/{mask|mask-length}
+      static.route.nexthop: $nexthop-address
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static-vpn-instance.5
+    syntax: ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } <nexthop-address> [ preference <preference> | tag <tag> | cost <cost> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } <nexthop-address> [ public ] [ inherit-cost ]
+    params:
+      vpn-source-name: *id062
+      destination-address: *id063
+      mask: *id064
+      mask-length: *id065
+      interface-name:
+        type: word
+      interface-type: *id076
+      interface-number: *id077
+      nexthop-address: *id066
+      preference: *id067
+      tag: *id068
+      cost: *id078
+      cfg-name: *id069
+      admin-name: *id070
+      test-name: *id071
+      group-name: *id074
+      text: *id075
+    default: By default, no IPv4 static routes are configured for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static vpn-instance
+      line: 1793
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id080
+      static.route.vrf: $vpn-source-name
+      static.route.prefix: fmt:{destination-address}/{mask|mask-length}
+      static.route.nexthop: $nexthop-address
+      static.route.interface: $interface-name||fmt:{interface-type}{interface-number}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static-vpn-instance.6
+    syntax: ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } dhcp [ preference <preference> | tag <tag> | cost <cost> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } dhcp
+    params:
+      vpn-source-name: *id062
+      destination-address: *id063
+      mask: *id064
+      mask-length: *id065
+      interface-name:
+        type: word
+      interface-type: *id076
+      interface-number: *id077
+      preference: *id067
+      tag: *id068
+      cost: *id078
+      cfg-name: *id069
+      admin-name: *id070
+      test-name: *id071
+      group-name: *id074
+      text: *id075
+    default: By default, no IPv4 static routes are configured for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static vpn-instance
+      line: 1793
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id079
+      static.route.vrf: $vpn-source-name
+      static.route.prefix: fmt:{destination-address}/{mask|mask-length}
+      static.route.interface: $interface-name||fmt:{interface-type}{interface-number}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static-vpn-instance.7
+    syntax: ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } { <interface-name> | <interface-type> <interface-number> } [ preference <preference> | tag <tag> | cost <cost> ] &<1-9> [ track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | efm-state { <efm-interface-name> | <efm-interface-type> <efm-interface-number> } | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } <nexthop-address> [ public ] [ inherit-cost ]
+    params:
+      vpn-source-name: *id062
+      destination-address: *id063
+      mask: *id064
+      mask-length: *id065
+      interface-name:
+        type: word
+      interface-type: *id076
+      interface-number: *id077
+      preference: *id067
+      tag: *id068
+      cost: *id078
+      cfg-name: *id069
+      admin-name: *id070
+      test-name: *id071
+      efm-interface-name:
+        type: word
+      efm-interface-type: *id072
+      efm-interface-number: *id073
+      group-name: *id074
+      text: *id075
+    default: By default, no IPv4 static routes are configured for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static vpn-instance
+      line: 1793
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id079
+      static.route.vrf: $vpn-source-name
+      static.route.prefix: fmt:{destination-address}/{mask|mask-length}
+      static.route.interface: $interface-name||fmt:{interface-type}{interface-number}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static-vpn-instance.1~2
+    syntax: ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } vpn-instance <vpn-destination-name> <nexthop-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | efm-state { <interface-name> | <interface-type> <interface-number> } | nqa-group <group-name> } ] [ inherit-cost ] | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } vpn-instance <vpn-destination-name> <nexthop-address> [ inherit-cost ]
+    params:
+      vpn-source-name: &id081
+        type: word
+      destination-address: &id082
+        type: ipv4
+      mask: &id083
+        type: mask
+      mask-length: &id084
+        type: mask-length
+      vpn-destination-name: &id085
+        type: word
+      nexthop-address: &id086
+        type: ipv4
+      preference: &id087
+        type: integer
+        range:
+          - 1
+          - 255
+      tag: &id088
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cfg-name: &id089
+        type: word
+      admin-name: &id090
+        type: word
+      test-name: &id091
+        type: word
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      group-name: &id092
+        type: word
+      text: &id093
+        type: text
+    default: By default, no IPv4 static routes are configured for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static vpn-instance (VPN)
+      line: 1925
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id080
+      static.route.vrf: $vpn-source-name
+      static.route.prefix: fmt:{destination-address}/{mask|mask-length}
+      static.route.nexthop: $nexthop-address
+      static.route.interface: $interface-name||fmt:{interface-type}{interface-number}
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static-vpn-instance.2~2
+    syntax: ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } vpn-instance <vpn-destination-name> <nexthop-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } ] [ inherit-cost ] | permanent ] [ no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ip route-static vpn-instance <vpn-source-name> <destination-address> { <mask> | <mask-length> } vpn-instance <vpn-destination-name> <nexthop-address> [ inherit-cost ]
+    params:
+      vpn-source-name: *id081
+      destination-address: *id082
+      mask: *id083
+      mask-length: *id084
+      vpn-destination-name: *id085
+      nexthop-address: *id086
+      preference: *id087
+      tag: *id088
+      cfg-name: *id089
+      admin-name: *id090
+      test-name: *id091
+      group-name: *id092
+      text: *id093
+    default: By default, no IPv4 static routes are configured for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static vpn-instance (VPN)
+      line: 1925
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      static.route: *id079
+      static.route.vrf: $vpn-source-name
+      static.route.prefix: fmt:{destination-address}/{mask|mask-length}
+      static.route.nexthop: $nexthop-address
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - id: huawei-vrp8.ip-route-static-vpn-instance-vpn-instance
+    syntax: ip route-static vpn-instance <vpn-source-name> <prefix> { <mask> | <mask-length> } { public | vpn-instance <vpn-destination-name> } [ preference <preference-value> | tag <tag-value> ] &<1-9> [ track nqa-group <group-name> ] [ no-advertise | no-install ] [ description <description-value> ]
+    view: system
+    undo: undo ip route-static vpn-instance <vpn-source-name> <prefix> { <mask> | <mask-length> } { public | vpn-instance <vpn-destination-name> }
+    params:
+      vpn-source-name:
+        type: word
+      prefix:
+        type: ipv4
+      mask:
+        type: mask
+      mask-length:
+        type: mask-length
+      vpn-destination-name:
+        type: word
+      preference-value:
+        type: integer
+        range:
+          - 1
+          - 255
+      tag-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      group-name:
+        type: word
+      description-value:
+        type: word
+    default: By default, no IPv4 static routes are configured for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ip route-static vpn-instance vpn-instance
+      line: 2052
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static.1
+    syntax: ipv6 route-static <dest-ipv6-address> <prefix-length> vpn-instance <vpn-instance-name> <nexthop-ipv6-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static <dest-ipv6-address> <prefix-length> vpn-instance <vpn-instance-name> <nexthop-ipv6-address>
+    params:
+      dest-ipv6-address: &id094
+        type: word
+      prefix-length: &id095
+        type: mask-length
+      vpn-instance-name: &id104
+        type: word
+      nexthop-ipv6-address: &id096
+        type: word
+      preference: &id097
+        type: integer
+        range:
+          - 1
+          - 255
+      tag: &id098
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cfg-name: &id099
+        type: word
+      admin-name: &id100
+        type: word
+      test-name: &id101
+        type: word
+      group-name: &id102
+        type: word
+      text: &id103
+        type: text
+    default: By default, no IPv6 static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static
+      line: 2261
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static.2
+    syntax: ipv6 route-static <dest-ipv6-address> <prefix-length> <nexthop-ipv6-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static <dest-ipv6-address> <prefix-length> vpn-instance <vpn-instance-name> <nexthop-ipv6-address>
+    params:
+      dest-ipv6-address: *id094
+      prefix-length: *id095
+      nexthop-ipv6-address: *id096
+      preference: *id097
+      tag: *id098
+      cfg-name: *id099
+      admin-name: *id100
+      test-name: *id101
+      group-name: *id102
+      text: *id103
+    default: By default, no IPv6 static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static
+      line: 2261
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static.3
+    syntax: ipv6 route-static <dest-ipv6-address> <prefix-length> <nexthop-ipv6-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } ] inherit-cost [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static <dest-ipv6-address> <prefix-length> vpn-instance <vpn-instance-name> <nexthop-ipv6-address>
+    params:
+      dest-ipv6-address: *id094
+      prefix-length: *id095
+      nexthop-ipv6-address: *id096
+      preference: *id097
+      tag: *id098
+      cfg-name: *id099
+      admin-name: *id100
+      test-name: *id101
+      group-name: *id102
+      text: *id103
+    default: By default, no IPv6 static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static
+      line: 2261
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static.4
+    syntax: ipv6 route-static <dest-ipv6-address> <prefix-length> vpn-instance <vpn-instance-name> <nexthop-ipv6-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } ] inherit-cost [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static <dest-ipv6-address> <prefix-length> vpn-instance <vpn-instance-name> <nexthop-ipv6-address>
+    params:
+      dest-ipv6-address: *id094
+      prefix-length: *id095
+      vpn-instance-name: *id104
+      nexthop-ipv6-address: *id096
+      preference: *id097
+      tag: *id098
+      cfg-name: *id099
+      admin-name: *id100
+      test-name: *id101
+      group-name: *id102
+      text: *id103
+    default: By default, no IPv6 static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static
+      line: 2261
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static.5
+    syntax: ipv6 route-static <dest-ipv6-address> <prefix-length> { <interface-name> | <interface-type> <interface-number> } <nexthop-ipv6-address> [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static <dest-ipv6-address> <prefix-length> vpn-instance <vpn-instance-name> <nexthop-ipv6-address>
+    params:
+      dest-ipv6-address: *id094
+      prefix-length: *id095
+      interface-name:
+        type: word
+      interface-type: &id105
+        type: word
+      interface-number: &id106
+        type: word
+      nexthop-ipv6-address: *id096
+      preference: *id097
+      tag: *id098
+      cost-value: &id107
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cfg-name: *id099
+      admin-name: *id100
+      test-name: *id101
+      group-name: *id102
+      text: *id103
+    default: By default, no IPv6 static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static
+      line: 2261
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static.6
+    syntax: ipv6 route-static <dest-ipv6-address> <prefix-length> vpn-instance <vpn-instance-name> [ preference <preference> | tag <tag> ] &<1-9> [ track nqa-group <group-name> ] [ no-advertise | no-install ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static <dest-ipv6-address> <prefix-length> vpn-instance <vpn-instance-name> <nexthop-ipv6-address>
+    params:
+      dest-ipv6-address: *id094
+      prefix-length: *id095
+      vpn-instance-name: *id104
+      preference: *id097
+      tag: *id098
+      group-name: *id102
+      text: *id103
+    default: By default, no IPv6 static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static
+      line: 2261
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static.7
+    syntax: ipv6 route-static <dest-ipv6-address> <prefix-length> { <interface-name> | <interface-type> <interface-number> } [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static <dest-ipv6-address> <prefix-length> vpn-instance <vpn-instance-name> <nexthop-ipv6-address>
+    params:
+      dest-ipv6-address: *id094
+      prefix-length: *id095
+      interface-name:
+        type: word
+      interface-type: *id105
+      interface-number: *id106
+      preference: *id097
+      tag: *id098
+      cost-value: *id107
+      cfg-name: *id099
+      admin-name: *id100
+      test-name: *id101
+      group-name: *id102
+      text: *id103
+    default: By default, no IPv6 static route is configured on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static
+      line: 2261
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-vpn-instance.1
+    syntax: ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> <nexthop-ipv6-address> [ public ] [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> [ vpn-instance <vpn-destination-name> <nexthop-ipv6-address> | <nexthop-ipv6-address> [ public ] ]
+    params:
+      vpn-source-name: &id108
+        type: word
+      dest-ipv6-address: &id109
+        type: word
+      prefix-length: &id110
+        type: mask-length
+      nexthop-ipv6-address: &id111
+        type: word
+      preference: &id112
+        type: integer
+        range:
+          - 1
+          - 255
+      tag: &id113
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cfg-name: &id114
+        type: word
+      admin-name: &id115
+        type: word
+      test-name: &id116
+        type: word
+      group-name: &id117
+        type: word
+      text: &id118
+        type: text
+    default: By default, no IPv6 static routes are configured for an IPv6 address family-enabled VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static vpn-instance
+      line: 2769
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-vpn-instance.2
+    syntax: ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> <nexthop-ipv6-address> [ public ] [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } ] inherit-cost [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> [ vpn-instance <vpn-destination-name> <nexthop-ipv6-address> | <nexthop-ipv6-address> [ public ] ]
+    params:
+      vpn-source-name: *id108
+      dest-ipv6-address: *id109
+      prefix-length: *id110
+      nexthop-ipv6-address: *id111
+      preference: *id112
+      tag: *id113
+      cfg-name: *id114
+      admin-name: *id115
+      test-name: *id116
+      group-name: *id117
+      text: *id118
+    default: By default, no IPv6 static routes are configured for an IPv6 address family-enabled VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static vpn-instance
+      line: 2769
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-vpn-instance.3
+    syntax: ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> <nexthop-ipv6-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> [ vpn-instance <vpn-destination-name> <nexthop-ipv6-address> | <nexthop-ipv6-address> [ public ] ]
+    params:
+      vpn-source-name: *id108
+      dest-ipv6-address: *id109
+      prefix-length: *id110
+      nexthop-ipv6-address: *id111
+      preference: *id112
+      tag: *id113
+      cfg-name: *id114
+      admin-name: *id115
+      test-name: *id116
+      group-name: *id117
+      text: *id118
+    default: By default, no IPv6 static routes are configured for an IPv6 address family-enabled VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static vpn-instance
+      line: 2769
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-vpn-instance.4
+    syntax: ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> <nexthop-ipv6-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } ] inherit-cost [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> [ vpn-instance <vpn-destination-name> <nexthop-ipv6-address> | <nexthop-ipv6-address> [ public ] ]
+    params:
+      vpn-source-name: *id108
+      dest-ipv6-address: *id109
+      prefix-length: *id110
+      nexthop-ipv6-address: *id111
+      preference: *id112
+      tag: *id113
+      cfg-name: *id114
+      admin-name: *id115
+      test-name: *id116
+      group-name: *id117
+      text: *id118
+    default: By default, no IPv6 static routes are configured for an IPv6 address family-enabled VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static vpn-instance
+      line: 2769
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-vpn-instance.5
+    syntax: ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> vpn-instance <vpn-destination-name> <nexthop-ipv6-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> [ vpn-instance <vpn-destination-name> <nexthop-ipv6-address> | <nexthop-ipv6-address> [ public ] ]
+    params:
+      vpn-source-name: *id108
+      dest-ipv6-address: *id109
+      prefix-length: *id110
+      vpn-destination-name: &id119
+        type: word
+      nexthop-ipv6-address: *id111
+      preference: *id112
+      tag: *id113
+      cfg-name: *id114
+      admin-name: *id115
+      test-name: *id116
+      group-name: *id117
+      text: *id118
+    default: By default, no IPv6 static routes are configured for an IPv6 address family-enabled VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static vpn-instance
+      line: 2769
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-vpn-instance.6
+    syntax: ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> vpn-instance <vpn-destination-name> <nexthop-ipv6-address> [ recursive-lookup { host-route | direct-route-only } ] [ preference <preference> | tag <tag> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } ] inherit-cost [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> [ vpn-instance <vpn-destination-name> <nexthop-ipv6-address> | <nexthop-ipv6-address> [ public ] ]
+    params:
+      vpn-source-name: *id108
+      dest-ipv6-address: *id109
+      prefix-length: *id110
+      vpn-destination-name: *id119
+      nexthop-ipv6-address: *id111
+      preference: *id112
+      tag: *id113
+      cfg-name: *id114
+      admin-name: *id115
+      test-name: *id116
+      group-name: *id117
+      text: *id118
+    default: By default, no IPv6 static routes are configured for an IPv6 address family-enabled VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static vpn-instance
+      line: 2769
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-vpn-instance.7
+    syntax: ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> { <interface-name> | <interface-type> <interface-number> } <nexthop-ipv6-address> [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ bfd enable | track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> [ vpn-instance <vpn-destination-name> <nexthop-ipv6-address> | <nexthop-ipv6-address> [ public ] ]
+    params:
+      vpn-source-name: *id108
+      dest-ipv6-address: *id109
+      prefix-length: *id110
+      interface-name:
+        type: word
+      interface-type: &id120
+        type: word
+      interface-number: &id121
+        type: word
+      nexthop-ipv6-address: *id111
+      preference: *id112
+      tag: *id113
+      cost-value: &id122
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cfg-name: *id114
+      admin-name: *id115
+      test-name: *id116
+      group-name: *id117
+      text: *id118
+    default: By default, no IPv6 static routes are configured for an IPv6 address family-enabled VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static vpn-instance
+      line: 2769
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-vpn-instance.8
+    syntax: ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> { <interface-name> | <interface-type> <interface-number> } [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ track { bfd-session <cfg-name> | nqa <admin-name> <test-name> | nqa-group <group-name> } | permanent ] [ no-advertise | no-install ] [ inter-protocol-ecmp ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static vpn-instance <vpn-source-name> <dest-ipv6-address> <prefix-length> [ vpn-instance <vpn-destination-name> <nexthop-ipv6-address> | <nexthop-ipv6-address> [ public ] ]
+    params:
+      vpn-source-name: *id108
+      dest-ipv6-address: *id109
+      prefix-length: *id110
+      interface-name:
+        type: word
+      interface-type: *id120
+      interface-number: *id121
+      preference: *id112
+      tag: *id113
+      cost-value: *id122
+      cfg-name: *id114
+      admin-name: *id115
+      test-name: *id116
+      group-name: *id117
+      text: *id118
+    default: By default, no IPv6 static routes are configured for an IPv6 address family-enabled VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static vpn-instance
+      line: 2769
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-vpn-instance-vpn-instance
+    syntax: ipv6 route-static vpn-instance <srcvpn6-instance-name> <prefix> <prefix-length> { vpn-instance <dstvpn6-instance-name> | public } [ preference <preference-value> | tag <tag-value> ] &<1-9> [ track nqa-group <group-name> ] [ no-advertise | no-install ] [ description <description-text> ]
+    view: system
+    undo: undo ipv6 route-static vpn-instance <srcvpn6-instance-name> <prefix> <prefix-length> { vpn-instance <dstvpn6-instance-name> | public }
+    params:
+      srcvpn6-instance-name:
+        type: word
+      prefix:
+        type: word
+      prefix-length:
+        type: mask-length
+      dstvpn6-instance-name:
+        type: word
+      preference-value:
+        type: integer
+        range:
+          - 1
+          - 255
+      tag-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      group-name:
+        type: word
+      description-text:
+        type: text
+    default: By default, no IPv6 static routes are configured for an IPv6 address family-enabled VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static vpn-instance vpn-instance
+      line: 2904
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-topology.1
+    syntax: ipv6 route-static topology <topology-name> <dest-ipv6-address> <prefix-length> <nexthop-ipv6-address> [ recursive-lookup host-route ] [ preference <preference> | tag <tag> ] &<1-9> [ no-advertise | no-install ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static [ topology <topology-name> ] <dest-ipv6-address> <prefix-length> [ <nexthop-ipv6-address> ]
+    params:
+      topology-name: &id123
+        type: word
+      dest-ipv6-address: &id124
+        type: word
+      prefix-length: &id125
+        type: mask-length
+      nexthop-ipv6-address: &id126
+        type: word
+      preference: &id127
+        type: integer
+        range:
+          - 1
+          - 255
+      tag: &id128
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      text: &id129
+        type: text
+    default: By default, no IPv6 static routes are configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static topology
+      line: 3364
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-topology.2
+    syntax: ipv6 route-static topology <topology-name> <dest-ipv6-address> <prefix-length> { <interface-name> | <interface-type> <interface-number> } <nexthop-ipv6-address> [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ no-advertise | no-install ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static [ topology <topology-name> ] <dest-ipv6-address> <prefix-length> [ <nexthop-ipv6-address> ]
+    params:
+      topology-name: *id123
+      dest-ipv6-address: *id124
+      prefix-length: *id125
+      interface-name:
+        type: word
+      interface-type: &id130
+        type: word
+      interface-number: &id131
+        type: word
+      nexthop-ipv6-address: *id126
+      preference: *id127
+      tag: *id128
+      cost-value: &id132
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      text: *id129
+    default: By default, no IPv6 static routes are configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static topology
+      line: 3364
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-route-static-topology.3
+    syntax: ipv6 route-static topology <topology-name> <dest-ipv6-address> <prefix-length> { <interface-name> | <interface-type> <interface-number> } [ preference <preference> | tag <tag> | cost <cost-value> ] &<1-9> [ no-advertise | no-install ] [ description <text> ]
+    view: system
+    undo: undo ipv6 route-static [ topology <topology-name> ] <dest-ipv6-address> <prefix-length> [ <nexthop-ipv6-address> ]
+    params:
+      topology-name: *id123
+      dest-ipv6-address: *id124
+      prefix-length: *id125
+      interface-name:
+        type: word
+      interface-type: *id130
+      interface-number: *id131
+      preference: *id127
+      tag: *id128
+      cost-value: *id132
+      text: *id129
+    default: By default, no IPv6 static routes are configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md
+      title: ipv6 route-static topology
+      line: 3364
       version: V800R025C00SPC500
     status: draft

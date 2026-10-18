@@ -1,0 +1,115 @@
+# 接口功能域：物理接口、子接口、Eth-Trunk / Port-channel、Loopback、BDI，以及二层业务接入点。
+# 业务接入点（interface.access）是 0.1.0 的难点抽象：
+#   华为 ATN：二层子接口（interface GE0/2/1.101 mode l2）上的 encapsulation / rewrite / bridge-domain，接入点就是子接口本身（编号 "_"）
+#   Cisco ASR 920：物理接口下的 service instance <编号> ethernet，接入点是其中一个业务实例
+# 两边映射到同一组语义节点（外层 VLAN、标签处理、所属桥域），跨厂商翻译时由这一层对应。
+domain: interface
+nodes:
+  interface:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 接口（物理口、子接口、聚合口、环回口、桥域三层口）, en: Interface}
+    status: reviewed
+  interface.description:
+    parent: interface
+    type: text
+    semantic: {zh-CN: 接口描述, en: Interface description}
+  interface.shutdown:
+    parent: interface
+    type: boolean
+    semantic: {zh-CN: 管理状态为关闭（true 表示 shutdown）, en: Administratively down}
+  interface.mtu:
+    parent: interface
+    type: integer
+    range: [46, 16000]
+    semantic: {zh-CN: 接口 MTU（字节）；华为为 IP MTU，Cisco mtu 为二层 MTU，翻译时需换算, en: Interface MTU in bytes}
+  interface.l2:
+    parent: interface
+    type: boolean
+    semantic: {zh-CN: 接口工作在二层模式（华为 portswitch / mode l2）, en: Layer-2 mode}
+  interface.speed:
+    parent: interface
+    type: string
+    semantic: {zh-CN: 速率（强制）, en: Forced speed}
+  interface.duplex:
+    parent: interface
+    type: enum
+    choices: [full, half, auto]
+    semantic: {zh-CN: 双工模式, en: Duplex}
+  interface.negotiation:
+    parent: interface
+    type: boolean
+    semantic: {zh-CN: 自协商, en: Auto-negotiation}
+  interface.ipv4:
+    parent: interface
+    type: object
+    key: [address]
+    semantic: {zh-CN: 接口 IPv4 地址（主地址与从地址）, en: Interface IPv4 address}
+  interface.ipv4.address:
+    parent: interface.ipv4
+    type: ipv4
+    semantic: {zh-CN: IPv4 地址, en: IPv4 address}
+  interface.ipv4.prefix_length:
+    parent: interface.ipv4
+    type: integer
+    range: [0, 32]
+    semantic: {zh-CN: 掩码长度（点分掩码换算成长度后比较）, en: Prefix length}
+  interface.ipv4.secondary:
+    parent: interface.ipv4
+    type: boolean
+    semantic: {zh-CN: 从地址, en: Secondary address}
+  interface.vrf:
+    parent: interface
+    type: ref
+    ref: vrf.instance
+    semantic: {zh-CN: 接口绑定的 VRF / VPN 实例, en: Bound VRF}
+  interface.lag:
+    parent: interface
+    type: integer
+    semantic: {zh-CN: 加入的聚合组编号（华为 eth-trunk，Cisco channel-group）, en: LAG membership}
+  interface.lag_mode:
+    parent: interface
+    type: string
+    semantic: {zh-CN: 聚合模式（静态 LACP / 手工 / active / passive）, en: LAG mode}
+  interface.dot1q_termination:
+    parent: interface
+    type: integer
+    range: [1, 4094]
+    semantic: {zh-CN: 三层子接口终结的 802.1Q VLAN（华为 vlan-type dot1q，Cisco encapsulation dot1Q）, en: Dot1q VLAN terminated on a L3 sub-interface}
+  interface.access:
+    parent: interface
+    type: object
+    key: [id]
+    semantic: {zh-CN: 二层业务接入点（华为二层子接口 / Cisco service instance）, en: L2 service access point}
+    status: reviewed
+  interface.access.encapsulation:
+    parent: interface.access
+    type: string
+    semantic: {zh-CN: 帧匹配方式（dot1q / untagged / default）, en: Frame encapsulation match}
+  interface.access.vlan:
+    parent: interface.access
+    type: integer
+    range: [1, 4094]
+    semantic: {zh-CN: 外层 VLAN, en: Outer VLAN}
+  interface.access.rewrite:
+    parent: interface.access
+    type: string
+    semantic: {zh-CN: 入方向标签处理（pop 1 / pop 2 …）, en: Ingress tag rewrite}
+  interface.access.bridge_domain:
+    parent: interface.access
+    type: ref
+    ref: bridge_domain
+    semantic: {zh-CN: 所属桥域, en: Bridge domain}
+  interface.access.description:
+    parent: interface.access
+    type: text
+    semantic: {zh-CN: 接入点描述, en: Access point description}
+  bridge_domain:
+    type: object
+    key: [id]
+    semantic: {zh-CN: 桥域（华为 bridge-domain，Cisco bridge-domain / BDI 对应的二层广播域）, en: Bridge domain}
+deps:
+  - {kind: reference, from: interface.vrf, to: vrf.instance, note: 接口引用 VRF}
+  - {kind: prerequisite, from: interface.vrf, to: vrf.instance, note: 绑定 VRF 前 VRF 必须存在；删除时先解绑再删 VRF}
+  - {kind: reference, from: interface.access.bridge_domain, to: bridge_domain, note: 接入点引用桥域}
+  - {kind: mutex, from: interface.l2, to: interface.ipv4, note: 二层模式的接口不能配置 IPv4 地址}

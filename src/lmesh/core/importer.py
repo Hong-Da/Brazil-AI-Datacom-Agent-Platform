@@ -13,8 +13,9 @@ from typing import Any
 from sqlalchemy import select
 
 from lmesh.core import store
+from lmesh.core.parser import normalize_pattern
 from lmesh.core.sanitize import Level, Sanitizer, detect_vendor, detect_version, local_key
-from lmesh.core.store.models import ConfigVersion, Device
+from lmesh.core.store.models import ConfigVersion, Device, UnknownLine
 
 CONFIG_SUFFIXES = {"", ".txt", ".cfg", ".conf", ".config", ".log", ".zip"}
 MAX_BYTES = 20 * 1024 * 1024
@@ -32,6 +33,8 @@ class ImportResult:
     lines: int = 0
     version_id: int | None = None
     sanitized: dict[str, int] = field(default_factory=dict)
+    unknown: int = 0
+    coverage: float | None = None
     error: str = ""  # 文案键
 
     def as_dict(self) -> dict[str, Any]:
@@ -118,10 +121,11 @@ def import_sources(
     sanitizer = Sanitizer(level, local_key())
     kb = None
     if kb_root is not None and (kb_root / "kb.yaml").exists():
-        from lmesh.core import kb as kbmod
+        from lmesh.core.analysis import load_kb
 
-        kb = kbmod.load(kb_root)
+        kb = load_kb(kb_root)
     results: list[ImportResult] = []
+    graphs: list[tuple[int, Any]] = []
     with store.session(db_url) as s:
         for name, raw in sources:
             res, text = sanitize_one(name, raw, sanitizer, kb)
@@ -133,11 +137,45 @@ def import_sources(
                     s.flush()
                 else:
                     dev.vendor, dev.sw_version, dev.profile = res.vendor, res.version, res.profile
-                ver = ConfigVersion(device_id=dev.id, source_name=name, raw_text=text, sanitized=True)
+                ver = ConfigVersion(
+                    device_id=dev.id,
+                    source_name=name,
+                    raw_text=text,
+                    sanitized=True,
+                    kb_version=kb.version if kb is not None else "",
+                )
+                if kb is not None and res.profile in kb.profiles:
+                    from lmesh.core import parser
+
+                    parsed = parser.parse(text, kb, kb.profiles[res.profile].family)
+                    ver.structured = parsed.as_dict()
+                    res.unknown = len(parsed.unknown())
+                    res.coverage = round(parsed.coverage(), 4)
                 s.add(ver)
                 s.flush()
                 res.version_id = ver.id
+                if kb is not None and ver.structured and res.profile in kb.profiles:
+                    from lmesh.core import graph as graphmod
+
+                    graphs.append((ver.id, graphmod.build(parsed, kb, res.profile, res.device)))
+                if kb is not None and ver.structured:
+                    for ln in ver.structured["lines"]:
+                        if ln["kind"] == "unknown":
+                            s.add(
+                                UnknownLine(
+                                    version_id=ver.id,
+                                    line_no=ln["no"],
+                                    text=ln["text"],
+                                    view=ln["view"],
+                                    pattern=normalize_pattern(ln["text"])[:400],
+                                )
+                            )
             results.append(res)
+    # 配置图写入 nodes / edges 表（会话提交后再写，避免长事务）
+    from lmesh.core import graphstore
+
+    for vid, g in graphs:
+        graphstore.save(db_url, vid, g)
     return results
 
 

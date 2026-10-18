@@ -148,9 +148,12 @@ def ingest(
                 )
                 continue
             existing = doc["cards"][index[cid]]
+            for keep in ("maps", "maps_manual"):  # 映射来自映射规则，重新抽取时保留
+                if existing.get(keep) is not None:
+                    card[keep] = existing.get(keep)
             if kbfiles.comparable(existing) == kbfiles.comparable(card):
                 stats["unchanged"] += 1
-            elif str(existing.get("status", "draft")) == "draft":
+            elif str(existing.get("status", "draft")) == "draft" and not existing.get("curated"):
                 doc["cards"][index[cid]] = kbfiles.to_card_map(card)
                 stats["updated_draft"] += 1
                 if cid not in pending:

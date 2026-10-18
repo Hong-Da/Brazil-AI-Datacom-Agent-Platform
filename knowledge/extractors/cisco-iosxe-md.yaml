@@ -20,17 +20,21 @@ views_split: ',\s*|;\s*|\s+and\s+|/|\s+or\s+'
 views_map:
   - {match: '\(config\)', view: system}
   - {match: '\(config-(if|subif)\)', view: interface}
-  - {match: '\(config-if-srv\)', view: service-instance}
+  - {match: '\(config-if-s(rv|vc)\)', view: service-instance}
   - {match: '\(config-vrf\)', view: vrf}
   - {match: '\(config-vrf-af\)', view: vrf-af}
   - {match: '\(config-router\)', view: router-bgp}
-  - {match: '\(config-router-af\)', view: bgp-af}
+  - {match: '\(config-(router-)?af\)', view: bgp-af}
   - {match: '\(config-route-map\)', view: route-map}
   - {match: '^Global configuration', view: system}
   - {match: '^Interface configuration', view: interface}
   - {match: '^Router configuration', view: router-bgp}
   - {match: '^Address family configuration', view: bgp-af}
   - {match: '^Route-map configuration', view: route-map}
+
+# 视图别名：BGP 的 neighbor 等命令在路由器模式与地址族模式下都有效，文档往往只列了一个
+view_aliases:
+  router-bgp: [bgp-af]
 
 enters:
   - {view: system, syntax: '^interface\b', enters: interface}
@@ -64,3 +68,18 @@ domains:
   interface:
     - {path: 'interface/*.md'}
     - {path: 'carrier-ethernet/*.md'}
+
+# 统一改写：运行配置中接口名、前缀都是一个词，文档把它们拆成了两个参数
+syntax_rewrites:
+  - pattern: '<interface-type> <interface-number>'
+    replace: '<interface>'
+    params: {interface: {type: interface}}
+  - pattern: '<interface> <interface-number>'
+    replace: '<interface>'
+    params: {interface: {type: interface}}
+  - pattern: '^interface <type> <number>$'
+    replace: 'interface <interface>'
+    params: {interface: {type: interface}}
+  - pattern: '<network> / <length>'
+    replace: '<prefix>'
+    params: {prefix: {type: prefix}}

@@ -1,0 +1,289 @@
+# 华为 VRP8 命令卡 → 统一 Schema 的映射规则（语义归并）。lmesh kb map 把规则写进命令卡的 maps。
+# 每条规则：view（视图正则，可省）、syntax（命令卡语法正则，第一条命中生效）、maps（目标: 表达式，写法见 lmesh/core/kb/mapping.py）。
+# 跨厂商对应关系见 docs/project-spec.md；所有映射在审核通过前都是 draft。
+family: huawei-vrp8
+
+# 对等体可以用地址也可以用组名指定，不同命令变体的参数名不同，统一用这一串回退
+_peer: &peer "$ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName"
+
+rules:
+  # ---------- 接口 ----------
+  - view: ^system$
+    syntax: '^interface \{ <interface-name> \| <interface-type> <interface-number> \} \{ <mode> l2 \}$'
+    maps:
+      interface: "$interface-name||fmt:{interface-type}{interface-number}"
+      interface.l2: "true"
+  - view: ^system$
+    syntax: '^interface \{ <interface-name> \| <interface-type> <interface-number> \}'
+    maps:
+      interface: "$interface-name||fmt:{interface-type}{interface-number}"
+  - view: ^interface$
+    syntax: '^description <description>$'
+    maps: {interface.description: $description}
+  - view: ^interface$
+    syntax: '^ip address <ip-address> \{ <mask> \| <mask-length> \}'
+    maps:
+      interface.ipv4: $ip-address
+      interface.ipv4.address: $ip-address
+      interface.ipv4.prefix_length: "$mask||$mask-length"
+      interface.ipv4.secondary: "kw:sub=true:false"
+  - view: ^interface$
+    syntax: '^mtu <mtu>$'
+    maps: {interface.mtu: $mtu}
+  - view: ^interface$
+    syntax: '^shutdown$'
+    maps: {interface.shutdown: flag}
+  - view: ^interface$
+    syntax: '^portswitch$'
+    maps: {interface.l2: flag}
+  - view: ^interface$
+    syntax: '^vlan-type dot1q <vlan-id>'
+    maps: {interface.dot1q_termination: $vlan-id}
+  - view: ^interface$
+    syntax: '^ip binding vpn-instance <vpn-instance-name>$'
+    maps: {interface.vrf: $vpn-instance-name}
+  - view: ^interface$
+    syntax: '^eth-trunk <trunk-id>'
+    maps:
+      interface.lag: $trunk-id
+      interface.lag_mode: "kw:active|passive"
+  - view: ^interface$
+    syntax: '^mode \{ lacp-static \| manual'
+    maps: {interface.lag_mode: "kw:lacp-static|manual"}
+  - view: ^interface$
+    syntax: '^speed '
+    maps: {interface.speed: "kw:10|100|1000|10000"}
+  - view: ^interface$
+    syntax: '^duplex '
+    maps: {interface.duplex: "kw:full|half|auto"}
+  - view: ^interface$
+    syntax: '^negotiation auto$'
+    maps: {interface.negotiation: flag}
+  # 二层子接口上的业务接入点：接入点就是子接口本身，编号固定为 "_"
+  - view: ^interface$
+    syntax: '^encapsulation dot1q '
+    maps:
+      interface.access: "_"
+      interface.access.encapsulation: dot1q
+      interface.access.vlan: $low-pe-vid
+  - view: ^interface$
+    syntax: '^encapsulation untag$'
+    maps:
+      interface.access: "_"
+      interface.access.encapsulation: untagged
+  - view: ^interface$
+    syntax: '^rewrite pop \{ single \| double \}$'
+    maps:
+      interface.access: "_"
+      interface.access.rewrite: "kw:single=pop 1|double=pop 2"
+  - view: ^interface$
+    syntax: '^bridge-domain <bd-id>$'
+    maps:
+      interface.access: "_"
+      interface.access.bridge_domain: $bd-id
+  - view: ^system$
+    syntax: '^bridge-domain <bd-id>$'
+    maps: {bridge_domain: $bd-id}
+
+  # ---------- VRF ----------
+  - view: ^system$
+    syntax: '^ip vpn-instance <vpn-instance-name>$'
+    maps: {vrf.instance: $vpn-instance-name}
+  - view: ^vpn-instance$
+    syntax: '^description '
+    maps: {vrf.instance.description: "$description||$description-information"}
+  - view: ^vpn-instance$
+    syntax: '^ipv4-family'
+    maps: {vrf.instance.af: ipv4}
+  - view: ^vpn-instance-af-ipv4$
+    syntax: '^route-distinguisher <route-distinguisher>$'
+    maps: {vrf.instance.af.rd: $route-distinguisher}
+  - view: ^vpn-instance(-af-ipv4)?$
+    syntax: '^vpn-target '
+    maps:
+      vrf.instance.af{afi=ipv4}.rt: {value: $vpn-target, direction: "kw:export-extcommunity=export|import-extcommunity=import|both=both:both"}
+      vrf.instance.af{afi=ipv4}.rt.value: $vpn-target
+      vrf.instance.af{afi=ipv4}.rt.direction: "kw:export-extcommunity=export|import-extcommunity=import|both=both:both"
+  - view: ^vpn-instance-af-ipv4$
+    syntax: '^apply-label '
+    maps: {vrf.instance.af.label_mode: "kw:per-instance|per-nexthop|per-route"}
+
+  # ---------- 静态路由 ----------
+  - view: ^system$
+    syntax: '^ip route-static vpn-instance <vpn-source-name> <destination-address>'
+    maps:
+      static.route: {vrf: $vpn-source-name, prefix: "fmt:{destination-address}/{mask|mask-length}", nexthop: "$nexthop-address||"}
+      static.route.vrf: $vpn-source-name
+      static.route.prefix: "fmt:{destination-address}/{mask|mask-length}"
+      static.route.nexthop: $nexthop-address
+      static.route.interface: "$interface-name||fmt:{interface-type}{interface-number}"
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+  - view: ^system$
+    syntax: '^ip route-static <ip-address> \{ <mask> \| <mask-length> \}'
+    maps:
+      static.route: {vrf: "", prefix: "fmt:{ip-address}/{mask|mask-length}", nexthop: "$nexthop-address||"}
+      static.route.prefix: "fmt:{ip-address}/{mask|mask-length}"
+      static.route.nexthop: $nexthop-address
+      static.route.interface: "$interface-name||fmt:{interface-type}{interface-number}"
+      static.route.preference: $preference
+      static.route.tag: $tag
+      static.route.description: $text
+
+  # ---------- BGP 实例、对等体、对等体组 ----------
+  - view: ^system$
+    syntax: '^bgp <as-number>$'
+    maps: {bgp.instance: $as-number}
+  - view: ^bgp$
+    syntax: '^router-id <ipv4-address>$'
+    maps: {bgp.instance.router_id: $ipv4-address}
+  - view: ^bgp$
+    syntax: '^group <group-name> \{ internal \| external \}'
+    maps:
+      bgp.peer_group: $group-name
+      bgp.peer_group.type: "kw:internal|external"
+  - view: ^bgp$
+    syntax: '^peer <[\w-]+> as-number <as-number>$'
+    maps:
+      bgp.peer | bgp.peer_group: *peer
+      bgp.peer.remote_as | bgp.peer_group.remote_as: $as-number
+  - view: ^bgp$
+    syntax: '^peer <[\w-]+> group <[\w-]+>$'
+    maps:
+      bgp.peer: "$ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr"
+      bgp.peer.group: "$group-name||$peerGroupName"
+  - view: ^bgp$
+    syntax: '^peer <[\w-]+> connect-interface '
+    maps:
+      bgp.peer | bgp.peer_group: *peer
+      bgp.peer.update_source | bgp.peer_group.update_source: "$interface-name||fmt:{interface-type}{interface-number}"
+  - view: ^bgp$
+    syntax: '^peer <[\w-]+> password cipher '
+    maps:
+      bgp.peer | bgp.peer_group: *peer
+      bgp.peer.password | bgp.peer_group.password: $cipher-password
+  - view: ^bgp$
+    syntax: '^peer <[\w-]+> timer keepalive <keepalive-time> hold <hold-time>'
+    maps:
+      bgp.peer | bgp.peer_group: *peer
+      bgp.peer.keepalive | bgp.peer_group.keepalive: $keepalive-time
+      bgp.peer.hold | bgp.peer_group.hold: $hold-time
+  - view: ^bgp$
+    syntax: '^peer <[\w-]+> description '
+    maps:
+      bgp.peer: *peer
+      bgp.peer.description: "$description-text||$description"
+
+  # ---------- BGP 地址族 ----------
+  - view: ^bgp$
+    syntax: '^ipv4-family unicast$'
+    maps: {bgp.af: {afi: ipv4, vrf: ""}}
+  - view: ^bgp$
+    syntax: '^ipv4-family vpnv4( unicast)?$'
+    maps: {bgp.af: {afi: vpnv4, vrf: ""}}
+  - view: ^bgp$
+    syntax: '^ipv4-family vpn-instance <vpn-instance-name>$'
+    maps: {bgp.af: {afi: ipv4, vrf: $vpn-instance-name}}
+  - view: ^bgp$
+    syntax: '^vpn-instance <vpn-instance-name>$'
+    maps: {bgp.af: {afi: ipv4, vrf: $vpn-instance-name}}
+  - view: ^(bgp-af-|bgp-vpn-instance)
+    syntax: '^peer <[\w-]+> enable$'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.enabled: flag
+  - view: ^bgp$
+    syntax: '^peer <[\w-]+> enable$'
+    maps:
+      bgp.af{afi=ipv4,vrf=}.peer: *peer
+      bgp.af{afi=ipv4,vrf=}.peer.enabled: flag
+  - view: ^(bgp-af-|bgp-vpn-instance)
+    syntax: '^peer <[\w-]+> group <[\w-]+>$'
+    maps:
+      bgp.af.peer: "$ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr"
+      bgp.af.peer.group: "$group-name||$peerGroupName"
+  - view: ^(bgp-af-|bgp-vpn-instance)
+    syntax: '^peer <[\w-]+> route-policy <route-policy-name> import$'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.import_policy: $route-policy-name
+  - view: ^(bgp-af-|bgp-vpn-instance)
+    syntax: '^peer <[\w-]+> route-policy <route-policy-name> export$'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.export_policy: $route-policy-name
+  - view: ^(bgp-af-|bgp-vpn-instance)
+    syntax: '^peer <[\w-]+> next-hop-local'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.next_hop_self: flag
+  - view: ^(bgp-af-|bgp-vpn-instance)
+    syntax: '^peer <[\w-]+> advertise-community$'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.send_community: standard
+  - view: ^(bgp-af-|bgp-vpn-instance)
+    syntax: '^peer <[\w-]+> reflect-client$'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.rr_client: flag
+  - view: ^bgp-af-
+    syntax: '^network \{ <ipv4-address>'
+    maps:
+      bgp.af.network: "fmt:{ipv4-address}/{mask|mask-length}"
+      bgp.af.network.prefix: "fmt:{ipv4-address}/{mask|mask-length}"
+      bgp.af.network.policy: $route-policy-name
+  - view: ^bgp-af-
+    syntax: '^import-route \{ direct \| static'
+    maps:
+      bgp.af.redistribute: "kw:direct=connected|static|unr"
+      bgp.af.redistribute.policy: $route-policy-name
+      bgp.af.redistribute.metric: $med
+  - view: ^bgp-af-
+    syntax: '^import-route \{ static \| direct'
+    maps:
+      bgp.af.redistribute: "kw:direct=connected|static|unr"
+      bgp.af.redistribute.policy: $route-policy-name
+      bgp.af.redistribute.metric: $med
+
+  # ---------- 路由策略 ----------
+  - view: ^system$
+    syntax: '^route-policy <route-policy-name> <matchMode> node <node>$'
+    maps:
+      rp.policy: $route-policy-name
+      rp.policy.node: $node
+      rp.policy.node.action: $matchMode
+  - view: ^route-policy$
+    syntax: '^if-match ip-prefix <ip-prefix-name>$'
+    maps: {rp.policy.node.match_prefix_list: $ip-prefix-name}
+  - view: ^route-policy$
+    syntax: '^if-match community-filter '
+    maps: {rp.policy.node.match_community: "$cfName||$basic-comm-filter-num||$adv-comm-filter-num"}
+  - view: ^route-policy$
+    syntax: '^apply local-preference '
+    maps: {rp.policy.node.set_local_preference: $preference}
+  - view: ^route-policy$
+    syntax: '^apply cost '
+    maps: {rp.policy.node.set_metric: "$cost||$cost-value"}
+  - view: ^route-policy$
+    syntax: '^apply community \{'
+    maps:
+      rp.policy.node.set_community: "$cmntyValue||$cmntyNum"
+      rp.policy.node.set_community_additive: "kw:additive=true:false"
+  - view: ^system$
+    syntax: '^ip ip-prefix <ip-prefix-name> \[ index <index-number> \] <matchMode> <ipv4-address> <masklen>'
+    maps:
+      rp.prefix_list: $ip-prefix-name
+      rp.prefix_list.entry: "$index-number||auto"
+      rp.prefix_list.entry.action: $matchMode
+      rp.prefix_list.entry.prefix: "fmt:{ipv4-address}/{masklen}"
+      rp.prefix_list.entry.ge: $greater-equal-value
+      rp.prefix_list.entry.le: $less-equal-value
+  - view: ^system$
+    syntax: '^ip community-filter (advanced|basic) '
+    maps:
+      rp.community_list: "$comm-filter-name||$basic-comm-filter-name"
+      rp.community_list.entry: "$index-number||auto"
+      rp.community_list.entry.action: $matchMode
+      rp.community_list.entry.match: "$regular-expression||$cmntyValue"

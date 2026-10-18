@@ -25,6 +25,8 @@ cards:
       line: 93
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af.label_mode: kw:per-instance|per-nexthop|per-route
   - id: huawei-vrp8.apply-label-per-instance-static
     syntax: apply-label per-instance static <static-label-value>
     view: vpn-instance
@@ -59,6 +61,8 @@ cards:
       line: 230
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af.label_mode: kw:per-instance|per-nexthop|per-route
   - id: huawei-vrp8.apply-label-per-nexthop
     syntax: apply-label per-nexthop
     view: bgp-af-vpnv4
@@ -95,6 +99,8 @@ cards:
       line: 494
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af.label_mode: kw:per-instance|per-nexthop|per-route
   - id: huawei-vrp8.as-notation-plain
     syntax: as-notation plain
     view: system
@@ -122,6 +128,8 @@ cards:
       line: 654
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.description: $description||$description-information
   - id: huawei-vrp8.export-route-filter
     syntax: export route-filter <route-filter-name> [ add-ert-first ]
     view: vpn-instance
@@ -338,6 +346,8 @@ cards:
       line: 2427
       version: V800R025C00SPC500
     status: draft
+    maps:
+      interface.vrf: $vpn-instance-name
   - id: huawei-vrp8.ip-dcn-vpn-instance
     syntax: ip dcn vpn-instance <vpn-instance-name>
     view: system
@@ -482,6 +492,8 @@ cards:
       line: 3063
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance: $vpn-instance-name
   - id: huawei-vrp8.ip-vpn-instance-limit
     syntax: ip vpn-instance-limit <limit-value>
     view: system
@@ -514,6 +526,8 @@ cards:
       line: 3194
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af: ipv4
   - id: huawei-vrp8.ipv6-import-rib-vpn-instance-protocol-vlink-direct-route
     syntax: ipv6 import-rib vpn-instance <vpn-instance-name> protocol vlink-direct-route [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
     view: system
@@ -648,6 +662,8 @@ cards:
       line: 3793
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af.rd: $route-distinguisher
   - id: huawei-vrp8.route-distinguisher~2
     syntax: route-distinguisher <route-distinguisher>
     view: vpn-instance
@@ -789,7 +805,7 @@ cards:
     undo: undo vpn-target { <vpn-target> } &<1-8> [ <vrfRtType> ]
     params:
       vpn-target:
-        type: community
+        type: rd
       vrfRtType:
         type: enum
         choices:
@@ -797,6 +813,12 @@ cards:
           - export-extcommunity
           - import-extcommunity
     default: By default, the import and export VPN targets are not configured for the VPN instance IPv4 address family.
+    maps:
+      vrf.instance.af{afi=ipv4}.rt: &id003
+        value: $vpn-target
+        direction: kw:export-extcommunity=export|import-extcommunity=import|both=both:both
+      vrf.instance.af{afi=ipv4}.rt.value: $vpn-target
+      vrf.instance.af{afi=ipv4}.rt.direction: kw:export-extcommunity=export|import-extcommunity=import|both=both:both
     source:
       doc: huawei-vrp8-md
       file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md
@@ -810,7 +832,7 @@ cards:
     undo: undo vpn-target { <vpn-target> } &<1-8> [ <vrfRtType> ]
     params:
       vpn-target:
-        type: community
+        type: rd
       vrfRtType:
         type: enum
         choices:
@@ -818,6 +840,10 @@ cards:
           - export-extcommunity
           - import-extcommunity
     default: By default, the import and export VPN targets are not configured for the VPN instance IPv4 address family.
+    maps:
+      vrf.instance.af{afi=ipv4}.rt: *id003
+      vrf.instance.af{afi=ipv4}.rt.value: $vpn-target
+      vrf.instance.af{afi=ipv4}.rt.direction: kw:export-extcommunity=export|import-extcommunity=import|both=both:both
     source:
       doc: huawei-vrp8-md
       file: 16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md

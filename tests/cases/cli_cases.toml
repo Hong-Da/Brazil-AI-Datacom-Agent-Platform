@@ -145,7 +145,7 @@ expect_stdout = ["Nenhuma configuração ainda"]
 id = "kb-validate"
 title = { zh-CN = "校验知识库", en = "Validate the knowledge base", pt-BR = "Validar a base de conhecimento" }
 args = ["--output", "json", "kb", "validate"]
-setup = "configured"
+setup = "configured-fullkb"
 expect_exit = 0
 expect_json = { "data.errors" = 0, "data.counts.profiles" = 3 }
 in_docs = true
@@ -154,7 +154,7 @@ in_docs = true
 id = "kb-release"
 title = { zh-CN = "发布知识库版本（版本号按差异自动建议）", en = "Publish a knowledge base release", pt-BR = "Publicar uma versão da base" }
 args = ["--output", "json", "kb", "release", "-m", "primeira versão"]
-setup = "configured"
+setup = "configured-fullkb"
 expect_exit = 0
 expect_json = { "data.version" = "0.1.0", "data.tag" = "kb-v0.1.0" }
 in_docs = true
@@ -261,3 +261,81 @@ args = ["--output", "json", "ai", "calls"]
 setup = "configured"
 expect_exit = 0
 expect_json = { "data.calls" = [] }
+
+[[case]]
+id = "parse-atn"
+title = { zh-CN = "解析华为 ATN 配置（自动选择 Profile）", en = "Parse a Huawei ATN config (profile auto-detected)", pt-BR = "Analisar uma configuração Huawei ATN (profile automático)" }
+args = ["--output", "json", "parse", "{samples}/huawei-atn-v800r023/atn-access-01.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.profile" = "huawei-atn-v800r023", "data.coverage" = 1.0, "data.counts.command" = 720 }
+in_docs = true
+
+[[case]]
+id = "parse-missing"
+title = { zh-CN = "解析不存在的文件", en = "Parse a missing file", pt-BR = "Analisar arquivo inexistente" }
+args = ["parse", "{out}/nope.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 4
+expect_stderr = ["nope.cfg"]
+
+[[case]]
+id = "parse-unknown-vendor"
+title = { zh-CN = "无法识别厂商时提示指定 Profile", en = "Ask for --profile when the vendor is unknown", pt-BR = "Pedir --profile quando o fabricante é desconhecido" }
+args = ["--lang", "en", "parse", "{inputs}/configs/bad/notes.txt"]
+setup = "fresh-fullkb"
+expect_exit = 2
+expect_stderr = ["--profile"]
+
+[[case]]
+id = "roundtrip-file"
+title = { zh-CN = "单个配置的往返测试", en = "Round-trip one config", pt-BR = "Teste de ida e volta de uma configuração" }
+args = ["--output", "json", "roundtrip", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.ok" = true, "data.unknown" = 0 }
+in_docs = true
+
+[[case]]
+id = "roundtrip-samples"
+title = { zh-CN = "全部样本的往返回归（0.1.0 验收门槛）", en = "Round-trip regression over all samples (0.1.0 gate)", pt-BR = "Regressão de ida e volta em todas as amostras (critério 0.1.0)" }
+args = ["--output", "json", "roundtrip", "--samples"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.failed" = 0, "data.samples" = 13 }
+in_docs = true
+
+[[case]]
+id = "graph-show"
+title = { zh-CN = "查看配置图的 VRF 部分", en = "Show the VRF part of the graph", pt-BR = "Mostrar a parte de VRF do grafo" }
+args = ["--output", "json", "graph", "show", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg", "--domain", "vrf"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.profile" = "cisco-iosxe-asr920-17.15", "data.summary.dangling" = 0 }
+in_docs = true
+
+[[case]]
+id = "graph-show-missing"
+title = { zh-CN = "设备不存在", en = "Unknown device", pt-BR = "Dispositivo inexistente" }
+args = ["graph", "show", "NO-SUCH-DEVICE"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["NO-SUCH-DEVICE"]
+
+[[case]]
+id = "render"
+title = { zh-CN = "把配置图渲染回文本", en = "Render the graph back to text", pt-BR = "Renderizar o grafo de volta para texto" }
+args = ["render", "{inputs}/configs/cisco/basic.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["router bgp 65000", "vrf definition CLIENTE-A"]
+in_docs = true
+
+[[case]]
+id = "unknown-list-empty"
+title = { zh-CN = "未识别行汇总（没有导入时）", en = "Unknown-line summary (nothing imported)", pt-BR = "Resumo de linhas desconhecidas (sem importações)" }
+args = ["--output", "json", "unknown", "list"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.patterns" = [] }
+in_docs = true

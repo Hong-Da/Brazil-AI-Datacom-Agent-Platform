@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.conftest import INPUTS, run_cli
+from tests.conftest import INPUTS, SAMPLES, prepare, run_cli
 from tests.helpers import check_json, load_cases
 
 CASES = load_cases("cli_cases.toml")
@@ -16,10 +16,12 @@ CASES = load_cases("cli_cases.toml")
 @pytest.mark.cli
 @pytest.mark.parametrize("case", CASES, ids=[c["id"] for c in CASES])
 def test_cli_case(case: dict, tmp_root: Path, request: pytest.FixtureRequest) -> None:
-    if case.get("setup") == "configured":
-        request.getfixturevalue("configured_root")
+    prepare(case.get("setup"), request)
     out = tmp_root / "out"
-    args = [a.replace("{inputs}", str(INPUTS)).replace("{out}", str(out)) for a in case["args"]]
+    args = [
+        a.replace("{inputs}", str(INPUTS)).replace("{out}", str(out)).replace("{samples}", str(SAMPLES))
+        for a in case["args"]
+    ]
     r = run_cli(args, tmp_root, env=case.get("env"))
     assert r.returncode == case["expect_exit"], f"退出码 {r.returncode}\nstdout:\n{r.stdout}\nstderr:\n{r.stderr}"
     for s in case.get("expect_stdout", []):

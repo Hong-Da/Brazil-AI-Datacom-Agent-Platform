@@ -55,6 +55,11 @@
 | `POST /ai/test` | 是 | 测试 AI 接口（未配置时 409） |
 | `GET /ai/calls?limit=100` | 是 | AI 调用记录 |
 | `POST /review/{id}` | 是 | `{"action": "approve" \| "reject", "note": "", "edited": {…}}` |
+| `POST /parse` | 是 | 解析配置文本：`{"text": "…", "profile": null}`；返回 Profile、各类行数、覆盖率与每一行的结果 |
+| `POST /render` | 是 | 解析建图后渲染回文本：`{"text": "…", "profile": null}` |
+| `POST /roundtrip` | 是 | 往返测试：给出 `text` 时同步返回差异；`{"samples": true}` 时作为后台任务跑全部样本，返回 `task_id` |
+| `GET /devices/{id}/graph?domain=D&raw=false` | 是 | 设备最新配置版本的配置图：节点、边、悬空引用、统计；`raw=true` 时包含功能域外的原文节点与原始配置文本 |
+| `GET /unknown-lines?limit=50` | 是 | 已导入配置中的未识别行汇总 |
 
 ## 示例
 
@@ -595,5 +600,133 @@ print(r.status_code, r.json())
 HTTP 状态：`409`；返回中的关键字段：
 
 - `code` = `1003`
+
+### 解析配置文本
+
+`POST /api/v1/parse`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/parse' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "hostname R1\n!\nrouter bgp 65000\n neighbor 10.0.0.2 remote-as 65001\n!\nend"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/parse' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "hostname R1\n!\nrouter bgp 65000\n neighbor 10.0.0.2 remote-as 65001\n!\nend"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/parse', headers={'Authorization': 'Bearer <令牌>'}, json={'text': 'hostname R1\n!\nrouter bgp 65000\n neighbor 10.0.0.2 remote-as 65001\n!\nend'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.profile` = `"cisco-iosxe-asr920-17.15"`
+- `data.counts.command` = `2`
+- `data.counts.raw` = `1`
+
+### 往返测试一段配置
+
+`POST /api/v1/roundtrip`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/roundtrip' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nreturn"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/roundtrip' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nreturn"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/roundtrip', headers={'Authorization': 'Bearer <令牌>'}, json={'text': 'sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nreturn'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.ok` = `true`
+- `data.unknown` = `0`
+
+### 渲染回配置文本
+
+`POST /api/v1/render`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/render' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "sysname R1\n#\nbgp 65000\n peer 10.0.0.1 as-number 65001\n#\nreturn"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/render' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "sysname R1\n#\nbgp 65000\n peer 10.0.0.1 as-number 65001\n#\nreturn"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/render', headers={'Authorization': 'Bearer <令牌>'}, json={'text': 'sysname R1\n#\nbgp 65000\n peer 10.0.0.1 as-number 65001\n#\nreturn'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.text` = `"sysname R1\n#\nbgp 65000\n peer 10.0.0.1 as-number 65001\n#\nreturn"`
+
+### 设备不存在
+
+`GET /api/v1/devices/999/graph`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/devices/999/graph' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/devices/999/graph' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/devices/999/graph', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`404`；返回中的关键字段：
+
+- `code` = `1004`
+
+### 未识别行汇总
+
+`GET /api/v1/unknown-lines`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/unknown-lines' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/unknown-lines' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/unknown-lines', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.patterns` = `[]`
 
 <!-- examples:end -->

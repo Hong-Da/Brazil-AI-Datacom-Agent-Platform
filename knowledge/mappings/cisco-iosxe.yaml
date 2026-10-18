@@ -1,0 +1,240 @@
+# Cisco IOS-XE 命令卡 → 统一 Schema 的映射规则（语义归并）。写法同 huawei-vrp8.yaml。
+family: cisco-iosxe
+
+_peer: &peer "$ip-address||$ipv6-address||$peer-group-name"
+
+rules:
+  # ---------- 接口 ----------
+  - view: ^system$
+    syntax: '^interface <interface>$'
+    maps: {interface: $interface}
+  - view: ^interface$
+    syntax: '^description '
+    maps: {interface.description: "$string||$text"}
+  - view: ^interface$
+    syntax: '^ip address <ip-address> <mask>'
+    maps:
+      interface.ipv4: $ip-address
+      interface.ipv4.address: $ip-address
+      interface.ipv4.prefix_length: $mask
+      interface.ipv4.secondary: "kw:secondary=true:false"
+  - view: ^interface$
+    syntax: '^mtu <bytes>$'
+    maps: {interface.mtu: $bytes}
+  - view: ^interface$
+    syntax: '^shutdown$'
+    maps: {interface.shutdown: flag}
+  - view: ^interface$
+    syntax: '^vrf forwarding <vrf-name>'
+    maps: {interface.vrf: $vrf-name}
+  - view: ^interface$
+    syntax: '^channel-group <channel-group-number>'
+    maps:
+      interface.lag: $channel-group-number
+      interface.lag_mode: "kw:active|passive|on"
+  - view: ^interface$
+    syntax: '^duplex '
+    maps: {interface.duplex: "kw:full|half|auto"}
+  - view: ^interface$
+    syntax: '^negotiation \{ forced \| auto \}$'
+    maps: {interface.negotiation: "kw:auto=true|forced=false"}
+  - view: ^interface$
+    syntax: '^encapsulation dot1q <vlan-id>'
+    maps: {interface.dot1q_termination: $vlan-id}
+  # ASR 920 业务实例：service instance <编号> ethernet 是一个业务接入点
+  - view: ^interface$
+    syntax: '^service instance '
+    maps: {interface.access: "$id||$instance-id"}
+  - view: ^service-instance$
+    syntax: '^encapsulation dot1q <vlan-id>'
+    maps:
+      interface.access.encapsulation: dot1q
+      interface.access.vlan: $vlan-id
+  - view: ^service-instance$
+    syntax: '^encapsulation \{ default \| dot1q \| priority-tagged \| untagged \}$'
+    maps: {interface.access.encapsulation: "kw:default|dot1q|priority-tagged|untagged"}
+  - view: ^service-instance$
+    syntax: '^encapsulation untagged$'
+    maps: {interface.access.encapsulation: untagged}
+  - view: ^service-instance$
+    syntax: '^rewrite ingress tag '
+    maps: {interface.access.rewrite: "kw:2=pop 2|1=pop 1"}
+  - view: ^service-instance$
+    syntax: '^bridge-domain <bridge-id>'
+    maps: {interface.access.bridge_domain: $bridge-id}
+  - view: ^service-instance$
+    syntax: '^description <text>$'
+    maps: {interface.access.description: $text}
+
+  # ---------- VRF ----------
+  - view: ^system$
+    syntax: '^vrf definition <vrf-name>$'
+    maps: {vrf.instance: $vrf-name}
+  - view: ^vrf$
+    syntax: '^description '
+    maps: {vrf.instance.description: "$string||$text"}
+  - view: ^vrf$
+    syntax: '^rd <route-distinguisher>$'
+    maps: {"vrf.instance.af{afi=ipv4}.rd": $route-distinguisher}
+  - view: ^vrf$
+    syntax: '^address-family \{ ipv4 \| ipv6 \}'
+    maps: {vrf.instance.af: "kw:ipv4|ipv6"}
+  - view: ^vrf(-af)?$
+    syntax: '^route-target '
+    maps:
+      vrf.instance.af.rt: {value: $route-target-ext-community, direction: "kw:import|export|both:both"}
+      vrf.instance.af.rt.value: $route-target-ext-community
+      vrf.instance.af.rt.direction: "kw:import|export|both:both"
+  - view: ^vrf-af$
+    syntax: '^export map <map-name>$'
+    maps: {vrf.instance.af.export_policy: $map-name}
+  - view: ^vrf-af$
+    syntax: '^import .*map <map-name>$'
+    maps: {vrf.instance.af.import_policy: $map-name}
+
+  # ---------- 静态路由 ----------
+  - view: ^system$
+    syntax: '^ip route vrf <vrf-name> <prefix> <mask>'
+    maps:
+      static.route: {vrf: $vrf-name, prefix: "fmt:{prefix}/{mask}", nexthop: "$next-hop-address||"}
+      static.route.vrf: $vrf-name
+      static.route.prefix: "fmt:{prefix}/{mask}"
+      static.route.nexthop: $next-hop-address
+      static.route.interface: $interface
+      static.route.preference: $distance
+      static.route.tag: $tag
+  - view: ^system$
+    syntax: '^ip route \[ vrf <vrf-name> \] <prefix> <mask>'
+    maps:
+      static.route: {vrf: "$vrf-name||", prefix: "fmt:{prefix}/{mask}", nexthop: "$ip-address||"}
+      static.route.vrf: $vrf-name
+      static.route.prefix: "fmt:{prefix}/{mask}"
+      static.route.nexthop: $ip-address
+      static.route.interface: $interface
+      static.route.preference: $distance
+      static.route.tag: $tag
+
+  # ---------- BGP ----------
+  - view: ^system$
+    syntax: '^router bgp <autonomous-system-number>$'
+    maps: {bgp.instance: $autonomous-system-number}
+  - view: ^router-bgp$
+    syntax: '^bgp router-id '
+    maps: {bgp.instance.router_id: $ip-address}
+  - view: ^router-bgp$
+    syntax: '^bgp log-neighbor-changes'
+    maps: {bgp.instance.log_neighbor_changes: flag}
+  - view: ^router-bgp$
+    syntax: '^neighbor <peer-group-name> peer-group$'
+    maps: {bgp.peer_group: $peer-group-name}
+  - view: ^router-bgp$
+    syntax: 'remote-as <autonomous-system-number>'
+    maps:
+      bgp.peer | bgp.peer_group: *peer
+      bgp.peer.remote_as | bgp.peer_group.remote_as: $autonomous-system-number
+  - view: ^router-bgp$
+    syntax: '^neighbor \{ <ip-address> \| <ipv6-address> \} peer-group <peer-group-name>$'
+    maps:
+      bgp.peer: "$ip-address||$ipv6-address"
+      bgp.peer.group: $peer-group-name
+  - view: ^router-bgp$
+    syntax: 'update-source <interface>$'
+    maps:
+      bgp.peer | bgp.peer_group: *peer
+      bgp.peer.update_source | bgp.peer_group.update_source: $interface
+  - view: ^router-bgp$
+    syntax: '^neighbor .* password '
+    maps:
+      bgp.peer | bgp.peer_group: *peer
+      bgp.peer.password | bgp.peer_group.password: $string
+  - view: ^router-bgp$
+    syntax: '^neighbor .* description <text>$'
+    maps:
+      bgp.peer: *peer
+      bgp.peer.description: $text
+  - view: ^router-bgp$
+    syntax: '^address-family ipv4 '
+    maps: {bgp.af: {afi: ipv4, vrf: "$vrf-name||"}}
+  - view: ^router-bgp$
+    syntax: '^address-family vpnv4'
+    maps: {bgp.af: {afi: vpnv4, vrf: ""}}
+  # 地址族内
+  - view: ^bgp-af$
+    syntax: '^neighbor .* activate$'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.enabled: flag
+  - view: ^bgp-af$
+    syntax: '^neighbor .* route-map <map-name> \{ in \| out \}$'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.import_policy: "if:in:$map-name"
+      bgp.af.peer.export_policy: "if:out:$map-name"
+  - view: ^bgp-af$
+    syntax: '^neighbor .* next-hop-self'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.next_hop_self: flag
+  - view: ^bgp-af$
+    syntax: '^neighbor .* send-community '
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.send_community: "kw:both|standard|extended:standard"
+  - view: ^bgp-af$
+    syntax: '^neighbor .* route-reflector-client$'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.rr_client: flag
+  - view: ^bgp-af$
+    syntax: '^network \{ <network-number>'
+    maps:
+      bgp.af.network: "fmt:{network-number}/{network-mask}"
+      bgp.af.network.prefix: "fmt:{network-number}/{network-mask}"
+      bgp.af.network.policy: $map-tag
+  - view: ^bgp-af$
+    syntax: '^redistribute \{ connected'
+    maps:
+      bgp.af.redistribute: "kw:connected|static|ospf|eigrp|isis"
+      bgp.af.redistribute.policy: $map-tag
+      bgp.af.redistribute.metric: $metric-value
+
+  # ---------- 路由策略 ----------
+  - view: ^system$
+    syntax: '^route-map <map-tag> \[ permit \| deny \] \[ <sequence-number> \]$'
+    maps:
+      rp.policy: $map-tag
+      rp.policy.node: "$sequence-number||10"
+      rp.policy.node.action: "kw:permit|deny:permit"
+  - view: ^route-map$
+    syntax: '^match ip address \{ prefix-list'
+    maps: {rp.policy.node.match_prefix_list: $prefix-list-name}
+  - view: ^route-map$
+    syntax: '^match community '
+    maps: {rp.policy.node.match_community: "$community-list-name||$standard-list-number||$expanded-list-number"}
+  - view: ^route-map$
+    syntax: '^set local-preference <number>$'
+    maps: {rp.policy.node.set_local_preference: $number}
+  - view: ^route-map$
+    syntax: '^set metric <metric-value>'
+    maps: {rp.policy.node.set_metric: $metric-value}
+  - view: ^route-map$
+    syntax: '^set community \{'
+    maps:
+      rp.policy.node.set_community: $community-number
+      rp.policy.node.set_community_additive: "kw:additive=true:false"
+  - view: ^system$
+    syntax: '^ip prefix-list \{ <list-name>'
+    maps:
+      rp.prefix_list: $list-name
+      rp.prefix_list.entry: "$number||auto"
+      rp.prefix_list.entry.action: "kw:permit|deny"
+      rp.prefix_list.entry.prefix: $prefix
+      rp.prefix_list.entry.ge: $ge-length
+      rp.prefix_list.entry.le: $le-length
+  - view: ^system$
+    syntax: '^ip community-list \{ <(standard|expanded)> \| (standard|expanded) <list-name> \}'
+    maps:
+      rp.community_list: "$list-name||$standard||$expanded"
+      rp.community_list.entry: auto
+      rp.community_list.entry.action: "kw:permit|deny"
+      rp.community_list.entry.match: "$regexp||$community-number"

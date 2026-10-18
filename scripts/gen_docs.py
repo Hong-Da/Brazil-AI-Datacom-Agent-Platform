@@ -35,7 +35,10 @@ def cli_examples() -> str:
     out = []
     for c in cases("cli_cases.toml"):
         env = " ".join(f"{k}={v}" for k, v in c.get("env", {}).items())
-        args = [a.replace("{inputs}", "tests/inputs").replace("{out}", "out") for a in c["args"]]
+        args = [
+            a.replace("{inputs}", "tests/inputs").replace("{out}", "out").replace("{samples}", "knowledge/samples")
+            for a in c["args"]
+        ]
         cmd = (env + " " if env else "") + "lmesh " + " ".join(shlex.quote(a) for a in args)
         out += [f"### {c['title']['zh-CN']}", "", "```bash", cmd, "```", "", f"退出码：`{c['expect_exit']}`"]
         if c.get("expect_json"):

@@ -73,7 +73,11 @@ def format_to_syntax(line: str) -> str:
     粗体是关键字，斜体是参数（斜体中有空格时拆成多个参数），[ ] { } | 原样保留。处理粗斜体紧贴的写法。
     """
     out: list[str] = []
-    for m in _FMT_TOKEN.finditer(line.replace("\\|", "|").replace("&#124;", "|")):
+    src = line.replace("\\|", "|").replace("&#124;", "|")
+    # 华为写法：组后面单独的 *（如 “[ preference *p* | tag *t* ] *”）表示组内各项可任意组合、任意顺序，
+    # 转成重复标记；必须先替换，否则这个 * 会被当成斜体的开头
+    src = re.sub(r"([\]}])\s*\*(?=\s|$)", r"\1 &<1-9>", src)
+    for m in _FMT_TOKEN.finditer(src):
         bold, ital, sym, plain = m.groups()
         if bold is not None:
             inner = bold.strip()

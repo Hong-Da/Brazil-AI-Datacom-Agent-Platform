@@ -57,6 +57,7 @@ lmesh/
 │   ├── extractors/             各厂商文档的命令卡抽取规则（M1-5 起）
 │   ├── commands/               命令卡（M1-5 起）
 │   ├── schema/                 统一 Schema（M1-6 起）
+│   ├── mappings/               命令卡参数 → Schema 节点的映射规则（M1-6 起）
 │   ├── profiles/               厂商 + 版本 Profile（M1-4 起）
 │   ├── templates/              配置模板（M3-4 起）
 │   └── samples/                已脱敏的配置样本与往返期望结果（M1-3 起）

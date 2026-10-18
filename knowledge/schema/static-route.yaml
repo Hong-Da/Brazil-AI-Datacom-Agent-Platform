@@ -1,0 +1,40 @@
+domain: static-route
+nodes:
+  static.route:
+    type: object
+    key: [vrf, prefix, nexthop]
+    semantic: {zh-CN: 静态路由（所在 VRF + 目的前缀 + 下一跳）, en: Static route}
+    status: reviewed
+  static.route.vrf:
+    parent: static.route
+    type: ref
+    ref: vrf.instance
+    semantic: {zh-CN: 所在 VRF（空表示公网）, en: VRF (empty = global)}
+  static.route.prefix:
+    parent: static.route
+    type: prefix
+    semantic: {zh-CN: 目的前缀（地址 + 掩码长度）, en: Destination prefix}
+  static.route.nexthop:
+    parent: static.route
+    type: ipv4
+    semantic: {zh-CN: 下一跳地址, en: Next-hop address}
+  static.route.interface:
+    parent: static.route
+    type: interface
+    semantic: {zh-CN: 出接口（含 NULL0 黑洞）, en: Outgoing interface}
+  static.route.preference:
+    parent: static.route
+    type: integer
+    range: [1, 255]
+    semantic: {zh-CN: 优先级 / 管理距离, en: Preference / administrative distance}
+  static.route.tag:
+    parent: static.route
+    type: integer
+    semantic: {zh-CN: 路由标记, en: Route tag}
+  static.route.description:
+    parent: static.route
+    type: text
+    semantic: {zh-CN: 路由描述, en: Route description}
+deps:
+  - {kind: reference, from: static.route.vrf, to: vrf.instance}
+  - {kind: prerequisite, from: static.route.vrf, to: vrf.instance, note: VRF 静态路由要求 VRF 已存在}

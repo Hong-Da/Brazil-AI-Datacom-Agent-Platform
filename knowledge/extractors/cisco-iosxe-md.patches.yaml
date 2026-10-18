@@ -1,0 +1,107 @@
+# Cisco 公开命令参考中的文档错误修正（每次抽取都会应用；被修正的卡在来源中注明 patched）
+patches:
+  - id: cisco-iosxe.route-map
+    reason: 原文把 ordering-seq 写成了必选；运行配置中是 route-map 名称 permit|deny 序号
+    set:
+      syntax: route-map <map-tag> [ permit | deny ] [ <sequence-number> ]
+      params: {map-tag: {type: word}, sequence-number: {type: integer, range: [0, 65535]}}
+  - id: cisco-iosxe.mtu
+    reason: 原文语法行混入了说明文字（mtu command）
+    set:
+      syntax: mtu <bytes>
+      params: {bytes: {type: integer, range: [64, 9216]}}
+  - id: cisco-iosxe.rewrite-ingress-tag.1
+    reason: 原文第一条语法的分隔符错乱，按 Syntax Description 与配置举例改写
+    set:
+      syntax: rewrite ingress tag { pop { 1 | 2 } | push dot1q <vlan-id> [ second-dot1q <second-vlan-id> ] | translate 1-to-1 dot1q <vlan-id> } [ symmetric ]
+      params: {vlan-id: {type: integer, range: [1, 4094]}, second-vlan-id: {type: integer, range: [1, 4094]}}
+  - id: cisco-iosxe.channel-group.1
+    reason: IOS 运行配置中可以只有组号（公开样本 Batfish 如此），mode 改为可选
+    set:
+      syntax: channel-group <channel-group-number> [ mode { active | on | passive } ]
+      params: {channel-group-number: {type: integer, range: [1, 64]}}
+  - id: cisco-iosxe.match-ip-address
+    reason: 原文用 “. . .” 表示可重复，改成 &<1-32> 重复写法
+    set:
+      syntax: match ip address { prefix-list { <prefix-list-name> } &<1-32> | { <access-list> } &<1-32> }
+      params: {prefix-list-name: {type: word}, access-list: {type: word}}
+  - id: cisco-iosxe.set-extcommunity-rt
+    reason: 原文用 “. . .” 表示可重复，且 additive 拼写为 additiive
+    set:
+      syntax: set extcommunity rt { { <extended-community-value> } &<1-32> | range <start-range-value> <end-range-value> } [ additive ]
+      params: {extended-community-value: {type: rd}, start-range-value: {type: rd}, end-range-value: {type: rd}}
+  - id: cisco-iosxe.address-family-vpnv4
+    reason: 原文把可选的 multicast | unicast 写成了连续的关键字
+    set:
+      syntax: address-family vpnv4 [ multicast | unicast ]
+      enters_view: bgp-af
+  # 以下是文档中缺失、按 Cisco 配置指南与运行配置写法补充的命令卡
+  - reason: vrf/address-family 页面错误（内容是 VPN-IPv4），VRF 下的 IPv4 地址族按 IOS-XE 运行配置补充
+    add:
+      id: cisco-iosxe.vrf-address-family-ipv4
+      domain: vrf
+      view: vrf
+      syntax: address-family { ipv4 | ipv6 } [ unicast ]
+      enters_view: vrf-af
+      undo: no address-family { ipv4 | ipv6 } [ unicast ]
+  - reason: 公开命令参考没有业务实例模式下的 description 页面，按 ASR 920 配置指南补充
+    add:
+      id: cisco-iosxe.service-instance-description
+      domain: interface
+      view: service-instance
+      syntax: description <text>
+      params: {text: {type: text}}
+  - reason: Command Modes 写成 config-if-svc 的旧写法之外，ASR 920 运行配置中 bridge-domain 只带编号
+    add:
+      id: cisco-iosxe.service-instance-bridge-domain
+      domain: interface
+      view: service-instance
+      syntax: bridge-domain <bridge-id> [ split-horizon [ group <group-id> ] ]
+      params: {bridge-id: {type: integer, range: [1, 16000]}, group-id: {type: integer}}
+  - reason: 公开命令参考中的 redistribute 页面是 IS-IS 写法（level 必选）；补充 BGP 下常用的写法
+    add:
+      id: cisco-iosxe.bgp-redistribute
+      domain: bgp
+      view: bgp-af
+      syntax: redistribute { connected | static | ospf <process-id> [ match { internal | external [ 1 | 2 ] | nssa-external [ 1 | 2 ] } &<1-6> ] | eigrp <eigrp-as> | isis [ <area-tag> ] } [ metric <metric-value> ] [ route-map <map-tag> ]
+      undo: no redistribute { connected | static | ospf <process-id> | eigrp <eigrp-as> | isis [ <area-tag> ] }
+      params: {process-id: {type: integer, range: [1, 65535]}, eigrp-as: {type: integer, range: [1, 65535]}, metric-value: {type: integer}, map-tag: {type: word}, area-tag: {type: word}}
+  - id: cisco-iosxe.neighbor-weight
+    reason: 原文把权重值 number 写成了关键字
+    set:
+      syntax: neighbor { <ip-address> | <peer-group-name> } weight <number>
+      params: {ip-address: {type: ipv4}, peer-group-name: {type: word}, number: {type: integer, range: [0, 65535]}}
+  - reason: 公开命令参考缺少 BGP Additional Paths 的 neighbor 命令，按 IOS-XE BGP 配置指南补充
+    add:
+      id: cisco-iosxe.neighbor-advertise-additional-paths
+      domain: bgp
+      view: bgp-af
+      syntax: neighbor { <ip-address> | <peer-group-name> } advertise additional-paths { all | best <number> | group-best } &<1-3>
+      params: {ip-address: {type: ipv4}, peer-group-name: {type: word}, number: {type: integer, range: [2, 3]}}
+  - reason: 公开命令参考缺少 neighbor log-neighbor-changes，按 IOS-XE BGP 配置指南补充
+    add:
+      id: cisco-iosxe.neighbor-log-neighbor-changes
+      domain: bgp
+      view: bgp-af
+      syntax: neighbor { <ip-address> | <peer-group-name> } log-neighbor-changes [ disable ]
+      params: {ip-address: {type: ipv4}, peer-group-name: {type: word}}
+  - reason: 公开命令参考缺少 neighbor fall-over，按 IOS-XE BGP 配置指南补充
+    add:
+      id: cisco-iosxe.neighbor-fall-over
+      domain: bgp
+      view: router-bgp
+      syntax: neighbor { <ip-address> | <peer-group-name> } fall-over [ bfd [ single-hop | multi-hop ] | route-map <map-name> ]
+      params: {ip-address: {type: ipv4}, peer-group-name: {type: word}, map-name: {type: word}}
+  - reason: 同上，地址族模式下也可出现（show running-config all 的写法）
+    add:
+      id: cisco-iosxe.neighbor-fall-over@bgp-af
+      domain: bgp
+      view: bgp-af
+      syntax: neighbor { <ip-address> | <peer-group-name> } fall-over [ bfd [ single-hop | multi-hop ] | route-map <map-name> ]
+      params: {ip-address: {type: ipv4}, peer-group-name: {type: word}, map-name: {type: word}}
+  - reason: 公开命令参考缺少 bgp default ipv6-nexthop 与 bgp default route-target filter，按 IOS-XE BGP 命令参考补充
+    add:
+      id: cisco-iosxe.bgp-default-misc
+      domain: bgp
+      view: router-bgp
+      syntax: bgp default { ipv6-nexthop | route-target filter }

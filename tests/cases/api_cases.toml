@@ -175,7 +175,7 @@ id = "kb-validate"
 title = { zh-CN = "校验知识库", en = "Validate the knowledge base", pt-BR = "Validar a base de conhecimento" }
 method = "POST"
 path = "/api/v1/kb/validate"
-setup = "configured"
+setup = "configured-fullkb"
 auth = true
 expect_status = 200
 expect_json = { "code" = 0, "data.errors" = 0 }
@@ -187,7 +187,7 @@ id = "kb-release"
 title = { zh-CN = "发布知识库版本", en = "Publish a release", pt-BR = "Publicar uma versão" }
 method = "POST"
 path = "/api/v1/kb/releases"
-setup = "configured"
+setup = "configured-fullkb"
 auth = true
 body = { message = "primeira versão" }
 expect_status = 200
@@ -321,3 +321,73 @@ auth = true
 expect_status = 409
 expect_json = { "code" = 1003 }
 in_docs = true
+
+[[case]]
+id = "parse-text"
+title = { zh-CN = "解析配置文本", en = "Parse config text", pt-BR = "Analisar texto de configuração" }
+method = "POST"
+path = "/api/v1/parse"
+setup = "configured-fullkb"
+auth = true
+body = { text = "hostname R1\n!\nrouter bgp 65000\n neighbor 10.0.0.2 remote-as 65001\n!\nend" }
+expect_status = 200
+expect_json = { "code" = 0, "data.profile" = "cisco-iosxe-asr920-17.15", "data.counts.command" = 2, "data.counts.raw" = 1 }
+in_docs = true
+
+[[case]]
+id = "parse-bad-profile"
+title = { zh-CN = "指定了不存在的 Profile", en = "Unknown profile", pt-BR = "Profile inexistente" }
+method = "POST"
+path = "/api/v1/parse"
+setup = "configured"
+auth = true
+body = { text = "sysname X", profile = "nope" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "roundtrip-text"
+title = { zh-CN = "往返测试一段配置", en = "Round-trip config text", pt-BR = "Ida e volta de um texto" }
+method = "POST"
+path = "/api/v1/roundtrip"
+setup = "configured-fullkb"
+auth = true
+body = { text = "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nreturn" }
+expect_status = 200
+expect_json = { "code" = 0, "data.ok" = true, "data.unknown" = 0 }
+in_docs = true
+
+[[case]]
+id = "render-text"
+title = { zh-CN = "渲染回配置文本", en = "Render back to text", pt-BR = "Renderizar de volta para texto" }
+method = "POST"
+path = "/api/v1/render"
+setup = "configured-fullkb"
+auth = true
+body = { text = "sysname R1\n#\nbgp 65000\n peer 10.0.0.1 as-number 65001\n#\nreturn" }
+expect_status = 200
+expect_json = { "code" = 0, "data.text" = "sysname R1\n#\nbgp 65000\n peer 10.0.0.1 as-number 65001\n#\nreturn" }
+in_docs = true
+
+[[case]]
+id = "device-graph-missing"
+title = { zh-CN = "设备不存在", en = "Unknown device", pt-BR = "Dispositivo inexistente" }
+method = "GET"
+path = "/api/v1/devices/999/graph"
+setup = "configured"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+in_docs = true
+
+[[case]]
+id = "unknown-lines"
+title = { zh-CN = "未识别行汇总", en = "Unknown-line summary", pt-BR = "Resumo de linhas desconhecidas" }
+method = "GET"
+path = "/api/v1/unknown-lines"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.patterns" = [] }
+in_docs = true
+live = true

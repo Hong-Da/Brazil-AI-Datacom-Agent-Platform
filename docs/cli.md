@@ -78,6 +78,12 @@
 | `lmesh review list [--kind K] [--status S]` / `review show <编号>` | 审核队列 |
 | `lmesh review approve <编号>… [--note]` / `review reject <编号>…` | 通过或驳回；通过时写回知识库并提交 |
 | `lmesh review approve-all [--kind card] [--contains 文字] [--rules 规则]` | 批量通过符合条件的待审条目（需要确认，`--yes` 跳过） |
+| `lmesh kb map` | 把 `knowledge/mappings/` 中的映射规则写进命令卡（手工编辑过的 `maps_manual` 卡不覆盖），并按命令卡重新汇总各 Profile 的支持情况 |
+| `lmesh parse <文件> [--profile P] [--lines/--summary]` | 解析配置：每行的视图、命令卡、参数、类别（command / raw 功能域外 / unknown 未识别 / separator / comment / blank / end）；不填 `--profile` 时按厂商与版本自动选择，识别不了时退出码 2 |
+| `lmesh unknown list [--limit N]` | 已导入配置中的未识别行，按归一化后的模式与出现次数汇总（用来补命令卡） |
+| `lmesh graph show <文件\|设备名> [--domain D] [--profile P]` | 显示配置图：语义节点（含 Profile 补出的隐藏默认节点）、依赖边（contains / reference / prerequisite / side_effect / mutex）、悬空引用 |
+| `lmesh render <文件\|设备名> [--profile P]` | 解析建图后按图渲染回配置文本（往返模式：保留原有顺序、缩进与写法） |
+| `lmesh roundtrip [<文件>] [--samples] [--profile P]` | 往返测试：配置 → 图 → 配置逐字比较；`--samples` 跑 `knowledge/samples/manifest.yaml` 中的全部样本，门槛样本还要求功能域内没有未识别行；不一致时退出码 1 |
 | `lmesh ai test` / `lmesh ai calls` | 测试 AI 接口 / 最近的 AI 调用记录（任务、模型、token 用量、成功与否） |
 
 知识库命令操作的是运行时知识库（默认 `data/knowledge/`，首次使用时从程序自带的 `knowledge/` 复制，并作为独立的 Git 仓库管理）。
@@ -317,5 +323,80 @@ lmesh ai test
 退出码：`3`
 
 错误提示（stderr）包含：`AI`
+
+### 解析华为 ATN 配置（自动选择 Profile）
+
+```bash
+lmesh --output json parse knowledge/samples/huawei-atn-v800r023/atn-access-01.cfg
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.profile` = `"huawei-atn-v800r023"`
+- `data.coverage` = `1.0`
+- `data.counts.command` = `720`
+
+### 单个配置的往返测试
+
+```bash
+lmesh --output json roundtrip knowledge/samples/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.ok` = `true`
+- `data.unknown` = `0`
+
+### 全部样本的往返回归（0.1.0 验收门槛）
+
+```bash
+lmesh --output json roundtrip --samples
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.failed` = `0`
+- `data.samples` = `13`
+
+### 查看配置图的 VRF 部分
+
+```bash
+lmesh --output json graph show knowledge/samples/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg --domain vrf
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.profile` = `"cisco-iosxe-asr920-17.15"`
+- `data.summary.dangling` = `0`
+
+### 把配置图渲染回文本
+
+```bash
+lmesh render tests/inputs/configs/cisco/basic.cfg
+```
+
+退出码：`0`
+
+输出包含：`router bgp 65000`、`vrf definition CLIENTE-A`
+
+### 未识别行汇总（没有导入时）
+
+```bash
+lmesh --output json unknown list
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.patterns` = `[]`
 
 <!-- examples:end -->

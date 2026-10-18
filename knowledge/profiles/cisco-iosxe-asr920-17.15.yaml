@@ -9,4 +9,420 @@ match:
   vendor: cisco
   version: ^17\.15
   fallback: "true"
-entries: {}
+# 被引用即隐式存在的对象：业务实例里的 bridge-domain <编号> 会自动创建桥域，不需要单独声明
+implicit: [bridge_domain]
+# entries 由命令卡汇总生成（lmesh kb map）；人工补充的条目标 manual: true，汇总时保留
+entries:
+  bgp.af:
+    supported: true
+    cards:
+      - cisco-iosxe.address-family-ipv4.2
+      - cisco-iosxe.address-family-ipv4.2@router-bgp
+      - cisco-iosxe.address-family-vpnv4
+      - cisco-iosxe.address-family-vpnv4@router-bgp
+  bgp.af.network:
+    supported: true
+    cards:
+      - cisco-iosxe.network@bgp-af
+  bgp.af.network.policy:
+    supported: true
+    cards:
+      - cisco-iosxe.network@bgp-af
+  bgp.af.network.prefix:
+    supported: true
+    cards:
+      - cisco-iosxe.network@bgp-af
+  bgp.af.peer:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-activate@bgp-af
+      - cisco-iosxe.neighbor-next-hop-self@bgp-af
+      - cisco-iosxe.neighbor-route-map@bgp-af
+      - cisco-iosxe.neighbor-route-reflector-client@bgp-af
+      - cisco-iosxe.neighbor-send-community@bgp-af
+  bgp.af.peer.enabled:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-activate@bgp-af
+  bgp.af.peer.export_policy:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-route-map@bgp-af
+  bgp.af.peer.import_policy:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-route-map@bgp-af
+  bgp.af.peer.next_hop_self:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-next-hop-self@bgp-af
+  bgp.af.peer.rr_client:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-route-reflector-client@bgp-af
+  bgp.af.peer.send_community:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-send-community@bgp-af
+  bgp.af.redistribute:
+    supported: true
+    cards:
+      - cisco-iosxe.bgp-redistribute
+  bgp.af.redistribute.metric:
+    supported: true
+    cards:
+      - cisco-iosxe.bgp-redistribute
+  bgp.af.redistribute.policy:
+    supported: true
+    cards:
+      - cisco-iosxe.bgp-redistribute
+  bgp.instance:
+    supported: true
+    cards:
+      - cisco-iosxe.router-bgp
+  bgp.instance.log_neighbor_changes:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 bgp log-neighbor-changes：Logging of BGP neighbor resets is not enabled
+    verified: doc
+    cards:
+      - cisco-iosxe.bgp-log-neighbor-changes
+      - cisco-iosxe.bgp-log-neighbor-changes@router-bgp
+  bgp.instance.router_id:
+    supported: true
+    cards:
+      - cisco-iosxe.bgp-router-id.2
+      - cisco-iosxe.bgp-router-id.2@router-bgp
+      - cisco-iosxe.bgp-router-id.4
+      - cisco-iosxe.bgp-router-id.4@router-bgp
+  bgp.peer:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-description
+      - cisco-iosxe.neighbor-description@router-bgp
+      - cisco-iosxe.neighbor-password
+      - cisco-iosxe.neighbor-password@router-bgp
+      - cisco-iosxe.neighbor-peer-group
+      - cisco-iosxe.neighbor-peer-group@router-bgp
+      - cisco-iosxe.neighbor-remote-as
+      - cisco-iosxe.neighbor-remote-as@router-bgp
+      - cisco-iosxe.neighbor-update-source.1
+      - cisco-iosxe.neighbor-update-source.1@router-bgp
+  bgp.peer.description:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-description
+      - cisco-iosxe.neighbor-description@router-bgp
+  bgp.peer.group:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-peer-group
+      - cisco-iosxe.neighbor-peer-group@router-bgp
+  bgp.peer.hold:
+    manual: true
+    supported: true
+    default: 180
+    source: 同上
+    verified: doc
+  bgp.peer.keepalive:
+    manual: true
+    supported: true
+    default: 60
+    source: Cisco IOS-XE BGP 默认 keepalive 60 秒、hold 180 秒（命令参考 timers bgp）
+    verified: doc
+  bgp.peer.password:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-password
+      - cisco-iosxe.neighbor-password@router-bgp
+  bgp.peer.remote_as:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-remote-as
+      - cisco-iosxe.neighbor-remote-as@router-bgp
+  bgp.peer.update_source:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-update-source.1
+      - cisco-iosxe.neighbor-update-source.1@router-bgp
+  bgp.peer_group:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-password
+      - cisco-iosxe.neighbor-password@router-bgp
+      - cisco-iosxe.neighbor-peer-group@router-bgp~2
+      - cisco-iosxe.neighbor-peer-group~2
+      - cisco-iosxe.neighbor-remote-as
+      - cisco-iosxe.neighbor-remote-as@router-bgp
+      - cisco-iosxe.neighbor-update-source.1
+      - cisco-iosxe.neighbor-update-source.1@router-bgp
+  bgp.peer_group.password:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-password
+      - cisco-iosxe.neighbor-password@router-bgp
+  bgp.peer_group.remote_as:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-remote-as
+      - cisco-iosxe.neighbor-remote-as@router-bgp
+  bgp.peer_group.update_source:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-update-source.1
+      - cisco-iosxe.neighbor-update-source.1@router-bgp
+  interface:
+    supported: true
+    cards:
+      - cisco-iosxe.interface.19
+  interface.access:
+    supported: true
+    cards:
+      - cisco-iosxe.service-instance-ethernet.1
+      - cisco-iosxe.service-instance-ethernet.3
+  interface.access.bridge_domain:
+    supported: true
+    cards:
+      - cisco-iosxe.bridge-domain.1
+      - cisco-iosxe.service-instance-bridge-domain
+  interface.access.description:
+    supported: true
+    cards:
+      - cisco-iosxe.service-instance-description
+  interface.access.encapsulation:
+    supported: true
+    cards:
+      - cisco-iosxe.encapsulation.1
+      - cisco-iosxe.encapsulation.2
+      - cisco-iosxe.encapsulation.3
+      - cisco-iosxe.encapsulation.7
+  interface.access.rewrite:
+    supported: true
+    cards:
+      - cisco-iosxe.rewrite-ingress-tag.1
+  interface.access.vlan:
+    supported: true
+    cards:
+      - cisco-iosxe.encapsulation.2
+      - cisco-iosxe.encapsulation.3
+  interface.description:
+    supported: true
+    cards:
+      - cisco-iosxe.description
+  interface.duplex:
+    supported: true
+    cards:
+      - cisco-iosxe.duplex
+  interface.ipv4:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-address
+  interface.ipv4.address:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-address
+  interface.ipv4.prefix_length:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-address
+  interface.ipv4.secondary:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-address
+  interface.lag:
+    supported: true
+    cards:
+      - cisco-iosxe.channel-group.1
+      - cisco-iosxe.channel-group.3
+      - cisco-iosxe.channel-group.5
+      - cisco-iosxe.channel-group.7
+  interface.lag_mode:
+    supported: true
+    cards:
+      - cisco-iosxe.channel-group.1
+      - cisco-iosxe.channel-group.3
+      - cisco-iosxe.channel-group.5
+      - cisco-iosxe.channel-group.7
+  interface.mtu:
+    manual: true
+    supported: true
+    default: 1500
+    source: 命令参考 mtu：Ethernet 介质默认 1500 字节
+    verified: doc
+    cards:
+      - cisco-iosxe.mtu
+  interface.negotiation:
+    manual: true
+    supported: true
+    default: true
+    source: 命令参考 negotiation：Autonegotiation is enabled
+    verified: doc
+    cards:
+      - cisco-iosxe.negotiation
+  interface.shutdown:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 shutdown：By default, if this command is not issued, the interface remains enabled
+    verified: doc
+    cards:
+      - cisco-iosxe.shutdown
+  interface.vrf:
+    supported: true
+    cards:
+      - cisco-iosxe.vrf-forwarding
+  rp.community_list:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-community-list.2
+      - cisco-iosxe.ip-community-list.4
+  rp.community_list.entry:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-community-list.2
+      - cisco-iosxe.ip-community-list.4
+  rp.community_list.entry.action:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-community-list.2
+      - cisco-iosxe.ip-community-list.4
+  rp.community_list.entry.match:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-community-list.2
+      - cisco-iosxe.ip-community-list.4
+  rp.policy:
+    supported: true
+    cards:
+      - cisco-iosxe.route-map
+  rp.policy.node:
+    supported: true
+    cards:
+      - cisco-iosxe.route-map
+  rp.policy.node.action:
+    supported: true
+    cards:
+      - cisco-iosxe.route-map
+  rp.policy.node.match_community:
+    supported: true
+    cards:
+      - cisco-iosxe.match-community
+  rp.policy.node.match_prefix_list:
+    supported: true
+    cards:
+      - cisco-iosxe.match-ip-address
+  rp.policy.node.set_community:
+    supported: true
+    cards:
+      - cisco-iosxe.set-community
+  rp.policy.node.set_community_additive:
+    supported: true
+    cards:
+      - cisco-iosxe.set-community
+  rp.policy.node.set_local_preference:
+    supported: true
+    cards:
+      - cisco-iosxe.set-local-preference
+  rp.policy.node.set_metric:
+    supported: true
+    cards:
+      - cisco-iosxe.set-metric
+  rp.prefix_list:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-prefix-list
+  rp.prefix_list.entry:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-prefix-list
+  rp.prefix_list.entry.action:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-prefix-list
+  rp.prefix_list.entry.ge:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-prefix-list
+  rp.prefix_list.entry.le:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-prefix-list
+  rp.prefix_list.entry.prefix:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-prefix-list
+  static.route:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-route-vrf
+      - cisco-iosxe.ip-route.1
+  static.route.interface:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-route-vrf
+      - cisco-iosxe.ip-route.1
+  static.route.nexthop:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-route-vrf
+      - cisco-iosxe.ip-route.1
+  static.route.preference:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-route-vrf
+      - cisco-iosxe.ip-route.1
+  static.route.prefix:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-route-vrf
+      - cisco-iosxe.ip-route.1
+  static.route.tag:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-route-vrf
+      - cisco-iosxe.ip-route.1
+  static.route.vrf:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-route-vrf
+      - cisco-iosxe.ip-route.1
+  vrf.instance:
+    supported: true
+    cards:
+      - cisco-iosxe.vrf-definition
+  vrf.instance.af:
+    supported: true
+    cards:
+      - cisco-iosxe.rd
+      - cisco-iosxe.vrf-address-family-ipv4
+  vrf.instance.af.export_policy:
+    supported: true
+    cards:
+      - cisco-iosxe.export-map@vrf-af
+  vrf.instance.af.import_policy:
+    supported: true
+    cards:
+      - cisco-iosxe.import-map@vrf-af
+  vrf.instance.af.rd:
+    supported: true
+    cards:
+      - cisco-iosxe.rd
+  vrf.instance.af.rt:
+    supported: true
+    cards:
+      - cisco-iosxe.route-target
+      - cisco-iosxe.route-target@vrf
+      - cisco-iosxe.route-target@vrf-af
+  vrf.instance.af.rt.direction:
+    supported: true
+    cards:
+      - cisco-iosxe.route-target
+      - cisco-iosxe.route-target@vrf
+      - cisco-iosxe.route-target@vrf-af
+  vrf.instance.af.rt.value:
+    supported: true
+    cards:
+      - cisco-iosxe.route-target
+      - cisco-iosxe.route-target@vrf
+      - cisco-iosxe.route-target@vrf-af

@@ -147,7 +147,7 @@ def _copy_kb(tmp_path: Path) -> Path:
         ),
         (
             lambda r: (r / "commands/huawei-vrp8/bgp.yaml").write_text(
-                "domain: bgp\ncards:\n  - {id: bad, syntax: 'peer <a>', view: bgp, maps: {b: bgp.peer}}\n",
+                "domain: bgp\ncards:\n  - {id: bad, syntax: 'peer <a>', view: bgp, maps: {bgp.peer: $b}}\n",
                 encoding="utf-8",
             ),
             "card.map_param",
