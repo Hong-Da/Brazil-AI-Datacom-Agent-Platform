@@ -14,7 +14,7 @@ from sqlalchemy import select
 
 from lmesh.core import store
 from lmesh.core.parser import normalize_pattern
-from lmesh.core.sanitize import Level, Sanitizer, detect_vendor, detect_version, local_key
+from lmesh.core.sanitize import Level, Sanitizer, SanitizeLeak, detect_vendor, detect_version, local_key
 from lmesh.core.store.models import ConfigVersion, Device, UnknownLine, iso
 
 CONFIG_SUFFIXES = {"", ".txt", ".cfg", ".conf", ".config", ".log", ".zip"}
@@ -99,7 +99,11 @@ def sanitize_one(name: str, raw: bytes, sanitizer: Sanitizer, kb: Any = None) ->
     if not vendor:
         return ImportResult(name, False, error="import.unknown_vendor"), ""
     version = detect_version(text, vendor)
-    result = sanitizer.sanitize(text)
+    try:
+        result = sanitizer.sanitize(text)
+    except SanitizeLeak:
+        # 自检发现脱敏后仍残留秘密值：这个文件不入库（只报告，不写日志原文），批次里的其他文件照常导入
+        return ImportResult(name, False, error="import.sanitize_leak"), ""
     m = _HOST.search(result.text)
     device = m.group(1) if m else Path(name).stem
     return ImportResult(

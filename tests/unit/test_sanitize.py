@@ -120,3 +120,15 @@ def test_engine_id_and_forbidden_word() -> None:
     text = "sysname X\n#\nsnmp-agent local-engineid 800007DB0350AABBCC\nuser-password\n forbidden word changeme_123\n#\nreturn"
     out = Sanitizer("strict", KEY).sanitize(text).text
     assert "800007DB0350AABBCC" not in out and "changeme_123" not in out
+
+
+def test_md5_keys_after_keyword_are_replaced() -> None:
+    """Cisco 的 message-digest-key / ntp authentication-key 把密钥写在 md5 之后，也要替换（自检会拦住遗漏）。"""
+    from lmesh.core.sanitize import Sanitizer
+
+    text = (
+        "hostname R1\n interface Gi0/0/1\n ip ospf message-digest-key 1 md5 7 0822455D0A16\n"
+        "ntp authentication-key 1 md5 0822455D0A16 7\ntacacs server T\n key 7 0822455D0A16\nend\n"
+    )
+    out = Sanitizer("basic", b"k" * 32).sanitize(text).text
+    assert "0822455D0A16" not in out

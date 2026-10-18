@@ -102,6 +102,9 @@ _SECRET_RULES: list[tuple[re.Pattern[str], str]] = [
         ),
         "secret",
     ),
+    # Cisco：ip ospf message-digest-key 1 md5 [7] X、ntp authentication-key 1 md5 X [7]（密钥写在 md5 之后）
+    (re.compile(r"\bmessage-digest-key\s+\d+\s+md5\s+(?:[057]\s+)?(?P<v>\S+)", re.I), "secret"),
+    (re.compile(r"\bntp authentication-key\s+\d+\s+md5\s+(?P<v>\S+)", re.I), "secret"),
     # 华为：cipher X / irreversible-cipher X（例如 authentication-mode simple cipher X）
     (re.compile(r"(?<![\w-])(?:cipher|irreversible-cipher)\s+(?P<v>\S+)", re.I), "secret"),
     # Cisco：整行只有 password X / enable password X（line vty 下的明文口令）
