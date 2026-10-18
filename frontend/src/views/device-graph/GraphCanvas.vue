@@ -129,6 +129,8 @@ function rebuild(): void {
     elk: {
       algorithm: 'layered',
       'elk.direction': 'RIGHT',
+      // 连线由 cytoscape 绘制，不用 ELK 的路由结果；默认的正交路由会按连线数加宽层间距，展开上百个子节点时子节点被推到视野外
+      'elk.edgeRouting': 'POLYLINE',
       'elk.layered.spacing.nodeNodeBetweenLayers': 44,
       'elk.spacing.nodeNode': 7,
       'elk.layered.considerModelOrder.strategy': 'NODES_AND_EDGES',

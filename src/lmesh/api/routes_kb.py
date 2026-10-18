@@ -34,7 +34,7 @@ def kb_validate(request: Request) -> dict[str, Any]:
 def kb_export(request: Request) -> Response:
     root = _root(request)
     data = package.export(root)
-    version = kbservice.load(root).version
+    version = package.kb_version(root)
     return Response(
         data,
         media_type="application/zip",

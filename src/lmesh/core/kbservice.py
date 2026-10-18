@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import threading
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -152,6 +153,8 @@ def release(root: Path, version: str | None, message: str, regression: Regressio
     _set_kb_version(root, version)
     repo.commit_all(root, f"知识库 {version}：{message}")
     tag = repo.tag(root, version, message or f"知识库 {version}")
+    # 后台预先加载新版本的快照：之后首页统计草稿修改时不用再等
+    threading.Thread(target=snapshot, args=(root, version), name="kb-snapshot", daemon=True).start()
     return {"version": version, "tag": tag, "diff": d.as_dict(), "regression": reg}
 
 
@@ -159,14 +162,32 @@ def releases(root: Path) -> list[dict[str, Any]]:
     return [r.__dict__ for r in repo.releases(root)]
 
 
+_SNAPSHOTS: dict[tuple[str, str], kbmod.KnowledgeBase] = {}
+_SNAP_LOCK = threading.Lock()
+
+
+def snapshot(root: Path, ref: str) -> kbmod.KnowledgeBase:
+    """某个版本的知识库（按提交编号缓存；已提交的内容不会变，最多保留 8 个）。"""
+    key = (str(root.resolve()), repo.resolve_sha(root, ref))
+    with _SNAP_LOCK:
+        hit = _SNAPSHOTS.get(key)
+    if hit is not None:
+        return hit
+    with repo.checkout_to_temp(root, ref) as tmp:
+        kb = kbmod.load(tmp)
+    with _SNAP_LOCK:
+        if len(_SNAPSHOTS) >= 8:
+            _SNAPSHOTS.pop(next(iter(_SNAPSHOTS)))
+        _SNAPSHOTS[key] = kb
+    return kb
+
+
 def diff(root: Path, ref_from: str, ref_to: str | None = None) -> dict[str, Any]:
-    with repo.checkout_to_temp(root, ref_from) as a:
-        old = kbmod.load(a)
-        if ref_to:
-            with repo.checkout_to_temp(root, ref_to) as b:
-                new = kbmod.load(b)
-        else:
-            new = kbmod.load(root)
+    """两个版本对比；不给 ref_to 时与工作区对比（工作区按文件修改时间缓存，见 analysis.load_kb）。"""
+    from lmesh.core import analysis
+
+    old = snapshot(root, ref_from)
+    new = snapshot(root, ref_to) if ref_to else analysis.load_kb(root)
     return kbdiff.compare(old, new).as_dict()
 
 

@@ -20,11 +20,17 @@ from lmesh.core.kb.validate import validate
 MANIFEST = "lmesh-kb-manifest.json"
 
 
+def kb_version(root: Path) -> str:
+    """只读 kb.yaml 的版本号（不加载整个知识库）。"""
+    f = root / "kb.yaml"
+    data = kbmod.read_yaml(f) if f.exists() else None
+    return str((data or {}).get("kb_version", "0.0.0"))
+
+
 def export(root: Path, target: Path | None = None) -> bytes:
-    kb = kbmod.load(root)
     buf = io.BytesIO()
     files = [p for p in sorted(root.rglob("*")) if p.is_file() and ".git" not in p.relative_to(root).parts]
-    manifest = {"kb_version": kb.version, "exported_at": time.strftime("%Y-%m-%dT%H:%M:%S"), "files": {}}
+    manifest = {"kb_version": kb_version(root), "exported_at": time.strftime("%Y-%m-%dT%H:%M:%S"), "files": {}}
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as z:
         for p in files:
             rel = p.relative_to(root).as_posix()

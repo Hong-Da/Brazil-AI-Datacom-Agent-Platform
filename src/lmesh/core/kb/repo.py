@@ -162,6 +162,12 @@ def _resolve(repo: Repo, ref: str) -> Commit:
     raise KeyError(ref)
 
 
+def resolve_sha(root: Path, ref: str) -> str:
+    """版本号、标签或提交 → 提交编号（用作缓存键：同一提交的内容不会变）。"""
+    with Repo(str(root)) as r:
+        return _resolve(r, ref).id.decode()
+
+
 @contextmanager
 def checkout_to_temp(root: Path, ref: str) -> Iterator[Path]:
     """把某个版本的文件导出到临时目录（只读用途）。"""

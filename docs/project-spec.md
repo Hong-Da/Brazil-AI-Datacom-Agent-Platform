@@ -262,6 +262,32 @@ Profile 匹配：版本正则匹配上的优先；都不匹配时用标了 `fall
 
 **已知限制（留给 M2 处理）**：条件缺省值（例如 Cisco 的 `negotiation auto` 只对物理口有效，却同样补到了 Loopback）目前按节点类型统一补，配置对比时可能产生假差异；M2 在 Profile 缺省值上增加适用条件。
 
+### Web 界面（M1-9 结果）
+
+按 `DevelopDocs/ui-preview/M1/` 的 13 个预览页实现（预览尚未经用户评审，见决策记录 D-0012）。设计系统（配色、字体、面板、表格等样式类）从预览移植到 `frontend/src/styles/app.css`，Element Plus 的变量跟随它；页面文案按页放在 `frontend/src/i18n/pages/<页>.json`（三语键一致由单元测试检查）。
+
+| 页面 | 路由 | 主要接口 |
+|---|---|---|
+| 首页 | `/` | `/summary`、`/kb/profiles`、`POST /roundtrip {samples}` |
+| 设备与导入 | `/devices` | `/devices`、`POST /configs`、`/devices/rebuild` |
+| 设备配置图 | `/graph/:id` | `/devices/{id}/graph?raw=true`、`/kb/schema`、`/devices/{id}/rebuild`、`POST /roundtrip` |
+| 未识别行 | `/unknown-lines` | `/unknown-lines`、`/unknown-lines/states`、`/unknown-lines/review` |
+| Schema 视图 / 管理 | `/schema`、`/schema/edit` | `/kb/schema`、`/kb/coverage`、`/kb/profile-compare`、`/kb/schema/nodes/*`、`/kb/draft` |
+| Profile 管理 / 覆盖矩阵 | `/profiles`、`/coverage` | `/kb/profiles*`、`/kb/profile-compare`、`/kb/coverage` |
+| 审核队列 | `/review` | `/review*`、`/review/batch`、`/kb/extractors` |
+| 知识库版本 | `/releases` | `/kb/draft`、`/kb/releases`、`/kb/diff`、`/kb/rollback`、`/regression/last` |
+| 文档与知识库包 | `/ingest` | `/kb/ingest`、`/tasks`、`/kb/export`、`/kb/import` |
+| AI 接口 | `/ai` | `/ai/settings`、`/ai/test`、`/ai/calls` |
+| 向导 / 令牌页 | `/setup`、`/login` | `/setup`、`/config` |
+
+设备配置图：cytoscape + ELK 分层布局；首屏按节点预算逐层展开（大图只展开到功能域），点节点展开下一层，子节点过多时收成“还有 N 个”；原文按对象收起；图、详情、原文三块联动（选节点高亮行，点行反选节点）。
+
+**与预览页的差异**（预览中没有后端支撑的部分，按实际能力简化或去掉，不做假数据）：AI 只支持一个接口 + 按任务选模型（预览是多接口）；文档导入填服务器上的目录（不上传文件，格式自动识别）；配置导入一步完成识别与脱敏（没有逐文件指定厂商和脱敏前后对照）；审核队列只能按条件批量通过（不能按勾选批量、不能批量驳回）；Schema 管理的依赖规则只读；未识别行没有映射建议；设备图没有跨设备边。
+
+**留给后续的后端增强**（界面已按现有接口做到最好）：未识别行返回涉及设备与位置、映射建议接口；审核列表的关键字 / 规则 / 来源筛选与按 id 批量；schema_node、mapping、profile_entry 的审核通过动作；依赖规则的编辑接口；Schema 节点 `unit` 字段；单个 Profile 导出与删除；抽取任务取消与参数记录；配置导入的预检模式；样本回归的进度上报；图接口返回每行分类。
+
+**并发安全**（联调中发现并修正）：知识库 YAML 读取改为每线程一个实例；写入原子化（临时文件 + 替换）并用进程内写锁串行；数据库迁移每个进程每个地址只做一次。
+
 ### 知识库的存放
 
 仓库中的 `knowledge/` 是程序自带的知识库，随版本发布；首次启动时复制到 `data/knowledge/`（独立的 dulwich 仓库），管理界面的修改提交到那里；需要合回程序自带的知识库时，用知识库包导出再导入开发仓库。部署后的机器不需要代码仓库也能维护知识库。

@@ -52,6 +52,9 @@ lmesh/
 │   ├── locales/                后端文案（zh-CN、en、pt-BR）
 │   └── web/static/             前端构建产物（不入库，由 start 脚本构建）
 ├── frontend/                   Vue 3 + Vite 前端（package.json、pnpm-lock.yaml、.nvmrc、pnpm-workspace.yaml、src/）
+│   ├── src/views/              各页面（每页一个 *View.vue，子组件与纯逻辑放同名目录）
+│   ├── src/i18n/pages/         各页面的三语文案
+│   └── e2e/                    Playwright 端到端测试
 ├── knowledge/                  程序自带的知识库（M1-4 起）
 │   ├── sources/                原始资料来源记录（M1-4 起）
 │   ├── extractors/             各厂商文档的命令卡抽取规则（M1-5 起）
@@ -74,9 +77,11 @@ lmesh/
 │   ├── run_tests.py            一键测试的实际逻辑
 │   ├── gen_docs.py             从测试用例生成调用文档示例、导出 OpenAPI
 │   ├── linux_sync.sh           开发辅助：把代码同步到 Linux 测试机
+│   ├── e2e_server.py           端到端测试用的临时服务（全量知识库 + 样本）
 │   └── build_icons.py          从 logo.svg 导出图标
 ├── tests/                      测试（见 tests/README.md）
 ├── .claude/settings.json       SessionStart 钩子
+├── .claude/skills/             项目专属 skill（lmesh-docs-to-graph：产品文档 → 配置图）
 ├── data/ logs/ cache/ tmp/     运行时文件（不入库）
 ├── .toolchain/                 依赖缓存与项目内的 Python、Node（不入库）
 └── dist/                       打包结果（不入库）
@@ -87,5 +92,5 @@ lmesh/
 ## 测试
 
 - Windows：`test.bat`；Linux：`./test.sh`
-- 只运行某一类：`--unit` / `--cli` / `--api` / `--docs`
+- 只运行某一类：`--unit` / `--cli` / `--api` / `--docs` / `--roundtrip` / `--frontend`；端到端测试 `--e2e` 单独运行（需要浏览器：Windows 用系统 Edge，Linux 先在 frontend 目录运行 `corepack pnpm exec playwright install chromium`，浏览器装在项目内）
 - 规则见 [tests/README.md](tests/README.md)

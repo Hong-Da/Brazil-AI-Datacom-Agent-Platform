@@ -15,7 +15,7 @@ import {
 
 interface Draft {
   base: string | null
-  changes: Record<string, unknown> & { suggested_bump?: string }
+  changes: (Record<string, unknown> & { suggested_bump?: string }) | null
   commits: { commit: string; time: number; message: string }[]
 }
 const DRAFT_KEYS = ['nodes_added', 'nodes_removed', 'nodes_semantic', 'nodes_deprecated'] as const
@@ -575,7 +575,8 @@ function semLabel(l: string): string {
             <div class="panel-b">
               <p v-if="!draft" class="small faint">{{ $t('c.empty') }}</p>
               <template v-else>
-                <p v-if="!draftGroups.length" class="small faint">{{ $t('schema-edit.draftNone') }}</p>
+                <p v-if="!draft.base" class="small faint" data-testid="se-draft-first">{{ $t('schema-edit.draftFirst') }}</p>
+                <p v-else-if="!draftGroups.length" class="small faint">{{ $t('schema-edit.draftNone') }}</p>
                 <div v-for="g in draftGroups" :key="g.key" class="dg">
                   <div class="field-label">{{ $t('schema-edit.d.' + g.key) }} <span class="pill-count">{{ g.items.length }}</span></div>
                   <div class="ug-items">
@@ -587,7 +588,7 @@ function semLabel(l: string): string {
                 </div>
                 <div class="row mt12 small muted" style="flex-wrap: wrap">
                   <span v-if="draft.commits.length">{{ $t('schema-edit.draftCommits', { n: draft.commits.length }) }}</span>
-                  <span v-if="draft.commits.length && draft.changes.suggested_bump">{{ $t('schema-edit.draftBump', { b: draft.changes.suggested_bump }) }}</span>
+                  <span v-if="draft.commits.length && draft.changes?.suggested_bump">{{ $t('schema-edit.draftBump', { b: draft.changes.suggested_bump }) }}</span>
                   <router-link v-if="draft.commits.length" class="btn btn-sm ml-auto" :to="{ name: 'releases' }">{{ $t('schema-edit.toReleases') }}</router-link>
                 </div>
               </template>
