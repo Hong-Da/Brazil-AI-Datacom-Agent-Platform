@@ -22,7 +22,7 @@ import networkx as nx
 
 from lmesh.core import i18n
 from lmesh.core import rules as rulesmod
-from lmesh.core.kb import KnowledgeBase
+from lmesh.core.kb import KnowledgeBase, read_yaml
 
 BUILTIN: dict[str, str] = {
     "ref.dangling": "error",
@@ -44,18 +44,61 @@ def rules_dir(kb_root: Path) -> Path:
     return paths.builtin_knowledge_dir() / "rules"
 
 
-def builtin_rules() -> list[dict[str, Any]]:
-    """内置检查的说明（三种语言），供规则列表展示。"""
+def load_overrides(directory: Path) -> dict[str, dict[str, Any]]:
+    """内置检查的开关与级别覆盖（rules/builtin.yaml）：{builtin: {规则: {enabled, severity}}}。没有文件时为空。"""
+    path = directory / rulesmod.BUILTIN_FILE
+    if not path.is_file():
+        return {}
+    fname = rulesmod.BUILTIN_FILE
+    try:
+        doc = read_yaml(path) or {}
+    except Exception as e:  # YAML 语法错误
+        first = str(e).splitlines()[0] if str(e) else ""
+        raise rulesmod.RuleError(
+            [{"file": fname, "rule": "", "field": "", "code": "rules.err.yaml", "params": {"error": first}}]
+        ) from e
+    issues: list[dict[str, Any]] = []
+    out: dict[str, dict[str, Any]] = {}
+    table = doc.get("builtin") if isinstance(doc, dict) else None
+    if not isinstance(table, dict):
+        table = {}
+    for rid, entry in table.items():
+        rid = str(rid)
+
+        def bad(field_: str, code: str, rid: str = rid, **params: Any) -> None:
+            issues.append({"file": fname, "rule": rid, "field": field_, "code": code, "params": params})
+
+        if rid not in BUILTIN:
+            bad("", "rules.err.unknown_builtin", value=rid)
+            continue
+        entry = entry if isinstance(entry, dict) else {}
+        enabled = entry.get("enabled", True)
+        sev = entry.get("severity", BUILTIN[rid])
+        if not isinstance(enabled, bool):
+            bad("enabled", "rules.err.bad_bool")
+        if sev not in rulesmod.SEVERITIES:
+            bad("severity", "rules.err.bad_severity", value=str(sev), allowed=", ".join(rulesmod.SEVERITIES))
+        out[rid] = {"enabled": bool(enabled), "severity": sev}
+    if issues:
+        raise rulesmod.RuleError(issues)
+    return out
+
+
+def builtin_rules(overrides: dict[str, dict[str, Any]] | None = None) -> list[dict[str, Any]]:
+    """内置检查的说明（三种语言），供规则列表展示；overrides 是 rules/builtin.yaml 中的开关与级别。"""
     out = []
     for rid, sev in BUILTIN.items():
+        ov = (overrides or {}).get(rid, {})
         out.append(
             {
                 "id": rid,
                 "builtin": True,
+                "source": "builtin",
                 "target": None,
                 "domain": None,
-                "severity": sev,
-                "enabled": True,
+                "severity": ov.get("severity", sev),
+                "default_severity": sev,
+                "enabled": ov.get("enabled", True),
                 **{
                     f: {lang: i18n.catalog(lang).get(f"check.{rid}.{f}", "") for lang in i18n.LANGS}
                     for f in ("title", "message", "suggestion")
@@ -67,7 +110,7 @@ def builtin_rules() -> list[dict[str, Any]]:
 
 def list_rules(kb: KnowledgeBase, directory: Path) -> dict[str, Any]:
     loaded = rulesmod.load_cached(kb, directory)
-    builtin = builtin_rules()
+    builtin = builtin_rules(load_overrides(directory))
     return {"builtin": len(builtin), "custom": len(loaded), "rules": builtin + [r.as_dict() for r in loaded]}
 
 
@@ -374,10 +417,17 @@ def check(
     rules: list[rulesmod.Rule],
     severity: str | None = None,
     domain: str | None = None,
+    overrides: dict[str, dict[str, Any]] | None = None,
+    ignores: dict[tuple[str, str], dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """全部检查。severity 是最低级别（info 表示全部），domain 只保留该功能域的发现。"""
+    """全部检查。severity 是最低级别（info 表示全部），domain 只保留该功能域的发现。
+
+    overrides：内置检查的开关与级别（load_overrides）；ignores：{(规则, 节点): {id, reason}}，命中的发现带
+    ignored / ignore_reason / ignore_id，不计入级别统计与 has_errors。
+    """
     ix = Index.of(g, kb)
     findings: list[dict[str, Any]] = []
+    sev_of = {rid: (overrides or {}).get(rid, {}).get("severity", sev) for rid, sev in BUILTIN.items()}
     for d in dangling(g, kb, ix):
         rid = "ref.dangling_unsure" if d["mentions"] else "ref.dangling"
         findings.append(
@@ -385,7 +435,7 @@ def check(
                 kb,
                 g,
                 rid,
-                BUILTIN[rid],
+                sev_of[rid],
                 d["node"],
                 [d["referrer"], d["node"]] if d["referrer"] != d["node"] else [d["node"]],
                 {
@@ -401,14 +451,14 @@ def check(
         )
     orph = find_orphans(g, kb, ix)
     for o in orph.orphan:
-        findings.append(_finding(kb, g, "ref.orphan", BUILTIN["ref.orphan"], o, [o], _obj_params(g, o)))
+        findings.append(_finding(kb, g, "ref.orphan", sev_of["ref.orphan"], o, [o], _obj_params(g, o)))
     for o, via in orph.cascade.items():
         findings.append(
             _finding(
                 kb,
                 g,
                 "ref.orphan_cascade",
-                BUILTIN["ref.orphan_cascade"],
+                sev_of["ref.orphan_cascade"],
                 o,
                 [o, *via],
                 {**_obj_params(g, o), "via": ", ".join(via)},
@@ -421,7 +471,7 @@ def check(
                 kb,
                 g,
                 "ref.orphan_unsure",
-                BUILTIN["ref.orphan_unsure"],
+                sev_of["ref.orphan_unsure"],
                 o,
                 [o],
                 {**_obj_params(g, o), "mentions": ", ".join(map(str, lines))},
@@ -430,7 +480,7 @@ def check(
         )
     for a, b, note in mutex(g):
         findings.append(
-            _finding(kb, g, "dep.mutex", BUILTIN["dep.mutex"], a, [a, b], {"node": a, "other": b, "note": note})
+            _finding(kb, g, "dep.mutex", sev_of["dep.mutex"], a, [a, b], {"node": a, "other": b, "note": note})
         )
     texts: dict[str, dict[str, str]] = {}
     for r, n in rulesmod.evaluate(g, rules):
@@ -439,6 +489,13 @@ def check(
         texts[mk], texts[sk] = r.message, r.suggestion
         findings.append(_finding(kb, g, r.id, r.severity, n, [n], params, mk, sk))
 
+    disabled = {rid for rid, ov in (overrides or {}).items() if not ov.get("enabled", True)}
+    findings = [f for f in findings if f["rule"] not in disabled]
+    for f in findings:
+        hit = (ignores or {}).get((f["rule"], f["node"]))
+        f["ignored"] = hit is not None
+        f["ignore_reason"] = hit["reason"] if hit else None
+        f["ignore_id"] = hit["id"] if hit else None
     total = len(findings)
     floor = rulesmod.SEVERITY_RANK.get(severity or "info", 1)
     findings = [
@@ -464,16 +521,21 @@ def _obj_params(g: nx.MultiDiGraph, o: str) -> dict[str, Any]:
 
 
 def summarize(findings: list[dict[str, Any]], unfiltered: int | None = None) -> dict[str, Any]:
+    """total 含被忽略的发现；by_severity / by_rule / by_domain / has_errors 只算没有被忽略的。"""
     by_sev = {s: 0 for s in rulesmod.SEVERITIES}
     by_rule: dict[str, int] = {}
     by_domain: dict[str, int] = {}
+    ignored = sum(1 for f in findings if f.get("ignored"))
     for f in findings:
+        if f.get("ignored"):
+            continue
         by_sev[f["severity"]] += 1
         by_rule[f["rule"]] = by_rule.get(f["rule"], 0) + 1
         by_domain[f["domain"] or "-"] = by_domain.get(f["domain"] or "-", 0) + 1
     return {
         "total": len(findings),
         "unfiltered": len(findings) if unfiltered is None else unfiltered,
+        "ignored": ignored,
         "has_errors": by_sev["error"] > 0,
         "by_severity": by_sev,
         "by_rule": dict(sorted(by_rule.items())),

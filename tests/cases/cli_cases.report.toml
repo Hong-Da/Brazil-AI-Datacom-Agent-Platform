@@ -1,0 +1,159 @@
+# M2-5：隐藏身份差异、检查规则的开关与级别、忽略检查发现、报告导出的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 需要先导入配置的流程（按设备忽略发现、按设备出报告）写在 tests/cli/test_report_cli.py。
+
+[[case]]
+id = "compare-hide-identity"
+title = { zh-CN = "同角色设备对比时隐藏身份差异（主机名、Router ID、环回地址、对等体地址）", en = "Hide identity differences when comparing devices of the same role", pt-BR = "Ocultar diferenças de identidade ao comparar dispositivos da mesma função" }
+args = ["--output", "json", "compare", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg", "{inputs}/configs/report/pe-asr920-02.cfg", "--raw", "--hide-identity"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.summary.total" = 1, "data.summary.hidden_identity" = 11, "data.diffs.0.node" = "interface[GigabitEthernet0/0/0]/mtu", "data.options.hide_identity" = true, "data.options.hidden_identity.0.schema" = "bgp.instance.router_id" }
+in_docs = true
+
+[[case]]
+id = "compare-hide-identity-text"
+title = { zh-CN = "文字输出注明隐藏了多少处身份差异", en = "Text output tells how many identity differences were hidden", pt-BR = "A saída em texto informa quantas diferenças de identidade foram ocultadas" }
+args = ["--lang", "en", "compare", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg", "{inputs}/configs/report/pe-asr920-02.cfg", "--hide-identity"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["1 differences", "9 identity difference(s) hidden"]
+
+[[case]]
+id = "report-compare-md"
+title = { zh-CN = "导出对比报告（英文 Markdown，写到文件）", en = "Export a comparison report (English Markdown, to a file)", pt-BR = "Exportar um relatório de comparação (Markdown em inglês, para arquivo)" }
+args = ["--output", "json", "report", "compare", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg", "{samples}/compare/asr920-modified.cfg", "--lang", "en", "--format", "md", "-o", "{out}/compare.md"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.filename" = "compare-pe-asr920-01-asr920-modified.en.md", "data.lang" = "en", "data.format" = "md" }
+in_docs = true
+
+[[case]]
+id = "report-check-stdout"
+title = { zh-CN = "检查报告（中文 Markdown）直接写到 stdout，有孤儿时附清理脚本", en = "Check report (Chinese Markdown) to stdout, with a cleanup script when there are orphans", pt-BR = "Relatório de verificação (Markdown em chinês) na saída padrão, com script de limpeza quando há órfãos" }
+args = ["report", "check", "{inputs}/configs/check/huawei-issues.cfg", "--lang", "zh-CN", "--format", "md"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["# 配置检查报告", "### 错误 (4)", "## 清理脚本", "undo route-policy UNUSED-POLICY"]
+in_docs = true
+
+[[case]]
+id = "report-check-html"
+title = { zh-CN = "检查报告（英文 HTML）", en = "Check report (English HTML)", pt-BR = "Relatório de verificação (HTML em inglês)" }
+args = ["--output", "json", "report", "check", "{inputs}/configs/check/cisco-issues.cfg", "--lang", "en", "-o", "{out}/check.html"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.filename" = "check-cisco-issues.en.html", "data.format" = "html" }
+
+[[case]]
+id = "report-bad-format"
+title = { zh-CN = "报告格式写错", en = "Invalid report format", pt-BR = "Formato de relatório inválido" }
+args = ["report", "check", "{inputs}/configs/check/huawei-issues.cfg", "--format", "pdf"]
+setup = "fresh-fullkb"
+expect_exit = 2
+expect_stderr = ["html, md"]
+
+[[case]]
+id = "report-bad-lang"
+title = { zh-CN = "报告语言只能是中文或英文", en = "Report language must be Chinese or English", pt-BR = "O idioma do relatório deve ser chinês ou inglês" }
+args = ["report", "check", "{inputs}/configs/check/huawei-issues.cfg", "--lang", "pt-BR"]
+setup = "fresh-fullkb"
+expect_exit = 2
+expect_stderr = ["zh-CN, en"]
+
+[[case]]
+id = "report-check-device-missing"
+title = { zh-CN = "检查报告：设备不存在", en = "Check report: unknown device", pt-BR = "Relatório de verificação: dispositivo inexistente" }
+args = ["report", "check", "NO-SUCH-DEVICE"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["NO-SUCH-DEVICE"]
+
+[[case]]
+id = "report-compare-device-missing"
+title = { zh-CN = "对比报告：设备不存在", en = "Comparison report: unknown device", pt-BR = "Relatório de comparação: dispositivo inexistente" }
+args = ["report", "compare", "NO-SUCH-A", "NO-SUCH-B"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["NO-SUCH-A"]
+
+[[case]]
+id = "rules-set-builtin"
+title = { zh-CN = "停用一条内置检查（写入运行时知识库的 rules/builtin.yaml 并提交）", en = "Disable a built-in check (written to rules/builtin.yaml and committed)", pt-BR = "Desativar uma verificação embutida (gravada em rules/builtin.yaml e confirmada)" }
+args = ["--output", "json", "rules", "set", "ref.orphan_unsure", "--disable"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "ok" = true, "data.id" = "ref.orphan_unsure", "data.enabled" = false, "data.source" = "builtin", "data.severity" = "info" }
+in_docs = true
+
+[[case]]
+id = "rules-set-custom"
+title = { zh-CN = "调整知识库规则的级别", en = "Change the severity of a knowledge base rule", pt-BR = "Alterar a severidade de uma regra da base de conhecimento" }
+args = ["--output", "json", "rules", "set", "vrf.rd_without_rt", "--severity", "error"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.severity" = "error", "data.enabled" = true, "data.source" = "common.yaml" }
+
+[[case]]
+id = "rules-list"
+title = { zh-CN = "规则列表：开关、级别、来源", en = "Rule list: switch, severity and source", pt-BR = "Lista de regras: ativação, severidade e origem" }
+args = ["--lang", "en", "rules", "list"]
+setup = "configured"
+expect_exit = 0
+expect_stdout = ["ref.orphan", "builtin", "common.yaml"]
+
+[[case]]
+id = "rules-set-missing"
+title = { zh-CN = "规则不存在", en = "Unknown rule", pt-BR = "Regra inexistente" }
+args = ["rules", "set", "no.such.rule", "--disable"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["no.such.rule"]
+
+[[case]]
+id = "rules-set-nothing"
+title = { zh-CN = "没有给出要修改的内容", en = "Nothing to change", pt-BR = "Nada a alterar" }
+args = ["rules", "set", "ref.orphan"]
+setup = "configured"
+expect_exit = 2
+expect_stderr = ["severity"]
+
+[[case]]
+id = "ignore-list-empty"
+title = { zh-CN = "忽略记录列表", en = "List ignored findings", pt-BR = "Listar achados ignorados" }
+args = ["--output", "json", "ignore", "list"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "ok" = true, "data.ignores" = [] }
+
+[[case]]
+id = "ignore-add-device-missing"
+title = { zh-CN = "忽略发现：设备不存在", en = "Ignore a finding: unknown device", pt-BR = "Ignorar um achado: dispositivo inexistente" }
+args = ["ignore", "add", "NO-SUCH-DEVICE", "ref.orphan", "vrf.instance[X]", "--reason", "test"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["NO-SUCH-DEVICE"]
+
+[[case]]
+id = "ignore-remove-missing"
+title = { zh-CN = "取消忽略：记录不存在", en = "Remove an ignore: record not found", pt-BR = "Remover registro: inexistente" }
+args = ["ignore", "remove", "999"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["999"]
+
+[[case]]
+id = "cleanup-selected-object"
+title = { zh-CN = "只清理选中的对象（级联孤儿随父对象一起删除）", en = "Clean up only the selected object (its cascade orphans go with it)", pt-BR = "Limpar apenas o objeto selecionado (os órfãos em cascata vão junto)" }
+args = ["--output", "json", "cleanup", "{inputs}/configs/check/huawei-issues.cfg", "--object", "rp.policy[UNUSED-POLICY]"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.selected" = true, "data.objects.0.node" = "rp.policy[UNUSED-POLICY]", "data.objects.1.node" = "rp.prefix_list[ONLY-UNUSED]", "data.commands.0.fallback" = false, "data.verify.ok" = true }
+in_docs = true
+
+[[case]]
+id = "cleanup-selected-child"
+title = { zh-CN = "只选级联孤儿、引用它的对象还在：跳过并说明原因", en = "Only a cascade orphan selected while its referrer stays: skipped with the reason", pt-BR = "Só o órfão em cascata selecionado e quem o referencia permanece: ignorado com o motivo" }
+args = ["--lang", "en", "cleanup", "{inputs}/configs/check/huawei-issues.cfg", "--object", "rp.prefix_list[ONLY-UNUSED]"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["Skipped rp.prefix_list[ONLY-UNUSED]: still referenced by rp.policy[UNUSED-POLICY]"]

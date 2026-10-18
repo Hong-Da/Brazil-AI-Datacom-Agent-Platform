@@ -80,12 +80,20 @@ def device_graph(
     device_id: int,
     domain: str | None = None,
     raw: bool = Query(False, description="包含功能域外的原文节点"),
+    version_id: int | None = Query(None, description="指定配置版本（默认最新版本）"),
 ) -> dict[str, Any]:
     db = _db(request)
-    ver = graphstore.latest_version(db, device_id)
-    if ver is None:
-        raise ApiError(E_NOT_FOUND, 404)
-    g, v, dev = graphstore.build_for_version(db, ver.id, _kb(request))
+    if version_id is None:
+        ver = graphstore.latest_version(db, device_id)
+        if ver is None:
+            raise ApiError(E_NOT_FOUND, 404)
+        version_id = ver.id
+    try:
+        g, v, dev = graphstore.build_for_version(db, version_id, _kb(request))
+    except KeyError as e:
+        raise ApiError(E_NOT_FOUND, 404, "compare.version_not_found", version=version_id) from e
+    if v.device_id != device_id:
+        raise ApiError(E_NOT_FOUND, 404, "compare.version_not_found", version=version_id)
     kb = _kb(request)
     roots = [n.id for n in kb.nodes.values() if domain and n.domain == domain and not n.parent]
     data = graphmod.to_json(g, domain, include_raw=raw, roots=roots or None)

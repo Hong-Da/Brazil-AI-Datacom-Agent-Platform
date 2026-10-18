@@ -82,6 +82,8 @@ def text_report(c: Ctx, r: dict[str, Any]) -> str:
         side = d["a"] if d["kind"] == "removed" else d["b"]
         at = f"  @{','.join(map(str, side['lines'][:3]))}" if side and side.get("lines") else ""
         lines.append(f"  {_MARK[d['kind']]} {d['node']}{detail}{at}")
+    if s.get("hidden_identity"):
+        lines.append(c.t("compare.hidden_identity", n=s["hidden_identity"]))
     if s.get("default_only"):
         lines.append(c.t("compare.default_only", n=s["default_only"]))
     lines.append(c.t("compare.unknown", a=s["unknown"]["a"], b=s["unknown"]["b"]))
@@ -104,6 +106,9 @@ def register(app: typer.Typer) -> None:
         rename_threshold: Annotated[
             float, typer.Option("--rename-threshold", help="改名识别的相似度阈值（0–1，默认 1 只认内容完全相同）")
         ] = 1.0,
+        hide_identity: Annotated[
+            bool, typer.Option("--hide-identity", help="隐藏设备身份差异（Router ID、接口地址、对等体地址、主机名等）")
+        ] = False,
     ) -> None:
         c = output.get(ctx)
         kb, _ = _kb(c)
@@ -119,6 +124,7 @@ def register(app: typer.Typer) -> None:
                 include_raw=raw,
                 interface_map=ifmap,
                 rename_threshold=rename_threshold,
+                hide_identity=hide_identity,
             )
         except compare.CompareError as e:
             _fail(c, e)

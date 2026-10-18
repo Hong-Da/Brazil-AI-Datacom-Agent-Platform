@@ -27,7 +27,7 @@ _local = threading.local()
 def read_yaml(path: Path) -> Any:
     y = getattr(_local, "yaml", None)
     if y is None:
-        y = _local.yaml = YAML(typ="safe", pure=True)
+        y = _local.yaml = YAML(typ="safe")  # 有 ruamel.yaml.clib 时用 C 解析器（快 4 倍以上），没有时自动用纯 Python
     with path.open("r", encoding="utf-8") as fh:
         return y.load(fh)
 

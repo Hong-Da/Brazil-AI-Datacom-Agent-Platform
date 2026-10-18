@@ -48,6 +48,7 @@ _PLACEHOLDER = re.compile(r"\{([^{}]*)\}")
 PLACEHOLDERS = ("node", "key")
 TEXT_FIELDS = ("title", "message", "suggestion")
 OPS = ("exists", "count", "equals", "in", "all", "any", "not")
+BUILTIN_FILE = "builtin.yaml"  # 内置检查的开关与级别覆盖文件（不是规则文件，见 checks.load_overrides）
 
 
 class RuleError(ValueError):
@@ -83,6 +84,7 @@ class Rule:
         return {
             "id": self.id,
             "builtin": False,
+            "source": self.file,
             "target": self.target,
             "domain": self.domain,
             "severity": self.severity,
@@ -339,6 +341,8 @@ def load_dir(kb: KnowledgeBase, directory: Path) -> list[Rule]:
     docs: list[tuple[str, Any]] = []
     issues: list[dict[str, Any]] = []
     for f in sorted(directory.glob("*.yaml")):
+        if f.name == BUILTIN_FILE:
+            continue
         try:
             docs.append((f.name, read_yaml(f)))
         except Exception as e:  # YAML 语法错误

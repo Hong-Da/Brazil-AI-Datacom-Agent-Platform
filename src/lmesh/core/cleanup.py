@@ -77,28 +77,42 @@ def _one(n: syn.Node, values: dict[str, Any]) -> Iterator[tuple[list[str], list[
             yield words, kws, used
 
 
-def render_undo(card: Any, line: Line, negative: str) -> tuple[str, bool]:
-    """返回 (取消命令, 是否兜底)。"""
+FALLBACK_REASONS = ("no_undo", "undo_invalid", "render_failed", "match_failed")
+
+
+def render_undo_reason(card: Any, line: Line, negative: str) -> tuple[str, str | None]:
+    """返回 (取消命令, 兜底原因)；不兜底时原因为 None。原因：no_undo 命令卡没有取消语法、undo_invalid 取消语法写错、
+    render_failed 用原行的参数渲染不出（关键字不在原行中）、match_failed 渲染结果回匹配取消语法失败。"""
     original = {w.lower() for w in line.text.split()}
+    reason = "no_undo"
     if card is not None and card.undo:
         try:
             usyn = syn.parse(card.undo)
         except syn.SyntaxErrorKB:
             usyn = None
+            reason = "undo_invalid"
         if usyn is not None:
+            reason = "render_failed"
             best: tuple[int, int, str] | None = None
             for words, kws, used in itertools.islice(_expand(usyn.nodes, line.values()), _MAX_EXPANSIONS):
                 if not words or words[0].lower() != negative or not set(kws[1:]) <= original:
                     continue
                 text = " ".join(words)
                 if syn.match(usyn, text, card.params) is None:
+                    reason = "match_failed"
                     continue
                 score = (used, -len(words), text)
                 if best is None or score[:2] > best[:2]:
                     best = score
             if best is not None:
-                return best[2], False
-    return f"{negative} {line.text}", True
+                return best[2], None
+    return f"{negative} {line.text}", reason
+
+
+def render_undo(card: Any, line: Line, negative: str) -> tuple[str, bool]:
+    """返回 (取消命令, 是否兜底)。"""
+    text, reason = render_undo_reason(card, line, negative)
+    return text, reason is not None
 
 
 # ---------- 清理脚本 ----------
@@ -145,18 +159,60 @@ def _exit_word(kb: KnowledgeBase, family: str) -> str:
     return "quit" if kb.families[family].negative == "undo" else "exit"
 
 
-def cleanup(g: nx.MultiDiGraph, kb: KnowledgeBase, verify: bool = True) -> dict[str, Any]:
+def select(orph: checks.Orphans, objects: list[str] | None) -> tuple[list[str], list[dict[str, Any]]]:
+    """按选中的对象决定删除范围：(要删的对象, 跳过的对象)。
+
+    不给 objects 时删除全部孤儿与级联孤儿。选中孤儿时，只被选中对象（及其级联孤儿）引用的级联孤儿随之删除；
+    选中的级联孤儿还被没选中的孤儿引用时不能删（parent_kept）；不是孤儿的对象不删（not_orphan，名称出现在未映射行中的为 maybe_referenced）。
+    """
+    if objects is None:
+        return orph.removal(), []
+    chosen = list(dict.fromkeys(objects))
+    skipped: list[dict[str, Any]] = []
+    picked: set[str] = set()
+    for o in chosen:
+        if o in orph.orphan or o in orph.cascade:
+            picked.add(o)
+        elif o in orph.unsure:
+            skipped.append({"node": o, "reason": "maybe_referenced", "lines": orph.unsure[o]})
+        else:
+            skipped.append({"node": o, "reason": "not_orphan", "lines": []})
+    keep: set[str] = set()
+    changed = True
+    while changed:  # 级联孤儿：引用它的对象都要删时才能删；选了父对象时自动带上
+        changed = False
+        for c, via in orph.cascade.items():
+            ok = all(v in picked and v not in keep for v in via)
+            if ok and c not in picked:
+                picked.add(c)
+                changed = True
+            elif not ok and c in picked and c not in keep:
+                keep.add(c)
+                changed = True
+    for c in sorted(keep):
+        if c in chosen:
+            kept = [v for v in orph.cascade[c] if v not in picked or v in keep]
+            skipped.append({"node": c, "reason": "parent_kept", "lines": [], "via": kept})
+    return [o for o in orph.removal() if o in picked and o not in keep], skipped
+
+
+def cleanup(
+    g: nx.MultiDiGraph, kb: KnowledgeBase, verify: bool = True, objects: list[str] | None = None
+) -> dict[str, Any]:
+    """objects：只清理这些对象（见 select）；不给时清理全部孤儿与级联孤儿。"""
     ix = checks.Index.of(g, kb)
     family = str(g.graph.get("family") or kb.profiles[str(g.graph["profile"])].family)
     negative = kb.families[family].negative
     orph = checks.find_orphans(g, kb, ix)
-    order = _order(g, ix, orph.removal())
-    objects: list[dict[str, Any]] = []
+    chosen = objects
+    removal, picked_skipped = select(orph, chosen)
+    order = _order(g, ix, removal)
+    out_objects: list[dict[str, Any]] = []
     commands: list[dict[str, Any]] = []
     seen: dict[tuple[tuple[str, ...], str], dict[str, Any]] = {}
     for o in order:
         d = g.nodes[o]
-        objects.append(
+        out_objects.append(
             {
                 "node": o,
                 "schema": d.get("schema"),
@@ -169,7 +225,7 @@ def cleanup(g: nx.MultiDiGraph, kb: KnowledgeBase, verify: bool = True) -> dict[
         for no in _entry_lines(g, ix, o):
             ln = ix.lines[no]
             card = kb.cards.get(str(ln.card))
-            text, fallback = render_undo(card, ln, negative)
+            text, why = render_undo_reason(card, ln, negative)
             ctx = tuple(ix.lines[p].text for p in ix.context(no))
             hit = seen.get((ctx, text))
             if hit is not None:  # 同一条命令删除整个对象（例如 no ip community-list standard X）：只输出一次
@@ -182,7 +238,8 @@ def cleanup(g: nx.MultiDiGraph, kb: KnowledgeBase, verify: bool = True) -> dict[
                 "object": o,
                 "lines": [no],
                 "card": ln.card,
-                "fallback": fallback,
+                "fallback": why is not None,
+                "fallback_reason": why,
             }
             seen[(ctx, text)] = cmd
             commands.append(cmd)
@@ -190,14 +247,17 @@ def cleanup(g: nx.MultiDiGraph, kb: KnowledgeBase, verify: bool = True) -> dict[
         "device": g.graph.get("device"),
         "profile": g.graph.get("profile"),
         "family": family,
-        "objects": objects,
+        "objects": out_objects,
         "commands": commands,
-        "skipped": [{"node": o, "reason": "maybe_referenced", "lines": lines} for o, lines in orph.unsure.items()],
+        "selected": chosen is not None,
+        "skipped": picked_skipped
+        if chosen is not None
+        else [{"node": o, "reason": "maybe_referenced", "lines": lines} for o, lines in orph.unsure.items()],
         "fallbacks": sum(1 for c in commands if c["fallback"]),
         "script": script_text(commands, g, _exit_word(kb, family)),
     }
     if verify:
-        result["verify"] = verify_removal(g, kb, [o["node"] for o in objects])
+        result["verify"] = verify_removal(g, kb, [o["node"] for o in out_objects], orph.removal())
     return result
 
 
@@ -230,7 +290,10 @@ def _dangling_keys(g: nx.MultiDiGraph, kb: KnowledgeBase) -> set[tuple[str, str,
     return {(d["referrer"], str(d["target_type"]), str(d["value"])) for d in checks.dangling(g, kb)}
 
 
-def verify_removal(g: nx.MultiDiGraph, kb: KnowledgeBase, objs: list[str]) -> dict[str, Any]:
+def verify_removal(
+    g: nx.MultiDiGraph, kb: KnowledgeBase, objs: list[str], known_orphans: list[str] | None = None
+) -> dict[str, Any]:
+    """known_orphans：删除前就是孤儿、这次没选中的对象，删除后仍是孤儿不算新问题。"""
     profile = str(g.graph["profile"])
     text = removal_text(g, kb, objs)
     parsed = parsermod.parse(text, kb, kb.profiles[profile].family)
@@ -238,7 +301,8 @@ def verify_removal(g: nx.MultiDiGraph, kb: KnowledgeBase, objs: list[str]) -> di
     before_keys, after_keys = _dangling_keys(g, kb), _dangling_keys(after, kb)
     new = sorted(after_keys - before_keys)
     remaining = [o for o in objs if o in after]
-    left = checks.find_orphans(after, kb).removal()
+    before = set(known_orphans or [])
+    left = [o for o in checks.find_orphans(after, kb).removal() if o not in before]
     return {
         "ok": not new and not remaining and not left,
         "dangling_before": len(before_keys),

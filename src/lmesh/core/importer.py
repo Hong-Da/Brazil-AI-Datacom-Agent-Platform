@@ -14,7 +14,7 @@ from sqlalchemy import select
 
 from lmesh.core import store
 from lmesh.core.parser import normalize_pattern
-from lmesh.core.sanitize import Level, Sanitizer, SanitizeLeak, detect_vendor, detect_version, local_key
+from lmesh.core.sanitize import Level, SanitizeLeak, Sanitizer, detect_vendor, detect_version, local_key
 from lmesh.core.store.models import ConfigVersion, Device, UnknownLine, iso
 
 CONFIG_SUFFIXES = {"", ".txt", ".cfg", ".conf", ".config", ".log", ".zip"}

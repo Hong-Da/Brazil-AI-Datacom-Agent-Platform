@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, NoReturn
+from typing import Annotated, Any, NoReturn
 
 import typer
 
 from lmesh.cli import output
 from lmesh.cli.cmd_graph import _graph_for, _kb
 from lmesh.cli.output import Ctx, emit, fail
-from lmesh.core import checks, cleanup
+from lmesh.core import checks, cleanup, compare, config, ignores, store
 from lmesh.core import rules as rulesmod
 from lmesh.core.kb import KnowledgeBase
 
@@ -41,6 +41,23 @@ def load_rules(c: Ctx, kb: KnowledgeBase, kb_root: Path, rules_dir: Path | None)
         rule_error(c, e)
 
 
+def load_overrides(c: Ctx, kb_root: Path, rules_dir: Path | None) -> dict[str, dict[str, Any]]:
+    try:
+        return checks.load_overrides(rules_dir or checks.rules_dir(kb_root))
+    except rulesmod.RuleError as e:
+        rule_error(c, e)
+
+
+def device_ignores(target: str) -> dict[tuple[str, str], dict[str, Any]] | None:
+    """目标是已导入的设备名时取它的忽略记录；配置文件没有忽略记录。"""
+    if Path(target).exists() or not config.is_configured():
+        return None
+    db = config.load().database_url
+    store.upgrade(db)
+    dev_id = compare.device_id_by_name(db, target)
+    return ignores.index(db, dev_id) if dev_id is not None else None
+
+
 def register(app: typer.Typer) -> None:
     @app.command(
         "check", help="配置检查：悬空引用、孤儿对象、互斥冲突、规则约束；有 error 级发现时退出码 1 / check a config"
@@ -58,8 +75,9 @@ def register(app: typer.Typer) -> None:
             fail(c, output.EXIT_USAGE, c.t("check.bad_severity"))
         kb, root = _kb(c)
         rule_list = load_rules(c, kb, root, rules)
+        overrides = load_overrides(c, root, rules)
         g, kb = _graph_for(c, target, profile)
-        res = checks.check(g, kb, rule_list, severity, domain)
+        res = checks.check(g, kb, rule_list, severity, domain, overrides, device_ignores(target))
         s = res["summary"]
         lines = [
             c.t(
@@ -74,7 +92,10 @@ def register(app: typer.Typer) -> None:
             lines.append(c.t("check.none"))
         for f in res["findings"]:
             where = f"{c.t('check.line')} {','.join(map(str, f['lines']))}" if f["lines"] else ""
-            lines.append(f"[{c.t('check.severity.' + f['severity'])}] {f['rule']}  {f['node']}  {where}".rstrip())
+            mark = f"  ({c.t('check.ignored')}: {f['ignore_reason']})" if f["ignored"] else ""
+            lines.append(
+                f"[{c.t('check.severity.' + f['severity'])}] {f['rule']}  {f['node']}  {where}".rstrip() + mark
+            )
             lines.append("    " + checks.render_text(f["message"], c.lang, res["texts"]))
             lines.append("    " + c.t("check.fix") + checks.render_text(f["suggestion"], c.lang, res["texts"]))
         emit(c, res, "\n".join(lines))
@@ -88,10 +109,13 @@ def register(app: typer.Typer) -> None:
         target: Annotated[str, typer.Argument(help="配置文件，或已导入的设备名")],
         out: Annotated[Path | None, typer.Option("-o", "--out", help="把删除脚本写到文件")] = None,
         profile: Annotated[str | None, typer.Option()] = None,
+        objects: Annotated[
+            list[str] | None, typer.Option("--object", help="只清理这个对象（检查结果中的 node，可多次）")
+        ] = None,
     ) -> None:
         c = output.get(ctx)
         g, kb = _graph_for(c, target, profile)
-        res = cleanup.cleanup(g, kb)
+        res = cleanup.cleanup(g, kb, objects=objects or None)
         if out is not None:
             out.parent.mkdir(parents=True, exist_ok=True)
             out.write_text(res["script"], encoding="utf-8", newline="\n")
@@ -112,7 +136,10 @@ def register(app: typer.Typer) -> None:
         else:
             lines.append(c.t("cleanup.written", path=out))
         for s in res["skipped"]:
-            lines.append(c.t("cleanup.skipped", node=s["node"], lines=",".join(map(str, s["lines"]))))
+            if s["reason"] == "maybe_referenced":
+                lines.append(c.t("cleanup.skipped", node=s["node"], lines=",".join(map(str, s["lines"]))))
+            else:
+                lines.append(c.t(f"cleanup.skipped_{s['reason']}", node=s["node"], via=", ".join(s.get("via", []))))
         ok = res["verify"]["ok"]
         lines.append(c.t("cleanup.verify_ok") if ok else c.t("cleanup.verify_failed"))
         emit(c, res, "\n".join(lines))

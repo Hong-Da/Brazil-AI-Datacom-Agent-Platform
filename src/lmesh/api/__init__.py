@@ -17,6 +17,8 @@ from lmesh.api.routes_compare import router as compare_router
 from lmesh.api.routes_configs import router as configs_router
 from lmesh.api.routes_graph import router as graph_router
 from lmesh.api.routes_kb import router as kb_router
+from lmesh.api.routes_report import router as report_router
+from lmesh.api.routes_rules import router as rules_router
 from lmesh.api.routes_system import router as system_router
 from lmesh.api.routes_tasks_ai import router as tasks_ai_router
 from lmesh.api.routes_workbench import router as workbench_router
@@ -69,6 +71,8 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     app.include_router(graph_router, prefix=API_PREFIX, tags=["graph"])
     app.include_router(compare_router, prefix=API_PREFIX, tags=["compare"])
     app.include_router(check_router, prefix=API_PREFIX, tags=["check"])
+    app.include_router(rules_router, prefix=API_PREFIX, tags=["check"])
+    app.include_router(report_router, prefix=API_PREFIX, tags=["report"])
     app.include_router(workbench_router, prefix=API_PREFIX, tags=["workbench"])
     _mount_web(app)
     return app

@@ -58,13 +58,19 @@
 | `POST /parse` | 是 | 解析配置文本：`{"text": "…", "profile": null}`；返回 Profile、各类行数、覆盖率与每一行的结果 |
 | `POST /render` | 是 | 解析建图后渲染回文本：`{"text": "…", "profile": null}` |
 | `POST /roundtrip` | 是 | 往返测试：给出 `text` 时同步返回差异；`{"samples": true}` 时作为后台任务跑全部样本，返回 `task_id` |
-| `GET /devices/{id}/graph?domain=D&raw=false` | 是 | 设备最新配置版本的配置图：节点、边、悬空引用、统计；`raw=true` 时包含功能域外的原文节点与原始配置文本 |
-| `POST /compare` | 是 | 配置对比：`{"a": {"text": "…" \| "version_id": 1 \| "device_id": 1, "profile": null}, "b": {…}, "domain": null, "include_raw": false, "interface_map": {"GE0/2/1": "Gi0/0/1"}, "rename_threshold": 1.0}`（每边给 `text`、`version_id`、`device_id`（最新版本）之一；同时给 `device_id` 与 `version_id` 时检查版本属于该设备）；返回 `diffs`（`kind` added / removed / changed / renamed、`node_kind` object / attr / ext / raw、`node` 规范编号、`schema`、`domain`、`a` / `b` 各自的 `node` 原始编号、`value` 有效值、`origin`、`lines`，改名的 `from` / `to` / `similarity`，删除或新增对象的 `count`，`related` 关联差异）、`renames`、`summary`（`total`、`by_kind`、`by_domain`、`by_object`、`unknown`、`default_only`）、`unknown`（两边的未识别行）、`default_only`（只有一侧 Profile 有默认值、不可比的属性）、`a` / `b`（来源、设备、Profile、版本）与 `options`；设备或版本不存在时 404 |
+| `GET /devices/{id}/graph?domain=D&raw=false&version_id=V` | 是 | 设备最新配置版本（给出 `version_id` 时为该版本，不属于该设备时 404）的配置图：节点、边、悬空引用、统计；`raw=true` 时包含功能域外的原文节点与原始配置文本 |
+| `POST /compare` | 是 | 配置对比：`{"a": {"text": "…" \| "version_id": 1 \| "device_id": 1, "profile": null}, "b": {…}, "domain": null, "include_raw": false, "interface_map": {"GE0/2/1": "Gi0/0/1"}, "rename_threshold": 1.0, "hide_identity": false}`（每边给 `text`、`version_id`、`device_id`（最新版本）之一；同时给 `device_id` 与 `version_id` 时检查版本属于该设备）；返回 `diffs`（`kind` added / removed / changed / renamed、`node_kind` object / attr / ext / raw、`node` 规范编号、`schema`、`domain`、`a` / `b` 各自的 `node` 原始编号、`value` 有效值、`origin`、`lines`，改名的 `from` / `to` / `similarity`，删除或新增对象的 `count`，`related` 关联差异）、`renames`、`summary`（`total`、`by_kind`、`by_domain`、`by_object`、`unknown`、`default_only`）、`unknown`（两边的未识别行）、`default_only`（只有一侧 Profile 有默认值、不可比的属性）、`a` / `b`（来源、设备、Profile、版本）与 `options`；`hide_identity: true` 时隐藏设备身份差异（Router ID、接口 IPv4 地址、BGP 对等体地址、IS-IS NET、主机名等，清单见 `options.hidden_identity`），被隐藏的差异放在 `hidden_diffs`，个数为 `summary.hidden_identity`；设备或版本不存在时 404 |
 | `GET /devices/{id}/versions` | 是 | 设备的配置版本列表（新的在前）：`id`、`seq`（设备内序号）、`source_name`、`collected_at`、`kb_version`、`lines`、`latest`；对比界面选“变更前后”用 |
-| `POST /check` | 是 | 配置检查：`{"text": "…" 或 "device_id": 1, "profile": null, "severity": "info", "domain": null}`（`text` 与 `device_id` 二选一）；返回 `findings`（`rule`、`severity`、`domain`、`node`、`nodes`、`lines`、`message` / `suggestion` 为文案键 + 参数）、`summary`（按级别、规则、功能域计数，`has_errors`）、`texts`（规则文件文案的三种语言）；规则文件写错时 409，`data.issues` 为问题清单 |
-| `GET /devices/{id}/check?severity=info&domain=D` | 是 | 检查设备的最新配置版本，结果同上 |
-| `POST /cleanup` | 是 | 冗余清理：`{"text": "…" 或 "device_id": 1, "profile": null}`；返回待删除对象（`reason`：orphan / cascade）、按顺序的删除命令（`text`、`context` 所在视图、`object`、`lines`、`card`、`fallback`）、脚本文本 `script`、未删除的对象 `skipped` 与删除后验证 `verify` |
-| `GET /kb/rules` | 是 | 检查规则：内置检查与知识库 `rules/` 中的规则（编号、级别、适用的 Schema 节点、条件，以及三种语言的标题、说明、建议） |
+| `POST /check` | 是 | 配置检查：`{"text": "…" 或 "device_id": 1, "profile": null, "severity": "info", "domain": null}`（`text` 与 `device_id` 二选一）；返回 `findings`（`rule`、`severity`、`domain`、`node`、`nodes`、`lines`、`message` / `suggestion` 为文案键 + 参数）、`summary`（`total` 含被忽略的发现，`ignored` 被忽略的个数；按级别、规则、功能域的计数与 `has_errors` 不含被忽略的）；按设备检查时每条发现带 `ignored`、`ignore_reason`、`ignore_id`、`texts`（规则文件文案的三种语言）；规则文件写错时 409，`data.issues` 为问题清单 |
+| `GET /devices/{id}/check?severity=info&domain=D&version_id=V` | 是 | 检查设备的最新配置版本（给出 `version_id` 时检查该版本，版本不属于该设备时 404），结果同上 |
+| `POST /cleanup` | 是 | 冗余清理：`{"text": "…" 或 "device_id": 1, "profile": null, "objects": null}`（`objects` 给出时只清理这些对象：只被选中对象引用的级联孤儿随之删除，只选级联孤儿而引用它的对象仍在时跳过，`skipped.reason` 为 `parent_kept`（附 `via`）、`not_orphan` 或 `maybe_referenced`；结果 `selected: true`）；返回待删除对象（`reason`：orphan / cascade）、按顺序的删除命令（`text`、`context` 所在视图、`object`、`lines`、`card`、`fallback`、`fallback_reason`：`no_undo` 命令卡没有取消语法 / `undo_invalid` 取消语法写错 / `render_failed` 用原行参数渲染不出 / `match_failed` 回匹配失败）、脚本文本 `script`、未删除的对象 `skipped` 与删除后验证 `verify` |
+| `GET /devices/{id}/versions/{vid}/text` | 是 | 配置版本的原文（脱敏后）：`{text, version_id, device_id, source_name}`；版本不存在或不属于该设备时 404 |
+| `GET /kb/rules` | 是 | 检查规则：内置检查与知识库 `rules/` 中的规则（编号、`enabled`、`severity`、`source`（`builtin` 或规则文件名）、内置检查的 `default_severity`、适用的 Schema 节点、条件，以及三种语言的标题、说明、建议） |
+| `PUT /kb/rules/{rule_id}` | 是 | 修改规则的开关与级别：`{"enabled": false, "severity": "info"}`（至少给一项）；知识库规则写回所在的规则文件，内置检查写入覆盖文件 `rules/builtin.yaml`，并提交运行时知识库；返回更新后的规则（结构同 `GET /kb/rules` 的一条）；规则不存在 404，写回后规则文件校验不通过时恢复原文件并返回 409 |
+| `GET /check/ignores?device_id=1` | 是 | 忽略的检查发现：`ignores`（`id`、`device_id`、`rule`、`node`、`reason`、`created_at`）；设备不存在时 404 |
+| `POST /check/ignores` | 是 | 忽略一条检查发现：`{"device_id": 1, "rule": "ref.orphan", "node": "rp.policy[X]", "reason": "…"}`，按（设备、规则、节点）唯一，重复提交时更新原因（`created: false`）；`reason` 为空时 422，设备或规则不存在时 404 |
+| `DELETE /check/ignores/{id}` | 是 | 取消忽略；记录不存在时 404 |
+| `POST /reports` | 是 | 导出报告，直接返回文件（`Content-Disposition: attachment`）：`{"kind": "compare" \| "check", "lang": "zh-CN" \| "en", "format": "html" \| "md", "compare": <与 POST /compare 相同>, "check": <与 POST /check 相同>}`；HTML 是自包含单文件（内联样式、明亮配色、可打印），Markdown 适合贴进工单；文件名 `compare-<A>-<B>.<lang>.<ext>`、`check-<设备>.<lang>.<ext>`；报告头写设备、配置版本、软件版本、Profile、知识库版本、生成时间与选项；对比报告按功能域分表（两侧有效值、来源、原文行号），并单列改名、不可比（default_only）、未识别行；检查报告按严重度分组，被忽略的单列，有孤儿时附清理脚本；参数错误 422，设备不存在 404 |
 | `GET /unknown-lines?limit=50` | 是 | 已导入配置中的未识别行汇总 |
 | `GET /unknown-lines/states` | 是 | 各未识别行模式的送审状态（pending / approved / rejected） |
 | `POST /unknown-lines/review` | 是 | 把选中的模式送入审核队列：`{"patterns": ["…"]}`；已送审的跳过 |
@@ -970,5 +976,122 @@ print(r.status_code, r.json())
 HTTP 状态：`404`；返回中的关键字段：
 
 - `code` = `1004`
+
+### 对比时隐藏设备身份差异（Router ID 不同不算差异）
+
+`POST /api/v1/compare`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/compare' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"a": {"text": "hostname R1\nrouter bgp 64512\n bgp router-id 10.0.0.1\n neighbor 10.0.0.9 remote-as 64512\n", "profile": "cisco-iosxe-asr920-17.15"}, "b": {"text": "hostname R2\nrouter bgp 64512\n bgp router-id 10.0.0.2\n neighbor 10.0.0.9 remote-as 64512\n", "profile": "cisco-iosxe-asr920-17.15"}, "hide_identity": true}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/compare' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"a": {"text": "hostname R1\nrouter bgp 64512\n bgp router-id 10.0.0.1\n neighbor 10.0.0.9 remote-as 64512\n", "profile": "cisco-iosxe-asr920-17.15"}, "b": {"text": "hostname R2\nrouter bgp 64512\n bgp router-id 10.0.0.2\n neighbor 10.0.0.9 remote-as 64512\n", "profile": "cisco-iosxe-asr920-17.15"}, "hide_identity": true}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/compare', headers={'Authorization': 'Bearer <令牌>'}, json={'a': {'text': 'hostname R1\nrouter bgp 64512\n bgp router-id 10.0.0.1\n neighbor 10.0.0.9 remote-as 64512\n', 'profile': 'cisco-iosxe-asr920-17.15'}, 'b': {'text': 'hostname R2\nrouter bgp 64512\n bgp router-id 10.0.0.2\n neighbor 10.0.0.9 remote-as 64512\n', 'profile': 'cisco-iosxe-asr920-17.15'}, 'hide_identity': True})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.equal` = `true`
+- `data.summary.total` = `0`
+- `data.summary.hidden_identity` = `1`
+- `data.hidden_diffs.0.node` = `"bgp.instance[64512]/router_id"`
+- `data.options.hide_identity` = `true`
+
+### 停用一条内置检查并调整级别
+
+`PUT /api/v1/kb/rules/ref.orphan`（需要令牌）
+
+```bash
+curl -X PUT 'http://127.0.0.1:9000/api/v1/kb/rules/ref.orphan' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"enabled": false, "severity": "info"}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9000/api/v1/kb/rules/ref.orphan' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"enabled": false, "severity": "info"}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9000/api/v1/kb/rules/ref.orphan', headers={'Authorization': 'Bearer <令牌>'}, json={'enabled': False, 'severity': 'info'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.id` = `"ref.orphan"`
+- `data.enabled` = `false`
+- `data.severity` = `"info"`
+- `data.default_severity` = `"warning"`
+- `data.source` = `"builtin"`
+
+### 忽略发现必须写原因
+
+`POST /api/v1/check/ignores`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/check/ignores' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"device_id": 1, "rule": "ref.orphan", "node": "vrf.instance[X]", "reason": "  "}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/check/ignores' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"device_id": 1, "rule": "ref.orphan", "node": "vrf.instance[X]", "reason": "  "}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/check/ignores', headers={'Authorization': 'Bearer <令牌>'}, json={'device_id': 1, 'rule': 'ref.orphan', 'node': 'vrf.instance[X]', 'reason': '  '})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`422`；返回中的关键字段：
+
+- `code` = `1001`
+
+### 只清理选中的对象
+
+`POST /api/v1/cleanup`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/cleanup' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nroute-policy UNUSED permit node 10\n#\nreturn", "objects": ["rp.policy[UNUSED]", "vrf.instance[NOPE]"]}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/cleanup' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nroute-policy UNUSED permit node 10\n#\nreturn", "objects": ["rp.policy[UNUSED]", "vrf.instance[NOPE]"]}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/cleanup', headers={'Authorization': 'Bearer <令牌>'}, json={'text': 'sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nroute-policy UNUSED permit node 10\n#\nreturn', 'objects': ['rp.policy[UNUSED]', 'vrf.instance[NOPE]']})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.selected` = `true`
+- `data.objects.0.node` = `"rp.policy[UNUSED]"`
+- `data.commands.0.text` = `"undo route-policy UNUSED node 10"`
+- `data.commands.0.fallback` = `false`
+- `data.skipped.0.node` = `"vrf.instance[NOPE]"`
+- `data.skipped.0.reason` = `"not_orphan"`
+- `data.verify.ok` = `true`
 
 <!-- examples:end -->

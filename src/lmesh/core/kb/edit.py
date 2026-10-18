@@ -244,14 +244,25 @@ def profile_compare(kb: KnowledgeBase, a: str, b: str) -> dict[str, Any]:
 # ---------- 写入 ----------
 
 
+def _current(root: Path) -> KnowledgeBase:
+    """编辑前的知识库：用按修改时间缓存的那份（不必每次重新加载几千张命令卡）。"""
+    from lmesh.core import analysis
+
+    return analysis.load_kb(root)
+
+
 def _commit_checked(root: Path, path: Path, before: bytes | None, message: str) -> None:
-    """写入后校验：新增了错误就恢复原文件；没问题就提交。"""
-    old_errors = None
+    """写入后校验：与写入前相比新增了错误就恢复原文件；没问题就提交，并把新加载的知识库放进缓存。
+
+    写入前的错误取缓存（与 load_kb 同一个键），写入后只完整加载一次。"""
+    from lmesh.core import analysis
+
+    old_errors = _pre_errors.pop(str(path), None)
+    if old_errors is None:
+        old_errors = set()
     kb = load(root)
     errors = {(i.code, i.message) for i in validate(kb) if i.level == "error"}
-    if before is not None or path.exists():
-        old_errors = _errors_with(root, path, before)
-    new = errors - (old_errors or set())
+    new = errors - old_errors
     if new:
         if before is None:
             path.unlink(missing_ok=True)
@@ -260,21 +271,17 @@ def _commit_checked(root: Path, path: Path, before: bytes | None, message: str) 
         raise EditError("kb.edit_invalid", sorted(m for _, m in new))
     if (root / ".git").exists():
         repo.commit_all(root, message)
+    analysis.prime(root, kb, errors)
 
 
-def _errors_with(root: Path, path: Path, before: bytes | None) -> set[tuple[str, str]]:
-    current = path.read_bytes() if path.exists() else None
-    try:
-        if before is None:
-            path.unlink(missing_ok=True)
-        else:
-            path.write_bytes(before)
-        return {(i.code, i.message) for i in validate(load(root)) if i.level == "error"}
-    finally:
-        if current is None:
-            path.unlink(missing_ok=True)
-        else:
-            path.write_bytes(current)
+# 写入前的校验错误：由各编辑函数在写文件之前记录（键为要写的文件），_commit_checked 用来比较
+_pre_errors: dict[str, set[tuple[str, str]]] = {}
+
+
+def _remember_errors(root: Path, path: Path) -> None:
+    from lmesh.core import analysis
+
+    _pre_errors[str(path)] = analysis.validation_errors(root)
 
 
 def _clean_node(body: dict[str, Any]) -> CommentedMap:
@@ -291,7 +298,7 @@ def _clean_node(body: dict[str, Any]) -> CommentedMap:
 def upsert_node(root: Path, node_id: str, body: dict[str, Any]) -> dict[str, Any]:
     if not _ID.match(node_id):
         raise EditError("kb.node_id_invalid", node=node_id)
-    kb = load(root)
+    kb = _current(root)
     if body.get("type") not in NODE_TYPES:
         raise EditError("kb.node_type_invalid", type=str(body.get("type")))
     parent = body.get("parent")
@@ -304,6 +311,7 @@ def upsert_node(root: Path, node_id: str, body: dict[str, Any]) -> dict[str, Any
     doc = files.load_rt(path) if path.exists() else CommentedMap(domain=domain, nodes=CommentedMap())
     doc.setdefault("nodes", CommentedMap())
     doc["nodes"][node_id] = _clean_node(body)
+    _remember_errors(root, path)
     files.dump_rt(path, doc)
     _commit_checked(root, path, before, f"{'修改' if existing else '新增'} Schema 节点 {node_id}")
     return {"node": node_id, "domain": domain, "created": existing is None}
@@ -311,7 +319,7 @@ def upsert_node(root: Path, node_id: str, body: dict[str, Any]) -> dict[str, Any
 
 @repo.locked
 def delete_node(root: Path, node_id: str) -> dict[str, Any]:
-    kb = load(root)
+    kb = _current(root)
     if node_id not in kb.nodes:
         raise EditError("kb.node_unknown", node=node_id)
     usage = node_usage(kb, node_id)
@@ -321,6 +329,7 @@ def delete_node(root: Path, node_id: str) -> dict[str, Any]:
     before = path.read_bytes()
     doc = files.load_rt(path)
     del doc["nodes"][node_id]
+    _remember_errors(root, path)
     files.dump_rt(path, doc)
     _commit_checked(root, path, before, f"删除 Schema 节点 {node_id}")
     return {"node": node_id, "deleted": True}
@@ -328,7 +337,7 @@ def delete_node(root: Path, node_id: str) -> dict[str, Any]:
 
 @repo.locked
 def set_entry(root: Path, pid: str, node_id: str, body: dict[str, Any]) -> dict[str, Any]:
-    kb = load(root)
+    kb = _current(root)
     if pid not in kb.profiles:
         raise EditError("kb.profile_unknown", profile=pid)
     if node_id not in kb.nodes:
@@ -359,6 +368,7 @@ def set_entry(root: Path, pid: str, node_id: str, body: dict[str, Any]) -> dict[
                 entry[k] = body[k]
     entry["manual"] = True
     doc["entries"][node_id] = entry
+    _remember_errors(root, path)
     files.dump_rt(path, doc)
     _commit_checked(root, path, before, f"Profile {pid}：人工修改 {node_id}")
     return {"profile": pid, "node": node_id}
@@ -367,7 +377,7 @@ def set_entry(root: Path, pid: str, node_id: str, body: dict[str, Any]) -> dict[
 @repo.locked
 def clear_entry(root: Path, pid: str, node_id: str) -> dict[str, Any]:
     """删除 Profile 自己的条目（继承来的条目在父 Profile 中修改）。"""
-    kb = load(root)
+    kb = _current(root)
     if pid not in kb.profiles:
         raise EditError("kb.profile_unknown", profile=pid)
     path = root / kb.profiles[pid].file
@@ -376,6 +386,7 @@ def clear_entry(root: Path, pid: str, node_id: str) -> dict[str, Any]:
     if node_id not in (doc.get("entries") or {}):
         raise EditError("kb.entry_not_own", node=node_id, profile=pid)
     del doc["entries"][node_id]
+    _remember_errors(root, path)
     files.dump_rt(path, doc)
     _commit_checked(root, path, before, f"Profile {pid}：删除条目 {node_id}")
     return {"profile": pid, "node": node_id, "deleted": True}
@@ -383,7 +394,7 @@ def clear_entry(root: Path, pid: str, node_id: str) -> dict[str, Any]:
 
 @repo.locked
 def create_profile(root: Path, body: dict[str, Any]) -> dict[str, Any]:
-    kb = load(root)
+    kb = _current(root)
     pid = str(body.get("id") or "").strip()
     if not _PROFILE_ID.match(pid):
         raise EditError("kb.profile_id_invalid", profile=pid)
@@ -417,6 +428,7 @@ def create_profile(root: Path, body: dict[str, Any]) -> dict[str, Any]:
     doc["match"] = CommentedMap(vendor=vendor, **({"version": version} if version else {}))
     doc["entries"] = CommentedMap()
     path = root / "profiles" / f"{pid}.yaml"
+    _remember_errors(root, path)
     files.dump_rt(path, doc)
     _commit_checked(root, path, None, f"新建 Profile {pid}")
     return {"profile": pid, "file": f"profiles/{pid}.yaml"}

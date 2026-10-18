@@ -30,6 +30,60 @@ from lmesh.core.kb import KnowledgeBase
 from lmesh.core.kb.model import NODE_TYPES, SchemaNode
 
 KINDS = ("added", "removed", "changed", "renamed")
+
+# 设备身份（hide_identity 选项隐藏的差异）：每台设备本来就不同的取值，模板对比、同角色设备对比时不是问题。
+# 只过滤结果，不影响配对与改名识别。Schema 中不存在的节点自动忽略。
+IDENTITY_ATTRS = (
+    "bgp.instance.router_id",  # BGP Router ID
+    "ospf.process.router_id",  # OSPF Router ID
+    "bfd.session.peer",  # 静态 BFD 会话的对端地址
+    "mgmt.snmp.location",  # SNMP 位置（站点）
+)
+IDENTITY_OBJECTS = (
+    "interface.ipv4",  # 接口 IPv4 地址（以地址为键：地址不同表现为一删一增）
+    "bgp.peer",  # BGP 对等体地址
+    "isis.process.net",  # IS-IS NET（含系统 ID）
+)
+IDENTITY_OBJECTS_IP_KEY = ("bgp.af.peer",)  # 键是 IP 地址时才算身份（按组名写的不算）
+IDENTITY_RAW = re.compile(r"^\s*(sysname|hostname)\s", re.IGNORECASE)  # 原文行：主机名
+
+
+def identity_spec(kb: KnowledgeBase) -> list[dict[str, str]]:
+    """当前知识库中有效的身份节点清单（结果的 options.hidden_identity）。"""
+    out = [{"schema": s, "match": "attr"} for s in IDENTITY_ATTRS if s in kb.nodes]
+    out += [{"schema": s, "match": "object"} for s in IDENTITY_OBJECTS if s in kb.nodes]
+    out += [{"schema": s, "match": "object_ip_key"} for s in IDENTITY_OBJECTS_IP_KEY if s in kb.nodes]
+    out.append({"schema": "", "match": "raw", "pattern": IDENTITY_RAW.pattern})
+    return out
+
+
+def _is_ipv4_key(v: Any) -> bool:
+    try:
+        ipaddress.IPv4Address(str(v).strip())
+    except ValueError:
+        return False
+    return True
+
+
+def is_identity(d: dict[str, Any]) -> bool:
+    """差异是否只是设备身份不同。"""
+    schema = d.get("schema") or ""
+    if d["node_kind"] == "attr":
+        return schema in IDENTITY_ATTRS
+    if d["node_kind"] == "object" and d["kind"] in ("added", "removed"):
+        if schema in IDENTITY_OBJECTS:
+            return True
+        if schema in IDENTITY_OBJECTS_IP_KEY:
+            side = d["a"] or d["b"] or {}
+            key = side.get("value")
+            vals = list(key.values()) if isinstance(key, dict) else [key]
+            return any(_is_ipv4_key(v) for v in vals if v not in (None, ""))
+    if d["node_kind"] == "raw":
+        side = d["a"] or d["b"] or {}
+        return bool(IDENTITY_RAW.match(str(side.get("value") or "")))
+    return False
+
+
 _IPV4 = re.compile(r"^\d{1,3}(\.\d{1,3}){3}$")
 _WS = re.compile(r"\s+")
 
@@ -648,8 +702,11 @@ def compare(
     include_raw: bool = False,
     interface_map: dict[str, str] | None = None,
     rename_threshold: float = 1.0,
+    hide_identity: bool = False,
 ) -> dict[str, Any]:
-    """对比两张配置图，返回可直接序列化为 JSON 的结果（差异、改名、统计、未识别行）。"""
+    """对比两张配置图，返回可直接序列化为 JSON 的结果（差异、改名、统计、未识别行）。
+
+    hide_identity：隐藏设备身份差异（IDENTITY_*），被隐藏的差异放在 hidden_diffs，个数为 summary.hidden_identity。"""
     if not 0 < rename_threshold <= 1:
         raise CompareError("compare.bad_threshold", value=rename_threshold)
     domains = set(kb.domains) | {n.domain for n in kb.nodes.values()}
@@ -820,6 +877,10 @@ def compare(
         diffs = [d for d in diffs if d["domain"] == domain]
     order = {dm: i for i, dm in enumerate(kb.domains)}
     diffs.sort(key=lambda d: (order.get(d["domain"], len(order)), d["domain"], d["node"], KINDS.index(d["kind"])))
+    hidden: list[dict[str, Any]] = []
+    if hide_identity:
+        hidden = [d for d in diffs if is_identity(d)]
+        diffs = [d for d in diffs if not is_identity(d)]
 
     return {
         "a": a.info(),
@@ -830,9 +891,12 @@ def compare(
             "interface_map": len(ifmap),
             "rename_threshold": rename_threshold,
             "compare_ext": same_family,
+            "hide_identity": hide_identity,
+            "hidden_identity": identity_spec(kb) if hide_identity else [],
         },
         "equal": not diffs,
         "diffs": diffs,
+        "hidden_diffs": hidden,
         "renames": [
             {"schema": t, "from": old, "to": new, "similarity": round(s, 4)}
             for (t, old), (new, s) in sorted(renames.items())
@@ -840,7 +904,7 @@ def compare(
         ],
         "unknown": {"a": ca.unknown, "b": cb.unknown},
         "default_only": default_only,
-        "summary": {**summarize(diffs, ca, cb), "default_only": len(default_only)},
+        "summary": {**summarize(diffs, ca, cb), "default_only": len(default_only), "hidden_identity": len(hidden)},
     }
 
 
@@ -945,6 +1009,18 @@ def versions(db_url: str, device_id: int) -> list[dict[str, Any]] | None:
             for i, v in enumerate(rows)
         ]
         return list(reversed(out))
+
+
+def version_text(db_url: str, device_id: int, version_id: int) -> dict[str, Any] | None:
+    """配置版本的原文；版本不存在或不属于该设备时返回 None。"""
+    from lmesh.core import store
+    from lmesh.core.store.models import ConfigVersion
+
+    with store.session(db_url) as s:
+        ver = s.get(ConfigVersion, version_id)
+        if ver is None or ver.device_id != device_id:
+            return None
+        return {"version_id": ver.id, "device_id": ver.device_id, "source_name": ver.source_name, "text": ver.raw_text}
 
 
 # ---------------------------------------------------------------- 对比基准

@@ -3,7 +3,7 @@
   "info": {
     "title": "LucidMesh API",
     "description": "透网 LucidMesh 远程 API。除 /health 与首次运行向导外，所有接口都需要 Authorization: Bearer <令牌>。",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "paths": {
     "/api/v1/health": {
@@ -1107,6 +1107,24 @@
               "title": "Raw"
             },
             "description": "包含功能域外的原文节点"
+          },
+          {
+            "name": "version_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "指定配置版本（默认最新版本）",
+              "title": "Version Id"
+            },
+            "description": "指定配置版本（默认最新版本）"
           }
         ],
         "responses": {
@@ -1268,6 +1286,59 @@
         }
       }
     },
+    "/api/v1/devices/{device_id}/versions/{version_id}/text": {
+      "get": {
+        "tags": [
+          "compare"
+        ],
+        "summary": "配置版本的原文（脱敏后）",
+        "operationId": "version_text_api_v1_devices__device_id__versions__version_id__text_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Version Text Api V1 Devices  Device Id  Versions  Version Id  Text Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/check": {
       "post": {
         "tags": [
@@ -1316,7 +1387,7 @@
         "tags": [
           "check"
         ],
-        "summary": "检查设备的最新配置版本",
+        "summary": "检查设备的最新配置版本（或 version_id 指定的版本）",
         "operationId": "device_check_api_v1_devices__device_id__check_get",
         "parameters": [
           {
@@ -1358,6 +1429,22 @@
               ],
               "title": "Domain"
             }
+          },
+          {
+            "name": "version_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Version Id"
+            }
           }
         ],
         "responses": {
@@ -1397,7 +1484,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Target"
+                "$ref": "#/components/schemas/CleanupBody"
               }
             }
           },
@@ -1445,6 +1532,230 @@
                   "additionalProperties": true,
                   "type": "object",
                   "title": "Response Kb Rules Api V1 Kb Rules Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/rules/{rule_id}": {
+      "put": {
+        "tags": [
+          "check"
+        ],
+        "summary": "修改检查规则的开关与级别（内置检查写入 rules/builtin.yaml），提交运行时知识库",
+        "operationId": "put_rule_api_v1_kb_rules__rule_id__put",
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Rule Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RulePatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Rule Api V1 Kb Rules  Rule Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check/ignores": {
+      "get": {
+        "tags": [
+          "check"
+        ],
+        "summary": "忽略的检查发现（可按设备筛选）",
+        "operationId": "list_ignores_api_v1_check_ignores_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Ignores Api V1 Check Ignores Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "check"
+        ],
+        "summary": "忽略一条检查发现（按设备、规则、节点；必须写原因，重复提交时更新原因）",
+        "operationId": "add_ignore_api_v1_check_ignores_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IgnoreBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Add Ignore Api V1 Check Ignores Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check/ignores/{ignore_id}": {
+      "delete": {
+        "tags": [
+          "check"
+        ],
+        "summary": "取消忽略",
+        "operationId": "remove_ignore_api_v1_check_ignores__ignore_id__delete",
+        "parameters": [
+          {
+            "name": "ignore_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Ignore Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Remove Ignore Api V1 Check Ignores  Ignore Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reports": {
+      "post": {
+        "tags": [
+          "report"
+        ],
+        "summary": "导出报告：对比报告或检查报告，直接返回文件（Content-Disposition: attachment）",
+        "operationId": "export_report_api_v1_reports_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -2481,6 +2792,63 @@
         "type": "object",
         "title": "CheckBody"
       },
+      "CleanupBody": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text",
+            "description": "配置文本（与 device_id 二选一）"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id",
+            "description": "已导入设备的编号：取最新配置版本"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "objects": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Objects",
+            "description": "只清理这些对象（发现中的 node）；级联孤儿随父对象，父对象仍在时子对象跳过（skipped）"
+          }
+        },
+        "type": "object",
+        "title": "CleanupBody"
+      },
       "CompareBody": {
         "properties": {
           "a": {
@@ -2525,6 +2893,12 @@
             "exclusiveMinimum": 0.0,
             "title": "Rename Threshold",
             "default": 1.0
+          },
+          "hide_identity": {
+            "type": "boolean",
+            "title": "Hide Identity",
+            "description": "隐藏设备身份差异（Router ID、接口地址、对等体地址、主机名等）",
+            "default": false
           }
         },
         "type": "object",
@@ -2644,6 +3018,40 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "IgnoreBody": {
+        "properties": {
+          "device_id": {
+            "type": "integer",
+            "title": "Device Id"
+          },
+          "rule": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Rule",
+            "description": "规则编号"
+          },
+          "node": {
+            "type": "string",
+            "maxLength": 600,
+            "title": "Node",
+            "description": "发现的节点（规范编号，即发现的 node）"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Reason",
+            "description": "忽略原因（必填）"
+          }
+        },
+        "type": "object",
+        "required": [
+          "device_id",
+          "rule",
+          "node",
+          "reason"
+        ],
+        "title": "IgnoreBody"
       },
       "IngestBody": {
         "properties": {
@@ -2897,6 +3305,65 @@
         "type": "object",
         "title": "ReleaseBody"
       },
+      "ReportBody": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "compare",
+              "check"
+            ],
+            "title": "Kind"
+          },
+          "lang": {
+            "type": "string",
+            "enum": [
+              "zh-CN",
+              "en"
+            ],
+            "title": "Lang",
+            "description": "报告语言（界面是 pt-BR 时用 en）",
+            "default": "zh-CN"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "html",
+              "md"
+            ],
+            "title": "Format",
+            "description": "html：自包含单文件、可打印；md：贴进工单",
+            "default": "html"
+          },
+          "compare": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CompareBody"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "kind=compare 时必填，与 POST /compare 相同"
+          },
+          "check": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CheckBody"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "kind=check 时必填，与 POST /check 相同"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind"
+        ],
+        "title": "ReportBody"
+      },
       "RollbackBody": {
         "properties": {
           "ref": {
@@ -2943,6 +3410,41 @@
         },
         "type": "object",
         "title": "RoundtripBody"
+      },
+      "RulePatch": {
+        "properties": {
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled",
+            "description": "启用或停用"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warning",
+                  "info"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Severity",
+            "description": "级别：error / warning / info"
+          }
+        },
+        "type": "object",
+        "title": "RulePatch"
       },
       "SanitizeBody": {
         "properties": {
@@ -3040,48 +3542,6 @@
         "type": "object",
         "title": "SideBody",
         "description": "对比的一边：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
-      },
-      "Target": {
-        "properties": {
-          "text": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 20971520
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Text",
-            "description": "配置文本（与 device_id 二选一）"
-          },
-          "device_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Device Id",
-            "description": "已导入设备的编号：取最新配置版本"
-          },
-          "profile": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Profile"
-          }
-        },
-        "type": "object",
-        "title": "Target"
       },
       "TextBody": {
         "properties": {

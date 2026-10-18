@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from lmesh.api.common import E_NOT_FOUND, E_PARAM, E_STATE, ApiError, ok, require_token, settings_of
-from lmesh.core import analysis, checks, cleanup, graphstore, importer, kbservice, store
+from lmesh.core import analysis, checks, cleanup, graphstore, ignores, importer, kbservice, store
 from lmesh.core import graph as graphmod
 from lmesh.core import rules as rulesmod
 from lmesh.core.kb import KnowledgeBase
@@ -30,13 +30,36 @@ def _rules(kb: KnowledgeBase, root: Any) -> list[rulesmod.Rule]:
         raise ApiError(E_STATE, 409, "rules.invalid", data={"issues": e.issues}, n=len(e.issues)) from e
 
 
-def _device_graph(request: Request, kb: KnowledgeBase, device_id: int) -> nx.MultiDiGraph:
+def _overrides(root: Any) -> dict[str, dict[str, Any]]:
+    try:
+        return checks.load_overrides(checks.rules_dir(root))
+    except rulesmod.RuleError as e:
+        raise ApiError(E_STATE, 409, "rules.invalid", data={"issues": e.issues}, n=len(e.issues)) from e
+
+
+def _ignores(request: Request, device_id: int | None) -> dict[tuple[str, str], dict[str, Any]] | None:
+    if device_id is None:
+        return None
+    return ignores.index(settings_of(request).database_url, device_id)
+
+
+def _device_graph(
+    request: Request, kb: KnowledgeBase, device_id: int, version_id: int | None = None
+) -> nx.MultiDiGraph:
+    """设备的最新配置版本；给出 version_id 时取该版本（必须属于这台设备）。"""
     db = settings_of(request).database_url
     store.upgrade(db)
-    ver = graphstore.latest_version(db, device_id)
-    if ver is None:
-        raise ApiError(E_NOT_FOUND, 404)
-    g, _, _ = graphstore.build_for_version(db, ver.id, kb)
+    if version_id is None:
+        ver = graphstore.latest_version(db, device_id)
+        if ver is None:
+            raise ApiError(E_NOT_FOUND, 404)
+        version_id = ver.id
+    try:
+        g, ver, _ = graphstore.build_for_version(db, version_id, kb)
+    except KeyError as e:
+        raise ApiError(E_NOT_FOUND, 404, "compare.version_not_found", version=version_id) from e
+    if ver.device_id != device_id:
+        raise ApiError(E_NOT_FOUND, 404, "compare.version_not_found", version=version_id)
     return g
 
 
@@ -63,26 +86,44 @@ def _graph(request: Request, kb: KnowledgeBase, body: Target) -> nx.MultiDiGraph
     return graphmod.build(res.parsed, kb, res.profile)
 
 
-@router.post("/check", summary="配置检查：悬空引用、孤儿对象（含级联）、互斥冲突、规则约束；按级别、规则、功能域汇总")
-def check(request: Request, body: CheckBody) -> dict[str, Any]:
+def run_check(request: Request, body: CheckBody) -> tuple[dict[str, Any], nx.MultiDiGraph, KnowledgeBase]:
+    """POST /check 与报告共用：规则、内置检查的覆盖、设备的忽略记录。"""
     kb, root = _kb(request)
     rules = _rules(kb, root)
-    return ok(request, checks.check(_graph(request, kb, body), kb, rules, body.severity, body.domain))
+    g = _graph(request, kb, body)
+    res = checks.check(g, kb, rules, body.severity, body.domain, _overrides(root), _ignores(request, body.device_id))
+    return res, g, kb
 
 
-@router.get("/devices/{device_id}/check", summary="检查设备的最新配置版本")
+@router.post("/check", summary="配置检查：悬空引用、孤儿对象（含级联）、互斥冲突、规则约束；按级别、规则、功能域汇总")
+def check(request: Request, body: CheckBody) -> dict[str, Any]:
+    return ok(request, run_check(request, body)[0])
+
+
+@router.get("/devices/{device_id}/check", summary="检查设备的最新配置版本（或 version_id 指定的版本）")
 def device_check(
-    request: Request, device_id: int, severity: Severity = "info", domain: str | None = None
+    request: Request,
+    device_id: int,
+    severity: Severity = "info",
+    domain: str | None = None,
+    version_id: int | None = None,
 ) -> dict[str, Any]:
     kb, root = _kb(request)
     rules = _rules(kb, root)
-    return ok(request, checks.check(_device_graph(request, kb, device_id), kb, rules, severity, domain))
+    g = _device_graph(request, kb, device_id, version_id)
+    return ok(request, checks.check(g, kb, rules, severity, domain, _overrides(root), _ignores(request, device_id)))
+
+
+class CleanupBody(Target):
+    objects: list[str] | None = Field(
+        None, description="只清理这些对象（发现中的 node）；级联孤儿随父对象，父对象仍在时子对象跳过（skipped）"
+    )
 
 
 @router.post("/cleanup", summary="冗余清理：为孤儿对象生成删除脚本（先删引用方），并验证删除后没有新的悬空引用")
-def run_cleanup(request: Request, body: Target) -> dict[str, Any]:
+def run_cleanup(request: Request, body: CleanupBody) -> dict[str, Any]:
     kb, _ = _kb(request)
-    return ok(request, cleanup.cleanup(_graph(request, kb, body), kb))
+    return ok(request, cleanup.cleanup(_graph(request, kb, body), kb, objects=body.objects))
 
 
 @router.get("/kb/rules", summary="检查规则：内置检查与知识库 rules/ 中的规则（三种语言的标题、说明、建议）")

@@ -41,6 +41,9 @@ def prepare(root: Path) -> None:
     sources = [(Path(s).name, (ROOT / "knowledge" / "samples" / s).read_bytes()) for s in SAMPLES]
     sources.append(("lab-atn-09.cfg", BAD))
     importer.import_sources(sources, settings.database_url, "basic", kb_root)
+    # 同一台设备的第二个版本（变更后的配置），供“同一设备两个版本”的对比使用
+    v2 = (ROOT / "knowledge" / "samples" / "compare" / "asr920-modified.cfg").read_bytes()
+    importer.import_sources([("pe-asr920-01-v2.cfg", v2)], settings.database_url, "basic", kb_root)
 
 
 def main() -> int:

@@ -139,7 +139,7 @@
 | 配置对比 | `lmesh diff <A> <B>` | `POST /api/v1/diff` | 主备、变更前后 | 0.2.0 |
 | 配置检查 | `lmesh check <设备>` | `POST /api/v1/check` | 巡检、预检 | 0.2.0 |
 | 冗余配置清理 | `lmesh cleanup <设备>` | `POST /api/v1/cleanup` | 生成删除脚本 | 0.2.0 |
-| 报告导出 | `lmesh report <diff\|check> --format html\|xlsx` | `POST /api/v1/reports` | 结果交给他人 | 0.2.0 |
+| 报告导出 | `lmesh report <compare\|check> --lang zh-CN\|en --format html\|md` | `POST /api/v1/reports` | 结果交给他人（中英双语；格式由 xlsx 改为 Markdown，见决策 D-0016） | 0.2.0 |
 | 配置翻译 | `lmesh translate <设备> --to <profile>` | `POST /api/v1/translate` | 多厂商迁移 | 0.3.0 |
 | 模板校验与变量提取 | `lmesh template check <设备> --template <名>` | `POST /api/v1/templates/{name}/check` | 新设备上线核查 | 0.3.0 |
 | 模板批量生成 | `lmesh generate --template <名> --params <表格>` | `POST /api/v1/generate` | 按 IP 规划表生成 | 0.3.0 |
@@ -366,6 +366,26 @@ Batfish 公开样本中的发现（未定义的 route-map / VRF 引用、没有 
 **对比基准**：`knowledge/samples/compare/manifest.yaml`，16 个用例全部通过（`compare.benchmark()`，测试分类 roundtrip）——ATN 与 ASR 920 各自的自身对比、重排、显式默认值、缩进与空白、掩码写法（ATN）、接口名缩写、RT both 为 0 差异；真实修改（改 MTU、删对等体、改 RT、改名 route-policy 并更新引用，ASR 920 另有 prefix-list 的两级改名）只报预期差异。往返样本清单检查排除 `samples/compare/`（基准有自己的清单）。
 
 **发现的建图问题**：华为 `ipv4-family mvpn`、`ipv6-family vpnv6` 两个视图未映射，其中的 `peer … enable` / `peer … group` 被记到 `bgp.af[afi=ipv4,vrf=]` 的对等体上（ATN 样本 `peer[10.0.179.30]/enabled` 的行号含 1983、2042）；这两个地址族的增删在对比中会表现为 IPv4 单播地址族的变化。ext 节点编号含行号（`ext[卡@行号]`），对比不用它配对（按所属对象与命令卡分组）。
+
+### 对比视图、检查界面、冗余清理与报告导出的后端（M2-5 结果）
+
+| 功能 | 模块 | CLI / API |
+|---|---|---|
+| 隐藏身份差异 | `core/compare.py` 的 `hide_identity` | `lmesh compare --hide-identity`；`POST /compare` 的 `hide_identity` |
+| 规则开关与级别 | `core/rule_edit.py`、`core/checks.py` 的 `load_overrides` | `lmesh rules list\|set`；`GET /kb/rules`、`PUT /kb/rules/{id}` |
+| 忽略检查发现 | `core/ignores.py`、数据表 `check_ignores`（迁移 `0002`） | `lmesh ignore list\|add\|remove`；`GET` / `POST /check/ignores`、`DELETE /check/ignores/{id}` |
+| 按对象清理 | `core/cleanup.py` 的 `objects` 与 `select` | `lmesh cleanup --object`；`POST /cleanup` 的 `objects` |
+| 报告导出 | `core/report.py` | `lmesh report compare\|check`；`POST /reports`（直接返回文件） |
+
+**身份差异**（决策 D-0026、D-0027）：清单是 `core/compare.py` 的模块常量，Schema 中不存在的节点自动忽略，生效的清单在结果 `options.hidden_identity` 返回。属性：`bgp.instance.router_id`、`ospf.process.router_id`、`bfd.session.peer`、`mgmt.snmp.location`；对象（新增 / 删除）：`interface.ipv4`（以地址为键）、`bgp.peer`、`isis.process.net`，`bgp.af.peer` 只在键是 IPv4 地址时算；原文行：`sysname` / `hostname`。只过滤结果，不改配对与改名识别；被隐藏的差异放在 `hidden_diffs`，个数为 `summary.hidden_identity`，`equal` 与 `summary` 按剩下的差异计算。
+
+**规则开关与级别**：知识库规则在所在的规则文件里改 `enabled` / `severity`（ruamel 往返写回，保留注释与顺序）；内置检查写入覆盖文件 `rules/builtin.yaml`（`builtin: {规则: {enabled, severity}}`，规则加载时跳过这个文件，写错时与规则文件一样报出问题清单）。修改在知识库写锁内完成，写后重新加载全部规则校验，出错时恢复原文件；成功后提交运行时知识库（提交说明“修改检查规则 <编号>：…”）。运行时知识库没有 `rules/` 时先复制程序自带的规则。规则列表每条带 `source`（`builtin` 或文件名）、`enabled`、`severity`，内置检查另有 `default_severity`；停用的内置检查不产生发现。
+
+**忽略检查发现**（D-0028、D-0029）：表 `check_ignores`（`device_id` 外键级联删除、`rule`、`node`、`reason`、`created_at`），按（设备、规则、节点）唯一，重复提交时更新原因；原因必填。按设备检查时（API 的 `device_id`、CLI 的设备名）合并忽略记录：发现带 `ignored`、`ignore_reason`、`ignore_id`；`summary.total` 含被忽略的，`summary.ignored` 为个数，按级别、规则、功能域的计数与 `has_errors`（CLI 退出码）不含被忽略的。迁移 `0002_check_ignores` 在 SQLite（batch 模式）与 PostgreSQL 上都测试过升级。
+
+**按对象清理**（D-0032）：`objects` 给出时只删选中的孤儿；只被选中对象引用的级联孤儿随之删除；只选级联孤儿而引用它的对象仍在时跳过（`parent_kept`，附 `via`），不是孤儿的跳过（`not_orphan`），名称出现在未映射行中的跳过（`maybe_referenced`）。验证时，删除前就是孤儿、这次没选中的对象不算新孤儿。每条命令带 `fallback_reason`：`no_undo`（命令卡没有取消语法）、`undo_invalid`（取消语法写错）、`render_failed`（用原行参数渲染不出）、`match_failed`（回匹配失败）。`GET /devices/{id}/check` 支持 `version_id` 检查指定版本。
+
+**报告**（D-0030）：只排版 core 已算好的结果，不重新计算结论。正文只有中文与英文（文案在 `core/report.py` 的 `TEXTS` 表），界面语言是 pt-BR 时用英文。HTML 是自包含单文件（内联样式、明亮配色、`@media print` 分页时表头重复、行不拆开），Markdown 是表格（单元格中的 `|` 转义）。报告头写设备、配置版本（编号与采集时间）、软件版本、Profile、知识库版本、生成时间与选项。对比报告：概要、按功能域分表的差异（类型、节点与关联、两侧有效值 + 来源 + 原文行号；对象附子节点数），单列改名、不可比（default_only）、未识别行，隐藏身份差异时注明个数。检查报告：按严重度分组（规则、功能域、节点、行号、说明、建议），被忽略的单列并写原因，有未被忽略的孤儿时附清理脚本与验证结论。文件名 `compare-<A>-<B>.<lang>.<ext>`、`check-<设备>.<lang>.<ext>`；`Content-Disposition` 同时给 ASCII 文件名与 `filename*`（UTF-8）。
 
 ### 知识库的存放
 

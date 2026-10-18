@@ -43,6 +43,9 @@ async function graphNodePoint(page: Page, selector: string): Promise<{ x: number
   }, { intervals: [300, 300, 300, 500, 500, 1000] }).toBe(true)
   const p = await handle.evaluate((cy: any, sel: string) => {
     const w = cy.width(), h = cy.height()
+    // 图比视野高时目标可能在视野外：先把第一个匹配的节点移到视野中央（与用户平移画布一样）
+    const first = cy.nodes(sel)[0]
+    if (first) cy.center(first)
     const n = cy.nodes(sel).filter((x: any) => {
       const r = x.renderedPosition()
       return r.x > 10 && r.y > 10 && r.x < w - 10 && r.y < h - 10

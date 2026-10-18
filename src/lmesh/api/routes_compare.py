@@ -29,6 +29,7 @@ class CompareBody(BaseModel):
     include_raw: bool = False
     interface_map: dict[str, str] | None = None
     rename_threshold: float = Field(1.0, gt=0, le=1)
+    hide_identity: bool = Field(False, description="隐藏设备身份差异（Router ID、接口地址、对等体地址、主机名等）")
 
 
 def _db(request: Request) -> str:
@@ -53,8 +54,8 @@ def _side(request: Request, kb: Any, s: SideBody, label: str) -> compare.Side:
     raise compare.CompareError("compare.need_source", side=label)
 
 
-@router.post("/compare", summary="配置对比：有效值、改名识别、语义等价；返回差异列表、改名、统计与未识别行")
-def run_compare(request: Request, body: CompareBody) -> dict[str, Any]:
+def run(request: Request, body: CompareBody) -> tuple[dict[str, Any], compare.Side, compare.Side]:
+    """POST /compare 与报告共用：返回 (结果, A, B)。"""
     kb = analysis.load_kb(kbservice.runtime_root(settings_of(request)))
     try:
         a = _side(request, kb, body.a, "A")
@@ -67,10 +68,16 @@ def run_compare(request: Request, body: CompareBody) -> dict[str, Any]:
             include_raw=body.include_raw,
             interface_map=body.interface_map,
             rename_threshold=body.rename_threshold,
+            hide_identity=body.hide_identity,
         )
     except compare.CompareError as e:
         raise _error(e) from e
-    return ok(request, result)
+    return result, a, b
+
+
+@router.post("/compare", summary="配置对比：有效值、改名识别、语义等价；返回差异列表、改名、统计与未识别行")
+def run_compare(request: Request, body: CompareBody) -> dict[str, Any]:
+    return ok(request, run(request, body)[0])
 
 
 @router.get("/devices/{device_id}/versions", summary="设备的配置版本列表（新的在前）")
@@ -79,3 +86,11 @@ def device_versions(request: Request, device_id: int) -> dict[str, Any]:
     if vers is None:
         raise ApiError(E_NOT_FOUND, 404, "compare.device_not_found", target=str(device_id))
     return ok(request, {"device_id": device_id, "versions": vers})
+
+
+@router.get("/devices/{device_id}/versions/{version_id}/text", summary="配置版本的原文（脱敏后）")
+def version_text(request: Request, device_id: int, version_id: int) -> dict[str, Any]:
+    data = compare.version_text(_db(request), device_id, version_id)
+    if data is None:
+        raise ApiError(E_NOT_FOUND, 404, "compare.version_not_found", version=version_id)
+    return ok(request, data)
