@@ -23,8 +23,13 @@ BASE = "http://127.0.0.1:9000"
 
 
 def cases(name: str) -> list[dict[str, Any]]:
-    with (CASES / name).open("rb") as fh:
-        return [c for c in tomllib.load(fh)["case"] if c.get("in_docs")]
+    """主文件 + 按功能拆分的 <名>.<功能>.toml，主文件在前。"""
+    stem = name.removesuffix(".toml")
+    out: list[dict[str, Any]] = []
+    for f in [CASES / name, *sorted(CASES.glob(f"{stem}.*.toml"))]:
+        with f.open("rb") as fh:
+            out += [c for c in tomllib.load(fh)["case"] if c.get("in_docs")]
+    return out
 
 
 def _expect_lines(expect: dict[str, Any]) -> list[str]:

@@ -11,8 +11,13 @@ _MISSING = object()
 
 
 def load_cases(name: str) -> list[dict[str, Any]]:
-    with (CASES / name).open("rb") as fh:
-        return list(tomllib.load(fh)["case"])
+    """读取 cli_cases.toml 以及按功能拆分的 cli_cases.<功能>.toml（api 同理），主文件在前。"""
+    stem = name.removesuffix(".toml")
+    out: list[dict[str, Any]] = []
+    for f in [CASES / name, *sorted(CASES.glob(f"{stem}.*.toml"))]:
+        with f.open("rb") as fh:
+            out += list(tomllib.load(fh)["case"])
+    return out
 
 
 def jget(obj: Any, path: str) -> Any:
