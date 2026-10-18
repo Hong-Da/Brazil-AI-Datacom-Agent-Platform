@@ -1,0 +1,77 @@
+/* M2 共用样式（来自 M2 界面预览）：差异类型、严重度、取值与来源、原文差异行着色、下载区。 */
+/* LucidMesh M2 preview — additions on top of app.css (copied unchanged from M1).
+   Diff semantics:   added = teal (+)   removed = red (−)   modified = amber (~)   renamed = violet (⇢)   not comparable = grey (≠)
+   Severity:         error = red         warning = amber      info = blue
+   Selection on M2 pages uses an ink-coloured focus ring instead of amber, because amber already means "modified". */
+
+:root {
+  --d-add: var(--teal);   --d-add-ink: var(--teal-ink);   --d-add-soft: var(--teal-soft);   --d-add-line: var(--teal-line);
+  --d-del: var(--red);    --d-del-ink: var(--red-ink);    --d-del-soft: var(--red-soft);    --d-del-line: var(--red-line);
+  --d-mod: #D9962B;       --d-mod-ink: var(--amber-ink);  --d-mod-soft: var(--amber-soft);  --d-mod-line: var(--amber-line);
+  --d-ren: var(--violet); --d-ren-ink: #5E3CA8;           --d-ren-soft: var(--violet-soft); --d-ren-line: #C6B3EC;
+  --d-na: var(--ink-3);   --d-na-ink: var(--ink-2);       --d-na-soft: var(--surface-3);    --d-na-line: var(--line-strong);
+  --sel-ring: var(--ink);
+}
+:root[data-theme="dark"] {
+  --d-mod: #E0A848;
+  --d-ren-ink: #C2AAF5; --d-ren-line: #4D3B7A;
+  --sel-ring: #E6EEF4;
+}
+.kbchip .dot { background: var(--teal); }
+.nav .count.red { background: var(--red-soft); color: var(--red-ink); border: 1px solid var(--red-line); }
+
+/* ---------- diff type marker: symbol + word, never colour alone ---------- */
+.dk { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px 0 5px; border-radius: 4px; font-size: 11.5px; font-weight: 600; white-space: nowrap; border: 1px solid; line-height: 1; }
+.dk::before { font: 700 12px/1 var(--font-mono); width: 10px; text-align: center; }
+.dk.added { color: var(--d-add-ink); background: var(--d-add-soft); border-color: var(--d-add-line); }
+.dk.added::before { content: "+"; }
+.dk.removed { color: var(--d-del-ink); background: var(--d-del-soft); border-color: var(--d-del-line); }
+.dk.removed::before { content: "−"; }
+.dk.modified { color: var(--d-mod-ink); background: var(--d-mod-soft); border-color: var(--d-mod-line); }
+.dk.modified::before { content: "~"; }
+.dk.renamed { color: var(--d-ren-ink); background: var(--d-ren-soft); border-color: var(--d-ren-line); }
+.dk.renamed::before { content: "⇢"; font-family: var(--font-ui); }
+.dk.na { color: var(--d-na-ink); background: var(--d-na-soft); border-color: var(--d-na-line); }
+.dk.na::before { content: "≠"; font-family: var(--font-ui); }
+.dk.equal { color: var(--ink-2); background: transparent; border-color: var(--line-strong); border-style: dashed; font-weight: 500; }
+.dk.equal::before { content: "="; }
+
+/* ---------- severity ---------- */
+.sev { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+.sev .ico { width: 14px; height: 14px; }
+.sev.error { color: var(--red-ink); }
+.sev.warning { color: var(--amber-ink); }
+.sev.info { color: var(--blue-ink); }
+.sevdot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.sevdot.error { background: var(--red); }
+.sevdot.warning { background: var(--amber); }
+.sevdot.info { background: var(--blue); }
+
+/* ---------- value with its source: the core visual of M2 ---------- */
+.ev { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
+.ev .v { font: 12px var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ev.is-default .v, .ev.is-derived .v { color: var(--ink-2); }
+.ev.is-absent .v { color: var(--ink-3); font-family: var(--font-ui); font-style: italic; }
+.ev .tag { height: 18px; padding: 0 5px; font-size: 11px; }
+
+/* config code with diff line colours (extends .code from app.css) */
+.code .l.d-add { background: color-mix(in srgb, var(--d-add-soft) 85%, transparent); }
+.code .l.d-del { background: color-mix(in srgb, var(--d-del-soft) 85%, transparent); }
+.code .l.d-mod { background: color-mix(in srgb, var(--d-mod-soft) 90%, transparent); }
+.code .l.d-ren { background: color-mix(in srgb, var(--d-ren-soft) 90%, transparent); }
+.code .l.d-eq { background: color-mix(in srgb, var(--surface-3) 80%, transparent); }
+.code .l.d-add .n { box-shadow: inset 3px 0 0 var(--d-add); color: var(--d-add-ink); font-weight: 600; }
+.code .l.d-del .n { box-shadow: inset 3px 0 0 var(--d-del); color: var(--d-del-ink); font-weight: 600; }
+.code .l.d-mod .n { box-shadow: inset 3px 0 0 var(--d-mod); color: var(--d-mod-ink); font-weight: 600; }
+.code .l.d-ren .n { box-shadow: inset 3px 0 0 var(--d-ren); color: var(--d-ren-ink); font-weight: 600; }
+.code .l.d-eq .n { box-shadow: inset 3px 0 0 var(--line-strong); }
+.code .l.ghost .t { color: var(--ink-3); font-style: italic; }
+.code .l .t mark { background: color-mix(in srgb, var(--d-mod) 38%, transparent); color: inherit; border-radius: 2px; padding: 0 1px; }
+
+/* bottom-sheet modal variant used for export dialogs */
+.dl-grid { display: grid; grid-template-columns: max-content repeat(2, minmax(0, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.dl-grid > div { padding: 9px 12px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 8px; min-width: 0; }
+.dl-grid > div.h { border-top: 0; background: var(--surface-2); font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.dl-grid > div.rh { font-weight: 600; }
+.dl-link { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; }
+.dl-link small { color: var(--ink-3); font: 11px var(--font-mono); }

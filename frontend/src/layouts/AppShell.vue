@@ -18,6 +18,8 @@ const NAV: { g: string; s: string; items: Item[] }[] = [
     g: 'dev', s: 'dev', items: [
       { name: 'devices', icon: 'server' },
       { name: 'device-graph', icon: 'graph' },
+      { name: 'compare', icon: 'compare' },
+      { name: 'check', icon: 'shield' },
       { name: 'unknown-lines', icon: 'unknown', count: () => status.summary?.unknown.patterns, tone: 'plain' },
     ],
   },
@@ -79,7 +81,7 @@ watch(() => route.name, () => status.refresh())
           :to="{ name: it.name }"
           :data-stratum="g.s"
           :title="$t(`nav.${it.name}`)"
-          :aria-current="route.name === it.name ? 'page' : undefined"
+          :aria-current="route.name === it.name || (it.name === 'check' && route.name === 'cleanup') ? 'page' : undefined"
           :data-testid="`nav-${it.name}`"
         >
           <Icon :name="it.icon" />
