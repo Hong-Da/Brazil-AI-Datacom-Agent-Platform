@@ -1,0 +1,73 @@
+# IS-IS 功能域（0.2.0）：华为 isis <进程> / Cisco router isis [标签]；NET、级别、开销类型、接口参数。
+domain: isis
+nodes:
+  isis.process:
+    type: object
+    key: [id]
+    semantic: {zh-CN: IS-IS 进程（Cisco 为区域标签，没有标签时为 "_"）, en: IS-IS process}
+    status: reviewed
+  isis.process.net:
+    parent: isis.process
+    type: object
+    key: [value]
+    semantic: {zh-CN: 网络实体名称 NET, en: Network entity title}
+  isis.process.level:
+    parent: isis.process
+    type: enum
+    choices: [level-1, level-2, level-1-2]
+    semantic: {zh-CN: 路由器级别, en: IS type}
+  isis.process.metric_style:
+    parent: isis.process
+    type: enum
+    choices: [narrow, wide, compatible, transition]
+    semantic: {zh-CN: 开销类型（华为 cost-style / Cisco metric-style）, en: Metric style}
+  isis.process.vrf:
+    parent: isis.process
+    type: ref
+    ref: vrf.instance
+    semantic: {zh-CN: 所属 VRF, en: VRF}
+  isis.process.log_adjacency:
+    parent: isis.process
+    type: boolean
+    semantic: {zh-CN: 记录邻接关系变化, en: Log adjacency changes}
+  isis.process.bfd_all:
+    parent: isis.process
+    type: boolean
+    semantic: {zh-CN: 在所有 IS-IS 接口上启用 BFD, en: BFD on all interfaces}
+  isis.process.frr:
+    parent: isis.process
+    type: boolean
+    semantic: {zh-CN: 启用 IS-IS 快速重路由, en: Fast reroute}
+  interface.isis:
+    parent: interface
+    type: object
+    key: [id]
+    semantic: {zh-CN: 接口上的 IS-IS 参数（每个接口一个，编号固定为 "_"）, en: Interface IS-IS}
+  interface.isis.process:
+    parent: interface.isis
+    type: string
+    semantic: {zh-CN: 接口启用的进程（华为不写时为 1；Cisco IS-IS 没有标签时为 "_"）, en: Process}
+  interface.isis.metric:
+    parent: interface.isis
+    type: integer
+    semantic: {zh-CN: 接口开销, en: Metric}
+  interface.isis.circuit_type:
+    parent: interface.isis
+    type: enum
+    choices: [level-1, level-2, level-1-2, p2p]
+    semantic: {zh-CN: 接口级别 / 电路类型, en: Circuit type}
+  interface.isis.p2p:
+    parent: interface.isis
+    type: boolean
+    semantic: {zh-CN: 点到点网络类型, en: Point-to-point}
+  interface.isis.passive:
+    parent: interface.isis
+    type: boolean
+    semantic: {zh-CN: 被动接口（只发布网段不建邻居）, en: Passive}
+  interface.isis.bfd:
+    parent: interface.isis
+    type: boolean
+    semantic: {zh-CN: 接口启用 IS-IS BFD, en: BFD}
+deps:
+  - {kind: reference, from: interface.isis.process, to: isis.process, note: 接口启用的 IS-IS 进程应已创建}
+  - {kind: reference, from: isis.process.vrf, to: vrf.instance}

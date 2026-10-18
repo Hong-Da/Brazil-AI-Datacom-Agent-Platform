@@ -105,3 +105,163 @@ patches:
       domain: bgp
       view: router-bgp
       syntax: bgp default { ipv6-nexthop | route-target filter }
+  # ---------- 0.2.0：管理面 ----------
+  - id: cisco-iosxe.exec-timeout
+    reason: 原文 “exec-timeout minutes [seconds]” 把 seconds 写成了关键字；运行配置中是 exec-timeout 0 0
+    set:
+      syntax: exec-timeout <minutes> [ <seconds> ]
+      params: {minutes: {type: integer, range: [0, 35791]}, seconds: {type: integer, range: [0, 2147483]}}
+  - id: cisco-iosxe.aaa-authentication-login
+    reason: 原文方法列表写成 “method1 [method2...]”；按运行配置改为最多 4 个方法
+    set:
+      syntax: aaa authentication login { default | <list-name> } <method1> [ <method2> [ <method3> [ <method4> ] ] ]
+  - id: cisco-iosxe.ip-ssh
+    reason: 原文关键字写作 timeout，设备上是 time-out；两个参数各自独立成行
+    set:
+      syntax: ip ssh { time-out <seconds> | authentication-retries <retries> }
+      params: {seconds: {type: integer, range: [1, 120]}, retries: {type: integer, range: [0, 5]}}
+  - add:
+      id: cisco-iosxe.aaa-authentication-login-privilege-mode
+      domain: mgmt
+      view: system
+      syntax: aaa authentication login privilege-mode
+      undo: no aaa authentication login privilege-mode
+    reason: 公开命令参考没有单列这条命令（Batfish 公开样本中出现）；登录后直接进入用户的特权级别
+  - add:
+      id: cisco-iosxe.username-secret
+      domain: mgmt
+      view: system
+      syntax: username <name> [ privilege <level> ] { secret | password } [ <encryption-type> ] <secret>
+      undo: no username <name>
+      params: {name: {type: word}, level: {type: integer, range: [0, 15]}, encryption-type: {type: integer, range: [0, 9]}, secret: {type: word}}
+    reason: 原文 username 拆成了 20 多条只带一个可选项的语法；运行配置中最常见的是 username 名称 [privilege 级别] secret 类型 密文
+  - add:
+      id: cisco-iosxe.username-privilege
+      domain: mgmt
+      view: system
+      syntax: username <name> privilege <level>
+      undo: no username <name>
+      params: {name: {type: word}, level: {type: integer, range: [0, 15]}}
+    reason: 同上；只设置级别的写法
+  - add:
+      id: cisco-iosxe.ip-ssh-rsa-keypair-name
+      domain: mgmt
+      view: system
+      syntax: ip ssh rsa keypair-name <keypair-name>
+      undo: no ip ssh rsa keypair-name
+      params: {keypair-name: {type: word}}
+    reason: 公开命令参考的 ip ssh 页没有列出 rsa keypair-name 写法（Batfish 公开样本中出现）
+  # ---------- 0.2.0：OSPF / IS-IS ----------
+  - id: cisco-iosxe.area-authentication
+    reason: 原文语法行混入了 HTML 残留文字 “area authentication command”
+    set:
+      syntax: area <area-id> authentication [ message-digest ]
+      undo: no area <area-id> authentication [ message-digest ]
+  - id: cisco-iosxe.area-nssa
+    reason: 原文语法行混入了 HTML 残留文字 “area nssa command”
+    set:
+      syntax: area <area-id> nssa [ no-redistribution ] [ default-information-originate ] [ no-summary ]
+      undo: no area <area-id> nssa [ no-redistribution ] [ default-information-originate ] [ no-summary ]
+  - id: cisco-iosxe.area-stub
+    reason: 原文语法行混入了 HTML 残留文字 “area stub command”
+    set:
+      syntax: area <area-id> stub [ no-summary ]
+      undo: no area <area-id> stub [ no-summary ]
+  - id: cisco-iosxe.auto-cost
+    reason: 原文语法行混入了 HTML 残留文字 “auto-cost command”
+    set:
+      syntax: auto-cost reference-bandwidth <mbps>
+      undo: no auto-cost reference-bandwidth
+      params: {mbps: {type: integer, range: [1, 4294967]}}
+  - id: cisco-iosxe.passive-interface
+    reason: 原文语法行混入了 HTML 残留文字，接口参数被拆成 “i nterface-type”
+    set:
+      syntax: passive-interface { default | <interface> }
+      undo: no passive-interface { default | <interface> }
+      params: {interface: {type: interface}}
+  - id: cisco-iosxe.passive-interface~2
+    reason: 同上（IS-IS 下的同一条命令）
+    set:
+      syntax: passive-interface { default | <interface> }
+      undo: no passive-interface { default | <interface> }
+      params: {interface: {type: interface}}
+  - id: cisco-iosxe.router-isis
+    reason: 原文把可选的区域标签写成了关键字 area-tag
+    set:
+      syntax: router isis [ <area-tag> ]
+      undo: no router isis [ <area-tag> ]
+      params: {area-tag: {type: word}}
+  # ---------- 0.2.0：管理面 ----------
+  - id: cisco-iosxe.logging-source-interface
+    reason: 原文语法 “{interface-name number vrf vrf-name}” 写乱了
+    set:
+      syntax: logging source-interface <interface> [ vrf <vrf-name> ]
+      undo: no logging source-interface <interface> [ vrf <vrf-name> ]
+      params: {interface: {type: interface}, vrf-name: {type: word}}
+  - add:
+      id: cisco-iosxe.logging-host
+      domain: mgmt
+      view: system
+      syntax: logging host <host> [ vrf <vrf-name> ]
+      undo: no logging host <host> [ vrf <vrf-name> ]
+      params: {host: {type: word}, vrf-name: {type: word}}
+    reason: 原文 logging host 的语法行有多余的括号，语法解析失败；按运行配置常见写法补充
+  - add:
+      id: cisco-iosxe.snmp-server-enable-traps
+      domain: mgmt
+      view: system
+      syntax: snmp-server enable traps [ <notification-types> ]
+      undo: no snmp-server enable traps [ <notification-types> ]
+      params: {notification-types: {type: text}}
+    reason: 原文 snmp-server enable traps 的语法行有多余的括号，语法解析失败
+  - add:
+      id: cisco-iosxe.transport-input
+      domain: mgmt
+      view: line
+      syntax: transport input { all | none | ssh | telnet | telnet ssh | ssh telnet }
+      undo: no transport input
+    reason: 原文第一条语法行没有格式标记且把 udptn 写成 updtn；运行配置中常见写法是 all / none / ssh / telnet
+  - id: cisco-iosxe.ip-router-isis
+    reason: 区域标签可省（没有标签的 router isis 进程）
+    set:
+      syntax: ip router isis [ <area-tag> ]
+      undo: no ip router isis [ <area-tag> ]
+      params: {area-tag: {type: word}}
+  - id: cisco-iosxe.ip-ospf-message-digest-key-md5
+    reason: 原文把加密类型写在 md5 之前；运行配置中是 message-digest-key 编号 md5 [类型] 密钥
+    set:
+      syntax: ip ospf message-digest-key <key-id> md5 [ <encryption-type> ] <key>
+      undo: no ip ospf message-digest-key <key-id>
+      params: {key-id: {type: integer, range: [1, 255]}, encryption-type: {type: integer, range: [0, 7]}, key: {type: word}}
+  - id: cisco-iosxe.logging-console
+    reason: 原文把 severity-level 写成了关键字；运行配置中是 logging console 级别
+    set:
+      syntax: logging console [ <severity-level> ]
+      undo: no logging console
+      params: {severity-level: {type: word}}
+  - id: cisco-iosxe.aaa-authorization
+    reason: 原文类型列表很长且方法列表写成 “method1 [method2...]”；按运行配置整理
+    set:
+      syntax: aaa authorization { exec | commands <level> | network | config-commands | console } { default | <list-name> } [ <method1> [ <method2> [ <method3> [ <method4> ] ] ] ]
+      undo: no aaa authorization { exec | commands <level> | network | config-commands | console } { default | <list-name> }
+      params: {level: {type: integer, range: [0, 15]}, list-name: {type: word}, method1: {type: word}, method2: {type: word}, method3: {type: word}, method4: {type: word}}
+  - id: cisco-iosxe.clock-timezone
+    reason: 原文把 minutes-offset 写成了关键字；小时偏移可以是负数
+    set:
+      syntax: clock timezone <zone> <hours-offset> [ <minutes-offset> ]
+      undo: no clock timezone
+      params: {zone: {type: word}, hours-offset: {type: word}, minutes-offset: {type: integer, range: [0, 59]}}
+  - id: cisco-iosxe.address-ipv6
+    reason: 参数是 IPv6 地址，按参数名推断成了 IPv4
+    set:
+      params: {ipv6-address: {type: word}}
+  - id: cisco-iosxe.ntp-authentication-key
+    reason: 原文把加密类型写成了关键字并带重复标记；运行配置中是 ntp authentication-key 编号 md5 密钥 [类型]
+    set:
+      syntax: ntp authentication-key <number> md5 <key> [ <encryption-type> ]
+      undo: no ntp authentication-key <number>
+      params: {number: {type: integer, range: [1, 4294967295]}, key: {type: word}, encryption-type: {type: integer, range: [0, 7]}}
+  - id: cisco-iosxe.snmp-server-community
+    reason: 团体字参数名为 string，按参数名推断成了吃掉行尾的 text 类型
+    set:
+      params: {string: {type: word}, view-name: {type: word}, access-list-number: {type: word}, access-list-name: {type: word}}

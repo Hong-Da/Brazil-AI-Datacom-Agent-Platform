@@ -206,6 +206,18 @@ entries:
     cards:
       - cisco-iosxe.encapsulation.2
       - cisco-iosxe.encapsulation.3
+  interface.bfd:
+    supported: true
+    cards:
+      - cisco-iosxe.bfd
+  interface.bfd.min_tx:
+    supported: true
+    cards:
+      - cisco-iosxe.bfd
+  interface.bfd.multiplier:
+    supported: true
+    cards:
+      - cisco-iosxe.bfd
   interface.description:
     supported: true
     cards:
@@ -230,6 +242,46 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.ip-address
+  interface.isis:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-router-isis
+      - cisco-iosxe.isis-bfd
+      - cisco-iosxe.isis-circuit-type
+      - cisco-iosxe.isis-metric
+      - cisco-iosxe.isis-network-point-to-point
+  interface.isis.bfd:
+    supported: true
+    cards:
+      - cisco-iosxe.isis-bfd
+    manual: true
+    default: false
+    source: 缺省接口不单独使能 IS-IS BFD
+    verified: doc
+  interface.isis.circuit_type:
+    supported: true
+    cards:
+      - cisco-iosxe.isis-circuit-type
+  interface.isis.metric:
+    supported: true
+    cards:
+      - cisco-iosxe.isis-metric
+    manual: true
+    default: 10
+    source: 命令参考 isis cost / isis metric：缺省 10
+    verified: doc
+  interface.isis.p2p:
+    supported: true
+    cards:
+      - cisco-iosxe.isis-network-point-to-point
+    manual: true
+    default: false
+    source: 缺省按接口介质（以太网为广播）
+    verified: doc
+  interface.isis.process:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-router-isis
   interface.lag:
     supported: true
     cards:
@@ -256,10 +308,91 @@ entries:
     manual: true
     supported: true
     default: true
-    source: 命令参考 negotiation：Autonegotiation is enabled
+    source: 命令参考 negotiation：物理以太网口缺省自协商（Loopback、子接口、BDI 等没有这一项）
     verified: doc
     cards:
       - cisco-iosxe.negotiation
+    when:
+      key: ^(GigabitEthernet|TenGigabitEthernet|FortyGigabitEthernet|HundredGigE|FastEthernet|Ethernet)[0-9/]+$
+  interface.ospf:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ospf-area
+      - cisco-iosxe.ip-ospf-authentication
+      - cisco-iosxe.ip-ospf-bfd
+      - cisco-iosxe.ip-ospf-cost
+      - cisco-iosxe.ip-ospf-dead-interval
+      - cisco-iosxe.ip-ospf-hello-interval
+      - cisco-iosxe.ip-ospf-network
+      - cisco-iosxe.ip-ospf-priority
+  interface.ospf.area:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ospf-area
+  interface.ospf.authentication:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ospf-authentication
+  interface.ospf.bfd:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ospf-bfd
+    manual: true
+    default: false
+    source: 命令参考：缺省接口不单独使能 OSPF BFD
+    verified: doc
+  interface.ospf.cost:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ospf-cost
+  interface.ospf.dead:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ospf-dead-interval
+    manual: true
+    default: 40
+    source: 命令参考：广播与点到点网络缺省 40 秒（hello 的 4 倍）
+    verified: doc
+    when:
+      attr:
+        network_type:
+          - broadcast
+          - p2p
+  interface.ospf.hello:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ospf-hello-interval
+    manual: true
+    default: 10
+    source: 命令参考：广播与点到点网络缺省 10 秒
+    verified: doc
+    when:
+      attr:
+        network_type:
+          - broadcast
+          - p2p
+  interface.ospf.network_type:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ospf-network
+    manual: true
+    default: broadcast
+    source: 命令参考：以太网类接口缺省为广播类型（Loopback 除外）
+    verified: doc
+    when:
+      not_key: ^(?i:loopback)
+  interface.ospf.priority:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ospf-priority
+    manual: true
+    default: 1
+    source: 命令参考 ospf dr-priority / ip ospf priority：缺省 1
+    verified: doc
+  interface.ospf.process:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ospf-area
   interface.shutdown:
     manual: true
     supported: true
@@ -272,6 +405,355 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.vrf-forwarding
+  isis.process:
+    supported: true
+    cards:
+      - cisco-iosxe.router-isis
+  isis.process.bfd_all:
+    supported: true
+    cards:
+      - cisco-iosxe.bfd-all-interfaces@router-isis
+    manual: true
+    default: false
+    source: 命令参考 bfd all-interfaces：缺省不使能
+    verified: doc
+  isis.process.frr:
+    supported: true
+    cards:
+      - cisco-iosxe.fast-reroute-per-prefix
+    manual: true
+    default: false
+    source: 缺省不使能 IS-IS 快速重路由
+    verified: doc
+  isis.process.level:
+    supported: true
+    cards:
+      - cisco-iosxe.is-type
+    manual: true
+    default: level-1-2
+    source: 命令参考 is-level / is-type：缺省 level-1-2
+    verified: doc
+  isis.process.log_adjacency:
+    supported: true
+    cards:
+      - cisco-iosxe.log-adjacency-changes~2
+    manual: true
+    default: false
+    source: 命令参考 log-adjacency-changes (IS-IS)：缺省不记录
+    verified: doc
+  isis.process.metric_style:
+    supported: true
+    cards:
+      - cisco-iosxe.metric-style-narrow
+      - cisco-iosxe.metric-style-transition
+      - cisco-iosxe.metric-style-wide
+    manual: true
+    default: narrow
+    source: 命令参考 cost-style / metric-style：缺省 narrow
+    verified: doc
+  isis.process.net:
+    supported: true
+    cards:
+      - cisco-iosxe.net
+  mgmt.aaa:
+    supported: true
+    cards:
+      - cisco-iosxe.aaa-authentication-login
+      - cisco-iosxe.aaa-authorization
+      - cisco-iosxe.aaa-new-model
+      - cisco-iosxe.username-privilege
+      - cisco-iosxe.username-secret
+  mgmt.aaa.scheme:
+    supported: true
+    cards:
+      - cisco-iosxe.aaa-authentication-login
+      - cisco-iosxe.aaa-authorization
+  mgmt.aaa.scheme.methods:
+    supported: true
+    cards:
+      - cisco-iosxe.aaa-authentication-login
+      - cisco-iosxe.aaa-authorization
+  mgmt.aaa.user:
+    supported: true
+    cards:
+      - cisco-iosxe.username-privilege
+      - cisco-iosxe.username-secret
+  mgmt.aaa.user.level:
+    supported: true
+    cards:
+      - cisco-iosxe.username-privilege
+      - cisco-iosxe.username-secret
+  mgmt.aaa.user.password_set:
+    supported: true
+    cards:
+      - cisco-iosxe.username-secret
+  mgmt.line:
+    supported: true
+    cards:
+      - cisco-iosxe.line
+  mgmt.line.acl_in:
+    supported: true
+    cards:
+      - cisco-iosxe.access-class
+  mgmt.line.auth:
+    supported: true
+    cards:
+      - cisco-iosxe.login-authentication
+  mgmt.line.idle_timeout:
+    supported: true
+    cards:
+      - cisco-iosxe.exec-timeout
+    manual: true
+    default: 10 0
+    source: 命令参考 idle-timeout / exec-timeout：缺省 10 分钟
+    verified: doc
+  mgmt.line.privilege:
+    supported: true
+    cards:
+      - cisco-iosxe.privilege-level
+    manual: true
+    default: 1
+    source: 命令参考 privilege level：缺省用户级别 1
+    verified: doc
+  mgmt.line.protocols:
+    supported: true
+    cards:
+      - cisco-iosxe.transport-input
+  mgmt.ntp:
+    supported: true
+    cards:
+      - cisco-iosxe.ntp-authenticate
+      - cisco-iosxe.ntp-server
+      - cisco-iosxe.ntp-source
+  mgmt.ntp.authentication:
+    supported: true
+    cards:
+      - cisco-iosxe.ntp-authenticate
+    manual: true
+    default: false
+    source: 命令参考 ntp-service authentication enable / ntp authenticate：缺省不认证
+    verified: doc
+  mgmt.ntp.server:
+    supported: true
+    cards:
+      - cisco-iosxe.ntp-server
+  mgmt.ntp.server.key:
+    supported: true
+    cards:
+      - cisco-iosxe.ntp-server
+  mgmt.ntp.server.prefer:
+    supported: true
+    cards:
+      - cisco-iosxe.ntp-server
+  mgmt.ntp.server.vrf:
+    supported: true
+    cards:
+      - cisco-iosxe.ntp-server
+  mgmt.ntp.source_interface:
+    supported: true
+    cards:
+      - cisco-iosxe.ntp-source
+  mgmt.snmp:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-community
+      - cisco-iosxe.snmp-server-contact
+      - cisco-iosxe.snmp-server-enable-traps
+      - cisco-iosxe.snmp-server-host.1
+      - cisco-iosxe.snmp-server-location
+      - cisco-iosxe.snmp-server-trap-source
+  mgmt.snmp.community:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-community
+  mgmt.snmp.community.access:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-community
+  mgmt.snmp.community.acl:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-community
+  mgmt.snmp.contact:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-contact
+  mgmt.snmp.host:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-host.1
+  mgmt.snmp.host.version:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-host.1
+  mgmt.snmp.location:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-location
+  mgmt.snmp.trap_enable:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-enable-traps
+  mgmt.snmp.trap_source:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-trap-source
+  mgmt.ssh:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ssh
+      - cisco-iosxe.ip-ssh-version
+  mgmt.ssh.retries:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ssh
+    manual: true
+    default: 3
+    source: 命令参考 ssh server authentication-retries / ip ssh authentication-retries：缺省 3 次
+    verified: doc
+  mgmt.ssh.timeout:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ssh
+    manual: true
+    default: 120
+    source: 命令参考 ip ssh time-out：缺省 120 秒
+    verified: doc
+  mgmt.ssh.version:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ssh-version
+  mgmt.syslog:
+    supported: true
+    cards:
+      - cisco-iosxe.logging-buffered.1
+      - cisco-iosxe.logging-host
+      - cisco-iosxe.logging-source-interface
+      - cisco-iosxe.logging-trap
+  mgmt.syslog.buffered:
+    supported: true
+    cards:
+      - cisco-iosxe.logging-buffered.1
+  mgmt.syslog.host:
+    supported: true
+    cards:
+      - cisco-iosxe.logging-host
+  mgmt.syslog.host.vrf:
+    supported: true
+    cards:
+      - cisco-iosxe.logging-host
+  mgmt.syslog.level:
+    supported: true
+    cards:
+      - cisco-iosxe.logging-trap
+  mgmt.syslog.source_interface:
+    supported: true
+    cards:
+      - cisco-iosxe.logging-source-interface
+  mgmt.tacacs:
+    supported: true
+    cards:
+      - cisco-iosxe.tacacs-server
+  mgmt.tacacs.key_set:
+    supported: true
+    cards:
+      - cisco-iosxe.key~2
+  mgmt.tacacs.server:
+    supported: true
+    cards:
+      - cisco-iosxe.address-ipv6
+  ospf.process:
+    supported: true
+    cards:
+      - cisco-iosxe.router-ospf
+  ospf.process.area:
+    supported: true
+    cards:
+      - cisco-iosxe.area-authentication
+      - cisco-iosxe.area-nssa
+      - cisco-iosxe.area-stub
+      - cisco-iosxe.network-area
+  ospf.process.area.authentication:
+    supported: true
+    cards:
+      - cisco-iosxe.area-authentication
+  ospf.process.area.network:
+    supported: true
+    cards:
+      - cisco-iosxe.network-area
+  ospf.process.area.type:
+    supported: true
+    cards:
+      - cisco-iosxe.area-nssa
+      - cisco-iosxe.area-stub
+    manual: true
+    default: normal
+    source: 缺省为普通区域
+    verified: doc
+  ospf.process.bandwidth_reference:
+    supported: true
+    cards:
+      - cisco-iosxe.auto-cost
+    manual: true
+    default: 100
+    source: 命令参考 bandwidth-reference / auto-cost reference-bandwidth：缺省 100 Mbit/s
+    verified: doc
+  ospf.process.bfd_all:
+    supported: true
+    cards:
+      - cisco-iosxe.bfd-all-interfaces@router-ospf
+    manual: true
+    default: false
+    source: 命令参考 bfd all-interfaces：缺省不使能
+    verified: doc
+  ospf.process.default_originate:
+    supported: true
+    cards:
+      - cisco-iosxe.default-information-originate~3
+    manual: true
+    default: false
+    source: 命令参考 default-route-advertise / default-information originate：缺省不发布缺省路由
+    verified: doc
+  ospf.process.frr:
+    supported: true
+    cards:
+      - cisco-iosxe.fast-reroute-per-prefix-enable
+    manual: true
+    default: false
+    source: 命令参考：缺省不使能 OSPF 快速重路由
+    verified: doc
+  ospf.process.log_adjacency:
+    supported: true
+    cards:
+      - cisco-iosxe.log-adjacency-changes
+    manual: true
+    default: true
+    source: 命令参考 log-adjacency-changes：IOS XE 缺省记录邻接变化
+    verified: doc
+  ospf.process.passive:
+    supported: true
+    cards:
+      - cisco-iosxe.passive-interface
+  ospf.process.passive.enabled:
+    supported: true
+    cards:
+      - cisco-iosxe.passive-interface
+  ospf.process.passive_default:
+    supported: true
+    cards:
+      - cisco-iosxe.passive-interface
+    manual: true
+    default: false
+    source: 命令参考 silent-interface / passive-interface：缺省所有接口都不是被动接口
+    verified: doc
+  ospf.process.router_id:
+    supported: true
+    cards:
+      - cisco-iosxe.router-id
+  ospf.process.vrf:
+    supported: true
+    cards:
+      - cisco-iosxe.router-ospf
   rp.community_list:
     supported: true
     cards:
@@ -426,3 +908,21 @@ entries:
       - cisco-iosxe.route-target
       - cisco-iosxe.route-target@vrf
       - cisco-iosxe.route-target@vrf-af
+  interface.ospf.ldp_sync:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考：缺省不使能 OSPF 与 LDP 同步
+    verified: doc
+  interface.isis.passive:
+    manual: true
+    supported: true
+    default: false
+    source: 缺省不是被动接口
+    verified: doc
+  bfd.session.multiplier:
+    manual: true
+    supported: true
+    default: 3
+    source: 命令参考 detect-multiplier：缺省 3
+    verified: doc

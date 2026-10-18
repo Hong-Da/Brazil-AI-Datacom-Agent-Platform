@@ -107,8 +107,9 @@ def test_parser_views_negation_raw(kb) -> None:  # type: ignore[no-untyped-def]
     # 异常缩进（终端分页痕迹）仍归在上一行的视图里，原始空白保留
     weird = next(ln for ln in p.lines if "IMPORT-ALL import" in ln.text)
     assert weird.view == "bgp-af-vpnv4" and weird.kind == "command" and weird.indent.startswith(" " * 10)
-    # ospf 块整体是功能域外的原文
-    assert all(by_no[n].kind == "raw" for n in (32, 33, 34))
+    # ospf 块（0.2.0 起是功能域）：进程、区域、network 逐级进入视图
+    assert [by_no[n].view for n in (32, 33, 34)] == ["system", "ospf", "ospf-area"]
+    assert all(by_no[n].kind == "command" for n in (32, 33, 34))
     assert p.counts().get("unknown", 0) == 0
 
 
@@ -153,4 +154,79 @@ def test_cisco_implicit_bridge_domain(kb) -> None:  # type: ignore[no-untyped-de
     res = analysis.parse_text(text, kb)
     g = graphmod.build(res.parsed, kb, res.profile)
     assert g.nodes["bridge_domain[10]"]["origin"] == "derived" and not g.graph["dangling"]
+    assert render_roundtrip(g, kb) == text
+
+
+# ---------- 0.2.0：IGP、BFD、管理面相关的机制 ----------
+
+
+@pytest.mark.parametrize(
+    ("expr", "values", "line", "want"),
+    [
+        ("tail:service-type", {}, "local-user u1 service-type ftp terminal ssh", "ftp terminal ssh"),
+        ("tail:inbound", {}, "protocol inbound", None),
+        (
+            "kw:default=authentication default||fmt:authentication {list-name}",
+            {"list-name": "CON"},
+            "aaa authentication login CON local",
+            "authentication CON",
+        ),
+        (
+            "kw:default=authentication default||fmt:authentication {list-name}",
+            {},
+            "aaa authentication login default local",
+            "authentication default",
+        ),
+        ("if:disable:false||flag", {}, "ip ospf bfd", True),
+        ("if:disable:false||flag", {}, "ip ospf bfd disable", "false"),
+        ("$a||fmt:{b}{c}", {}, "x", None),
+        ("fmt:{m1} {m2} {m3}", {"m1": "group", "m2": "tacacs+"}, "x", "group tacacs+"),
+    ],
+)
+def test_evaluate_m2(expr, values, line, want) -> None:  # type: ignore[no-untyped-def]
+    assert mapping.evaluate(expr, values, line.split(), False) == want
+
+
+def test_normalize_repeated_group_values() -> None:
+    assert mapping.normalize("ipv4", "x", ["10.0.0.1"]) == "10.0.0.1"
+    assert mapping.normalize("string", "x", ["v2c", "v3"]) == "v2c v3"
+
+
+def test_abnormal_indent_falls_back_to_outer_view(kb) -> None:  # type: ignore[no-untyped-def]
+    # 分页痕迹出现在子视图（frr）块之后的第一行：area 应回到 ospf 视图，其下的 network 进入区域视图
+    text = "ospf 8\n frr\n  loop-free-alternate\n                 area 0.0.0.8\n  network 10.0.0.1 0.0.0.0\n#\nreturn"
+    p = parse(text, kb, "huawei-vrp8")
+    by_no = {ln.no: ln for ln in p.lines}
+    assert by_no[4].view == "ospf" and by_no[4].kind == "command"
+    assert by_no[5].view == "ospf-area" and by_no[5].kind == "command"
+    res = analysis.parse_text(text, kb, "huawei-atn-v800r025")
+    g = graphmod.build(res.parsed, kb, res.profile)
+    assert render_roundtrip(g, kb) == text
+
+
+def test_conditional_defaults_and_object_prerequisite(kb) -> None:  # type: ignore[no-untyped-def]
+    text = (
+        "hostname R1\n!\ninterface Loopback0\n ip address 10.0.0.1 255.255.255.255\n!\n"
+        "interface GigabitEthernet0/0/1\n ip address 10.1.1.1 255.255.255.252\n ip ospf network point-to-point\n!\nend"
+    )
+    res = analysis.parse_text(text, kb, "cisco-iosxe-asr920-17.15")
+    g = graphmod.build(res.parsed, kb, res.profile)
+    n = g.nodes
+    # negotiation 只对物理口补默认值；hello 按（显式的）网络类型补
+    assert n["interface[GigabitEthernet0/0/1]/negotiation"]["origin"] == "default"
+    assert "interface[Loopback0]/negotiation" not in n
+    assert n["interface[GigabitEthernet0/0/1]/ospf[_]/hello"]["value"] == 10
+    # 华为 BFD 会话需要先全局使能 bfd：缺少时记为缺少前置条件，不是悬空引用
+    hw = "sysname X\n#\nbfd S1 bind peer-ip 10.0.0.2\n detect-multiplier 5\n#\nreturn"
+    res = analysis.parse_text(hw, kb, "huawei-atn-v800r025")
+    g = graphmod.build(res.parsed, kb, res.profile)
+    assert g.graph["missing_prerequisites"] and not g.graph["dangling"]
+    assert g.nodes["bfd.session[S1]/multiplier"]["value"] == 5
+    assert render_roundtrip(g, kb) == hw
+
+
+def test_trailing_whitespace_kept_on_matched_lines(kb) -> None:  # type: ignore[no-untyped-def]
+    text = "hostname R1\n!\naaa new-model\naaa authorization exec default local \n!\nend"
+    res = analysis.parse_text(text, kb, "cisco-iosxe-asr920-17.15")
+    g = graphmod.build(res.parsed, kb, res.profile)
     assert render_roundtrip(g, kb) == text

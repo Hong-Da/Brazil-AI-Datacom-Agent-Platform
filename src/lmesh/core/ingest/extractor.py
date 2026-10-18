@@ -126,8 +126,12 @@ def _doc_root(doc_dir: Path, rules: Rules) -> Path:
     return doc_dir
 
 
-def _files_for(root: Path, rules: Rules, domains: list[str] | None) -> list[tuple[str, Path, list[str]]]:
-    out: list[tuple[str, Path, list[str]]] = []
+def _files_for(
+    root: Path, rules: Rules, domains: list[str] | None
+) -> list[tuple[str, Path, list[str], list[dict[str, Any]]]]:
+    """功能域的文件；每个文件条目可以带自己的 views_map（先于全局的 views_map 生效），
+    例如 Cisco 的 OSPF、IS-IS 与 BGP 文档都写 “Router configuration (config-router)”，按功能域映射到不同模式。"""
+    out: list[tuple[str, Path, list[str], list[dict[str, Any]]]] = []
     all_md = [p for p in sorted(root.rglob("*.md"))]
     for domain, specs in (rules.raw.get("domains") or {}).items():
         if domains and domain not in domains:
@@ -137,11 +141,11 @@ def _files_for(root: Path, rules: Rules, domains: list[str] | None) -> list[tupl
             for p in all_md:
                 rel = p.relative_to(root).as_posix()
                 if fnmatch.fnmatch(rel, pat) or rel == pat:
-                    out.append((str(domain), p, list(spec.get("sections") or [])))
+                    out.append((str(domain), p, list(spec.get("sections") or []), list(spec.get("views_map") or [])))
     return out
 
 
-def _map_views(text: str, rules: Rules) -> list[str]:
+def _map_views(text: str, rules: Rules, extra: list[dict[str, Any]] | None = None) -> list[str]:
     split = rules.raw.get("views_split", r",\s*|;\s*|\s+and\s+|/")
     found: list[str] = []
     # 先按行拆（Cisco 每行一个模式），再按分隔符拆
@@ -150,7 +154,7 @@ def _map_views(text: str, rules: Rules) -> list[str]:
         name = part.strip().rstrip(".")
         if not name:
             continue
-        for vm in rules.raw.get("views_map") or []:
+        for vm in [*(extra or []), *(rules.raw.get("views_map") or [])]:
             if re.search(str(vm["match"]), name, re.I):
                 v = str(vm["view"])
                 if v not in found:
@@ -216,7 +220,7 @@ def extract(doc_dir: Path, rules: Rules, domains: list[str] | None = None, sourc
     exclude = re.compile(str(rules.raw.get("exclude_titles", r"^$")), re.I)
     seen: dict[tuple[str, str], str] = {}  # (语法, 视图) → 卡片编号，去重
     ids: Counter[str] = Counter()
-    for domain, path, only_sections in _files_for(root, rules, domains):
+    for domain, path, only_sections, local_views in _files_for(root, rules, domains):
         res.files += 1
         try:
             tree = md.parse_file(path)
@@ -234,7 +238,7 @@ def extract(doc_dir: Path, rules: Rules, domains: list[str] | None = None, sourc
                 res.skipped["excluded"] += 1
                 continue
             vsec = sec.child(rules.sec("views"))
-            views = _map_views("\n".join(vsec.body), rules) if vsec else []
+            views = _map_views("\n".join(vsec.body), rules, local_views) if vsec else []
             # 视图别名：文档只列了一个视图、实际在另一个视图中也有效（如 Cisco BGP neighbor 命令在地址族模式下）
             for v in list(views):
                 for alias in (rules.raw.get("view_aliases") or {}).get(v, []):

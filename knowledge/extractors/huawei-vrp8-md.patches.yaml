@@ -1,0 +1,8 @@
+# 华为 ATN V800R025 命令参考中的文档错误修正（每次抽取都会应用；被修正的卡在来源中注明 patched）
+patches:
+  - id: huawei-vrp8.user-interface
+    reason: 原文语法 “user-interface { ui-type | console first-ui-number }” 把类型与编号写乱了；运行配置中是 user-interface con 0
+    set:
+      syntax: user-interface { con | console } <first-ui-number>
+      params: {first-ui-number: {type: integer, range: [0, 0]}}
+      enters_view: user-interface-con

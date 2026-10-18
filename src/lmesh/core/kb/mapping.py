@@ -86,6 +86,13 @@ def evaluate(expr: Any, values: dict[str, Any], tokens: list[str], negated: bool
         return {k: evaluate(v, values, tokens, negated, auto) for k, v in expr.items()}
     e = str(expr)
     low = [t.lower() for t in tokens]
+    if "||" in e and not e.startswith("$"):
+        # 多个候选：依次计算，取第一个有值的（每个候选本身可以是 kw: / if: / fmt: / tail: / $参数 / 字面量）
+        for alt in e.split("||"):
+            v = evaluate(alt.strip(), values, tokens, negated, auto)
+            if v not in (None, "", []):
+                return v
+        return None
     if e == "flag":
         return not negated
     if e == "auto":
@@ -93,6 +100,13 @@ def evaluate(expr: Any, values: dict[str, Any], tokens: list[str], negated: bool
     if e.startswith("if:"):
         _, kw, rest = e.split(":", 2)
         return evaluate(rest, values, tokens, negated, auto) if kw.lower() in low else None
+    if e.startswith("tail:"):
+        # 关键字之后的全部词（多个关键字选项重复出现时，例如 service-type ftp terminal telnet）
+        kw = e[5:].lower()
+        if kw in low:
+            after = tokens[low.index(kw) + 1 :]
+            return " ".join(after) if after else None
+        return None
     if e.startswith("kw:"):
         spec, _, default = e[3:].partition(":")
         for item in spec.split("|"):
@@ -115,7 +129,7 @@ def evaluate(expr: Any, values: dict[str, Any], tokens: list[str], negated: bool
         text = re.sub(r"\{([\w\-|]+)\}", sub, e[4:])
         if missing:
             # 只缺最后的掩码部分（例如有类网段不带掩码）时，去掉末尾的分隔符
-            text = text.rstrip("/")
+            text = re.sub(r"\s+", " ", text).strip().rstrip("/")
             if not text:
                 return None
         return text
@@ -123,6 +137,10 @@ def evaluate(expr: Any, values: dict[str, Any], tokens: list[str], negated: bool
         alt = alt.strip()
         if alt.startswith("$"):
             v = values.get(alt[1:])
+            if v not in (None, "", []):
+                return v
+        elif alt.startswith(("fmt:", "kw:", "tail:", "if:")):
+            v = evaluate(alt, values, tokens, negated, auto)
             if v not in (None, "", []):
                 return v
         elif alt != "":
@@ -133,6 +151,11 @@ def evaluate(expr: Any, values: dict[str, Any], tokens: list[str], negated: bool
 def normalize(node_type: str, node_id: str, value: Any) -> Any:
     """按节点类型归一化，用于比较有效值：掩码换算成长度、整数去前导零、前缀里的掩码换成长度。"""
     if isinstance(value, list):
+        # 重复组（&<1-N>）里的参数取出来是列表：只有一个值时就是这个值；多个值的文本拼成一行
+        if len(value) == 1 and node_type != "object":
+            return normalize(node_type, node_id, value[0])
+        if node_type in ("string", "text") and value:
+            return " ".join(str(v) for v in value)
         return [normalize(node_type, node_id, v) for v in value]
     if value is None:
         return None

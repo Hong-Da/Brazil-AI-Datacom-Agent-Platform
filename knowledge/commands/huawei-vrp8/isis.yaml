@@ -1,0 +1,5065 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: isis
+cards:
+  - id: huawei-vrp8.ipv6-advertise-prefix-attributes-flags
+    syntax: ipv6 advertise prefix-attributes flags
+    view: isis
+    undo: undo ipv6 advertise prefix-attributes flags
+    default: By default, an IPv6 IS-IS process does not advertise the extended prefix attribute flag.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 advertise prefix-attributes flags
+      line: 9
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.adjacency-strict-check.1
+    syntax: adjacency-strict-check enable
+    view: isis
+    undo: undo adjacency-strict-check [ enable ]
+    default: By default, IS-IS neighbor strict-check is disabled when IS-IS is establishing neighbor relationships.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: adjacency-strict-check
+      line: 118
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.adjacency-strict-check.2
+    syntax: adjacency-strict-check disable
+    view: isis
+    undo: undo adjacency-strict-check [ enable ]
+    default: By default, IS-IS neighbor strict-check is disabled when IS-IS is establishing neighbor relationships.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: adjacency-strict-check
+      line: 118
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.advertise-link-attributes~2
+    syntax: advertise link attributes
+    view: isis
+    undo: undo advertise link attributes
+    default: By default, the link attribute advertisement function is disabled on an IS-IS process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: advertise link attributes
+      line: 192
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.advertise-link-attributes-application-lfa
+    syntax: advertise link-attributes application lfa
+    view: isis
+    undo: undo advertise link-attributes application lfa
+    default: By default, an IS-IS process is disabled from advertising the link attributes for an application.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: advertise link-attributes application lfa
+      line: 251
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.advertise-one-interface-address
+    syntax: advertise one-interface-address
+    view: isis
+    undo: undo advertise one-interface-address
+    default: By default, the type-132 TLV in LSPs carries the IP addresses of all IS-IS interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: advertise one-interface-address
+      line: 310
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.advertise-prefix-attributes-flags
+    syntax: advertise prefix-attributes flags
+    view: isis
+    undo: undo advertise prefix-attributes flags
+    default: By default, an IS-IS process does not advertise the extended prefix attribute flag.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: advertise prefix-attributes flags
+      line: 371
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.area-authentication-mode.1
+    syntax: area-authentication-mode { simple { plain <plain> | [ cipher ] <cipher> } | md5 { plain <plain> | [ cipher ] <cipher> } } [ ip | osi ] [ [ snp-packet { send-only | authentication-avoid } ] | all-send-only ]
+    view: isis
+    undo: undo area-authentication-mode
+    params:
+      plain: &id001
+        type: word
+      cipher: &id002
+        type: word
+    default: By default, the system neither encapsulates the generated Level-1 routing packets with authentication information nor authenticates received Level-1 routing packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: area-authentication-mode (IS-IS view)
+      line: 423
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.area-authentication-mode.2
+    syntax: area-authentication-mode keychain <keychain-name> [ [ snp-packet { send-only | authentication-avoid } ] | all-send-only ]
+    view: isis
+    undo: undo area-authentication-mode
+    params:
+      keychain-name:
+        type: word
+    default: By default, the system neither encapsulates the generated Level-1 routing packets with authentication information nor authenticates received Level-1 routing packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: area-authentication-mode (IS-IS view)
+      line: 423
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.area-authentication-mode.3
+    syntax: area-authentication-mode hmac-sha256 key-id <key-id> { plain <plain> | [ cipher ] <cipher> } [ [ snp-packet { send-only | authentication-avoid } ] | all-send-only ]
+    view: isis
+    undo: undo area-authentication-mode
+    params:
+      key-id:
+        type: integer
+        range:
+          - 0
+          - 65535
+      plain: *id001
+      cipher: *id002
+    default: By default, the system neither encapsulates the generated Level-1 routing packets with authentication information nor authenticates received Level-1 routing packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: area-authentication-mode (IS-IS view)
+      line: 423
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.arp-keep-disable
+    syntax: arp-keep disable
+    view: isis
+    undo: undo arp-keep disable
+    default: By default, IS-IS ARP entry maintenance is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: arp-keep disable
+      line: 520
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.attached-bit
+    syntax: attached-bit { { advertise { always | never } } | avoid-learning }
+    view: isis
+    undo: undo attached-bit advertise
+    default: By default, a Level-1 device generates a default route only when it receives an LSP carrying ATT bit 1.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: attached-bit
+      line: 572
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.authentication-length-compatible
+    syntax: authentication-length-compatible aes-128-cmac <auth-length-value>
+    view: isis
+    undo: undo authentication-length-compatible aes-128-cmac [ <auth-length-value> ]
+    params:
+      auth-length-value:
+        type: word
+    default: By default, the length of the IS-IS authentication digest is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: authentication-length-compatible (IS-IS view)
+      line: 754
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.authentication-type-compatible
+    syntax: authentication-type-compatible hmac-sm3 <auth-type-value>
+    view: isis
+    undo: undo authentication-type-compatible hmac-sm3 [ <auth-type-value> ]
+    params:
+      auth-type-value:
+        type: word
+    default: By default, no compatible value is configured for an IS-IS authentication type.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: authentication-type-compatible
+      line: 813
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.auto-cost-enable.1
+    syntax: auto-cost enable [ compatible ]
+    view: isis
+    undo: undo auto-cost enable
+    default: By default, automatic interface cost calculation is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: auto-cost enable (IS-IS view)
+      line: 954
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.auto-cost-enable.2
+    syntax: ipv6 auto-cost enable [ compatible ]
+    view: isis
+    undo: undo ipv6 auto-cost enable
+    default: By default, automatic interface cost calculation is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: auto-cost enable (IS-IS view)
+      line: 954
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.avoid-microloop-frr-protected~2
+    syntax: avoid-microloop frr-protected
+    view: isis
+    undo: undo avoid-microloop frr-protected
+    default: By default, IS-IS anti-microloop is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: avoid-microloop frr-protected
+      line: 1058
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.avoid-microloop-frr-protected-rib-update-delay~2
+    syntax: avoid-microloop frr-protected rib-update-delay <delay-interval>
+    view: isis
+    undo: undo avoid-microloop frr-protected rib-update-delay
+    params:
+      delay-interval:
+        type: integer
+        range:
+          - 100
+          - 5000
+    default: By default, IS-IS delays route delivery for 100 ms.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: avoid-microloop frr-protected rib-update-delay
+      line: 1118
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.avoid-microloop-te-tunnel~2
+    syntax: avoid-microloop te-tunnel
+    view: isis
+    undo: undo avoid-microloop te-tunnel
+    default: By default, the IS-IS TE tunnel anti-microloop function is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: avoid-microloop te-tunnel (IS-IS view)
+      line: 1176
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.avoid-microloop-te-tunnel-rib-update-delay~2
+    syntax: avoid-microloop te-tunnel rib-update-delay <rib-update-delay>
+    view: isis
+    undo: undo avoid-microloop te-tunnel rib-update-delay
+    params:
+      rib-update-delay:
+        type: integer
+        range:
+          - 100
+          - 30000
+    default: By default, the delay in delivering the IS-IS routes whose outbound interface is a TE tunnel interface is 1000 ms.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: avoid-microloop te-tunnel rib-update-delay
+      line: 1241
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bandwidth-advertisement-enable-maximum
+    syntax: bandwidth advertisement enable maximum
+    view: isis
+    undo: undo bandwidth advertisement enable maximum
+    default: By default, IPv4 IS-IS does not advertise information about the maximum bandwidth.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bandwidth advertisement enable maximum
+      line: 1296
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bandwidth-reference.1
+    syntax: bandwidth-reference <value>
+    view: isis
+    undo: undo bandwidth-reference
+    params:
+      value: &id003
+        type: integer
+        range:
+          - 1
+          - 2147483648
+    default: By default, the bandwidth reference value is 100 Mbit/s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bandwidth-reference (IS-IS view)
+      line: 1423
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bandwidth-reference.2
+    syntax: ipv6 bandwidth-reference <value>
+    view: isis
+    undo: undo ipv6 bandwidth-reference
+    params:
+      value: *id003
+    default: By default, the bandwidth reference value is 100 Mbit/s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bandwidth-reference (IS-IS view)
+      line: 1423
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bandwidth-utilized-advertisement-enable
+    syntax: bandwidth-utilized advertisement enable [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo bandwidth-utilized advertisement enable [ level-1 | level-2 | level-1-2 ]
+    default: By default, IS-IS does not advertise information about the used IPv4 bandwidth.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bandwidth-utilized advertisement enable
+      line: 1510
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bandwidth-utilized-suppress
+    syntax: bandwidth-utilized suppress timer <timer-value> percent-threshold <percent-value>
+    view: isis
+    undo: undo bandwidth-utilized suppress timer <timer-value> percent-threshold <percent-value>
+    params:
+      timer-value:
+        type: integer
+        range:
+          - 10
+          - 600
+      percent-value:
+        type: integer
+        range:
+          - 0
+          - 100
+    default: By default, the value of the IPv4 IS-IS used bandwidth advertisement suppression timer is 120s, and the percentage threshold is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bandwidth-utilized suppress
+      line: 1578
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-all-interfaces~2
+    syntax: bfd all-interfaces { min-rx-interval <receive-interval> | min-tx-interval <transmit-interval> | detect-multiplier <multiplier-value> | frr-binding | tos-exp <tosexp-value> } &<1-9>
+    view: isis
+    undo: undo bfd all-interfaces { min-rx-interval [ <receive-interval> ] | min-tx-interval [ <transmit-interval> ] | detect-multiplier [ <multiplier-value> ] | frr-binding | tos-exp [ <tosexp-value> ] } &<1-9>
+    params:
+      receive-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      transmit-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      multiplier-value:
+        type: integer
+        range:
+          - 3
+          - 50
+      tosexp-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, the BFD session will set up with default values of parameters.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bfd all-interfaces
+      line: 1647
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-all-interfaces-enable
+    syntax: bfd all-interfaces enable
+    view: isis
+    undo: undo bfd all-interfaces enable
+    default: By default, BFD is disabled in an IS-IS process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bfd all-interfaces enable
+      line: 1720
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      isis.process.bfd_all: flag
+  - id: huawei-vrp8.bfd-all-interfaces-incr-cost
+    syntax: bfd all-interfaces incr-cost { <cost-value> | max-reachable } [ wtr <wtr-value> ]
+    view: isis
+    undo: undo bfd all-interfaces incr-cost [ { <cost-value> | max-reachable } [ wtr <wtr-value> ] ]
+    params:
+      cost-value:
+        type: integer
+        range:
+          - 1
+          - 16777213
+      wtr-value:
+        type: integer
+        range:
+          - 1
+          - 3600
+    default: By default, no interface in an IS-IS process adjusts its cost based on the status of an associated BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bfd all-interfaces incr-cost (IS-IS view)
+      line: 1797
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bit-error-all-interfaces-enable
+    syntax: bfd bit-error all-interfaces enable
+    view: isis
+    undo: undo bfd bit-error all-interfaces enable
+    default: By default, BFD-based bit error detection is disabled in an IS-IS process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bfd bit-error all-interfaces enable
+      line: 1878
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-session-up-check
+    syntax: bfd session-up check
+    view: isis
+    undo: undo bfd session-up check
+    default: By default, the BFD session establishment check function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bfd session-up check
+      line: 1942
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bgp-ls-enable.1
+    syntax: bgp-ls enable [ level-1 | level-2 | level-1-2 ] [ exclude-prefix ]
+    view: isis
+    undo: undo bgp-ls enable [ level-1 | level-2 | level-1-2 ] [ exclude-prefix ]
+    default: By default, IS-IS topology advertisement to BGP is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bgp-ls enable
+      line: 2001
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bgp-ls-enable.2
+    syntax: bgp-ls enable level-1 level-2-leaking-route-ignore [ exclude-prefix ]
+    view: isis
+    undo: undo bgp-ls enable level-1 level-2-leaking-route-ignore [ exclude-prefix ]
+    default: By default, IS-IS topology advertisement to BGP is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bgp-ls enable
+      line: 2001
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bgp-ls-identifier
+    syntax: bgp-ls identifier <identifier-value>
+    view: isis
+    undo: undo bgp-ls identifier [ <identifier-value> ]
+    params:
+      identifier-value:
+        type: integer
+        range:
+          - 2
+          - 65535
+    default: By default, the BGP-LS identifier of IS-IS is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bgp-ls identifier
+      line: 2097
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bgp-ls-report-exclude~2
+    syntax: bgp-ls report-exclude { metric-delay-average | metric-delay-variation | link-msd | bundle-network-slice | asla-flexalgo-specific } &<1-9>
+    view: isis
+    undo: undo bgp-ls report-exclude [ metric-delay-average | metric-delay-variation | link-msd | bundle-network-slice | asla-flexalgo-specific ] &<1-9>
+    default: By default, IS-IS topology advertisement allows the average delay, delay variation, Segment Routing interface maximum SID depth (MSD), and network slice information; when reporting ASLAs, the device reports only Flex-Algo-supported attributes and forcibly sets the Flex-Algo application flag.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bgp-ls report-exclude (IS-IS view)
+      line: 2169
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bier-enable
+    syntax: bier enable
+    view: isis
+    undo: undo bier enable
+    default: By default, BIER is not enabled for IS-IS.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: bier enable
+      line: 2231
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.circuit-default-tag
+    syntax: '[ ipv6 ] circuit default-tag <tag> [ level-1 | level-2 ]'
+    view: isis
+    undo: undo [ ipv6 ] circuit default-tag [ <tag> ] [ level-1 | level-2 ]
+    params:
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, the administrative tag value of all interfaces in an IS-IS process is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: circuit default-tag (IS-IS view)
+      line: 2304
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.circuit-cost.1
+    syntax: circuit-cost { <cost> } [ level-1 | level-2 ]
+    view: isis
+    undo: undo circuit-cost [ <cost> ] [ level-1 | level-2 ]
+    params:
+      cost: &id004
+        type: integer
+    default: By default, the link cost of a loopback interface in an IS-IS process is 0, and the link cost of other interfaces is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: circuit-cost (IS-IS view)
+      line: 2458
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.circuit-cost.2
+    syntax: ipv6 circuit-cost { <cost> } [ level-1 | level-2 ]
+    view: isis
+    undo: undo ipv6 circuit-cost [ <cost> ] [ level-1 | level-2 ]
+    params:
+      cost: *id004
+    default: By default, the link cost of a loopback interface in an IS-IS process is 0, and the link cost of other interfaces is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: circuit-cost (IS-IS view)
+      line: 2458
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.cost-style
+    syntax: cost-style { narrow | wide | wide-compatible | { compatible | narrow-compatible } [ relax-spf-limit ] }
+    view: isis
+    undo: undo cost-style
+    default: By default, the cost type of IS-IS routes is narrow.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: cost-style
+      line: 2657
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      isis.process.metric_style: kw:wide-compatible=compatible|narrow-compatible=compatible|compatible|wide|narrow
+  - id: huawei-vrp8.default-route-advertise
+    syntax: default-route-advertise [ always | match default | route-policy <route-policy-name> | route-filter <route-filter-name> ] [ [ cost <cost> ] | [ tag <tag> ] | [ level-1 | level-2 | level-1-2 ] ] &<1-9> [ avoid-learning ]
+    view: isis
+    undo: undo default-route-advertise
+    params:
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+      cost:
+        type: integer
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, an IS-IS device does not generate a default route.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: default-route-advertise (IS-IS view)
+      line: 2864
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.description~7
+    syntax: description <description>
+    view: isis
+    undo: undo description
+    params:
+      description:
+        type: text
+    default: By default, no description is configured for an IS-IS process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: description (IS-IS view)
+      line: 2957
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.direct-routes
+    syntax: direct-routes protocol-attribute-update
+    view: isis
+    undo: undo direct-routes protocol-attribute-update
+    default: By default, the direct routes delivered by IS-IS carry their own route attributes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: direct-routes
+      line: 3011
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.domain-authentication-mode.1
+    syntax: domain-authentication-mode { simple { plain <plain> | [ cipher ] <cipher> } | md5 { plain <plain> | [ cipher ] <cipher> } } [ ip | osi ] [ [ snp-packet { send-only | authentication-avoid } ] | all-send-only ]
+    view: isis
+    undo: undo domain-authentication-mode
+    params:
+      plain: &id005
+        type: word
+      cipher: &id006
+        type: word
+    default: By default, the system neither encapsulates the originated Level-2 LSPs and SNPs with authentication information nor authenticates received Level-2 LSPs and SNPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: domain-authentication-mode
+      line: 11176
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.domain-authentication-mode.2
+    syntax: domain-authentication-mode keychain <keychain-name> [ [ snp-packet { send-only | authentication-avoid } ] | all-send-only ]
+    view: isis
+    undo: undo domain-authentication-mode
+    params:
+      keychain-name:
+        type: word
+    default: By default, the system neither encapsulates the originated Level-2 LSPs and SNPs with authentication information nor authenticates received Level-2 LSPs and SNPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: domain-authentication-mode
+      line: 11176
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.domain-authentication-mode.3
+    syntax: domain-authentication-mode hmac-sha256 key-id <key-id> { plain <plain> | [ cipher ] <cipher> } [ [ snp-packet { send-only | authentication-avoid } ] | all-send-only ]
+    view: isis
+    undo: undo domain-authentication-mode
+    params:
+      key-id:
+        type: integer
+        range:
+          - 0
+          - 65535
+      plain: *id005
+      cipher: *id006
+    default: By default, the system neither encapsulates the originated Level-2 LSPs and SNPs with authentication information nor authenticates received Level-2 LSPs and SNPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: domain-authentication-mode
+      line: 11176
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ecmp-disable
+    syntax: ecmp disable { level-1 | level-2 }
+    view: isis-frr
+    undo: undo ecmp disable [ level-1 | level-2 ]
+    default: By default, IS-IS ECMP FRR is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ecmp disable
+      line: 11263
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ecmp-prefer~2
+    syntax: ecmp-prefer { te-tunnel | intact }
+    view: isis
+    undo: undo ecmp-prefer
+    default: By default, routes are equally selected to load-balance IS-IS traffic, regardless of whether the outbound interface is a TE tunnel interface or an IPv4 interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ecmp-prefer
+      line: 11323
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.encapsulation-mode.1
+    syntax: encapsulation-mode { insert | encaps }
+    view: isis
+    undo: undo encapsulation-mode [ insert | encaps ]
+    default: By default, no SRv6 SID stack encapsulation mode is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: encapsulation-mode (IS-IS view)
+      line: 11385
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.encapsulation-mode.2
+    syntax: encapsulation-mode encaps
+    view: isis
+    undo: undo encapsulation-mode [ encaps ]
+    default: By default, no SRv6 SID stack encapsulation mode is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: encapsulation-mode (IS-IS view)
+      line: 11385
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export
+    syntax: filter-policy { <acl-number> | acl-name <acl-name-string> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> } { export [ direct | static | rip <process-id> | bgp | ospf <process-id> | isis <process-id> | unr ] }
+    view: isis
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name-string> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> ] { export [ direct | static | rip <process-id> | bgp | ospf <process-id> | isis <process-id> | unr ] }
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name-string:
+        type: word
+      ip-prefix-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, IS-IS does not filter the routes to be advertised.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: filter-policy export
+      line: 11479
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-import
+    syntax: filter-policy { <acl-number> | acl-name <acl-name-string> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> } import
+    view: isis
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name-string> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> ] import
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name-string:
+        type: word
+      ip-prefix-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, IS-IS does not filter received routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: filter-policy import
+      line: 11564
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.frr.1
+    syntax: frr
+    view: isis
+    enters_view: isis-frr
+    undo: undo frr
+    default: By default, FRR and IPv6 FRR are disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: frr (IS-IS view)
+      line: 11643
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      isis.process.frr: flag
+  - id: huawei-vrp8.frr.2
+    syntax: ipv6 frr
+    view: isis
+    undo: undo ipv6 frr
+    default: By default, FRR and IPv6 FRR are disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: frr (IS-IS view)
+      line: 11643
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.frr-policy-route~2
+    syntax: frr-policy route { route-policy <route-policy-name> | route-filter <route-filter-name> }
+    view: isis-frr
+    undo: undo frr-policy route
+    params:
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, the filtering function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: frr-policy route (IS-IS FRR view)
+      line: 11726
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ignore-check-tlv-lsp.1
+    syntax: ignore-check-tlv lsp [ system-id <lspIdStr> | lsp-id <lspIdStr> ] tlv <tlv-type1>
+    view: isis
+    undo: undo ignore-check-tlv lsp [ system-id <lspIdStr> | lsp-id <lspIdStr> ] tlv <tlv-type1>
+    params:
+      lspIdStr: &id007
+        type: word
+      tlv-type1:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, no TLV in LSPs is ignored.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ignore-check-tlv lsp
+      line: 11796
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ignore-check-tlv-lsp.2
+    syntax: ignore-check-tlv lsp [ system-id <lspIdStr> | lsp-id <lspIdStr> ] tlv <tlv-type2> sub-tlv <sub-tlv-type2>
+    view: isis
+    undo: undo ignore-check-tlv lsp [ system-id <lspIdStr> | lsp-id <lspIdStr> ] tlv <tlv-type2> sub-tlv <sub-tlv-type2>
+    params:
+      lspIdStr: *id007
+      tlv-type2:
+        type: integer
+        range:
+          - 1
+          - 255
+      sub-tlv-type2:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, no TLV in LSPs is ignored.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ignore-check-tlv lsp
+      line: 11796
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ignore-check-tlv-lsp.3
+    syntax: ignore-check-tlv lsp [ system-id <lspIdStr> | lsp-id <lspIdStr> ] tlv <tlv-type3> sub-tlv <sub-tlv-type3> sub-sub-tlv <sub-sub-tlv-type3> [ force-ignore ]
+    view: isis
+    undo: undo ignore-check-tlv lsp [ system-id <lspIdStr> | lsp-id <lspIdStr> ] tlv <tlv-type3> sub-tlv <sub-tlv-type3> sub-sub-tlv <sub-sub-tlv-type3> [ force-ignore ]
+    params:
+      lspIdStr: *id007
+      tlv-type3:
+        type: integer
+        range:
+          - 1
+          - 255
+      sub-tlv-type3:
+        type: integer
+        range:
+          - 1
+          - 255
+      sub-sub-tlv-type3:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, no TLV in LSPs is ignored.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ignore-check-tlv lsp
+      line: 11796
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ignore-receive-lsp
+    syntax: ignore-receive-lsp { system-id <sysid> | lsp-id <lspid> }
+    view: isis
+    undo: undo ignore-receive-lsp { system-id <sysid> | lsp-id <lspid> }
+    params:
+      sysid:
+        type: word
+      lspid:
+        type: word
+    default: By default, the device is not configured to discard a specified LSP.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ignore-receive-lsp
+      line: 11881
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-rib-protocol-isis
+    syntax: import-rib { public | vpn-instance <vpn-instance-name> } protocol isis <process-id> [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    view: vpn-instance-af-ipv4
+    undo: undo import-rib { public | vpn-instance <vpn-instance-name> } protocol isis <process-id> [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    params:
+      vpn-instance-name:
+        type: word
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, public network or other VPN instance routes are not imported to VPN instance routing tables.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: import-rib protocol isis
+      line: 11950
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-rib-vpn-instance-protocol-isis
+    syntax: '{ ip | ipv6 } import-rib vpn-instance <vpn-instance-name> protocol isis <process-id> [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]'
+    view: system
+    undo: undo { ip | ipv6 } import-rib vpn-instance <vpn-instance-name> protocol isis <process-id> [ valid-route ] [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
+    params:
+      vpn-instance-name:
+        type: word
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, routes in VPN instance routing tables are not imported to the public network routing table.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: import-rib vpn-instance protocol isis
+      line: 12102
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route.1~6
+    syntax: import-route { direct | static | unr | { ospf | isis | rip } [ <process-id> ] | bgp [ permit-ibgp ] } [ cost-type { external | internal } | cost <cost> | tag <tag> | { route-policy <route-policy-name> | route-filter <route-filter-name> } | [ level-1 | level-2 | level-1-2 ] ] &<1-9>
+    view: isis
+    undo: undo import-route { direct | static | unr | { ospf | rip | isis } [ <process-id> ] | bgp }
+    params:
+      process-id: &id008
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cost: &id009
+        type: integer
+      tag: &id010
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      route-policy-name: &id011
+        type: word
+      route-filter-name: &id012
+        type: word
+    default: By default, IS-IS does not import routes from any other protocol.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: import-route (IS-IS view)
+      line: 12295
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route.2~6
+    syntax: import-route { ospf | isis } [ <process-id> ] [ cost-type { external | internal } | cost <cost> | tag <tag> | { route-policy <route-policy-name> | route-filter <route-filter-name> } | [ level-1 | level-2 | level-1-2 ] | no-sid ] &<1-9>
+    view: isis
+    undo: undo import-route { direct | static | unr | { ospf | rip | isis } [ <process-id> ] | bgp }
+    params:
+      process-id: *id008
+      cost: *id009
+      tag: *id010
+      route-policy-name: *id011
+      route-filter-name: *id012
+    default: By default, IS-IS does not import routes from any other protocol.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: import-route (IS-IS view)
+      line: 12295
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route.3~4
+    syntax: import-route { { ospf | isis | rip } [ <process-id> ] | bgp [ permit-ibgp ] | direct | unr } inherit-cost [ { level-1 | level-2 | level-1-2 } | tag <tag> | { route-policy <route-policy-name> | route-filter <route-filter-name> } ] &<1-9>
+    view: isis
+    undo: undo import-route { direct | static | unr | { ospf | rip | isis } [ <process-id> ] | bgp }
+    params:
+      process-id: *id008
+      tag: *id010
+      route-policy-name: *id011
+      route-filter-name: *id012
+    default: By default, IS-IS does not import routes from any other protocol.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: import-route (IS-IS view)
+      line: 12295
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route.4~2
+    syntax: import-route { ospf | isis } [ <process-id> ] inherit-cost [ { level-1 | level-2 | level-1-2 } | tag <tag> | { route-policy <route-policy-name> | route-filter <route-filter-name> } | no-sid ] &<1-9>
+    view: isis
+    undo: undo import-route { direct | static | unr | { ospf | rip | isis } [ <process-id> ] | bgp }
+    params:
+      process-id: *id008
+      tag: *id010
+      route-policy-name: *id011
+      route-filter-name: *id012
+    default: By default, IS-IS does not import routes from any other protocol.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: import-route (IS-IS view)
+      line: 12295
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route-isis-level-1-into-level-2
+    syntax: import-route isis level-1 into level-2 [ tag <tag-value> | filter-policy { <acl-number> | acl-name <acl-name-value> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <xpl-policy-name> } | direct allow-filter-policy | no-sid ] &<1-9>
+    view: isis
+    undo: undo import-route isis level-1 into level-2 { tag <tag-value> | filter-policy { <acl-number> | acl-name <acl-name-value> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <xpl-policy-name> } | direct allow-filter-policy | no-sid } &<1-9>
+    params:
+      tag-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name-value:
+        type: word
+      ip-prefix-name:
+        type: word
+      route-policy-name:
+        type: word
+      xpl-policy-name:
+        type: word
+    default: By default, all the Level-1 area routes (except default routes) can leak to a Level-2 area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: import-route isis level-1 into level-2 (IS-IS view)
+      line: 12564
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route-isis-level-2-into-level-1
+    syntax: import-route isis level-2 into level-1 [ tag <tag> | filter-policy { <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> } | direct { allow-filter-policy | allow-up-down-bit } &<1-9> | no-sid ] &<1-9>
+    view: isis
+    undo: undo import-route isis level-2 into level-1
+    params:
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name:
+        type: word
+      ip-prefix-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, IS-IS route leaking is disabled from a Level-2 area to a Level-1 area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: import-route isis level-2 into level-1 (IS-IS view)
+      line: 12815
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route-loop-detect-redistribute-delay-disable
+    syntax: import-route loop-detect redistribute-delay disable
+    view: isis
+    undo: undo import-route loop-detect redistribute-delay disable
+    default: By default, a device delays advertising looped imported routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: import-route loop-detect redistribute-delay disable
+      line: 12897
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route.1~7
+    syntax: import-route { direct | static | unr | { ospf | rip | isis } [ <process-id> ] | bgp } [ cost-type { external | internal } | cost <cost> | tag <tag> | { route-policy <route-policy-name> | route-filter <route-filter-name> } | [ level-1 | level-2 | level-1-2 ] ] &<1-9>
+    view: isis
+    undo: undo import-route { direct | static | unr | { ospf | rip | isis } [ <process-id> ] | bgp }
+    params:
+      process-id: &id013
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cost:
+        type: integer
+      tag: &id014
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      route-policy-name: &id015
+        type: word
+      route-filter-name: &id016
+        type: word
+    default: By default, IS-IS does not import routes from any other protocol.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: import-route(IS-IS view) (VPN)
+      line: 12953
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route.2~7
+    syntax: import-route { { ospf | rip | isis } [ <process-id> ] | bgp | direct | unr } inherit-cost [ { level-1 | level-2 | level-1-2 } | tag <tag> | { route-policy <route-policy-name> | route-filter <route-filter-name> } ] &<1-9>
+    view: isis
+    undo: undo import-route { direct | static | unr | { ospf | rip | isis } [ <process-id> ] | bgp }
+    params:
+      process-id: *id013
+      tag: *id014
+      route-policy-name: *id015
+      route-filter-name: *id016
+    default: By default, IS-IS does not import routes from any other protocol.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: import-route(IS-IS view) (VPN)
+      line: 12953
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.instance-id-consistency-detect-enable
+    syntax: instance-id consistency detect enable
+    view: isis
+    undo: undo instance-id consistency detect enable
+    default: By default, IS-IS process ID consistency check is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: instance-id consistency detect enable
+      line: 13060
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.intelligent-convergence-enable
+    syntax: intelligent-convergence enable
+    view: isis
+    undo: undo intelligent-convergence enable
+    default: By default, IS-IS intelligent convergence is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: intelligent-convergence enable
+      line: 13121
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.inter-level-protect-level-1
+    syntax: inter-level-protect level-1 [ prefer ]
+    view: isis-frr
+    undo: undo inter-level-protect level-1 [ prefer ]
+    default: By default, IS-IS cross-level protection is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: inter-level-protect level-1(IS-IS FRR view)
+      line: 13179
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-advertise-link-attributes
+    syntax: ipv6 advertise link attributes
+    view: isis
+    undo: undo ipv6 advertise link attributes
+    default: By default, the IPv6 link attribute advertisement function is disabled on an IS-IS process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 advertise link attributes
+      line: 13252
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-bandwidth-advertisement-enable-maximum
+    syntax: ipv6 bandwidth advertisement enable maximum
+    view: isis
+    undo: undo ipv6 bandwidth advertisement enable maximum
+    default: By default, IPv6 IS-IS does not advertise information about the maximum bandwidth.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 bandwidth advertisement enable maximum
+      line: 13309
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-bandwidth-utilized-advertisement-enable
+    syntax: ipv6 bandwidth-utilized advertisement enable [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo ipv6 bandwidth-utilized advertisement enable [ level-1 | level-2 | level-1-2 ]
+    default: By default, IS-IS does not advertise information about the used IPv6 bandwidth.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 bandwidth-utilized advertisement enable
+      line: 13364
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-bandwidth-utilized-suppress
+    syntax: ipv6 bandwidth-utilized suppress timer <timer-value> percent-threshold <percent-value>
+    view: isis
+    undo: undo ipv6 bandwidth-utilized suppress timer <timer-value> percent-threshold <percent-value>
+    params:
+      timer-value:
+        type: integer
+        range:
+          - 10
+          - 600
+      percent-value:
+        type: integer
+        range:
+          - 0
+          - 100
+    default: By default, the value of the IPv6 IS-IS used bandwidth advertisement suppression timer is 120s, and the percentage threshold is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 bandwidth-utilized suppress
+      line: 13433
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-bfd-all-interfaces
+    syntax: ipv6 bfd all-interfaces { min-rx-interval <receive-interval> | min-tx-interval <transmit-interval> | detect-multiplier <multiplier-value> | frr-binding } &<1-9>
+    view: isis
+    undo: undo ipv6 bfd all-interfaces { min-rx-interval [ <receive-interval> ] | min-tx-interval [ <transmit-interval> ] | detect-multiplier [ <multiplier-value> ] | frr-binding } &<1-9>
+    params:
+      receive-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+      transmit-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+      multiplier-value:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 bfd all-interfaces
+      line: 13503
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-bfd-all-interfaces-enable
+    syntax: ipv6 bfd all-interfaces enable
+    view: isis
+    undo: undo ipv6 bfd all-interfaces enable
+    default: By default, IPv6 BFD for IS-IS is disabled in an IS-IS process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 bfd all-interfaces enable
+      line: 13576
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-bfd-all-interfaces-incr-cost
+    syntax: ipv6 bfd all-interfaces incr-cost { <cost-value> | max-reachable } [ wtr <wtr-value> ]
+    view: isis
+    undo: undo ipv6 bfd all-interfaces incr-cost [ { <cost-value> | max-reachable } [ wtr <wtr-value> ] ]
+    params:
+      cost-value:
+        type: integer
+        range:
+          - 1
+          - 16777213
+      wtr-value:
+        type: integer
+        range:
+          - 1
+          - 3600
+    default: By default, an IPv6 IS-IS process does not adjust the cost based on BFD.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 bfd all-interfaces incr-cost (IS-IS view)
+      line: 13654
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-bgp-ls-enable
+    syntax: ipv6 bgp-ls enable [ level-1 | level-2 | level-1-2 ] [ exclude-prefix ]
+    view: isis
+    undo: undo ipv6 bgp-ls enable [ level-1 | level-2 | level-1-2 ] [ exclude-prefix ]
+    default: By default, IS-IS IPv6 topology advertisement is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 bgp-ls enable
+      line: 13737
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-bundle-member-network-slice-advertisement-enable
+    syntax: ipv6 bundle-member network-slice advertisement enable [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo ipv6 bundle-member network-slice advertisement enable [ level-1 | level-2 | level-1-2 ]
+    default: By default, IS-IS is disabled from advertising network slice topology information.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 bundle-member network-slice advertisement enable
+      line: 13823
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-bundle-member-network-slice-tlv-type
+    syntax: ipv6 bundle-member network-slice tlv-type <type-value>
+    view: isis
+    undo: undo ipv6 bundle-member network-slice tlv-type [ <type-value> ]
+    params:
+      type-value:
+        type: integer
+        range:
+          - 162
+          - 249
+    default: By default, the type value of the sub-TLV used by an IS-IS process to advertise network slice information is 240.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 bundle-member network-slice tlv-type
+      line: 13886
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-default-route-advertise.1
+    syntax: ipv6 default-route-advertise [ always | match default | route-policy <route-policy-name> | route-filter <route-filter-name> ] [ [ cost <cost> ] | [ tag <tag> ] | [ level-1 | level-2 | level-1-2 ] ] &<1-9> [ avoid-learning | learning-avoid-loop ]
+    view: isis
+    undo: undo ipv6 default-route-advertise
+    params:
+      route-policy-name: &id017
+        type: word
+      route-filter-name: &id018
+        type: word
+      cost: &id019
+        type: integer
+        range:
+          - 0
+          - 4261412864
+      tag: &id020
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, a device does not advertise default IPv6 routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 default-route-advertise
+      line: 13945
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-default-route-advertise.2
+    syntax: ipv6 default-route-advertise [ always | match default | route-policy <route-policy-name> | route-filter <route-filter-name> ] [ [ cost <cost> ] | [ tag <tag> ] | [ level-1 | level-2 | level-1-2 ] ] &<1-9> [ avoid-learning ]
+    view: isis
+    undo: undo ipv6 default-route-advertise
+    params:
+      route-policy-name: *id017
+      route-filter-name: *id018
+      cost: *id019
+      tag: *id020
+    default: By default, a device does not advertise default IPv6 routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 default-route-advertise
+      line: 13945
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-enable
+    syntax: ipv6 enable [ topology { compatible [ enable-mt-spf ] | ipv6 | standard } ]
+    view: isis
+    undo: undo ipv6 enable
+    default: By default, the IPv6 capability is disabled for an IS-IS process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 enable (IS-IS view)
+      line: 14046
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-filter-policy-export
+    syntax: ipv6 filter-policy { <acl6-number> | acl6-name <acl6-name-string> | ipv6-prefix <ipv6-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> } export [ direct | static | ripng <process-id> | bgp | ospfv3 <process-id> | isis <process-id> ]
+    view: isis
+    undo: undo ipv6 filter-policy [ <acl6-number> | acl6-name <acl6-name-string> | ipv6-prefix <ipv6-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> ] export [ direct | static | ripng <process-id> | bgp | ospfv3 <process-id> | isis <process-id> ]
+    params:
+      acl6-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl6-name-string:
+        type: word
+      ipv6-prefix-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, IS-IS does not filter imported IPv6 routes before route advertisement.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 filter-policy export
+      line: 14122
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-filter-policy-import
+    syntax: ipv6 filter-policy { <acl6-number> | acl6-name <acl6-name-string> | ipv6-prefix <ipv6-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> } import
+    view: isis
+    undo: undo ipv6 filter-policy [ <acl6-number> | acl6-name <acl6-name-string> | ipv6-prefix <ipv6-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> ] import
+    params:
+      acl6-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl6-name-string:
+        type: word
+      ipv6-prefix-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, IS-IS does not filter received IPv6 routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 filter-policy import
+      line: 14200
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-import-route.1
+    syntax: ipv6 import-route { direct | static | { ospfv3 | ripng | isis } [ <process-id> ] | bgp [ permit-ibgp ] } [ cost <cost> | tag <tag> | { route-policy <route-policy-name> | route-filter <route-filter-name> } | [ level-1 | level-2 | level-1-2 ] ] &<1-9>
+    view: isis
+    undo: undo ipv6 import-route { direct | static | { ospfv3 | ripng | isis } [ <process-id> ] | bgp }
+    params:
+      process-id: &id021
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cost: &id025
+        type: integer
+        range:
+          - 0
+          - 4261412864
+      tag: &id022
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      route-policy-name: &id023
+        type: word
+      route-filter-name: &id024
+        type: word
+    default: By default, IS-IS does not import IPv6 routes from other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 import-route
+      line: 14274
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-import-route.2
+    syntax: ipv6 import-route { { ospfv3 | ripng | isis } [ <process-id> ] | bgp [ permit-ibgp ] | direct } inherit-cost [ { level-1 | level-2 | level-1-2 } | tag <tag> | { route-policy <route-policy-name> | route-filter <route-filter-name> } ] &<1-9>
+    view: isis
+    undo: undo ipv6 import-route { direct | static | { ospfv3 | ripng | isis } [ <process-id> ] | bgp }
+    params:
+      process-id: *id021
+      tag: *id022
+      route-policy-name: *id023
+      route-filter-name: *id024
+    default: By default, IS-IS does not import IPv6 routes from other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 import-route
+      line: 14274
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-import-route.3
+    syntax: ipv6 import-route isis [ <process-id> ] [ cost <cost> | tag <tag> | { route-policy <route-policy-name> | route-filter <route-filter-name> } | [ level-1 | level-2 | level-1-2 ] | no-bier ] &<1-9>
+    view: isis
+    undo: undo ipv6 import-route { direct | static | { ospfv3 | ripng | isis } [ <process-id> ] | bgp }
+    params:
+      process-id: *id021
+      cost: *id025
+      tag: *id022
+      route-policy-name: *id023
+      route-filter-name: *id024
+    default: By default, IS-IS does not import IPv6 routes from other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 import-route
+      line: 14274
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-import-route.4
+    syntax: ipv6 import-route isis [ <process-id> ] inherit-cost [ { level-1 | level-2 | level-1-2 } | tag <tag> | { route-policy <route-policy-name> | route-filter <route-filter-name> } | no-bier ] &<1-9>
+    view: isis
+    undo: undo ipv6 import-route { direct | static | { ospfv3 | ripng | isis } [ <process-id> ] | bgp }
+    params:
+      process-id: *id021
+      tag: *id022
+      route-policy-name: *id023
+      route-filter-name: *id024
+    default: By default, IS-IS does not import IPv6 routes from other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 import-route
+      line: 14274
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-import-route.1~2
+    syntax: ipv6 import-route { direct | static | { ospfv3 | ripng | isis } [ <process-id> ] | bgp } [ cost <cost> | tag <tag> | { route-policy <route-policy-name> | route-filter <route-filter-name> } | [ level-1 | level-2 | level-1-2 ] ] &<1-9>
+    view: isis
+    undo: undo ipv6 import-route { direct | static | { ospfv3 | ripng | isis } [ <process-id> ] | bgp }
+    params:
+      process-id: &id026
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cost:
+        type: integer
+        range:
+          - 0
+          - 4261412864
+      tag: &id027
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      route-policy-name: &id028
+        type: word
+      route-filter-name: &id029
+        type: word
+    default: By default, IS-IS does not import IPv6 routes from other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 import-route (IS-IS view)
+      line: 14372
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-import-route.2~2
+    syntax: ipv6 import-route { { ospfv3 | ripng | isis } [ <process-id> ] | bgp | direct } inherit-cost [ { level-1 | level-2 | level-1-2 } | tag <tag> | { route-policy <route-policy-name> | route-filter <route-filter-name> } ] &<1-9>
+    view: isis
+    undo: undo ipv6 import-route { direct | static | { ospfv3 | ripng | isis } [ <process-id> ] | bgp }
+    params:
+      process-id: *id026
+      tag: *id027
+      route-policy-name: *id028
+      route-filter-name: *id029
+    default: By default, IS-IS does not import IPv6 routes from other protocols.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 import-route (IS-IS view)
+      line: 14372
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-import-route-isis-level-1-into-level-2
+    syntax: ipv6 import-route isis level-1 into level-2 [ tag <tag> | filter-policy { <acl6-number> | acl6-name <acl6-name-string> | ipv6-prefix <ipv6-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> } | direct allow-filter-policy | no-bier ] &<1-9>
+    view: isis
+    undo: undo ipv6 import-route isis level-1 into level-2 { tag <tag> | filter-policy { <acl6-number> | acl6-name <acl6-name-string> | ipv6-prefix <ipv6-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> } | direct allow-filter-policy | no-bier } &<1-9>
+    params:
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      acl6-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl6-name-string:
+        type: word
+      ipv6-prefix-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, all IPv6 routes can leak from a Level-1 area to a Level-2 area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 import-route isis level-1 into level-2 (IS-IS view)
+      line: 14465
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-import-route-isis-level-2-into-level-1
+    syntax: ipv6 import-route isis level-2 into level-1 [ tag <tag> | filter-policy { <acl6-number> | acl6-name <acl6-name-string> | ipv6-prefix <ipv6-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> } | direct { allow-filter-policy | allow-up-down-bit } &<1-9> | no-bier ] &<1-9>
+    view: isis
+    undo: undo ipv6 import-route isis level-2 into level-1
+    params:
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      acl6-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl6-name-string:
+        type: word
+      ipv6-prefix-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, IPv6 routes cannot leak from a Level-2 area to a Level-1 area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 import-route isis level-2 into level-1 (IS-IS view)
+      line: 14542
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-intelligent-convergence-enable
+    syntax: ipv6 intelligent-convergence enable
+    view: isis
+    undo: undo ipv6 intelligent-convergence enable
+    default: By default, IS-IS IPv6 intelligent convergence is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 intelligent-convergence enable
+      line: 14617
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-maximum-load-balancing
+    syntax: ipv6 maximum load-balancing <number>
+    view: isis
+    undo: undo ipv6 maximum load-balancing
+    params:
+      number:
+        type: integer
+    default: By default, load balancing is supported.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 maximum load-balancing
+      line: 14674
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-metric-delay-advertisement-enable
+    syntax: ipv6 metric-delay advertisement enable [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo ipv6 metric-delay advertisement enable [ level-1 | level-2 | level-1-2 ]
+    default: By default, the advertisement of IPv6 delay information is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 metric-delay advertisement enable
+      line: 14738
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-metric-delay-average-advertisement-enable
+    syntax: ipv6 metric-delay average advertisement enable [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo ipv6 metric-delay average advertisement enable [ level-1 | level-2 | level-1-2 ]
+    default: By default, the advertisement of the IPv6 average delay is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 metric-delay average advertisement enable (IS-IS view)
+      line: 14814
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-metric-delay-normalize-interval
+    syntax: ipv6 metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    view: isis
+    undo: undo ipv6 metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    params:
+      interval-value:
+        type: integer
+        range:
+          - 1
+          - 16777215
+      offset-value:
+        type: integer
+        range:
+          - 0
+          - 16777214
+    default: By default, no delay tolerance is configured for IPv6 in an IS-IS process, and the metric value for delay-based path computation is the original value.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 metric-delay normalize interval
+      line: 14883
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-metric-delay-suppress-timer
+    syntax: ipv6 metric-delay suppress timer <timer-value> percent-threshold <percent-value> absolute-threshold <absolute-value>
+    view: isis
+    undo: undo ipv6 metric-delay suppress timer <timer-value> percent-threshold <percent-value> absolute-threshold <absolute-value>
+    params:
+      timer-value:
+        type: integer
+        range:
+          - 0
+          - 600
+      percent-value:
+        type: integer
+        range:
+          - 0
+          - 100
+      absolute-value:
+        type: integer
+        range:
+          - 0
+          - 10000
+    default: By default, the suppression of IPv6 delay information advertisement is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 metric-delay suppress timer
+      line: 14944
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-metric-delay-variation-advertisement-enable
+    syntax: ipv6 metric-delay variation advertisement enable [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo ipv6 metric-delay variation advertisement enable [ level-1 | level-2 | level-1-2 ]
+    default: By default, IPv6 delay variation advertisement is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 metric-delay variation advertisement enable (IS-IS view)
+      line: 15015
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-metric-link-loss-advertisement-enable
+    syntax: ipv6 metric-link-loss advertisement enable [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo ipv6 metric-link-loss advertisement enable [ level-1 | level-2 | level-1-2 ]
+    default: By default, the advertisement of IPv6 link loss information is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 metric-link-loss advertisement enable
+      line: 15084
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-metric-link-loss-suppress
+    syntax: ipv6 metric-link-loss suppress timer <timer-value> percent-threshold <percent-value> absolute-threshold <absolute-value>
+    view: isis
+    undo: undo ipv6 metric-link-loss suppress timer <timer-value> percent-threshold <percent-value> absolute-threshold <absolute-value>
+    params:
+      timer-value:
+        type: integer
+        range:
+          - 0
+          - 600
+      percent-value:
+        type: integer
+        range:
+          - 0
+          - 100
+      absolute-value:
+        type: integer
+        range:
+          - 0
+          - 10000
+    default: By default, the suppression of IPv6 link loss information advertisement is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 metric-link-loss suppress
+      line: 15157
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-nexthop
+    syntax: ipv6 nexthop <ip-address> weight <weight-value>
+    view: isis
+    undo: undo ipv6 nexthop <ip-address> [ weight <weight-value> ]
+    params:
+      ip-address:
+        type: ipv4
+      weight-value:
+        type: integer
+        range:
+          - 1
+          - 254
+    default: By default, no weight is set for IPv6 IS-IS equal-cost routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 nexthop (IS-IS view)
+      line: 15226
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-preference
+    syntax: ipv6 preference { { route-policy <route-policy-name> | route-filter <route-filter-name> } | <preference> } &<1-9>
+    view: isis
+    undo: undo ipv6 preference
+    params:
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the preference of IS-IS is 15.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 preference
+      line: 15292
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-prefix-priority
+    syntax: ipv6 prefix-priority [ level-1 | level-2 ] { critical | high | medium | very-low } { ipv6-prefix <prefix-name> | tag <tag-value> }
+    view: isis
+    undo: undo ipv6 prefix-priority [ level-1 | level-2 ] { critical | high | medium | very-low }
+    params:
+      prefix-name:
+        type: word
+      tag-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, in IP routing table, the priority of IS-IS host routes and default routes is high; the convergence priority of the other IS-IS routes is medium.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 prefix-priority (IS-IS view)
+      line: 15361
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-qppb
+    syntax: ipv6 qppb
+    view: isis
+    undo: undo ipv6 qppb
+    default: By default, IS-IS does not support IPv6 QPPB.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 qppb (IS-IS view)
+      line: 15446
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-summary.1
+    syntax: ipv6 summary <ipv6-address> <prefix-length> [ flex-algo <algo-id> ] [ explicit ] [ avoid-feedback | generate_null0_route | tag <tag-value> | learning-avoid-loop | unreachable-prefix-announcement | [ level-1 | level-2 | level-1-2 ] ] &<1-9>
+    view: isis
+    undo: undo ipv6 summary <ipv6-address> <prefix-length> [ level-1 | level-2 | level-1-2 ]
+    params:
+      ipv6-address: &id030
+        type: word
+      prefix-length: &id031
+        type: mask-length
+      algo-id: &id032
+        type: integer
+        range:
+          - 128
+          - 255
+      tag-value: &id033
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, IS-IS IPv6 route summarization is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 summary
+      line: 15511
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-summary.2
+    syntax: ipv6 summary <ipv6-address> <prefix-length> [ flex-algo <algo-id> ] [ explicit ] [ avoid-feedback | generate_null0_route | tag <tag-value> | unreachable-prefix-announcement | [ level-1 | level-2 | level-1-2 ] ] &<1-9>
+    view: isis
+    undo: undo ipv6 summary <ipv6-address> <prefix-length> [ level-1 | level-2 | level-1-2 ]
+    params:
+      ipv6-address: *id030
+      prefix-length: *id031
+      algo-id: *id032
+      tag-value: *id033
+    default: By default, IS-IS IPv6 route summarization is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 summary
+      line: 15511
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-topology
+    syntax: ipv6 topology <topology-name> [ topology-id { <topology-id> | multicast } ]
+    view: isis
+    undo: undo ipv6 topology <topology-name>
+    params:
+      topology-name:
+        type: word
+      topology-id:
+        type: integer
+        range:
+          - 6
+          - 4095
+    default: By default, no IS-IS instance is associated with any IPv6 topology instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 topology (IS-IS view)
+      line: 15604
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-traffic-eng
+    syntax: ipv6 traffic-eng [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo ipv6 traffic-eng [ level-1 | level-2 | level-1-2 ]
+    default: By default, IPv6 TE is not configured for an IS-IS process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 traffic-eng
+      line: 15686
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-unreachable-prefix-announcement
+    syntax: ipv6 unreachable-prefix-announcement { lifetime <lifetime-value> | metric <metric-value> | maximum <maximum-value> | receive-enable [ min-holdtime <min-holdtime-value> ] } &<1-9>
+    view: isis
+    undo: undo ipv6 unreachable-prefix-announcement [ lifetime [ <lifetime-value> ] | metric [ <metric-value> ] | maximum [ <maximum-value> ] | [ receive-enable ] [ min-holdtime [ <min-holdtime-value> ] ] ] &<1-9>
+    params:
+      lifetime-value:
+        type: integer
+        range:
+          - 30
+          - 65535
+      metric-value:
+        type: integer
+        range:
+          - 4261412865
+          - 4294967294
+      maximum-value:
+        type: integer
+        range:
+          - 1
+          - 65535
+      min-holdtime-value:
+        type: integer
+        range:
+          - 1
+          - 600
+    default: By default, after IPv6 IS-IS summarized routes are configured and the UPA function is enabled, UPA route parameters use default values.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ipv6 unreachable-prefix-announcement
+      line: 15748
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.is-level
+    syntax: is-level { level-1 | level-1-2 | level-2 }
+    view: isis
+    undo: undo is-level
+    default: By default, the level of an IS-IS device is Level-1-2.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: is-level
+      line: 15822
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      isis.process.level: kw:level-1-2|level-1|level-2
+  - id: huawei-vrp8.is-name
+    syntax: is-name <symbolic-name>
+    view: isis
+    undo: undo is-name [ <symbolic-name> ]
+    params:
+      symbolic-name:
+        type: word
+    default: By default, no dynamic hostname is configured for the local IS-IS system.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: is-name
+      line: 15894
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.is-name-map
+    syntax: is-name map <system-id> <symbolic-name>
+    view: isis
+    undo: undo is-name map <system-id>
+    params:
+      system-id:
+        type: word
+      symbolic-name:
+        type: word
+    default: By default, no static hostname is configured locally for the remote IS-IS system.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: is-name map
+      line: 15958
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis.1
+    syntax: isis <process-id> [ vpn-instance <vpn-instance-name> ]
+    view: system
+    enters_view: isis
+    undo: undo isis <process-id>
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      vpn-instance-name: &id034
+        type: word
+    default: By default, an IS-IS process runs in a public network instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis
+      line: 16023
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      isis.process: $process-id
+      isis.process.vrf: $vpn-instance-name
+  - id: huawei-vrp8.isis.2
+    syntax: isis [ vpn-instance <vpn-instance-name> ]
+    view: system
+    enters_view: isis
+    undo: undo isis <process-id>
+    params:
+      vpn-instance-name: *id034
+    default: By default, an IS-IS process runs in a public network instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis
+      line: 16023
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      isis.process: '1'
+      isis.process.vrf: $vpn-instance-name
+  - id: huawei-vrp8.isis-authentication-mode.1
+    syntax: isis authentication-mode { simple { [ cipher ] <cipher> | plain <plain> } | md5 { [ cipher ] <cipher> | plain <plain> } } [ level-1 | level-2 ] [ ip | osi ] [ send-only ]
+    view: interface
+    undo: undo isis authentication-mode { simple { cipher <cipher> | plain <plain> } | md5 { cipher <cipher> | plain <plain> } } [ level-1 | level-2 ] [ ip | osi ] [ send-only ]
+    params:
+      cipher: &id035
+        type: word
+      plain: &id036
+        type: word
+    default: By default, no password is set and no authentication is performed.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis authentication-mode (broadcast interface)
+      line: 16090
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-authentication-mode.2
+    syntax: isis authentication-mode keychain <keychain-name> [ level-1 | level-2 ] [ send-only ]
+    view: interface
+    undo: undo isis authentication-mode keychain <keychain-name> [ level-1 | level-2 ] [ send-only ]
+    params:
+      keychain-name:
+        type: word
+    default: By default, no password is set and no authentication is performed.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis authentication-mode (broadcast interface)
+      line: 16090
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-authentication-mode.3
+    syntax: isis authentication-mode hmac-sha256 key-id <key-id> { [ cipher ] <cipher> | plain <plain> } [ level-1 | level-2 ] [ send-only ]
+    view: interface
+    undo: undo isis authentication-mode hmac-sha256 key-id <key-id> { cipher <cipher> | plain <plain> } [ level-1 | level-2 ] [ send-only ]
+    params:
+      key-id:
+        type: integer
+        range:
+          - 0
+          - 65535
+      cipher: *id035
+      plain: *id036
+    default: By default, no password is set and no authentication is performed.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis authentication-mode (broadcast interface)
+      line: 16090
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-authentication-mode.1~2
+    syntax: isis authentication-mode { simple { [ cipher ] <cipher> | plain <plain> } | md5 { [ cipher ] <cipher> | plain <plain> } } [ ip | osi ] [ send-only ]
+    view: interface
+    undo: undo isis authentication-mode { simple { cipher <cipher> | plain <plain> } | md5 { cipher <cipher> | plain <plain> } } [ ip | osi ] [ send-only ]
+    params:
+      cipher: &id037
+        type: word
+      plain: &id038
+        type: word
+    default: By default, no password is set and no authentication is performed.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis authentication-mode (P2P interface)
+      line: 16191
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-authentication-mode.2~2
+    syntax: isis authentication-mode keychain <keychain-name> [ send-only ]
+    view: interface
+    undo: undo isis authentication-mode keychain <keychain-name> [ send-only ]
+    params:
+      keychain-name:
+        type: word
+    default: By default, no password is set and no authentication is performed.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis authentication-mode (P2P interface)
+      line: 16191
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-authentication-mode.3~2
+    syntax: isis authentication-mode hmac-sha256 key-id <key-id> { [ cipher ] <cipher> | plain <plain> } [ send-only ]
+    view: interface
+    undo: undo isis authentication-mode hmac-sha256 key-id <key-id> { cipher <cipher> | plain <plain> } [ send-only ]
+    params:
+      key-id:
+        type: integer
+        range:
+          - 0
+          - 65535
+      cipher: *id037
+      plain: *id038
+    default: By default, no password is set and no authentication is performed.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis authentication-mode (P2P interface)
+      line: 16191
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-bfd-bit-error-block
+    syntax: isis bfd bit-error block
+    view: interface
+    undo: undo isis bfd bit-error block
+    default: By default, BFD-based bit error detection is unblocked on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis bfd bit-error block
+      line: 16288
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-bfd-bit-error-enable
+    syntax: isis bfd bit-error enable
+    view: interface
+    undo: undo isis bfd bit-error enable
+    default: By default, BFD-based bit error detection is disabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis bfd bit-error enable
+      line: 16360
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-bfd-block
+    syntax: isis bfd block
+    view: interface
+    undo: undo isis bfd block
+    default: By default, an interface can dynamically establish BFD sessions.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis bfd block
+      line: 16433
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-bfd-enable.1
+    syntax: isis bfd { min-tx-interval <transmit-interval> | min-rx-interval <receive-interval> | detect-multiplier <multiplier-value> | frr-binding | tos-exp <tosexp-value> } &<1-9>
+    view: interface
+    undo: undo isis bfd enable
+    params:
+      transmit-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+      receive-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+      multiplier-value:
+        type: integer
+        range:
+          - 3
+          - 50
+      tosexp-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, BFD is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis bfd enable
+      line: 16502
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-bfd-enable.2
+    syntax: isis bfd enable
+    view: interface
+    undo: undo isis bfd enable
+    default: By default, BFD is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis bfd enable
+      line: 16502
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.isis: _
+      interface.isis.bfd: flag
+  - id: huawei-vrp8.isis-bfd-incr-cost.1
+    syntax: isis bfd incr-cost { <cost-value> | max-reachable } [ wtr <wtr-value> ]
+    view: interface
+    undo: undo isis bfd incr-cost [ { <cost-value> | max-reachable } [ wtr <wtr-value> ] ]
+    params:
+      cost-value:
+        type: integer
+        range:
+          - 1
+          - 16777213
+      wtr-value:
+        type: integer
+        range:
+          - 1
+          - 3600
+    default: By default, an IS-IS interface does not adjust its cost based on the status of an associated BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis bfd incr-cost (interface view)
+      line: 16607
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-bfd-incr-cost.2
+    syntax: isis bfd incr-cost block
+    view: interface
+    undo: undo isis bfd incr-cost block
+    default: By default, an IS-IS interface does not adjust its cost based on the status of an associated BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis bfd incr-cost (interface view)
+      line: 16607
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-bfd-static
+    syntax: isis bfd static
+    view: interface
+    undo: undo isis bfd static
+    default: By default, static BFD is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis bfd static
+      line: 16707
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-bfd-track-session-name
+    syntax: isis bfd track session-name <bfd-session-name>
+    view: interface
+    undo: undo isis bfd track session-name <bfd-session-name>
+    params:
+      bfd-session-name:
+        type: word
+    default: By default, BFD for IS-IS is disabled on an IS-IS interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis bfd track session-name
+      line: 16772
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-bgp-ls-report-router-capability-ipv6-router-id
+    syntax: isis bgp-ls report router-capability ipv6-router-id
+    view: system
+    undo: undo isis bgp-ls report router-capability ipv6-router-id
+    default: By default, IS-IS is disabled from reporting the IPv6 router ID carried in the Router Capability TLV through BGP-LS.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis bgp-ls report router-capability ipv6-router-id
+      line: 16844
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-circuit-level
+    syntax: isis circuit-level [ level-1 | level-2 | level-1-2 ]
+    view: interface
+    undo: undo isis circuit-level
+    default: By default, the link type of an interface on a Level-1-2 router that runs IS-IS is Level-1-2, and both Level-1 and Level-2 adjacencies can be established on the interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis circuit-level
+      line: 16895
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.isis: _
+      interface.isis.circuit_type: kw:level-1-2|level-1|level-2
+  - id: huawei-vrp8.isis-circuit-type.1
+    syntax: isis circuit-type p2p [ strict-snpa-check ]
+    view: interface
+    undo: undo isis circuit-type
+    default: By default, the network type of an interface is determined by the physical type of the interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis circuit-type
+      line: 16972
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.isis: _
+      interface.isis.p2p: flag
+  - id: huawei-vrp8.isis-circuit-type.2
+    syntax: isis process-id <process-id> circuit-type p2p [ strict-snpa-check ]
+    view: interface
+    undo: undo isis process-id <process-id> circuit-type
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, the network type of an interface is determined by the physical type of the interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis circuit-type
+      line: 16972
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-cost
+    syntax: isis topology <topology-name> cost <cost> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis topology <topology-name> cost [ <cost> ] [ level-1 | level-2 ]
+    params:
+      topology-name:
+        type: word
+      cost:
+        type: integer
+    default: By default, the link cost of a loopback interface in an IS-IS process is 0, and the link cost of other types of interfaces is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis cost
+      line: 17060
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-cost.1
+    syntax: isis cost <cost> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis cost [ <cost> ] [ level-1 | level-2 ]
+    params:
+      cost: &id039
+        type: integer
+    default: By default, the link cost of a loopback interface in an IS-IS process is 0, and the link cost of other types of interfaces is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis cost (interface view)
+      line: 17146
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.isis: _
+      interface.isis.metric: $cost
+  - id: huawei-vrp8.isis-cost.2
+    syntax: isis process-id <process-id> cost <cost> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis process-id <process-id> cost [ <cost> ] [ level-1 | level-2 ]
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cost: *id039
+    default: By default, the link cost of a loopback interface in an IS-IS process is 0, and the link cost of other types of interfaces is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis cost (interface view)
+      line: 17146
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-cost-higher-bandwidth-lower-bandwidth.1
+    syntax: isis cost <cost-value> { higher-bandwidth <higher-bandwidth-value> cost <better-cost-value> | lower-bandwidth <lower-bandwidth-value> cost <worse-cost-value> } &<1-9> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis cost <cost-value> { higher-bandwidth <higher-bandwidth-value> cost <better-cost-value> | lower-bandwidth <lower-bandwidth-value> cost <worse-cost-value> } &<1-9> [ level-1 | level-2 ]
+    params:
+      cost-value: &id040
+        type: integer
+      higher-bandwidth-value: &id041
+        type: integer
+        range:
+          - 2
+          - 4294967295
+      better-cost-value: &id042
+        type: integer
+      lower-bandwidth-value: &id043
+        type: integer
+        range:
+          - 1
+          - 4294967294
+      worse-cost-value: &id044
+        type: integer
+    default: By default, the link cost of IS-IS interfaces is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis cost higher-bandwidth lower-bandwidth
+      line: 17236
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-cost-higher-bandwidth-lower-bandwidth.2
+    syntax: isis process-id <process-id-value> cost <cost-value> { higher-bandwidth <higher-bandwidth-value> cost <better-cost-value> | lower-bandwidth <lower-bandwidth-value> cost <worse-cost-value> } &<1-9> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis process-id <process-id-value> cost <cost-value> { higher-bandwidth <higher-bandwidth-value> cost <better-cost-value> | lower-bandwidth <lower-bandwidth-value> cost <worse-cost-value> } &<1-9> [ level-1 | level-2 ]
+    params:
+      process-id-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cost-value: *id040
+      higher-bandwidth-value: *id041
+      better-cost-value: *id042
+      lower-bandwidth-value: *id043
+      worse-cost-value: *id044
+    default: By default, the link cost of IS-IS interfaces is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis cost higher-bandwidth lower-bandwidth
+      line: 17236
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-cpu-overload-control-disable
+    syntax: isis cpu-overload control disable
+    view: system
+    undo: undo isis cpu-overload control disable
+    default: By default, control on IS-IS cpu overload is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis cpu-overload control disable
+      line: 17334
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-dis-name
+    syntax: isis dis-name <symbolic-name>
+    view: interface
+    undo: undo isis dis-name
+    params:
+      symbolic-name:
+        type: word
+    default: By default, no name is configured for DIS.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis dis-name
+      line: 17389
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-dis-priority
+    syntax: isis dis-priority <priority> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis dis-priority [ <priority> ] [ level-1 | level-2 ]
+    params:
+      priority:
+        type: integer
+        range:
+          - 0
+          - 127
+    default: By default, the DIS priority of an IS-IS interface is 64.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis dis-priority
+      line: 17464
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-enable.1
+    syntax: isis enable [ auto-adj-disable ]
+    view: interface
+    undo: undo isis enable [ auto-adj-disable ]
+    default: By default, IS-IS is not enabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis enable
+      line: 17546
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.isis: _
+      interface.isis.process: '1'
+  - id: huawei-vrp8.isis-enable.2
+    syntax: isis enable <process-id> [ auto-adj-disable ]
+    view: interface
+    undo: undo isis enable [ auto-adj-disable ]
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, IS-IS is not enabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis enable
+      line: 17546
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.isis: _
+      interface.isis.process: $process-id
+  - id: huawei-vrp8.isis-hello-padding-mtu
+    syntax: isis hello padding-mtu { ipv4 | ipv6 }
+    view: interface
+    undo: undo isis hello padding-mtu [ ipv4 | ipv6 ]
+    default: By default, P2P interfaces exchange Hello packets with the padding field and set the length of the Hello packets to that of locally generated LSPs before establishing neighbor relationships with each other.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis hello padding-mtu
+      line: 17636
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-interface-limit-disable
+    syntax: isis interface limit disable
+    view: system
+    undo: undo isis interface limit disable
+    default: By default, the number of IS-IS interfaces that can be configured on a device is limited.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis interface limit disable
+      line: 17719
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-bfd
+    syntax: isis ipv6 bfd { min-tx-interval <transmit-interval> | min-rx-interval <receive-interval> | detect-multiplier <multiplier-value> | frr-binding } &<1-9>
+    view: interface
+    undo: undo isis ipv6 bfd { min-tx-interval [ <transmit-interval> ] | min-rx-interval [ <receive-interval> ] | detect-multiplier [ <multiplier-value> ] | frr-binding } &<1-9>
+    params:
+      transmit-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+      receive-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+      multiplier-value:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 bfd
+      line: 17776
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-bfd-block
+    syntax: isis ipv6 bfd block
+    view: interface
+    undo: undo isis ipv6 bfd block
+    default: By default, no interface is disabled from dynamically establishing IPv6 BFD sessions.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 bfd block
+      line: 17855
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-bfd-enable
+    syntax: isis ipv6 bfd enable
+    view: interface
+    undo: undo isis ipv6 bfd enable
+    default: By default, IPv6 BFD is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 bfd enable
+      line: 17932
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-bfd-incr-cost.1
+    syntax: isis ipv6 bfd incr-cost { <cost-value> | max-reachable } [ wtr <wtr-value> ]
+    view: interface
+    undo: undo isis ipv6 bfd incr-cost [ { <cost-value> | max-reachable } [ wtr <wtr-value> ] ]
+    params:
+      cost-value:
+        type: integer
+        range:
+          - 1
+          - 16777213
+      wtr-value:
+        type: integer
+        range:
+          - 1
+          - 3600
+    default: By default, an IS-IS interface does not adjust its cost based on the status of an associated IPv6 BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 bfd incr-cost (interface view)
+      line: 18013
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-bfd-incr-cost.2
+    syntax: isis ipv6 bfd incr-cost block
+    view: interface
+    undo: undo isis ipv6 bfd incr-cost block
+    default: By default, an IS-IS interface does not adjust its cost based on the status of an associated IPv6 BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 bfd incr-cost (interface view)
+      line: 18013
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-bfd-static
+    syntax: isis ipv6 bfd static
+    view: interface
+    undo: undo isis ipv6 bfd static
+    default: By default, an IS-IS interface is disabled from creating static IPv6 BFD sessions.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 bfd static
+      line: 18117
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-bfd-track-session-name
+    syntax: isis ipv6 bfd track session-name <bfd-session-name>
+    view: interface
+    undo: undo isis ipv6 bfd track session-name <bfd-session-name>
+    params:
+      bfd-session-name:
+        type: word
+    default: By default, IPv6 BFD for IS-IS is disabled on an IS-IS interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 bfd track session-name
+      line: 18190
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-cost
+    syntax: isis ipv6 [ topology <topology-name> ] cost <cost-value> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis ipv6 [ topology <topology-name> ] cost [ <cost-value> ] [ level-1 | level-2 ]
+    params:
+      topology-name:
+        type: word
+      cost-value:
+        type: integer
+    default: By default, the link cost value in an IPv6 topology is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 cost
+      line: 18263
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-enable.1
+    syntax: isis ipv6 enable [ auto-endx-disable ]
+    view: interface
+    undo: undo isis ipv6 enable [ auto-endx-disable ]
+    default: By default, IS-IS IPv6 is disabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 enable
+      line: 18347
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-enable.2
+    syntax: isis ipv6 enable <process-id> [ auto-endx-disable ]
+    view: interface
+    undo: undo isis ipv6 enable [ auto-endx-disable ]
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, IS-IS IPv6 is disabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 enable
+      line: 18347
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-lfa-backup
+    syntax: isis ipv6 lfa-backup [ level-1 | level-1-2 | level-2 ]
+    view: interface
+    undo: undo isis ipv6 lfa-backup [ level-1 | level-1-2 | level-2 ]
+    default: By default, an IS-IS IPv6 interface can participate in LFA calculation.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 lfa-backup
+      line: 18445
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-link-group
+    syntax: isis ipv6 [ topology <topology-name> ] link-group <group-name> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis ipv6 [ topology <topology-name> ] link-group [ <group-name> ] [ level-1 | level-2 ]
+    params:
+      topology-name:
+        type: word
+      group-name:
+        type: word
+    default: By default, an IS-IS IPv6 interface is not bound to any link group.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 link-group
+      line: 18519
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-link-quality-low-incr-cost.1
+    syntax: isis ipv6 link-quality low incr-cost { <cost-value> | max-reachable }
+    view: interface
+    undo: undo isis ipv6 link-quality low incr-cost [ { <cost-value> | max-reachable } ]
+    params:
+      cost-value: &id045
+        type: integer
+        range:
+          - 1
+          - 16777213
+    default: By default, an IS-IS interface adjusts the link cost when the link quality is low.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 link-quality low incr-cost
+      line: 18589
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-link-quality-low-incr-cost.2
+    syntax: isis process-id <process-id-value> ipv6 link-quality low incr-cost { <cost-value> | max-reachable }
+    view: interface
+    undo: undo isis process-id <process-id-value> ipv6 link-quality low incr-cost [ { <cost-value> | max-reachable } ]
+    params:
+      process-id-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cost-value: *id045
+    default: By default, an IS-IS interface adjusts the link cost when the link quality is low.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 link-quality low incr-cost
+      line: 18589
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-metric-delay-normalize-interval.1
+    syntax: isis ipv6 metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    view: interface
+    undo: undo isis ipv6 metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    params:
+      interval-value: &id046
+        type: integer
+        range:
+          - 1
+          - 16777215
+      offset-value: &id047
+        type: integer
+        range:
+          - 0
+          - 16777214
+    default: By default, IPv6 delay and cost normalization is not configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 metric-delay normalize interval
+      line: 18669
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-metric-delay-normalize-interval.2
+    syntax: isis process-id <process-id-value> ipv6 metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    view: interface
+    undo: undo isis process-id <process-id-value> ipv6 metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    params:
+      process-id-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      interval-value: *id046
+      offset-value: *id047
+    default: By default, IPv6 delay and cost normalization is not configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 metric-delay normalize interval
+      line: 18669
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-prefix-attributes-node-disable.1
+    syntax: isis ipv6 prefix-attributes node-disable
+    view: interface
+    undo: undo isis ipv6 prefix-attributes node-disable
+    default: By default, the N flag in the extended prefix attribute of the loopback interface in an IPv6 IS-IS process is set to 1.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 prefix-attributes node-disable
+      line: 18740
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-prefix-attributes-node-disable.2
+    syntax: isis process-id <process-id-value> ipv6 prefix-attributes node-disable
+    view: interface
+    undo: undo isis process-id <process-id-value> ipv6 prefix-attributes node-disable
+    params:
+      process-id-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, the N flag in the extended prefix attribute of the loopback interface in an IPv6 IS-IS process is set to 1.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 prefix-attributes node-disable
+      line: 18740
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-suppress-reachability
+    syntax: isis ipv6 suppress-reachability [ level-1 | level-1-2 | level-2 ]
+    view: interface
+    undo: undo isis ipv6 suppress-reachability
+    default: By default, an IS-IS interface advertises its IP address.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 suppress-reachability
+      line: 18807
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-tag-value
+    syntax: isis ipv6 [ topology <topology-name> ] tag-value <tag> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis ipv6 [ topology <topology-name> ] tag-value [ <tag> ] [ level-1 | level-2 ]
+    params:
+      topology-name:
+        type: word
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no IPv6 administrative tag is configured for an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 tag-value
+      line: 18870
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ipv6-topology
+    syntax: isis ipv6 topology <topology-name>
+    view: interface
+    undo: undo isis ipv6 topology <topology-name>
+    params:
+      topology-name:
+        type: word
+    default: By default, an IPv6 IS-IS interface is associated with an IPv6 base topology.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ipv6 topology
+      line: 18945
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ldp-sync
+    syntax: isis ldp-sync
+    view: interface
+    undo: undo isis ldp-sync
+    default: By default, LDP and IS-IS synchronization is disabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ldp-sync
+      line: 19022
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ldp-sync-block
+    syntax: isis ldp-sync block
+    view: interface
+    undo: undo isis ldp-sync block
+    default: By default, LDP and IS-IS synchronization is not blocked on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ldp-sync block
+      line: 19094
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-lfa-backup
+    syntax: isis lfa-backup [ level-1 | level-1-2 | level-2 ]
+    view: interface
+    undo: undo isis lfa-backup [ level-1 | level-1-2 | level-2 ]
+    default: By default, an IS-IS interface can participate in LFA calculation.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis lfa-backup
+      line: 19155
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-link-group
+    syntax: isis link-group <group-name> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis link-group [ <group-name> ] [ level-1 | level-2 ]
+    params:
+      group-name:
+        type: word
+    default: By default, an IS-IS interface is not bound to any link group.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis link-group
+      line: 19223
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-link-quality-low-incr-cost.1
+    syntax: isis link-quality low incr-cost { <cost-value> | max-reachable }
+    view: interface
+    undo: undo isis link-quality low incr-cost [ { <cost-value> | max-reachable } ]
+    params:
+      cost-value: &id048
+        type: integer
+        range:
+          - 1
+          - 16777213
+    default: By default, an IS-IS interface cannot adjust the link cost based on link quality.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis link-quality low incr-cost
+      line: 19290
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-link-quality-low-incr-cost.2
+    syntax: isis process-id <process-id-value> link-quality low incr-cost { <cost-value> | max-reachable }
+    view: interface
+    undo: undo isis process-id <process-id-value> link-quality low incr-cost [ { <cost-value> | max-reachable } ]
+    params:
+      process-id-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cost-value: *id048
+    default: By default, an IS-IS interface cannot adjust the link cost based on link quality.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis link-quality low incr-cost
+      line: 19290
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-lsp-flood-control-max-count
+    syntax: isis lsp flood-control max-count <max-count-value>
+    view: system
+    undo: undo isis lsp flood-control max-count [ <max-count-value> ]
+    params:
+      max-count-value:
+        type: integer
+        range:
+          - 1000
+          - 30000
+    default: By default, IS-IS is enabled to adjust the flooding rate, and the maximum number of LSPs to be flooded per second is 3000.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis lsp flood-control max-count
+      line: 19373
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-lsp-seq-overflow-auto-recover-disable
+    syntax: isis lsp seq-overflow auto-recover disable
+    view: system
+    undo: undo isis lsp seq-overflow auto-recover disable
+    default: By default, an IS-IS system changes its system ID when it receives a locally generated LSP with the maximum sequence number.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis lsp seq-overflow auto-recover disable
+      line: 19442
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-memory-overload-control-disable
+    syntax: isis memory-overload control disable
+    view: system
+    undo: undo isis memory-overload control disable
+    default: By default, control on IS-IS memory overload is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis memory-overload control disable
+      line: 19495
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-memory-overload-exception-threshold-discard-new-lsp
+    syntax: isis memory-overload exception-threshold discard new-lsp
+    view: system
+    undo: undo isis memory-overload exception-threshold discard new-lsp
+    default: By default, if the system memory is overloaded and the memory usage of the IS-IS LSDB component is not among the top 3, IS-IS does not set the Overload bit in its LSP fragment zero (to be sent) to 1 or discard new LSPs (received).
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis memory-overload exception-threshold discard new-lsp
+      line: 19554
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-mesh-group
+    syntax: isis mesh-group { <mesh-group-number> | mesh-blocked }
+    view: interface
+    undo: undo isis mesh-group
+    params:
+      mesh-group-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, an interface does not belong to any mesh-group and floods LSPs normally.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis mesh-group
+      line: 19614
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-metric-delay-normalize-interval.1
+    syntax: isis metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    view: interface
+    undo: undo isis metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    params:
+      interval-value: &id049
+        type: integer
+        range:
+          - 1
+          - 16777215
+      offset-value: &id050
+        type: integer
+        range:
+          - 0
+          - 16777214
+    default: By default, delay and cost normalization is not configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis metric-delay normalize interval
+      line: 19689
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-metric-delay-normalize-interval.2
+    syntax: isis process-id <process-id-value> metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    view: interface
+    undo: undo isis process-id <process-id-value> metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    params:
+      process-id-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      interval-value: *id049
+      offset-value: *id050
+    default: By default, delay and cost normalization is not configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis metric-delay normalize interval
+      line: 19689
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-mpls-ldp-auto-config-disable
+    syntax: isis mpls ldp auto-config disable
+    view: interface
+    undo: undo isis mpls ldp auto-config disable
+    default: By default, if the mpls ldp auto-config command is run for an IS-IS process, MPLS LDP is enabled automatically on all interfaces which can establish IS-IS neighbor relationships in this IS-IS process; otherwise, MPLS LDP automatic configuration is disabled on these interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis mpls ldp auto-config disable
+      line: 19762
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-padding-hello
+    syntax: isis padding-hello
+    view: interface
+    undo: undo isis padding-hello
+    default: By default, a P2P interface sends Hello packets without the padding field after the neighbor relationship is established.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis padding-hello
+      line: 19828
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-peer-hold-cost
+    syntax: isis peer hold-cost <cost-val> timer <timer-val>
+    view: interface
+    undo: undo isis peer hold-cost [ <cost-val> timer <timer-val> ]
+    params:
+      cost-val:
+        type: integer
+        range:
+          - 1
+          - 16777214
+      timer-val:
+        type: integer
+        range:
+          - 100
+          - 1000000
+    default: By default, after a neighbor relationship is established, IS-IS does not retain the specified cost and hold time in local LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis peer hold-cost
+      line: 19904
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-peer-hold-max-cost.1
+    syntax: isis peer hold-max-cost timer <timer-val>
+    view: interface
+    undo: undo isis peer hold-max-cost timer [ <timer-val> ]
+    params:
+      timer-val: &id051
+        type: integer
+        range:
+          - 100
+          - 1000000
+    default: By default, no maximum holdtime is set for the largest IS-IS route cost in local LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis peer hold-max-cost
+      line: 19974
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-peer-hold-max-cost.2
+    syntax: isis process-id <process-id> peer hold-max-cost timer <timer-val>
+    view: interface
+    undo: undo isis process-id <process-id> peer hold-max-cost timer [ <timer-val> ]
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      timer-val: *id051
+    default: By default, no maximum holdtime is set for the largest IS-IS route cost in local LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis peer hold-max-cost
+      line: 19974
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-peer-reestablish-bfd-reset-disable
+    syntax: isis peer-reestablish bfd-reset disable
+    view: system
+    undo: undo isis peer-reestablish bfd-reset disable
+    default: By default, the function of resetting the BFD session after an IS-IS neighbor relationship is reestablished is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis peer-reestablish bfd-reset disable
+      line: 20047
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ppp-negotiation
+    syntax: isis ppp-negotiation { 2-way | 3-way [ only ] }
+    view: interface
+    undo: undo isis ppp-negotiation
+    default: By default, three-way handshake is adopted.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ppp-negotiation
+      line: 20102
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ppp-osicp-check
+    syntax: isis ppp-osicp-check
+    view: interface
+    undo: undo isis ppp-osicp-check
+    default: By default, IS-IS does not check OSICP status of PPP.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis ppp-osicp-check
+      line: 20176
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-prefix-attributes-node-disable.1
+    syntax: isis prefix-attributes node-disable
+    view: interface
+    undo: undo isis prefix-attributes node-disable
+    default: By default, the N flag in the extended prefix attribute of a loopback interface in an IS-IS process is 1.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis prefix-attributes node-disable
+      line: 20234
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-prefix-attributes-node-disable.2
+    syntax: isis process-id <process-id-value> prefix-attributes node-disable
+    view: interface
+    undo: undo isis process-id <process-id-value> prefix-attributes node-disable
+    params:
+      process-id-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, the N flag in the extended prefix attribute of a loopback interface in an IS-IS process is 1.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis prefix-attributes node-disable
+      line: 20234
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-process-id-authentication-mode.1
+    syntax: isis process-id <process-id-value> authentication-mode { simple { [ cipher ] <cipher> | plain <plain> } | md5 { [ cipher ] <cipher> | plain <plain> } } [ <level-1> | <level-2> ] [ ip | osi ] [ send-only ]
+    view: interface
+    undo: undo isis process-id <process-id-value> authentication-mode { simple { cipher <cipher> | plain <plain> } | md5 { cipher <cipher> | plain <plain> } } [ <level-1> | <level-2> ] [ ip | osi ] [ send-only ]
+    params:
+      process-id-value: &id052
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cipher: &id055
+        type: word
+      plain: &id056
+        type: word
+      level-1: &id053
+        type: word
+      level-2: &id054
+        type: word
+    default: By default, no password is set and no authentication is performed.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis process-id authentication-mode
+      line: 20295
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-process-id-authentication-mode.2
+    syntax: isis process-id <process-id-value> authentication-mode keychain <keychain-name> [ <level-1> | <level-2> ] [ send-only ]
+    view: interface
+    undo: undo isis process-id <process-id-value> authentication-mode keychain <keychain-name> [ <level-1> | <level-2> ] [ send-only ]
+    params:
+      process-id-value: *id052
+      keychain-name:
+        type: word
+      level-1: *id053
+      level-2: *id054
+    default: By default, no password is set and no authentication is performed.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis process-id authentication-mode
+      line: 20295
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-process-id-authentication-mode.3
+    syntax: isis process-id <process-id-value> authentication-mode hmac-sha256 key-id <key-id> { [ cipher ] <cipher> | plain <plain> } [ <level-1> | <level-2> ] [ send-only ]
+    view: interface
+    undo: undo isis process-id <process-id-value> authentication-mode hmac-sha256 key-id <key-id> { cipher <cipher> | plain <plain> } [ <level-1> | <level-2> ] [ send-only ]
+    params:
+      process-id-value: *id052
+      key-id:
+        type: integer
+        range:
+          - 0
+          - 65535
+      cipher: *id055
+      plain: *id056
+      level-1: *id053
+      level-2: *id054
+    default: By default, no password is set and no authentication is performed.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis process-id authentication-mode
+      line: 20295
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-process-id-ipv6-cost
+    syntax: isis process-id <process-id-value> ipv6 cost <cost-value> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis process-id <process-id-value> ipv6 cost [ <cost-value> ] [ level-1 | level-2 ]
+    params:
+      process-id-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cost-value:
+        type: integer
+    default: By default, the link cost value in an IPv6 topology is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis process-id ipv6 cost
+      line: 20394
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-purge-lsp-auto-protect-disable
+    syntax: isis purge-lsp auto-protect disable
+    view: system
+    undo: undo isis purge-lsp auto-protect disable
+    default: By default, IS-IS purge LSPs trigger master/slave main control board switchovers.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis purge-lsp auto-protect disable
+      line: 20477
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-purge-source-trace-block
+    syntax: isis purge-source-trace block
+    view: interface
+    undo: undo isis purge-source-trace block
+    default: By default, IS-IS purge LSP source tracing on an interface is enabled on all interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis purge-source-trace block
+      line: 20530
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-purge-source-trace-disable
+    syntax: isis purge-source-trace disable
+    view: system
+    undo: undo isis purge-source-trace disable
+    default: By default, IS-IS purge LSP source tracing is enabled globally.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis purge-source-trace disable
+      line: 20585
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-purge-source-trace-port
+    syntax: isis purge-source-trace port <port-number>
+    view: system
+    undo: undo isis purge-source-trace port [ <port-number> ]
+    params:
+      port-number:
+        type: integer
+        range:
+          - 1025
+          - 65535
+    default: By default, the UDP port number carried in IS-IS purge LSP source tracing packets is 50121.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis purge-source-trace port
+      line: 20640
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-remote-lfa-disable
+    syntax: isis remote-lfa disable [ level-1 | level-2 | level-1-2 ]
+    view: interface
+    undo: undo isis remote-lfa disable [ level-1 | level-2 | level-1-2 ]
+    default: By default, Remote LFA is disabled on all IS-IS interfaces unless the remote-lfa command is run.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis remote-lfa disable
+      line: 20693
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-silent.1
+    syntax: isis silent
+    view: interface
+    undo: undo isis silent
+    default: By default, no IS-IS interface is configured as a silent interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis silent
+      line: 20760
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.isis: _
+      interface.isis.passive: flag
+  - id: huawei-vrp8.isis-silent.2
+    syntax: isis silent advertise-zero-cost
+    view: interface
+    undo: undo isis silent
+    default: By default, no IS-IS interface is configured as a silent interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis silent
+      line: 20760
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-small-hello
+    syntax: isis small-hello
+    view: interface
+    undo: undo isis small-hello
+    default: By default, no small Hello packet with no padding field is configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis small-hello
+      line: 20829
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-srlg
+    syntax: isis srlg <srlg-value>
+    view: interface
+    undo: undo isis srlg [ <srlg-value> ]
+    params:
+      srlg-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, an interface is not added to any SRLG.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis srlg
+      line: 20907
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-suppress-flapping-bfd
+    syntax: isis suppress-flapping bfd detecting-interval <detecting-interval-value> threshold <threshold-value> incr-cost <cost-value> wtr <wtr-value>
+    view: interface
+    undo: undo isis suppress-flapping bfd [ detecting-interval <detecting-interval-value> threshold <threshold-value> incr-cost <cost-value> wtr <wtr-value> ]
+    params:
+      detecting-interval-value:
+        type: integer
+        range:
+          - 30
+          - 300
+      threshold-value:
+        type: integer
+        range:
+          - 1
+          - 20
+      cost-value:
+        type: integer
+        range:
+          - 1
+          - 16777214
+      wtr-value:
+        type: integer
+        range:
+          - 1
+          - 3600
+    default: By default, BFD session flapping suppression is disabled on an IS-IS interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis suppress-flapping bfd (interface view)
+      line: 20976
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-suppress-flapping-interface-disable
+    syntax: isis suppress-flapping interface disable
+    view: system
+    undo: undo isis suppress-flapping interface disable
+    default: By default, IS-IS interface flapping suppression is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis suppress-flapping interface disable
+      line: 21056
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-suppress-flapping-peer.1
+    syntax: isis suppress-flapping peer disable
+    view: interface
+    undo: undo isis suppress-flapping peer disable
+    default: By default, IS-IS neighbor relationship flapping suppression is enabled on all interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis suppress-flapping peer
+      line: 21109
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-suppress-flapping-peer.2
+    syntax: isis suppress-flapping peer { detecting-interval <detecting-interval> | threshold <threshold> | resume-interval <resume-interval> } &<1-9>
+    view: interface
+    undo: undo isis suppress-flapping peer { detecting-interval <detecting-interval> | threshold <threshold> | resume-interval <resume-interval> } &<1-9>
+    params:
+      detecting-interval:
+        type: integer
+        range:
+          - 1
+          - 300
+      threshold:
+        type: integer
+        range:
+          - 1
+          - 1000
+      resume-interval:
+        type: integer
+        range:
+          - 2
+          - 1000
+    default: By default, IS-IS neighbor relationship flapping suppression is enabled on all interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis suppress-flapping peer
+      line: 21109
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-suppress-flapping-peer.3
+    syntax: isis suppress-flapping peer hold-down <interval>
+    view: interface
+    undo: undo isis suppress-flapping peer hold-down [ <interval> ]
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 600
+    default: By default, IS-IS neighbor relationship flapping suppression is enabled on all interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis suppress-flapping peer
+      line: 21109
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-suppress-flapping-peer.4
+    syntax: isis suppress-flapping peer hold-max-cost disable
+    view: interface
+    undo: undo isis suppress-flapping peer hold-max-cost disable
+    default: By default, IS-IS neighbor relationship flapping suppression is enabled on all interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis suppress-flapping peer
+      line: 21109
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-suppress-reachability
+    syntax: isis suppress-reachability [ level-1 | level-1-2 | level-2 ]
+    view: interface
+    undo: undo isis suppress-reachability
+    default: By default, an IS-IS interface advertises its IP address.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis suppress-reachability
+      line: 21256
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-system-id-auto-recover-disable
+    syntax: isis system-id auto-recover disable
+    view: system
+    undo: undo isis system-id auto-recover disable
+    default: By default, if the system detects an IS-IS system ID conflict, it automatically changes the local system ID to resolve the conflict.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis system-id auto-recover disable
+      line: 21317
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-tag-value
+    syntax: isis tag-value <tag> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis tag-value [ <tag> ] [ level-1 | level-2 ]
+    params:
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no administrative tag value is configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis tag-value
+      line: 21376
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-timer-csnp
+    syntax: isis timer csnp <csnp-interval> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis timer csnp [ <csnp-interval> ] [ level-1 | level-2 ]
+    params:
+      csnp-interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, the interval at which CSNPs are sent is 10 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis timer csnp
+      line: 21448
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-timer-hello
+    syntax: isis timer hello <hello-interval> [ conservative ]
+    view: interface
+    undo: undo isis timer hello <hello-interval> conservative
+    params:
+      hello-interval:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the interval at which Hello packets are sent is 10 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis timer hello
+      line: 21524
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-timer-hello~2
+    syntax: isis timer hello <hello-interval> [ level-1 | level-2 ] [ conservative ]
+    view: interface
+    undo: undo isis timer hello <hello-interval> [ level-1 | level-2 ] conservative
+    params:
+      hello-interval:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the interval at which Hello packets are sent is 10 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis timer hello (interface view)
+      line: 21590
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-timer-holding-multiplier
+    syntax: isis timer holding-multiplier <number>
+    view: interface
+    undo: undo isis timer holding-multiplier [ <number> ]
+    params:
+      number:
+        type: integer
+        range:
+          - 3
+          - 1000
+    default: By default, the holdtime is three times the interval at which Hello packets are sent.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis timer holding-multiplier
+      line: 21660
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-timer-holding-multiplier~2
+    syntax: isis timer holding-multiplier <number> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis timer holding-multiplier [ <number> ] [ level-1 | level-2 ]
+    params:
+      number:
+        type: integer
+        range:
+          - 3
+          - 1000
+    default: By default, the holdtime is three times the interval at which Hello packets are sent.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis timer holding-multiplier (interface view)
+      line: 21748
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-timer-ldp-sync-hold-down
+    syntax: isis timer ldp-sync hold-down <value>
+    view: interface
+    undo: undo isis timer ldp-sync hold-down
+    params:
+      value:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, the interval for waiting for the establishment of an LDP session and an LDP adjacency is 10 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis timer ldp-sync hold-down
+      line: 21823
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-timer-ldp-sync-hold-max-cost.1
+    syntax: isis timer ldp-sync hold-max-cost <value>
+    view: interface
+    undo: undo isis timer ldp-sync hold-max-cost
+    params:
+      value:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, IS-IS keeps sending LSPs to advertise the maximum cost of 16777214.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis timer ldp-sync hold-max-cost
+      line: 21890
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-timer-ldp-sync-hold-max-cost.2
+    syntax: isis timer ldp-sync hold-max-cost infinite
+    view: interface
+    undo: undo isis timer ldp-sync hold-max-cost
+    default: By default, IS-IS keeps sending LSPs to advertise the maximum cost of 16777214.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis timer ldp-sync hold-max-cost
+      line: 21890
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-timer-lsp-retransmit
+    syntax: isis timer lsp-retransmit <retransmit-interval>
+    view: interface
+    undo: undo isis timer lsp-retransmit
+    params:
+      retransmit-interval:
+        type: integer
+        range:
+          - 1
+          - 300
+    default: By default, the LSP retransmission interval over a P2P link is 5 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis timer lsp-retransmit
+      line: 21970
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-timer-lsp-throttle
+    syntax: isis timer lsp-throttle <throttle-interval> [ count <count> ]
+    view: interface
+    undo: undo isis timer lsp-throttle
+    params:
+      throttle-interval:
+        type: word
+      count:
+        type: integer
+        range:
+          - 1
+          - 1000
+    default: By default, the minimum interval at which LSPs are sent on an interface is 50 milliseconds, and the maximum number of LSPs to be sent each time is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis timer lsp-throttle
+      line: 22040
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-topology
+    syntax: isis topology <topology-name>
+    view: interface
+    undo: undo isis topology <topology-name>
+    params:
+      topology-name:
+        type: word
+    default: By default, an IPv4 IS-IS interface is associated with the IPv4 IS-IS base topology but not with any IPv4 IS-IS topology instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis topology
+      line: 22100
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-topology-link-group
+    syntax: isis topology <topology-name> link-group <group-name> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis topology <topology-name> link-group [ <group-name> ] [ level-1 | level-2 ]
+    params:
+      topology-name:
+        type: word
+      group-name:
+        type: word
+    default: By default, an IS-IS interface is not bound to any link group.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis topology link-group
+      line: 22175
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-topology-link-quality-low-incr-cost
+    syntax: isis topology <topology-name> link-quality low incr-cost { <cost-value> | max-reachable }
+    view: interface
+    undo: undo isis topology <topology-name> link-quality low incr-cost [ { <cost-value> | max-reachable } ]
+    params:
+      topology-name:
+        type: word
+      cost-value:
+        type: integer
+        range:
+          - 1
+          - 16777213
+    default: By default, an IS-IS interface cannot adjust the link cost based on link quality.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis topology link-quality low incr-cost
+      line: 22248
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-topology-tag-value
+    syntax: isis topology <topology-name> tag-value <tag> [ level-1 | level-2 ]
+    view: interface
+    undo: undo isis topology <topology-name> tag-value [ <tag> ] [ level-1 | level-2 ]
+    params:
+      topology-name:
+        type: word
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no administrative tag value is configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: isis topology tag-value
+      line: 22332
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ldp-sync-enable.1
+    syntax: ldp-sync enable
+    view: isis
+    undo: undo ldp-sync enable
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ldp-sync enable (IS-IS view)
+      line: 22411
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ldp-sync-enable.2
+    syntax: ldp-sync enable mpls-binding-only
+    view: isis
+    undo: undo ldp-sync enable
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: ldp-sync enable (IS-IS view)
+      line: 22411
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.link-group
+    syntax: link-group <group-name>
+    view: isis
+    undo: undo link-group <group-name>
+    params:
+      group-name:
+        type: word
+    default: By default, no link group is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: link-group
+      line: 22482
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.link-msd-advertisement-enable
+    syntax: link-msd advertisement enable [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo link-msd advertisement enable [ level-1 | level-2 | level-1-2 ]
+    default: By default, IS-IS does not advertise the Segment Routing interface MSD.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: link-msd advertisement enable
+      line: 22550
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-mt-enable~2
+    syntax: local-mt enable
+    view: isis
+    undo: undo local-mt enable
+    default: By default, IS-IS local MT is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: local-mt enable
+      line: 22614
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-mt-filter-policy
+    syntax: local-mt filter-policy { acl { <acl-number> | <acl-name> } | ip-prefix <ip-prefix-name> }
+    view: isis
+    undo: undo local-mt filter-policy
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name:
+        type: word
+      ip-prefix-name:
+        type: word
+    default: By default, no policy is configured for local MT.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: local-mt filter-policy (IS-IS view)
+      line: 22679
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.loop-free-alternate~2
+    syntax: loop-free-alternate [ level-1 | level-2 | level-1-2 ]
+    view: isis-frr
+    undo: undo loop-free-alternate [ level-1 | level-2 | level-1-2 ]
+    default: By default, IS-IS Auto FRR is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: loop-free-alternate (IS-IS FRR view)
+      line: 22750
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsdb-limit
+    syntax: lsdb limit <limit-number> [ threshold-alarm upper-limit <upper-limit-value> lower-limit <lower-limit-value> ]
+    view: isis
+    undo: undo lsdb limit
+    params:
+      limit-number:
+        type: integer
+        range:
+          - 1
+          - 100000
+      upper-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      lower-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, no threshold is set for the capacity of an IS-IS LSDB.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: lsdb limit
+      line: 22821
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsp-fragments-extend
+    syntax: lsp-fragments-extend [ [ level-1 | level-2 | level-1-2 ] | [ mode-1 | mode-2 ] ] &<1-9>
+    view: isis
+    undo: undo lsp-fragments-extend [ [ level-1 | level-2 | level-1-2 ] | [ mode-1 | mode-2 ] ] &<1-9>
+    default: By default, the LSP fragment extension on an IS-IS device is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: lsp-fragments-extend
+      line: 22886
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsp-length
+    syntax: lsp-length { originate | receive } <max-size>
+    view: isis
+    undo: undo lsp-length { originate | receive }
+    params:
+      max-size:
+        type: integer
+        range:
+          - 512
+          - 16384
+    default: By default, the size of the LSP generated by the IS-IS and the size of the received LSP are 1497 bytes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: lsp-length
+      line: 22954
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsp-remaining-lifetime-refresh-disable
+    syntax: lsp-remaining-lifetime refresh disable
+    view: isis
+    undo: undo lsp-remaining-lifetime refresh disable
+    default: By default, automatic IS-IS LSP Remaining Lifetime adjustment is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: lsp-remaining-lifetime refresh disable (IS-IS view)
+      line: 23021
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsp-remaining-lifetime-refresh-timer
+    syntax: lsp-remaining-lifetime refresh timer { <refreshvalue> | lsp-max-age }
+    view: isis
+    undo: undo lsp-remaining-lifetime refresh timer [ <refreshvalue> ]
+    params:
+      refreshvalue:
+        type: integer
+    default: By default, the IS-IS LSP Remaining Lifetime value is the maximum LSP age.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: lsp-remaining-lifetime refresh timer (IS-IS view)
+      line: 23073
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.maximum-load-balancing~2
+    syntax: maximum load-balancing <number>
+    view: isis
+    undo: undo maximum load-balancing
+    params:
+      number:
+        type: integer
+    default: By default, load balancing is supported.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: maximum load-balancing (IS-IS view)
+      line: 23203
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-delay-advertisement-enable
+    syntax: metric-delay advertisement enable [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo metric-delay advertisement enable [ level-1 | level-2 | level-1-2 ]
+    default: By default, the advertisement of IPv4 delay information is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: metric-delay advertisement enable (IS-IS view)
+      line: 23280
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-delay-average-advertisement-enable
+    syntax: metric-delay average advertisement enable [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo metric-delay average advertisement enable [ level-1 | level-2 | level-1-2 ]
+    default: By default, the advertisement of the IPv4 average delay is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: metric-delay average advertisement enable (IS-IS view)
+      line: 23349
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-delay-normalize-interval~2
+    syntax: metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    view: isis
+    undo: undo metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    params:
+      interval-value:
+        type: integer
+        range:
+          - 1
+          - 16777215
+      offset-value:
+        type: integer
+        range:
+          - 0
+          - 16777214
+    default: By default, no delay tolerance is configured for an IS-IS process, and the metric value used for delay-based path computation is the original value.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: metric-delay normalize interval
+      line: 23417
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-delay-suppress~2
+    syntax: metric-delay suppress timer <time-value> percent-threshold <percent-value> absolute-threshold <absolute-value>
+    view: isis
+    undo: undo metric-delay suppress timer <time-value> percent-threshold <percent-value> absolute-threshold <absolute-value>
+    params:
+      time-value:
+        type: integer
+        range:
+          - 0
+          - 600
+      percent-value:
+        type: integer
+        range:
+          - 0
+          - 100
+      absolute-value:
+        type: integer
+        range:
+          - 0
+          - 10000
+    default: By default, the suppression of IPv4 delay information advertisement is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: metric-delay suppress (IS-IS view)
+      line: 23477
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-delay-variation-advertisement-enable
+    syntax: metric-delay variation advertisement enable [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo metric-delay variation advertisement enable [ level-1 | level-2 | level-1-2 ]
+    default: By default, IPv4 delay variation advertisement is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: metric-delay variation advertisement enable (IS-IS view)
+      line: 23547
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-link-loss-advertisement-enable~2
+    syntax: metric-link-loss advertisement enable [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo metric-link-loss advertisement enable [ level-1 | level-2 | level-1-2 ]
+    default: By default, the advertisement of IPv4 link loss information is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: metric-link-loss advertisement enable
+      line: 23615
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-link-loss-suppress~2
+    syntax: metric-link-loss suppress timer <timer-value> percent-threshold <percent-value> absolute-threshold <absolute-value>
+    view: isis
+    undo: undo metric-link-loss suppress timer <timer-value> percent-threshold <percent-value> absolute-threshold <absolute-value>
+    params:
+      timer-value:
+        type: integer
+        range:
+          - 0
+          - 600
+      percent-value:
+        type: integer
+        range:
+          - 0
+          - 100
+      absolute-value:
+        type: integer
+        range:
+          - 0
+          - 10000
+    default: By default, the suppression of IPv4 link loss information advertisement is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: metric-link-loss suppress
+      line: 23684
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.micro-isolation-protocol-car-isis
+    syntax: micro-isolation protocol-car isis { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9>
+    view: system
+    undo: undo micro-isolation protocol-car isis [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9> ]
+    params:
+      cir-value:
+        type: word
+      cbs-value:
+        type: word
+      pir-value:
+        type: word
+      pbs-value:
+        type: word
+    default: the default values of IS-IS micro-isolation CAR parameters.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: micro-isolation protocol-car isis
+      line: 23752
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.micro-isolation-protocol-car-isis-disable
+    syntax: micro-isolation protocol-car isis disable
+    view: system
+    undo: undo micro-isolation protocol-car isis disable
+    default: By default, micro-isolation CAR is enabled for IS-IS.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: micro-isolation protocol-car isis disable (System view)
+      line: 23818
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-auto-config~2
+    syntax: mpls ldp auto-config
+    view: isis
+    undo: undo mpls ldp auto-config
+    default: By default, MPLS LDP automatic configuration is disabled on IS-IS interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: mpls ldp auto-config
+      line: 23937
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.multi-instance-enable
+    syntax: multi-instance enable iid <iid-value>
+    view: isis
+    undo: undo multi-instance enable [ iid <iid-value> ]
+    params:
+      iid-value:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, an IS-IS process is a conventional process, and its IID is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: multi-instance enable
+      line: 24001
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.network-entity
+    syntax: network-entity <net-addr>
+    view: isis
+    undo: undo network-entity <net-addr>
+    params:
+      net-addr:
+        type: word
+    default: By default, no NET is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: network-entity
+      line: 24063
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      isis.process.net: $net-addr
+  - id: huawei-vrp8.nexthop-weight~2
+    syntax: nexthop <ip-address> weight <value>
+    view: isis
+    undo: undo nexthop <ip-address>
+    params:
+      ip-address:
+        type: ipv4
+      value:
+        type: integer
+        range:
+          - 1
+          - 254
+    default: By default, no weight is set for equal-cost routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: nexthop weight (IS-IS view)
+      line: 24133
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.optional-checksum-enable
+    syntax: optional-checksum enable
+    view: isis
+    undo: undo optional-checksum enable
+    default: By default, Hello packets and SNPs do not carry optional checksum TLVs, and received packets are not checked.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: optional-checksum enable
+      line: 24198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-hold-max-cost-normalize-on-startup
+    syntax: peer hold-max-cost normalize on-startup [ timer <timer-value> | remain-percent <percent-value> ] &<1-9>
+    view: isis
+    undo: undo peer hold-max-cost normalize on-startup [ timer <timer-value> | remain-percent <percent-value> ] &<1-9>
+    params:
+      timer-value:
+        type: integer
+        range:
+          - 300
+          - 3600
+      percent-value:
+        type: integer
+        range:
+          - 10
+          - 50
+    default: By default, the device is disabled from normalizing the expiration time of hold-max-cost timers of IS-IS neighbor relationships after it starts.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: peer hold-max-cost normalize on-startup
+      line: 24260
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.preference
+    syntax: preference { { route-policy <route-policy-name> | route-filter <route-filter-name> } | <preference> } &<1-9>
+    view: isis
+    undo: undo preference
+    params:
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the priority of IS-IS is 15.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: preference (IS-IS view)
+      line: 24401
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.prefix-priority~2
+    syntax: prefix-priority [ level-1 | level-2 ] { critical | high | medium | very-low } { ip-prefix <prefix-name> | tag <tag-value> }
+    view: isis
+    undo: undo prefix-priority [ level-1 | level-2 ] { critical | high | medium | very-low }
+    params:
+      prefix-name:
+        type: word
+      tag-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, in IP routing table, the priority of IS-IS host routes and default routes is high; the convergence priority of the other IS-IS routes is medium.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: prefix-priority (IS-IS view)
+      line: 24473
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.purge-originator-identification-enable.1
+    syntax: purge-originator-identification enable
+    view: isis
+    undo: undo purge-originator-identification enable
+    default: By default, IS-IS does not add the POI TLV or hostname TLV to purge LSPs to be sent.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: purge-originator-identification enable
+      line: 24555
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.purge-originator-identification-enable.2
+    syntax: purge-originator-identification enable always
+    view: isis
+    undo: undo purge-originator-identification enable
+    default: By default, IS-IS does not add the POI TLV or hostname TLV to purge LSPs to be sent.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: purge-originator-identification enable
+      line: 24555
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remote-lfa~2
+    syntax: remote-lfa tunnel ldp [ maximum-reachable-cost <cost-value> ] [ level-1 | level-2 | level-1-2 ]
+    view: isis-frr
+    undo: undo remote-lfa tunnel ldp [ maximum-reachable-cost <cost-value> ] [ level-1 | level-2 | level-1-2 ]
+    params:
+      cost-value:
+        type: integer
+        range:
+          - 1
+          - 4261412864
+    default: By default, IS-IS Remote LFA is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: remote-lfa (IS-IS FRR view)
+      line: 24700
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remote-lfa-available-tunnel-destination~2
+    syntax: remote-lfa available-tunnel-destination ip-prefix <ip-prefix-name> [ level-1 | level-2 | level-1-2 ]
+    view: isis-frr
+    undo: undo remote-lfa available-tunnel-destination ip-prefix <ip-prefix-name> [ level-1 | level-2 | level-1-2 ]
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, no filtering policy is configured, and each PQ node can be used as a backup next hop of remote LFA.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: remote-lfa available-tunnel-destination
+      line: 24770
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.reverse-cost
+    syntax: reverse-cost { max-reachable | maximum }
+    view: isis
+    undo: undo reverse-cost [ max-reachable | maximum ]
+    default: By default, the IS-IS cost is not changed and the Reverse Metric TLV is not sent.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: reverse-cost
+      line: 25267
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.reverse-cost.1
+    syntax: isis reverse-cost { max-reachable | maximum }
+    view: interface
+    undo: undo isis reverse-cost [ max-reachable | maximum ]
+    default: By default, the reverse cost value on an interface is the same as that in an IS-IS process, and the Reverse Metric TLV is not sent.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: reverse-cost (interface view)
+      line: 25347
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.reverse-cost.2
+    syntax: isis process-id <process-id-value> reverse-cost { max-reachable | maximum }
+    view: interface
+    undo: undo isis process-id <process-id-value> reverse-cost [ max-reachable | maximum ]
+    params:
+      process-id-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, the reverse cost value on an interface is the same as that in an IS-IS process, and the Reverse Metric TLV is not sent.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: reverse-cost (interface view)
+      line: 25347
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.reverse-cost-receive-enable
+    syntax: reverse-cost-receive enable
+    view: isis
+    undo: undo reverse-cost-receive enable
+    default: By default, an IS-IS process is not enabled to accept the Reverse Metric TLV after the process is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: reverse-cost-receive enable
+      line: 25452
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-loop-detect-isis-enable
+    syntax: route loop-detect isis enable [ alarm-only ]
+    view: system
+    undo: undo route loop-detect isis enable [ alarm-only ]
+    default: By default, loop detection is disabled for the routes imported into IS-IS.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: route loop-detect isis enable
+      line: 25572
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-compress-16-flex-algo-exclude
+    syntax: segment-routing ipv6 compress-16 flex-algo exclude { <flex-algo-begin> [ to <flex-algo-end> ] } &<1-10>
+    view: isis
+    undo: undo segment-routing ipv6 compress-16 flex-algo exclude { <flex-algo-begin> [ to <flex-algo-end> ] } &<1-10>
+    params:
+      flex-algo-begin:
+        type: integer
+        range:
+          - 128
+          - 255
+      flex-algo-end:
+        type: integer
+        range:
+          - 128
+          - 255
+    default: By default, the SRv6 16-bit compression mode of the IS-IS flexible algorithm is not disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: segment-routing ipv6 compress-16 flex-algo exclude
+      line: 25644
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-strict-msd-check-enable
+    syntax: segment-routing ipv6 strict-msd-check enable
+    view: isis
+    undo: undo segment-routing ipv6 strict-msd-check enable
+    default: By default, segment routing IPv6 MSD strict check is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: segment-routing ipv6 strict-msd-check enable
+      line: 25715
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.set-overload.1
+    syntax: set-overload
+    view: isis
+    undo: undo set-overload
+    default: By default, the overload bit is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: set-overload
+      line: 25784
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.set-overload.2
+    syntax: set-overload { allow { interlevel | external } &<1-9> }
+    view: isis
+    undo: undo set-overload
+    default: By default, the overload bit is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: set-overload
+      line: 25784
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.set-overload.3
+    syntax: set-overload { on-startup [ <timeout1> | start-from-nbr <system-id> [ <timeout1> [ <timeout2> ] ] | wait-for-bgp [ <timeout1> ] ] [ route-delay-distribute <timeout4> ] [ send-sa-bit [ <timeout3> ] ] [ route-max-metric ] }
+    view: isis
+    undo: undo set-overload
+    params:
+      timeout1: &id057
+        type: integer
+        range:
+          - 5
+          - 86400
+      system-id: &id058
+        type: word
+      timeout2: &id059
+        type: integer
+        range:
+          - 5
+          - 86400
+      timeout4: &id060
+        type: integer
+      timeout3: &id061
+        type: integer
+        range:
+          - 5
+          - 600
+    default: By default, the overload bit is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: set-overload
+      line: 25784
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.set-overload.4
+    syntax: set-overload { on-startup [ <timeout1> | start-from-nbr <system-id> [ <timeout1> [ <timeout2> ] ] | wait-for-bgp [ <timeout1> ] ] [ route-delay-distribute <timeout4> ] [ send-sa-bit [ <timeout3> ] ] [ route-max-metric ] } { allow { interlevel | external } &<1-9> }
+    view: isis
+    undo: undo set-overload
+    params:
+      timeout1: *id057
+      system-id: *id058
+      timeout2: *id059
+      timeout4: *id060
+      timeout3: *id061
+    default: By default, the overload bit is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: set-overload
+      line: 25784
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.shutdown~6
+    syntax: shutdown
+    view: isis
+    undo: undo shutdown
+    default: By default, an IS-IS process is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: shutdown (IS-IS view)
+      line: 25896
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.summary
+    syntax: summary <ip-address> <mask> [ avoid-feedback | generate_null0_route | tag <tag-value> | cost <cost-value> | [ level-1 | level-2 | level-1-2 ] ] &<1-9>
+    view: isis
+    undo: undo summary <ip-address> <mask> [ level-1 | level-2 | level-1-2 ]
+    params:
+      ip-address:
+        type: ipv4
+      mask:
+        type: mask
+      tag-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cost-value:
+        type: integer
+    default: By default, IS-IS route summarization is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: summary (IS-IS view)
+      line: 26117
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.suppress-flapping-lsp-flood
+    syntax: suppress-flapping lsp-flood { disable | timer <delay-interval> [ threshold <threshold-value> ] }
+    view: isis
+    undo: undo suppress-flapping lsp-flood
+    params:
+      delay-interval:
+        type: integer
+        range:
+          - 1
+          - 600
+      threshold-value:
+        type: integer
+        range:
+          - 3
+          - 100
+    default: By default, if route flapping occurs, the device delays LSP flooding for 10s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: suppress-flapping lsp-flood
+      line: 26200
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.suppress-flapping-lsp-generation
+    syntax: suppress-flapping lsp-generation { disable | timer <delay-interval> [ threshold <threshold-value> ] }
+    view: isis
+    undo: undo suppress-flapping lsp-generation
+    params:
+      delay-interval:
+        type: integer
+        range:
+          - 1
+          - 600
+      threshold-value:
+        type: integer
+        range:
+          - 3
+          - 100
+    default: By default, the system delays generation of the same LSP for 10s during route flapping.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: suppress-flapping lsp-generation
+      line: 26270
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.suppress-flapping-peer-disable~2
+    syntax: suppress-flapping peer disable
+    view: isis
+    undo: undo suppress-flapping peer disable
+    default: By default, IS-IS neighbor relationship flapping suppression is enabled globally.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: suppress-flapping peer disable
+      line: 26340
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.suppress-flapping-route-calculate
+    syntax: suppress-flapping route-calculate { disable | timer <delay-interval> [ threshold <threshold-value> ] }
+    view: isis
+    undo: undo suppress-flapping route-calculate
+    params:
+      delay-interval:
+        type: integer
+        range:
+          - 1
+          - 600
+      threshold-value:
+        type: integer
+        range:
+          - 3
+          - 100
+    default: By default, if the device receives an LSP during route flapping, it delays route calculation for 10s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: suppress-flapping route-calculate
+      line: 26394
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tiebreaker-preference~2
+    syntax: tiebreaker { node-protecting | lowest-cost | non-ecmp | srlg-disjoint | hold-max-cost } preference <preference> [ level-1 | level-2 | level-1-2 ]
+    view: isis-frr
+    undo: undo tiebreaker { node-protecting | lowest-cost | non-ecmp | srlg-disjoint | hold-max-cost } [ preference <preference> ] [ level-1 | level-2 | level-1-2 ]
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the node-protection path first solution is used in IS-IS Auto FRR.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: tiebreaker preference (IS-IS FRR view)
+      line: 26460
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-ldp-sync-hold-down
+    syntax: timer ldp-sync hold-down <value>
+    view: isis
+    undo: undo timer ldp-sync hold-down
+    params:
+      value:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, the default Hold-down time is 10 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: timer ldp-sync hold-down
+      line: 26542
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-ldp-sync-hold-max-cost.1
+    syntax: timer ldp-sync hold-max-cost infinite
+    view: isis
+    undo: undo timer ldp-sync hold-max-cost
+    default: By default, an IGP permanently advertises the maximum cost 16777214 on the local device before an LDP session and LDP adjacency are reestablished.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: timer ldp-sync hold-max-cost (IS-IS view)
+      line: 26602
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-ldp-sync-hold-max-cost.2
+    syntax: timer ldp-sync hold-max-cost <interval>
+    view: isis
+    undo: undo timer ldp-sync hold-max-cost
+    params:
+      interval:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, an IGP permanently advertises the maximum cost 16777214 on the local device before an LDP session and LDP adjacency are reestablished.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: timer ldp-sync hold-max-cost (IS-IS view)
+      line: 26602
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-lsp-generation
+    syntax: timer lsp-generation <max-interval> [ <init-interval> [ <incr-interval> ] ] [ level-1 | level-2 ]
+    view: isis
+    undo: undo timer lsp-generation [ <max-interval> [ <init-interval> [ <incr-interval> ] ] ] [ level-1 | level-2 ]
+    params:
+      max-interval:
+        type: word
+      init-interval:
+        type: integer
+        range:
+          - 1
+          - 60000
+      incr-interval:
+        type: integer
+        range:
+          - 1
+          - 60000
+    default: By default, the LSP generation interval is 2 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: timer lsp-generation (IS-IS view)
+      line: 26666
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-lsp-max-age
+    syntax: timer lsp-max-age <max-age-value>
+    view: isis
+    undo: undo timer lsp-max-age
+    params:
+      max-age-value:
+        type: integer
+        range:
+          - 2
+          - 65535
+    default: By default, the maximum Keepalive time of an LSP is 1200 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: timer lsp-max-age (IS-IS view)
+      line: 26750
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-lsp-refresh
+    syntax: timer lsp-refresh <refresh-value>
+    view: isis
+    undo: undo timer lsp-refresh
+    params:
+      refresh-value:
+        type: word
+    default: By default, the LSP refresh interval is 900 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: timer lsp-refresh (IS-IS view)
+      line: 26818
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-purge-zero-lsp-route-calculate-delay
+    syntax: timer purge-zero-lsp route-calculate-delay <delay-interval>
+    view: isis
+    undo: undo timer purge-zero-lsp route-calculate-delay
+    params:
+      delay-interval:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, the hold-off time for route calculation after a device receives a purge LSP is 20s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: timer purge-zero-lsp route-calculate-delay
+      line: 26886
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-spf
+    syntax: timer spf <max-interval> [ <init-interval> [ <incr-interval> ] ]
+    view: isis
+    undo: undo timer spf
+    params:
+      max-interval:
+        type: integer
+        range:
+          - 1
+          - 120
+      init-interval:
+        type: integer
+        range:
+          - 1
+          - 60000
+      incr-interval:
+        type: integer
+        range:
+          - 1
+          - 60000
+    default: By default, the delay for SPF calculation is 5 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: timer spf (IS-IS view)
+      line: 26946
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tlv-fragments-disable
+    syntax: tlv-fragments disable
+    view: isis
+    undo: undo tlv-fragments disable
+    default: By default, IS-IS TLV fragmentation is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: tlv-fragments disable
+      line: 27016
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tlv-type-compatible-standard-mirror-sid
+    syntax: tlv-type-compatible standard mirror-sid
+    view: isis
+    undo: undo tlv-type-compatible standard mirror-sid
+    default: By default, the type value of Mirror SID Function is 40.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: tlv-type-compatible standard mirror-sid
+      line: 27078
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.topology
+    syntax: topology <topology-name> [ topology-id { <mt-id> | multicast } ]
+    view: isis
+    undo: undo topology <topology-name>
+    params:
+      topology-name:
+        type: word
+      mt-id:
+        type: integer
+        range:
+          - 6
+          - 4095
+    default: By default, no IS-IS instance is associated with any IPv4 topology instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: topology (IS-IS view)
+      line: 27134
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-eng
+    syntax: traffic-eng [ level-1 | level-2 | level-1-2 ]
+    view: isis
+    undo: undo traffic-eng [ level-1 | level-2 | level-1-2 ]
+    default: By default, TE is disabled for an IS-IS process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: traffic-eng
+      line: 27215
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.virtual-access-enable
+    syntax: virtual-access enable
+    view: isis
+    undo: undo virtual-access enable
+    default: By default, no IS-IS process is configured as a virtual access IS-IS process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: virtual-access enable(IS-IS view)
+      line: 27348
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.virtual-system
+    syntax: virtual-system <virtual-system-id>
+    view: isis
+    undo: undo virtual-system <virtual-system-id>
+    params:
+      virtual-system-id:
+        type: word
+    default: By default, there is no virtual system ID for an IS-IS process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: virtual-system (IS-IS view)
+      line: 27414
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.whitelist-session-car-isis
+    syntax: whitelist session-car isis { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9>
+    view: system
+    undo: undo whitelist session-car isis [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9> ]
+    params:
+      cir-value:
+        type: word
+      cbs-value:
+        type: word
+      pir-value:
+        type: word
+      pbs-value:
+        type: word
+    default: By default, whitelist session-CAR for IS-IS is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: whitelist session-car isis
+      line: 27475
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.whitelist-session-car-isis-disable
+    syntax: whitelist session-car isis disable
+    view: system
+    undo: undo whitelist session-car isis disable
+    default: By default, the IS-IS whitelist session-CAR function is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/04_IS-IS Configuration Commands.md
+      title: whitelist session-car isis disable
+      line: 27540
+      version: V800R025C00SPC500
+    status: draft

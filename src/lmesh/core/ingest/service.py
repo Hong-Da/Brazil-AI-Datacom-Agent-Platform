@@ -92,6 +92,41 @@ def _ai_fix(settings: config.Settings, res: ExtractResult, family: str, progress
     return out
 
 
+def _avoid_foreign_ids(
+    kb_root: Path, family: str, by_domain: dict[str, list[dict[str, Any]]], stats: Counter[str]
+) -> None:
+    """抽取编号只在一次抽取内唯一；分批抽取不同功能域时，新卡可能与其他功能域文件里已有的卡同号。
+    同号且语法、视图相同 → 那张卡已在别的功能域，跳过；同号但内容不同 → 改用下一个空闲的 ~N 编号。
+    结果只取决于知识库现状与本次抽取，重复抽取得到同样的编号。"""
+    fam_dir = kb_root / "commands" / family
+    foreign: dict[str, dict[str, tuple[str, str]]] = {}  # 功能域 → {编号: (语法, 视图)}
+    for f in sorted(fam_dir.glob("*.yaml")) if fam_dir.exists() else []:
+        if f.name == "views.yaml":
+            continue
+        doc = kbfiles.load_rt(f) or {}
+        foreign[f.stem] = {str(c.get("id")): (str(c.get("syntax")), str(c.get("view"))) for c in doc.get("cards") or []}
+    for domain, items in by_domain.items():
+        others = {cid: sv for d, ids in foreign.items() if d != domain for cid, sv in ids.items()}
+        # 本功能域文件里已有的编号不算占用：重复抽取时同一张卡应当得到同一个编号
+        taken = set(others) | {str(c["id"]) for its in by_domain.values() for c in its}
+        keep = []
+        for card in items:
+            cid = str(card["id"])
+            if cid in others:
+                if others[cid] == (str(card["syntax"]), str(card["view"])):
+                    stats["in_other_domain"] += 1
+                    continue
+                base = cid.split("~", 1)[0]
+                n = 2
+                while f"{base}~{n}" in taken:
+                    n += 1
+                card["id"] = f"{base}~{n}"
+                taken.add(card["id"])
+                stats["renumbered"] += 1
+            keep.append(card)
+        items[:] = keep
+
+
 def ingest(
     doc_dir: Path,
     rules_name: str,
@@ -126,12 +161,19 @@ def ingest(
     by_domain: dict[str, list[dict[str, Any]]] = {}
     for c in cards:
         by_domain.setdefault(c.pop("domain"), []).append(c)
+    _avoid_foreign_ids(kb_root, rules.family, by_domain, stats)
     reviews: list[tuple[str, str, str, dict[str, Any], dict[str, Any]]] = []
     for domain, items in by_domain.items():
         path = kbfiles.card_file(kb_root, rules.family, domain)
         doc = kbfiles.load_card_doc(path, domain, HEADER)
         index = {str(c.get("id")): i for i, c in enumerate(doc["cards"])}
+        # 先按内容（语法 + 视图）对上已有的卡：编号与抽取时一起处理的功能域有关，内容才是稳定的
+        by_content = {(str(c.get("syntax")), str(c.get("view"))): str(c.get("id")) for c in doc["cards"]}
         for card in items:
+            same = by_content.get((str(card["syntax"]), str(card["view"])))
+            if same and same != card["id"]:
+                card["id"] = same
+                stats["matched_by_content"] += 1
             cid = card["id"]
             if cid not in index:
                 doc["cards"].append(kbfiles.to_card_map(card))

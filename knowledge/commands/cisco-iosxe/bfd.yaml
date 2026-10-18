@@ -1,0 +1,66 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: bfd
+cards:
+  - id: cisco-iosxe.bfd
+    syntax: bfd interval <milliseconds> min_rx <milliseconds> multiplier <multiplier-value>
+    view: interface
+    undo: no bfd interval <milliseconds> min_rx <milliseconds> multiplier <multiplier-value>
+    params:
+      milliseconds:
+        type: word
+      multiplier-value:
+        type: word
+    default: No baseline BFD session parameters are set.
+    source:
+      doc: cisco-iosxe-md
+      file: bfd/bfd.md
+      title: bfd
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.bfd: _
+      interface.bfd.min_tx: $milliseconds
+      interface.bfd.multiplier: $multiplier-value
+  - id: cisco-iosxe.bfd-template
+    syntax: bfd template <template-name>
+    view: interface
+    undo: no bfd template <template-name>
+    params:
+      template-name:
+        type: word
+    default: A BFD template is not bound to an interface.
+    source:
+      doc: cisco-iosxe-md
+      file: bfd/bfd template.md
+      title: bfd template
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bfd-template~2
+    syntax: bfd-template { single-hop | multi-hop } <template-name>
+    view: system
+    undo: no bfd-template { single-hop | multi-hop } <template-name>
+    params:
+      template-name:
+        type: word
+    default: A BFD template does not exist.
+    source:
+      doc: cisco-iosxe-md
+      file: bfd/bfd-template.md
+      title: bfd-template
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bfd-echo
+    syntax: bfd echo
+    view: interface
+    undo: no bfd echo
+    default: BFD echo mode is enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: bfd/bfd echo.md
+      title: bfd echo
+      line: 5
+      version: '17.15'
+    status: draft

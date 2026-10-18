@@ -1,0 +1,149 @@
+# 通用配置检查规则：写在统一 Schema 上，与厂商无关（华为、Cisco 等所有平台族共用）。
+# 格式与条件写法见 src/lmesh/core/rules.py 开头的说明；加载时按 Schema 校验路径，写错时 lmesh check 报出文件、规则与位置。
+rules:
+  - id: bgp.peer.remote_as_missing
+    target: bgp.peer
+    assert:
+      any:
+        - exists: remote_as
+        - exists: group->remote_as
+        - equals: {path: group->type, value: internal}
+    severity: error
+    title:
+      zh-CN: BGP 对等体缺少对端 AS
+      en: BGP peer without remote AS
+      pt-BR: Peer BGP sem AS remoto
+    message:
+      zh-CN: BGP 对等体 {key} 没有对端 AS：自身没有配置 remote-as，所属的对等体组也没有（且不是 IBGP 组）
+      en: "BGP peer {key} has no remote AS: neither the peer nor its peer group (unless it is an internal group) sets remote-as"
+      pt-BR: "O peer BGP {key} não tem AS remoto: nem o peer nem o seu grupo (a menos que seja um grupo interno) definem remote-as"
+    suggestion:
+      zh-CN: 为对等体配置对端 AS（华为 peer … as-number，Cisco neighbor … remote-as），或把它加入配置了对端 AS 的对等体组
+      en: Set the remote AS on the peer (Huawei peer … as-number, Cisco neighbor … remote-as), or add it to a peer group that has one
+      pt-BR: Defina o AS remoto no peer (Huawei peer … as-number, Cisco neighbor … remote-as) ou adicione-o a um grupo que tenha AS remoto
+
+  - id: interface.vrf_without_ip
+    target: interface
+    when: {exists: vrf}
+    assert: {exists: ipv4}
+    severity: warning
+    title:
+      zh-CN: 接口绑定了 VRF 却没有 IP 地址
+      en: Interface bound to a VRF without an IP address
+      pt-BR: Interface associada a uma VRF sem endereço IP
+    message:
+      zh-CN: 接口 {key} 绑定了 VRF，但没有配置 IPv4 地址（绑定 VRF 会清除原有地址，可能是绑定后漏配）
+      en: Interface {key} is bound to a VRF but has no IPv4 address (binding a VRF clears existing addresses; it may have been left out)
+      pt-BR: A interface {key} está associada a uma VRF, mas não tem endereço IPv4 (associar a VRF apaga os endereços existentes; pode ter ficado de fora)
+    suggestion:
+      zh-CN: 在绑定 VRF 之后重新配置接口地址；如果接口不需要三层功能，解除 VRF 绑定
+      en: Configure the address again after binding the VRF; if the interface needs no layer-3 function, remove the VRF binding
+      pt-BR: Configure o endereço novamente depois de associar a VRF; se a interface não precisa de camada 3, remova a associação
+
+  - id: interface.l2_with_vrf
+    target: interface
+    when: {exists: l2}
+    assert: {not: {exists: vrf}}
+    severity: error
+    title:
+      zh-CN: 二层接口绑定了 VRF
+      en: Layer-2 interface bound to a VRF
+      pt-BR: Interface de camada 2 associada a uma VRF
+    message:
+      zh-CN: 接口 {key} 工作在二层模式，却绑定了 VRF；VRF 只对三层接口生效
+      en: Interface {key} works in layer-2 mode but is bound to a VRF; VRFs only apply to layer-3 interfaces
+      pt-BR: A interface {key} opera em camada 2, mas está associada a uma VRF; VRFs só se aplicam a interfaces de camada 3
+    suggestion:
+      zh-CN: 去掉 VRF 绑定，或把接口改回三层模式
+      en: Remove the VRF binding, or switch the interface back to layer 3
+      pt-BR: Remova a associação à VRF ou volte a interface para camada 3
+
+  - id: interface.lag_member_with_ip
+    target: interface
+    when: {exists: lag}
+    assert: {not: {exists: ipv4}}
+    severity: error
+    title:
+      zh-CN: 聚合成员口配置了 IP 地址
+      en: LAG member with an IP address
+      pt-BR: Membro de LAG com endereço IP
+    message:
+      zh-CN: 接口 {key} 已加入聚合组，却仍配置了 IPv4 地址；地址应配置在聚合接口上
+      en: Interface {key} is a LAG member but still has an IPv4 address; addresses belong on the aggregate interface
+      pt-BR: A interface {key} é membro de um LAG, mas ainda tem endereço IPv4; o endereço deve ficar na interface agregada
+    suggestion:
+      zh-CN: 删除成员口上的地址，在 Eth-Trunk / Port-channel 上配置
+      en: Remove the address from the member and configure it on the Eth-Trunk / Port-channel
+      pt-BR: Remova o endereço do membro e configure-o no Eth-Trunk / Port-channel
+
+  - id: vrf.rd_without_rt
+    target: vrf.instance.af
+    when: {exists: rd}
+    assert: {count: {path: rt, min: 1}}
+    severity: warning
+    title:
+      zh-CN: VRF 有 RD 但没有任何 RT
+      en: VRF with an RD but no route target
+      pt-BR: VRF com RD mas sem route target
+    message:
+      zh-CN: VRF 地址族 {node} 配置了 RD，但没有任何 RT：VPN 路由既不会发布也不会引入
+      en: "VRF address family {node} has an RD but no route target: VPN routes are neither exported nor imported"
+      pt-BR: "A família de endereços da VRF {node} tem RD, mas nenhum route target: as rotas VPN não são exportadas nem importadas"
+    suggestion:
+      zh-CN: 按业务规划补充 import / export RT（华为 vpn-target，Cisco route-target）；只做本地转发的 VRF 可以忽略
+      en: Add import / export route targets as planned (Huawei vpn-target, Cisco route-target); ignore for local-only VRFs
+      pt-BR: Adicione route targets de import / export conforme o planejamento (Huawei vpn-target, Cisco route-target); ignore em VRFs apenas locais
+
+  - id: vrf.rt_without_rd
+    target: vrf.instance.af
+    when: {count: {path: rt, min: 1}}
+    assert: {exists: rd}
+    severity: warning
+    title:
+      zh-CN: VRF 有 RT 但没有 RD
+      en: VRF with route targets but no RD
+      pt-BR: VRF com route targets mas sem RD
+    message:
+      zh-CN: VRF 地址族 {node} 配置了 RT，却没有 RD；没有 RD 时 VPN 路由不能发布
+      en: VRF address family {node} has route targets but no RD; VPN routes cannot be advertised without an RD
+      pt-BR: A família de endereços da VRF {node} tem route targets, mas não tem RD; sem RD as rotas VPN não são anunciadas
+    suggestion:
+      zh-CN: 为该 VRF 配置 RD（华为 route-distinguisher，Cisco rd）
+      en: Configure an RD for the VRF (Huawei route-distinguisher, Cisco rd)
+      pt-BR: Configure um RD para a VRF (Huawei route-distinguisher, Cisco rd)
+
+  - id: rp.policy_node.empty_prefix_list
+    target: rp.policy.node
+    when: {exists: match_prefix_list->}
+    assert: {count: {path: match_prefix_list->entry, min: 1}}
+    severity: warning
+    title:
+      zh-CN: 策略节点匹配的前缀列表为空
+      en: Policy node matches an empty prefix list
+      pt-BR: Nó de política casa uma lista de prefixos vazia
+    message:
+      zh-CN: 策略节点 {node} 匹配的前缀列表没有任何规则
+      en: The prefix list matched by policy node {node} has no entries
+      pt-BR: A lista de prefixos casada pelo nó de política {node} não tem entradas
+    suggestion:
+      zh-CN: 为前缀列表补充规则，或去掉这条匹配条件
+      en: Add entries to the prefix list, or remove the match clause
+      pt-BR: Adicione entradas à lista de prefixos ou remova a condição de match
+
+  - id: rp.policy_node.empty_community_list
+    target: rp.policy.node
+    when: {exists: match_community->}
+    assert: {count: {path: match_community->entry, min: 1}}
+    severity: warning
+    title:
+      zh-CN: 策略节点匹配的团体属性列表为空
+      en: Policy node matches an empty community list
+      pt-BR: Nó de política casa uma lista de communities vazia
+    message:
+      zh-CN: 策略节点 {node} 匹配的团体属性列表没有任何规则
+      en: The community list matched by policy node {node} has no entries
+      pt-BR: A lista de communities casada pelo nó de política {node} não tem entradas
+    suggestion:
+      zh-CN: 为团体属性列表补充规则，或去掉这条匹配条件
+      en: Add entries to the community list, or remove the match clause
+      pt-BR: Adicione entradas à lista de communities ou remova a condição de match

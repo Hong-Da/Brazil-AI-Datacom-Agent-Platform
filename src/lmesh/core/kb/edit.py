@@ -29,7 +29,7 @@ NODE_FIELDS = (
     "replaced_by",
     "status",
 )
-ENTRY_FIELDS = ("supported", "default", "show_rule", "source", "verified", "note")
+ENTRY_FIELDS = ("supported", "default", "show_rule", "source", "verified", "note", "when")
 _ID = re.compile(r"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$")
 _PROFILE_ID = re.compile(r"^[a-z0-9][a-z0-9.-]{1,80}$")
 

@@ -1,0 +1,139 @@
+# 配置对比基准（M2 验收门槛“真实配置无假差异”）：compare.benchmark() 与 pytest -m roundtrip 逐个运行。
+# 每个用例对比 a 与 b（路径相对本目录），报出的差异（kind + node）必须与 expect 完全一致：
+#   等价变体（重排、显式写出默认值、缩进与空白、掩码写法、接口名缩写、RT 的 both 写法）expect 为空——0 差异；
+#   真实修改只报出且全部报出预期的差异。
+# 变体文件由样本派生（脱敏后的样本 → 只做下面注明的改写），不含新的真实设备信息。
+# 可选字段：profile（两边共用）/ profile_a / profile_b、raw（同时比较功能域外的原文行）、domain、
+#           interface_map（{A 接口: B 接口}）、rename_threshold（默认 1.0，只认内容完全相同的改名）。
+cases:
+  # ---------- 华为 ATN（现网配置，严格脱敏）----------
+  - id: atn-self
+    a: ../huawei-atn-v800r023/atn-access-01.cfg
+    b: ../huawei-atn-v800r023/atn-access-01.cfg
+    profile: huawei-atn-v800r023
+    raw: true
+    note: 同一配置自身对比
+    expect: []
+  - id: atn-reorder
+    a: ../huawei-atn-v800r023/atn-access-01.cfg
+    b: atn-reorder.cfg
+    profile: huawei-atn-v800r023
+    raw: true
+    note: vpn-instance 块与 route-policy 块倒序；RT 的 export / import 两行对调；ip-prefix 条目倒序；静态路由倒序；地址族内两个对等体的行对调
+    expect: []
+  - id: atn-defaults
+    a: ../huawei-atn-v800r023/atn-access-01.cfg
+    b: atn-defaults.cfg
+    profile: huawei-atn-v800r023
+    raw: true
+    note: 显式写出默认值：接口 mtu 1500、对等体与对等体组 timer keepalive 60 hold 180、空地址族 apply-label per-instance
+    expect: []
+  - id: atn-format
+    a: ../huawei-atn-v800r023/atn-access-01.cfg
+    b: atn-format.cfg
+    profile: huawei-atn-v800r023
+    raw: true
+    note: 终端分页留下的异常缩进恢复正常；description 与 ip address 行尾加空白
+    expect: []
+  - id: atn-mask
+    a: ../huawei-atn-v800r023/atn-access-01.cfg
+    b: atn-mask.cfg
+    profile: huawei-atn-v800r023
+    raw: true
+    note: 接口地址、BGP network、静态路由的点分掩码改写成掩码长度
+    expect: []
+  - id: atn-ifname
+    a: ../huawei-atn-v800r023/atn-access-01.cfg
+    b: atn-ifname.cfg
+    profile: huawei-atn-v800r023
+    raw: true
+    note: interface GigabitEthernetX 改写成缩写 interface GEX
+    expect: []
+  - id: atn-rt-both
+    a: ../huawei-atn-v800r023/atn-access-01.cfg
+    b: atn-rt-both.cfg
+    profile: huawei-atn-v800r023
+    raw: true
+    note: 值相同的 export-extcommunity + import-extcommunity 两条 RT 合并成一条 both
+    expect: []
+  - id: atn-modified
+    a: ../huawei-atn-v800r023/atn-access-01.cfg
+    b: atn-modified.cfg
+    profile: huawei-atn-v800r023
+    note: 真实修改：GE0/2/4 的 MTU 9180 → 9000；删除对等体 10.0.184.242；S1 的 export RT 65082:95 → 65082:96；route-policy IMPORT_ALL_VPN 改名为 IMPORT_VPN_V2 并更新引用
+    expect:
+      - {kind: changed, node: "interface[GigabitEthernet0/2/4]/mtu"}
+      - {kind: removed, node: "vrf.instance[S1]/af[ipv4]/rt[value=65082:95,direction=export]"}
+      - {kind: added, node: "vrf.instance[S1]/af[ipv4]/rt[value=65082:96,direction=export]"}
+      - {kind: removed, node: "bgp.instance[65082]/bgp.peer[10.0.184.242]"}
+      - {kind: removed, node: "bgp.instance[65082]/bgp.af[afi=ipv4,vrf=]/peer[10.0.184.242]"}
+      - {kind: removed, node: "bgp.instance[65082]/bgp.af[afi=vpnv4,vrf=]/peer[10.0.184.242]"}
+      - {kind: renamed, node: "rp.policy[IMPORT_VPN_V2]"}
+  - id: atn-modified-bgp-only
+    a: ../huawei-atn-v800r023/atn-access-01.cfg
+    b: atn-modified.cfg
+    profile: huawei-atn-v800r023
+    domain: bgp
+    note: 同上，只看 BGP 功能域
+    expect:
+      - {kind: removed, node: "bgp.instance[65082]/bgp.peer[10.0.184.242]"}
+      - {kind: removed, node: "bgp.instance[65082]/bgp.af[afi=ipv4,vrf=]/peer[10.0.184.242]"}
+      - {kind: removed, node: "bgp.instance[65082]/bgp.af[afi=vpnv4,vrf=]/peer[10.0.184.242]"}
+
+  # ---------- Cisco ASR 920（合成配置）----------
+  - id: asr920-self
+    a: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+    b: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+    profile: cisco-iosxe-asr920-17.15
+    raw: true
+    note: 同一配置自身对比
+    expect: []
+  - id: asr920-reorder
+    a: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+    b: asr920-reorder.cfg
+    profile: cisco-iosxe-asr920-17.15
+    raw: true
+    note: vrf 块倒序；接口 Gi0/0/1 与 Gi0/0/2 的块对调；route-target 两行对调；activate、redistribute、ip route、prefix-list 与 community-list 的行对调
+    expect: []
+  - id: asr920-defaults
+    a: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+    b: asr920-defaults.cfg
+    profile: cisco-iosxe-asr920-17.15
+    raw: true
+    note: 显式写出默认值：no shutdown、mtu 1500
+    expect: []
+  - id: asr920-format
+    a: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+    b: asr920-format.cfg
+    profile: cisco-iosxe-asr920-17.15
+    raw: true
+    note: description、ip address、prefix-list 行尾加空白
+    expect: []
+  - id: asr920-ifname
+    a: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+    b: asr920-ifname.cfg
+    profile: cisco-iosxe-asr920-17.15
+    raw: true
+    note: 接口名缩写与大小写：Gi0/0/0、gigabitethernet0/0/2、update-source Lo0
+    expect: []
+  - id: asr920-rt-both
+    a: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+    b: asr920-rt-both.cfg
+    profile: cisco-iosxe-asr920-17.15
+    raw: true
+    note: 值相同的 route-target export + import 合并成 route-target both
+    expect: []
+  - id: asr920-modified
+    a: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+    b: asr920-modified.cfg
+    profile: cisco-iosxe-asr920-17.15
+    note: 真实修改：Gi0/0/0 的 MTU 9216 → 9000；删除邻居 10.255.0.2；RAN-2G 的 import RT 64512:1 → 64512:2；route-map EXPORT-LOOPBACK 改名为 EXPORT-LO、prefix-list LOOPBACKS 改名为 LOOPBACK-V4（引用链上的两级改名），引用随之更新
+    expect:
+      - {kind: changed, node: "interface[GigabitEthernet0/0/0]/mtu"}
+      - {kind: removed, node: "vrf.instance[RAN-2G]/af[ipv4]/rt[value=64512:1,direction=import]"}
+      - {kind: added, node: "vrf.instance[RAN-2G]/af[ipv4]/rt[value=64512:2,direction=import]"}
+      - {kind: removed, node: "bgp.instance[64512]/bgp.peer[10.255.0.2]"}
+      - {kind: removed, node: "bgp.instance[64512]/bgp.af[afi=ipv4,vrf=]/peer[10.255.0.2]"}
+      - {kind: removed, node: "bgp.instance[64512]/bgp.af[afi=vpnv4,vrf=]/peer[10.255.0.2]"}
+      - {kind: renamed, node: "rp.policy[EXPORT-LO]"}
+      - {kind: renamed, node: "rp.prefix_list[LOOPBACK-V4]"}

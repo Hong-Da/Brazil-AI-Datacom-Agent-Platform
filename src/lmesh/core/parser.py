@@ -93,6 +93,7 @@ class CardIndex:
 
     def __init__(self, kb: KnowledgeBase, family: str):
         self.negative = kb.families[family].negative
+        self.root_view = kb.families[family].root_view
         self.undo: dict[str, list[tuple[Card, syn.Syntax]]] = defaultdict(list)  # 视图 → (卡, undo 语法)
         self.by_key: dict[tuple[str, str], list[Card]] = defaultdict(list)
         self.loose: dict[str, list[Card]] = defaultdict(list)  # 语法不以关键字开头的卡
@@ -180,6 +181,28 @@ def match_line(index: CardIndex, view: str, text: str) -> tuple[Card, syn.Match]
     return best
 
 
+def _abnormal_depth(stack: list[_Frame], indent: int, index: CardIndex, stripped: str) -> int | None:
+    """异常缩进的行：在当前视图匹配得到时返回 None（照常处理）；否则从内往外找第一个能匹配的外层视图，
+    返回应保留的栈深度（栈中这一层以内的帧保留）。都匹配不到时返回 None。"""
+    frames = [f for f in stack if f.indent < indent] or []
+    if not frames or frames[-1].raw:
+        return None
+
+    def matches(view: str) -> bool:
+        if stripped.split()[0].lower() == index.negative and match_undo(index, view, stripped):
+            return True
+        return match_line(index, view, stripped) is not None
+
+    if matches(frames[-1].view):
+        return None
+    for depth in range(len(frames) - 1, 0, -1):
+        if frames[depth - 1].raw:
+            return None
+        if matches(frames[depth - 1].view):
+            return depth
+    return 0 if matches(index.root_view) else None
+
+
 def parse(text: str, kb: KnowledgeBase, family: str) -> Parsed:
     fam = kb.families[family]
     index = CardIndex(kb, family)
@@ -225,9 +248,15 @@ def parse(text: str, kb: KnowledgeBase, family: str) -> Parsed:
             prev_indent, prev_entered = indent, False
             continue
 
-        # 异常缩进：比上一行深很多，而上一行没有进入子视图 → 视作与上一行同级
+        # 异常缩进：比上一行深很多，而上一行没有进入子视图 → 视作与上一行同级；
+        # 如果在上一行的视图里匹配不到，再逐级往外层视图找（分页痕迹可能出现在一个子视图块的第一行，
+        # 例如 OSPF 的 frr 块之后的 “                 area 0.0.0.8”），匹配到哪一层就按那一层的缩进算
         if indent > prev_indent + 1 and not prev_entered:
             indent = prev_indent
+            depth = _abnormal_depth(stack, indent, index, stripped)
+            if depth is not None:
+                del stack[depth:]
+                indent = stack[-1].indent + 1 if stack else 0
         while stack and stack[-1].indent >= indent:
             stack.pop()
         frame = stack[-1] if stack else None
@@ -245,8 +274,9 @@ def parse(text: str, kb: KnowledgeBase, family: str) -> Parsed:
             if neg:
                 card, m, usyn = neg
                 line = Line(no, raw, "command", lead, view, card.id, m, parent, card.domain, negated=True)
-                if syn.render(usyn, m) != stripped:
-                    line.fmt = stripped
+                body = raw[len(lead) :]
+                if syn.render(usyn, m) != body:
+                    line.fmt = body  # 只差空白（多个空格、行尾空格）；保留原文
                 out.lines.append(line)
                 prev_indent, prev_entered = indent, False
                 continue
@@ -256,8 +286,9 @@ def parse(text: str, kb: KnowledgeBase, family: str) -> Parsed:
             card, m = hit
             line = Line(no, raw, "command", lead, view, card.id, m, parent, card.domain)
             rendered = syn.render(card.parsed, m)
-            if rendered != stripped:
-                line.fmt = stripped  # 只差空白（例如多个空格）；保留原文
+            body = raw[len(lead) :]
+            if rendered != body:
+                line.fmt = body  # 只差空白（例如多个空格、行尾空格）；保留原文
             out.lines.append(line)
             entered = bool(card.enters_view)
             if entered:

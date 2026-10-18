@@ -14,6 +14,49 @@ side_effects:
   - {from: interface.vrf, to: interface.ipv4, note: 华为接口绑定 vpn-instance 会删除接口 IP，需在绑定后补发}
 # entries 由命令卡汇总生成（lmesh kb map）；人工补充的条目标 manual: true，汇总时保留
 entries:
+  bfd.global:
+    supported: true
+    cards:
+      - huawei-vrp8.bfd~2
+  bfd.session:
+    supported: true
+    cards:
+      - huawei-vrp8.bfd-bind-peer-ip.1
+      - huawei-vrp8.bfd-bind-peer-ip.2
+  bfd.session.interface:
+    supported: true
+    cards:
+      - huawei-vrp8.bfd-bind-peer-ip.1
+      - huawei-vrp8.bfd-bind-peer-ip.2
+  bfd.session.local_discriminator:
+    supported: true
+    cards:
+      - huawei-vrp8.discriminator.1
+  bfd.session.min_rx:
+    supported: true
+    cards:
+      - huawei-vrp8.min-rx-interval
+  bfd.session.min_tx:
+    supported: true
+    cards:
+      - huawei-vrp8.min-tx-interval
+  bfd.session.multiplier:
+    supported: true
+    cards:
+      - huawei-vrp8.detect-multiplier
+    manual: true
+    default: 3
+    source: 命令参考 detect-multiplier：缺省 3
+    verified: doc
+  bfd.session.peer:
+    supported: true
+    cards:
+      - huawei-vrp8.bfd-bind-peer-ip.1
+      - huawei-vrp8.bfd-bind-peer-ip.2
+  bfd.session.remote_discriminator:
+    supported: true
+    cards:
+      - huawei-vrp8.discriminator.2
   bgp.af:
     supported: true
     cards:
@@ -411,6 +454,57 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.ip-address
+  interface.isis:
+    supported: true
+    cards:
+      - huawei-vrp8.isis-bfd-enable.2
+      - huawei-vrp8.isis-circuit-level
+      - huawei-vrp8.isis-circuit-type.1
+      - huawei-vrp8.isis-cost.1
+      - huawei-vrp8.isis-enable.1
+      - huawei-vrp8.isis-enable.2
+      - huawei-vrp8.isis-silent.1
+  interface.isis.bfd:
+    supported: true
+    cards:
+      - huawei-vrp8.isis-bfd-enable.2
+    manual: true
+    default: false
+    source: 缺省接口不单独使能 IS-IS BFD
+    verified: doc
+  interface.isis.circuit_type:
+    supported: true
+    cards:
+      - huawei-vrp8.isis-circuit-level
+  interface.isis.metric:
+    supported: true
+    cards:
+      - huawei-vrp8.isis-cost.1
+    manual: true
+    default: 10
+    source: 命令参考 isis cost / isis metric：缺省 10
+    verified: doc
+  interface.isis.p2p:
+    supported: true
+    cards:
+      - huawei-vrp8.isis-circuit-type.1
+    manual: true
+    default: false
+    source: 缺省按接口介质（以太网为广播）
+    verified: doc
+  interface.isis.passive:
+    supported: true
+    cards:
+      - huawei-vrp8.isis-silent.1
+    manual: true
+    default: false
+    source: 缺省不是被动接口
+    verified: doc
+  interface.isis.process:
+    supported: true
+    cards:
+      - huawei-vrp8.isis-enable.1
+      - huawei-vrp8.isis-enable.2
   interface.l2:
     supported: true
     cards:
@@ -437,6 +531,106 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.negotiation-auto
+  interface.ospf:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf-authentication-mode-multi-area.1
+      - huawei-vrp8.ospf-authentication-mode-multi-area.2
+      - huawei-vrp8.ospf-authentication-mode.1
+      - huawei-vrp8.ospf-authentication-mode.2
+      - huawei-vrp8.ospf-authentication-mode.3
+      - huawei-vrp8.ospf-authentication-mode.4
+      - huawei-vrp8.ospf-bfd.1
+      - huawei-vrp8.ospf-cost
+      - huawei-vrp8.ospf-dr-priority
+      - huawei-vrp8.ospf-enable
+      - huawei-vrp8.ospf-ldp-sync.1
+      - huawei-vrp8.ospf-network-type
+      - huawei-vrp8.ospf-timer-dead
+      - huawei-vrp8.ospf-timer-hello
+      - huawei-vrp8.ospf-timer-hello-multi-area
+  interface.ospf.area:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf-enable
+  interface.ospf.authentication:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf-authentication-mode-multi-area.1
+      - huawei-vrp8.ospf-authentication-mode-multi-area.2
+      - huawei-vrp8.ospf-authentication-mode.1
+      - huawei-vrp8.ospf-authentication-mode.2
+      - huawei-vrp8.ospf-authentication-mode.3
+      - huawei-vrp8.ospf-authentication-mode.4
+  interface.ospf.bfd:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf-bfd.1
+    manual: true
+    default: false
+    source: 命令参考：缺省接口不单独使能 OSPF BFD
+    verified: doc
+  interface.ospf.cost:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf-cost
+  interface.ospf.dead:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf-timer-dead
+    manual: true
+    default: 40
+    source: 命令参考：广播与点到点网络缺省 40 秒（hello 的 4 倍）
+    verified: doc
+    when:
+      attr:
+        network_type:
+          - broadcast
+          - p2p
+  interface.ospf.hello:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf-timer-hello
+      - huawei-vrp8.ospf-timer-hello-multi-area
+    manual: true
+    default: 10
+    source: 命令参考：广播与点到点网络缺省 10 秒
+    verified: doc
+    when:
+      attr:
+        network_type:
+          - broadcast
+          - p2p
+  interface.ospf.ldp_sync:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf-ldp-sync.1
+    manual: true
+    default: false
+    source: 命令参考：缺省不使能 OSPF 与 LDP 同步
+    verified: doc
+  interface.ospf.network_type:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf-network-type
+    manual: true
+    default: broadcast
+    source: 命令参考：以太网类接口缺省为广播类型（Loopback 除外）
+    verified: doc
+    when:
+      not_key: ^(?i:loopback)
+  interface.ospf.priority:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf-dr-priority
+    manual: true
+    default: 1
+    source: 命令参考 ospf dr-priority / ip ospf priority：缺省 1
+    verified: doc
+  interface.ospf.process:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf-enable
   interface.shutdown:
     manual: true
     supported: true
@@ -456,6 +650,500 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.ip-binding-vpn-instance
+  isis.process:
+    supported: true
+    cards:
+      - huawei-vrp8.isis.1
+      - huawei-vrp8.isis.2
+  isis.process.bfd_all:
+    supported: true
+    cards:
+      - huawei-vrp8.bfd-all-interfaces-enable
+    manual: true
+    default: false
+    source: 命令参考 bfd all-interfaces：缺省不使能
+    verified: doc
+  isis.process.frr:
+    supported: true
+    cards:
+      - huawei-vrp8.frr.1
+    manual: true
+    default: false
+    source: 缺省不使能 IS-IS 快速重路由
+    verified: doc
+  isis.process.level:
+    supported: true
+    cards:
+      - huawei-vrp8.is-level
+    manual: true
+    default: level-1-2
+    source: 命令参考 is-level / is-type：缺省 level-1-2
+    verified: doc
+  isis.process.metric_style:
+    supported: true
+    cards:
+      - huawei-vrp8.cost-style
+    manual: true
+    default: narrow
+    source: 命令参考 cost-style / metric-style：缺省 narrow
+    verified: doc
+  isis.process.net:
+    supported: true
+    cards:
+      - huawei-vrp8.network-entity
+  isis.process.vrf:
+    supported: true
+    cards:
+      - huawei-vrp8.isis.1
+      - huawei-vrp8.isis.2
+  mgmt.aaa:
+    supported: true
+    cards:
+      - huawei-vrp8.aaa
+  mgmt.aaa.domain:
+    supported: true
+    cards:
+      - huawei-vrp8.domain
+  mgmt.aaa.domain.accounting:
+    supported: true
+    cards:
+      - huawei-vrp8.accounting-scheme~2
+  mgmt.aaa.domain.authentication:
+    supported: true
+    cards:
+      - huawei-vrp8.authentication-scheme
+  mgmt.aaa.domain.authorization:
+    supported: true
+    cards:
+      - huawei-vrp8.authorization-scheme~2
+  mgmt.aaa.domain.tacacs:
+    supported: true
+    cards:
+      - huawei-vrp8.hwtacacs-server
+  mgmt.aaa.scheme:
+    supported: true
+    cards:
+      - huawei-vrp8.accounting-scheme
+      - huawei-vrp8.authentication-scheme~2
+      - huawei-vrp8.authorization-scheme
+  mgmt.aaa.scheme.methods:
+    supported: true
+    cards:
+      - huawei-vrp8.accounting-mode
+      - huawei-vrp8.authentication-mode.1~2
+      - huawei-vrp8.authorization-mode
+  mgmt.aaa.user:
+    supported: true
+    cards:
+      - huawei-vrp8.local-user-level
+      - huawei-vrp8.local-user-password-expire
+      - huawei-vrp8.local-user-password.1
+      - huawei-vrp8.local-user-password.2
+      - huawei-vrp8.local-user-service-type.1
+      - huawei-vrp8.local-user-state
+  mgmt.aaa.user.level:
+    supported: true
+    cards:
+      - huawei-vrp8.local-user-level
+  mgmt.aaa.user.password_set:
+    supported: true
+    cards:
+      - huawei-vrp8.local-user-password-expire
+      - huawei-vrp8.local-user-password.1
+      - huawei-vrp8.local-user-password.2
+  mgmt.aaa.user.service_type:
+    supported: true
+    cards:
+      - huawei-vrp8.local-user-service-type.1
+  mgmt.aaa.user.state:
+    supported: true
+    cards:
+      - huawei-vrp8.local-user-state
+  mgmt.ftp:
+    supported: true
+    cards:
+      - huawei-vrp8.ftp-server-source.4
+  mgmt.ftp.source_all:
+    supported: true
+    cards:
+      - huawei-vrp8.ftp-server-source.4
+  mgmt.line:
+    supported: true
+    cards:
+      - huawei-vrp8.user-interface
+      - huawei-vrp8.user-interface-vty
+  mgmt.line.acl_in:
+    supported: true
+    cards:
+      - huawei-vrp8.acl.1
+  mgmt.line.auth:
+    supported: true
+    cards:
+      - huawei-vrp8.authentication-mode.1@user-interface-con
+      - huawei-vrp8.authentication-mode.1@user-interface-vty
+      - huawei-vrp8.authentication-mode.2@user-interface-con
+      - huawei-vrp8.authentication-mode.2@user-interface-vty
+  mgmt.line.idle_timeout:
+    supported: true
+    cards:
+      - huawei-vrp8.idle-timeout@user-interface-con
+      - huawei-vrp8.idle-timeout@user-interface-vty
+    manual: true
+    default: 10 0
+    source: 命令参考 idle-timeout / exec-timeout：缺省 10 分钟
+    verified: doc
+  mgmt.line.privilege:
+    supported: true
+    cards:
+      - huawei-vrp8.user-privilege-level@user-interface-con
+      - huawei-vrp8.user-privilege-level@user-interface-vty
+  mgmt.line.protocols:
+    supported: true
+    cards:
+      - huawei-vrp8.protocol-inbound
+  mgmt.ntp:
+    supported: true
+    cards:
+      - huawei-vrp8.ntp-service-access
+      - huawei-vrp8.ntp-service-authentication-enable
+      - huawei-vrp8.ntp-service-server-disable
+      - huawei-vrp8.ntp-service-unicast-server
+  mgmt.ntp.access:
+    supported: true
+    cards:
+      - huawei-vrp8.ntp-service-access
+  mgmt.ntp.access.acl:
+    supported: true
+    cards:
+      - huawei-vrp8.ntp-service-access
+  mgmt.ntp.authentication:
+    supported: true
+    cards:
+      - huawei-vrp8.ntp-service-authentication-enable
+    manual: true
+    default: false
+    source: 命令参考 ntp-service authentication enable / ntp authenticate：缺省不认证
+    verified: doc
+  mgmt.ntp.server:
+    supported: true
+    cards:
+      - huawei-vrp8.ntp-service-unicast-server
+  mgmt.ntp.server.key:
+    supported: true
+    cards:
+      - huawei-vrp8.ntp-service-unicast-server
+  mgmt.ntp.server.prefer:
+    supported: true
+    cards:
+      - huawei-vrp8.ntp-service-unicast-server
+  mgmt.ntp.server.source_interface:
+    supported: true
+    cards:
+      - huawei-vrp8.ntp-service-unicast-server
+  mgmt.ntp.server.vrf:
+    supported: true
+    cards:
+      - huawei-vrp8.ntp-service-unicast-server
+  mgmt.ntp.server_disabled:
+    supported: true
+    cards:
+      - huawei-vrp8.ntp-service-server-disable
+  mgmt.snmp:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent
+      - huawei-vrp8.snmp-agent-community.2
+      - huawei-vrp8.snmp-agent-sys-info
+      - huawei-vrp8.snmp-agent-sys-info-version
+      - huawei-vrp8.snmp-agent-target-host.2
+      - huawei-vrp8.snmp-agent-trap-source
+      - huawei-vrp8.snmp-agent-trap-source-ipv6
+      - huawei-vrp8.snmp-agent-trap.1
+  mgmt.snmp.community:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-community.2
+  mgmt.snmp.community.access:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-community.2
+  mgmt.snmp.community.acl:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-community.2
+  mgmt.snmp.contact:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-sys-info
+  mgmt.snmp.enabled:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent
+  mgmt.snmp.host:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-target-host.2
+  mgmt.snmp.host.source_interface:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-target-host.2
+  mgmt.snmp.host.version:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-target-host.2
+  mgmt.snmp.location:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-sys-info
+  mgmt.snmp.trap_enable:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-trap.1
+    manual: true
+    default: false
+    source: 命令参考 snmp-agent trap enable：缺省不发送告警
+    verified: doc
+  mgmt.snmp.trap_source:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-trap-source
+  mgmt.snmp.versions:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-sys-info-version
+  mgmt.ssh:
+    supported: true
+    cards:
+      - huawei-vrp8.sftp-server-enable
+      - huawei-vrp8.ssh-server-authentication-retries
+      - huawei-vrp8.ssh-server-source.2
+      - huawei-vrp8.ssh-server-timeout
+      - huawei-vrp8.ssh-user-service-type
+      - huawei-vrp8.ssh-user.1
+      - huawei-vrp8.ssh-user.3
+      - huawei-vrp8.ssh-user.4
+      - huawei-vrp8.stelnet-server-enable
+  mgmt.ssh.enabled:
+    supported: true
+    cards:
+      - huawei-vrp8.stelnet-server-enable
+    manual: true
+    default: false
+    source: 命令参考 stelnet server enable：缺省关闭 STelnet 服务
+    verified: doc
+  mgmt.ssh.retries:
+    supported: true
+    cards:
+      - huawei-vrp8.ssh-server-authentication-retries
+    manual: true
+    default: 3
+    source: 命令参考 ssh server authentication-retries / ip ssh authentication-retries：缺省 3 次
+    verified: doc
+  mgmt.ssh.sftp:
+    supported: true
+    cards:
+      - huawei-vrp8.sftp-server-enable
+  mgmt.ssh.source_all:
+    supported: true
+    cards:
+      - huawei-vrp8.ssh-server-source.2
+  mgmt.ssh.timeout:
+    supported: true
+    cards:
+      - huawei-vrp8.ssh-server-timeout
+  mgmt.ssh.user:
+    supported: true
+    cards:
+      - huawei-vrp8.ssh-user-service-type
+      - huawei-vrp8.ssh-user.1
+      - huawei-vrp8.ssh-user.3
+      - huawei-vrp8.ssh-user.4
+  mgmt.ssh.user.auth_type:
+    supported: true
+    cards:
+      - huawei-vrp8.ssh-user.3
+  mgmt.ssh.user.service_type:
+    supported: true
+    cards:
+      - huawei-vrp8.ssh-user-service-type
+      - huawei-vrp8.ssh-user.4
+  mgmt.syslog:
+    supported: true
+    cards:
+      - huawei-vrp8.info-center-loghost-source
+      - huawei-vrp8.info-center-loghost.1
+  mgmt.syslog.host:
+    supported: true
+    cards:
+      - huawei-vrp8.info-center-loghost.1
+  mgmt.syslog.host.vrf:
+    supported: true
+    cards:
+      - huawei-vrp8.info-center-loghost.1
+  mgmt.syslog.source_interface:
+    supported: true
+    cards:
+      - huawei-vrp8.info-center-loghost-source
+  mgmt.tacacs:
+    supported: true
+    cards:
+      - huawei-vrp8.hwtacacs-server-template
+  mgmt.tacacs.key_set:
+    supported: true
+    cards:
+      - huawei-vrp8.hwtacacs-server-shared-key.2
+  mgmt.tacacs.server:
+    supported: true
+    cards:
+      - huawei-vrp8.hwtacacs-server-accounting.1
+      - huawei-vrp8.hwtacacs-server-accounting.2
+      - huawei-vrp8.hwtacacs-server-authentication.1
+      - huawei-vrp8.hwtacacs-server-authentication.2
+      - huawei-vrp8.hwtacacs-server-authorization.1
+      - huawei-vrp8.hwtacacs-server-authorization.2
+  mgmt.tacacs.server.secondary:
+    supported: true
+    cards:
+      - huawei-vrp8.hwtacacs-server-accounting.1
+      - huawei-vrp8.hwtacacs-server-accounting.2
+      - huawei-vrp8.hwtacacs-server-authentication.1
+      - huawei-vrp8.hwtacacs-server-authentication.2
+      - huawei-vrp8.hwtacacs-server-authorization.1
+      - huawei-vrp8.hwtacacs-server-authorization.2
+  mgmt.tacacs.source:
+    supported: true
+    cards:
+      - huawei-vrp8.hwtacacs-server-source-ip.1
+  mgmt.tacacs.timeout:
+    supported: true
+    cards:
+      - huawei-vrp8.hwtacacs-server-timer-response-timeout
+  mgmt.telnet:
+    supported: true
+    cards:
+      - huawei-vrp8.telnet-server-enable
+      - huawei-vrp8.telnet-server-source.2
+  mgmt.telnet.enabled:
+    supported: true
+    cards:
+      - huawei-vrp8.telnet-server-enable
+    manual: true
+    default: false
+    source: 命令参考 telnet server enable：V800R025 缺省关闭 Telnet 服务
+    verified: doc
+  mgmt.telnet.source_all:
+    supported: true
+    cards:
+      - huawei-vrp8.telnet-server-source.2
+  ospf.process:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf.1
+      - huawei-vrp8.ospf.2
+  ospf.process.area:
+    supported: true
+    cards:
+      - huawei-vrp8.area
+  ospf.process.area.authentication:
+    supported: true
+    cards:
+      - huawei-vrp8.authentication-mode.1
+      - huawei-vrp8.authentication-mode.2
+      - huawei-vrp8.authentication-mode.3
+  ospf.process.area.network:
+    supported: true
+    cards:
+      - huawei-vrp8.network.1~2
+      - huawei-vrp8.network.2~2
+  ospf.process.area.network.description:
+    supported: true
+    cards:
+      - huawei-vrp8.network.2~2
+  ospf.process.area.type:
+    supported: true
+    cards:
+      - huawei-vrp8.nssa
+      - huawei-vrp8.stub
+    manual: true
+    default: normal
+    source: 缺省为普通区域
+    verified: doc
+  ospf.process.bandwidth_reference:
+    supported: true
+    cards:
+      - huawei-vrp8.bandwidth-reference
+    manual: true
+    default: 100
+    source: 命令参考 bandwidth-reference / auto-cost reference-bandwidth：缺省 100 Mbit/s
+    verified: doc
+  ospf.process.bfd_all:
+    supported: true
+    cards:
+      - huawei-vrp8.bfd-all-interfaces-enable.1
+    manual: true
+    default: false
+    source: 命令参考 bfd all-interfaces：缺省不使能
+    verified: doc
+  ospf.process.bfd_min_rx:
+    supported: true
+    cards:
+      - huawei-vrp8.bfd-all-interfaces
+  ospf.process.bfd_min_tx:
+    supported: true
+    cards:
+      - huawei-vrp8.bfd-all-interfaces
+  ospf.process.default_originate:
+    supported: true
+    cards:
+      - huawei-vrp8.default-route-advertise.1
+    manual: true
+    default: false
+    source: 命令参考 default-route-advertise / default-information originate：缺省不发布缺省路由
+    verified: doc
+  ospf.process.frr:
+    supported: true
+    cards:
+      - huawei-vrp8.frr
+    manual: true
+    default: false
+    source: 命令参考：缺省不使能 OSPF 快速重路由
+    verified: doc
+  ospf.process.passive:
+    supported: true
+    cards:
+      - huawei-vrp8.silent-interface
+  ospf.process.passive.enabled:
+    supported: true
+    cards:
+      - huawei-vrp8.silent-interface
+  ospf.process.passive_default:
+    supported: true
+    cards:
+      - huawei-vrp8.silent-interface
+    manual: true
+    default: false
+    source: 命令参考 silent-interface / passive-interface：缺省所有接口都不是被动接口
+    verified: doc
+  ospf.process.redistribute:
+    supported: true
+    cards:
+      - huawei-vrp8.import-route.1~5
+      - huawei-vrp8.import-route.2~5
+  ospf.process.redistribute.policy:
+    supported: true
+    cards:
+      - huawei-vrp8.import-route.1~5
+      - huawei-vrp8.import-route.2~5
+  ospf.process.router_id:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf.1
+      - huawei-vrp8.ospf.2
+  ospf.process.vrf:
+    supported: true
+    cards:
+      - huawei-vrp8.ospf.1
+      - huawei-vrp8.ospf.2
   rp.community_list:
     supported: true
     cards:

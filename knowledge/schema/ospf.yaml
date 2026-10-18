@@ -1,0 +1,147 @@
+# OSPF 功能域（0.2.0）：华为 ospf <进程> / Cisco router ospf <进程>，区域、network、被动接口、FRR、BFD 联动；
+# 接口上的 OSPF 参数（华为 ospf cost / Cisco ip ospf cost 等）挂在接口下的 interface.ospf。
+domain: ospf
+nodes:
+  ospf.process:
+    type: object
+    key: [id]
+    semantic: {zh-CN: OSPF 进程, en: OSPF process}
+    status: reviewed
+  ospf.process.router_id:
+    parent: ospf.process
+    type: ipv4
+    semantic: {zh-CN: Router ID, en: Router ID}
+  ospf.process.vrf:
+    parent: ospf.process
+    type: ref
+    ref: vrf.instance
+    semantic: {zh-CN: 所属 VRF（VPN 实例）, en: VRF}
+  ospf.process.bandwidth_reference:
+    parent: ospf.process
+    type: integer
+    range: [1, 2147483648]
+    semantic: {zh-CN: 计算开销的参考带宽（Mbit/s）, en: Reference bandwidth (Mbit/s)}
+  ospf.process.passive_default:
+    parent: ospf.process
+    type: boolean
+    semantic: {zh-CN: 默认所有接口为被动接口（华为 silent-interface all / Cisco passive-interface default）, en: Passive by default}
+  ospf.process.passive:
+    parent: ospf.process
+    type: object
+    key: [interface]
+    semantic: {zh-CN: 单个接口的被动设置（值为 true 表示被动，false 表示在默认被动时取消）, en: Per-interface passive setting}
+  ospf.process.passive.enabled:
+    parent: ospf.process.passive
+    type: boolean
+    semantic: {zh-CN: 是否被动, en: Passive}
+  ospf.process.bfd_all:
+    parent: ospf.process
+    type: boolean
+    semantic: {zh-CN: 在所有 OSPF 接口上启用 BFD, en: BFD on all interfaces}
+  ospf.process.bfd_min_tx:
+    parent: ospf.process
+    type: integer
+    semantic: {zh-CN: BFD 最小发送间隔（毫秒）, en: BFD min TX interval (ms)}
+  ospf.process.bfd_min_rx:
+    parent: ospf.process
+    type: integer
+    semantic: {zh-CN: BFD 最小接收间隔（毫秒）, en: BFD min RX interval (ms)}
+  ospf.process.frr:
+    parent: ospf.process
+    type: boolean
+    semantic: {zh-CN: 启用 OSPF 快速重路由（LFA）, en: OSPF fast reroute (LFA)}
+  ospf.process.log_adjacency:
+    parent: ospf.process
+    type: boolean
+    semantic: {zh-CN: 记录邻接关系变化, en: Log adjacency changes}
+  ospf.process.redistribute:
+    parent: ospf.process
+    type: object
+    key: [protocol]
+    semantic: {zh-CN: 引入其他协议的路由, en: Redistribution}
+  ospf.process.redistribute.policy:
+    parent: ospf.process.redistribute
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 引入时应用的路由策略, en: Route policy}
+  ospf.process.default_originate:
+    parent: ospf.process
+    type: boolean
+    semantic: {zh-CN: 发布缺省路由, en: Default route origination}
+  ospf.process.area:
+    parent: ospf.process
+    type: object
+    key: [id]
+    semantic: {zh-CN: OSPF 区域（点分十进制）, en: OSPF area}
+  ospf.process.area.type:
+    parent: ospf.process.area
+    type: enum
+    choices: [normal, stub, nssa]
+    semantic: {zh-CN: 区域类型, en: Area type}
+  ospf.process.area.authentication:
+    parent: ospf.process.area
+    type: enum
+    choices: [none, simple, md5, hmac-sha256, keychain]
+    semantic: {zh-CN: 区域认证方式, en: Area authentication}
+  ospf.process.area.network:
+    parent: ospf.process.area
+    type: object
+    key: [prefix]
+    semantic: {zh-CN: 宣告的网段（地址 + 反掩码）, en: Advertised network}
+  ospf.process.area.network.description:
+    parent: ospf.process.area.network
+    type: text
+    semantic: {zh-CN: 网段描述, en: Description}
+  interface.ospf:
+    parent: interface
+    type: object
+    key: [id]
+    semantic: {zh-CN: 接口上的 OSPF 参数（每个接口一个，编号固定为 "_"）, en: Interface OSPF settings}
+  interface.ospf.process:
+    parent: interface.ospf
+    type: string
+    semantic: {zh-CN: 接口启用的进程（华为不写时为 1；Cisco IS-IS 没有标签时为 "_"）, en: Process}
+  interface.ospf.area:
+    parent: interface.ospf
+    type: string
+    semantic: {zh-CN: 接口所属区域（Cisco ip ospf <进程> area <区域>）, en: Area}
+  interface.ospf.cost:
+    parent: interface.ospf
+    type: integer
+    range: [1, 65535]
+    semantic: {zh-CN: 接口开销, en: Cost}
+  interface.ospf.network_type:
+    parent: interface.ospf
+    type: enum
+    choices: [broadcast, p2p, p2mp, nbma]
+    semantic: {zh-CN: 网络类型（Cisco point-to-point 记为 p2p）, en: Network type}
+  interface.ospf.authentication:
+    parent: interface.ospf
+    type: enum
+    choices: [none, simple, md5, hmac-sha256, keychain]
+    semantic: {zh-CN: 接口认证方式, en: Authentication}
+  interface.ospf.hello:
+    parent: interface.ospf
+    type: integer
+    semantic: {zh-CN: Hello 间隔（秒）, en: Hello interval}
+  interface.ospf.dead:
+    parent: interface.ospf
+    type: integer
+    semantic: {zh-CN: 邻居失效时间（秒）, en: Dead interval}
+  interface.ospf.priority:
+    parent: interface.ospf
+    type: integer
+    range: [0, 255]
+    semantic: {zh-CN: DR 优先级, en: DR priority}
+  interface.ospf.ldp_sync:
+    parent: interface.ospf
+    type: boolean
+    semantic: {zh-CN: OSPF 与 LDP 同步, en: LDP synchronization}
+  interface.ospf.bfd:
+    parent: interface.ospf
+    type: boolean
+    semantic: {zh-CN: 接口启用 OSPF BFD, en: BFD}
+deps:
+  - {kind: reference, from: ospf.process.vrf, to: vrf.instance}
+  - {kind: reference, from: ospf.process.redistribute.policy, to: rp.policy}
+  - {kind: cross_device, from: interface.ospf.area, to: interface.ospf.area, note: 链路两端的接口应在同一区域、网络类型一致}

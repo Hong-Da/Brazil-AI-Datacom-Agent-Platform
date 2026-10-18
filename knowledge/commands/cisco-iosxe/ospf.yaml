@@ -1,0 +1,575 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: ospf
+cards:
+  - id: cisco-iosxe.area-authentication
+    syntax: area <area-id> authentication [ message-digest ]
+    view: router-ospf
+    undo: no area <area-id> authentication [ message-digest ]
+    params:
+      area-id:
+        type: word
+    default: Type 0 authentication (no authentication)
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/area authentication.md
+      title: area authentication
+      line: 5
+      version: '17.15'
+      patched: 原文语法行混入了 HTML 残留文字 “area authentication command”
+    status: draft
+    maps:
+      ospf.process.area: $area-id
+      ospf.process.area.authentication: kw:message-digest=md5:simple
+  - id: cisco-iosxe.area-nssa
+    syntax: area <area-id> nssa [ no-redistribution ] [ default-information-originate ] [ no-summary ]
+    view: router-ospf
+    undo: no area <area-id> nssa [ no-redistribution ] [ default-information-originate ] [ no-summary ]
+    params:
+      area-id:
+        type: word
+    default: No NSSA area is defined.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/area nssa.md
+      title: area nssa
+      line: 5
+      version: '17.15'
+      patched: 原文语法行混入了 HTML 残留文字 “area nssa command”
+    status: draft
+    maps:
+      ospf.process.area: $area-id
+      ospf.process.area.type: nssa
+  - id: cisco-iosxe.area-range
+    syntax: area <area-id> range <ipv6-prefix> / <prefix-length> [ advertise | not-advertise ] [ cost <cost> ]
+    view: router-ospf
+    undo: no area <area-id> range <ipv6-prefix> / <prefix-length> [ advertise | not-advertise ] [ cost <cost> ]
+    params:
+      area-id:
+        type: word
+      ipv6-prefix:
+        type: ipv4
+      prefix-length:
+        type: mask-length
+      cost:
+        type: word
+    default: This command is disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/area range.md
+      title: area range
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.area-stub
+    syntax: area <area-id> stub [ no-summary ]
+    view: router-ospf
+    undo: no area <area-id> stub [ no-summary ]
+    params:
+      area-id:
+        type: word
+    default: No stub area is defined.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/area stub.md
+      title: area stub
+      line: 5
+      version: '17.15'
+      patched: 原文语法行混入了 HTML 残留文字 “area stub command”
+    status: draft
+    maps:
+      ospf.process.area: $area-id
+      ospf.process.area.type: stub
+  - id: cisco-iosxe.auto-cost
+    syntax: auto-cost reference-bandwidth <mbps>
+    view: router-ospf
+    undo: no auto-cost reference-bandwidth
+    params:
+      mbps:
+        type: integer
+        range:
+          - 1
+          - 4294967
+    default: 100 Mbps
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/auto-cost.md
+      title: auto-cost
+      line: 5
+      version: '17.15'
+      patched: 原文语法行混入了 HTML 残留文字 “auto-cost command”
+    status: draft
+    maps:
+      ospf.process.bandwidth_reference: $mbps
+  - id: cisco-iosxe.default-information-originate~3
+    syntax: default-information originate [ always ] [ metric <metric-value> ] [ metric-type <type-value> ] [ route-map <map-name> ]
+    view: router-ospf
+    undo: no default-information originate [ always ] [ metric <metric-value> ] [ metric-type <type-value> ] [ route-map <map-name> ]
+    params:
+      metric-value:
+        type: word
+      type-value:
+        type: word
+      map-name:
+        type: word
+    default: This command is disabled by default. No default external route is generated into the OSPF routing domain.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/default-information originate (OSPF).md
+      title: default-information originate (OSPF)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      ospf.process.default_originate: flag
+  - id: cisco-iosxe.fast-reroute-per-prefix-enable
+    syntax: fast-reroute per-prefix enable [ area <area-id> ] prefix-priority { high | low }
+    view: router-ospf
+    undo: no fast-reroute per-prefix enable [ area <area-id> ] prefix-priority { high | low }
+    params:
+      area-id:
+        type: word
+    default: LFA is enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/fast-reroute per-prefix enable (OSPF).md
+      title: fast-reroute per-prefix enable (OSPF)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      ospf.process.frr: flag
+  - id: cisco-iosxe.ip-ospf-area
+    syntax: ip ospf <process-id> area <area-id> [ secondaries none ]
+    view: interface
+    undo: no ip ospf <process-id> area [ secondaries none ]
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 65535
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: If the secondaries none keywords are entered in the no form of this command, the secondary IP addresses will be advertised. If the secondaries none keywords are not present, OSPFv2 will be disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/ip ospf area.md
+      title: ip ospf area
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.process: $process-id
+      interface.ospf.area: $area-id
+  - id: cisco-iosxe.ip-ospf-authentication-key
+    syntax: ip ospf authentication-key [ 0 | 7 ] <password>
+    view: interface
+    undo: no ip ospf authentication-key
+    params:
+      password:
+        type: word
+    default: No password is specified.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/ip ospf authentication-key.md
+      title: ip ospf authentication-key
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-ospf-authentication
+    syntax: ip ospf authentication [ key-chain <name> | message-digest | null ]
+    view: interface
+    undo: no ip ospf authentication
+    params:
+      name:
+        type: word
+    default: The authentication type for an interface is not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/ip ospf authentication.md
+      title: ip ospf authentication
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.authentication: kw:message-digest=md5|key-chain=keychain|null=none:simple
+  - id: cisco-iosxe.ip-ospf-bfd
+    syntax: ip ospf bfd [ disable ]
+    view: interface
+    undo: no ip ospf bfd
+    default: When the disable keyword is not used, the default behavior is to enable BFD support for OSPF on the interface.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/ip ospf bfd.md
+      title: ip ospf bfd
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.bfd: if:disable:false||flag
+  - id: cisco-iosxe.ip-ospf-cost
+    syntax: ip ospf cost <interface-cost>
+    view: interface
+    undo: no ip ospf cost <interface-cost>
+    params:
+      interface-cost:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: No default cost is predefined.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/ip ospf cost.md
+      title: ip ospf cost
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.cost: $interface-cost
+  - id: cisco-iosxe.ip-ospf-dead-interval
+    syntax: ip ospf dead-interval { <seconds> | minimal hello-multiplier <multiplier> }
+    view: interface
+    undo: no ip ospf dead-interval
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 65535
+      multiplier:
+        type: integer
+        range:
+          - 3
+          - 20
+    default: 'seconds : Four times the interval set by the ip ospf hello-interval command.'
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/ip ospf dead-interval.md
+      title: ip ospf dead-interval
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.dead: $seconds
+  - id: cisco-iosxe.ip-ospf-hello-interval
+    syntax: ip ospf hello-interval <seconds>
+    view: interface
+    undo: no ip ospf hello-interval
+    params:
+      seconds:
+        type: word
+    default: 10 seconds (Ethernet) 30 seconds (nonbroadcast)
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/ip ospf hello-interval.md
+      title: ip ospf hello-interval
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.hello: $seconds
+  - id: cisco-iosxe.ip-ospf-message-digest-key-md5
+    syntax: ip ospf message-digest-key <key-id> md5 [ <encryption-type> ] <key>
+    view: interface
+    undo: no ip ospf message-digest-key <key-id>
+    params:
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+      encryption-type:
+        type: integer
+        range:
+          - 0
+          - 7
+      key:
+        type: word
+    default: OSPF MD5 authentication is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/ip ospf message-digest-key md5.md
+      title: ip ospf message-digest-key md5
+      line: 5
+      version: '17.15'
+      patched: 原文把加密类型写在 md5 之前；运行配置中是 message-digest-key 编号 md5 [类型] 密钥
+    status: draft
+  - id: cisco-iosxe.ip-ospf-mtu-ignore
+    syntax: ip ospf mtu-ignore [ disable ]
+    view: interface
+    undo: no ip ospf mtu-ignore
+    default: OSPF MTU mismatch detection is enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/ip ospf mtu-ignore.md
+      title: ip ospf mtu-ignore
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-ospf-network
+    syntax: ip ospf network { broadcast | non-broadcast | { point-to-multipoint [ non-broadcast ] | point-to-point } }
+    view: interface
+    undo: no ip ospf network
+    default: Depends on the network type.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/ip ospf network.md
+      title: ip ospf network
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.network_type: kw:point-to-point=p2p|point-to-multipoint=p2mp|non-broadcast=nbma|broadcast
+  - id: cisco-iosxe.ip-ospf-priority
+    syntax: ip ospf priority <number-value>
+    view: interface
+    undo: no ip ospf priority
+    params:
+      number-value:
+        type: word
+    default: Priority of 1
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/ip ospf priority.md
+      title: ip ospf priority
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.priority: $number-value
+  - id: cisco-iosxe.log-adjacency-changes
+    syntax: log-adjacency-changes [ detail ]
+    view: router-ospf
+    undo: no log-adjacency-changes [ detail ]
+    default: Enabled
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/log-adjacency-changes.md
+      title: log-adjacency-changes
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      ospf.process.log_adjacency: flag
+  - id: cisco-iosxe.max-metric-router-lsa
+    syntax: max-metric router-lsa [ external-lsa <[max-metric-value]> ] [ include-stub ] [ on-startup { <seconds> | wait-for-bgp } ] [ summary-lsa <[max-metric-value]> ]
+    view: router-ospf
+    undo: no max-metric router-lsa [ external-lsa <[max-metric-value]> ] [ include-stub ] [ on-startup { <seconds> | wait-for-bgp } ] [ summary-lsa <[max-metric-value]> ]
+    params:
+      '[max-metric-value]':
+        type: word
+      seconds:
+        type: word
+    default: Router link-state advertisements (LSAs) are originated with normal link metrics.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/max-metric router-lsa.md
+      title: max-metric router-lsa
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.mpls-ldp-sync
+    syntax: mpls ldp sync
+    view: router-ospf
+    undo: no mpls ldp sync
+    default: MPLS LDP-IGP synchronization is not enabled on interfaces belonging to the OSPF or IS-IS processes.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/mpls ldp sync.md
+      title: mpls ldp sync
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.network-area
+    syntax: network <ip-address> <wildcard-mask> area <area-id>
+    view: router-ospf
+    undo: no network <ip-address> <wildcard-mask> area <area-id>
+    params:
+      ip-address:
+        type: ipv4
+      wildcard-mask:
+        type: wildcard
+      area-id:
+        type: word
+    default: This command is disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/network area.md
+      title: network area
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      ospf.process.area: $area-id
+      ospf.process.area.network: fmt:{ip-address} {wildcard-mask}
+  - id: cisco-iosxe.passive-interface
+    syntax: passive-interface { default | <interface> }
+    view: router-ospf
+    undo: no passive-interface { default | <interface> }
+    params:
+      interface:
+        type: interface
+    default: Routing updates are sent on the interface.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/passive-interface.md
+      title: passive-interface
+      line: 5
+      version: '17.15'
+      patched: 原文语法行混入了 HTML 残留文字，接口参数被拆成 “i nterface-type”
+    status: draft
+    maps:
+      ospf.process.passive_default: if:default:flag
+      ospf.process.passive: $interface
+      ospf.process.passive.enabled: flag
+  - id: cisco-iosxe.router-ospf
+    syntax: router ospf <process-id> [ vrf <vrf-name> ]
+    view: system
+    enters_view: router-ospf
+    undo: no router ospf <process-id> [ vrf <vrf-name> ]
+    params:
+      process-id:
+        type: integer
+      vrf-name:
+        type: word
+    default: No OSPF routing process is defined.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/router ospf.md
+      title: router ospf
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      ospf.process: $process-id
+      ospf.process.vrf: $vrf-name
+  - id: cisco-iosxe.router-id
+    syntax: router-id <ip-address>
+    view: router-ospf
+    undo: no router-id <ip-address>
+    params:
+      ip-address:
+        type: ipv4
+    default: No OSPF routing process is defined.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/router-id.md
+      title: router-id
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      ospf.process.router_id: $ip-address
+  - id: cisco-iosxe.timers-lsa-arrival
+    syntax: timers lsa arrival <milliseconds>
+    view: router-ospf
+    undo: no timers lsa arrival
+    params:
+      milliseconds:
+        type: word
+    default: 1000 milliseconds
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/timers lsa arrival.md
+      title: timers lsa arrival
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.timers-throttle-lsa-all
+    syntax: timers throttle lsa all <start-interval> <hold-interval> <max-interval>
+    view: router-ospf
+    undo: no timers throttle lsa all
+    params:
+      start-interval:
+        type: integer
+        range:
+          - 0
+          - 600
+      hold-interval:
+        type: integer
+        range:
+          - 1
+          - 600
+      max-interval:
+        type: integer
+        range:
+          - 1
+          - 600
+    default: 'start-interval : 0 millisecondshold-interval: 5000 millisecondsmax-interval : 5000 milliseconds'
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/timers throttle lsa all.md
+      title: timers throttle lsa all
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.timers-throttle-spf@bgp-af
+    syntax: timers throttle spf <spf-start> <spf-hold> <spf-max-wait>
+    view: bgp-af
+    undo: no timers throttle spf <spf-start> <spf-hold> <spf-max-wait>
+    params: &id001
+      spf-start:
+        type: word
+      spf-hold:
+        type: word
+      spf-max-wait:
+        type: word
+    default: SPF throttling is not set.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/timers throttle spf.md
+      title: timers throttle spf
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.timers-throttle-spf@router-ospf
+    syntax: timers throttle spf <spf-start> <spf-hold> <spf-max-wait>
+    view: router-ospf
+    undo: no timers throttle spf <spf-start> <spf-hold> <spf-max-wait>
+    params: *id001
+    default: SPF throttling is not set.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/timers throttle spf.md
+      title: timers throttle spf
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bfd-all-interfaces@router-ospf
+    syntax: bfd all-interfaces
+    view: router-ospf
+    undo: no bfd all-interfaces
+    default: BFD is disabled on the interfaces participating in the routing process.
+    source:
+      doc: cisco-iosxe-md
+      file: bfd/bfd all-interfaces.md
+      title: bfd all-interfaces
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      ospf.process.bfd_all: flag
+  - id: cisco-iosxe.bfd-all-interfaces@bgp-af
+    syntax: bfd all-interfaces
+    view: bgp-af
+    undo: no bfd all-interfaces
+    default: BFD is disabled on the interfaces participating in the routing process.
+    source:
+      doc: cisco-iosxe-md
+      file: bfd/bfd all-interfaces.md
+      title: bfd all-interfaces
+      line: 5
+      version: '17.15'
+    status: draft

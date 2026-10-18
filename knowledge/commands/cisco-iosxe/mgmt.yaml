@@ -1,0 +1,1572 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: mgmt
+cards:
+  - id: cisco-iosxe.aaa-accounting
+    syntax: aaa accounting { auth-proxy | system | network | exec | connection | commands <level> | dot1x } { default | <list-name> | guarantee-first } [ vrf <vrf-name> ] { start-stop | stop-only | none } [ broadcast ] { radius | group <group-name> }
+    view: system
+    undo: no aaa accounting { auth-proxy | system | network | exec | connection | commands <level> | dot1x } { default | <list-name> | guarantee-first } [ vrf <vrf-name> ] { start-stop | stop-only | none } [ broadcast ] { radius | group <group-name> }
+    params:
+      level:
+        type: word
+      list-name:
+        type: word
+      vrf-name:
+        type: word
+      group-name:
+        type: word
+    default: AAA accounting is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/aaa accounting.md
+      title: aaa accounting
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.aaa-authentication-login
+    syntax: aaa authentication login { default | <list-name> } <method1> [ <method2> [ <method3> [ <method4> ] ] ]
+    view: system
+    undo: no aaa authentication login { default | <list-name> } <method1> [ <method2> . . . ]
+    params:
+      list-name:
+        type: word
+      method1:
+        type: word
+      method2:
+        type: word
+    default: AAA authentication at login is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/aaa authentication login.md
+      title: aaa authentication login
+      line: 5
+      version: '17.15'
+      patched: 原文方法列表写成 “method1 [method2...]”；按运行配置改为最多 4 个方法
+    status: draft
+    maps:
+      mgmt.aaa: _
+      mgmt.aaa.scheme: kw:default=authentication default||fmt:authentication {list-name}
+      mgmt.aaa.scheme.methods: fmt:{method1} {method2} {method3} {method4}
+  - id: cisco-iosxe.aaa-authorization
+    syntax: aaa authorization { exec | commands <level> | network | config-commands | console } { default | <list-name> } [ <method1> [ <method2> [ <method3> [ <method4> ] ] ] ]
+    view: system
+    undo: no aaa authorization { exec | commands <level> | network | config-commands | console } { default | <list-name> }
+    params:
+      level:
+        type: integer
+        range:
+          - 0
+          - 15
+      list-name:
+        type: word
+      method1:
+        type: word
+      method2:
+        type: word
+      method3:
+        type: word
+      method4:
+        type: word
+    default: Authorization is disabled for all actions (equivalent to the method keyword none ).
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/aaa authorization.md
+      title: aaa authorization
+      line: 5
+      version: '17.15'
+      patched: 原文类型列表很长且方法列表写成 “method1 [method2...]”；按运行配置整理
+    status: draft
+    maps:
+      mgmt.aaa: _
+      mgmt.aaa.scheme: kw:default=authorization default||fmt:authorization {list-name}
+      mgmt.aaa.scheme.methods: fmt:{method1} {method2} {method3} {method4}
+  - id: cisco-iosxe.aaa-group-server-radius
+    syntax: aaa group server radius <group-name>
+    view: system
+    undo: no aaa group server radius <group-name>
+    params:
+      group-name:
+        type: word
+    default: No default behavior or values.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/aaa group server radius.md
+      title: aaa group server radius
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.aaa-group-server-tacacs
+    syntax: aaa group server tacacs + <group-name>
+    view: system
+    undo: no aaa group server tacacs + <group-name>
+    params:
+      group-name:
+        type: word
+    default: No default behavior or values.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/aaa group server tacacs+.md
+      title: aaa group server tacacs+
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.aaa-new-model
+    syntax: aaa new-model
+    view: system
+    undo: no aaa new-model
+    default: AAA is not enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/aaa new-model.md
+      title: aaa new-model
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.aaa: _
+  - id: cisco-iosxe.aaa-session-id
+    syntax: aaa session-id [ common | unique ]
+    view: system
+    undo: no aaa session-id [ unique ]
+    default: The common keyword is enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/aaa session-id.md
+      title: aaa session-id
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.access-class
+    syntax: access-class <access-list-number> { in [ vrf-also ] | out }
+    view: line
+    undo: no access-class <access-list-number> { in | out }
+    params:
+      access-list-number:
+        type: word
+    default: No access lists are defined.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/access-class.md
+      title: access-class
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.line.acl_in: if:in:$access-list-number
+  - id: cisco-iosxe.address-ipv4
+    syntax: address ipv4 { <hostname> | <ipv4address> } [ acct-port <port> | alias { <hostname> | <ipv4address> } | auth-port <port> [ acct-port <port> ] ]
+    view: radius-server
+    undo: no address ipv4 { <hostname> | <ipv4address> } [ acct-port <port> | alias { <hostname> | <ipv4address> } | auth-port <port> [ acct-port <port> ] ]
+    params:
+      hostname:
+        type: word
+      ipv4address:
+        type: ipv4
+      port:
+        type: word
+    default: The RADIUS server accounting and authentication parameters are not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/address ipv4 (config-radius-server).md
+      title: address ipv4 (config-radius-server)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.address-ipv6
+    syntax: address ipv6 <ipv6-address>
+    view: tacacs-server
+    undo: no address ipv6 <ipv6-address>
+    params:
+      ipv6-address:
+        type: word
+    default: No TACACS+ server is configured.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/address ipv6 (TACACS+).md
+      title: address ipv6 (TACACS+)
+      line: 5
+      version: '17.15'
+      patched: 参数是 IPv6 地址，按参数名推断成了 IPv4
+    status: draft
+    maps:
+      mgmt.tacacs.server: fmt:all {ipv6-address}
+  - id: cisco-iosxe.clock-timezone
+    syntax: clock timezone <zone> <hours-offset> [ <minutes-offset> ]
+    view: system
+    undo: no clock timezone
+    params:
+      zone:
+        type: word
+      hours-offset:
+        type: word
+      minutes-offset:
+        type: integer
+        range:
+          - 0
+          - 59
+    default: UTC
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/clock timezone.md
+      title: clock timezone
+      line: 5
+      version: '17.15'
+      patched: 原文把 minutes-offset 写成了关键字；小时偏移可以是负数
+    status: draft
+  - id: cisco-iosxe.crypto-key-generate-rsa
+    syntax: 'crypto key generate rsa [ general-keys | usage-keys | signature | encryption ] [ label <key-label> ] [ exportable ] [ modulus <modulus-size> ] [ storage <devicename> : ] [ redundancy ] [ on <devicename> : ]'
+    view: system
+    params:
+      key-label:
+        type: word
+      modulus-size:
+        type: word
+      devicename:
+        type: word
+    default: RSA key pairs do not exist.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/crypto key generate rsa.md
+      title: crypto key generate rsa
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.exec-timeout
+    syntax: exec-timeout <minutes> [ <seconds> ]
+    view: line
+    undo: no exec-timeout
+    params:
+      minutes:
+        type: integer
+        range:
+          - 0
+          - 35791
+      seconds:
+        type: integer
+        range:
+          - 0
+          - 2147483
+    default: 10 minutes
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/exec-timeout.md
+      title: exec-timeout
+      line: 5
+      version: '17.15'
+      patched: 原文 “exec-timeout minutes [seconds]” 把 seconds 写成了关键字；运行配置中是 exec-timeout 0 0
+    status: draft
+    maps:
+      mgmt.line.idle_timeout: fmt:{minutes} {seconds}
+  - id: cisco-iosxe.ip-radius-source-interface
+    syntax: ip radius source-interface <subinterface-name> [ vrf <vrf-name> ]
+    view: system
+    undo: no ip radius source-interface
+    params:
+      subinterface-name:
+        type: word
+      vrf-name:
+        type: word
+    default: No default behavior or values.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ip radius source-interface.md
+      title: ip radius source-interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-ssh-source-interface
+    syntax: ip ssh source-interface <interface>
+    view: system
+    undo: no ip ssh source-interface <interface>
+    params:
+      interface:
+        type: word
+    default: The address of the closest interface to the destination is used as the source address (the closest interface is the output interface through which the SSH packet is sent).
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ip ssh source-interface.md
+      title: ip ssh source-interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ip-ssh-version
+    syntax: ip ssh version [ 1 | 2 ]
+    view: system
+    undo: no ip ssh version [ 1 | 2 ]
+    default: If this command is not configured, SSH operates in compatibility mode, that is, Version 1 and Version 2 are both supported.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ip ssh version.md
+      title: ip ssh version
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.ssh: _
+      mgmt.ssh.version: kw:2|1
+  - id: cisco-iosxe.ip-ssh
+    syntax: ip ssh { time-out <seconds> | authentication-retries <retries> }
+    view: system
+    undo: no ip ssh [ timeout <seconds> | authentication-retries <integer> ]
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 120
+      retries:
+        type: integer
+        range:
+          - 0
+          - 5
+    default: SSH control parameters are set to default router values.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ip ssh.md
+      title: ip ssh
+      line: 5
+      version: '17.15'
+      patched: 原文关键字写作 timeout，设备上是 time-out；两个参数各自独立成行
+    status: draft
+    maps:
+      mgmt.ssh: _
+      mgmt.ssh.timeout: $seconds
+      mgmt.ssh.retries: $retries
+  - id: cisco-iosxe.ip-tacacs-source-interface
+    syntax: ip tacacs source-interface <subinterface-name> vrf <vrf-name>
+    view: system
+    undo: no ip tacacs source-interface
+    params:
+      subinterface-name:
+        type: word
+      vrf-name:
+        type: word
+    default: None
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ip tacacs source-interface.md
+      title: ip tacacs source-interface
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.key
+    syntax: key { 0 <string> | 6 <string> | 7 <string> } <string>
+    view: radius-server
+    undo: no key
+    params:
+      string:
+        type: text
+    default: The authentication and encryption key is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/key (config-radius-server).md
+      title: key (config-radius-server)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.key~2
+    syntax: key [ 0 | 6 | 7 ] <key-string>
+    view: tacacs-server
+    undo: no key [ 0 | 6 | 7 ] <key-string>
+    params:
+      key-string:
+        type: text
+    default: No TACACS+ encryption key is configured.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/key (TACACS+).md
+      title: key (TACACS+)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.tacacs.key_set: flag
+  - id: cisco-iosxe.line
+    syntax: line [ aux | console | tty | vty ] <line-number> [ <ending-line-number> ]
+    view: system
+    enters_view: line
+    params:
+      line-number:
+        type: word
+      ending-line-number:
+        type: word
+    default: There is no default line.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/line.md
+      title: line
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.line: tail:line
+  - id: cisco-iosxe.logging-buffered.1
+    syntax: logging buffered [ discriminator <discriminator-name> ] <[buffer-size]> <&<1-9>> [ severity-level ] &<1-9>
+    view: system
+    undo: no logging buffered
+    params:
+      discriminator-name:
+        type: word
+      '[buffer-size]':
+        type: word
+    default: Varies by platform. For most platforms, logging to the buffer is disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/logging buffered.md
+      title: logging buffered
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.syslog: _
+      mgmt.syslog.buffered: flag
+  - id: cisco-iosxe.logging-buffered.2
+    syntax: default logging buffered
+    view: system
+    default: Varies by platform. For most platforms, logging to the buffer is disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/logging buffered.md
+      title: logging buffered
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.logging-console
+    syntax: logging console [ <severity-level> ]
+    view: system
+    undo: no logging console
+    params:
+      severity-level:
+        type: word
+    default: The default varies by platform. In general, the default is to log all messages.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/logging console.md
+      title: logging console
+      line: 5
+      version: '17.15'
+      patched: 原文把 severity-level 写成了关键字；运行配置中是 logging console 级别
+    status: draft
+  - id: cisco-iosxe.logging-facility
+    syntax: logging facility <facility-type>
+    view: system
+    undo: no logging facility
+    params:
+      facility-type:
+        type: word
+    default: local7
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/logging facility.md
+      title: logging facility
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.logging-source-interface
+    syntax: logging source-interface <interface> [ vrf <vrf-name> ]
+    view: system
+    undo: no logging source-interface <interface> [ vrf <vrf-name> ]
+    params:
+      interface:
+        type: interface
+      vrf-name:
+        type: word
+    default: The wildcard interface address is used.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/logging source-interface.md
+      title: logging source-interface
+      line: 5
+      version: '17.15'
+      patched: 原文语法 “{interface-name number vrf vrf-name}” 写乱了
+    status: draft
+    maps:
+      mgmt.syslog: _
+      mgmt.syslog.source_interface: $interface
+  - id: cisco-iosxe.logging-synchronous
+    syntax: logging synchronous [ level <severity-level> | all ] [ limit <number-of-lines> ]
+    view: line
+    undo: no logging synchronous [ level <severity-level> | all ] [ limit <number-of-lines> ]
+    params:
+      severity-level:
+        type: word
+      number-of-lines:
+        type: word
+    default: This command is disabled. If you do not specify a severity level, the default value of 2 is assumed. If you do not specify the maximum number of buffers to be queued, the default value of 20 is assumed.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/logging synchronous.md
+      title: logging synchronous
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.logging-trap
+    syntax: logging trap <level>
+    view: system
+    undo: no logging trap
+    params:
+      level:
+        type: word
+    default: Syslog messages at level 0 to level 6 are generated, but will only be sent to a remote host if the logging host command is configured.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/logging trap.md
+      title: logging trap
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.syslog: _
+      mgmt.syslog.level: $level
+  - id: cisco-iosxe.login
+    syntax: login [ local | tacacs ]
+    view: line
+    undo: no login
+    default: Virtual terminals require a password. If you do not set a password for a virtual terminal, it responds to attempted connections by displaying an error message and closing the connection.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/login (line).md
+      title: login (line)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.login-authentication
+    syntax: login authentication { default | <list-name> }
+    view: line
+    undo: no login authentication { default | <list-name> }
+    params:
+      list-name:
+        type: word
+    default: Uses the default set with aaa authentication login .
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/login authentication.md
+      title: login authentication
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.line.auth: $list-name||default
+  - id: cisco-iosxe.ntp-access-group
+    syntax: ntp access-group [ ipv4 | ipv6 ] { peer | query-only | serve | serve-only } { <access-list-number> | <access-list-number-expanded> | <access-list-name> } [ kod ]
+    view: system
+    undo: no ntp access-group [ ipv4 | ipv6 ] { peer | query-only | serve | serve-only }
+    params:
+      access-list-number:
+        type: word
+      access-list-number-expanded:
+        type: word
+      access-list-name:
+        type: word
+    default: By default, there is no access control. Full access is granted to all systems.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ntp access-group.md
+      title: ntp access-group
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ntp-authenticate
+    syntax: ntp authenticate
+    view: system
+    undo: no ntp [ authenticate ]
+    default: By default, NTP authentication is not enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ntp authenticate.md
+      title: ntp authenticate
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.ntp: _
+      mgmt.ntp.authentication: flag
+  - id: cisco-iosxe.ntp-authentication-key
+    syntax: ntp authentication-key <number> md5 <key> [ <encryption-type> ]
+    view: system
+    undo: no ntp authentication-key <number>
+    params:
+      number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      key:
+        type: word
+      encryption-type:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: No authentication key is defined for NTP.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ntp authentication-key.md
+      title: ntp authentication-key
+      line: 5
+      version: '17.15'
+      patched: 原文把加密类型写成了关键字并带重复标记；运行配置中是 ntp authentication-key 编号 md5 密钥 [类型]
+    status: draft
+  - id: cisco-iosxe.ntp-master
+    syntax: ntp master [ stratum ] &<1-9>
+    view: system
+    undo: no ntp [ master ]
+    default: By default, this function is disabled. When enabled, the default stratum is 8.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ntp master.md
+      title: ntp master
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ntp-peer
+    syntax: ntp peer [ vrf <vrf-name> ] { <ip-address> | <ipv6-address> | [ ip | ipv6 ] <hostname> } [ normal-sync ] [ version <number> ] [ key <key-id> ] [ source <interface> ] [ prefer ] [ maxpoll <number> ] [ minpoll <number> ] [ burst ] [ iburst ]
+    view: system
+    undo: no ntp [ peer [ vrf <vrf-name> ] { <ip-address> | <ipv6-address> | [ ip | ipv6 ] <hostname> } ]
+    params:
+      vrf-name:
+        type: word
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: ipv4
+      hostname:
+        type: word
+      number:
+        type: word
+      key-id:
+        type: word
+      interface:
+        type: interface
+    default: The software clock on a router is not configured to synchronize with the NTP peer.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ntp peer.md
+      title: ntp peer
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ntp-server
+    syntax: ntp server [ vrf <vrf-name> ] { <ip-address> | <ipv6-address> | [ ip | ipv6 ] <hostname> } [ normal-sync ] [ version <number> ] [ key <key-id> ] [ source <interface> ] [ prefer ] [ maxpoll <number> ] [ minpoll <number> ] [ burst ] [ iburst ]
+    view: system
+    undo: no ntp [ server [ vrf <vrf-name> ] { <ip-address> | <ipv6-address> | [ ip | ipv6 ] <hostname> } ]
+    params:
+      vrf-name:
+        type: word
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: ipv4
+      hostname:
+        type: word
+      number:
+        type: word
+      key-id:
+        type: word
+      interface:
+        type: interface
+    default: No servers are configured by default. When a server is configured, the default NTP version number is 3, an authentication key is not used, and the source IPv4 or IPv6 address is taken from the outgoing interface. Effective with Cisco IOS Release 15.2(1)S1, the burst and the iburst keywords are enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ntp server.md
+      title: ntp server
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.ntp: _
+      mgmt.ntp.server: $ip-address||$hostname
+      mgmt.ntp.server.vrf: $vrf-name
+      mgmt.ntp.server.key: $key-id
+      mgmt.ntp.server.prefer: if:prefer:flag
+  - id: cisco-iosxe.ntp-source
+    syntax: ntp source <interface>
+    view: system
+    undo: no ntp [ source ]
+    params:
+      interface:
+        type: interface
+    default: Source address is determined by the outgoing interface.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ntp source.md
+      title: ntp source
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.ntp: _
+      mgmt.ntp.source_interface: $interface
+  - id: cisco-iosxe.ntp-trusted-key
+    syntax: ntp trusted-key <key-number> [ - <end-key-number> ]
+    view: system
+    undo: no ntp trusted-key <key-number> [ - <end-key-number> ]
+    params:
+      key-number:
+        type: word
+      end-key-number:
+        type: word
+    default: Authentication of the identity of the system is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ntp trusted-key.md
+      title: ntp trusted-key
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.ntp-update-calendar
+    syntax: ntp update-calendar
+    view: system
+    undo: no ntp [ update-calendar ]
+    default: The hardware clock (calendar) is not updated.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/ntp update-calendar.md
+      title: ntp update-calendar
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.password
+    syntax: password <password>
+    view: line
+    undo: no password
+    params:
+      password:
+        type: word
+    default: No password is specified.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/password (line configuration).md
+      title: password (line configuration)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.privilege-level
+    syntax: privilege level <level>
+    view: line
+    undo: no privilege level
+    params:
+      level:
+        type: word
+    default: Level 15 is the level of access permitted by the enable password. Level 1 is normal EXEC-mode user privileges.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/privilege level.md
+      title: privilege level
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.line.privilege: $level
+  - id: cisco-iosxe.radius-server
+    syntax: radius server <name>
+    view: system
+    enters_view: radius-server
+    undo: no radius server <name>
+    params:
+      name:
+        type: word
+    default: No RADIUS server configuration name for PAC provisioning is specified.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/radius server.md
+      title: radius server
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.radius-server-host.1
+    syntax: radius-server host { <hostname> | <ip-address> } [ alias { <hostname> | <ip-address> } | [ acct-port <port-number> ] [ auth-port <port-number> ] [ non-standard ] [ timeout <seconds> ] [ retransmit <retries> ] [ backoff exponential [ max-delay <minutes> ] [ backoff-retry <number-of-retransmits> ] ] [ key <encryption-key> ] ]
+    view: system
+    undo: no radius-server host { <hostname> | <ip-address> }
+    params:
+      hostname: &id001
+        type: word
+      ip-address: &id002
+        type: ipv4
+      port-number: &id003
+        type: word
+      seconds: &id004
+        type: word
+      retries: &id005
+        type: word
+      minutes: &id006
+        type: word
+      number-of-retransmits: &id007
+        type: word
+      encryption-key: &id008
+        type: word
+    default: No RADIUS host is specified and RADIUS server load balancing automated testing is disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/radius-server host.md
+      title: radius-server host
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.radius-server-host.2
+    syntax: radius-server host { <hostname> | <ip-address> } [ alias { <hostname> | <ip-address> } | [ acct-port <port-number> ] [ auth-port <port-number> ] [ non-standard ] [ timeout <seconds> ] [ retransmit <retries> ] [ test username <user-name> [ ignore-acct-port ] [ ignore-auth-port ] [ idle-time <minutes> ] ] [ backoff exponential [ max-delay <minutes> ] [ backoff-retry <number-of-retransmits> ] ] [ key-wrap encryption-key <encryption-key> message-auth-code-key <encryption-key> [ format { ascii | hex } ] | pac ] [ key <encryption-key> ] ]
+    view: system
+    undo: no radius-server host { <hostname> | <ip-address> }
+    params:
+      hostname: *id001
+      ip-address: *id002
+      port-number: *id003
+      seconds: *id004
+      retries: *id005
+      user-name:
+        type: word
+      minutes: *id006
+      number-of-retransmits: *id007
+      encryption-key: *id008
+    default: No RADIUS host is specified and RADIUS server load balancing automated testing is disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/radius-server host.md
+      title: radius-server host
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.server
+    syntax: server <ip-address>
+    view: sg-tacacs
+    undo: no server <ip-address>
+    params:
+      ip-address:
+        type: ipv4
+    default: No default behavior or values.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/server (TACACS+).md
+      title: server (TACACS+)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.server-name
+    syntax: server name <server-name>
+    view: sg-tacacs
+    undo: no server name <server-name>
+    params:
+      server-name:
+        type: word
+    default: No server name is specified.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/server name (IPv6 TACACS+).md
+      title: server name (IPv6 TACACS+)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.service-timestamps
+    syntax: service timestamps [ debug | log ] [ uptime | datetime [ msec ] ] [ localtime ] [ show-timezone ] [ year ]
+    view: system
+    undo: no service timestamps [ debug | log ]
+    default: Time stamps are applied to debug and logging messages.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/service timestamps.md
+      title: service timestamps
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.session-timeout
+    syntax: session-timeout <minutes> [ output ]
+    view: line
+    undo: no session-timeout
+    params:
+      minutes:
+        type: word
+    default: The default interval is zero, indicating that the router maintains the connection indefinitely.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/session-timeout.md
+      title: session-timeout
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.snmp-server-community
+    syntax: snmp-server community <string> [ view <view-name> ] [ ro | rw ] [ ipv6 <nacl> ] [ <access-list-number> | <extended-access-list-number> | <access-list-name> ]
+    view: system
+    undo: no snmp-server community <string>
+    params:
+      string:
+        type: word
+      view-name:
+        type: word
+      access-list-number:
+        type: word
+      access-list-name:
+        type: word
+    default: An SNMP community string permits read-only access to all objects.
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.community: $string
+      mgmt.snmp.community.access: kw:rw=write|ro=read:read
+      mgmt.snmp.community.acl: $access-list-number||$access-list-name
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/snmp-server community.md
+      title: snmp-server community
+      line: 5
+      version: '17.15'
+      patched: 团体字参数名为 string，按参数名推断成了吃掉行尾的 text 类型
+    status: draft
+  - id: cisco-iosxe.snmp-server-contact
+    syntax: snmp-server contact <text>
+    view: system
+    undo: no snmp-server contact
+    params:
+      text:
+        type: text
+    default: No system contact string is set.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/snmp-server contact.md
+      title: snmp-server contact
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.contact: $text
+  - id: cisco-iosxe.snmp-server-engineid-local
+    syntax: snmp-server engineID local <engineid-string>
+    view: system
+    undo: no snmp-server engineID local <engineid-string>
+    params:
+      engineid-string:
+        type: text
+    default: An SNMP engine ID is generated automatically but is not displayed or stored in the running configuration. You can display the default or configured engine ID by using the show snmp engineID command.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/snmp-server engineID local.md
+      title: snmp-server engineID local
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.snmp-server-group
+    syntax: snmp-server group <group-name> { v1 | v2c | v3 { auth | noauth | priv } } [ context <context-name> ] [ read <read-view> ] [ write <write-view> ] [ notify <notify-view> ] [ access [ ipv6 <named-access-list> ] [ <acl-number> | <acl-name> ] ]
+    view: system
+    undo: no snmp-server group <group-name> { v1 | v2c | v3 { auth | noauth | priv } } [ context <context-name> ]
+    params:
+      group-name:
+        type: word
+      context-name:
+        type: word
+      read-view:
+        type: word
+      write-view:
+        type: word
+      notify-view:
+        type: word
+      named-access-list:
+        type: word
+      acl-number:
+        type: integer
+      acl-name:
+        type: word
+    default: No SNMP server groups are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/snmp-server group.md
+      title: snmp-server group
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.snmp-server-host.1
+    syntax: snmp-server host { <hostname> | <ip-address> } [ vrf <vrf-name> | informs | traps | version { 1 | 2c | 3 [ auth | noauth | priv ] } ] <community-string> [ udp-port <port> <[notification-type]> <&<1-9>> <|> notification-type ]
+    view: system
+    undo: no snmp-server host { <hostname> | <ip-address> } [ vrf <vrf-name> | informs | traps | version { 1 | 2c | 3 [ auth | noauth | priv ] } ] <community-string> [ udp-port <port> <[notification-type]> <&<1-9>> <|> notification-type ]
+    params:
+      hostname:
+        type: word
+      ip-address: &id009
+        type: ipv4
+      vrf-name: &id011
+        type: word
+      community-string: &id010
+        type: text
+      port:
+        type: word
+      '[notification-type]':
+        type: word
+      '|':
+        type: word
+    default: This command behavior is disabled by default. A recipient is not specified to receive notifications.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/snmp-server host.md
+      title: snmp-server host
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.host: $ip-address||$hostname
+      mgmt.snmp.host.version: kw:3=v3|2c=v2c|1=v1
+  - id: cisco-iosxe.snmp-server-host.2
+    syntax: snmp-server host <ip-address> { <community-string> | informs | traps } { <community-string> | version { 1 | 2c | 3 { auth | noauth } } } { <community-string> | vrf <vrf-name> { informs | traps } } [ <notification-type> ]
+    view: system
+    undo: no snmp-server host <ip-address> { <community-string> | informs | traps } { <community-string> | version { 1 | 2c | 3 { auth | noauth } } } { <community-string> | vrf <vrf-name> { informs | traps } } [ <notification-type> ]
+    params:
+      ip-address: *id009
+      community-string: *id010
+      vrf-name: *id011
+      notification-type:
+        type: word
+    default: This command behavior is disabled by default. A recipient is not specified to receive notifications.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/snmp-server host.md
+      title: snmp-server host
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.snmp-server-host.3
+    syntax: snmp-server host <ip-address> { <community-string> | { informs | traps } { <community-string> | version { 1 | 2c | 3 { auth | noauth | priv } } <community-string> | version { 1 | 2c | 3 { auth | noauth | priv } } <community-string> | vrf <vrf-name> { informs | traps } { <community-string> | version { 1 | 2c | 3 { auth | noauth | priv } } <community-string> } } } [ notification-type ] &<1-9>
+    view: system
+    undo: no snmp-server host <ip-address> { <community-string> | { informs | traps } { <community-string> | version { 1 | 2c | 3 { auth | noauth | priv } } <community-string> | version { 1 | 2c | 3 { auth | noauth | priv } } <community-string> | vrf <vrf-name> { informs | traps } { <community-string> | version { 1 | 2c | 3 { auth | noauth | priv } } <community-string> } } } [ notification-type ] &<1-9>
+    params:
+      ip-address: *id009
+      community-string: *id010
+      vrf-name: *id011
+    default: This command behavior is disabled by default. A recipient is not specified to receive notifications.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/snmp-server host.md
+      title: snmp-server host
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.snmp-server-location
+    syntax: snmp-server location <text>
+    view: system
+    undo: no snmp-server location
+    params:
+      text:
+        type: text
+    default: No system location string is set.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/snmp-server location.md
+      title: snmp-server location
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.location: $text
+  - id: cisco-iosxe.snmp-server-trap-source
+    syntax: snmp-server trap-source <interface>
+    view: system
+    undo: no snmp-server trap-source
+    params:
+      interface:
+        type: word
+    default: No interface is specified.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/snmp-server trap-source.md
+      title: snmp-server trap-source
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.trap_source: $interface
+  - id: cisco-iosxe.snmp-server-user
+    syntax: snmp-server user <username> <groupname> [ remote <host> [ udp-port <port> ] [ vrf <vrfname> ] ] { v1 | v2c | v3 [ encrypted ] [ auth { md5 | sha | sha-2 { 256 | 384 | 512 } } <authpassword> ] } [ access [ ipv6 <nacl> ] [ privacy { des | 3des | aes { 128 | 192 | 256 } } <privacypassword> ] { <aclnumber> | <aclname> } ]
+    view: system
+    undo: no snmp-server user <username> <groupname> [ remote <host> [ udp-port <port> ] [ vrf <vrfname> ] ] { v1 | v2c | v3 [ encrypted ] [ auth { md5 | sha | sha-2 { 256 | 384 | 512 } } <authpassword> ] } [ access [ ipv6 <nacl> ] [ privacy { des | 3des | aes { 128 | 192 | 256 } } <privacypassword> ] { <aclnumber> | <aclname> } ]
+    params:
+      username:
+        type: word
+      groupname:
+        type: word
+      host:
+        type: word
+      port:
+        type: integer
+      vrfname:
+        type: word
+      authpassword:
+        type: word
+      nacl:
+        type: word
+      privacypassword:
+        type: word
+      aclnumber:
+        type: integer
+        range:
+          - 1
+          - 99
+      aclname:
+        type: word
+    default: See the table in the “Usage Guidelines” section for default behaviors for encryption, passwords, and access lists.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/snmp-server user.md
+      title: snmp-server user
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.snmp-server-view
+    syntax: snmp-server view <view-name> <oid-tree> { included | excluded }
+    view: system
+    undo: no snmp-server view <view-name>
+    params:
+      view-name:
+        type: word
+      oid-tree:
+        type: word
+    default: No view entry exists.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/snmp-server view.md
+      title: snmp-server view
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.tacacs-server
+    syntax: tacacs server <name>
+    view: system
+    enters_view: tacacs-server
+    undo: no tacacs server
+    params:
+      name:
+        type: word
+    default: No TACACS+ server is configured.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/tacacs server.md
+      title: tacacs server
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mgmt.tacacs: $name
+  - id: cisco-iosxe.tacacs-server-host
+    syntax: tacacs-server host { <hostname> | <host-ip-address> } [ key <string> ] [ [ nat ] [ port [ <integer> ] ] [ single-connection ] [ timeout [ <integer> ] ] ]
+    view: system
+    undo: no tacacs-server host { <hostname> | <host-ip-address> }
+    params:
+      hostname:
+        type: word
+      host-ip-address:
+        type: ipv4
+      string:
+        type: text
+      integer:
+        type: integer
+    default: No TACACS+ host is specified.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/tacacs-server host.md
+      title: tacacs-server host
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.transport-output
+    syntax: transport output { all | lat | mop | nasi | none | pad | rlogin | telnet | v120 }
+    view: line
+    undo: no transport output { all | lat | mop | nasi | none | pad | rlogin | telnet | v120 }
+    default: Telnet
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/transport output.md
+      title: transport output
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.1
+    syntax: username <name> [ aaa attribute list <aaa-list-name> ]
+    view: system
+    undo: no username <name>
+    params:
+      name: &id012
+        type: word
+      aaa-list-name:
+        type: word
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.2
+    syntax: username <name> [ access-class <access-list-number> ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+      access-list-number:
+        type: word
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.3
+    syntax: username <name> [ autocommand <command> ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+      command:
+        type: word
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.4
+    syntax: username <name> [ callback-dialstring <telephone-number> ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+      telephone-number:
+        type: word
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.5
+    syntax: username <name> [ callback-line [ tty ] <line-number> <[ending-line-number]> ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+      line-number:
+        type: word
+      '[ending-line-number]':
+        type: word
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.6
+    syntax: username <name> [ callback-rotary <rotary-group-number> ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+      rotary-group-number:
+        type: word
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.7
+    syntax: username <name> [ dnis ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.8
+    syntax: username <name> [ mac ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.9
+    syntax: username <name> [ nocallback-verify ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.10
+    syntax: username <name> [ noescape ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.11
+    syntax: username <name> [ nohangup ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.12
+    syntax: username <name> [ nopassword | password <password> | password <encryption-type> <encrypted-password> ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+      password: &id013
+        type: word
+      encryption-type:
+        type: word
+      encrypted-password:
+        type: word
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.13
+    syntax: username <name> [ one-time { password { 0 | 7 | <password> } | secret { 0 | 5 | <password> } } ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+      password: *id013
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.14
+    syntax: username <name> [ password <secret> ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+      secret:
+        type: word
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.15
+    syntax: username <name> [ privilege <level> ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+      level:
+        type: word
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.16
+    syntax: username <name> [ secret { 0 | 5 | <password> } ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+      password: *id013
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.17
+    syntax: username <name> [ user-maxlinks <number> ]
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+      number:
+        type: word
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.username.18
+    syntax: username [ lawful-intercept ] <name> [ privilege <privilege-level> | view <view-name> ] password <password>
+    view: system
+    undo: no username <name>
+    params:
+      name: *id012
+      privilege-level:
+        type: word
+      view-name:
+        type: word
+      password: *id013
+    default: No username-based authentication system is established.
+    source:
+      doc: cisco-iosxe-md
+      file: mgmt/username.md
+      title: username
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.aaa-authentication-login-privilege-mode
+    syntax: aaa authentication login privilege-mode
+    view: system
+    undo: no aaa authentication login privilege-mode
+    source:
+      patched: 公开命令参考没有单列这条命令（Batfish 公开样本中出现）；登录后直接进入用户的特权级别
+      added_by_patch: true
+    status: draft
+  - id: cisco-iosxe.username-secret
+    syntax: username <name> [ privilege <level> ] { secret | password } [ <encryption-type> ] <secret>
+    view: system
+    undo: no username <name>
+    params:
+      name:
+        type: word
+      level:
+        type: integer
+        range:
+          - 0
+          - 15
+      encryption-type:
+        type: integer
+        range:
+          - 0
+          - 9
+      secret:
+        type: word
+    source:
+      patched: 原文 username 拆成了 20 多条只带一个可选项的语法；运行配置中最常见的是 username 名称 [privilege 级别] secret 类型 密文
+      added_by_patch: true
+    status: draft
+    maps:
+      mgmt.aaa: _
+      mgmt.aaa.user: $name
+      mgmt.aaa.user.level: $level
+      mgmt.aaa.user.password_set: flag
+  - id: cisco-iosxe.username-privilege
+    syntax: username <name> privilege <level>
+    view: system
+    undo: no username <name>
+    params:
+      name:
+        type: word
+      level:
+        type: integer
+        range:
+          - 0
+          - 15
+    source:
+      patched: 同上；只设置级别的写法
+      added_by_patch: true
+    status: draft
+    maps:
+      mgmt.aaa: _
+      mgmt.aaa.user: $name
+      mgmt.aaa.user.level: $level
+  - id: cisco-iosxe.ip-ssh-rsa-keypair-name
+    syntax: ip ssh rsa keypair-name <keypair-name>
+    view: system
+    undo: no ip ssh rsa keypair-name
+    params:
+      keypair-name:
+        type: word
+    source:
+      patched: 公开命令参考的 ip ssh 页没有列出 rsa keypair-name 写法（Batfish 公开样本中出现）
+      added_by_patch: true
+    status: draft
+  - id: cisco-iosxe.logging-host
+    syntax: logging host <host> [ vrf <vrf-name> ]
+    view: system
+    undo: no logging host <host> [ vrf <vrf-name> ]
+    params:
+      host:
+        type: word
+      vrf-name:
+        type: word
+    source:
+      patched: 原文 logging host 的语法行有多余的括号，语法解析失败；按运行配置常见写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      mgmt.syslog: _
+      mgmt.syslog.host: $host
+      mgmt.syslog.host.vrf: $vrf-name
+  - id: cisco-iosxe.snmp-server-enable-traps
+    syntax: snmp-server enable traps [ <notification-types> ]
+    view: system
+    undo: no snmp-server enable traps [ <notification-types> ]
+    params:
+      notification-types:
+        type: text
+    source:
+      patched: 原文 snmp-server enable traps 的语法行有多余的括号，语法解析失败
+      added_by_patch: true
+    status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.trap_enable: flag
+  - id: cisco-iosxe.transport-input
+    syntax: transport input { all | none | ssh | telnet | telnet ssh | ssh telnet }
+    view: line
+    undo: no transport input
+    source:
+      patched: 原文第一条语法行没有格式标记且把 udptn 写成 updtn；运行配置中常见写法是 all / none / ssh / telnet
+      added_by_patch: true
+    status: draft
+    maps:
+      mgmt.line.protocols: tail:input

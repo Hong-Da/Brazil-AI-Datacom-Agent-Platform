@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Any
@@ -194,6 +195,7 @@ class Builder:
                 else 1
             ),
         )
+        skipped: set[str] = set()
         for _, alts, expr in ordered:
             t = alts[min(branch, len(alts) - 1)]
             schema = self.kb.nodes.get(t.node)
@@ -208,6 +210,8 @@ class Builder:
             else:
                 value = mapping.evaluate(expr, values, tokens, ln.negated)
             if value is None or value == "" and schema.type != "object":
+                if schema.type == "object":
+                    skipped.add(schema.id)  # 这一行没有给出对象（例如 silent-interface all）
                 continue
             if schema.type == "object":
                 keys = value if isinstance(value, list) else [value]
@@ -241,6 +245,8 @@ class Builder:
             if owner_schema is None:
                 continue
             owner = scope.get(owner_schema.id)
+            if owner is None and owner_schema.id in skipped:
+                continue  # 同一行的对象没有取到值：属性也不写，避免生成编号为 "_" 的空对象
             if owner is None:
                 if owner_schema.id in t.fixed:
                     owner = self._object(
@@ -282,7 +288,7 @@ class Builder:
 
     def _defaults(self) -> None:
         resolved = self.kb.resolve_profile(self.profile.id)
-        by_owner: dict[str, list[tuple[SchemaNode, Any]]] = defaultdict(list)
+        by_owner: dict[str, list[tuple[SchemaNode, Any, dict[str, Any]]]] = defaultdict(list)
         for node_id, e in resolved.entries.items():
             if e.default is None or not e.supported:
                 continue
@@ -291,13 +297,15 @@ class Builder:
                 continue
             owner = self._owner_schema(sn)
             if owner is not None:
-                by_owner[owner.id].append((sn, e.default))
+                by_owner[owner.id].append((sn, e.default, e.when))
+        for items in by_owner.values():
+            items.sort(key=lambda t: bool(t[2].get("attr")))  # 不依赖兄弟属性的先补，条件里可以用到它们
         for nid, data in list(self.g.nodes(data=True)):
             if data.get("kind") != "object" or data.get("schema") not in by_owner:
                 continue
-            for sn, default in by_owner[data["schema"]]:
+            for sn, default, when in by_owner[data["schema"]]:
                 child = f"{nid}/{_short(sn.id, data['schema'])}"
-                if child in self.g:
+                if child in self.g or not self._when(nid, data, when):
                     continue
                 self.g.add_node(
                     child,
@@ -312,10 +320,28 @@ class Builder:
                 )
                 self.g.add_edge(nid, child, kind="contains")
 
+    def _when(self, nid: str, data: dict[str, Any], when: dict[str, Any]) -> bool:
+        """缺省值的适用条件：对象编号匹配正则、兄弟属性的有效值相等。"""
+        if not when:
+            return True
+        key = str(data.get("key") or "")
+        if when.get("key") and not re.search(str(when["key"]), key):
+            return False
+        if when.get("not_key") and re.search(str(when["not_key"]), key):
+            return False
+        for attr, want in (when.get("attr") or {}).items():
+            sib = self.g.nodes.get(f"{nid}/{attr}")
+            got = sib.get("value") if sib else None
+            wants = want if isinstance(want, list) else [want]
+            if got not in wants and str(got) not in [str(w) for w in wants]:
+                return False
+        return True
+
     # ----- 依赖边 -----
 
     def _dependencies(self) -> None:
         dangling: list[dict[str, Any]] = []
+        missing: list[dict[str, Any]] = []
         resolved = self.kb.resolve_profile(self.profile.id)
         rules = list(self.kb.deps) + list(resolved.side_effects)
         attrs_by_schema: dict[str, list[str]] = defaultdict(list)
@@ -333,6 +359,25 @@ class Builder:
                 for nid in attrs_by_schema.get(r.src, []):
                     d = self.g.nodes[nid]
                     if d.get("origin") == "default" or d.get("negated"):
+                        continue
+                    if d.get("kind") == "object" or "value" not in d:
+                        # 对象之间的前置关系（例如 BFD 会话需要先全局使能 BFD）：连到同类型的全部对象；
+                        # 一个都没有时记为缺少前置条件（配置检查用），不算悬空引用
+                        if r.kind != "prerequisite":
+                            continue
+                        targets = attrs_by_schema.get(r.dst, [])
+                        for tgt in targets:
+                            self.g.add_edge(nid, tgt, kind=r.kind, note=r.note)
+                        if not targets:
+                            missing.append(
+                                {
+                                    "node": nid,
+                                    "schema": r.src,
+                                    "requires": r.dst,
+                                    "note": r.note,
+                                    "lines": d.get("lines", []),
+                                }
+                            )
                         continue
                     vals = d["value"] if isinstance(d["value"], list) else [d["value"]]
                     for v in vals:
@@ -371,6 +416,7 @@ class Builder:
                         if other != nid and (owner is None or other.startswith(owner + "/")):
                             self.g.add_edge(nid, other, kind=r.kind, note=r.note)
         self.g.graph["dangling"] = dangling
+        self.g.graph["missing_prerequisites"] = missing
 
 
 def build(parsed: Parsed, kb: KnowledgeBase, profile_id: str, device: str = "device") -> nx.MultiDiGraph:

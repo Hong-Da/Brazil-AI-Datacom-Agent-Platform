@@ -1,0 +1,322 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: isis
+cards:
+  - id: cisco-iosxe.default-information-originate~2
+    syntax: default-information originate [ route-map <map-name> ]
+    view: router-isis
+    undo: no default-information originate [ route-map <map-name> ]
+    params:
+      map-name:
+        type: word
+    default: This command is disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/default-information originate (IS-IS).md
+      title: default-information originate (IS-IS)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.fast-reroute-per-prefix
+    syntax: fast-reroute per-prefix { level-1 | level-2 } { all | route-map <route-map-name> }
+    view: router-isis
+    undo: no fast-reroute per-prefix { level-1 | level-2 } { all | route-map <route-map-name> }
+    params:
+      route-map-name:
+        type: word
+    default: Fast Reroute per prefix is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/fast-reroute per-prefix.md
+      title: fast-reroute per-prefix
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      isis.process.frr: flag
+  - id: cisco-iosxe.ip-router-isis
+    syntax: ip router isis [ <area-tag> ]
+    view: interface
+    undo: no ip router isis [ <area-tag> ]
+    params:
+      area-tag:
+        type: word
+    default: No routing processes are specified.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/ip router isis.md
+      title: ip router isis
+      line: 5
+      version: '17.15'
+      patched: 区域标签可省（没有标签的 router isis 进程）
+    status: draft
+    maps:
+      interface.isis: _
+      interface.isis.process: $area-tag||_
+  - id: cisco-iosxe.is-type
+    syntax: is-type [ level-1 | level-1-2 | level-2-only ]
+    view: router-isis
+    undo: no is-type [ level-1 | level-1-2 | level-2-only ]
+    default: In conventional IS-IS configurations, the router acts as both a Level 1 (intra-area) and a Level 2 (interarea) router. In multiarea IS-IS configurations, the first instance of the IS-IS routing process configured is by default a Level 1-2 (intra-area and interarea) router. The remaining instances of the IS-IS process configured by default are Level 1 routers.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/is-type.md
+      title: is-type
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      isis.process.level: kw:level-1-2|level-2-only=level-2|level-1
+  - id: cisco-iosxe.isis-authentication-key-chain
+    syntax: isis authentication key-chain <name-of-chain> [ level-1 | level-2 ]
+    view: interface
+    undo: no isis authentication key-chain <name-of-chain> [ level-1 | level-2 ]
+    params:
+      name-of-chain:
+        type: word
+    default: No key chain authentication is configured for a specific IS-IS interface, although it might be configured at the IS-IS instance level.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/isis authentication key-chain.md
+      title: isis authentication key-chain
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.isis-authentication-mode
+    syntax: isis authentication mode { md5 | text } [ level-1 | level-2 ]
+    view: interface
+    undo: no isis authentication mode
+    default: No authentication is provided for IS-IS packets on an interface level, although authentication could be provided at the IS-IS instance level by several means.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/isis authentication mode.md
+      title: isis authentication mode
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.isis-bfd
+    syntax: isis bfd [ disable ]
+    view: interface
+    undo: no isis bfd
+    default: When the disable keyword is not used, the default behavior is to enable BFD support for IS-IS on the interface.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/isis bfd.md
+      title: isis bfd
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.isis: _
+      interface.isis.bfd: if:disable:false||flag
+  - id: cisco-iosxe.isis-circuit-type
+    syntax: isis circuit-type [ level-1 | level-1-2 | level-2-only ]
+    view: interface
+    undo: no isis circuit-type
+    default: A Level 1 and Level 2 adjacency is established.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/isis circuit-type.md
+      title: isis circuit-type
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.isis: _
+      interface.isis.circuit_type: kw:level-1-2|level-2-only=level-2|level-1
+  - id: cisco-iosxe.isis-hello-interval
+    syntax: isis hello-interval { <seconds> | minimal } [ level-1 | level-2 ]
+    view: interface
+    undo: no isis hello-interval [ level-1 | level-2 ]
+    params:
+      seconds:
+        type: word
+    default: The hello interval is 10 seconds for non-DIS interfaces, and 3.333 seconds for DIS interfaces. The hello interval is configured for both Level 1 and Level 2.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/isis hello-interval.md
+      title: isis hello-interval
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.isis-metric
+    syntax: isis metric { <metric-value> | maximum } [ level-1 | level-2 ]
+    view: interface
+    undo: no isis metric { <metric-value> | maximum } [ level-1 | level-2 ]
+    params:
+      metric-value:
+        type: word
+    default: The default metric value is set to 10.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/isis metric.md
+      title: isis metric
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.isis: _
+      interface.isis.metric: $metric-value
+  - id: cisco-iosxe.isis-network-point-to-point
+    syntax: isis network point-to-point
+    view: interface
+    undo: no isis network point-to-point
+    default: No default behavior or values.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/isis network point-to-point.md
+      title: isis network point-to-point
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.isis: _
+      interface.isis.p2p: flag
+  - id: cisco-iosxe.isis-password
+    syntax: isis password <password> [ level-1 | level-2 ]
+    view: interface
+    undo: no isis password [ level-1 | level-2 ]
+    params:
+      password:
+        type: word
+    default: This command is disabled by default. If no keyword is specified, the default is level-1-2 .
+    source:
+      doc: cisco-iosxe-md
+      file: isis/isis password.md
+      title: isis password
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.log-adjacency-changes~2
+    syntax: log-adjacency-changes [ all ]
+    view: router-isis
+    undo: no log-adjacency-changes [ all ]
+    default: This feature is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/log-adjacency-changes (IS-IS).md
+      title: log-adjacency-changes (IS-IS)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      isis.process.log_adjacency: flag
+  - id: cisco-iosxe.metric-style-narrow
+    syntax: metric-style narrow [ transition ] [ level-1 | level-2 | level-1-2 ]
+    view: router-isis
+    undo: no metric-style narrow [ transition ] [ level-1 | level-2 | level-1-2 ]
+    default: The Multiprotocol Label Switching (MPLS) traffic engineering image generates only old-style TLVs. To do MPLS traffic engineering, a router must generate new-style TLVs that have wider metric fields.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/metric-style narrow.md
+      title: metric-style narrow
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      isis.process.metric_style: kw:wide|narrow|transition
+  - id: cisco-iosxe.metric-style-transition
+    syntax: metric-style transition [ level-1 | level-2 | level-1-2 ]
+    view: router-isis
+    undo: no metric-style transition [ level-1 | level-2 | level-1-2 ]
+    default: The Multiprotocol Label Switching (MPLS) traffic engineering image generates only old-style TLVs. To do MPLS traffic engineering, a router must generate new-style TLVs that have wider metric fields.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/metric-style transition.md
+      title: metric-style transition
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      isis.process.metric_style: kw:wide|narrow|transition
+  - id: cisco-iosxe.metric-style-wide
+    syntax: metric-style wide [ transition ] [ level-1 | level-2 | level-1-2 ]
+    view: router-isis
+    undo: no metric-style wide [ transition ] [ level-1 | level-2 | level-1-2 ]
+    default: The Multiprotocol Label Switching (MPLS) traffic engineering image generates only old-style TLVs. To do MPLS traffic engineering, new-style TLVs that have wider metric fields must be generated.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/metric-style wide.md
+      title: metric-style wide
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      isis.process.metric_style: kw:wide|narrow|transition
+  - id: cisco-iosxe.net
+    syntax: net <network-entity-title>
+    view: router-isis
+    undo: no net <network-entity-title>
+    params:
+      network-entity-title:
+        type: word
+    default: 'The defaults are as follows: - No NET is configured. - The IS-IS process is disabled.'
+    source:
+      doc: cisco-iosxe-md
+      file: isis/net.md
+      title: net
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      isis.process.net: $network-entity-title
+  - id: cisco-iosxe.router-isis
+    syntax: router isis [ <area-tag> ]
+    view: system
+    enters_view: router-isis
+    undo: no router isis [ <area-tag> ]
+    params:
+      area-tag:
+        type: word
+    default: This command is disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: isis/router isis.md
+      title: router isis
+      line: 5
+      version: '17.15'
+      patched: 原文把可选的区域标签写成了关键字 area-tag
+    status: draft
+    maps:
+      isis.process: $area-tag||_
+  - id: cisco-iosxe.passive-interface~2
+    syntax: passive-interface { default | <interface> }
+    view: router-isis
+    undo: no passive-interface { default | <interface> }
+    params:
+      interface:
+        type: interface
+    default: Routing updates are sent on the interface.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/passive-interface.md
+      title: passive-interface
+      line: 5
+      version: '17.15'
+      patched: 同上（IS-IS 下的同一条命令）
+    status: draft
+  - id: cisco-iosxe.mpls-ldp-sync~2
+    syntax: mpls ldp sync
+    view: router-isis
+    undo: no mpls ldp sync
+    default: MPLS LDP-IGP synchronization is not enabled on interfaces belonging to the OSPF or IS-IS processes.
+    source:
+      doc: cisco-iosxe-md
+      file: ospf/mpls ldp sync.md
+      title: mpls ldp sync
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bfd-all-interfaces@router-isis
+    syntax: bfd all-interfaces
+    view: router-isis
+    undo: no bfd all-interfaces
+    default: BFD is disabled on the interfaces participating in the routing process.
+    source:
+      doc: cisco-iosxe-md
+      file: bfd/bfd all-interfaces.md
+      title: bfd all-interfaces
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      isis.process.bfd_all: flag

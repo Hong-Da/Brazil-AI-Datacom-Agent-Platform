@@ -1,0 +1,4319 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: ospf
+cards:
+  - id: huawei-vrp8.abr-summary
+    syntax: abr-summary <ip-address> <mask> [ [ advertise | [ cost { <cost-value> | inherit-minimum } ] | [ hold-max-cost <interval> ] | [ generate-null0-route ] | [ distribute-delay <distribute-delay-interval> ] ] &<1-9> | [ not-advertise | [ cost { <cost-value> | inherit-minimum } ] | [ hold-max-cost <interval> ] ] &<1-9> ]
+    view: ospf-area
+    undo: undo abr-summary <ip-address> <mask> [ [ advertise | [ cost { <cost-value> | inherit-minimum } ] | [ hold-max-cost <interval> ] | [ generate-null0-route ] | [ distribute-delay <distribute-delay-interval> ] ] &<1-9> | [ not-advertise | [ cost { <cost-value> | inherit-minimum } ] | [ hold-max-cost <interval> ] ] &<1-9> ]
+    params:
+      ip-address:
+        type: ipv4
+      mask:
+        type: mask
+      cost-value:
+        type: integer
+        range:
+          - 0
+          - 16777214
+      interval:
+        type: integer
+        range:
+          - 10
+          - 1800
+      distribute-delay-interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, route summarization is not configured on ABRs.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: abr-summary
+      line: 9
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.advertise-link-attributes
+    syntax: advertise link-attributes interface-id
+    view: ospf
+    undo: undo advertise link-attributes interface-id
+    default: By default, OSPF does not advertise link attributes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: advertise link-attributes
+      line: 95
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.advertise-link-attributes-application-flex-algo
+    syntax: advertise link-attributes application flex-algo
+    view: ospf
+    undo: undo advertise link-attributes application flex-algo
+    default: By default, link attribute advertisement is disabled for Flex-Algo applications.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: advertise link-attributes application flex-algo
+      line: 160
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.advertise-link-attributes-disable
+    syntax: advertise link-attributes remote-ip disable
+    view: ospf
+    undo: undo advertise link-attributes remote-ip disable
+    default: By default, OSPF advertises the Remote IPv4 Address Sub-TLV to multi-area neighbors.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: advertise link-attributes disable
+      line: 217
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.advertise-mpls-lsr-id.1
+    syntax: advertise mpls-lsr-id
+    view: ospf
+    undo: undo advertise mpls-lsr-id
+    default: By default, OSPF does not advertise MPLS LSR IDs to multiple areas as intra-area routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: advertise mpls-lsr-id
+      line: 271
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.advertise-mpls-lsr-id.2
+    syntax: advertise mpls-lsr-id cost <cost>
+    view: ospf
+    undo: undo advertise mpls-lsr-id
+    params:
+      cost:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, OSPF does not advertise MPLS LSR IDs to multiple areas as intra-area routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: advertise mpls-lsr-id
+      line: 271
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.area
+    syntax: area { <area-id> | <area-idipv4> }
+    view: ospf
+    enters_view: ospf-area
+    undo: undo area { <area-id> | <area-idipv4> }
+    params:
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-idipv4:
+        type: ipv4
+    default: By default, no OSPF area is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: area
+      line: 340
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.area: $area-idipv4||$area-id
+  - id: huawei-vrp8.asbr-summary
+    syntax: asbr-summary <ip-address> <mask> [ [ not-advertise | generate-null0-route ] | tag <tag-value> | cost <cost-value> | distribute-delay <interval> ] &<1-9>
+    view: ospf
+    undo: undo asbr-summary <ip-address> <mask>
+    params:
+      ip-address:
+        type: ipv4
+      mask:
+        type: mask
+      tag-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      cost-value:
+        type: integer
+        range:
+          - 0
+          - 16777214
+      interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, ASBRs do not summarize routes imported by OSPF.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: asbr-summary
+      line: 407
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.authentication-mode.1
+    syntax: authentication-mode simple [ plain <SPlainText> | [ cipher ] <SCipherText> ]
+    view: ospf-area
+    undo: undo authentication-mode
+    params:
+      SPlainText:
+        type: text
+      SCipherText:
+        type: text
+    default: By default, authentication is not configured for an OSPF area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: authentication-mode (OSPF area view)
+      line: 486
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.area.authentication: simple
+  - id: huawei-vrp8.authentication-mode.2
+    syntax: authentication-mode { md5 | hmac-md5 | hmac-sha256 } [ <KeyID> { plain <MPlainText> | [ cipher ] <MCipherText> } ]
+    view: ospf-area
+    undo: undo authentication-mode
+    params:
+      KeyID:
+        type: integer
+        range:
+          - 1
+          - 255
+      MPlainText:
+        type: text
+      MCipherText:
+        type: text
+    default: By default, authentication is not configured for an OSPF area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: authentication-mode (OSPF area view)
+      line: 486
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.area.authentication: kw:md5|hmac-md5=md5|hmac-sha256
+  - id: huawei-vrp8.authentication-mode.3
+    syntax: authentication-mode keychain <Keychain-Name>
+    view: ospf-area
+    undo: undo authentication-mode
+    params:
+      Keychain-Name:
+        type: word
+    default: By default, authentication is not configured for an OSPF area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: authentication-mode (OSPF area view)
+      line: 486
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.area.authentication: keychain
+  - id: huawei-vrp8.avoid-microloop-frr-protected
+    syntax: avoid-microloop frr-protected
+    view: ospf
+    undo: undo avoid-microloop frr-protected
+    default: By default, OSPF microloop avoidance is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: avoid-microloop frr-protected (OSPF view)
+      line: 562
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.avoid-microloop-frr-protected-rib-update-delay
+    syntax: avoid-microloop frr-protected rib-update-delay <rib-update-delay>
+    view: ospf
+    undo: undo avoid-microloop frr-protected rib-update-delay
+    params:
+      rib-update-delay:
+        type: integer
+        range:
+          - 100
+          - 5000
+    default: By default, the delay is 100 ms.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: avoid-microloop frr-protected rib-update-delay (OSPF view)
+      line: 614
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.avoid-microloop-te-tunnel
+    syntax: avoid-microloop te-tunnel
+    view: ospf
+    undo: undo avoid-microloop te-tunnel
+    default: By default, OSPF TE tunnel microloop avoidance is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: avoid-microloop te-tunnel (OSPF view)
+      line: 672
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.avoid-microloop-te-tunnel-rib-update-delay
+    syntax: avoid-microloop te-tunnel rib-update-delay <interval>
+    view: ospf
+    undo: undo avoid-microloop te-tunnel rib-update-delay
+    params:
+      interval:
+        type: integer
+        range:
+          - 100
+          - 30000
+    default: By default, the delay in delivering the OSPF routes whose outbound interface is a TE tunnel interface is 1000 ms.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: avoid-microloop te-tunnel rib-update-delay (OSPF view)
+      line: 738
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bandwidth-config-enable
+    syntax: bandwidth-config enable
+    view: ospf
+    undo: undo bandwidth-config enable
+    default: By default, the configuration bandwidth of an OSPF interface is not used in cost calculation for the interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: bandwidth-config enable
+      line: 799
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bandwidth-reference
+    syntax: bandwidth-reference <value>
+    view: ospf
+    undo: undo bandwidth-reference
+    params:
+      value:
+        type: integer
+        range:
+          - 1
+          - 2147483648
+    default: By default, the bandwidth reference value is 100 Mbit/s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: bandwidth-reference (OSPF view)
+      line: 856
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.bandwidth_reference: $value
+  - id: huawei-vrp8.bfd-all-interfaces
+    syntax: bfd all-interfaces { min-tx-interval <transmit-interval> | min-rx-interval <receive-interval> | detect-multiplier <multiplier-value> | frr-binding } &<1-9>
+    view: ospf
+    undo: undo bfd all-interfaces { min-tx-interval [ <transmit-interval> ] | min-rx-interval [ <receive-interval> ] | detect-multiplier [ <multiplier-value> ] | frr-binding } &<1-9>
+    params:
+      transmit-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+      receive-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+      multiplier-value:
+        type: integer
+        range:
+          - 3
+          - 50
+    default: By default, BFD is disabled in an OSPF process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: bfd all-interfaces (OSPF view)
+      line: 914
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.bfd_min_tx: $transmit-interval
+      ospf.process.bfd_min_rx: $receive-interval
+  - id: huawei-vrp8.bfd-all-interfaces-enable.1
+    syntax: bfd all-interfaces enable
+    view: ospf
+    undo: undo bfd all-interfaces enable
+    default: By default, BFD is disabled in an OSPF process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: bfd all-interfaces enable (OSPF view)
+      line: 978
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.bfd_all: flag
+  - id: huawei-vrp8.bfd-all-interfaces-enable.2
+    syntax: bfd all-interfaces incr-cost { <cost> | max-reachable } [ wtr <wtrIntvl> ]
+    view: ospf
+    undo: undo bfd all-interfaces incr-cost [ { <cost> | max-reachable } [ wtr <wtrIntvl> ] ]
+    params:
+      cost:
+        type: integer
+        range:
+          - 1
+          - 65534
+      wtrIntvl:
+        type: integer
+        range:
+          - 1
+          - 3600
+    default: By default, BFD is disabled in an OSPF process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: bfd all-interfaces enable (OSPF view)
+      line: 978
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bgp-ls.1
+    syntax: bgp-ls enable
+    view: ospf
+    undo: undo bgp-ls enable
+    default: By default, the OSPF topology ID is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: bgp-ls (OSPF view)
+      line: 1057
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bgp-ls.2
+    syntax: bgp-ls identifier <identifier-value>
+    view: ospf
+    undo: undo bgp-ls identifier [ <identifier-value> ]
+    params:
+      identifier-value:
+        type: integer
+        range:
+          - 2
+          - 65535
+    default: By default, the OSPF topology ID is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: bgp-ls (OSPF view)
+      line: 1057
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bgp-ls-report-exclude
+    syntax: bgp-ls report-exclude { metric-delay-average | metric-delay-variation } &<1-9>
+    view: ospf
+    undo: undo bgp-ls report-exclude [ metric-delay-average | metric-delay-variation ] &<1-9>
+    default: By default, the OSPF topology advertisement function can advertise the average delay and delay variation.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: bgp-ls report-exclude
+      line: 1151
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.default
+    syntax: default { cost { <costvalue> | inherit-metric } | tag <tagvalue> | type <typevalue> } &<1-9>
+    view: ospf
+    undo: undo default { cost [ { <costvalue> | inherit-metric } ] | tag [ <tagvalue> ] | type [ <typevalue> ] } &<1-9>
+    params:
+      costvalue:
+        type: integer
+        range:
+          - 0
+          - 16777214
+      tagvalue:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      typevalue:
+        type: word
+    default: By default, the default cost of the external routes is 1; the type of the imported external routes is Type 2; the default tag value is 1.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: default (OSPF view)
+      line: 1323
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.default-cost
+    syntax: default-cost <costvalue>
+    view: ospf-area
+    undo: undo default-cost
+    params:
+      costvalue:
+        type: word
+    default: By default, the cost of the Type 3 default routes that OSPF sends to a Stub area is 1.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: default-cost
+      line: 1394
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.default-route-advertise.1
+    syntax: default-route-advertise [ [ always | permit-calculate-other ] | cost <costvalue> | type <typevalue> | { route-policy <route-policy-name> | route-filter <route-filter-name> } [ match-any ] | distribute-delay <delaytimer> | tag <tagvalue> ] &<1-9>
+    view: ospf
+    undo: undo default-route-advertise [ [ always | permit-calculate-other ] | cost <costvalue> | type <typevalue> | { route-policy <route-policy-name> | route-filter <route-filter-name> } [ match-any ] | distribute-delay <delaytimer> | tag <tagvalue> ] &<1-9>
+    params:
+      costvalue: &id001
+        type: integer
+        range:
+          - 0
+          - 16777214
+      typevalue: &id002
+        type: word
+      route-policy-name: &id003
+        type: word
+      route-filter-name: &id004
+        type: word
+      delaytimer: &id005
+        type: integer
+        range:
+          - 1
+          - 65535
+      tagvalue: &id006
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, default routes are not advertised to a common OSPF area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: default-route-advertise (OSPF view)
+      line: 1456
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.default_originate: flag
+  - id: huawei-vrp8.default-route-advertise.2
+    syntax: default-route-advertise summary cost <costvalue>
+    view: ospf
+    undo: undo default-route-advertise summary cost <costvalue>
+    params:
+      costvalue: *id001
+    default: By default, default routes are not advertised to a common OSPF area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: default-route-advertise (OSPF view)
+      line: 1456
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.default-route-advertise.3
+    syntax: default-route-advertise [ permit-calculate-other | cost <costvalue> | type <typevalue> | { route-policy <route-policy-name> | route-filter <route-filter-name> } [ match-any ] | distribute-delay <delaytimer> | permit-ibgp | tag <tagvalue> | permit-preference-less-than <preference-val> ] &<1-9>
+    view: ospf
+    undo: undo default-route-advertise [ permit-calculate-other | cost <costvalue> | type <typevalue> | { route-policy <route-policy-name> | route-filter <route-filter-name> } [ match-any ] | distribute-delay <delaytimer> | permit-ibgp | tag <tagvalue> | permit-preference-less-than <preference-val> ] &<1-9>
+    params:
+      costvalue: *id001
+      typevalue: *id002
+      route-policy-name: *id003
+      route-filter-name: *id004
+      delaytimer: *id005
+      tagvalue: *id006
+      preference-val:
+        type: integer
+        range:
+          - 1
+          - 256
+    default: By default, default routes are not advertised to a common OSPF area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: default-route-advertise (OSPF view)
+      line: 1456
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.description~5
+    syntax: description <description>
+    view: ospf
+    undo: undo description
+    params:
+      description:
+        type: text
+    default: By default, no description is configured for an OSPF process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: description (OSPF view)
+      line: 1639
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dn-bit-check-disable.1
+    syntax: dn-bit-check disable { ase | nssa }
+    view: ospf
+    undo: undo dn-bit-check disable { ase | nssa }
+    default: By default, the DN bit in LSAs is checked.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: dn-bit-check disable
+      line: 6573
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dn-bit-check-disable.2
+    syntax: dn-bit-check disable summary [ router-id <router-id> ]
+    view: ospf
+    undo: undo dn-bit-check disable summary [ router-id <router-id> ]
+    params:
+      router-id:
+        type: ipv4
+    default: By default, the DN bit in LSAs is checked.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: dn-bit-check disable
+      line: 6573
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dn-bit-set-disable
+    syntax: dn-bit-set disable { summary | ase | nssa }
+    view: ospf
+    undo: undo dn-bit-set disable { summary | ase | nssa }
+    default: By default, the DN bit in LSAs is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: dn-bit-set disable
+      line: 6668
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.domain-id
+    syntax: domain-id { null | { <domain-idvalue> | <domain-idvalue_ipv4> } [ [ type { 0005 | 0105 | 0205 | 8005 } value <domainTypeValue> ] | secondary ] &<1-9> }
+    view: ospf
+    undo: undo domain-id [ { <domain-idvalue> | <domain-idvalue_ipv4> } [ type { 0005 | 0105 | 0205 | 8005 } value <domainTypeValue> ] ]
+    params:
+      domain-idvalue:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      domain-idvalue_ipv4:
+        type: ipv4
+      domainTypeValue:
+        type: word
+    default: By default, the domain ID is null.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: domain-id
+      line: 6761
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.eca-route-type-compatible
+    syntax: eca-route-type compatible
+    view: ospf
+    undo: undo eca-route-type compatible
+    default: By default, the route type of the extended community attribute of OSPF VPN is 0x0306.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: eca-route-type compatible
+      line: 6841
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ecmp-prefer
+    syntax: ecmp prefer { te-tunnel | intact }
+    view: ospf
+    undo: undo ecmp prefer
+    default: By default, routes are equally selected to load-balance OSPF traffic, regardless of whether the outbound interface is a TE tunnel interface or an IPv4 interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ecmp prefer
+      line: 6904
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.enable-traffic-adjustment.1
+    syntax: enable traffic-adjustment
+    view: ospf
+    undo: undo enable traffic-adjustment
+    default: By default, the IGP shortcut function and the forwarding adjacency function are disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: enable traffic-adjustment
+      line: 6966
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.enable-traffic-adjustment.2
+    syntax: enable traffic-adjustment advertise
+    view: ospf
+    undo: undo enable traffic-adjustment advertise
+    default: By default, the IGP shortcut function and the forwarding adjacency function are disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: enable traffic-adjustment
+      line: 6966
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter.1
+    syntax: filter { acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> } export
+    view: ospf-area
+    undo: undo filter [ acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> | <acl-number> ] export
+    params:
+      acl-name: &id007
+        type: word
+      ip-prefix-name: &id008
+        type: word
+      route-policy-name: &id009
+        type: word
+      route-filter-name: &id010
+        type: word
+    default: By default, outgoing Type-3 LSAs of the local area are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter (OSPF area view)
+      line: 7028
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter.2
+    syntax: filter { acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> } import [ include-abr-summary ]
+    view: ospf-area
+    undo: undo filter [ acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> | <acl-number> ] import
+    params:
+      acl-name: *id007
+      ip-prefix-name: *id008
+      route-policy-name: *id009
+      route-filter-name: *id010
+    default: By default, outgoing Type-3 LSAs of the local area are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter (OSPF area view)
+      line: 7028
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter.3
+    syntax: filter <acl-number> export
+    view: ospf-area
+    undo: undo filter [ acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> | <acl-number> ] export
+    params:
+      acl-number: &id011
+        type: integer
+        range:
+          - 2000
+          - 2999
+    default: By default, outgoing Type-3 LSAs of the local area are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter (OSPF area view)
+      line: 7028
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter.4
+    syntax: filter <acl-number> import [ include-abr-summary ]
+    view: ospf-area
+    undo: undo filter [ acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> | <acl-number> ] export
+    params:
+      acl-number: *id011
+    default: By default, outgoing Type-3 LSAs of the local area are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter (OSPF area view)
+      line: 7028
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-lsa-out-peer
+    syntax: filter-lsa-out peer <peer-addr> { all | { ase [ acl { <ase-acl-num> | <ase-acl-name> } ] | nssa [ acl { <nssa-acl-num> | <nssa-acl-name> } ] | summary [ acl { <sum-acl-num> | <sum-acl-name> } ] } &<1-9> }
+    view: ospf
+    undo: undo filter-lsa-out peer <peer-addr>
+    params:
+      peer-addr:
+        type: ipv4
+      ase-acl-num:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      ase-acl-name:
+        type: word
+      nssa-acl-num:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      nssa-acl-name:
+        type: word
+      sum-acl-num:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      sum-acl-name:
+        type: word
+    default: By default, the LSAs that are to be sent to the specified neighbor on a P2MP network are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-lsa-out peer
+      line: 7126
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.1
+    syntax: filter-policy { acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> } export direct
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export direct
+    params:
+      acl-name: &id012
+        type: word
+      ip-prefix-name: &id013
+        type: word
+      route-policy-name: &id014
+        type: word
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.2
+    syntax: filter-policy { acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> } export bgp
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export bgp
+    params:
+      acl-name: *id012
+      ip-prefix-name: *id013
+      route-policy-name: *id014
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.3
+    syntax: filter-policy { acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> } export static
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export static
+    params:
+      acl-name: *id012
+      ip-prefix-name: *id013
+      route-policy-name: *id014
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.4
+    syntax: filter-policy { acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> } export rip [ <protocolID> ]
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export rip [ <protocolID> ]
+    params:
+      acl-name: *id012
+      ip-prefix-name: *id013
+      route-policy-name: *id014
+      protocolID: &id015
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.5
+    syntax: filter-policy { acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> } export isis [ <protocolID> ]
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export isis [ <protocolID> ]
+    params:
+      acl-name: *id012
+      ip-prefix-name: *id013
+      route-policy-name: *id014
+      protocolID: *id015
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.6
+    syntax: filter-policy { acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> } export ospf [ <protocolID> ]
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export ospf [ <protocolID> ]
+    params:
+      acl-name: *id012
+      ip-prefix-name: *id013
+      route-policy-name: *id014
+      protocolID: *id015
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.7
+    syntax: filter-policy <acl-number> export direct
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export direct
+    params:
+      acl-number: &id016
+        type: integer
+        range:
+          - 2000
+          - 2999
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.8
+    syntax: filter-policy <acl-number> export bgp
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export direct
+    params:
+      acl-number: *id016
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.9
+    syntax: filter-policy <acl-number> export static
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export direct
+    params:
+      acl-number: *id016
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.10
+    syntax: filter-policy <acl-number> export rip [ <protocolID> ]
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export direct
+    params:
+      acl-number: *id016
+      protocolID: *id015
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.11
+    syntax: filter-policy <acl-number> export isis [ <protocolID> ]
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export direct
+    params:
+      acl-number: *id016
+      protocolID: *id015
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.12
+    syntax: filter-policy <acl-number> export ospf [ <protocolID> ]
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export direct
+    params:
+      acl-number: *id016
+      protocolID: *id015
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.13
+    syntax: filter-policy <acl-number> export
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export direct
+    params:
+      acl-number: *id016
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.14
+    syntax: filter-policy { acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> } export
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export direct
+    params:
+      acl-name: *id012
+      ip-prefix-name: *id013
+      route-policy-name: *id014
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.15
+    syntax: filter-policy <acl-number> export unr
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export direct
+    params:
+      acl-number: *id016
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-export.16
+    syntax: filter-policy { acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> } export unr
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | route-policy <route-policy-name> ] export unr
+    params:
+      acl-name: *id012
+      ip-prefix-name: *id013
+      route-policy-name: *id014
+    default: By default, the imported routes to be advertised are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy export (OSPF view)
+      line: 7198
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-import.1
+    syntax: filter-policy <acl-number> import
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | { route-policy <route-policy-name> | route-filter <route-filter-name> } [ secondary ] | route-policy <route-policy-name> [ strict-match-tag ] ] import
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+    default: By default, OSPF does not filter received routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy import (OSPF view)
+      line: 7331
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy-import.2
+    syntax: filter-policy { acl-name <acl-name> | ip-prefix <ip-prefix-name> | { route-policy <route-policy-name> | route-filter <route-filter-name> } [ secondary ] | route-policy <route-policy-name> [ strict-match-tag ] } import
+    view: ospf
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> | ip-prefix <ip-prefix-name> | { route-policy <route-policy-name> | route-filter <route-filter-name> } [ secondary ] | route-policy <route-policy-name> [ strict-match-tag ] ] import
+    params:
+      acl-name:
+        type: word
+      ip-prefix-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, OSPF does not filter received routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: filter-policy import (OSPF view)
+      line: 7331
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flex-algo
+    syntax: flex-algo <flexAlgoIdentifier>
+    view: ospf
+    undo: undo flex-algo <flexAlgoIdentifier>
+    params:
+      flexAlgoIdentifier:
+        type: integer
+        range:
+          - 128
+          - 255
+    default: By default, Flex-Algo advertisement is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: flex-algo (OSPF View)
+      line: 7412
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flex-algo~2
+    syntax: flex-algo <flexAlgoIdentifier> [ disable ]
+    view: ospf-area
+    undo: undo flex-algo <flexAlgoIdentifier> [ disable ]
+    params:
+      flexAlgoIdentifier:
+        type: integer
+        range:
+          - 128
+          - 255
+    default: By default, Flex-Algo advertisement is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: flex-algo(OSPF area view)
+      line: 7480
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flooding-control
+    syntax: flooding-control [ number <number-value> | timer-interval <timer-interval-value> ] &<1-9>
+    view: ospf
+    undo: undo flooding-control [ number <number-value> | timer-interval <timer-interval-value> ] &<1-9>
+    params:
+      number-value:
+        type: integer
+        range:
+          - 1
+          - 1000
+      timer-interval-value:
+        type: integer
+        range:
+          - 30
+          - 100000
+    default: By default, the flooding of update LSAs is not restricted.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: flooding-control
+      line: 7553
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.frr
+    syntax: frr
+    view: ospf
+    enters_view: ospf-frr
+    undo: undo frr
+    default: By default, no OSPF FRR view is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: frr
+      line: 7614
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.frr: flag
+  - id: huawei-vrp8.frr-policy-route
+    syntax: frr-policy route { route-policy <route-policy-name> | route-filter <route-filter-name> }
+    view: ospf-frr
+    undo: undo frr-policy route
+    params:
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, OSPF/OSPFv3 IP FRR-enabled backup routes are not filtered.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: frr-policy route
+      line: 7674
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.graceful-restart.1
+    syntax: graceful-restart [ helper-role { { { ip-prefix <ip-prefix-name> | acl-number <acl-number> | acl-name <acl-name> } | ignore-external-lsa | planned-only } &<1-9> } ]
+    view: ospf
+    undo: undo graceful-restart [ helper-role [ { { ip-prefix [ <ip-prefix-name> ] | acl-number [ <acl-number> ] | acl-name [ <acl-name> ] } | ignore-external-lsa | planned-only } &<1-9> ] ]
+    params:
+      ip-prefix-name:
+        type: word
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      acl-name:
+        type: word
+    default: By default, the GR Helper mode is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: graceful-restart (OSPF view)
+      line: 7756
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.graceful-restart.2
+    syntax: graceful-restart helper-role never
+    view: ospf
+    undo: undo graceful-restart helper-role never
+    default: By default, the GR Helper mode is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: graceful-restart (OSPF view)
+      line: 7756
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.hostname
+    syntax: hostname [ <host-name> ]
+    view: ospf
+    undo: undo hostname
+    params:
+      host-name:
+        type: word
+    default: By default, the OSPF dynamic hostname function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: hostname
+      line: 7825
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ignore-lsa-check
+    syntax: ignore-lsa-check lsa-type <lsa-type-value> opaque-type <opaque-type-value> tlv <tlv-value>
+    view: ospf
+    undo: undo ignore-lsa-check lsa-type <lsa-type-value> opaque-type <opaque-type-value> tlv <tlv-value>
+    params:
+      lsa-type-value:
+        type: word
+      opaque-type-value:
+        type: word
+      tlv-value:
+        type: word
+    default: By default, the device checks the Route Type field of the Type 1 TLV (Extended Prefix TLV) in Type 11 LSAs (AS-scoped Opaque LSAs) and Type 7 Prefix Opaque LSAs.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ignore-lsa-check (OSPF view)
+      line: 7896
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ignore-lsa-check-no-sub-tlv
+    syntax: ignore-lsa-check no-sub-tlv { extend-prefix-tlv | extend-prefix-range-tlv | extend-link-tlv | sid-label-range-tlv } &<1-9>
+    view: ospf
+    undo: undo ignore-lsa-check no-sub-tlv { extend-prefix-tlv | extend-prefix-range-tlv | extend-link-tlv | sid-label-range-tlv } &<1-9>
+    default: By default, the device checks whether the Extended Prefix TLV, Extended Prefix Range TLV, Extended Link TLV, and SID/Label Range TLV in LSAs do not carry sub-TLVs.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ignore-lsa-check no-sub-tlv(OSPF view)
+      line: 7960
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ignore-receive-lsa
+    syntax: ignore-receive-lsa [ advertise-router <adv-rtr-id> ] [ lsa-type <type-value> [ area { <area-id> | <area-idipv4> } ] | link-state-id <ls-id> ] &<1-9>
+    view: ospf
+    undo: undo ignore-receive-lsa [ advertise-router <adv-rtr-id> ] [ lsa-type <type-value> [ area { <area-id> | <area-idipv4> } ] | link-state-id <ls-id> ] &<1-9>
+    params:
+      adv-rtr-id:
+        type: ipv4
+      type-value:
+        type: word
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-idipv4:
+        type: ipv4
+      ls-id:
+        type: ipv4
+    default: By default, the device is not configured to discard LSAs of a specified type.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ignore-receive-lsa (OSPF view)
+      line: 8024
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-rib-protocol-ospf.1
+    syntax: import-rib vpn-instance <vpn-instance-name> protocol ospf <process-id> [ valid-route ] [ { route-policy <route-policy-name> } | { route-filter <route-filter-name> } ]
+    view: vpn-instance-af-ipv4
+    undo: undo import-rib vpn-instance <vpn-instance-name> protocol ospf <process-id> [ valid-route ] [ { route-policy <route-policy-name> } | { route-filter <route-filter-name> } ]
+    params:
+      vpn-instance-name:
+        type: word
+      process-id: &id017
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      route-policy-name: &id018
+        type: word
+      route-filter-name: &id019
+        type: word
+    default: By default, public network or other VPN instance routes are not imported to VPN instance routing tables.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: import-rib protocol ospf
+      line: 8097
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-rib-protocol-ospf.2
+    syntax: import-rib public protocol ospf <process-id> [ valid-route ] [ { route-policy <route-policy-name> } | { route-filter <route-filter-name> } ]
+    view: vpn-instance-af-ipv4
+    undo: undo import-rib public protocol ospf <process-id> [ valid-route ] [ { route-policy <route-policy-name> } | { route-filter <route-filter-name> } ]
+    params:
+      process-id: *id017
+      route-policy-name: *id018
+      route-filter-name: *id019
+    default: By default, public network or other VPN instance routes are not imported to VPN instance routing tables.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: import-rib protocol ospf
+      line: 8097
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-rib-vpn-instance-protocol.1
+    syntax: ip import-rib vpn-instance <vpn-instance-name> protocol ospf <process-id> [ valid-route ] [ { route-policy <route-policy-name> } | { route-filter <route-filter-name> } ]
+    view: system
+    undo: undo ip import-rib vpn-instance <vpn-instance-name> protocol ospf <process-id> [ valid-route ] [ { route-policy <route-policy-name> } | { route-filter <route-filter-name> } ]
+    params:
+      vpn-instance-name: &id020
+        type: word
+      process-id: &id021
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      route-policy-name: &id022
+        type: word
+      route-filter-name: &id023
+        type: word
+    default: By default, routes in VPN instance routing tables are not imported to the public network routing table.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: import-rib vpn-instance protocol
+      line: 8174
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-rib-vpn-instance-protocol.2
+    syntax: ipv6 import-rib vpn-instance <vpn-instance-name> protocol ospfv3 <process-id> [ valid-route ] [ { route-policy <route-policy-name> } | { route-filter <route-filter-name> } ]
+    view: system
+    undo: undo ipv6 import-rib vpn-instance <vpn-instance-name> protocol ospfv3 <process-id> [ valid-route ] [ { route-policy <route-policy-name> } | { route-filter <route-filter-name> } ]
+    params:
+      vpn-instance-name: *id020
+      process-id: *id021
+      route-policy-name: *id022
+      route-filter-name: *id023
+    default: By default, routes in VPN instance routing tables are not imported to the public network routing table.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: import-rib vpn-instance protocol
+      line: 8174
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route.1~5
+    syntax: import-route { direct | static | bgp [ permit-ibgp ] } [ { inherit-cost | cost <cost> } | { route-policy <route-policy-name> | route-filter <route-filter-name> } | tag <tag> | type <type> ] &<1-9>
+    view: ospf
+    undo: undo import-route { direct | static | bgp }
+    params:
+      cost: &id024
+        type: integer
+        range:
+          - 0
+          - 16777214
+      route-policy-name: &id025
+        type: word
+      route-filter-name: &id026
+        type: word
+      tag: &id027
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      type: &id028
+        type: word
+    default: By default, routes learned by other protocols are not imported.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: import-route (OSPF view)
+      line: 8266
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.redistribute: kw:direct|static|bgp
+      ospf.process.redistribute.policy: $route-policy-name
+  - id: huawei-vrp8.import-route.2~5
+    syntax: import-route { ospf | isis | rip } [ <process-id-rip> ] [ { inherit-cost | cost <cost> } | { route-policy <route-policy-name> | route-filter <route-filter-name> } | tag <tag> | type <type> ] &<1-9>
+    view: ospf
+    undo: undo import-route { ospf | isis | rip } [ <process-id-rip> ]
+    params:
+      process-id-rip: &id029
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cost: *id024
+      route-policy-name: *id025
+      route-filter-name: *id026
+      tag: *id027
+      type: *id028
+    default: By default, routes learned by other protocols are not imported.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: import-route (OSPF view)
+      line: 8266
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.redistribute: kw:ospf|isis|rip
+      ospf.process.redistribute.policy: $route-policy-name
+  - id: huawei-vrp8.import-route.3~3
+    syntax: import-route unr [ { inherit-cost | cost <cost> } | { route-policy <route-policy-name> | route-filter <route-filter-name> } | tag <tag> | type <type> ] &<1-9>
+    view: ospf
+    undo: undo import-route unr
+    params:
+      cost: *id024
+      route-policy-name: *id025
+      route-filter-name: *id026
+      tag: *id027
+      type: *id028
+    default: By default, routes learned by other protocols are not imported.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: import-route (OSPF view)
+      line: 8266
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route.4
+    syntax: import-route { ospf | isis } [ <process-id-rip> ] [ { inherit-cost | cost <cost> } | { route-policy <route-policy-name> | route-filter <route-filter-name> } | tag <tag> | type <type> | no-sid ] &<1-9>
+    view: ospf
+    undo: undo import-route { ospf | isis | rip } [ <process-id-rip> ]
+    params:
+      process-id-rip: *id029
+      cost: *id024
+      route-policy-name: *id025
+      route-filter-name: *id026
+      tag: *id027
+      type: *id028
+    default: By default, routes learned by other protocols are not imported.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: import-route (OSPF view)
+      line: 8266
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route-limit
+    syntax: import-route limit <limit-number> [ threshold-alarm { upper-limit <upper-limit-value> | lower-limit <lower-limit-value> } &<1-9> ]
+    view: ospf
+    undo: undo import-route limit [ <limit-number> ] [ threshold-alarm [ upper-limit <upper-limit-value> | lower-limit <lower-limit-value> ] &<1-9> ]
+    params:
+      limit-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      upper-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      lower-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, the number of LSAs generated when an OSPF or OSPFv3 process imports external routes is not limited.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: import-route limit
+      line: 8390
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.interface-id-exchange-enable
+    syntax: interface-id exchange enable
+    view: ospf-area
+    undo: undo interface-id exchange enable
+    default: By default, OSPF does not support interface index exchange.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: interface-id exchange enable
+      line: 8474
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ldp-sync-enable
+    syntax: ldp-sync enable
+    view: ospf-area
+    undo: undo ldp-sync enable
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ldp-sync enable
+      line: 8536
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-mt-enable
+    syntax: local-mt enable
+    view: ospf
+    undo: undo local-mt enable
+    default: By default, OSPF local MT is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: local-mt enable (OSPF view)
+      line: 8604
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-mt-filter-policy.1
+    syntax: local-mt filter-policy acl <acl-number>
+    view: ospf
+    undo: undo local-mt filter-policy
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+    default: By default, no filtering conditions are configured for OSPF local MT.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: local-mt filter-policy (OSPF view)
+      line: 8673
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-mt-filter-policy.2
+    syntax: local-mt filter-policy acl <acl-name>
+    view: ospf
+    undo: undo local-mt filter-policy
+    params:
+      acl-name:
+        type: word
+    default: By default, no filtering conditions are configured for OSPF local MT.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: local-mt filter-policy (OSPF view)
+      line: 8673
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-mt-filter-policy.3
+    syntax: local-mt filter-policy { ip-prefix <ip-prefix-name> | route-policy <route-policy-name> | route-filter <route-filter-name> }
+    view: ospf
+    undo: undo local-mt filter-policy
+    params:
+      ip-prefix-name:
+        type: word
+      route-policy-name:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, no filtering conditions are configured for OSPF local MT.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: local-mt filter-policy (OSPF view)
+      line: 8673
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.loop-free-alternate
+    syntax: loop-free-alternate
+    view: ospf-frr
+    undo: undo loop-free-alternate
+    default: By default, FRR is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: loop-free-alternate
+      line: 8748
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsa-age-refresh-disable
+    syntax: lsa-age refresh disable
+    view: ospf
+    undo: undo lsa-age refresh disable
+    default: By default, OSPF LSA aging management is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: lsa-age refresh disable
+      line: 8824
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsa-arrival-interval.1
+    syntax: lsa-arrival-interval <interval>
+    view: ospf
+    undo: undo lsa-arrival-interval
+    params:
+      interval:
+        type: integer
+        range:
+          - 0
+          - 10000
+    default: By default, the intelligent timer is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: lsa-arrival-interval (OSPF view)
+      line: 8876
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsa-arrival-interval.2
+    syntax: lsa-arrival-interval intelligent-timer <max-interval> <start-interval> <hold-interval>
+    view: ospf
+    undo: undo lsa-arrival-interval
+    params:
+      max-interval:
+        type: word
+      start-interval:
+        type: word
+      hold-interval:
+        type: integer
+        range:
+          - 1
+          - 60000
+    default: By default, the intelligent timer is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: lsa-arrival-interval (OSPF view)
+      line: 8876
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsa-arrival-interval-suppress-flapping
+    syntax: lsa-arrival-interval suppress-flapping <suppress-interval> [ threshold <threshold> ]
+    view: ospf
+    undo: undo lsa-arrival-interval suppress-flapping
+    params:
+      suppress-interval:
+        type: integer
+        range:
+          - 0
+          - 600
+      threshold:
+        type: integer
+        range:
+          - 3
+          - 100
+    default: By default, the suppression period is 10s, and the suppression threshold is 30.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: lsa-arrival-interval suppress-flapping
+      line: 8959
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsa-originate-interval
+    syntax: lsa-originate-interval { 0 | intelligent-timer <max-interval> <start-interval> <hold-interval> [ other-type <interval> ] | other-type <interval> [ intelligent-timer <max-interval> <start-interval> <hold-interval> ] }
+    view: ospf
+    undo: undo lsa-originate-interval
+    params:
+      max-interval:
+        type: word
+      start-interval:
+        type: word
+      hold-interval:
+        type: integer
+        range:
+          - 1
+          - 60000
+      interval:
+        type: integer
+        range:
+          - 0
+          - 10
+    default: By default, the intelligent timer is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: lsa-originate-interval
+      line: 9022
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsa-originate-interval-suppress-flapping
+    syntax: lsa-originate-interval suppress-flapping <interval> [ threshold <threshold> ]
+    view: ospf
+    undo: undo lsa-originate-interval suppress-flapping
+    params:
+      interval:
+        type: integer
+        range:
+          - 0
+          - 600
+      threshold:
+        type: integer
+        range:
+          - 3
+          - 100
+    default: By default, the suppression period is 10s, and the suppression threshold is 30.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: lsa-originate-interval suppress-flapping
+      line: 9102
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsdb-overflow-limit
+    syntax: lsdb-overflow-limit <number>
+    view: ospf
+    undo: undo lsdb-overflow-limit [ <number> ]
+    params:
+      number:
+        type: integer
+        range:
+          - 1
+          - 1000000
+    default: By default, the maximum number of external routes supported by the OSPF LSDB is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: lsdb-overflow-limit
+      line: 9165
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.maxage-lsa-route-calculate-delay
+    syntax: maxage-lsa route-calculate-delay <delay-interval>
+    view: ospf
+    undo: undo maxage-lsa route-calculate-delay
+    params:
+      delay-interval:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, the delayed route calculation function is enabled when OSPF router LSAs are aged or updated.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: maxage-lsa route-calculate-delay
+      line: 9228
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.maximum-load-balancing
+    syntax: maximum load-balancing <number>
+    view: ospf
+    undo: undo maximum load-balancing
+    params:
+      number:
+        type: integer
+        range:
+          - 1
+          - 8
+    default: By default, load balancing is supported.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: maximum load-balancing (OSPF view)
+      line: 9282
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.maximum-received-lsa-threshold
+    syntax: maximum received-lsa threshold <value> [ overload-limit ]
+    view: ospf
+    undo: undo maximum received-lsa threshold [ <value> [ overload-limit ] ]
+    params:
+      value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, the alarm threshold for the number of LSAs learned by OSPF is 200000, and overload control is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: maximum received-lsa threshold (OSPF view)
+      line: 9358
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.maximum-link-cost
+    syntax: maximum-link-cost <cost>
+    view: ospf
+    undo: undo maximum-link-cost [ <cost> ]
+    params:
+      cost:
+        type: integer
+        range:
+          - 1
+          - 65534
+    default: By default, the maximum cost of OSPF links is 65535.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: maximum-link-cost
+      line: 9437
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-delay-advertisement-enable.1
+    syntax: metric-delay advertisement enable
+    view: ospf
+    undo: undo metric-delay advertisement [ enable ]
+    default: By default, delay information advertisement is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: metric-delay advertisement enable (OSPF view)
+      line: 9493
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-delay-advertisement-enable.2
+    syntax: metric-delay average advertisement enable
+    view: ospf
+    undo: undo metric-delay average advertisement [ enable ]
+    default: By default, delay information advertisement is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: metric-delay advertisement enable (OSPF view)
+      line: 9493
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-delay-advertisement-enable.3
+    syntax: metric-delay variation advertisement enable
+    view: ospf
+    undo: undo metric-delay variation advertisement [ enable ]
+    default: By default, delay information advertisement is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: metric-delay advertisement enable (OSPF view)
+      line: 9493
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-delay-normalize-interval
+    syntax: metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    view: ospf
+    undo: undo metric-delay normalize interval <interval-value> [ offset <offset-value> ]
+    params:
+      interval-value:
+        type: integer
+        range:
+          - 1
+          - 16777215
+      offset-value:
+        type: integer
+        range:
+          - 0
+          - 16777214
+    default: By default, no delay tolerance is configured for an OSPF process, and the original metric is used in delay-based path calculation.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: metric-delay normalize interval(OSPF view)
+      line: 9594
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-delay-suppress
+    syntax: metric-delay suppress timer <time-value> percent-threshold <percent-value> absolute-threshold <absolute-value>
+    view: ospf
+    undo: undo metric-delay suppress
+    params:
+      time-value:
+        type: integer
+        range:
+          - 0
+          - 600
+      percent-value:
+        type: integer
+        range:
+          - 0
+          - 100
+      absolute-value:
+        type: integer
+        range:
+          - 0
+          - 10000
+    default: By default, the suppression of delay information advertisement is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: metric-delay suppress (OSPF view)
+      line: 9649
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-link-loss-advertisement-enable
+    syntax: metric-link-loss advertisement enable
+    view: ospf
+    undo: undo metric-link-loss advertisement enable
+    default: By default, OSPF packet loss rate advertisement is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: metric-link-loss advertisement enable (OSPF view)
+      line: 9720
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.metric-link-loss-suppress
+    syntax: metric-link-loss suppress timer <timer-value> percent-threshold <percent-value> absolute-threshold <absolute-value>
+    view: ospf
+    undo: undo metric-link-loss suppress [ timer <timer-value> percent-threshold <percent-value> absolute-threshold <absolute-value> ]
+    params:
+      timer-value:
+        type: integer
+        range:
+          - 0
+          - 600
+      percent-value:
+        type: integer
+        range:
+          - 0
+          - 100
+      absolute-value:
+        type: integer
+        range:
+          - 0
+          - 10000
+    default: the default values of packet loss rate advertisement suppression parameters.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: metric-link-loss suppress (OSPF view)
+      line: 9783
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.micro-isolation-protocol-car-ospf
+    syntax: micro-isolation protocol-car ospf { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9>
+    view: system
+    undo: undo micro-isolation protocol-car ospf [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9> ]
+    params:
+      cir-value:
+        type: word
+      cbs-value:
+        type: word
+      pir-value:
+        type: word
+      pbs-value:
+        type: word
+    default: By default, OSPF uses the default micro-isolation CAR parameters.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: micro-isolation protocol-car ospf
+      line: 9852
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.micro-isolation-protocol-car-ospf-disable
+    syntax: micro-isolation protocol-car ospf disable
+    view: system
+    undo: undo micro-isolation protocol-car ospf disable
+    default: By default, micro-isolation CAR for OSPF is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: micro-isolation protocol-car ospf disable
+      line: 9918
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-auto-config
+    syntax: mpls ldp auto-config
+    view: ospf
+    undo: undo mpls ldp auto-config
+    default: By default, MPLS LDP automatic configuration is disabled on OSPF interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: mpls ldp auto-config (OSPF view)
+      line: 9973
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-te-enable
+    syntax: mpls-te enable [ standard-complying ]
+    view: ospf-area
+    undo: undo mpls-te
+    default: By default, MPLS TE is disabled in an OSPF area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: mpls-te enable
+      line: 10034
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.network.1~2
+    syntax: network <address> <wildcard-mask>
+    view: ospf-area
+    undo: undo network <address> <wildcard-mask>
+    params:
+      address: &id030
+        type: ipv4
+      wildcard-mask: &id031
+        type: wildcard
+    default: By default, the interface does not belong to any area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: network (OSPF area view)
+      line: 10094
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.area.network: fmt:{address} {wildcard-mask}
+  - id: huawei-vrp8.network.2~2
+    syntax: network <address> <wildcard-mask> description <text>
+    view: ospf-area
+    undo: undo network <address> <wildcard-mask>
+    params:
+      address: *id030
+      wildcard-mask: *id031
+      text:
+        type: text
+    default: By default, the interface does not belong to any area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: network (OSPF area view)
+      line: 10094
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.area.network: fmt:{address} {wildcard-mask}
+      ospf.process.area.network.description: $text
+  - id: huawei-vrp8.nexthop-weight
+    syntax: nexthop <ip-address> weight <value>
+    view: ospf
+    undo: undo nexthop <ip-address>
+    params:
+      ip-address:
+        type: ipv4
+      value:
+        type: integer
+        range:
+          - 1
+          - 254
+    default: By default, the value of weight-value is 255, and equal-cost routes load balance traffic.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: nexthop weight (OSPF view)
+      line: 10169
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.nssa
+    syntax: nssa [ { default-route-advertise [ backbone-peer-ignore ] } | no-import-route | no-summary | set-n-bit | suppress-forwarding-address | translator-always | translator-interval <interval-value> | zero-address-forwarding ] &<1-9>
+    view: ospf-area
+    undo: undo nssa
+    params:
+      interval-value:
+        type: integer
+        range:
+          - 1
+          - 120
+    default: By default, an OSPF area is not configured as an NSSA.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: nssa (OSPF area view)
+      line: 10224
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.area.type: nssa
+  - id: huawei-vrp8.opaque-capability-enable.1
+    syntax: opaque-capability enable
+    view: ospf
+    default: By default, the Opaque LSA capability is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: opaque-capability enable
+      line: 10319
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.opaque-capability-enable.2
+    syntax: opaque-capability disable
+    view: ospf
+    default: By default, the Opaque LSA capability is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: opaque-capability enable
+      line: 10319
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf.1
+    syntax: ospf <process-id> [ router-id <route-id> | vpn-instance <vpname> ] &<1-9>
+    view: system
+    enters_view: ospf
+    undo: undo ospf <process-id>
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      route-id: &id032
+        type: ipv4
+      vpname: &id033
+        type: word
+    default: By default, OSPF is disabled, that is, no OSPF process runs.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf
+      line: 10379
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process: $process-id
+      ospf.process.router_id: $route-id
+      ospf.process.vrf: $vpname
+  - id: huawei-vrp8.ospf.2
+    syntax: ospf [ router-id <route-id> | vpn-instance <vpname> ] &<1-9>
+    view: system
+    enters_view: ospf
+    undo: undo ospf <process-id>
+    params:
+      route-id: *id032
+      vpname: *id033
+    default: By default, OSPF is disabled, that is, no OSPF process runs.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf
+      line: 10379
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process: '1'
+      ospf.process.router_id: $route-id
+      ospf.process.vrf: $vpname
+  - id: huawei-vrp8.ospf-authentication-mode.1
+    syntax: ospf authentication-mode simple [ plain <plain-text> | [ cipher ] <cipher-text> ]
+    view: interface
+    undo: undo ospf authentication-mode
+    params:
+      plain-text: &id034
+        type: text
+      cipher-text: &id035
+        type: text
+    default: By default, an interface does not authenticate OSPF packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf authentication-mode
+      line: 10461
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.authentication: simple
+  - id: huawei-vrp8.ospf-authentication-mode.2
+    syntax: ospf authentication-mode { md5 | hmac-md5 | hmac-sha256 } [ <key-id> { plain <plain-text> | [ cipher ] <cipher-text> } ]
+    view: interface
+    undo: undo ospf authentication-mode
+    params:
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+      plain-text: *id034
+      cipher-text: *id035
+    default: By default, an interface does not authenticate OSPF packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf authentication-mode
+      line: 10461
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.authentication: kw:md5|hmac-md5=md5|hmac-sha256
+  - id: huawei-vrp8.ospf-authentication-mode.3
+    syntax: ospf authentication-mode null
+    view: interface
+    undo: undo ospf authentication-mode
+    default: By default, an interface does not authenticate OSPF packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf authentication-mode
+      line: 10461
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.authentication: none
+  - id: huawei-vrp8.ospf-authentication-mode.4
+    syntax: ospf authentication-mode keychain <keychain-name>
+    view: interface
+    undo: undo ospf authentication-mode
+    params:
+      keychain-name:
+        type: word
+    default: By default, an interface does not authenticate OSPF packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf authentication-mode
+      line: 10461
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.authentication: keychain
+  - id: huawei-vrp8.ospf-authentication-mode-multi-area.1
+    syntax: ospf authentication-mode simple [ plain <plain-text> | [ cipher ] <cipher-text> ] multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf authentication-mode multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      plain-text: &id036
+        type: text
+      cipher-text: &id037
+        type: text
+      area-id: &id038
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4: &id039
+        type: ipv4
+    default: By default, a multi-area adjacency interface does not authenticate OSPF packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf authentication-mode multi-area
+      line: 10545
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.authentication: simple
+  - id: huawei-vrp8.ospf-authentication-mode-multi-area.2
+    syntax: ospf authentication-mode { md5 | hmac-md5 | hmac-sha256 } [ <key-id> { plain <plain-text> | [ cipher ] <cipher-text> } ] multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf authentication-mode multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+      plain-text: *id036
+      cipher-text: *id037
+      area-id: *id038
+      area-id-ipv4: *id039
+    default: By default, a multi-area adjacency interface does not authenticate OSPF packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf authentication-mode multi-area
+      line: 10545
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.authentication: kw:md5|hmac-md5=md5|hmac-sha256
+  - id: huawei-vrp8.ospf-authentication-mode-multi-area.3
+    syntax: ospf authentication-mode null multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf authentication-mode multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      area-id: *id038
+      area-id-ipv4: *id039
+    default: By default, a multi-area adjacency interface does not authenticate OSPF packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf authentication-mode multi-area
+      line: 10545
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-authentication-mode-multi-area.4
+    syntax: ospf authentication-mode keychain <keychain-name> multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf authentication-mode multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      keychain-name:
+        type: word
+      area-id: *id038
+      area-id-ipv4: *id039
+    default: By default, a multi-area adjacency interface does not authenticate OSPF packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf authentication-mode multi-area
+      line: 10545
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-bfd
+    syntax: ospf bfd { min-tx-interval <transmit-interval> | min-rx-interval <receive-interval> | detect-multiplier <multiplier-value> | frr-binding } &<1-9>
+    view: interface
+    undo: undo ospf bfd { min-tx-interval [ <transmit-interval> ] | min-rx-interval [ <receive-interval> ] | detect-multiplier [ <multiplier-value> ] | frr-binding } &<1-9>
+    params:
+      transmit-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+      receive-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+      multiplier-value:
+        type: integer
+        range:
+          - 3
+          - 50
+    default: By default, BFD is not enabled in the OSPF interface view.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf bfd
+      line: 10643
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-bfd.1
+    syntax: ospf bfd enable
+    view: interface
+    undo: undo ospf bfd enable
+    default: By default, BFD is not enabled in the OSPF interface view.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf bfd (interface view)
+      line: 10725
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.bfd: flag
+  - id: huawei-vrp8.ospf-bfd.2
+    syntax: ospf bfd incr-cost { <cost> | max-reachable } [ wtr <wtrIntvl> ]
+    view: interface
+    undo: undo ospf bfd incr-cost [ { <cost> | max-reachable } [ wtr <wtrIntvl> ] ]
+    params:
+      cost:
+        type: integer
+        range:
+          - 1
+          - 65534
+      wtrIntvl:
+        type: integer
+        range:
+          - 1
+          - 3600
+    default: By default, BFD is not enabled in the OSPF interface view.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf bfd (interface view)
+      line: 10725
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-bfd.3
+    syntax: ospf bfd incr-cost block
+    view: interface
+    undo: undo ospf bfd incr-cost block
+    default: By default, BFD is not enabled in the OSPF interface view.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf bfd (interface view)
+      line: 10725
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-bfd-block
+    syntax: ospf bfd block
+    view: interface
+    undo: undo ospf bfd block
+    default: By default, BFD is enabled in the OSPF interface view.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf bfd block
+      line: 10828
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-bfd-block-multi-area
+    syntax: ospf bfd block multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf bfd block multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, BFD is enabled on multi-area adjacency interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf bfd block multi-area
+      line: 10890
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-cost
+    syntax: ospf cost <value>
+    view: interface
+    undo: undo ospf cost
+    params:
+      value:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: 'By default, the cost of an OSPF interface is calculated using the following formula: Interface cost = Bandwidth reference value/Interface bandwidth.'
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf cost
+      line: 10958
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.cost: $value
+  - id: huawei-vrp8.ospf-cost-higher-bandwidth-lower-bandwidth
+    syntax: ospf cost <value> { higher-bandwidth <higher-bandwidth-value> cost <better-cost-value> | lower-bandwidth <lower-bandwidth-value> cost <worse-cost-value> } &<1-9>
+    view: interface
+    undo: undo ospf cost <value> { higher-bandwidth <higher-bandwidth-value> cost <better-cost-value> | lower-bandwidth <lower-bandwidth-value> cost <worse-cost-value> } &<1-9>
+    params:
+      value:
+        type: integer
+        range:
+          - 1
+          - 65535
+      higher-bandwidth-value:
+        type: integer
+        range:
+          - 2
+          - 4294967295
+      better-cost-value:
+        type: integer
+        range:
+          - 1
+          - 65535
+      lower-bandwidth-value:
+        type: integer
+        range:
+          - 1
+          - 4294967294
+      worse-cost-value:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: 'By default, the cost of an OSPF interface is calculated using the following formula: Interface cost = Bandwidth reference value/Interface bandwidth.'
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf cost higher-bandwidth lower-bandwidth
+      line: 11026
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-cost-higher-bandwidth-lower-bandwidth-multi-area
+    syntax: ospf cost <costvalue> { higher-bandwidth <higher-bandwidth-value> cost <better-cost-value> | lower-bandwidth <lower-bandwidth-value> cost <worse-cost-value> } &<1-9> multi-area { <area-id-integer> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf cost <costvalue> { higher-bandwidth <higher-bandwidth-value> cost <better-cost-value> | lower-bandwidth <lower-bandwidth-value> cost <worse-cost-value> } &<1-9> multi-area { <area-id-integer> | <area-id-ipv4> }
+    params:
+      costvalue:
+        type: integer
+        range:
+          - 1
+          - 65535
+      higher-bandwidth-value:
+        type: integer
+        range:
+          - 2
+          - 4294967295
+      better-cost-value:
+        type: integer
+        range:
+          - 1
+          - 65535
+      lower-bandwidth-value:
+        type: integer
+        range:
+          - 1
+          - 4294967294
+      worse-cost-value:
+        type: integer
+        range:
+          - 1
+          - 65535
+      area-id-integer:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: 'By default, the cost of an OSPF interface is calculated using the following formula: Interface cost = Bandwidth reference value/Interface bandwidth.'
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf cost higher-bandwidth lower-bandwidth multi-area
+      line: 11106
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-cost-multi-area
+    syntax: ospf cost <cost> multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf cost multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      cost:
+        type: integer
+        range:
+          - 1
+          - 65535
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, the cost is calculated using the Interface cost = Bandwidth reference value/Interface bandwidth formula, in which the bandwidth reference value can be changed using the bandwidth-reference command.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf cost multi-area
+      line: 11199
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-cost-fallback
+    syntax: ospf cost-fallback <fallbackcost> threshold <fallbackbw> [ multi-area { <area-id-integer> | <area-id-ipv4> } ]
+    view: interface
+    undo: undo ospf cost-fallback [ <fallbackcost> threshold <fallbackbw> ] [ multi-area { <area-id-integer> | <area-id-ipv4> } ]
+    params:
+      fallbackcost:
+        type: integer
+        range:
+          - 1
+          - 65535
+      fallbackbw:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      area-id-integer:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, no cost-fallback parameters are configured for Eth-Trunk interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf cost-fallback
+      line: 11274
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-cpu-overload-control-disable
+    syntax: ospf cpu-overload control disable
+    view: system
+    undo: undo ospf cpu-overload control disable
+    default: By default, OSPF CPU overload control is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf cpu-overload control disable
+      line: 11355
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-dr-priority
+    syntax: ospf dr-priority <priovalue>
+    view: interface
+    undo: undo ospf dr-priority
+    params:
+      priovalue:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: By default, the priority is 1.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf dr-priority
+      line: 11410
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.priority: $priovalue
+  - id: huawei-vrp8.ospf-enable
+    syntax: ospf enable [ <process-id> ] area { <area-id> | <areaidipv4> } [ auto-adj-disable ]
+    view: interface
+    undo: undo ospf enable [ <process-id> ] area { <area-id> | <areaidipv4> } [ auto-adj-disable ]
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      areaidipv4:
+        type: ipv4
+    default: By default, OSPF is not enabled on interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf enable
+      line: 11479
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.process: $process-id||1
+      interface.ospf.area: $areaidipv4||$area-id
+  - id: huawei-vrp8.ospf-enable-multi-area
+    syntax: ospf enable multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf enable multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, OSPF is disabled on a multi-area adjacency interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf enable multi-area
+      line: 11570
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-filter-lsa-out
+    syntax: ospf filter-lsa-out { all | { ase [ acl { <ase-acl-num> | <ase-acl-name> } ] | nssa [ acl { <nssa-acl-num> | <nssa-acl-name> } ] | summary [ acl { <sum-acl-num> | <sum-acl-name> } ] } &<1-9> }
+    view: interface
+    undo: undo ospf filter-lsa-out
+    params:
+      ase-acl-num:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      ase-acl-name:
+        type: word
+      nssa-acl-num:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      nssa-acl-name:
+        type: word
+      sum-acl-num:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      sum-acl-name:
+        type: word
+    default: By default, outgoing LSAs are not filtered on a P2P, broadcast, or NBMA network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf filter-lsa-out
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-filter-lsa-out-multi-area
+    syntax: ospf filter-lsa-out { all | { ase [ acl { <ase-acl-num> | <ase-acl-name> } ] | nssa [ acl { <nssa-acl-num> | <nssa-acl-name> } ] | summary [ acl { <sum-acl-num> | <sum-acl-name> } ] } &<1-9> } multi-area { <area-id-integer> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf filter-lsa-out multi-area { <area-id-integer> | <area-id-ipv4> }
+    params:
+      ase-acl-num:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      ase-acl-name:
+        type: word
+      nssa-acl-num:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      nssa-acl-name:
+        type: word
+      sum-acl-num:
+        type: integer
+        range:
+          - 2000
+          - 2999
+      sum-acl-name:
+        type: word
+      area-id-integer:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, OSPF multi-area adjacency interfaces do not filter the LSAs to be sent.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf filter-lsa-out multi-area
+      line: 11727
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-flush-source-trace-block
+    syntax: ospf flush-source-trace block
+    view: interface
+    undo: undo ospf flush-source-trace block
+    default: By default, OSPF flush LSA source tracing is enabled on all interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf flush-source-trace block
+      line: 11823
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-flush-source-trace-disable
+    syntax: ospf flush-source-trace [ vlink ] disable
+    view: system
+    undo: undo ospf flush-source-trace [ vlink ] disable
+    default: By default, OSPF flush LSA source tracing is enabled globally.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf flush-source-trace disable
+      line: 11875
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-flush-source-trace-port.1
+    syntax: ospf flush-source-trace port <port-number>
+    view: system
+    undo: undo ospf flush-source-trace port
+    params:
+      port-number: &id040
+        type: integer
+        range:
+          - 1025
+          - 65535
+    default: By default, the UDP port number of global OSPF flush LSA source tracing packets is 50122, and the UDP port number of Vlink OSPF flush LSA source tracing packets is 50123.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf flush-source-trace port
+      line: 11930
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-flush-source-trace-port.2
+    syntax: ospf flush-source-trace vlink port <port-number>
+    view: system
+    undo: undo ospf flush-source-trace vlink port
+    params:
+      port-number: *id040
+    default: By default, the UDP port number of global OSPF flush LSA source tracing packets is 50122, and the UDP port number of Vlink OSPF flush LSA source tracing packets is 50123.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf flush-source-trace port
+      line: 11930
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-frr-block
+    syntax: ospf frr block
+    view: interface
+    undo: undo ospf frr block
+    default: By default, FRR is not blocked on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf frr block
+      line: 11990
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-ldp-sync.1
+    syntax: ospf ldp-sync
+    view: interface
+    undo: undo ospf ldp-sync
+    default: By default, LDP-OSPF synchronization is not configured on an interface, but LDP-OSPF synchronization is not blocked on the interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf ldp-sync
+      line: 12048
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.ldp_sync: flag
+  - id: huawei-vrp8.ospf-ldp-sync.2
+    syntax: ospf ldp-sync block
+    view: interface
+    undo: undo ospf ldp-sync block
+    default: By default, LDP-OSPF synchronization is not configured on an interface, but LDP-OSPF synchronization is not blocked on the interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf ldp-sync
+      line: 12048
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-ldp-sync-block-multi-area
+    syntax: ospf ldp-sync block multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf ldp-sync block multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, LDP and OSPF synchronization is not blocked on a multi-area adjacency interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf ldp-sync block multi-area
+      line: 12134
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-ldp-sync-multi-area
+    syntax: ospf ldp-sync multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf ldp-sync multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, LDP-OSPF synchronization is disabled on multi-area adjacency interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf ldp-sync multi-area
+      line: 12212
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-link-quality-low-incr-cost
+    syntax: ospf link-quality low incr-cost { max-reachable | <cost> }
+    view: interface
+    undo: undo ospf link-quality low incr-cost
+    params:
+      cost:
+        type: integer
+        range:
+          - 1
+          - 65534
+    default: By default, an OSPF interface cannot adjust the link cost based on link quality.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf link-quality low incr-cost
+      line: 12287
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-lsu-packet-lsa-retransmit-adjustment
+    syntax: ospf lsu-packet lsa-retransmit adjustment threshold <threshold-value>
+    view: system
+    undo: undo ospf lsu-packet lsa-retransmit adjustment threshold [ <threshold-value> ]
+    params:
+      threshold-value:
+        type: integer
+        range:
+          - 10
+          - 60
+    default: By default, after an LSA is retransmitted 36 times, the device adjusts the size of the corresponding LSU packet.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf lsu-packet lsa-retransmit adjustment
+      line: 12349
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-maxage-lsa-auto-protect-disable
+    syntax: ospf maxage-lsa auto-protect disable
+    view: system
+    undo: undo ospf maxage-lsa auto-protect disable
+    default: By default, master/slave board switching triggered by abnormal OSPF LSA aging is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf maxage-lsa auto-protect disable
+      line: 12402
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-memory-overload-control-disable
+    syntax: ospf memory-overload control disable
+    view: system
+    undo: undo ospf memory-overload control disable
+    default: By default, OSPF memory overload control is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf memory-overload control disable
+      line: 12455
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-mib-binding
+    syntax: ospf mib-binding <process-id>
+    view: system
+    undo: undo ospf mib-binding
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, OSPF processes are not bound to SNMP.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf mib-binding
+      line: 12512
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-mpls-ldp-auto-config-disable
+    syntax: ospf mpls ldp auto-config disable
+    view: interface
+    undo: undo ospf mpls ldp auto-config disable
+    default: By default, if the mpls ldp auto-config command is run for an OSPF process, MPLS LDP is enabled automatically on all interfaces which can establish OSPF neighbor relationships in this OSPF process; otherwise, MPLS LDP automatic configuration is disabled on these interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf mpls ldp auto-config disable
+      line: 12569
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-mpls-te-peer.1
+    syntax: ospf mpls-te peer peer-id <id> remote-router-id <router-id> remote-ip <ip-address>
+    view: interface
+    undo: undo ospf mpls-te peer peer-id <id> remote-router-id <router-id> remote-ip <ip-address>
+    params:
+      id: &id041
+        type: integer
+        range:
+          - 1
+          - 255
+      router-id:
+        type: ipv4
+      ip-address:
+        type: ipv4
+    default: By default, OSPF passive neighbor is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf mpls-te peer
+      line: 12633
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-mpls-te-peer.2
+    syntax: ospf mpls-te peer peer-id <id> process <process-id> area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf mpls-te peer peer-id <id> process <process-id> area { <area-id> | <area-id-ipv4> }
+    params:
+      id: *id041
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      area-id:
+        type: integer
+      area-id-ipv4:
+        type: ipv4
+    default: By default, OSPF passive neighbor is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf mpls-te peer
+      line: 12633
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-mpls-te-peer.3
+    syntax: ospf mpls-te peer peer-id <id> cost <cost-value>
+    view: interface
+    undo: undo ospf mpls-te peer peer-id <id> cost [ <cost-value> ]
+    params:
+      id: *id041
+      cost-value:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, OSPF passive neighbor is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf mpls-te peer
+      line: 12633
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-mtu-enable
+    syntax: ospf mtu-enable
+    view: interface
+    undo: undo ospf mtu-enable
+    default: By default, an interface adds the MTU 0 (not the actual MTU) in DD packets to be sent and does not check the MTUs in received DD packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf mtu-enable
+      line: 12709
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-mtu-enable-multi-area
+    syntax: ospf mtu-enable multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf mtu-enable multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, a multi-area adjacency interface adds the MTU 0 (not the actual MTU) in DD packets to be sent and does not check the MTUs in received DD packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf mtu-enable multi-area
+      line: 12772
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-multi-area.1
+    syntax: ospf frr block multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf frr block multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      area-id: &id042
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4: &id043
+        type: ipv4
+    default: By default, IP FRR is enabled on multi-area adjacency interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf multi-area
+      line: 12849
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-multi-area.2
+    syntax: ospf remote-lfa disable multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf remote-lfa disable multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      area-id: *id042
+      area-id-ipv4: *id043
+    default: By default, IP FRR is enabled on multi-area adjacency interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf multi-area
+      line: 12849
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-network-type
+    syntax: ospf network-type { broadcast | p2p | p2mp | nbma }
+    view: interface
+    undo: undo ospf network-type
+    default: By default, the network type of an interface is determined by the physical interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf network-type
+      line: 12958
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.network_type: kw:broadcast|p2p|p2mp|nbma
+  - id: huawei-vrp8.ospf-p2mp-mask-ignore
+    syntax: ospf p2mp-mask-ignore
+    view: interface
+    undo: undo ospf p2mp-mask-ignore
+    default: By default, the function of checking the network mask is enabled on a P2MP network.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf p2mp-mask-ignore
+      line: 13028
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-peer-alarm-threshold
+    syntax: ospf peer alarm-threshold <threshold-value> upper-limit <upper-value> lower-limit <lower-value>
+    view: system
+    undo: undo ospf peer alarm-threshold <threshold-value> upper-limit <upper-value> lower-limit <lower-value>
+    params:
+      threshold-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      upper-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      lower-value:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, the threshold alarm function for OSPF neighbors is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf peer alarm-threshold
+      line: 13088
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-peer-hold-max-cost-timer
+    syntax: ospf peer hold-max-cost timer <timer>
+    view: interface
+    undo: undo ospf peer hold-max-cost timer [ <timer> ]
+    params:
+      timer:
+        type: integer
+        range:
+          - 100
+          - 1000000
+    default: By default, no such a period is set after an OSPF neighbor relationship is established.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf peer hold-max-cost timer
+      line: 13154
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-peer-control-disable
+    syntax: ospf peer-control disable
+    view: system
+    undo: undo ospf peer-control disable
+    default: By default, the rate limiting on OSPF neighbor relationship establishment is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf peer-control disable
+      line: 13210
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-remote-lfa-disable
+    syntax: ospf remote-lfa disable
+    view: interface
+    undo: undo ospf remote-lfa disable
+    default: By default, Remote LFA is disabled on all OSPF interfaces unless the remote-lfa command is run.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf remote-lfa disable
+      line: 13268
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-router-id-auto-recover-disable
+    syntax: ospf router-id auto-recover disable
+    view: system
+    undo: undo ospf router-id auto-recover disable
+    default: By default, automatic router ID recovery takes effect after a router detects a router ID conflict.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf router-id auto-recover disable
+      line: 13328
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-smart-discover
+    syntax: ospf smart-discover
+    view: interface
+    undo: undo ospf smart-discover
+    default: By default, smart-discover is disabled on interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf smart-discover
+      line: 13385
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-smart-discover-multi-area
+    syntax: ospf smart-discover multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf smart-discover multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, smart-discover is disabled on multi-area adjacency interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf smart-discover multi-area
+      line: 13450
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-srlg
+    syntax: ospf srlg <srlg-value>
+    view: interface
+    undo: undo ospf srlg [ <srlg-value> ]
+    params:
+      srlg-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, an interface is not added to any SRLG.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf srlg
+      line: 13534
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-suppress-flapping-interface-disable
+    syntax: ospf suppress-flapping interface disable
+    view: system
+    undo: undo ospf suppress-flapping interface disable
+    default: By default, OSPF interface flapping suppression is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf suppress-flapping interface disable
+      line: 13596
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-suppress-flapping-peer.1
+    syntax: ospf suppress-flapping peer disable
+    view: interface
+    undo: undo ospf suppress-flapping peer disable
+    default: By default, the detection interval of OSPF neighbor flapping suppression is 60s, the suppression threshold is 10, and the interval for exiting from suppression is 120s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf suppress-flapping peer
+      line: 13649
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-suppress-flapping-peer.2
+    syntax: ospf suppress-flapping peer hold-down <interval>
+    view: interface
+    undo: undo ospf suppress-flapping peer hold-down [ <interval> ]
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 86400
+    default: By default, the detection interval of OSPF neighbor flapping suppression is 60s, the suppression threshold is 10, and the interval for exiting from suppression is 120s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf suppress-flapping peer
+      line: 13649
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-suppress-flapping-peer.3
+    syntax: ospf suppress-flapping peer hold-max-cost disable
+    view: interface
+    undo: undo ospf suppress-flapping peer hold-max-cost disable
+    default: By default, the detection interval of OSPF neighbor flapping suppression is 60s, the suppression threshold is 10, and the interval for exiting from suppression is 120s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf suppress-flapping peer
+      line: 13649
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-suppress-flapping-peer.4
+    syntax: ospf suppress-flapping peer { detecting-interval <detecting-interval> | threshold <threshold> | resume-interval <resume-interval> } &<1-9>
+    view: interface
+    undo: undo ospf suppress-flapping peer { detecting-interval <detecting-interval> | threshold <threshold> | resume-interval <resume-interval> } &<1-9>
+    params:
+      detecting-interval:
+        type: integer
+        range:
+          - 1
+          - 300
+      threshold:
+        type: integer
+        range:
+          - 1
+          - 1000
+      resume-interval:
+        type: integer
+        range:
+          - 2
+          - 1000
+    default: By default, the detection interval of OSPF neighbor flapping suppression is 60s, the suppression threshold is 10, and the interval for exiting from suppression is 120s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf suppress-flapping peer
+      line: 13649
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-suppress-flapping-peer-multi-area.1
+    syntax: ospf suppress-flapping peer { detecting-interval <detecting-interval> | threshold <threshold> | resume-interval <resume-interval> } &<1-9> multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf suppress-flapping peer { detecting-interval <detecting-interval> | threshold <threshold> | resume-interval <resume-interval> } &<1-9> multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      detecting-interval:
+        type: integer
+        range:
+          - 1
+          - 300
+      threshold:
+        type: integer
+        range:
+          - 1
+          - 1000
+      resume-interval:
+        type: integer
+        range:
+          - 2
+          - 1000
+      area-id: &id044
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4: &id045
+        type: ipv4
+    default: By default, OSPF neighbor relationship flapping suppression is enabled on all multi-area adjacency interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf suppress-flapping peer multi-area
+      line: 13788
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-suppress-flapping-peer-multi-area.2
+    syntax: ospf suppress-flapping peer disable multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf suppress-flapping peer disable multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      area-id: *id044
+      area-id-ipv4: *id045
+    default: By default, OSPF neighbor relationship flapping suppression is enabled on all multi-area adjacency interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf suppress-flapping peer multi-area
+      line: 13788
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-suppress-flapping-peer-multi-area.3
+    syntax: ospf suppress-flapping peer hold-down <interval> multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf suppress-flapping peer hold-down [ <interval> ] multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 86400
+      area-id: *id044
+      area-id-ipv4: *id045
+    default: By default, OSPF neighbor relationship flapping suppression is enabled on all multi-area adjacency interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf suppress-flapping peer multi-area
+      line: 13788
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-suppress-flapping-peer-multi-area.4
+    syntax: ospf suppress-flapping peer hold-max-cost disable multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf suppress-flapping peer hold-max-cost disable multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      area-id: *id044
+      area-id-ipv4: *id045
+    default: By default, OSPF neighbor relationship flapping suppression is enabled on all multi-area adjacency interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf suppress-flapping peer multi-area
+      line: 13788
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-suppress-reachability
+    syntax: ospf suppress-reachability [ disable ]
+    view: interface
+    undo: undo ospf suppress-reachability [ disable ]
+    default: By default, an OSPF interface will advertise its interface addresses.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf suppress-reachability
+      line: 13946
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-timer-dead
+    syntax: ospf timer dead <interval>
+    view: interface
+    undo: undo ospf timer dead
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 235926000
+    default: By default, the dead interval of OSPF neighbors is 40s on a P2P or broadcast interface and is 120s on an NBMA or P2MP interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf timer dead
+      line: 14002
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.dead: $interval
+  - id: huawei-vrp8.ospf-timer-dead-multi-area
+    syntax: ospf timer dead <interval> multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf timer dead multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 235926000
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, the dead interval of OSPF neighbor relationships on a P2P multi-area adjacency interface is 40s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf timer dead multi-area
+      line: 14069
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-timer-hello
+    syntax: ospf timer hello <interval> [ conservative ]
+    view: interface
+    undo: undo ospf timer hello
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, for P2P and broadcast interfaces, the interval is 10 seconds, for P2MP and NBMA interfaces, the interval is 30 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf timer hello
+      line: 14143
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.hello: $interval
+  - id: huawei-vrp8.ospf-timer-hello-multi-area
+    syntax: ospf timer hello <interval> multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf timer hello multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, a P2P multi-area adjacency interface sends Hello packets at an interval of 10s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf timer hello multi-area
+      line: 14210
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ospf: _
+      interface.ospf.hello: $interval
+  - id: huawei-vrp8.ospf-timer-ldp-sync-hold-down
+    syntax: ospf timer ldp-sync hold-down <value>
+    view: interface
+    undo: undo ospf timer ldp-sync hold-down
+    params:
+      value:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, the interval is 10 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf timer ldp-sync hold-down
+      line: 14284
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-timer-ldp-sync-hold-down-multi-area
+    syntax: ospf timer ldp-sync hold-down <value> multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf timer ldp-sync hold-down multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      value:
+        type: integer
+        range:
+          - 0
+          - 65535
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, an OSPF multi-area adjacency interface does not establish a neighbor relationship but waits for the establishment of an LDP session and LDP adjacency within 10 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf timer ldp-sync hold-down multi-area
+      line: 14342
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-timer-ldp-sync-hold-max-cost
+    syntax: ospf timer ldp-sync hold-max-cost { <value> | infinite }
+    view: interface
+    undo: undo ospf timer ldp-sync hold-max-cost
+    params:
+      value:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, OSPF always advertises the maximum metric in LSAs on the local device before an LDP session is reestablished.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf timer ldp-sync hold-max-cost
+      line: 14416
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-timer-ldp-sync-hold-max-cost-multi-area
+    syntax: ospf timer ldp-sync hold-max-cost { infinite | <value> } multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf timer ldp-sync hold-max-cost multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      value:
+        type: integer
+        range:
+          - 0
+          - 65535
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, the value of the hold-max-cost timer on OSPF multi-area adjacency interfaces is infinite.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf timer ldp-sync hold-max-cost multi-area
+      line: 14484
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-timer-poll
+    syntax: ospf timer poll <interval>
+    view: interface
+    undo: undo ospf timer poll
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 3600
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf timer poll
+      line: 14568
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-timer-retransmit
+    syntax: ospf timer retransmit <interval>
+    view: interface
+    undo: undo ospf timer retransmit
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 3600
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf timer retransmit
+      line: 14628
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-timer-retransmit-multi-area
+    syntax: ospf timer retransmit <interval> multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf timer retransmit multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 3600
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, the LSA retransmission interval on multi-area adjacency interfaces is 5s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf timer retransmit multi-area
+      line: 14690
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-timer-wait
+    syntax: ospf timer wait <interval>
+    view: interface
+    undo: undo ospf timer wait
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 235926000
+    default: By default, on broadcast interfaces, the wait interval is 40 seconds; on NBMA interfaces, it is 120 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf timer wait
+      line: 14764
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-trans-delay
+    syntax: ospf trans-delay <delayvalue>
+    view: interface
+    undo: undo ospf trans-delay
+    params:
+      delayvalue:
+        type: integer
+        range:
+          - 1
+          - 500
+    default: By default, the delay is 1 second.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf trans-delay
+      line: 14827
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-trans-delay-multi-area
+    syntax: ospf trans-delay <delayValue> multi-area { <area-id> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf trans-delay multi-area { <area-id> | <area-id-ipv4> }
+    params:
+      delayValue:
+        type: integer
+        range:
+          - 1
+          - 500
+      area-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, the LSA transmission delay on multi-area adjacency interfaces is 1s.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf trans-delay multi-area
+      line: 14887
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-valid-ttl-hops
+    syntax: ospf valid-ttl-hops <ttl> [ nonstandard-multicast ] [ vpn-instance <vpn-instance-name> ]
+    view: system
+    undo: undo ospf valid-ttl-hops [ <ttl> ] [ nonstandard-multicast ] [ vpn-instance <vpn-instance-name> ]
+    params:
+      ttl:
+        type: integer
+        range:
+          - 1
+          - 255
+      vpn-instance-name:
+        type: word
+    default: By default, OSPF GTSM is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: ospf valid-ttl-hops
+      line: 14959
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer
+    syntax: peer <ip-address> [ dr-priority <priority> ]
+    view: ospf
+    undo: undo peer <ip-address>
+    params:
+      ip-address:
+        type: ipv4
+      priority:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: By default, the IP address of an adjacent device on an NBMA network is not specified.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: peer (OSPF view)
+      line: 15026
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.preference.1~4
+    syntax: preference { <preferencevalue> | { route-policy <route-policy-name> | route-filter <route-filter-name> } } &<1-9>
+    view: ospf
+    undo: undo preference
+    params:
+      preferencevalue: &id046
+        type: integer
+        range:
+          - 1
+          - 255
+      route-policy-name: &id047
+        type: word
+      route-filter-name: &id048
+        type: word
+    default: By default, the priority of OSPF routes is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: preference (OSPF view)
+      line: 15085
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.preference.2~4
+    syntax: preference { ase | intra | inter } { <preferencevalue> | { route-policy <route-policy-name> | route-filter <route-filter-name> } } &<1-9>
+    view: ospf
+    undo: undo preference { ase | intra | inter }
+    params:
+      preferencevalue: *id046
+      route-policy-name: *id047
+      route-filter-name: *id048
+    default: By default, the priority of OSPF routes is 10.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: preference (OSPF view)
+      line: 15085
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.prefix-priority
+    syntax: prefix-priority { critical | high | medium | very-low } ip-prefix <ip-prefix-name>
+    view: ospf
+    undo: undo prefix-priority { critical | high | medium | very-low }
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, in the OSPF routing table, the convergence priority of public 32-bit host routes and default routes is medium, and the convergence priority of other OSPF routes is low.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: prefix-priority (OSPF view)
+      line: 15173
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remote-lfa
+    syntax: remote-lfa tunnel ldp [ maximum-reachable-cost <cost-value> ]
+    view: ospf-frr
+    undo: undo remote-lfa tunnel ldp [ maximum-reachable-cost <cost-value> ]
+    params:
+      cost-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, OSPF Remote LFA is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: remote-lfa (OSPF FRR view)
+      line: 15240
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remote-lfa-available-tunnel-destination
+    syntax: remote-lfa available-tunnel-destination ip-prefix <ip-prefix-name>
+    view: ospf-frr
+    undo: undo remote-lfa available-tunnel-destination ip-prefix <ip-prefix-name>
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, no filtering policy is configured, and each PQ node can be used as a backup next hop of remote LFA.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: remote-lfa available-tunnel-destination (OSPF FRR view)
+      line: 15308
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.retransmission-limit.1
+    syntax: retransmission-limit <max-number>
+    view: ospf
+    undo: undo retransmission-limit
+    params:
+      max-number:
+        type: integer
+        range:
+          - 2
+          - 255
+    default: By default, the number of retransmissions is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: retransmission-limit
+      line: 15852
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.retransmission-limit.2
+    syntax: retransmission-limit
+    view: ospf
+    undo: undo retransmission-limit
+    default: By default, the number of retransmissions is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: retransmission-limit
+      line: 15852
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.rfc1583-compatible
+    syntax: rfc1583 compatible
+    view: ospf
+    undo: undo rfc1583 compatible
+    default: By default, OSPF configures the rules defined in RFC 1583.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: rfc1583 compatible
+      line: 15916
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.rfc1583-compatible-different-area-path-prefer-lower-cost.1
+    syntax: rfc1583 compatible different-area-path prefer lower-cost
+    view: ospf
+    undo: undo rfc1583 compatible different-area-path prefer lower-cost
+    default: By default, OSPF route selection rules are not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: rfc1583 compatible different-area-path prefer lower-cost
+      line: 15984
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.rfc1583-compatible-different-area-path-prefer-lower-cost.2
+    syntax: rfc1583 non-compatible backbone-area-path prefer intra
+    view: ospf
+    undo: undo rfc1583 non-compatible backbone-area-path prefer intra
+    default: By default, OSPF route selection rules are not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: rfc1583 compatible different-area-path prefer lower-cost
+      line: 15984
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-loop-detect-ospf-enable.1
+    syntax: route loop-detect ospf enable [ alarm-only ]
+    view: system
+    undo: undo route loop-detect ospf enable [ alarm-only ]
+    default: By default, loop detection is disabled for routes imported into OSPF.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: route loop-detect ospf enable
+      line: 16054
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-loop-detect-ospf-enable.2
+    syntax: route loop-detect ospf import-ospf enable [ alarm-only ]
+    view: system
+    undo: undo route loop-detect ospf import-ospf enable [ alarm-only ]
+    default: By default, loop detection is disabled for routes imported into OSPF.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: route loop-detect ospf enable
+      line: 16054
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-tag.1
+    syntax: route-tag <tag>
+    view: ospf
+    undo: undo route-tag
+    params:
+      tag:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, the first two bytes of a tag value are fixed at 0xD000, and the last two bytes are the local BGP AS number.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: route-tag (OSPF view)
+      line: 16140
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-tag.2
+    syntax: route-tag disable
+    view: ospf
+    undo: undo route-tag
+    default: By default, the first two bytes of a tag value are fixed at 0xD000, and the last two bytes are the local BGP AS number.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: route-tag (OSPF view)
+      line: 16140
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.safe-sync-enable
+    syntax: safe-sync enable
+    view: ospf
+    undo: undo safe-sync enable
+    default: By default, secure synchronization is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: safe-sync enable
+      line: 16225
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.sham-hello-enable
+    syntax: sham-hello enable
+    view: ospf
+    undo: undo sham-hello
+    default: By default, the OSPF sham-hello function is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: sham-hello enable (OSPF view)
+      line: 16279
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.sham-link
+    syntax: sham-link <source-ip-address> <destination-ip-address> [ smart-discover | cost <cost-interval> | dead <dead-interval> | hello <hello-interval> | retransmit <retransmit-interval> | trans-delay <trans-delay-interval> | [ simple [ plain <SPlainText> | cipher <SCipherText> | <SCipherText> ] | { md5 | hmac-md5 | hmac-sha256 } [ <key-id> { plain <MPlainText> | cipher <MCipherText> | <MCipherText> } ] | authentication-null | keychain <keychain-name> ] ] &<1-9>
+    view: ospf-area
+    undo: undo sham-link <source-ip-address> <destination-ip-address> { smart-discover | simple | md5 | hmac-md5 | hmac-sha256 | cost | dead | hello | retransmit | trans-delay | authentication-null | keychain } &<1-9>
+    params:
+      source-ip-address:
+        type: ipv4
+      destination-ip-address:
+        type: ipv4
+      cost-interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+      dead-interval:
+        type: integer
+        range:
+          - 1
+          - 235926000
+      hello-interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+      retransmit-interval:
+        type: integer
+        range:
+          - 1
+          - 3600
+      trans-delay-interval:
+        type: integer
+        range:
+          - 1
+          - 3600
+      SPlainText:
+        type: text
+      SCipherText:
+        type: text
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+      MPlainText:
+        type: text
+      MCipherText:
+        type: text
+      keychain-name:
+        type: word
+    default: By default, no OSPF sham links are configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: sham-link
+      line: 16333
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.shutdown~5
+    syntax: shutdown
+    view: ospf
+    undo: undo shutdown
+    default: By default, OSPF service is enabled in DCN process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: shutdown (OSPF view)
+      line: 16423
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.silent-interface
+    syntax: silent-interface { all | { <interface-name> | <interface-type> <interface-number> } }
+    view: ospf
+    undo: undo silent-interface { all | { <interface-name> | <interface-type> <interface-number> } }
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, an interface can receive and send OSPF packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: silent-interface (OSPF view)
+      line: 16479
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.passive_default: if:all:flag
+      ospf.process.passive: $interface-name||fmt:{interface-type}{interface-number}
+      ospf.process.passive.enabled: flag
+  - id: huawei-vrp8.spf-schedule-interval.1
+    syntax: spf-schedule-interval <interval1>
+    view: ospf
+    undo: undo spf-schedule-interval
+    params:
+      interval1:
+        type: integer
+        range:
+          - 1
+          - 10
+    default: By default, the intelligent timer is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: spf-schedule-interval
+      line: 16547
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.spf-schedule-interval.2
+    syntax: spf-schedule-interval intelligent-timer <max-interval> <start-interval> <hold-interval> [ conservative ]
+    view: ospf
+    undo: undo spf-schedule-interval
+    params:
+      max-interval:
+        type: word
+      start-interval:
+        type: integer
+        range:
+          - 1
+          - 60000
+      hold-interval:
+        type: integer
+        range:
+          - 1
+          - 60000
+    default: By default, the intelligent timer is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: spf-schedule-interval
+      line: 16547
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.spf-schedule-interval.3
+    syntax: spf-schedule-interval millisecond <interval2>
+    view: ospf
+    undo: undo spf-schedule-interval
+    params:
+      interval2:
+        type: word
+    default: By default, the intelligent timer is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: spf-schedule-interval
+      line: 16547
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.stub
+    syntax: stub [ no-summary | { default-route-advertise backbone-peer-ignore } ] &<1-9>
+    view: ospf-area
+    undo: undo stub
+    default: By default, no area is configured as a stub area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: stub (OSPF area view)
+      line: 16621
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.area.type: stub
+  - id: huawei-vrp8.stub-router
+    syntax: stub-router [ [ on-startup [ <interval> ] ] | [ include-stub ] | [ external-lsa [ <externallsa-metric> ] ] | [ summary-lsa [ <summarylsa-metric> ] ] ] &<1-9>
+    view: ospf
+    undo: undo stub-router
+    params:
+      interval:
+        type: integer
+        range:
+          - 5
+          - 65535
+      externallsa-metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+      summarylsa-metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: By default, no router is configured as a stub router.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: stub-router
+      line: 16680
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.suppress-flapping-peer-disable
+    syntax: suppress-flapping peer disable
+    view: ospf
+    undo: undo suppress-flapping peer disable
+    default: By default, OSPF neighbor relationship flapping suppression is enabled globally.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: suppress-flapping peer disable (OSPF view)
+      line: 16747
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.suppress-reachability
+    syntax: suppress-reachability
+    view: ospf
+    undo: undo suppress-reachability
+    default: By default, OSPF interfaces can advertise its addresses in the OSPF process.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: suppress-reachability
+      line: 16801
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tiebreaker-preference
+    syntax: tiebreaker { node-protecting | lowest-cost | ldp-sync hold-max-cost | srlg-disjoint } preference <value>
+    view: ospf-frr
+    undo: undo tiebreaker { node-protecting | lowest-cost | ldp-sync hold-max-cost | srlg-disjoint } [ preference <value> ]
+    params:
+      value:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the solution of selecting a backup path for OSPF IP FRR is node-protection path first.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: tiebreaker preference (OSPF FRR view)
+      line: 16853
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-ldp-sync-hold-max-cost
+    syntax: timer ldp-sync hold-max-cost { <interval> | infinite }
+    view: ospf-area
+    undo: undo timer ldp-sync hold-max-cost
+    params:
+      interval:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, OSPF permanently advertises the maximum cost on the local device before an LDP session and LDP adjacency are reestablished.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: timer ldp-sync hold-max-cost (OSPF area view)
+      line: 16922
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vlink-peer
+    syntax: vlink-peer <router-id> [ hello <hello-interval> | retransmit <retransmit-interval> | trans-delay <trans-delay-interval> | dead <dead-interval> | smart-discover | [ simple [ plain <SPlainText> | [ cipher ] <SCipherText> ] | { hmac-sha256 | md5 | hmac-md5 } [ <key-id> { plain <MPlainText> | [ cipher ] <MCipherText> } ] | authentication-null | keychain <keychain-name> ] ] &<1-9>
+    view: ospf-area
+    undo: undo vlink-peer <router-id> { hello | retransmit | trans-delay | dead | simple | hmac-sha256 | md5 | hmac-md5 | authentication-null | keychain | smart-discover }
+    params:
+      router-id:
+        type: ipv4
+      hello-interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+      retransmit-interval:
+        type: integer
+        range:
+          - 1
+          - 3600
+      trans-delay-interval:
+        type: integer
+        range:
+          - 1
+          - 3600
+      dead-interval:
+        type: integer
+        range:
+          - 1
+          - 235926000
+      SPlainText:
+        type: text
+      SCipherText:
+        type: text
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+      MPlainText:
+        type: text
+      MCipherText:
+        type: text
+      keychain-name:
+        type: word
+    default: By default, no virtual link is configured for OSPF.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: vlink-peer
+      line: 17040
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpn-instance-capability-simple
+    syntax: vpn-instance-capability simple
+    view: ospf
+    undo: undo vpn-instance-capability
+    default: By default, routing loop detection is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: vpn-instance-capability simple
+      line: 17136
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.whitelist-session-car-ospf
+    syntax: whitelist session-car ospf { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9>
+    view: system
+    undo: undo whitelist session-car ospf [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9> ]
+    params:
+      cir-value:
+        type: word
+      cbs-value:
+        type: word
+      pir-value:
+        type: word
+      pbs-value:
+        type: word
+    default: By default, the OSPF whitelist Session-CAR function is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: whitelist session-car ospf
+      line: 17226
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.whitelist-session-car-ospf-disable
+    syntax: whitelist session-car ospf disable
+    view: system
+    undo: undo whitelist session-car ospf disable
+    default: By default, the OSPF whitelist Session-CAR function is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: whitelist session-car ospf disable
+      line: 17291
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.description~8
+    syntax: description <description>
+    view: ospf-area
+    undo: undo description
+    params:
+      description:
+        type: text
+    default: By default, no description is configured for an OSPF area.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/05_OSPF Configuration Commands.md
+      title: description (OSPF area view)
+      line: 1584
+      version: V800R025C00SPC500
+    status: draft

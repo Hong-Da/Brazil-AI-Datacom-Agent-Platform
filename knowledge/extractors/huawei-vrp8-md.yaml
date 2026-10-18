@@ -34,6 +34,25 @@ views_map:
   - {match: '^VPN instance view$', view: vpn-instance}
   - {match: '^VPN instance IPv4 address family view$', view: vpn-instance-af-ipv4}
   - {match: '^Route-policy view$', view: route-policy}
+  # 0.2.0：IGP、BFD、管理面
+  - {match: '^OSPF view$', view: ospf}
+  - {match: '^OSPF area view$', view: ospf-area}
+  - {match: '^OSPF FRR view$', view: ospf-frr}
+  - {match: '^IS-IS view$', view: isis}
+  - {match: '^IS-IS FRR view$', view: isis-frr}
+  - {match: '^BFD view$', view: bfd}
+  - {match: '^BFD session view$', view: bfd-session}
+  - {match: '^AAA view$', view: aaa}
+  - {match: '^Authentication scheme view$', view: aaa-authentication}
+  - {match: '^Authorization scheme view$', view: aaa-authorization}
+  - {match: '^Accounting scheme view$', view: aaa-accounting}
+  - {match: '^AAA domain view$', view: aaa-domain}
+  - {match: '^Recording scheme view$', view: aaa-recording}
+  - {match: '^HWTACACS server template view$', view: hwtacacs}
+  - {match: '^RADIUS server group view$', view: radius}
+  - {match: '^Local AAA server view$', view: local-aaa-server}
+  - {match: '^VTY-type user interface view$', view: user-interface-vty}
+  - {match: '^CONSOLE-type user interface view$', view: user-interface-con}
   # 各类接口视图（GE / 10GE / 50|100GE / Eth-Trunk / Loopback / 子接口 / 二层接口等）都归到通用的接口视图
   - {match: '(?i)^(?!.*(tunnel|mtunnel|cpos|serial|mp-group|global-ve|pw-ve|ve sub)).*(interface|sub-interface|-L2) view$', view: interface}
 
@@ -48,12 +67,30 @@ enters:
   - {view: bgp, syntax: '^ipv4-family vpnv4\b', enters: bgp-af-vpnv4}
   - {view: bgp, syntax: '^ipv4-family vpn-instance\b', enters: bgp-af-vpn-instance-ipv4}
   - {view: bgp, syntax: '^vpn-instance\b', enters: bgp-vpn-instance}
+  - {view: system, syntax: '^ospf (<|\[)', enters: ospf}
+  - {view: ospf, syntax: '^area\b', enters: ospf-area}
+  - {view: ospf, syntax: '^frr$', enters: ospf-frr}
+  - {view: system, syntax: '^isis (<|\[)', enters: isis}
+  - {view: isis, syntax: '^frr$', enters: isis-frr}
+  - {view: system, syntax: '^bfd$', enters: bfd}
+  - {view: system, syntax: '^bfd <[^>]+> bind\b', enters: bfd-session}
+  - {view: system, syntax: '^aaa$', enters: aaa}
+  - {view: aaa, syntax: '^authentication-scheme\b', enters: aaa-authentication}
+  - {view: aaa, syntax: '^authorization-scheme\b', enters: aaa-authorization}
+  - {view: aaa, syntax: '^accounting-scheme\b', enters: aaa-accounting}
+  - {view: aaa, syntax: '^domain <', enters: aaa-domain}
+  - {view: aaa, syntax: '^recording-scheme\b', enters: aaa-recording}
+  - {view: system, syntax: '^hwtacacs-server template\b', enters: hwtacacs}
+  - {view: system, syntax: '^radius-server group\b', enters: radius}
+  - {view: system, syntax: '^local-aaa-server$', enters: local-aaa-server}
+  - {view: system, syntax: '^user-interface vty <', enters: user-interface-vty}
+  - {view: system, syntax: '^user-interface con(sole)?\b', enters: user-interface-con}
 
 # 参数类型推断：先按参数名，再按取值说明；第一条命中生效
 param_types:
   - {name: '(mask-length|prefix-length|masklen)$', type: mask-length}
-  - {name: '(^|-)mask$', type: mask}
   - {name: 'wildcard', type: wildcard}
+  - {name: '(^|-)mask$', type: mask}
   - {name: '(as-number|as-num|asn)$', type: asn}
   - {name: '(route-distinguisher|^rd$)', type: rd}
   - {name: '(vpn-target|vpn-target-value)$', type: rd}
@@ -82,6 +119,22 @@ domains:
     - {path: '08_IP Services Commands/14_IPv4 Basic Configuration Commands.md'}
     - path: '06_LAN Access and MAN Access Commands.md'
       sections: [Eth-Trunk Interface Configuration Commands, QinQ Configuration Commands, VLAN Configuration Commands, EVC Configuration Commands]
+  # 0.2.0：IGP、BFD、管理面
+  ospf:
+    - {path: '09_IP Routing Commands/05_OSPF Configuration Commands.md'}
+  isis:
+    - {path: '09_IP Routing Commands/04_IS-IS Configuration Commands.md'}
+  bfd:
+    - path: '04_Network Reliability Commands.md'
+      sections: [BFD Configuration Commands]
+  mgmt:
+    - {path: '02_System Management Commands/11_NTP Configuration Commands.md'}
+    - {path: '02_System Management Commands/12_SNMP Configuration Commands.md'}
+    - {path: '02_System Management Commands/10_Information Management Commands.md'}
+    - {path: '18_Security Commands/19_SSH Configuration Commands.md'}
+    - {path: '18_Security Commands/11_AAA and User Management Configuration Commands (Administrative User).md'}
+    - path: '01_Basic Configurations Commands.md'
+      sections: [Configuring User Login Commands, Configuring User Interface Commands]
 
 # 枚举类型参数：取值说明里列出的每一项（“- deny: …”）作为可选值
 enum_marker: enumerated type

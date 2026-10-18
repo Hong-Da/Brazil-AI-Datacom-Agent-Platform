@@ -204,3 +204,27 @@ def test_task_runner(configured_root: Path) -> None:
     bad = tasks.submit(url, "demo", lambda p: 1 / 0, wait=True)  # type: ignore[arg-type,return-value]
     t = tasks.get(url, bad)
     assert t["status"] == "failed" and "ZeroDivisionError" in t["message"]  # type: ignore[index]
+
+
+def test_ids_do_not_collide_across_domains_and_reingest_is_stable() -> None:
+    """分批抽取不同功能域时，新卡避开其他功能域已有的编号；重复抽取得到同样的编号。"""
+    import tempfile
+    from collections import Counter
+
+    from lmesh.core.ingest.service import _avoid_foreign_ids
+
+    with tempfile.TemporaryDirectory() as d:
+        root = Path(d)
+        fam = root / "commands" / "fam"
+        fam.mkdir(parents=True)
+        (fam / "interface.yaml").write_text(
+            "domain: interface\ncards:\n  - {id: fam.shutdown, syntax: shutdown, view: interface}\n", encoding="utf-8"
+        )
+        batch = {"isis": [{"id": "fam.shutdown", "syntax": "shutdown", "view": "isis"}]}
+        stats: Counter[str] = Counter()
+        _avoid_foreign_ids(root, "fam", batch, stats)
+        assert batch["isis"][0]["id"] == "fam.shutdown~2" and stats["renumbered"] == 1
+        # 同语法同视图的卡已经在别的功能域：跳过
+        dup = {"isis": [{"id": "fam.shutdown", "syntax": "shutdown", "view": "interface"}]}
+        _avoid_foreign_ids(root, "fam", dup, stats)
+        assert dup["isis"] == []

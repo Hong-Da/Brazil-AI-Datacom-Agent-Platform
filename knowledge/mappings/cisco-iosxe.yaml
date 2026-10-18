@@ -238,3 +238,297 @@ rules:
       rp.community_list.entry: auto
       rp.community_list.entry.action: "kw:permit|deny"
       rp.community_list.entry.match: "$regexp||$community-number"
+
+  # ================= 0.2.0：OSPF =================
+  - view: ^system$
+    syntax: '^router ospf <process-id>'
+    maps:
+      ospf.process: $process-id
+      ospf.process.vrf: $vrf-name
+  - view: ^router-ospf$
+    syntax: '^router-id <ip-address>$'
+    maps: {ospf.process.router_id: $ip-address}
+  - view: ^router-ospf$
+    syntax: '^auto-cost reference-bandwidth <mbps>$'
+    maps: {ospf.process.bandwidth_reference: $mbps}
+  - view: ^router-ospf$
+    syntax: '^passive-interface \{ default \| <interface> \}$'
+    maps:
+      ospf.process.passive_default: "if:default:flag"
+      ospf.process.passive: $interface
+      ospf.process.passive.enabled: flag
+  - view: ^router-ospf$
+    syntax: '^bfd all-interfaces$'
+    maps: {ospf.process.bfd_all: flag}
+  - view: ^router-ospf$
+    syntax: '^log-adjacency-changes'
+    maps: {ospf.process.log_adjacency: flag}
+  - view: ^router-ospf$
+    syntax: '^default-information originate'
+    maps: {ospf.process.default_originate: flag}
+  - view: ^router-ospf$
+    syntax: '^fast-reroute per-prefix enable'
+    maps: {ospf.process.frr: flag}
+  - view: ^router-ospf$
+    syntax: '^network <ip-address> <wildcard-mask> area <area-id>$'
+    maps:
+      ospf.process.area: $area-id
+      ospf.process.area.network: "fmt:{ip-address} {wildcard-mask}"
+  - view: ^router-ospf$
+    syntax: '^area <area-id> stub'
+    maps:
+      ospf.process.area: $area-id
+      ospf.process.area.type: stub
+  - view: ^router-ospf$
+    syntax: '^area <area-id> nssa'
+    maps:
+      ospf.process.area: $area-id
+      ospf.process.area.type: nssa
+  - view: ^router-ospf$
+    syntax: '^area <area-id> authentication'
+    maps:
+      ospf.process.area: $area-id
+      ospf.process.area.authentication: "kw:message-digest=md5:simple"
+  - view: ^interface$
+    syntax: '^ip ospf <process-id> area <area-id>'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.process: $process-id
+      interface.ospf.area: $area-id
+  - view: ^interface$
+    syntax: '^ip ospf cost <interface-cost>$'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.cost: $interface-cost
+  - view: ^interface$
+    syntax: '^ip ospf network '
+    maps:
+      interface.ospf: "_"
+      interface.ospf.network_type: "kw:point-to-point=p2p|point-to-multipoint=p2mp|non-broadcast=nbma|broadcast"
+  - view: ^interface$
+    syntax: '^ip ospf authentication \['
+    maps:
+      interface.ospf: "_"
+      interface.ospf.authentication: "kw:message-digest=md5|key-chain=keychain|null=none:simple"
+  - view: ^interface$
+    syntax: '^ip ospf hello-interval <seconds>$'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.hello: $seconds
+  - view: ^interface$
+    syntax: '^ip ospf dead-interval '
+    maps:
+      interface.ospf: "_"
+      interface.ospf.dead: $seconds
+  - view: ^interface$
+    syntax: '^ip ospf priority <number-value>$'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.priority: $number-value
+  - view: ^interface$
+    syntax: '^ip ospf bfd \['
+    maps:
+      interface.ospf: "_"
+      interface.ospf.bfd: "if:disable:false||flag"
+
+  # ================= 0.2.0：IS-IS =================
+  - view: ^system$
+    syntax: '^router isis \[ <area-tag> \]$'
+    maps: {isis.process: "$area-tag||_"}
+  - view: ^router-isis$
+    syntax: '^net <network-entity-title>$'
+    maps: {isis.process.net: $network-entity-title}
+  - view: ^router-isis$
+    syntax: '^is-type '
+    maps: {isis.process.level: "kw:level-1-2|level-2-only=level-2|level-1"}
+  - view: ^router-isis$
+    syntax: '^metric-style (wide|narrow|transition)'
+    maps: {isis.process.metric_style: "kw:wide|narrow|transition"}
+  - view: ^router-isis$
+    syntax: '^log-adjacency-changes'
+    maps: {isis.process.log_adjacency: flag}
+  - view: ^router-isis$
+    syntax: '^bfd all-interfaces$'
+    maps: {isis.process.bfd_all: flag}
+  - view: ^router-isis$
+    syntax: '^fast-reroute per-prefix'
+    maps: {isis.process.frr: flag}
+  - view: ^interface$
+    syntax: '^ip router isis \[ <area-tag> \]$'
+    maps:
+      interface.isis: "_"
+      interface.isis.process: "$area-tag||_"
+  - view: ^interface$
+    syntax: '^isis metric '
+    maps:
+      interface.isis: "_"
+      interface.isis.metric: $metric-value
+  - view: ^interface$
+    syntax: '^isis network point-to-point$'
+    maps:
+      interface.isis: "_"
+      interface.isis.p2p: flag
+  - view: ^interface$
+    syntax: '^isis circuit-type '
+    maps:
+      interface.isis: "_"
+      interface.isis.circuit_type: "kw:level-1-2|level-2-only=level-2|level-1"
+  - view: ^interface$
+    syntax: '^isis bfd \['
+    maps:
+      interface.isis: "_"
+      interface.isis.bfd: "if:disable:false||flag"
+
+  # ================= 0.2.0：BFD =================
+  - view: ^interface$
+    syntax: '^bfd interval <milliseconds> min_rx'
+    maps:
+      interface.bfd: "_"
+      interface.bfd.min_tx: $milliseconds
+      interface.bfd.multiplier: $multiplier-value
+
+  # ================= 0.2.0：管理面 =================
+  # NTP
+  - view: ^system$
+    syntax: '^ntp server \['
+    maps:
+      mgmt.ntp: "_"
+      mgmt.ntp.server: "$ip-address||$hostname"
+      mgmt.ntp.server.vrf: $vrf-name
+      mgmt.ntp.server.key: $key-id
+      mgmt.ntp.server.prefer: "if:prefer:flag"
+  - view: ^system$
+    syntax: '^ntp authenticate$'
+    maps:
+      mgmt.ntp: "_"
+      mgmt.ntp.authentication: flag
+  - view: ^system$
+    syntax: '^ntp source <interface>$'
+    maps:
+      mgmt.ntp: "_"
+      mgmt.ntp.source_interface: $interface
+  # SNMP
+  - view: ^system$
+    syntax: '^snmp-server community <string>'
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.community: $string
+      mgmt.snmp.community.access: "kw:rw=write|ro=read:read"
+      mgmt.snmp.community.acl: "$access-list-number||$access-list-name"
+  - view: ^system$
+    syntax: '^snmp-server location <text>$'
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.location: $text
+  - view: ^system$
+    syntax: '^snmp-server contact <text>$'
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.contact: $text
+  - view: ^system$
+    syntax: '^snmp-server trap-source <interface>$'
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.trap_source: $interface
+  - view: ^system$
+    syntax: '^snmp-server enable traps'
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.trap_enable: flag
+  - view: ^system$
+    syntax: '^snmp-server host \{ <hostname> \| <ip-address> \}'
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.host: "$ip-address||$hostname"
+      mgmt.snmp.host.version: "kw:3=v3|2c=v2c|1=v1"
+  # Syslog
+  - view: ^system$
+    syntax: '^logging host <host>'
+    maps:
+      mgmt.syslog: "_"
+      mgmt.syslog.host: $host
+      mgmt.syslog.host.vrf: $vrf-name
+  - view: ^system$
+    syntax: '^logging source-interface <interface>'
+    maps:
+      mgmt.syslog: "_"
+      mgmt.syslog.source_interface: $interface
+  - view: ^system$
+    syntax: '^logging trap <level>$'
+    maps:
+      mgmt.syslog: "_"
+      mgmt.syslog.level: $level
+  - view: ^system$
+    syntax: '^logging buffered \['
+    maps:
+      mgmt.syslog: "_"
+      mgmt.syslog.buffered: flag
+  # SSH
+  - view: ^system$
+    syntax: '^ip ssh version '
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.version: "kw:2|1"
+  - view: ^system$
+    syntax: '^ip ssh \{ time-out'
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.timeout: $seconds
+      mgmt.ssh.retries: $retries
+  # AAA
+  - view: ^system$
+    syntax: '^aaa new-model$'
+    maps: {mgmt.aaa: "_"}
+  - view: ^system$
+    syntax: '^aaa authentication login \{ default'
+    maps:
+      mgmt.aaa: "_"
+      mgmt.aaa.scheme: "kw:default=authentication default||fmt:authentication {list-name}"
+      mgmt.aaa.scheme.methods: "fmt:{method1} {method2} {method3} {method4}"
+  - view: ^system$
+    syntax: '^aaa authorization '
+    maps:
+      mgmt.aaa: "_"
+      mgmt.aaa.scheme: "kw:default=authorization default||fmt:authorization {list-name}"
+      mgmt.aaa.scheme.methods: "fmt:{method1} {method2} {method3} {method4}"
+  - view: ^system$
+    syntax: '^username <name> \[ privilege <level> \] \{ secret'
+    maps:
+      mgmt.aaa: "_"
+      mgmt.aaa.user: $name
+      mgmt.aaa.user.level: $level
+      mgmt.aaa.user.password_set: flag
+  - view: ^system$
+    syntax: '^username <name> privilege <level>$'
+    maps:
+      mgmt.aaa: "_"
+      mgmt.aaa.user: $name
+      mgmt.aaa.user.level: $level
+  - view: ^system$
+    syntax: '^tacacs server <name>$'
+    maps: {mgmt.tacacs: $name}
+  - view: ^tacacs-server$
+    syntax: '^address ipv6 <ipv6-address>$'
+    maps: {mgmt.tacacs.server: "fmt:all {ipv6-address}"}
+  - view: ^tacacs-server$
+    syntax: '^key \['
+    maps: {mgmt.tacacs.key_set: flag}
+  # 登录线路
+  - view: ^system$
+    syntax: '^line \[ aux \| console \| tty \| vty \]'
+    maps: {mgmt.line: "tail:line"}
+  - view: ^line$
+    syntax: '^access-class <access-list-number>'
+    maps: {mgmt.line.acl_in: "if:in:$access-list-number"}
+  - view: ^line$
+    syntax: '^login authentication '
+    maps: {mgmt.line.auth: "$list-name||default"}
+  - view: ^line$
+    syntax: '^privilege level <level>$'
+    maps: {mgmt.line.privilege: $level}
+  - view: ^line$
+    syntax: '^exec-timeout <minutes>'
+    maps: {mgmt.line.idle_timeout: "fmt:{minutes} {seconds}"}
+  - view: ^line$
+    syntax: '^transport input '
+    maps: {mgmt.line.protocols: "tail:input"}

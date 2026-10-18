@@ -1,0 +1,62 @@
+# BFD 功能域（0.2.0）：全局使能、静态 BFD 会话、接口 BFD 参数；IGP 的 BFD 联动在 ospf / isis 域。
+domain: bfd
+nodes:
+  bfd.global:
+    type: object
+    key: [id]
+    semantic: {zh-CN: BFD 全局使能（华为 bfd；Cisco 没有全局开关，编号固定为 "_"）, en: BFD global}
+    status: reviewed
+  bfd.session:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 静态 BFD 会话, en: Static BFD session}
+  bfd.session.peer:
+    parent: bfd.session
+    type: ipv4
+    semantic: {zh-CN: 对端地址, en: Peer address}
+  bfd.session.interface:
+    parent: bfd.session
+    type: interface
+    semantic: {zh-CN: 出接口, en: Interface}
+  bfd.session.local_discriminator:
+    parent: bfd.session
+    type: integer
+    semantic: {zh-CN: 本地标识符, en: Local discriminator}
+  bfd.session.remote_discriminator:
+    parent: bfd.session
+    type: integer
+    semantic: {zh-CN: 远端标识符, en: Remote discriminator}
+  bfd.session.min_tx:
+    parent: bfd.session
+    type: integer
+    semantic: {zh-CN: 最小发送间隔（毫秒）, en: Min TX interval (ms)}
+  bfd.session.min_rx:
+    parent: bfd.session
+    type: integer
+    semantic: {zh-CN: 最小接收间隔（毫秒）, en: Min RX interval (ms)}
+  bfd.session.multiplier:
+    parent: bfd.session
+    type: integer
+    semantic: {zh-CN: 检测倍数, en: Detect multiplier}
+  interface.bfd:
+    parent: interface
+    type: object
+    key: [id]
+    semantic: {zh-CN: 接口 BFD 参数（Cisco bfd interval；编号固定为 "_"）, en: Interface BFD}
+  interface.bfd.min_tx:
+    parent: interface.bfd
+    type: integer
+    semantic: {zh-CN: 最小发送间隔（毫秒）, en: Min TX interval (ms)}
+  interface.bfd.min_rx:
+    parent: interface.bfd
+    type: integer
+    semantic: {zh-CN: 最小接收间隔（毫秒）, en: Min RX interval (ms)}
+  interface.bfd.multiplier:
+    parent: interface.bfd
+    type: integer
+    semantic: {zh-CN: 检测倍数, en: Detect multiplier}
+deps:
+  - {kind: prerequisite, from: bfd.session, to: bfd.global, note: 华为先在系统视图执行 bfd 使能，再创建会话}
+  - {kind: prerequisite, from: ospf.process.bfd_all, to: bfd.global}
+  - {kind: prerequisite, from: isis.process.bfd_all, to: bfd.global}
+  - {kind: cross_device, from: bfd.session.peer, to: interface.ipv4.address, note: 对端地址应是另一台设备的接口地址}

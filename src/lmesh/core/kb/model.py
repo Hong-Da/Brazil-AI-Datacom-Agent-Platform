@@ -122,6 +122,9 @@ class ProfileEntry:
     source: str = ""
     verified: str = "doc"  # doc / device / roundtrip
     manual: bool = False  # 人工补充的条目，重新汇总时保留
+    # 缺省值的适用条件（可省）：{key: 正则}——所属对象的编号匹配时才补默认节点（例如只对物理口）；
+    # {attr: {兄弟属性: 取值}}——同一对象上该属性的有效值相等时才补（例如按网络类型取不同的 hello 间隔）
+    when: dict[str, Any] = field(default_factory=dict)
     origin: str = ""  # 继承展开后：条目来自哪个 Profile
 
 

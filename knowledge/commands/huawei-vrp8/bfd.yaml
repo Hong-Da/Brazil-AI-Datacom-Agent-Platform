@@ -1,0 +1,1501 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: bfd
+cards:
+  - id: huawei-vrp8.8021p-disable
+    syntax: 8021p disable
+    view: bfd
+    undo: undo 8021p disable
+    default: By default, the 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: 8021p disable
+      line: 15
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.authentication-mode
+    syntax: authentication-mode met-sha1 key-id <key-id> cipher <cipher-text> nego-packet [ enhanced ] [ timeout-interval <interval-value> ]
+    view: bfd-session
+    undo: undo authentication-mode
+    params:
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+      cipher-text:
+        type: text
+      interval-value:
+        type: integer
+        range:
+          - 1
+          - 10000
+    default: By default, authentication is not configured for a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: authentication-mode (BFD session view)
+      line: 79
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.batch-shutdown
+    syntax: batch-shutdown { all | ip | lsp | pw | tunnel }
+    view: bfd
+    undo: undo batch-shutdown { all | ip | lsp | pw | tunnel }
+    default: By default, all BFD sessions are started.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: batch-shutdown
+      line: 167
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd
+    syntax: bfd <session-name>
+    view: system
+    params:
+      session-name:
+        type: word
+    default: By default, no BFD session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd (session)
+      line: 235
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd~2
+    syntax: bfd
+    view: system
+    enters_view: bfd
+    undo: undo bfd
+    default: By default, BFD is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd (System view)
+      line: 311
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bfd.global: _
+  - id: huawei-vrp8.bfd-authentication-mode.1
+    syntax: bfd single-hop peer-ip <ip-address> [ vpn-instance <vpn-name> ] authentication-mode met-sha1 key-id <key-id-value> cipher <cipher-text> nego-packet
+    view: bfd
+    undo: undo bfd single-hop peer-ip <ip-address> [ vpn-instance <vpn-name> ]
+    params:
+      ip-address: &id004
+        type: ipv4
+      vpn-name: &id001
+        type: word
+      key-id-value: &id002
+        type: integer
+        range:
+          - 1
+          - 255
+      cipher-text: &id003
+        type: text
+    default: By default, negotiation authentication is disabled for a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd authentication-mode
+      line: 393
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-authentication-mode.2
+    syntax: bfd single-hop peer-ipv6 <ipv6-address> [ vpn-instance <vpn-name> ] authentication-mode met-sha1 key-id <key-id-value> cipher <cipher-text> nego-packet
+    view: bfd
+    undo: undo bfd single-hop peer-ipv6 <ipv6-address> [ vpn-instance <vpn-name> ]
+    params:
+      ipv6-address: &id005
+        type: word
+      vpn-name: *id001
+      key-id-value: *id002
+      cipher-text: *id003
+    default: By default, negotiation authentication is disabled for a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd authentication-mode
+      line: 393
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-authentication-mode.3
+    syntax: bfd multi-hop peer-ip <ip-address> [ vpn-instance <vpn-name> ] authentication-mode met-sha1 key-id <key-id-value> cipher <cipher-text> nego-packet
+    view: bfd
+    undo: undo bfd multi-hop peer-ip <ip-address> [ vpn-instance <vpn-name> ]
+    params:
+      ip-address: *id004
+      vpn-name: *id001
+      key-id-value: *id002
+      cipher-text: *id003
+    default: By default, negotiation authentication is disabled for a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd authentication-mode
+      line: 393
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-authentication-mode.4
+    syntax: bfd multi-hop peer-ipv6 <ipv6-address> [ vpn-instance <vpn-name> ] authentication-mode met-sha1 key-id <key-id-value> cipher <cipher-text> nego-packet
+    view: bfd
+    undo: undo bfd multi-hop peer-ipv6 <ipv6-address> [ vpn-instance <vpn-name> ]
+    params:
+      ipv6-address: *id005
+      vpn-name: *id001
+      key-id-value: *id002
+      cipher-text: *id003
+    default: By default, negotiation authentication is disabled for a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd authentication-mode
+      line: 393
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-authentication-mode.5
+    syntax: bfd mpls-passive peer-ip <ip-address> authentication-mode met-sha1 key-id <key-id-value> cipher <cipher-text> nego-packet
+    view: bfd
+    undo: undo bfd mpls-passive peer-ip <ip-address>
+    params:
+      ip-address: *id004
+      key-id-value: *id002
+      cipher-text: *id003
+    default: By default, negotiation authentication is disabled for a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd authentication-mode
+      line: 393
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-authentication-mode.6
+    syntax: bfd lsp-tunnel peer-ip <ip-address> authentication-mode met-sha1 key-id <key-id-value> cipher <cipher-text> nego-packet
+    view: bfd
+    undo: undo bfd lsp-tunnel peer-ip <ip-address>
+    params:
+      ip-address: *id004
+      key-id-value: *id002
+      cipher-text: *id003
+    default: By default, negotiation authentication is disabled for a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd authentication-mode
+      line: 393
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-link-bundle.1
+    syntax: bfd <session-name> bind link-bundle peer-ip <ip-address> [ vpn-instance <vpn-name> ] interface { <interface-name> | <interface-type> <interface-number> } source-ip <ip-address>
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name: &id006
+        type: word
+      ip-address: &id007
+        type: ipv4
+      vpn-name: &id008
+        type: word
+      interface-name:
+        type: word
+      interface-type: &id009
+        type: word
+      interface-number: &id010
+        type: word
+    default: By default, no BFD for link-bundle session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind link-bundle
+      line: 498
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-link-bundle.2
+    syntax: bfd <session-name> bind link-bundle peer-ip <ip-address> [ vpn-instance <vpn-name> ] interface { <interface-name> | <interface-type> <interface-number> } source-ip <ip-address> unshared-mode
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name: *id006
+      ip-address: *id007
+      vpn-name: *id008
+      interface-name:
+        type: word
+      interface-type: *id009
+      interface-number: *id010
+    default: By default, no BFD for link-bundle session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind link-bundle
+      line: 498
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-link-bundle.3
+    syntax: bfd <session-name> bind link-bundle compatible-mode peer-ip <ip-address> [ vpn-instance <vpn-name> ] interface { <interface-name> | <interface-type> <interface-number> } source-ip <ip-address>
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name: *id006
+      ip-address: *id007
+      vpn-name: *id008
+      interface-name:
+        type: word
+      interface-type: *id009
+      interface-number: *id010
+    default: By default, no BFD for link-bundle session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind link-bundle
+      line: 498
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-link-bundle.4
+    syntax: bfd <session-name> bind link-bundle compatible-mode peer-ip <ip-address> [ vpn-instance <vpn-name> ] interface { <interface-name> | <interface-type> <interface-number> } source-ip <ip-address> unshared-mode
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name: *id006
+      ip-address: *id007
+      vpn-name: *id008
+      interface-name:
+        type: word
+      interface-type: *id009
+      interface-number: *id010
+    default: By default, no BFD for link-bundle session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind link-bundle
+      line: 498
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-link-bundle.5
+    syntax: bfd <session-name> bind link-bundle peer-ipv6 <ipv6-address> [ vpn-instance <vpn-name> ] interface { <interface-name> | <interface-type> <interface-number> } source-ipv6 <ipv6-address>
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name: *id006
+      ipv6-address: &id011
+        type: word
+      vpn-name: *id008
+      interface-name:
+        type: word
+      interface-type: *id009
+      interface-number: *id010
+    default: By default, no BFD for link-bundle session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind link-bundle
+      line: 498
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-link-bundle.6
+    syntax: bfd <session-name> bind link-bundle peer-ipv6 <ipv6-address> [ vpn-instance <vpn-name> ] interface { <interface-name> | <interface-type> <interface-number> } source-ipv6 <ipv6-address> unshared-mode
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name: *id006
+      ipv6-address: *id011
+      vpn-name: *id008
+      interface-name:
+        type: word
+      interface-type: *id009
+      interface-number: *id010
+    default: By default, no BFD for link-bundle session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind link-bundle
+      line: 498
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-link-bundle.7
+    syntax: bfd <session-name> bind link-bundle compatible-mode peer-ipv6 <ipv6-address> [ vpn-instance <vpn-name> ] interface { <interface-name> | <interface-type> <interface-number> } source-ipv6 <ipv6-address>
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name: *id006
+      ipv6-address: *id011
+      vpn-name: *id008
+      interface-name:
+        type: word
+      interface-type: *id009
+      interface-number: *id010
+    default: By default, no BFD for link-bundle session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind link-bundle
+      line: 498
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-link-bundle.8
+    syntax: bfd <session-name> bind link-bundle compatible-mode peer-ipv6 <ipv6-address> [ vpn-instance <vpn-name> ] interface { <interface-name> | <interface-type> <interface-number> } source-ipv6 <ipv6-address> unshared-mode
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name: *id006
+      ipv6-address: *id011
+      vpn-name: *id008
+      interface-name:
+        type: word
+      interface-type: *id009
+      interface-number: *id010
+    default: By default, no BFD for link-bundle session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind link-bundle
+      line: 498
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-mpls-te.1
+    syntax: bfd <sessname-value> bind mpls-te interface { <tunnel-type> <tunnel-num> | <tunnel-name> } te-lsp [ backup ]
+    view: system
+    enters_view: bfd-session
+    params:
+      sessname-value: &id012
+        type: word
+      tunnel-type: &id013
+        type: word
+      tunnel-num: &id014
+        type: word
+      tunnel-name: &id015
+        type: word
+    default: By default, no BFD sessions are configured for TE tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind mpls-te
+      line: 631
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-mpls-te.2
+    syntax: bfd <sessname-value> bind mpls-te interface { <tunnel-type> <tunnel-num> | <tunnel-name> } te-lsp [ backup ] one-arm-echo
+    view: system
+    enters_view: bfd-session
+    params:
+      sessname-value: *id012
+      tunnel-type: *id013
+      tunnel-num: *id014
+      tunnel-name: *id015
+    default: By default, no BFD sessions are configured for TE tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind mpls-te
+      line: 631
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-mpls-te.3
+    syntax: bfd <sessname-value> bind mpls-te interface { <tunnel-type> <tunnel-num> | <tunnel-name> } one-arm-echo
+    view: system
+    enters_view: bfd-session
+    params:
+      sessname-value: *id012
+      tunnel-type: *id013
+      tunnel-num: *id014
+      tunnel-name: *id015
+    default: By default, no BFD sessions are configured for TE tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind mpls-te
+      line: 631
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-mpls-te.4
+    syntax: bfd <sessname-value> bind mpls-te interface { <tunnel-type> <tunnel-num> | <tunnel-name> } te-lsp [ backup ] reverse-te lsr-id <lsr-id> tunnel-id <tunnel-id> auto
+    view: system
+    enters_view: bfd-session
+    params:
+      sessname-value: *id012
+      tunnel-type: *id013
+      tunnel-num: *id014
+      tunnel-name: *id015
+      lsr-id:
+        type: ipv4
+      tunnel-id:
+        type: integer
+    default: By default, no BFD sessions are configured for TE tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind mpls-te
+      line: 631
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-one-arm-echo.1
+    syntax: bfd <sessname-value> bind peer-ip <ip-address> [ vpn-instance <vpn-name> ] interface { <interface-name> | <interface-type> <interface-number> } [ source-ip <ip-address> ] one-arm-echo
+    view: system
+    enters_view: bfd-session
+    params:
+      sessname-value: &id016
+        type: word
+      ip-address: &id017
+        type: ipv4
+      vpn-name: &id018
+        type: word
+      interface-name:
+        type: word
+      interface-type: &id019
+        type: word
+      interface-number: &id020
+        type: word
+    default: By default, no one-arm BFD echo session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind one-arm-echo
+      line: 801
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-one-arm-echo.2
+    syntax: bfd <sessname-value> bind peer-ip <ip-address> [ vpn-instance <vpn-name> ] interface { <interface-name> | <interface-type> <interface-number> } [ source-ip <ip-address> ] one-arm-echo destination-ip <ip-address>
+    view: system
+    enters_view: bfd-session
+    params:
+      sessname-value: *id016
+      ip-address: *id017
+      vpn-name: *id018
+      interface-name:
+        type: word
+      interface-type: *id019
+      interface-number: *id020
+    default: By default, no one-arm BFD echo session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind one-arm-echo
+      line: 801
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-one-arm-echo.3
+    syntax: bfd <sessname-value> bind peer-ipv6 <ipv6-address> [ vpn-instance <vpn-name> ] interface { <interface-name> | <interface-type> <interface-number> } [ source-ipv6 <source-ipv6> ] one-arm-echo
+    view: system
+    enters_view: bfd-session
+    params:
+      sessname-value: *id016
+      ipv6-address: &id021
+        type: word
+      vpn-name: *id018
+      interface-name:
+        type: word
+      interface-type: *id019
+      interface-number: *id020
+      source-ipv6: &id022
+        type: word
+    default: By default, no one-arm BFD echo session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind one-arm-echo
+      line: 801
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-one-arm-echo.4
+    syntax: bfd <sessname-value> bind peer-ipv6 <ipv6-address> [ vpn-instance <vpn-name> ] interface { <interface-name> | <interface-type> <interface-number> } [ source-ipv6 <source-ipv6> ] one-arm-echo destination-ipv6 <destination-ipv6-value>
+    view: system
+    enters_view: bfd-session
+    params:
+      sessname-value: *id016
+      ipv6-address: *id021
+      vpn-name: *id018
+      interface-name:
+        type: word
+      interface-type: *id019
+      interface-number: *id020
+      source-ipv6: *id022
+      destination-ipv6-value:
+        type: word
+    default: By default, no one-arm BFD echo session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind one-arm-echo
+      line: 801
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-peer-ip.1
+    syntax: bfd <session-name> bind peer-ip <peer-ip> [ vpn-instance <vpn-name> ] [ interface { <interface-name> | <interface-type> <interface-number> } ] [ source-ip <source-ip> ]
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name: &id023
+        type: word
+      peer-ip: &id024
+        type: ipv4
+      vpn-name: &id025
+        type: word
+      interface-name: &id026
+        type: word
+      interface-type: &id027
+        type: word
+      interface-number: &id028
+        type: word
+      source-ip: &id029
+        type: ipv4
+    default: By default, no binding between a BFD session and a peer IP address is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind peer-ip (System view)
+      line: 890
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bfd.session: $session-name
+      bfd.session.peer: $peer-ip
+      bfd.session.interface: $interface-name||fmt:{interface-type}{interface-number}
+  - id: huawei-vrp8.bfd-bind-peer-ip.2
+    syntax: bfd <session-name> bind peer-ip <peer-ip> [ vpn-instance <vpn-name> ] [ interface { <interface-name> | <interface-type> <interface-number> } ] source-ip <source-ip> auto
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name: *id023
+      peer-ip: *id024
+      vpn-name: *id025
+      interface-name: *id026
+      interface-type: *id027
+      interface-number: *id028
+      source-ip: *id029
+    default: By default, no binding between a BFD session and a peer IP address is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind peer-ip (System view)
+      line: 890
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bfd.session: $session-name
+      bfd.session.peer: $peer-ip
+      bfd.session.interface: $interface-name||fmt:{interface-type}{interface-number}
+  - id: huawei-vrp8.bfd-bind-peer-ip-default-ip.1
+    syntax: bfd <sessname-value> bind peer-ip default-ip interface { <interface-name> | <interface-type> <interface-number> } [ source-ip <source-ip> ]
+    view: system
+    enters_view: bfd-session
+    params:
+      sessname-value: &id030
+        type: word
+      interface-name: &id031
+        type: word
+      interface-type: &id032
+        type: word
+      interface-number: &id033
+        type: word
+      source-ip: &id034
+        type: ipv4
+    default: By default, no multicast BFD session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind peer-ip default-ip
+      line: 1014
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-peer-ip-default-ip.2
+    syntax: bfd <sessname-value> bind peer-ip default-ip interface { <interface-name> | <interface-type> <interface-number> } [ source-ip <source-ip> ] auto
+    view: system
+    enters_view: bfd-session
+    params:
+      sessname-value: *id030
+      interface-name: *id031
+      interface-type: *id032
+      interface-number: *id033
+      source-ip: *id034
+    default: By default, no multicast BFD session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind peer-ip default-ip
+      line: 1014
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-peer-ip-default-ip-vsi
+    syntax: bfd <sessname-value> bind peer-ip default-ip vsi <vsi-name> peer <peer-address> [ vc-id <vc-id> ]
+    view: system
+    enters_view: bfd-session
+    params:
+      sessname-value:
+        type: word
+      vsi-name:
+        type: word
+      peer-address:
+        type: ipv4
+      vc-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no BFD multicast session based on a VSI PW is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind peer-ip default-ip vsi
+      line: 1101
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-peer-ip-track-interface
+    syntax: bfd <session-name> bind peer-ip <peer-ip> [ vpn-instance <vpn-name> ] [ source-ip <source-ip> ] track-interface interface { <interface-name> | <interface-type> <interface-number> }
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name:
+        type: word
+      peer-ip:
+        type: ipv4
+      vpn-name:
+        type: word
+      source-ip:
+        type: ipv4
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, no binding between a BFD session and a peer IP address is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind peer-ip track-interface
+      line: 1185
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-peer-ipv6
+    syntax: bfd <session-name> bind peer-ipv6 <peer-ipv6> [ vpn-instance <vpn-name> ] [ interface { <interface-name> | <interface-type> <interface-number> } ] [ source-ipv6 <source-ipv6> ]
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name:
+        type: word
+      peer-ipv6:
+        type: word
+      vpn-name:
+        type: word
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      source-ipv6:
+        type: word
+    default: By default, the binding between a BFD session for IPv6 and a peer IPv6 address is not created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind peer-ipv6
+      line: 1287
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-peer-ipv6-seamless.1
+    syntax: bfd <session-name> bind peer-ipv6 <peer-ipv6> [ vpn-instance <vpn-name> ] [ source-ipv6 <source-ipv6> ] seamless
+    view: system
+    enters_view: bfd-session
+    undo: undo bfd <session-name> bind peer-ipv6 <peer-ipv6> [ vpn-instance <vpn-name> ] [ source-ipv6 <source-ipv6> ] seamless
+    params:
+      session-name: &id035
+        type: word
+      peer-ipv6: &id036
+        type: word
+      vpn-name:
+        type: word
+      source-ipv6: &id037
+        type: word
+    default: By default, no BFD for seamless session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind peer-ipv6 seamless
+      line: 1383
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-peer-ipv6-seamless.2
+    syntax: bfd <session-name> bind peer-ipv6 <peer-ipv6> [ source-ipv6 <source-ipv6> ] seamless
+    view: system
+    enters_view: bfd-session
+    undo: undo bfd <session-name> bind peer-ipv6 <peer-ipv6> [ source-ipv6 <source-ipv6> ] seamless
+    params:
+      session-name: *id035
+      peer-ipv6: *id036
+      source-ipv6: *id037
+    default: By default, no BFD for seamless session is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind peer-ipv6 seamless
+      line: 1383
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-peer-ipv6-source-ipv6-auto
+    syntax: bfd <sessname-value> bind peer-ipv6 <peerip6-value> [ vpn-instance <vpnname-value> ] [ interface { <interface-value> | <ifType> <ifNum> } ] source-ipv6 <sourceip6-value> auto
+    view: system
+    enters_view: bfd-session
+    params:
+      sessname-value:
+        type: word
+      peerip6-value:
+        type: word
+      vpnname-value:
+        type: word
+      interface-value:
+        type: word
+      ifType:
+        type: word
+      ifNum:
+        type: word
+      sourceip6-value:
+        type: word
+    default: By default, no static BFD for IPv6 session with automatically negotiated discriminators is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind peer-ipv6 source-ipv6 auto
+      line: 1455
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-peer-ipv6-track-interface
+    syntax: bfd <session-name> bind peer-ipv6 <peer-ipv6> [ vpn-instance <vpn-name> ] [ source-ipv6 <source-ipv6> ] track-interface interface { <interface-name> | <interface-type> <interface-number> }
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name:
+        type: word
+      peer-ipv6:
+        type: word
+      vpn-name:
+        type: word
+      source-ipv6:
+        type: word
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, the binding between a BFD session for IPv6 and a peer IPv6 address is not created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind peer-ipv6 track-interface
+      line: 1544
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-pw-interface.1
+    syntax: bfd <session-name> bind pw interface { <interface-name1> | <interface-type1> <interface-number1> } [ track-interface [ <interface> { <interface-name2> | <interface-type2> <interface-number2> } ] ] [ secondary ]
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name: &id038
+        type: word
+      interface-name1: &id039
+        type: word
+      interface-type1: &id040
+        type: word
+      interface-number1: &id041
+        type: word
+      interface: &id042
+        type: word
+      interface-name2: &id043
+        type: word
+      interface-type2: &id044
+        type: word
+      interface-number2: &id045
+        type: word
+    default: By default, BFD is not configured to detect PW connectivity.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind pw interface
+      line: 1635
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-pw-interface.2
+    syntax: bfd <session-name> bind pw interface { <interface-name1> | <interface-type1> <interface-number1> } remote-peer <remote-peer-address> pw-ttl { auto-calculate | <ttl-number> } [ track-interface [ <interface> { <interface-name2> | <interface-type2> <interface-number2> } ] ] [ secondary ]
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name: *id038
+      interface-name1: *id039
+      interface-type1: *id040
+      interface-number1: *id041
+      remote-peer-address:
+        type: ipv4
+      ttl-number:
+        type: integer
+        range:
+          - 1
+          - 255
+      interface: *id042
+      interface-name2: *id043
+      interface-type2: *id044
+      interface-number2: *id045
+    default: By default, BFD is not configured to detect PW connectivity.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind pw interface
+      line: 1635
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-pw-vsi-peer
+    syntax: bfd <session-name> bind pw vsi <vsi-name> peer <peer-address> [ vc-id <vc-id> ] [ remote-peer <remote-peer-address> pw-ttl { auto-calculate | <ttl-number> } ]
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name:
+        type: word
+      vsi-name:
+        type: word
+      peer-address:
+        type: ipv4
+      vc-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      remote-peer-address:
+        type: ipv4
+      ttl-number:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, BFD is not configured to detect PW connectivity.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd bind pw vsi peer
+      line: 1734
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-suppress-alarm-dynamic
+    syntax: bfd suppress-alarm dynamic
+    view: bfd
+    undo: undo bfd suppress-alarm dynamic
+    default: By default, alarm suppression is disabled for dynamic BFD sessions.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd suppress-alarm dynamic
+      line: 2127
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-trigger-if-down
+    syntax: bfd trigger if-down
+    view: interface
+    undo: undo bfd trigger if-down
+    default: By default, a BFD session is not associated with the bound interface status.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd trigger if-down
+      line: 2188
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-link-bundle-priority-mapping-enable
+    syntax: bfd-link-bundle priority mapping enable
+    view: system
+    undo: undo bfd-link-bundle priority mapping enable
+    default: By default, the priority mapping function is disabled for BFD for link-bundle packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd-link-bundle priority mapping enable
+      line: 2253
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-track-manager
+    syntax: bfd-track-manager
+    view: system
+    undo: undo bfd-track-manager
+    default: By default, the association between a BFD session and a session group is disabled globally.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bfd-track-manager
+      line: 2308
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bit-error-detection
+    syntax: bit-error-detection
+    view: bfd-session
+    undo: undo bit-error-detection
+    default: By default, bit-error-triggered switching is disabled for an SR-MPLS TE LSP.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: bit-error-detection (BFD session view)
+      line: 2373
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening-timer-interval.1
+    syntax: dampening timer-interval maximum <maximum-milliseconds> initial <initial-milliseconds> secondary <secondary-milliseconds>
+    view: bfd
+    undo: undo dampening timer-interval [ maximum <maximum-milliseconds> initial <initial-milliseconds> secondary <secondary-milliseconds> ]
+    params:
+      maximum-milliseconds:
+        type: integer
+        range:
+          - 1
+          - 3600000
+      initial-milliseconds:
+        type: integer
+        range:
+          - 1
+          - 3600000
+      secondary-milliseconds:
+        type: integer
+        range:
+          - 1
+          - 3600000
+    default: By default, the flapping suppression timer is started.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: dampening timer-interval
+      line: 2437
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening-timer-interval.2
+    syntax: dampening timer-interval bundle-member maximum <bundle-maximum-milliseconds> initial <bundle-initial-milliseconds> secondary <bundle-secondary-milliseconds>
+    view: bfd
+    undo: undo dampening timer-interval bundle-member [ maximum <bundle-maximum-milliseconds> initial <bundle-initial-milliseconds> secondary <bundle-secondary-milliseconds> ]
+    params:
+      bundle-maximum-milliseconds:
+        type: integer
+        range:
+          - 20000
+          - 3600000
+      bundle-initial-milliseconds:
+        type: integer
+        range:
+          - 6000
+          - 3600000
+      bundle-secondary-milliseconds:
+        type: integer
+        range:
+          - 10000
+          - 3600000
+    default: By default, the flapping suppression timer is started.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: dampening timer-interval
+      line: 2437
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening-timer-interval.3
+    syntax: dampening timer-interval bundle-member l3-only-mode
+    view: bfd
+    undo: undo dampening timer-interval bundle-member l3-only-mode
+    default: By default, the flapping suppression timer is started.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: dampening timer-interval
+      line: 2437
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.default-ip-address
+    syntax: default-ip-address <default-ip-value>
+    view: bfd
+    undo: undo default-ip-address [ <default-ip-value> ]
+    params:
+      default-ip-value:
+        type: ipv4
+    default: By default, the default multicast address for a BFD session is 224.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: default-ip-address
+      line: 2537
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.default-ip-bfd-transparent-transmission-enable
+    syntax: default-ip-bfd transparent-transmission enable
+    view: interface
+    undo: undo default-ip-bfd transparent-transmission enable
+    default: By default, after multicast BFD is enabled, multicast IPv4 BFD packets on an interface and its sub-interfaces are sent to the CPU.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: default-ip-bfd transparent-transmission enable
+      line: 2616
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.delay-up
+    syntax: delay-up <seconds>
+    view: bfd
+    undo: undo delay-up [ <seconds> ]
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 600
+    default: By default, no delay is set before a BFD session goes Up.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: delay-up
+      line: 2672
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.description~4
+    syntax: description <description>
+    view: bfd-session
+    undo: undo description
+    params:
+      description:
+        type: text
+    default: By default, no description is configured for a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: description (BFD session view)
+      line: 2740
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.detect-multiplier
+    syntax: detect-multiplier <multiplier>
+    view: bfd-session
+    undo: undo detect-multiplier [ <multiplier> ]
+    params:
+      multiplier:
+        type: integer
+        range:
+          - 3
+          - 50
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: detect-multiplier
+      line: 2900
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bfd.session.multiplier: $multiplier
+  - id: huawei-vrp8.discriminator.1
+    syntax: discriminator local <discr-value>
+    view: bfd-session
+    undo: undo discriminator local [ <discr-value> ]
+    params:
+      discr-value: &id046
+        type: integer
+        range:
+          - 1
+          - 16384
+    default: By default, the discriminator of a static BFD session is not created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: discriminator (BFD session view)
+      line: 2976
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bfd.session.local_discriminator: $discr-value
+  - id: huawei-vrp8.discriminator.2
+    syntax: discriminator remote <discr-value>
+    view: bfd-session
+    undo: undo discriminator remote [ <discr-value> ]
+    params:
+      discr-value: *id046
+    default: By default, the discriminator of a static BFD session is not created.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: discriminator (BFD session view)
+      line: 2976
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bfd.session.remote_discriminator: $discr-value
+  - id: huawei-vrp8.dot1q-vid
+    syntax: dot1q vid <vid>
+    view: bfd-session
+    undo: undo dot1q
+    params:
+      vid:
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, no VLAN ID is specified.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: dot1q vid
+      line: 5491
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.echo-passive
+    syntax: echo-passive { all | acl <basic-acl-number> }
+    view: bfd
+    undo: undo echo-passive
+    params:
+      basic-acl-number:
+        type: integer
+        range:
+          - 2000
+          - 2999
+    default: By default, passive BFD echo is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: echo-passive
+      line: 5566
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-trap-separated
+    syntax: ipv6-trap separated
+    view: bfd
+    undo: undo ipv6-trap separated
+    default: By default, the BFD IPv4 and IPv6 sessions use the same trap messages to report alarms.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: ipv6-trap separated
+      line: 5701
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.learn-udp-port-disable
+    syntax: learn udp-port disable
+    view: bfd-session
+    undo: undo learn udp-port disable
+    default: By default, the function of learning the peer port number is enabled for a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: learn udp-port disable
+      line: 5755
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsp-path-check-disable
+    syntax: lsp-path-check disable
+    view: bfd
+    undo: undo lsp-path-check disable
+    default: By default, when BFD is enabled globally, consistency check is enabled for the forward and reverse primary and backup paths.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: lsp-path-check disable
+      line: 5807
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.min-echo-rx-interval
+    syntax: min-echo-rx-interval <interval>
+    view: bfd-session
+    undo: undo min-echo-rx-interval
+    params:
+      interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+    default: By default, the minimum interval is 10 ms.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: min-echo-rx-interval
+      line: 5863
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.min-rx-interval
+    syntax: min-rx-interval <rx-interval>
+    view: bfd-session
+    undo: undo min-rx-interval
+    params:
+      rx-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+    default: By default, the interval is 10 milliseconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: min-rx-interval
+      line: 5928
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bfd.session.min_rx: $rx-interval
+  - id: huawei-vrp8.min-tx-interval
+    syntax: min-tx-interval <tx-interval>
+    view: bfd-session
+    undo: undo min-tx-interval
+    params:
+      tx-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+    default: By default, the interval is 10 milliseconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: min-tx-interval
+      line: 5996
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bfd.session.min_tx: $tx-interval
+  - id: huawei-vrp8.negotiation-initial-rx-interval
+    syntax: negotiation-initial-rx-interval <rx-interval>
+    view: bfd
+    undo: undo negotiation-initial-rx-interval <rx-interval>
+    params:
+      rx-interval:
+        type: integer
+        range:
+          - 1000
+          - 15000
+    default: By default, the initial interval at which BFD negotiation packets are received is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: negotiation-initial-rx-interval
+      line: 6060
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.network-slice
+    syntax: network-slice <slice-id> [ strict-match ]
+    view: bfd-session
+    undo: undo network-slice <slice-id> [ strict-match ]
+    params:
+      slice-id:
+        type: integer
+        range:
+          - 0
+          - 2147483647
+    default: By default, no network slice instance is bound to a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: network-slice(BFD session view)
+      line: 6122
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.passive-session-detect-multiplier
+    syntax: passive-session detect-multiplier <multiplier-value> peer <peerip-value>
+    view: bfd
+    undo: undo passive-session detect-multiplier <multiplier-value> peer <peerip-value>
+    params:
+      multiplier-value:
+        type: integer
+        range:
+          - 3
+          - 50
+      peerip-value:
+        type: ipv4
+    default: By default, the detection multiplier of a passive BFD session is 3.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: passive-session detect-multiplier
+      line: 6295
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.passive-session-udp-port-3784
+    syntax: passive-session udp-port 3784 peer <peer-ip>
+    view: bfd
+    undo: undo passive-session udp-port 3784 peer <peer-ip>
+    params:
+      peer-ip:
+        type: ipv4
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: passive-session udp-port 3784
+      line: 6354
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.process-interface-status
+    syntax: process-interface-status [ sub-if ] [ reboot-no-impact ]
+    view: bfd-session
+    undo: undo process-interface-status [ sub-if ] [ reboot-no-impact ]
+    default: By default, the status of the multicast IP single-hop BFD session is not associated with the status of the bound interface, and the status of the link-bundle single-hop BFD session is associated with the status of the bound interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: process-interface-status
+      line: 6424
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.process-interface-status-reboot-no-impact
+    syntax: process-interface-status reboot-no-impact
+    view: bfd-session
+    undo: undo process-interface-status reboot-no-impact
+    default: By default, a single-hop BFD session with a multicast IP address configured as the peer address is not associated with the status of the interface to which the BFD session is bound.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: process-interface-status reboot-no-impact
+      line: 6518
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.process-pst
+    syntax: process-pst
+    view: bfd-session
+    undo: undo process-pst
+    default: By default, a BFD session does not modify the port state table or link state table upon detection of a fault.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: process-pst
+      line: 6593
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qinq
+    syntax: qinq pe-vid <pe-vid> ce-vid <ce-vid>
+    view: bfd-session
+    undo: undo qinq
+    params:
+      pe-vid:
+        type: integer
+        range:
+          - 1
+          - 4094
+      ce-vid:
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, inner and outer tags are not specified for packets on a sub-interface for QinQ VLAN tag termination, to which a BFD session is bound.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: qinq
+      line: 6663
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.sbfd
+    syntax: sbfd
+    view: system
+    undo: undo sbfd
+    default: By default, SBFD is disabled globally.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: sbfd
+      line: 6862
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.shutdown~3
+    syntax: shutdown
+    view: bfd-session
+    undo: undo shutdown
+    default: By default, a BFD session is started.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: shutdown (BFD session view)
+      line: 7020
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.single-hop-sub-if-acl-enable
+    syntax: single-hop sub-if acl enable
+    view: bfd
+    undo: undo single-hop sub-if acl enable
+    default: By default, ACLs are disabled from controlling single-hop BFD on a sub-interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: single-hop sub-if acl enable
+      line: 7085
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tos-exp
+    syntax: tos-exp <tos-value>
+    view: bfd-session
+    undo: undo tos-exp
+    params:
+      tos-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, the priority inherits the packet priority in the global BFD view.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: tos-exp
+      line: 7141
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tos-exp.1
+    syntax: tos-exp <tos-value> dynamic
+    view: bfd
+    undo: undo tos-exp <tos-value> dynamic
+    params:
+      tos-value: &id047
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, the priority is 7, which is the highest priority of BFD control packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: tos-exp (BFD view)
+      line: 7210
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tos-exp.2
+    syntax: tos-exp <tos-value> static
+    view: bfd
+    undo: undo tos-exp <tos-value> static
+    params:
+      tos-value: *id047
+    default: By default, the priority is 7, which is the highest priority of BFD control packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: tos-exp (BFD view)
+      line: 7210
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.wtr.1
+    syntax: wtr <wtr-value>
+    view: bfd-session
+    undo: undo wtr [ <wtr-value> | seconds <wtr-value-seconds> ]
+    params:
+      wtr-value:
+        type: integer
+        range:
+          - 1
+          - 60
+    default: By default, the value is 0, indicating no waiting.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: wtr
+      line: 7351
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.wtr.2
+    syntax: wtr seconds <wtr-value-seconds>
+    view: bfd-session
+    undo: undo wtr [ <wtr-value> | seconds <wtr-value-seconds> ]
+    params:
+      wtr-value-seconds:
+        type: integer
+        range:
+          - 1
+          - 3600
+    default: By default, the value is 0, indicating no waiting.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: wtr
+      line: 7351
+      version: V800R025C00SPC500
+    status: draft

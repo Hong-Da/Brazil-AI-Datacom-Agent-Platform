@@ -287,3 +287,484 @@ rules:
       rp.community_list.entry: "$index-number||auto"
       rp.community_list.entry.action: $matchMode
       rp.community_list.entry.match: "$regular-expression||$cmntyValue"
+
+  # ================= 0.2.0：OSPF =================
+  - view: ^system$
+    syntax: '^ospf <process-id> \['
+    maps:
+      ospf.process: $process-id
+      ospf.process.router_id: $route-id
+      ospf.process.vrf: $vpname
+  - view: ^system$
+    syntax: '^ospf \[ router-id'
+    maps:
+      ospf.process: "1"
+      ospf.process.router_id: $route-id
+      ospf.process.vrf: $vpname
+  - view: ^ospf$
+    syntax: '^bandwidth-reference <value>$'
+    maps: {ospf.process.bandwidth_reference: $value}
+  - view: ^ospf$
+    syntax: '^silent-interface \{ all'
+    maps:
+      ospf.process.passive_default: "if:all:flag"
+      ospf.process.passive: "$interface-name||fmt:{interface-type}{interface-number}"
+      ospf.process.passive.enabled: flag
+  - view: ^ospf$
+    syntax: '^bfd all-interfaces enable$'
+    maps: {ospf.process.bfd_all: flag}
+  - view: ^ospf$
+    syntax: '^bfd all-interfaces \{ min-tx-interval'
+    maps:
+      ospf.process.bfd_min_tx: $transmit-interval
+      ospf.process.bfd_min_rx: $receive-interval
+  - view: ^ospf$
+    syntax: '^frr$'
+    maps: {ospf.process.frr: flag}
+  - view: ^ospf$
+    syntax: '^import-route \{ direct \| static \| bgp'
+    maps:
+      ospf.process.redistribute: "kw:direct|static|bgp"
+      ospf.process.redistribute.policy: $route-policy-name
+  - view: ^ospf$
+    syntax: '^import-route \{ ospf \| isis \| rip \}'
+    maps:
+      ospf.process.redistribute: "kw:ospf|isis|rip"
+      ospf.process.redistribute.policy: $route-policy-name
+  - view: ^ospf$
+    syntax: '^default-route-advertise \[ \[ always'
+    maps: {ospf.process.default_originate: flag}
+  - view: ^ospf$
+    syntax: '^area \{ <area-id> \| <area-idipv4> \}$'
+    maps: {ospf.process.area: "$area-idipv4||$area-id"}
+  - view: ^ospf-area$
+    syntax: '^network <address> <wildcard-mask>$'
+    maps:
+      ospf.process.area.network: "fmt:{address} {wildcard-mask}"
+  - view: ^ospf-area$
+    syntax: '^network <address> <wildcard-mask> description <text>$'
+    maps:
+      ospf.process.area.network: "fmt:{address} {wildcard-mask}"
+      ospf.process.area.network.description: $text
+  - view: ^ospf-area$
+    syntax: '^stub '
+    maps: {ospf.process.area.type: stub}
+  - view: ^ospf-area$
+    syntax: '^nssa '
+    maps: {ospf.process.area.type: nssa}
+  - view: ^ospf-area$
+    syntax: '^authentication-mode simple'
+    maps: {ospf.process.area.authentication: simple}
+  - view: ^ospf-area$
+    syntax: '^authentication-mode \{ md5'
+    maps: {ospf.process.area.authentication: "kw:md5|hmac-md5=md5|hmac-sha256"}
+  - view: ^ospf-area$
+    syntax: '^authentication-mode keychain'
+    maps: {ospf.process.area.authentication: keychain}
+  # 接口上的 OSPF 参数：华为不写进程号，对象编号固定为 "_"
+  - view: ^interface$
+    syntax: '^ospf enable \[ <process-id> \] area'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.process: "$process-id||1"
+      interface.ospf.area: "$areaidipv4||$area-id"
+  - view: ^interface$
+    syntax: '^ospf cost <value>$'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.cost: $value
+  - view: ^interface$
+    syntax: '^ospf network-type '
+    maps:
+      interface.ospf: "_"
+      interface.ospf.network_type: "kw:broadcast|p2p|p2mp|nbma"
+  - view: ^interface$
+    syntax: '^ospf authentication-mode simple \['
+    maps:
+      interface.ospf: "_"
+      interface.ospf.authentication: simple
+  - view: ^interface$
+    syntax: '^ospf authentication-mode \{ md5'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.authentication: "kw:md5|hmac-md5=md5|hmac-sha256"
+  - view: ^interface$
+    syntax: '^ospf authentication-mode keychain <keychain-name>$'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.authentication: keychain
+  - view: ^interface$
+    syntax: '^ospf authentication-mode null$'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.authentication: none
+  - view: ^interface$
+    syntax: '^ospf timer hello <interval>'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.hello: $interval
+  - view: ^interface$
+    syntax: '^ospf timer dead <interval>$'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.dead: $interval
+  - view: ^interface$
+    syntax: '^ospf dr-priority <priovalue>$'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.priority: $priovalue
+  - view: ^interface$
+    syntax: '^ospf ldp-sync$'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.ldp_sync: flag
+  - view: ^interface$
+    syntax: '^ospf bfd enable$'
+    maps:
+      interface.ospf: "_"
+      interface.ospf.bfd: flag
+
+  # ================= 0.2.0：IS-IS =================
+  - view: ^system$
+    syntax: '^isis <process-id> \['
+    maps:
+      isis.process: $process-id
+      isis.process.vrf: $vpn-instance-name
+  - view: ^system$
+    syntax: '^isis \[ vpn-instance'
+    maps:
+      isis.process: "1"
+      isis.process.vrf: $vpn-instance-name
+  - view: ^isis$
+    syntax: '^network-entity <net-addr>$'
+    maps: {isis.process.net: $net-addr}
+  - view: ^isis$
+    syntax: '^is-level '
+    maps: {isis.process.level: "kw:level-1-2|level-1|level-2"}
+  - view: ^isis$
+    syntax: '^cost-style '
+    maps: {isis.process.metric_style: "kw:wide-compatible=compatible|narrow-compatible=compatible|compatible|wide|narrow"}
+  - view: ^isis$
+    syntax: '^bfd all-interfaces enable$'
+    maps: {isis.process.bfd_all: flag}
+  - view: ^isis$
+    syntax: '^frr$'
+    maps: {isis.process.frr: flag}
+  - view: ^interface$
+    syntax: '^isis enable <process-id>'
+    maps:
+      interface.isis: "_"
+      interface.isis.process: $process-id
+  - view: ^interface$
+    syntax: '^isis enable \[ auto-adj-disable \]$'
+    maps:
+      interface.isis: "_"
+      interface.isis.process: "1"
+  - view: ^interface$
+    syntax: '^isis cost <cost> \['
+    maps:
+      interface.isis: "_"
+      interface.isis.metric: $cost
+  - view: ^interface$
+    syntax: '^isis circuit-type p2p'
+    maps:
+      interface.isis: "_"
+      interface.isis.p2p: flag
+  - view: ^interface$
+    syntax: '^isis circuit-level '
+    maps:
+      interface.isis: "_"
+      interface.isis.circuit_type: "kw:level-1-2|level-1|level-2"
+  - view: ^interface$
+    syntax: '^isis silent$'
+    maps:
+      interface.isis: "_"
+      interface.isis.passive: flag
+  - view: ^interface$
+    syntax: '^isis bfd enable$'
+    maps:
+      interface.isis: "_"
+      interface.isis.bfd: flag
+
+  # ================= 0.2.0：BFD =================
+  - view: ^system$
+    syntax: '^bfd$'
+    maps: {bfd.global: "_"}
+  - view: ^system$
+    syntax: '^bfd <session-name> bind peer-ip <peer-ip> \[ vpn-instance <vpn-name> \] \[ interface'
+    maps:
+      bfd.session: $session-name
+      bfd.session.peer: $peer-ip
+      bfd.session.interface: "$interface-name||fmt:{interface-type}{interface-number}"
+  - view: ^bfd-session$
+    syntax: '^discriminator local <discr-value>$'
+    maps: {bfd.session.local_discriminator: $discr-value}
+  - view: ^bfd-session$
+    syntax: '^discriminator remote <discr-value>$'
+    maps: {bfd.session.remote_discriminator: $discr-value}
+  - view: ^bfd-session$
+    syntax: '^min-tx-interval <tx-interval>$'
+    maps: {bfd.session.min_tx: $tx-interval}
+  - view: ^bfd-session$
+    syntax: '^min-rx-interval <rx-interval>$'
+    maps: {bfd.session.min_rx: $rx-interval}
+  - view: ^bfd-session$
+    syntax: '^detect-multiplier <multiplier>$'
+    maps: {bfd.session.multiplier: $multiplier}
+
+  # ================= 0.2.0：管理面 =================
+  # NTP
+  - view: ^system$
+    syntax: '^ntp-service unicast-server \{ <ipv4Addr>'
+    maps:
+      mgmt.ntp: "_"
+      mgmt.ntp.server: $ipv4Addr
+      mgmt.ntp.server.source_interface: "$ifName||fmt:{interface_type}{interface_number}"
+      mgmt.ntp.server.vrf: $vpnName
+      mgmt.ntp.server.prefer: "if:preference:flag"
+      mgmt.ntp.server.key: $authkeyid
+  - view: ^system$
+    syntax: '^ntp-service authentication enable$'
+    maps:
+      mgmt.ntp: "_"
+      mgmt.ntp.authentication: flag
+  - view: ^system$
+    syntax: '^ntp-service \[ ipv6 \] server disable$'
+    maps:
+      mgmt.ntp: "_"
+      mgmt.ntp.server_disabled: "if:server:flag"
+  - view: ^system$
+    syntax: '^ntp-service access '
+    maps:
+      mgmt.ntp: "_"
+      mgmt.ntp.access: "kw:peer|query|server|synchronization|limited"
+      mgmt.ntp.access.acl: "$aclname||$acl-number"
+  # SNMP
+  - view: ^system$
+    syntax: '^snmp-agent$'
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.enabled: flag
+  - view: ^system$
+    syntax: '^snmp-agent community \{ read \| write \} cipher'
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.community: "$alias-name||$host-string"
+      mgmt.snmp.community.access: "kw:read|write"
+      mgmt.snmp.community.acl: "$acl-number||$acl-name"
+  - view: ^system$
+    syntax: '^snmp-agent sys-info \{ contact'
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.contact: $contact
+      mgmt.snmp.location: $location
+  - view: ^system$
+    syntax: '^snmp-agent sys-info version '
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.versions: "tail:version"
+  - view: ^system$
+    syntax: '^snmp-agent trap enable$'
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.trap_enable: flag
+  - view: ^system$
+    syntax: '^snmp-agent trap source '
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.trap_source: "$interface-name||fmt:{interface-type}{interface-number}"
+  - view: ^system$
+    syntax: '^snmp-agent target-host \[ host-name <host-name> \] trap address udp-domain <ip-address>'
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.host: $ip-address
+      mgmt.snmp.host.version: "kw:v1|v2c|v3"
+      mgmt.snmp.host.source_interface: "$interface-name||fmt:{interface-type}{interface-number}"
+  # Syslog
+  - view: ^system$
+    syntax: '^info-center loghost <ipv4-address>'
+    maps:
+      mgmt.syslog: "_"
+      mgmt.syslog.host: $ipv4-address
+      mgmt.syslog.host.vrf: $vpn-instance-name
+  - view: ^system$
+    syntax: '^info-center loghost source \{'
+    maps:
+      mgmt.syslog: "_"
+      mgmt.syslog.source_interface: "$interface-name||fmt:{interface-type}{interface-number}"
+  # SSH / Telnet / FTP
+  - view: ^system$
+    syntax: '^stelnet server enable$'
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.enabled: flag
+  - view: ^system$
+    syntax: '^ssh server authentication-retries <times>$'
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.retries: $times
+  - view: ^system$
+    syntax: '^ssh server timeout <seconds>$'
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.timeout: $seconds
+  - view: ^system$
+    syntax: '^ssh server-source all-interface$'
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.source_all: flag
+  - view: ^system$
+    syntax: '^sftp server enable$'
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.sftp: flag
+  - view: ^system$
+    syntax: '^ssh user <user-name>$'
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.user: $user-name
+  - view: ^system$
+    syntax: '^ssh user <user-name> authentication-type '
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.user: $user-name
+      mgmt.ssh.user.auth_type: "kw:password-rsa|password-dsa|password-ecc|password-sm2|password|rsa|dsa|all|ecc|sm2"
+  - view: ^system$
+    syntax: '^ssh user <user-name> service-type \{ sftp'
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.user: $user-name
+      mgmt.ssh.user.service_type: "tail:service-type"
+  - view: ^system$
+    syntax: '^ssh user <user-name> service-type all$'
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.user: $user-name
+      mgmt.ssh.user.service_type: all
+  - view: ^system$
+    syntax: '^telnet server enable$'
+    maps:
+      mgmt.telnet: "_"
+      mgmt.telnet.enabled: flag
+  - view: ^system$
+    syntax: '^telnet server-source all-interface$'
+    maps:
+      mgmt.telnet: "_"
+      mgmt.telnet.source_all: flag
+  - view: ^system$
+    syntax: '^ftp server-source all-interface$'
+    maps:
+      mgmt.ftp: "_"
+      mgmt.ftp.source_all: flag
+  - view: ^system$
+    syntax: '^ftp \[ ipv6 \] server enable$'
+    maps:
+      mgmt.ftp: "_"
+      mgmt.ftp.enabled: flag
+  # AAA
+  - view: ^system$
+    syntax: '^aaa$'
+    maps: {mgmt.aaa: "_"}
+  - view: ^aaa$
+    syntax: '^local-user <user-name> password '
+    maps:
+      mgmt.aaa.user: $user-name
+      mgmt.aaa.user.password_set: flag
+  - view: ^aaa$
+    syntax: '^local-user <user-name> level <level>$'
+    maps:
+      mgmt.aaa.user: $user-name
+      mgmt.aaa.user.level: $level
+  - view: ^aaa$
+    syntax: '^local-user <user-name> service-type \{ terminal'
+    maps:
+      mgmt.aaa.user: $user-name
+      mgmt.aaa.user.service_type: "tail:service-type"
+  - view: ^aaa$
+    syntax: '^local-user <user-name> state '
+    maps:
+      mgmt.aaa.user: $user-name
+      mgmt.aaa.user.state: "kw:active|block"
+  - view: ^aaa$
+    syntax: '^authentication-scheme <scheme-name>$'
+    maps: {mgmt.aaa.scheme: "fmt:authentication {scheme-name}"}
+  - view: ^aaa$
+    syntax: '^authorization-scheme <authorization-scheme-name>$'
+    maps: {mgmt.aaa.scheme: "fmt:authorization {authorization-scheme-name}"}
+  - view: ^aaa$
+    syntax: '^accounting-scheme <acct-scheme-name>$'
+    maps: {mgmt.aaa.scheme: "fmt:accounting {acct-scheme-name}"}
+  - view: ^aaa-authentication$
+    syntax: '^authentication-mode \{ local \| hwtacacs \| radius \}'
+    maps: {mgmt.aaa.scheme.methods: "tail:authentication-mode"}
+  - view: ^aaa-authorization$
+    syntax: '^authorization-mode <authorization-mode1>'
+    maps: {mgmt.aaa.scheme.methods: "tail:authorization-mode"}
+  - view: ^aaa-accounting$
+    syntax: '^accounting-mode '
+    maps: {mgmt.aaa.scheme.methods: "tail:accounting-mode"}
+  - view: ^aaa$
+    syntax: '^domain <domain-name>$'
+    maps: {mgmt.aaa.domain: $domain-name}
+  - view: ^aaa-domain$
+    syntax: '^authentication-scheme <scheme-name>$'
+    maps: {mgmt.aaa.domain.authentication: $scheme-name}
+  - view: ^aaa-domain$
+    syntax: '^authorization-scheme <authorization-scheme-name>$'
+    maps: {mgmt.aaa.domain.authorization: $authorization-scheme-name}
+  - view: ^aaa-domain$
+    syntax: '^accounting-scheme <accounting-scheme-name>$'
+    maps: {mgmt.aaa.domain.accounting: $accounting-scheme-name}
+  - view: ^aaa-domain$
+    syntax: '^hwtacacs-server <template-name>$'
+    maps: {mgmt.aaa.domain.tacacs: $template-name}
+  # HWTACACS
+  - view: ^system$
+    syntax: '^hwtacacs-server template <template-name>$'
+    maps: {mgmt.tacacs: $template-name}
+  - view: ^hwtacacs$
+    syntax: '^hwtacacs-server authentication <ipv6-address>( secondary)?$'
+    maps:
+      mgmt.tacacs.server: "fmt:authentication {ipv6-address}"
+      mgmt.tacacs.server.secondary: "if:secondary:flag"
+  - view: ^hwtacacs$
+    syntax: '^hwtacacs-server authorization <ip-address> \[ vpn-instance <vpn-name-val> \]'
+    maps:
+      mgmt.tacacs.server: "fmt:authorization {ip-address}"
+      mgmt.tacacs.server.secondary: "if:secondary:flag"
+  - view: ^hwtacacs$
+    syntax: '^hwtacacs-server accounting <ip-address> \[ vpn-instance <vpn-name-val> \]'
+    maps:
+      mgmt.tacacs.server: "fmt:accounting {ip-address}"
+      mgmt.tacacs.server.secondary: "if:secondary:flag"
+  - view: ^hwtacacs$
+    syntax: '^hwtacacs-server source-ip <ip-address>$'
+    maps: {mgmt.tacacs.source: $ip-address}
+  - view: ^hwtacacs$
+    syntax: '^hwtacacs-server shared-key cipher'
+    maps: {mgmt.tacacs.key_set: flag}
+  - view: ^hwtacacs$
+    syntax: '^hwtacacs-server timer response-timeout <value>$'
+    maps: {mgmt.tacacs.timeout: $value}
+  # 登录线路
+  - view: ^system$
+    syntax: '^user-interface vty <first-ui-number> \[ <last-ui-number> \]$'
+    maps: {mgmt.line: "tail:user-interface"}
+  - view: ^system$
+    syntax: '^user-interface \{ con \| console \} <first-ui-number>$'
+    maps: {mgmt.line: "tail:user-interface"}
+  - view: ^user-interface-(vty|con)$
+    syntax: '^acl \{ <acl4name> \| <acl4num> \} \{ inbound \| outbound \}$'
+    maps: {mgmt.line.acl_in: "if:inbound:$acl4name||if:inbound:$acl4num"}
+  - view: ^user-interface-(vty|con)$
+    syntax: '^authentication-mode '
+    maps: {mgmt.line.auth: "kw:aaa|password|none"}
+  - view: ^user-interface-(vty|con)$
+    syntax: '^user privilege level <level>$'
+    maps: {mgmt.line.privilege: $level}
+  - view: ^user-interface-(vty|con)$
+    syntax: '^idle-timeout <minutes>'
+    maps: {mgmt.line.idle_timeout: "fmt:{minutes} {seconds}"}
+  - view: ^user-interface-(vty|con)$
+    syntax: '^protocol inbound '
+    maps: {mgmt.line.protocols: "tail:inbound"}

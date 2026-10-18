@@ -26,6 +26,11 @@ views_map:
   - {match: '\(config-router\)', view: router-bgp}
   - {match: '\(config-(router-)?af\)', view: bgp-af}
   - {match: '\(config-route-map\)', view: route-map}
+  # 0.2.0：管理面的配置模式（OSPF / IS-IS 的路由器模式在功能域的 views_map 里按功能域映射）
+  - {match: '\(config-line\)|^Line configuration', view: line}
+  - {match: '\(config-server-tacacs\)|^TACACS\+ server configuration', view: tacacs-server}
+  - {match: '\(config-radius-server\)|^RADIUS server configuration', view: radius-server}
+  - {match: '\(config-sg-tacacs\+\)|^TACACS\+ group server configuration', view: sg-tacacs}
   - {match: '^Global configuration', view: system}
   - {match: '^Interface configuration', view: interface}
   - {match: '^Router configuration', view: router-bgp}
@@ -44,11 +49,17 @@ enters:
   - {view: system, syntax: '^router bgp\b', enters: router-bgp}
   - {view: router-bgp, syntax: '^address-family\b', enters: bgp-af}
   - {view: system, syntax: '^route-map\b', enters: route-map}
+  - {view: system, syntax: '^router ospf\b', enters: router-ospf}
+  - {view: system, syntax: '^router isis\b', enters: router-isis}
+  - {view: system, syntax: '^line\b', enters: line}
+  - {view: system, syntax: '^tacacs server\b', enters: tacacs-server}
+  - {view: system, syntax: '^radius server\b', enters: radius-server}
+  - {view: system, syntax: '^aaa group server tacacs\+', enters: sg-tacacs}
 
 param_types:
   - {name: '(mask-length|prefix-length|length)$', type: mask-length}
-  - {name: '(^|-)mask$|^mask$', type: mask}
   - {name: 'wildcard', type: wildcard}
+  - {name: '(^|-)mask$|^mask$', type: mask}
   - {name: '(autonomous-system|as-number|asn)', type: asn}
   - {name: '(route-distinguisher|^rd$)', type: rd}
   - {name: '(ip-address|ipv4-address|address|prefix|next-hop|router-id)$', type: ipv4}
@@ -68,6 +79,22 @@ domains:
   interface:
     - {path: 'interface/*.md'}
     - {path: 'carrier-ethernet/*.md'}
+  # 0.2.0：IGP、BFD、管理面（协议无关的 passive-interface、bfd all-interfaces、mpls ldp sync 两个 IGP 各抽一份）
+  ospf:
+    - {path: 'ospf/*.md', views_map: [{match: '\(config[- ]router\)|^Router configuration', view: router-ospf}]}
+    - {path: 'bfd/bfd all-interfaces.md', views_map: [{match: '\(config[- ]router\)|^Router configuration', view: router-ospf}]}
+  isis:
+    - {path: 'isis/*.md', views_map: [{match: '\(config[- ]router\)|^Router configuration', view: router-isis}]}
+    - {path: 'ospf/passive-interface.md', views_map: [{match: '\(config[- ]router\)|^Router configuration', view: router-isis}]}
+    - {path: 'ospf/mpls ldp sync.md', views_map: [{match: '\(config[- ]router\)|^Router configuration', view: router-isis}]}
+    - {path: 'bfd/bfd all-interfaces.md', views_map: [{match: '\(config[- ]router\)|^Router configuration', view: router-isis}]}
+  bfd:
+    - {path: 'bfd/bfd.md'}
+    - {path: 'bfd/bfd template.md'}
+    - {path: 'bfd/bfd-template.md'}
+    - {path: 'bfd/bfd echo.md'}
+  mgmt:
+    - {path: 'mgmt/*.md'}
 
 # 统一改写：运行配置中接口名、前缀都是一个词，文档把它们拆成了两个参数
 syntax_rewrites:
