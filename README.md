@@ -62,8 +62,10 @@ lmesh/
 │   ├── schema/                 统一 Schema（M1-6 起）
 │   ├── mappings/               命令卡参数 → Schema 节点的映射规则（M1-6 起）
 │   ├── profiles/               厂商 + 版本 Profile（M1-4 起）
+│   ├── rules/                  配置检查规则（写在统一 Schema 上，与厂商无关；M2-4 起）
 │   ├── templates/              配置模板（M3-4 起）
 │   └── samples/                已脱敏的配置样本与往返期望结果（M1-3 起）
+│       └── compare/            配置对比基准：由样本派生的变体与期望差异（manifest.yaml；M2-3 起）
 ├── assets/brand/               Logo 与图标
 ├── docs/
 │   ├── project-spec.md         项目规范

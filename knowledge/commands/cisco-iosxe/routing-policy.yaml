@@ -354,7 +354,7 @@ cards:
     syntax: route-map <map-tag> [ permit | deny ] [ <sequence-number> ]
     view: system
     enters_view: route-map
-    undo: no route-map <map-tag> [ permit | deny ] [ <sequence-number> ] ordering-seq <sequence-name>
+    undo: no route-map <map-tag> { permit | deny } [ <sequence-number> ]
     params:
       map-tag:
         type: word
@@ -364,6 +364,10 @@ cards:
           - 0
           - 65535
     default: Policy routing is not enabled and conditions for redistributing routes from one routing protocol to another routing protocol are not configured.
+    maps:
+      rp.policy: $map-tag
+      rp.policy.node: $sequence-number||10
+      rp.policy.node.action: kw:permit|deny:permit
     source:
       doc: cisco-iosxe-md
       file: routing-policy/route-map.md
@@ -372,10 +376,6 @@ cards:
       version: '17.15'
       patched: 原文把 ordering-seq 写成了必选；运行配置中是 route-map 名称 permit|deny 序号
     status: draft
-    maps:
-      rp.policy: $map-tag
-      rp.policy.node: $sequence-number||10
-      rp.policy.node.action: kw:permit|deny:permit
   - id: cisco-iosxe.set-as-path.1
     syntax: set as-path { tag | prepend <as-path-string> }
     view: route-map

@@ -3,7 +3,7 @@
   "info": {
     "title": "LucidMesh API",
     "description": "透网 LucidMesh 远程 API。除 /health 与首次运行向导外，所有接口都需要 Authorization: Bearer <令牌>。",
-    "version": "0.0.6"
+    "version": "0.1.0"
   },
   "paths": {
     "/api/v1/health": {
@@ -1181,6 +1181,277 @@
         }
       }
     },
+    "/api/v1/compare": {
+      "post": {
+        "tags": [
+          "compare"
+        ],
+        "summary": "配置对比：有效值、改名识别、语义等价；返回差异列表、改名、统计与未识别行",
+        "operationId": "run_compare_api_v1_compare_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompareBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Run Compare Api V1 Compare Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/versions": {
+      "get": {
+        "tags": [
+          "compare"
+        ],
+        "summary": "设备的配置版本列表（新的在前）",
+        "operationId": "device_versions_api_v1_devices__device_id__versions_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Device Versions Api V1 Devices  Device Id  Versions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check": {
+      "post": {
+        "tags": [
+          "check"
+        ],
+        "summary": "配置检查：悬空引用、孤儿对象（含级联）、互斥冲突、规则约束；按级别、规则、功能域汇总",
+        "operationId": "check_api_v1_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Check Api V1 Check Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/check": {
+      "get": {
+        "tags": [
+          "check"
+        ],
+        "summary": "检查设备的最新配置版本",
+        "operationId": "device_check_api_v1_devices__device_id__check_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "error",
+                "warning",
+                "info"
+              ],
+              "type": "string",
+              "default": "info",
+              "title": "Severity"
+            }
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Domain"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Device Check Api V1 Devices  Device Id  Check Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cleanup": {
+      "post": {
+        "tags": [
+          "check"
+        ],
+        "summary": "冗余清理：为孤儿对象生成删除脚本（先删引用方），并验证删除后没有新的悬空引用",
+        "operationId": "run_cleanup_api_v1_cleanup_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Target"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Run Cleanup Api V1 Cleanup Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/rules": {
+      "get": {
+        "tags": [
+          "check"
+        ],
+        "summary": "检查规则：内置检查与知识库 rules/ 中的规则（三种语言的标题、说明、建议）",
+        "operationId": "kb_rules_api_v1_kb_rules_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Kb Rules Api V1 Kb Rules Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/summary": {
       "get": {
         "tags": [
@@ -2145,6 +2416,124 @@
         ],
         "title": "Body_kb_import_api_v1_kb_import_post"
       },
+      "CheckBody": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text",
+            "description": "配置文本（与 device_id 二选一）"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id",
+            "description": "已导入设备的编号：取最新配置版本"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ],
+            "title": "Severity",
+            "description": "最低级别",
+            "default": "info"
+          },
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain",
+            "description": "只保留该功能域的发现"
+          }
+        },
+        "type": "object",
+        "title": "CheckBody"
+      },
+      "CompareBody": {
+        "properties": {
+          "a": {
+            "$ref": "#/components/schemas/SideBody"
+          },
+          "b": {
+            "$ref": "#/components/schemas/SideBody"
+          },
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain"
+          },
+          "include_raw": {
+            "type": "boolean",
+            "title": "Include Raw",
+            "default": false
+          },
+          "interface_map": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Map"
+          },
+          "rename_threshold": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Rename Threshold",
+            "default": 1.0
+          }
+        },
+        "type": "object",
+        "required": [
+          "a",
+          "b"
+        ],
+        "title": "CompareBody"
+      },
       "DecideBody": {
         "properties": {
           "action": {
@@ -2599,6 +2988,100 @@
         },
         "type": "object",
         "title": "SetupBody"
+      },
+      "SideBody": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          }
+        },
+        "type": "object",
+        "title": "SideBody",
+        "description": "对比的一边：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
+      },
+      "Target": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text",
+            "description": "配置文本（与 device_id 二选一）"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id",
+            "description": "已导入设备的编号：取最新配置版本"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          }
+        },
+        "type": "object",
+        "title": "Target"
       },
       "TextBody": {
         "properties": {

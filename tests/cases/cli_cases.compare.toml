@@ -1,0 +1,104 @@
+# 配置对比 lmesh compare 的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 按设备名与版本对比的用例需要先导入配置，写在 tests/cli/test_compare_cli.py。
+
+[[case]]
+id = "compare-files"
+title = { zh-CN = "对比两份配置文件（改 MTU、删邻居、改 RT、两级改名）", en = "Compare two configuration files", pt-BR = "Comparar dois arquivos de configuração" }
+args = ["--output", "json", "compare", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg", "{samples}/compare/asr920-modified.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.equal" = false, "data.summary.total" = 8, "data.summary.by_kind.renamed" = 2, "data.summary.by_kind.changed" = 1, "data.diffs.0.kind" = "changed", "data.diffs.0.node" = "interface[GigabitEthernet0/0/0]/mtu", "data.diffs.0.a.value" = 9216, "data.diffs.0.b.value" = 9000 }
+in_docs = true
+
+[[case]]
+id = "compare-equivalent-text"
+title = { zh-CN = "等价写法（重排、接口名缩写、RT both）没有差异", en = "Equivalent writing has no differences", pt-BR = "Escrita equivalente não tem diferenças" }
+args = ["--lang", "zh-CN", "compare", "{samples}/compare/asr920-reorder.cfg", "{samples}/compare/asr920-ifname.cfg", "--raw"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["没有差异", "未识别行：A 0 行，B 0 行"]
+in_docs = true
+
+[[case]]
+id = "compare-text-en"
+title = { zh-CN = "按功能域分组的差异摘要（英文）", en = "Difference summary grouped by domain (English)", pt-BR = "Resumo de diferenças por domínio (inglês)" }
+args = ["--lang", "en", "compare", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg", "{samples}/compare/asr920-modified.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["8 differences", "[routing-policy] 2", "» rp.policy[EXPORT-LO]: EXPORT-LOOPBACK → EXPORT-LO"]
+
+[[case]]
+id = "compare-domain"
+title = { zh-CN = "只看一个功能域", en = "Only one domain", pt-BR = "Apenas um domínio" }
+args = ["--output", "json", "compare", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg", "{samples}/compare/asr920-modified.cfg", "--domain", "vrf"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.summary.total" = 2, "data.options.domain" = "vrf", "data.diffs.0.domain" = "vrf" }
+in_docs = true
+
+[[case]]
+id = "compare-cross-vendor"
+title = { zh-CN = "跨厂商对比（华为 → Cisco，带接口映射表）", en = "Cross-vendor comparison with an interface map", pt-BR = "Comparação entre fabricantes com mapa de interfaces" }
+args = ["--output", "json", "compare", "{inputs}/compare/hw-pe.cfg", "{inputs}/compare/cs-pe.cfg", "--interface-map", "{inputs}/compare/ifmap.txt"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.equal" = true, "data.a.profile" = "huawei-atn-v800r023", "data.b.profile" = "cisco-iosxe-asr920-17.15", "data.options.interface_map" = 2, "data.options.compare_ext" = false }
+in_docs = true
+
+[[case]]
+id = "compare-profile-override"
+title = { zh-CN = "为一边指定 Profile", en = "Choose the profile of one side", pt-BR = "Escolher o profile de um lado" }
+args = ["--output", "json", "compare", "{inputs}/compare/hw-pe.cfg", "{inputs}/compare/hw-pe.cfg", "--profile-b", "huawei-atn-v800r025"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.b.profile" = "huawei-atn-v800r025", "data.a.profile" = "huawei-atn-v800r023" }
+
+[[case]]
+id = "compare-bad-domain"
+title = { zh-CN = "不存在的功能域", en = "Unknown domain", pt-BR = "Domínio inexistente" }
+args = ["compare", "{inputs}/compare/hw-pe.cfg", "{inputs}/compare/cs-pe.cfg", "--domain", "nope"]
+setup = "fresh-fullkb"
+expect_exit = 2
+expect_stderr = ["nope"]
+in_docs = true
+
+[[case]]
+id = "compare-bad-threshold"
+title = { zh-CN = "改名相似度阈值超出范围", en = "Rename threshold out of range", pt-BR = "Limite de renomeação fora do intervalo" }
+args = ["compare", "{inputs}/compare/hw-pe.cfg", "{inputs}/compare/cs-pe.cfg", "--rename-threshold", "1.5"]
+setup = "fresh-fullkb"
+expect_exit = 2
+expect_stderr = ["1.5"]
+
+[[case]]
+id = "compare-bad-profile"
+title = { zh-CN = "指定了不存在的 Profile", en = "Unknown profile", pt-BR = "Profile inexistente" }
+args = ["compare", "{inputs}/compare/hw-pe.cfg", "{inputs}/compare/cs-pe.cfg", "--profile-a", "nope"]
+setup = "fresh-fullkb"
+expect_exit = 2
+expect_stderr = ["nope"]
+
+[[case]]
+id = "compare-ifmap-missing"
+title = { zh-CN = "接口映射表不存在", en = "Interface map file missing", pt-BR = "Mapa de interfaces inexistente" }
+args = ["compare", "{inputs}/compare/hw-pe.cfg", "{inputs}/compare/cs-pe.cfg", "--interface-map", "{out}/nope.txt"]
+setup = "fresh-fullkb"
+expect_exit = 4
+expect_stderr = ["nope.txt"]
+
+[[case]]
+id = "compare-device-missing"
+title = { zh-CN = "设备不存在", en = "Unknown device", pt-BR = "Dispositivo inexistente" }
+args = ["compare", "NO-SUCH-DEVICE", "{inputs}/compare/cs-pe.cfg"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["NO-SUCH-DEVICE"]
+in_docs = true
+
+[[case]]
+id = "compare-device-not-configured"
+title = { zh-CN = "未配置时按设备名对比", en = "Compare by device name before setup", pt-BR = "Comparar por dispositivo antes da configuração" }
+args = ["compare", "PE-01@3", "{inputs}/compare/cs-pe.cfg"]
+setup = "fresh"
+expect_exit = 3
+expect_stderr = ["setup"]

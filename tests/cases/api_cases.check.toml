@@ -1,0 +1,90 @@
+# 配置检查、冗余清理与检查规则（M2-4）的 API 用例
+
+[[case]]
+id = "check-text"
+title = { zh-CN = "检查一段配置", en = "Check config text", pt-BR = "Verificar um texto de configuração" }
+method = "POST"
+path = "/api/v1/check"
+setup = "configured-fullkb"
+auth = true
+body = { text = "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nroute-policy UNUSED permit node 10\n#\nreturn", severity = "info" }
+expect_status = 200
+expect_json = { "code" = 0, "data.summary.total" = 3, "data.summary.by_severity.warning" = 3, "data.summary.by_rule.ref.orphan" = 2, "data.findings.0.rule" = "ref.orphan", "data.findings.0.node" = "vrf.instance[RAN]", "data.findings.0.lines" = [3] }
+in_docs = true
+
+[[case]]
+id = "check-text-and-device"
+title = { zh-CN = "text 与 device_id 只能给一个", en = "Give either text or device_id", pt-BR = "Informe text ou device_id, não ambos" }
+method = "POST"
+path = "/api/v1/check"
+setup = "configured"
+auth = true
+body = { text = "sysname R1", device_id = 1 }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "check-bad-severity"
+title = { zh-CN = "级别写错", en = "Invalid severity", pt-BR = "Severidade inválida" }
+method = "POST"
+path = "/api/v1/check"
+setup = "configured"
+auth = true
+body = { text = "sysname R1", severity = "fatal" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "check-no-auth"
+title = { zh-CN = "没有令牌", en = "Missing token", pt-BR = "Sem token" }
+method = "POST"
+path = "/api/v1/check"
+setup = "configured"
+body = { text = "sysname R1" }
+expect_status = 401
+expect_json = { "code" = 1002 }
+
+[[case]]
+id = "device-check-missing"
+title = { zh-CN = "设备不存在", en = "Unknown device", pt-BR = "Dispositivo inexistente" }
+method = "GET"
+path = "/api/v1/devices/999/check"
+setup = "configured"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+in_docs = true
+
+[[case]]
+id = "cleanup-text"
+title = { zh-CN = "为一段配置生成删除脚本", en = "Generate a cleanup script for config text", pt-BR = "Gerar o script de limpeza de um texto de configuração" }
+method = "POST"
+path = "/api/v1/cleanup"
+setup = "configured-fullkb"
+auth = true
+body = { text = "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nroute-policy UNUSED permit node 10\n#\nreturn" }
+expect_status = 200
+expect_json = { "code" = 0, "data.commands.0.text" = "undo ip vpn-instance RAN", "data.commands.1.text" = "undo route-policy UNUSED node 10", "data.commands.1.lines" = [7], "data.fallbacks" = 0, "data.verify.ok" = true }
+in_docs = true
+
+[[case]]
+id = "cleanup-empty-body"
+title = { zh-CN = "没有给出 text 或 device_id", en = "Neither text nor device_id", pt-BR = "Sem text nem device_id" }
+method = "POST"
+path = "/api/v1/cleanup"
+setup = "configured"
+auth = true
+body = {}
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "kb-rules"
+title = { zh-CN = "检查规则列表", en = "List check rules", pt-BR = "Listar as regras de verificação" }
+method = "GET"
+path = "/api/v1/kb/rules"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.builtin" = 6, "data.rules.0.id" = "ref.dangling", "data.rules.0.builtin" = true }
+in_docs = true

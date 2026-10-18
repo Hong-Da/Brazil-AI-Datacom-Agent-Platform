@@ -67,6 +67,8 @@ enters:
   - {view: bgp, syntax: '^ipv4-family vpnv4\b', enters: bgp-af-vpnv4}
   - {view: bgp, syntax: '^ipv4-family vpn-instance\b', enters: bgp-af-vpn-instance-ipv4}
   - {view: bgp, syntax: '^vpn-instance\b', enters: bgp-vpn-instance}
+  # 其余 BGP 地址族（MVPN、VPNv6、EVPN 等，不在当前范围）：进入一个没有命令卡的视图，块内按原文保留，不会被算到 IPv4 单播里
+  - {view: bgp, syntax: '^(ipv4-family|ipv6-family|l2vpn-ad-family|evpn|link-state-family|rpd-family)\b', enters: bgp-af-unsupported}
   - {view: system, syntax: '^ospf (<|\[)', enters: ospf}
   - {view: ospf, syntax: '^area\b', enters: ospf-area}
   - {view: ospf, syntax: '^frr$', enters: ospf-frr}

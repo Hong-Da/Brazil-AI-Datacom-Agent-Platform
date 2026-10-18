@@ -5,6 +5,7 @@ patches:
     set:
       syntax: route-map <map-tag> [ permit | deny ] [ <sequence-number> ]
       params: {map-tag: {type: word}, sequence-number: {type: integer, range: [0, 65535]}}
+      undo: no route-map <map-tag> { permit | deny } [ <sequence-number> ]
   - id: cisco-iosxe.mtu
     reason: 原文语法行混入了说明文字（mtu command）
     set:

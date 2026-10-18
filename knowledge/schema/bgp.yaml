@@ -151,7 +151,13 @@ nodes:
     type: ref
     ref: bgp.peer_group
     semantic: {zh-CN: 地址族内重复声明的组成员关系（华为写法）, en: Group membership inside the address family}
+  bgp.af.nexthop_policy:
+    parent: bgp.af
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 下一跳迭代时应用的路由策略（华为 nexthop recursive-lookup route-policy）, en: Next-hop recursive lookup policy}
 deps:
+  - {kind: reference, from: bgp.af.nexthop_policy, to: rp.policy}
   - {kind: reference, from: bgp.peer.group, to: bgp.peer_group}
   - {kind: prerequisite, from: bgp.peer.group, to: bgp.peer_group, note: 先创建对等体组再加入}
   - {kind: reference, from: bgp.af.peer.group, to: bgp.peer_group}

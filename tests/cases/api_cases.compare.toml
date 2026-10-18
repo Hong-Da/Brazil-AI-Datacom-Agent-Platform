@@ -1,0 +1,104 @@
+# 配置对比接口的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 按设备与配置版本对比的成功用例需要先导入配置，写在 tests/api/test_compare_api.py。
+
+[[case]]
+id = "compare-text"
+title = { zh-CN = "对比两段配置文本（显式默认值不算差异，MTU 改动报出）", en = "Compare two configuration texts", pt-BR = "Comparar dois textos de configuração" }
+method = "POST"
+path = "/api/v1/compare"
+setup = "configured-fullkb"
+auth = true
+body = { a = { text = "hostname R1\n!\ninterface GigabitEthernet0/0/1\n mtu 1500\n no shutdown\n ip address 10.0.0.1 255.255.255.0\n!\nend" }, b = { text = "hostname R1\n!\ninterface Gi0/0/1\n mtu 9000\n ip address 10.0.0.1 255.255.255.0\n!\nend" } }
+expect_status = 200
+expect_json = { "code" = 0, "data.summary.total" = 1, "data.diffs.0.kind" = "changed", "data.diffs.0.node" = "interface[GigabitEthernet0/0/1]/mtu", "data.diffs.0.a.value" = 1500, "data.diffs.0.a.origin" = "explicit", "data.diffs.0.b.value" = 9000, "data.diffs.0.b.lines" = [4] }
+in_docs = true
+
+[[case]]
+id = "compare-text-raw-domain"
+title = { zh-CN = "只看接口功能域并比较原文行", en = "Interface domain only, with raw lines", pt-BR = "Somente interfaces, com linhas brutas" }
+method = "POST"
+path = "/api/v1/compare"
+setup = "configured-fullkb"
+auth = true
+body = { a = { text = "hostname R1\n!\ninterface GigabitEthernet0/0/1\n ip address 10.0.0.1 255.255.255.0\n!\nend" }, b = { text = "hostname R2\n!\ninterface GigabitEthernet0/0/1\n ip address 10.0.0.1 255.255.255.0\n!\nend" }, domain = "interface", include_raw = true }
+expect_status = 200
+expect_json = { "code" = 0, "data.equal" = true, "data.options.include_raw" = true, "data.options.domain" = "interface" }
+
+[[case]]
+id = "compare-need-source"
+title = { zh-CN = "一边没有给出配置来源", en = "A side without a source", pt-BR = "Um lado sem origem" }
+method = "POST"
+path = "/api/v1/compare"
+setup = "configured"
+auth = true
+body = { a = { text = "sysname X" }, b = { profile = "huawei-atn-v800r023" } }
+expect_status = 422
+expect_json = { "code" = 1001 }
+in_docs = true
+
+[[case]]
+id = "compare-bad-domain"
+title = { zh-CN = "不存在的功能域", en = "Unknown domain", pt-BR = "Domínio inexistente" }
+method = "POST"
+path = "/api/v1/compare"
+setup = "configured-fullkb"
+auth = true
+body = { a = { text = "hostname R1\n!\nend" }, b = { text = "hostname R1\n!\nend" }, domain = "nope" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "compare-bad-threshold"
+title = { zh-CN = "改名相似度阈值超出范围", en = "Rename threshold out of range", pt-BR = "Limite de renomeação fora do intervalo" }
+method = "POST"
+path = "/api/v1/compare"
+setup = "configured"
+auth = true
+body = { a = { text = "hostname R1" }, b = { text = "hostname R1" }, rename_threshold = 2 }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "compare-device-missing"
+title = { zh-CN = "设备不存在", en = "Unknown device", pt-BR = "Dispositivo inexistente" }
+method = "POST"
+path = "/api/v1/compare"
+setup = "configured"
+auth = true
+body = { a = { device_id = 999 }, b = { text = "hostname R1" } }
+expect_status = 404
+expect_json = { "code" = 1004 }
+in_docs = true
+
+[[case]]
+id = "compare-version-missing"
+title = { zh-CN = "配置版本不存在", en = "Unknown configuration version", pt-BR = "Versão de configuração inexistente" }
+method = "POST"
+path = "/api/v1/compare"
+setup = "configured"
+auth = true
+body = { a = { version_id = 999 }, b = { text = "hostname R1" } }
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "compare-no-token"
+title = { zh-CN = "没有令牌时对比", en = "Compare without a token", pt-BR = "Comparar sem token" }
+method = "POST"
+path = "/api/v1/compare"
+setup = "configured"
+auth = false
+body = { a = { text = "hostname R1" }, b = { text = "hostname R1" } }
+expect_status = 401
+expect_json = { "code" = 1002 }
+
+[[case]]
+id = "device-versions-missing"
+title = { zh-CN = "不存在的设备的配置版本", en = "Versions of an unknown device", pt-BR = "Versões de um dispositivo inexistente" }
+method = "GET"
+path = "/api/v1/devices/999/versions"
+setup = "configured"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+in_docs = true

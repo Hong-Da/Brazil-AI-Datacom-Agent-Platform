@@ -260,7 +260,31 @@ Profile 匹配：版本正则匹配上的优先；都不匹配时用标了 `fall
 | 华为 ATN 真实配置（严格脱敏，720 条命令） | 逐字一致，覆盖率 100%，未识别 0；图 2464 个节点、30 条副作用边 |
 | 全部 13 个样本（门槛样本 11 个） | 全部逐字一致；门槛样本未识别行 0 |
 
-**已知限制（留给 M2 处理）**：条件缺省值（例如 Cisco 的 `negotiation auto` 只对物理口有效，却同样补到了 Loopback）目前按节点类型统一补，配置对比时可能产生假差异；M2 在 Profile 缺省值上增加适用条件。
+**已知限制（已在 M2-2 解决）**：条件缺省值（例如 Cisco 的 `negotiation auto` 只对物理口有效）——Profile 条目增加了适用条件 `when`，见“功能域扩展（M2-2 结果）”。
+
+### 功能域扩展：IGP、BFD、管理面（M2-2 结果）
+
+新增四个功能域：`ospf`（进程、区域、network、被动接口、FRR、BFD 联动、接口参数 `interface.ospf`）、`isis`（进程、NET、级别、开销类型、接口参数 `interface.isis`）、`bfd`（全局使能、静态会话、接口参数）、`mgmt`（NTP、SNMP、Syslog、SSH / Telnet / FTP、AAA 本地用户与方案与域、TACACS+ / HWTACACS、登录线路）。Schema 共 222 个节点（0.1.0 为 93 个）。
+
+| 平台族 | 新增命令卡 | 资料 |
+|---|---|---|
+| huawei-vrp8 | 1253（ospf 233、isis 297、bfd 80、mgmt 643） | 命令参考 V800R025：OSPF、IS-IS、网络可靠性（BFD）、NTP、SNMP、信息管理、SSH、AAA、用户登录与用户界面章节 |
+| cisco-iosxe | 143（含修正文件新增与改写的卡） | 公开命令参考新增 114 页（ospf 28、isis 18、bfd 5、mgmt 63），`DevelopDocs/设备产品文档/Cisco/.../README.md` 列出来源与原文问题 |
+
+新增样本：`knowledge/samples/huawei-atn-v800r025-synthetic/atn-igp-mgmt-01.cfg`、`cisco-iosxe-asr920-synthetic/pe-asr920-02-igp-mgmt.cfg`（合成，覆盖 IS-IS、BFD 会话、OSPF 多区域、管理面）。现网 ATN 样本中这些功能域的行全部识别，全部门槛样本往返一致、无未识别行。
+
+本阶段补充的机制：
+
+| 机制 | 说明 |
+|---|---|
+| 异常缩进回退 | 分页痕迹出现在子视图块后的第一行时（例如 OSPF `frr` 块之后的 `area`），在上一行视图匹配不到就逐级往外层视图找，按匹配到的那一层计算缩进 |
+| 行尾空白 | 匹配到命令卡的行也保留行尾空格，往返逐字一致 |
+| 编号稳定 | 分批抽取不同功能域时，新卡避开其他功能域已有的编号；合并时先按“语法 + 视图”对上已有的卡，重复抽取结果不变 |
+| 功能域的视图映射 | 抽取规则的功能域文件条目可以带自己的 `views_map`（Cisco 的 OSPF、IS-IS、BGP 文档都写 `Router configuration (config-router)`） |
+| 华为修正文件 | 新增 `knowledge/extractors/huawei-vrp8-md.patches.yaml`（例如 `user-interface con 0` 的文档语法错误） |
+| 映射表达式 | `tail:<关键字>` 取关键字之后的全部词（方法列表、服务类型、协议列表）；`a||b` 先拆分再逐个计算（每个候选可以是 `kw:`、`if:`、`fmt:`、`tail:`）；重复组参数只有一个值时取这个值，文本类型多值拼成一行；一行里的对象没取到值时，属于它的属性也不写 |
+| 条件缺省值 | Profile 条目的 `when`：`{key: 正则}`、`{not_key: 正则}` 按所属对象编号判断，`{attr: {兄弟属性: 取值或取值列表}}` 按兄弟属性的有效值判断。解决了 0.1.0 的已知限制：Cisco `negotiation auto` 只补到物理口；OSPF hello / dead 只在广播与点到点网络上补 10 / 40 秒 |
+| 对象前置依赖 | Schema 依赖规则可以是“对象 → 对象”的前置关系（BFD 会话需要先全局使能 BFD）；缺少时记入图的 `missing_prerequisites`，供配置检查使用，不算悬空引用 |
 
 ### Web 界面（M1-9 结果）
 
@@ -287,6 +311,61 @@ Profile 匹配：版本正则匹配上的优先；都不匹配时用标了 `fall
 **留给后续的后端增强**（界面已按现有接口做到最好）：未识别行返回涉及设备与位置、映射建议接口；审核列表的关键字 / 规则 / 来源筛选与按 id 批量；schema_node、mapping、profile_entry 的审核通过动作；依赖规则的编辑接口；Schema 节点 `unit` 字段；单个 Profile 导出与删除；抽取任务取消与参数记录；配置导入的预检模式；样本回归的进度上报；图接口返回每行分类。
 
 **并发安全**（联调中发现并修正）：知识库 YAML 读取改为每线程一个实例；写入原子化（临时文件 + 替换）并用进程内写锁串行；数据库迁移每个进程每个地址只做一次。
+
+### 配置检查与冗余清理（M2-4 结果）
+
+**模块**：`core/rules.py`（规则文件加载、校验、求值）、`core/checks.py`（检查与汇总）、`core/cleanup.py`（删除脚本与验证）；CLI `lmesh check`、`lmesh cleanup`，API `POST /check`、`GET /devices/{id}/check`、`POST /cleanup`、`GET /kb/rules`。
+
+**发现的结构**：`rule`、`severity`（error / warning / info）、`domain`、`node`（规范编号）、`nodes`、`lines`、`message` 与 `suggestion`（文案键 + 参数）。内置检查的文案在 locales（`check.<规则>.*`），规则文件的文案随结果放在 `texts`，结果本身不随语言变化。
+
+**内置检查**：
+
+| 规则 | 级别 | 判断方法 |
+|---|---|---|
+| `ref.dangling` | error | 引用属性的目标不存在（建图时按 reference 依赖记录；Schema 标了 `ref` 却没有依赖规则的属性也检查）；Profile 声明的隐式对象作为派生节点存在，不算悬空 |
+| `ref.dangling_unsure` | warning | 同上，但目标名称出现在未映射的行（原文、未识别行、未映射的命令）中，可能在那里声明 |
+| `ref.orphan` | warning | 被引用的对象类型（Schema 的 `ref` 与 reference 依赖的终点，按知识库推导）的实例没有任何引用 |
+| `ref.orphan_cascade` | warning | 只被孤儿（或级联孤儿）引用的对象，迭代到不动点 |
+| `ref.orphan_unsure` | info | 没有引用，但名称出现在未映射的行或已映射行中未映射的参数里（例如 `nexthop recursive-lookup route-policy X`）；清理脚本不删除 |
+| `dep.mutex` | error | 图中 mutex 依赖边两端同时存在 |
+
+孤儿判断的保守规则：被别的对象以键使用算作使用（`bgp.af[vrf=X]`、按组名写的 `bgp.af.peer[Client]`、名称为“字母前缀 + 编号”的接口 `Vbdif100` 对应桥域 100）；已映射行中名称只作为对象的键或属性的取值出现时，由图中的边判断。
+
+**规则文件**：`knowledge/rules/*.yaml`，每条规则有 `id`、`target`（Schema 对象节点）、`when`（可省）、`assert`、`severity`、三种语言的 `title` / `message` / `suggestion`。条件写成结构化 YAML（`exists`、`count`、`equals`、`in`、`all`、`any`、`not`），不用 eval；路径按 Schema 逐段走（`af/rt`、`group->remote_as` 沿引用边、`^` 上一级对象），加载时按 Schema 校验，写错时报出文件、规则编号与出错位置（例如 `assert.all[1].not`）。CLI 退出码 3，API 返回 409 与问题清单。`common.yaml` 有 8 条通用规则：对等体缺对端 AS（考虑组的 remote-as 与 IBGP 组）、接口绑定 VRF 无地址、二层口绑定 VRF、聚合成员口有地址、VRF 有 RD 无 RT、有 RT 无 RD、策略节点匹配的前缀列表为空、匹配的团体属性列表为空。早于 M2 复制出的运行时知识库没有 `rules/` 时用程序自带的规则。
+
+**删除脚本**：只对对象的入口命令取反（子树中每个对象第一次出现的行，且不在子树其他行的视图之内），多个入口逐个删除；用命令卡的 `undo` 语法按原行的参数渲染，只接受关键字都在原行中出现过的展开，取参数最多的写法，并用取消语法回匹配校验；渲染不出来时用平台族的取消前缀 + 原命令兜底，标注 `fallback`。顺序按对象间的引用做拓扑排序（引用方在前），同层按行号；对象在视图里时先输出进入视图的原命令、缩进一级、再退出（华为 `quit`、Cisco `exit`）；`!` 注释行注明对象与原配置行号。同一条命令删除整个对象时（`no ip community-list standard X`）只输出一次。
+
+**验证**：去掉待删除对象子树的全部行（含入口下的子行）后重新解析建图，比较悬空引用、确认对象已不存在且没有剩下的孤儿；反例（只删被引用的前缀列表）会报出新的悬空引用。
+
+**样本基准**（人工确认均为真问题）：
+
+| 样本 | 发现 | 判断 |
+|---|---|---|
+| 华为 ATN 真实配置 | `ref.orphan bridge_domain[1500]` | 真问题：两个 `.1500` 二层子接口都没有 `bridge-domain 1500` |
+| | `ref.orphan_unsure rp.policy[VERIFICA-NEXTHOP]` | 正确降级：只被 BGP 的 `nexthop recursive-lookup route-policy` 使用，这条命令还没有映射 |
+| Cisco ASR 920 合成样本 | `ref.orphan rp.community_list[RAN-COMM]` | 真问题：route-map 只 `set community`，没有 `match` 这个列表 |
+
+Batfish 公开样本中的发现（未定义的 route-map / VRF 引用、没有 RT 的 VRF、未使用的 prefix-list 与 community-list、聚合成员口有地址）逐条核对过，都是样本本身的问题。
+
+**知识库待补**：Cisco `route-map` 卡的取消语法把两种写法合在一起（必须带 `ordering-seq`），删除 route-map 节点只能兜底；华为 `nexthop recursive-lookup route-policy`、Cisco `ip prefix-list … description` 尚未映射；`bgp.af` 的键 `vrf` 与 `bgp.af.peer` 的键 `peer` 实际引用 VRF 与对等体组，Schema 没有标注（检查按键使用的规则兜底）。
+
+### 配置对比（M2-3 结果）
+
+模块 `core/compare.py`，CLI `lmesh compare`、API `POST /compare` 与 `GET /devices/{id}/versions` 共用。全部按 Schema 与图结构工作，不写死功能域：
+
+| 环节 | 做法 |
+|---|---|
+| 规范编号 | 沿 contains 边重算每个对象 / 属性的编号：键字段按类型规范化（类型取 `<对象>.<字段>` 子节点的类型；对象自身就是取值类型时（`interface`）按该类型；没有子节点的键字段，同名 ref 属性都指向同一类型时按引用处理，如 `bgp.af` 的 `vrf`） |
+| 有效值 | 显式值，否则图中 Profile 补出的默认节点或派生节点；`undo` / `no` 取消非布尔属性时回到 Profile 默认值，没有默认值时视为未配置；两边各用自己的 Profile。只有一侧 Profile 有默认值、另一侧什么都没有的属性不可比，列入 `default_only`，不算差异 |
+| 语义等价 | 掩码 → 长度、`ip/掩码` 与 `ip 掩码` → 前缀、接口名缩写与大小写（GE / Gi / gigabitethernet → GigabitEthernet，LoopBack → Loopback）、RD / RT（asdot → asplain、去前导零）、枚举不分大小写、单元素列表等同标量、无序列表排序；复合键中取值 `both` 的枚举字段（choices 恰为另外两项加 both）展开成两个对象，等同分开写的 import + export |
+| 有序 | 有序列表（Schema `ordered`）按键（序号）配对，同一序号内容变化即差异，书写顺序不影响；属性的列表值只有标了 `ordered` 才比较顺序 |
+| 改名 | 被 ref 指向的单键对象类型，只在一边出现、同一父对象下、除名字外内容（子树属性的相对编号与有效值、未映射命令）相同的唯一配对判为改名；有并列候选或内容为空时不判定；相似度阈值默认 1.0，可按次指定；A 侧按改名映射重算（对象名、ref 属性、引用型键字段、未映射命令中等于旧名的参数），逐轮识别引用链上的改名 |
+| 未映射命令 / 原文 | ext 节点只在同一平台族时比较，按所属对象作为多重集合（一对一时报 changed）；原文行（选项开启）按所属对象比较“父原文行 > 本行”的集合，异常缩进形成的分隔行（`#` / `!`）忽略；未识别行单独列出 |
+| 输出 | 只在一边出现的对象只在最上层报一次（附子节点数与整块行号）；关联差异由两边图中的引用边得出 |
+
+**对比基准**：`knowledge/samples/compare/manifest.yaml`，16 个用例全部通过（`compare.benchmark()`，测试分类 roundtrip）——ATN 与 ASR 920 各自的自身对比、重排、显式默认值、缩进与空白、掩码写法（ATN）、接口名缩写、RT both 为 0 差异；真实修改（改 MTU、删对等体、改 RT、改名 route-policy 并更新引用，ASR 920 另有 prefix-list 的两级改名）只报预期差异。往返样本清单检查排除 `samples/compare/`（基准有自己的清单）。
+
+**发现的建图问题**：华为 `ipv4-family mvpn`、`ipv6-family vpnv6` 两个视图未映射，其中的 `peer … enable` / `peer … group` 被记到 `bgp.af[afi=ipv4,vrf=]` 的对等体上（ATN 样本 `peer[10.0.179.30]/enabled` 的行号含 1983、2042）；这两个地址族的增删在对比中会表现为 IPv4 单播地址族的变化。ext 节点编号含行号（`ext[卡@行号]`），对比不用它配对（按所属对象与命令卡分组）。
 
 ### 知识库的存放
 

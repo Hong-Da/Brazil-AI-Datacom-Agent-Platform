@@ -768,3 +768,7 @@ rules:
   - view: ^user-interface-(vty|con)$
     syntax: '^protocol inbound '
     maps: {mgmt.line.protocols: "tail:inbound"}
+  # BGP 地址族：下一跳迭代策略（引用路由策略，配置检查判断策略是否被使用要用到）
+  - view: ^bgp-af-
+    syntax: '^nexthop recursive-lookup route-policy <route-policy-name>'
+    maps: {bgp.af.nexthop_policy: $route-policy-name}

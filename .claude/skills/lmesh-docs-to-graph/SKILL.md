@@ -50,9 +50,11 @@ description: 透网 LucidMesh 从厂商产品文档（命令参考）到统一�
 | `enum_marker`、`enum_item` | 从取值说明里取枚举值 |
 | `default_regex` | 缺省值那句话 |
 | `syntax_rewrites` | 文档语法写法的统一改写（例如 `[ … ] *` → `&<1-9>`） |
-| `domains` | 功能域 → 文档文件（相对文档根，可用 `*`） |
+| `domains` | 功能域 → 文档文件（相对文档根，可用 `*`）；文件条目可带 `sections`（只取这些章节）和自己的 `views_map`（同一模式名在不同功能域对应不同视图时用，例如 Cisco 的 `config-router`） |
 
-- 文档自身的错误写进同名 `.patches.yaml`：`set`（改某张卡的字段）、`add`（文档缺的命令），每条必须写 `reason`。不要直接手改抽取出的卡，重新抽取会被覆盖。
+- 文档自身的错误写进同名 `.patches.yaml`（华为、Cisco 各一份）：`set`（改某张卡的字段，可以改 `enters_view`）、`add`（文档缺的命令，写明 `domain`、`view`），每条必须写 `reason`。不要直接手改抽取出的卡，重新抽取会被覆盖。修正只在抽取到那张卡的批次里生效。
+- `param_types` 按顺序匹配：把更具体的规则放前面（例如 `wildcard` 要在 `mask` 之前，否则 OSPF 的反掩码会被当成子网掩码）。
+- `enters` 的正则要收紧到真正进入视图的那条命令（例如 `^ospf (<|\[)` 而不是 `^ospf`，后者会把系统视图里所有 `ospf …` 命令都当成进入 OSPF 视图）。
 
 命令语法记法：关键字直接写；`<参数>`；`[ 可选 ]`（内部 `|` 为可选多选一）；`{ a | b }` 必选多选一；`&<1-N>` 重复。
 
@@ -63,6 +65,7 @@ lmesh kb ingest <文档目录> --rules <规则名> [--domain bgp]… [--version 
 ```
 
 - 结果以 draft 写入 `knowledge/commands/`，每张卡生成审核记录；重复抽取时没变化的跳过，已审核的卡有变化只生成“更新”审核。
+- 可以只抽部分功能域（`--domain`）：编号会避开其他功能域已有的卡，合并时先按“语法 + 视图”对上已有的卡，所以分批抽取与整体抽取结果一致。抽完重跑一次，合并结果应全部是 unchanged。
 - 看输出里的跳过统计：“视图不在范围”多 → 补 `views_map`；“文档语法有错”多 → 补 `syntax_rewrites` 或 patches；参数类型不对 → 补 `param_types`。改规则后再抽一次，直到跳过的都是该跳过的。
 - `--ai` 只处理规则失败的命令，结果必须能通过语法解析；AI 未配置时不用。
 
@@ -89,7 +92,11 @@ draft 卡同样参与解析（状态只表示可信度），所以可以先跑�
 | `kw:import\|export\|both:both`、`kw:single=pop 1` | 按行中关键字取值、可带缺省、可改写 |
 | `if:<关键字>:<表达式>` | 有该关键字时才取 |
 | `flag` | 开关：出现为 true，否定形式为 false |
+| `tail:<关键字>` | 关键字之后的全部词（`authentication-mode hwtacacs local`、`service-type ftp ssh`） |
 | 目标 `a.b{k=v}.c`、`x \| y` | 固定对象键；按值是 IP 还是名称选分支 |
+
+- `a||b||c` 先拆开逐个计算，取第一个有值的；每个候选都可以是 `kw:` / `if:` / `fmt:` / `tail:` / `$参数` / 字面量。
+- 每台设备只有一个的对象（SNMP 代理、SSH 服务、接口上的 OSPF 参数）用固定编号 `"_"`；同一个对象的属性分散在多条命令里时，各条命令都映射到 `"_"`，进程号等作为属性。
 
 然后 `lmesh kb map`：把规则写进命令卡（`maps_manual: true` 的卡不覆盖），并按命令卡汇总各 Profile 的 `entries`。输出里的 `unused_rules` 是没命中任何卡的规则，要查。
 
@@ -97,6 +104,7 @@ draft 卡同样参与解析（状态只表示可信度），所以可以先跑�
 
 - `match`（vendor、版本正则、`fallback`）、`inherits`（新版本继承旧版本，只写差异）、`platform`、`software`。
 - `entries` 由 `kb map` 生成；人工条目写 `manual: true`（缺省值 `default`、显示规则 `show_rule`、`supported: false` 等），重新汇总时保留。
+- 缺省值只对部分对象成立时加 `when`：`{key: 正则}` / `{not_key: 正则}` 按所属对象编号（例如只对物理口），`{attr: {network_type: [broadcast, p2p]}}` 按兄弟属性的有效值。没有条件的缺省值会补到每个同类对象上，容易造成对比的假差异。
 - `side_effects`（如华为接口绑定 VPN 会清掉接口 IP）、`implicit`（被引用时隐式存在的对象，如 ASR 920 的桥域）。
 - 检查：`lmesh kb coverage --profile <P>`（支持 / 不支持 / 未填写）。界面：Profile 管理、覆盖矩阵。
 
@@ -123,6 +131,8 @@ lmesh roundtrip <样本>                     # 配置 → 图 → 配置逐字�
 | 往返不一致：参数被规范化了 | 映射或渲染没保留原写法 | 检查卡的可选组 / 多选分支记录；映射只影响图，渲染用原始写法 |
 | 往返不一致：多个语句被合并 | 映射成了同一个对象键 | 映射目标的 key 不够区分（例如 static route 要带下一跳） |
 | 悬空引用 | 引用对象确实没配置，或隐式对象 | 是配置问题就保留（属于配置检查）；是隐式对象就加到 Profile `implicit` |
+| 分页痕迹（行首一大段空格）后面的整块视图都错 | 异常缩进的行在上一行视图里匹配不到 | 解析器会逐级往外层视图找；仍然不对时检查 `enters` 与命令卡视图 |
+| 新功能域加入后，原来的原文行变成未识别 | 新卡让这些行有了“已知前缀”，但写法没有对应的卡 | 补卡（patches `add`）或修语法（patches `set`）；不要删掉新功能域的卡 |
 | 默认值造成假差异 | 缺省值只对部分对象成立 | Profile 人工条目；条件缺省值是已知限制（M2） |
 
 把新样本加入 `knowledge/samples/` 并登记到 `knowledge/samples/manifest.yaml`（`gate: true` 的参与门槛）。

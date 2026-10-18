@@ -195,6 +195,8 @@ def _abnormal_depth(stack: list[_Frame], indent: int, index: CardIndex, stripped
 
     if matches(frames[-1].view):
         return None
+    if not index.prefixes.get(frames[-1].view):
+        return None  # 当前视图没有任何命令卡（范围外的块，内容按原文保留）：不往外层找，免得把块内的行算到外层
     for depth in range(len(frames) - 1, 0, -1):
         if frames[depth - 1].raw:
             return None
@@ -266,7 +268,8 @@ def parse(text: str, kb: KnowledgeBase, family: str) -> Parsed:
         if frame is not None and frame.raw:
             out.lines.append(Line(no, raw, "raw", lead, view, parent=parent))
             stack.append(_Frame(indent, view, no, raw=True))
-            prev_indent, prev_entered = indent, True
+            # 原文块里同样识别分页痕迹：比上一行深一级以上的行视作同级（正常的子行只深一级）
+            prev_indent, prev_entered = indent, False
             continue
 
         if stripped.split()[0].lower() == index.negative:
@@ -300,7 +303,7 @@ def parse(text: str, kb: KnowledgeBase, family: str) -> Parsed:
         out.lines.append(Line(no, raw, kind, lead, view, parent=parent))
         # 不认识的行下面若有更深缩进的子行，整块作为 raw（例如 ospf 1 下面的配置）
         stack.append(_Frame(indent, view, no, raw=True))
-        prev_indent, prev_entered = indent, True
+        prev_indent, prev_entered = indent, False
     return out
 
 

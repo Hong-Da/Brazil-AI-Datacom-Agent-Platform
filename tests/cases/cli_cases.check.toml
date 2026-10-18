@@ -1,0 +1,86 @@
+# 配置检查与冗余清理（M2-4）的 CLI 用例
+
+[[case]]
+id = "check-file"
+title = { zh-CN = "检查配置文件（有 error 级发现时退出码 1）", en = "Check a config file (exit 1 on error findings)", pt-BR = "Verificar um arquivo de configuração (saída 1 com achados de erro)" }
+args = ["--output", "json", "check", "{inputs}/configs/check/huawei-issues.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "ok" = true, "data.summary.has_errors" = true, "data.summary.by_severity.error" = 4, "data.summary.by_rule.ref.orphan_cascade" = 1, "data.findings.0.severity" = "error" }
+in_docs = true
+
+[[case]]
+id = "check-filter"
+title = { zh-CN = "只看 VRF 功能域的警告及以上", en = "Only warnings and above in the VRF domain", pt-BR = "Apenas avisos ou mais graves no domínio VRF" }
+args = ["--output", "json", "check", "{inputs}/configs/check/cisco-issues.cfg", "--severity", "warning", "--domain", "vrf"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.summary.total" = 2, "data.summary.has_errors" = false, "data.filters.domain" = "vrf", "data.summary.by_rule.vrf.rd_without_rt" = 1 }
+in_docs = true
+
+[[case]]
+id = "check-text"
+title = { zh-CN = "检查样本配置（文字输出）", en = "Check a sample config (text output)", pt-BR = "Verificar uma configuração de exemplo (saída em texto)" }
+args = ["--lang", "en", "check", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["1 finding(s)", "rp.community_list RAN-COMM is not referenced anywhere", "Fix: "]
+in_docs = true
+
+[[case]]
+id = "check-bad-severity"
+title = { zh-CN = "级别写错", en = "Invalid severity", pt-BR = "Severidade inválida" }
+args = ["check", "{inputs}/configs/check/huawei-issues.cfg", "--severity", "fatal"]
+setup = "fresh-fullkb"
+expect_exit = 2
+expect_stderr = ["--severity"]
+
+[[case]]
+id = "check-bad-rules"
+title = { zh-CN = "规则文件写错：报出文件、规则与位置", en = "Broken rule file: file, rule and location are reported", pt-BR = "Arquivo de regras com erro: arquivo, regra e local são informados" }
+args = ["--lang", "en", "check", "{inputs}/configs/check/huawei-issues.cfg", "--rules", "{inputs}/rules/bad"]
+setup = "fresh-fullkb"
+expect_exit = 3
+expect_stderr = ["2 error(s)", "bad.yaml rule bad.path assert: path ipv5: interface has no ipv5", "severity is fatal"]
+
+[[case]]
+id = "check-rules-missing"
+title = { zh-CN = "规则目录不存在", en = "Rule directory not found", pt-BR = "Diretório de regras inexistente" }
+args = ["check", "{inputs}/configs/check/huawei-issues.cfg", "--rules", "{inputs}/rules/no-such-dir"]
+setup = "fresh-fullkb"
+expect_exit = 4
+expect_stderr = ["no-such-dir"]
+
+[[case]]
+id = "check-device-missing"
+title = { zh-CN = "设备不存在", en = "Unknown device", pt-BR = "Dispositivo inexistente" }
+args = ["check", "NO-SUCH-DEVICE"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["NO-SUCH-DEVICE"]
+
+[[case]]
+id = "cleanup-script"
+title = { zh-CN = "生成删除脚本（先删引用方，再删级联孤儿）", en = "Generate the cleanup script (referrers first, then cascading orphans)", pt-BR = "Gerar o script de limpeza (primeiro quem referencia, depois os órfãos em cascata)" }
+args = ["cleanup", "{inputs}/configs/check/huawei-issues.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["undo route-policy UNUSED-POLICY node 10", "undo ip ip-prefix ONLY-UNUSED index 10", " undo group SPARE"]
+in_docs = true
+
+[[case]]
+id = "cleanup-out-file"
+title = { zh-CN = "删除脚本写到文件（JSON 中逐条列出命令与是否兜底生成）", en = "Write the cleanup script to a file (JSON lists each command and whether it is a fallback)", pt-BR = "Gravar o script de limpeza em arquivo (o JSON lista cada comando e se é fallback)" }
+args = ["--output", "json", "cleanup", "{inputs}/configs/check/cisco-issues.cfg", "-o", "{out}/cleanup.txt"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.fallbacks" = 0, "data.verify.ok" = true, "data.commands.0.text" = "no vrf definition UNUSED-VRF", "data.commands.3.text" = "no route-map UNUSED-MAP permit 10" }
+in_docs = true
+
+[[case]]
+id = "cleanup-missing-file"
+title = { zh-CN = "文件或设备不存在", en = "File or device not found", pt-BR = "Arquivo ou dispositivo inexistente" }
+args = ["cleanup", "NO-SUCH-DEVICE"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["NO-SUCH-DEVICE"]

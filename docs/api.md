@@ -59,6 +59,12 @@
 | `POST /render` | 是 | 解析建图后渲染回文本：`{"text": "…", "profile": null}` |
 | `POST /roundtrip` | 是 | 往返测试：给出 `text` 时同步返回差异；`{"samples": true}` 时作为后台任务跑全部样本，返回 `task_id` |
 | `GET /devices/{id}/graph?domain=D&raw=false` | 是 | 设备最新配置版本的配置图：节点、边、悬空引用、统计；`raw=true` 时包含功能域外的原文节点与原始配置文本 |
+| `POST /compare` | 是 | 配置对比：`{"a": {"text": "…" \| "version_id": 1 \| "device_id": 1, "profile": null}, "b": {…}, "domain": null, "include_raw": false, "interface_map": {"GE0/2/1": "Gi0/0/1"}, "rename_threshold": 1.0}`（每边给 `text`、`version_id`、`device_id`（最新版本）之一；同时给 `device_id` 与 `version_id` 时检查版本属于该设备）；返回 `diffs`（`kind` added / removed / changed / renamed、`node_kind` object / attr / ext / raw、`node` 规范编号、`schema`、`domain`、`a` / `b` 各自的 `node` 原始编号、`value` 有效值、`origin`、`lines`，改名的 `from` / `to` / `similarity`，删除或新增对象的 `count`，`related` 关联差异）、`renames`、`summary`（`total`、`by_kind`、`by_domain`、`by_object`、`unknown`、`default_only`）、`unknown`（两边的未识别行）、`default_only`（只有一侧 Profile 有默认值、不可比的属性）、`a` / `b`（来源、设备、Profile、版本）与 `options`；设备或版本不存在时 404 |
+| `GET /devices/{id}/versions` | 是 | 设备的配置版本列表（新的在前）：`id`、`seq`（设备内序号）、`source_name`、`collected_at`、`kb_version`、`lines`、`latest`；对比界面选“变更前后”用 |
+| `POST /check` | 是 | 配置检查：`{"text": "…" 或 "device_id": 1, "profile": null, "severity": "info", "domain": null}`（`text` 与 `device_id` 二选一）；返回 `findings`（`rule`、`severity`、`domain`、`node`、`nodes`、`lines`、`message` / `suggestion` 为文案键 + 参数）、`summary`（按级别、规则、功能域计数，`has_errors`）、`texts`（规则文件文案的三种语言）；规则文件写错时 409，`data.issues` 为问题清单 |
+| `GET /devices/{id}/check?severity=info&domain=D` | 是 | 检查设备的最新配置版本，结果同上 |
+| `POST /cleanup` | 是 | 冗余清理：`{"text": "…" 或 "device_id": 1, "profile": null}`；返回待删除对象（`reason`：orphan / cascade）、按顺序的删除命令（`text`、`context` 所在视图、`object`、`lines`、`card`、`fallback`）、脚本文本 `script`、未删除的对象 `skipped` 与删除后验证 `verify` |
+| `GET /kb/rules` | 是 | 检查规则：内置检查与知识库 `rules/` 中的规则（编号、级别、适用的 Schema 节点、条件，以及三种语言的标题、说明、建议） |
 | `GET /unknown-lines?limit=50` | 是 | 已导入配置中的未识别行汇总 |
 | `GET /unknown-lines/states` | 是 | 各未识别行模式的送审状态（pending / approved / rejected） |
 | `POST /unknown-lines/review` | 是 | 把选中的模式送入审核队列：`{"patterns": ["…"]}`；已送审的跳过 |
@@ -749,5 +755,220 @@ HTTP 状态：`200`；返回中的关键字段：
 
 - `code` = `0`
 - `data.patterns` = `[]`
+
+### 检查一段配置
+
+`POST /api/v1/check`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/check' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nroute-policy UNUSED permit node 10\n#\nreturn", "severity": "info"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/check' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nroute-policy UNUSED permit node 10\n#\nreturn", "severity": "info"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/check', headers={'Authorization': 'Bearer <令牌>'}, json={'text': 'sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nroute-policy UNUSED permit node 10\n#\nreturn', 'severity': 'info'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.summary.total` = `3`
+- `data.summary.by_severity.warning` = `3`
+- `data.summary.by_rule.ref.orphan` = `2`
+- `data.findings.0.rule` = `"ref.orphan"`
+- `data.findings.0.node` = `"vrf.instance[RAN]"`
+- `data.findings.0.lines` = `[3]`
+
+### 设备不存在
+
+`GET /api/v1/devices/999/check`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/devices/999/check' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/devices/999/check' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/devices/999/check', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`404`；返回中的关键字段：
+
+- `code` = `1004`
+
+### 为一段配置生成删除脚本
+
+`POST /api/v1/cleanup`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/cleanup' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nroute-policy UNUSED permit node 10\n#\nreturn"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/cleanup' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nroute-policy UNUSED permit node 10\n#\nreturn"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/cleanup', headers={'Authorization': 'Bearer <令牌>'}, json={'text': 'sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\nroute-policy UNUSED permit node 10\n#\nreturn'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.commands.0.text` = `"undo ip vpn-instance RAN"`
+- `data.commands.1.text` = `"undo route-policy UNUSED node 10"`
+- `data.commands.1.lines` = `[7]`
+- `data.fallbacks` = `0`
+- `data.verify.ok` = `true`
+
+### 检查规则列表
+
+`GET /api/v1/kb/rules`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/kb/rules' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/kb/rules' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/kb/rules', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.builtin` = `6`
+- `data.rules.0.id` = `"ref.dangling"`
+- `data.rules.0.builtin` = `true`
+
+### 对比两段配置文本（显式默认值不算差异，MTU 改动报出）
+
+`POST /api/v1/compare`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/compare' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"a": {"text": "hostname R1\n!\ninterface GigabitEthernet0/0/1\n mtu 1500\n no shutdown\n ip address 10.0.0.1 255.255.255.0\n!\nend"}, "b": {"text": "hostname R1\n!\ninterface Gi0/0/1\n mtu 9000\n ip address 10.0.0.1 255.255.255.0\n!\nend"}}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/compare' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"a": {"text": "hostname R1\n!\ninterface GigabitEthernet0/0/1\n mtu 1500\n no shutdown\n ip address 10.0.0.1 255.255.255.0\n!\nend"}, "b": {"text": "hostname R1\n!\ninterface Gi0/0/1\n mtu 9000\n ip address 10.0.0.1 255.255.255.0\n!\nend"}}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/compare', headers={'Authorization': 'Bearer <令牌>'}, json={'a': {'text': 'hostname R1\n!\ninterface GigabitEthernet0/0/1\n mtu 1500\n no shutdown\n ip address 10.0.0.1 255.255.255.0\n!\nend'}, 'b': {'text': 'hostname R1\n!\ninterface Gi0/0/1\n mtu 9000\n ip address 10.0.0.1 255.255.255.0\n!\nend'}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.summary.total` = `1`
+- `data.diffs.0.kind` = `"changed"`
+- `data.diffs.0.node` = `"interface[GigabitEthernet0/0/1]/mtu"`
+- `data.diffs.0.a.value` = `1500`
+- `data.diffs.0.a.origin` = `"explicit"`
+- `data.diffs.0.b.value` = `9000`
+- `data.diffs.0.b.lines` = `[4]`
+
+### 一边没有给出配置来源
+
+`POST /api/v1/compare`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/compare' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"a": {"text": "sysname X"}, "b": {"profile": "huawei-atn-v800r023"}}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/compare' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"a": {"text": "sysname X"}, "b": {"profile": "huawei-atn-v800r023"}}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/compare', headers={'Authorization': 'Bearer <令牌>'}, json={'a': {'text': 'sysname X'}, 'b': {'profile': 'huawei-atn-v800r023'}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`422`；返回中的关键字段：
+
+- `code` = `1001`
+
+### 设备不存在
+
+`POST /api/v1/compare`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/compare' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"a": {"device_id": 999}, "b": {"text": "hostname R1"}}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/compare' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"a": {"device_id": 999}, "b": {"text": "hostname R1"}}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/compare', headers={'Authorization': 'Bearer <令牌>'}, json={'a': {'device_id': 999}, 'b': {'text': 'hostname R1'}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`404`；返回中的关键字段：
+
+- `code` = `1004`
+
+### 不存在的设备的配置版本
+
+`GET /api/v1/devices/999/versions`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/devices/999/versions' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/devices/999/versions' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/devices/999/versions', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`404`；返回中的关键字段：
+
+- `code` = `1004`
 
 <!-- examples:end -->

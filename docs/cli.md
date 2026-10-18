@@ -84,6 +84,9 @@
 | `lmesh graph show <文件\|设备名> [--domain D] [--profile P]` | 显示配置图：语义节点（含 Profile 补出的隐藏默认节点）、依赖边（contains / reference / prerequisite / side_effect / mutex）、悬空引用 |
 | `lmesh render <文件\|设备名> [--profile P]` | 解析建图后按图渲染回配置文本（往返模式：保留原有顺序、缩进与写法） |
 | `lmesh roundtrip [<文件>] [--samples] [--profile P]` | 往返测试：配置 → 图 → 配置逐字比较；`--samples` 跑 `knowledge/samples/manifest.yaml` 中的全部样本，门槛样本还要求功能域内没有未识别行；不一致时退出码 1 |
+| `lmesh compare <A> <B> [--domain D] [--raw] [--interface-map 文件] [--profile-a P] [--profile-b P] [--rename-threshold 0–1]` | 配置对比（同厂商或跨厂商都按 Schema 节点比较）：A、B 是配置文件或已导入的设备名（`设备名@版本编号` 取指定配置版本，版本编号见 `GET /devices/{id}/versions` 的 `id`，省略时取最新版本）。比较有效值（显式值，否则 Profile 默认值或派生值，显式写出默认值与不写结果相同）；值按节点类型规范化后比较（掩码与长度、接口名缩写与大小写、RD / RT 写法、RT 的 `both` 等于 import + export）；可被引用的对象（路由策略、前缀列表、VRF 等）内容相同只是名字不同时判为改名，引用随之对应；`--interface-map` 为跨厂商的接口对照（JSON / YAML 的 `{A: B}`，或每行两列的文本）；`--raw` 同时按所属对象比较功能域外的原文行；未识别行单独列出；只有一侧 Profile 有默认值的属性不可比，不算差异（`default_only`）。文本输出按功能域分组（`+` 新增、`-` 删除、`~` 修改、`»` 改名），`--output json` 输出完整结果；**有差异时退出码仍为 0**，差异数见 `summary.total` |
+| `lmesh check <文件\|设备名> [--rules 目录] [--severity error\|warning\|info] [--domain D] [--profile P]` | 配置检查：悬空引用、孤儿对象（含级联孤儿）、互斥冲突，以及知识库 `rules/` 中的规则约束；每条发现带规则编号、级别、规范编号、行号、说明与修复建议，并按级别、规则、功能域汇总；`--severity` 是最低级别，`--domain` 只看一个功能域；**筛选后仍有 error 级发现时退出码 1**（便于脚本判断），规则文件写错时退出码 3 并列出文件、规则与出错位置，`--rules` 目录不存在时退出码 4 |
+| `lmesh cleanup <文件\|设备名> [-o 脚本文件] [--profile P]` | 冗余清理：为孤儿对象（含级联孤儿）生成删除命令脚本（华为 `undo …`、Cisco `no …`），先删引用方再删被引用方，`!` 注释行注明删除的对象与原配置行号；命令卡缺取消语法时用取消前缀 + 原命令兜底并标注 `FALLBACK`（JSON 中 `fallback: true`），需人工确认；名称出现在未映射行中的对象不删除（`skipped`）；生成后在图上验证删除不会产生新的悬空引用，验证不通过时退出码 1 |
 | `lmesh ai test` / `lmesh ai calls` | 测试 AI 接口 / 最近的 AI 调用记录（任务、模型、token 用量、成功与否） |
 
 知识库命令操作的是运行时知识库（默认 `data/knowledge/`，首次使用时从程序自带的 `knowledge/` 复制，并作为独立的 Git 仓库管理）。
@@ -336,7 +339,7 @@ JSON 输出中的关键字段：
 
 - `data.profile` = `"huawei-atn-v800r023"`
 - `data.coverage` = `1.0`
-- `data.counts.command` = `720`
+- `data.counts.command` = `904`
 
 ### 单个配置的往返测试
 
@@ -362,7 +365,7 @@ lmesh --output json roundtrip --samples
 JSON 输出中的关键字段：
 
 - `data.failed` = `0`
-- `data.samples` = `13`
+- `data.samples` = `15`
 
 ### 查看配置图的 VRF 部分
 
@@ -398,5 +401,151 @@ lmesh --output json unknown list
 JSON 输出中的关键字段：
 
 - `data.patterns` = `[]`
+
+### 检查配置文件（有 error 级发现时退出码 1）
+
+```bash
+lmesh --output json check tests/inputs/configs/check/huawei-issues.cfg
+```
+
+退出码：`1`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.summary.has_errors` = `true`
+- `data.summary.by_severity.error` = `4`
+- `data.summary.by_rule.ref.orphan_cascade` = `1`
+- `data.findings.0.severity` = `"error"`
+
+### 只看 VRF 功能域的警告及以上
+
+```bash
+lmesh --output json check tests/inputs/configs/check/cisco-issues.cfg --severity warning --domain vrf
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.summary.total` = `2`
+- `data.summary.has_errors` = `false`
+- `data.filters.domain` = `"vrf"`
+- `data.summary.by_rule.vrf.rd_without_rt` = `1`
+
+### 检查样本配置（文字输出）
+
+```bash
+lmesh --lang en check knowledge/samples/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+```
+
+退出码：`0`
+
+输出包含：`1 finding(s)`、`rp.community_list RAN-COMM is not referenced anywhere`、`Fix: `
+
+### 生成删除脚本（先删引用方，再删级联孤儿）
+
+```bash
+lmesh cleanup tests/inputs/configs/check/huawei-issues.cfg
+```
+
+退出码：`0`
+
+输出包含：`undo route-policy UNUSED-POLICY node 10`、`undo ip ip-prefix ONLY-UNUSED index 10`、` undo group SPARE`
+
+### 删除脚本写到文件（JSON 中逐条列出命令与是否兜底生成）
+
+```bash
+lmesh --output json cleanup tests/inputs/configs/check/cisco-issues.cfg -o out/cleanup.txt
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.fallbacks` = `0`
+- `data.verify.ok` = `true`
+- `data.commands.0.text` = `"no vrf definition UNUSED-VRF"`
+- `data.commands.3.text` = `"no route-map UNUSED-MAP permit 10"`
+
+### 对比两份配置文件（改 MTU、删邻居、改 RT、两级改名）
+
+```bash
+lmesh --output json compare knowledge/samples/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg knowledge/samples/compare/asr920-modified.cfg
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.equal` = `false`
+- `data.summary.total` = `8`
+- `data.summary.by_kind.renamed` = `2`
+- `data.summary.by_kind.changed` = `1`
+- `data.diffs.0.kind` = `"changed"`
+- `data.diffs.0.node` = `"interface[GigabitEthernet0/0/0]/mtu"`
+- `data.diffs.0.a.value` = `9216`
+- `data.diffs.0.b.value` = `9000`
+
+### 等价写法（重排、接口名缩写、RT both）没有差异
+
+```bash
+lmesh --lang zh-CN compare knowledge/samples/compare/asr920-reorder.cfg knowledge/samples/compare/asr920-ifname.cfg --raw
+```
+
+退出码：`0`
+
+输出包含：`没有差异`、`未识别行：A 0 行，B 0 行`
+
+### 只看一个功能域
+
+```bash
+lmesh --output json compare knowledge/samples/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg knowledge/samples/compare/asr920-modified.cfg --domain vrf
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.summary.total` = `2`
+- `data.options.domain` = `"vrf"`
+- `data.diffs.0.domain` = `"vrf"`
+
+### 跨厂商对比（华为 → Cisco，带接口映射表）
+
+```bash
+lmesh --output json compare tests/inputs/compare/hw-pe.cfg tests/inputs/compare/cs-pe.cfg --interface-map tests/inputs/compare/ifmap.txt
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.equal` = `true`
+- `data.a.profile` = `"huawei-atn-v800r023"`
+- `data.b.profile` = `"cisco-iosxe-asr920-17.15"`
+- `data.options.interface_map` = `2`
+- `data.options.compare_ext` = `false`
+
+### 不存在的功能域
+
+```bash
+lmesh compare tests/inputs/compare/hw-pe.cfg tests/inputs/compare/cs-pe.cfg --domain nope
+```
+
+退出码：`2`
+
+错误提示（stderr）包含：`nope`
+
+### 设备不存在
+
+```bash
+lmesh compare NO-SUCH-DEVICE tests/inputs/compare/cs-pe.cfg
+```
+
+退出码：`4`
+
+错误提示（stderr）包含：`NO-SUCH-DEVICE`
 
 <!-- examples:end -->

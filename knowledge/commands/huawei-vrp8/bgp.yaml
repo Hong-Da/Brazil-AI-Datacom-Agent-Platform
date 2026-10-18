@@ -15004,6 +15004,7 @@ cards:
   - id: huawei-vrp8.rpd-family
     syntax: rpd-family
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo rpd-family
     default: By default, RPD is disabled.
     source:
@@ -18010,6 +18011,7 @@ cards:
   - id: huawei-vrp8.ipv4-family-labeled-unicast
     syntax: ipv4-family labeled-unicast
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo ipv4-family labeled-unicast
     default: By default, the BGP unicast labeled address family view is disabled.
     source:
@@ -18022,6 +18024,7 @@ cards:
   - id: huawei-vrp8.ipv4-family-mdt
     syntax: ipv4-family mdt
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo ipv4-family mdt
     default: By default, the BGP-MDT address family view is disabled.
     source:
@@ -18034,6 +18037,7 @@ cards:
   - id: huawei-vrp8.ipv4-family-mvpn
     syntax: ipv4-family mvpn
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo ipv4-family mvpn
     default: By default, the address family view of MVPN is disabled.
     source:
@@ -18046,6 +18050,7 @@ cards:
   - id: huawei-vrp8.ipv4-family-sr-policy
     syntax: ipv4-family sr-policy
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo ipv4-family sr-policy
     default: By default, the BGP IPv4 SR-Policy address family is not enabled.
     source:
@@ -18094,6 +18099,7 @@ cards:
   - id: huawei-vrp8.ipv4-family-vpn-target
     syntax: ipv4-family vpn-target
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo ipv4-family vpn-target
     default: By default, the BGP VPN target address family is not configured.
     source:
@@ -18166,6 +18172,7 @@ cards:
   - id: huawei-vrp8.ipv6-family.1
     syntax: ipv6-family unicast
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo ipv6-family [ unicast ]
     default: By default, no BGP IPv6 address family is configured for BGP.
     source:
@@ -18178,6 +18185,7 @@ cards:
   - id: huawei-vrp8.ipv6-family.2
     syntax: ipv6-family
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo ipv6-family [ unicast ]
     default: By default, no BGP IPv6 address family is configured for BGP.
     source:
@@ -18202,6 +18210,7 @@ cards:
   - id: huawei-vrp8.ipv6-family-sr-policy
     syntax: ipv6-family sr-policy
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo ipv6-family sr-policy
     default: By default, the BGP IPv6 SR-Policy address family is not enabled.
     source:
@@ -18214,6 +18223,7 @@ cards:
   - id: huawei-vrp8.ipv6-family-vpn-instance
     syntax: ipv6-family vpn-instance <vpn-instance-name>
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo ipv6-family vpn-instance <vpn-instance-name>
     params:
       vpn-instance-name:
@@ -18229,6 +18239,7 @@ cards:
   - id: huawei-vrp8.ipv6-family-vpnv6.1
     syntax: ipv6-family vpnv6
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo ipv6-family vpnv6 [ unicast ]
     default: By default, the IPv6 address family view of BGP is disabled.
     source:
@@ -18241,6 +18252,7 @@ cards:
   - id: huawei-vrp8.ipv6-family-vpnv6.2
     syntax: ipv6-family vpnv6 unicast
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo ipv6-family vpnv6 [ unicast ]
     default: By default, the IPv6 address family view of BGP is disabled.
     source:
@@ -18265,6 +18277,7 @@ cards:
   - id: huawei-vrp8.l2vpn-ad-family
     syntax: l2vpn-ad-family
     view: bgp
+    enters_view: bgp-af-unsupported
     undo: undo l2vpn-ad-family
     default: By default, the BGP L2VPN AD address family view is disabled.
     source:
@@ -19683,6 +19696,8 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.nexthop_policy: $route-policy-name
   - id: huawei-vrp8.nexthop-recursive-lookup-route-policy~3
     syntax: nexthop recursive-lookup route-policy <route-policy-name> [ include srv6-best-effort ]
     view: bgp-af-vpn-instance-ipv4
@@ -19698,6 +19713,8 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.nexthop_policy: $route-policy-name
   - id: huawei-vrp8.nexthop-recursive-lookup-route-policy~4
     syntax: nexthop recursive-lookup route-policy <route-policy-name> [ include srv6-best-effort ]
     view: bgp-af-vpnv4
@@ -19713,6 +19730,8 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+    maps:
+      bgp.af.nexthop_policy: $route-policy-name
   - id: huawei-vrp8.nexthop-recursive-lookup-tunnel-v6-with-ipv4-compatible
     syntax: nexthop recursive-lookup tunnel-v6 with-ipv4-compatible
     view: bgp-af-vpn-instance-ipv4

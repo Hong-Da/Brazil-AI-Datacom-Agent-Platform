@@ -12,6 +12,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from lmesh import __version__, paths
 from lmesh.api.common import E_INTERNAL, E_NOT_FOUND, E_PARAM, ApiError, error_response
+from lmesh.api.routes_check import router as check_router
+from lmesh.api.routes_compare import router as compare_router
 from lmesh.api.routes_configs import router as configs_router
 from lmesh.api.routes_graph import router as graph_router
 from lmesh.api.routes_kb import router as kb_router
@@ -65,6 +67,8 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     app.include_router(tasks_ai_router, prefix=API_PREFIX, tags=["tasks-ai"])
     app.include_router(kb_router, prefix=API_PREFIX, tags=["knowledge"])
     app.include_router(graph_router, prefix=API_PREFIX, tags=["graph"])
+    app.include_router(compare_router, prefix=API_PREFIX, tags=["compare"])
+    app.include_router(check_router, prefix=API_PREFIX, tags=["check"])
     app.include_router(workbench_router, prefix=API_PREFIX, tags=["workbench"])
     _mount_web(app)
     return app

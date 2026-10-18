@@ -1,0 +1,9 @@
+# 故意写错的规则文件（测试规则校验）：路径中的 ipv5 在 interface 下不存在，severity 不合法
+rules:
+  - id: bad.path
+    target: interface
+    assert: {exists: ipv5}
+    severity: fatal
+    title: {zh-CN: 错误示例, en: Bad example, pt-BR: Exemplo errado}
+    message: {zh-CN: "接口 {key}", en: "Interface {key}", pt-BR: "Interface {key}"}
+    suggestion: {zh-CN: 无, en: None, pt-BR: Nenhuma}

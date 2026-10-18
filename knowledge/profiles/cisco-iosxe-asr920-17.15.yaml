@@ -13,6 +13,12 @@ match:
 implicit: [bridge_domain]
 # entries 由命令卡汇总生成（lmesh kb map）；人工补充的条目标 manual: true，汇总时保留
 entries:
+  bfd.session.multiplier:
+    manual: true
+    supported: true
+    default: 3
+    source: 命令参考 detect-multiplier：缺省 3
+    verified: doc
   bgp.af:
     supported: true
     cards:
@@ -278,6 +284,12 @@ entries:
     default: false
     source: 缺省按接口介质（以太网为广播）
     verified: doc
+  interface.isis.passive:
+    manual: true
+    supported: true
+    default: false
+    source: 缺省不是被动接口
+    verified: doc
   interface.isis.process:
     supported: true
     cards:
@@ -371,6 +383,12 @@ entries:
         network_type:
           - broadcast
           - p2p
+  interface.ospf.ldp_sync:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考：缺省不使能 OSPF 与 LDP 同步
+    verified: doc
   interface.ospf.network_type:
     supported: true
     cards:
@@ -908,21 +926,3 @@ entries:
       - cisco-iosxe.route-target
       - cisco-iosxe.route-target@vrf
       - cisco-iosxe.route-target@vrf-af
-  interface.ospf.ldp_sync:
-    manual: true
-    supported: true
-    default: false
-    source: 命令参考：缺省不使能 OSPF 与 LDP 同步
-    verified: doc
-  interface.isis.passive:
-    manual: true
-    supported: true
-    default: false
-    source: 缺省不是被动接口
-    verified: doc
-  bfd.session.multiplier:
-    manual: true
-    supported: true
-    default: 3
-    source: 命令参考 detect-multiplier：缺省 3
-    verified: doc

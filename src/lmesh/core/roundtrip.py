@@ -51,7 +51,10 @@ def manifest(kb_root: Path) -> list[dict[str, Any]]:
     return [
         {"file": p.relative_to(kb_root / "samples").as_posix(), "gate": True}
         for p in sorted((kb_root / "samples").rglob("*"))
-        if p.is_file() and p.suffix in (".cfg", ".txt") and not p.name.startswith(("LICENSE", "README"))
+        if p.is_file()
+        and p.suffix in (".cfg", ".txt")
+        and not p.name.startswith(("LICENSE", "README"))
+        and p.relative_to(kb_root / "samples").parts[0] != "compare"  # 对比基准的变体有自己的清单
     ]
 
 

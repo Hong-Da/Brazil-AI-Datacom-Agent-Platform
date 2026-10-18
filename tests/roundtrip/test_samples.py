@@ -34,6 +34,9 @@ def test_manifest_covers_all_samples() -> None:
     files = {
         p.relative_to(KB_ROOT / "samples").as_posix()
         for p in (KB_ROOT / "samples").rglob("*")
-        if p.is_file() and p.suffix in (".cfg", ".txt") and not p.name.startswith(("LICENSE", "README"))
+        if p.is_file()
+        and p.suffix in (".cfg", ".txt")
+        and not p.name.startswith(("LICENSE", "README"))
+        and "compare" not in p.relative_to(KB_ROOT / "samples").parts[:1]  # 对比基准有自己的清单
     }
     assert files == listed, f"样本清单与实际文件不一致：{files ^ listed}"
