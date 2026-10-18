@@ -19,6 +19,18 @@ from lmesh.core import rules as rulesmod
 LangOpt = Annotated[str | None, typer.Option("--lang", help="报告语言 zh-CN | en（默认跟随界面语言，pt-BR 用 en）")]
 FormatOpt = Annotated[str, typer.Option("--format", help="html（自包含、可打印）| md（贴进工单）")]
 OutOpt = Annotated[Path | None, typer.Option("-o", "--out", help="写到文件；不给时把报告写到 stdout")]
+StyleOpt = Annotated[
+    str | None, typer.Option("--style", help="节点的显示风格 huawei | cisco（默认取配置 ui.term_style）")
+]
+
+
+def _namer(c: Ctx, kb: Any, root: Path, style: str | None) -> Any:
+    from lmesh.core import terms
+
+    use = style or (str(config.load().get("ui.term_style")) if config.is_configured() else "huawei")
+    if use not in terms.STYLES:
+        fail(c, output.EXIT_USAGE, c.t("report.bad_style", allowed=", ".join(terms.STYLES)))
+    return terms.namer(root, kb, use)
 
 
 def _args(c: Ctx, lang: str | None, fmt: str) -> str:
@@ -71,10 +83,12 @@ def register(app: typer.Typer) -> None:
         profile_a: Annotated[str | None, typer.Option("--profile-a")] = None,
         profile_b: Annotated[str | None, typer.Option("--profile-b")] = None,
         rename_threshold: Annotated[float, typer.Option("--rename-threshold")] = 1.0,
+        style: StyleOpt = None,
     ) -> None:
         c = output.get(ctx)
         use = _args(c, lang, fmt)
-        kb, _ = _kb(c)
+        kb, kb_root = _kb(c)
+        namer = _namer(c, kb, kb_root, style)
         try:
             ifmap = compare.load_interface_map(interface_map) if interface_map else None
             sa = _side(c, kb, a, profile_a)
@@ -95,7 +109,7 @@ def register(app: typer.Typer) -> None:
         if config.is_configured():
             db = config.load().database_url
             meta = {k: report.version_meta(db, s.version_id) for k, s in (("a", sa), ("b", sb))}
-        _deliver(c, report.compare_report(r, use, fmt, meta), out, use, fmt)
+        _deliver(c, report.compare_report(r, use, fmt, meta, namer=namer), out, use, fmt)
 
     @report_app.command("check", help="配置检查报告（有孤儿时附清理脚本）/ check report")
     def report_check(
@@ -108,6 +122,7 @@ def register(app: typer.Typer) -> None:
         domain: Annotated[str | None, typer.Option(help="只看一个功能域")] = None,
         rules: Annotated[Path | None, typer.Option("--rules", help="规则目录（默认知识库的 rules/）")] = None,
         profile: Annotated[str | None, typer.Option()] = None,
+        style: StyleOpt = None,
     ) -> None:
         c = output.get(ctx)
         use = _args(c, lang, fmt)
@@ -118,4 +133,5 @@ def register(app: typer.Typer) -> None:
         overrides = load_overrides(c, root, rules)
         g, kb = _graph_for(c, target, profile)
         res = checks.check(g, kb, rule_list, severity, domain, overrides, device_ignores(target))
-        _deliver(c, report.build_check_report(g, kb, res, use, fmt, _meta(target)), out, use, fmt)
+        namer = _namer(c, kb, root, style)
+        _deliver(c, report.build_check_report(g, kb, res, use, fmt, _meta(target), namer=namer), out, use, fmt)

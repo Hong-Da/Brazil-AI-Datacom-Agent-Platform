@@ -1,0 +1,238 @@
+# 显示风格（REQ-026）：同一张配置图可以按华为或 Cisco 的叫法与视图层级显示，界面上随时切换（默认华为）。
+#
+# objects：每类对象在两种风格下的
+#   name    对象的叫法（zh-CN / en / pt-BR；缺省时用 en，再缺省用 Schema 的 semantic）
+#   label   节点上显示的命令写法，模板里的 {字段} 取对象的键；可以给多个候选，写成 “模板 ? 字段1,字段2”，
+#           这些字段都有值时才用这一条，否则试下一条（最后一条通常不带条件）
+#   values  键值的改写，例如华为地址族 ipv4 写成 unicast
+# attrs：属性在两种风格下的命令关键字（只列与 Schema 名称明显不同、需要对照的）
+# Schema 的结构与默认叫法以华为为基准（Cisco 映射到华为的结构上）；这里只决定怎么显示，不影响解析、对比、检查的结果。
+styles:
+  huawei: {zh-CN: 华为风格, en: Huawei style, pt-BR: Estilo Huawei}
+  cisco: {zh-CN: Cisco 风格, en: Cisco style, pt-BR: Estilo Cisco}
+default: huawei
+
+objects:
+  # ---------- 接口 ----------
+  interface:
+    huawei: {name: {zh-CN: 接口, en: Interface, pt-BR: Interface}, label: ["interface {name}"]}
+    cisco: {name: {zh-CN: 接口, en: Interface, pt-BR: Interface}, label: ["interface {name}"]}
+  interface.ipv4:
+    huawei: {name: {zh-CN: IPv4 地址, en: IPv4 address, pt-BR: Endereço IPv4}, label: ["ip address {address}"]}
+    cisco: {name: {zh-CN: IPv4 地址, en: IPv4 address, pt-BR: Endereço IPv4}, label: ["ip address {address}"]}
+  interface.access:
+    huawei: {name: {zh-CN: 二层子接口接入, en: Layer-2 sub-interface access, pt-BR: Acesso de subinterface L2}, label: ["encapsulation (l2 sub-interface)"]}
+    cisco: {name: {zh-CN: 业务实例（EFP）, en: Service instance (EFP), pt-BR: Instância de serviço (EFP)}, label: ["service instance {id} ethernet ? id", "service instance"]}
+  interface.ospf:
+    huawei: {name: {zh-CN: 接口 OSPF 参数, en: Interface OSPF settings, pt-BR: Parâmetros OSPF da interface}, label: ["ospf"]}
+    cisco: {name: {zh-CN: 接口 OSPF 参数, en: Interface OSPF settings, pt-BR: Parâmetros OSPF da interface}, label: ["ip ospf"]}
+  interface.isis:
+    huawei: {name: {zh-CN: 接口 IS-IS 参数, en: Interface IS-IS settings, pt-BR: Parâmetros IS-IS da interface}, label: ["isis"]}
+    cisco: {name: {zh-CN: 接口 IS-IS 参数, en: Interface IS-IS settings, pt-BR: Parâmetros IS-IS da interface}, label: ["ip router isis"]}
+  interface.bfd:
+    huawei: {name: {zh-CN: 接口 BFD 参数, en: Interface BFD settings, pt-BR: Parâmetros BFD da interface}, label: ["bfd"]}
+    cisco: {name: {zh-CN: 接口 BFD 参数, en: Interface BFD settings, pt-BR: Parâmetros BFD da interface}, label: ["bfd interval"]}
+  bridge_domain:
+    huawei: {name: {zh-CN: 桥域, en: Bridge domain, pt-BR: Domínio de bridge}, label: ["bridge-domain {id}"]}
+    cisco: {name: {zh-CN: 桥域, en: Bridge domain, pt-BR: Domínio de bridge}, label: ["bridge-domain {id}"]}
+  # ---------- VRF ----------
+  vrf.instance:
+    huawei: {name: {zh-CN: VPN 实例, en: VPN instance, pt-BR: Instância VPN}, label: ["ip vpn-instance {name}"]}
+    cisco: {name: {zh-CN: VRF, en: VRF, pt-BR: VRF}, label: ["vrf definition {name}"]}
+  vrf.instance.af:
+    huawei:
+      name: {zh-CN: VPN 实例地址族, en: VPN instance address family, pt-BR: Família de endereços da instância VPN}
+      label: ["{afi}-family"]
+    cisco:
+      name: {zh-CN: VRF 地址族, en: VRF address family, pt-BR: Família de endereços da VRF}
+      label: ["address-family {afi}"]
+  vrf.instance.af.rt:
+    huawei:
+      name: {zh-CN: VPN Target, en: VPN target, pt-BR: VPN target}
+      label: ["vpn-target {value} {direction}"]
+      values: {direction: {import: import-extcommunity, export: export-extcommunity, both: both}}
+    cisco:
+      name: {zh-CN: Route Target, en: Route target, pt-BR: Route target}
+      label: ["route-target {direction} {value}"]
+  # ---------- 静态路由 ----------
+  static.route:
+    huawei:
+      name: {zh-CN: 静态路由, en: Static route, pt-BR: Rota estática}
+      label: ["ip route-static vpn-instance {vrf} {prefix} {nexthop} ? vrf", "ip route-static {prefix} {nexthop}"]
+    cisco:
+      name: {zh-CN: 静态路由, en: Static route, pt-BR: Rota estática}
+      label: ["ip route vrf {vrf} {prefix} {nexthop} ? vrf", "ip route {prefix} {nexthop}"]
+  # ---------- BGP ----------
+  bgp.instance:
+    huawei: {name: {zh-CN: BGP 进程, en: BGP process, pt-BR: Processo BGP}, label: ["bgp {asn}"]}
+    cisco: {name: {zh-CN: BGP 进程, en: BGP process, pt-BR: Processo BGP}, label: ["router bgp {asn}"]}
+  bgp.peer:
+    huawei: {name: {zh-CN: BGP 对等体, en: BGP peer, pt-BR: Par BGP}, label: ["peer {address}"]}
+    cisco: {name: {zh-CN: BGP 邻居, en: BGP neighbor, pt-BR: Vizinho BGP}, label: ["neighbor {address}"]}
+  bgp.peer_group:
+    huawei: {name: {zh-CN: 对等体组, en: Peer group, pt-BR: Grupo de pares}, label: ["group {name}"]}
+    cisco: {name: {zh-CN: 邻居组（peer-group）, en: Peer group, pt-BR: Grupo de pares}, label: ["neighbor {name} peer-group"]}
+  bgp.af:
+    huawei:
+      name: {zh-CN: BGP 地址族, en: BGP address family, pt-BR: Família de endereços BGP}
+      label: ["ipv4-family vpn-instance {vrf} ? vrf", "ipv4-family {afi}"]
+      values: {afi: {ipv4: unicast}}
+    cisco:
+      name: {zh-CN: BGP 地址族, en: BGP address family, pt-BR: Família de endereços BGP}
+      label: ["address-family ipv4 vrf {vrf} ? vrf", "address-family {afi}"]
+  bgp.af.peer:
+    huawei: {name: {zh-CN: 地址族内的对等体, en: Peer in address family, pt-BR: Par na família de endereços}, label: ["peer {peer}"]}
+    cisco: {name: {zh-CN: 地址族内的邻居, en: Neighbor in address family, pt-BR: Vizinho na família de endereços}, label: ["neighbor {peer}"]}
+  bgp.af.network:
+    huawei: {name: {zh-CN: 宣告的网段, en: Network, pt-BR: Rede anunciada}, label: ["network {prefix}"]}
+    cisco: {name: {zh-CN: 宣告的网段, en: Network, pt-BR: Rede anunciada}, label: ["network {prefix}"]}
+  bgp.af.redistribute:
+    huawei: {name: {zh-CN: 引入路由, en: Route import, pt-BR: Importação de rotas}, label: ["import-route {protocol}"]}
+    cisco: {name: {zh-CN: 重分发, en: Redistribution, pt-BR: Redistribuição}, label: ["redistribute {protocol}"]}
+  # ---------- 路由策略 ----------
+  rp.policy:
+    huawei: {name: {zh-CN: 路由策略, en: Route policy, pt-BR: Política de rotas}, label: ["route-policy {name}"]}
+    cisco: {name: {zh-CN: 路由映射（route-map）, en: Route map, pt-BR: Route map}, label: ["route-map {name}"]}
+  rp.policy.node:
+    huawei: {name: {zh-CN: 策略节点, en: Policy node, pt-BR: Nó da política}, label: ["node {seq}"]}
+    cisco: {name: {zh-CN: 序号条目, en: Sequence, pt-BR: Sequência}, label: ["seq {seq}"]}
+  rp.prefix_list:
+    huawei: {name: {zh-CN: IP 前缀列表, en: IP prefix list, pt-BR: Lista de prefixos IP}, label: ["ip ip-prefix {name}"]}
+    cisco: {name: {zh-CN: 前缀列表, en: Prefix list, pt-BR: Lista de prefixos}, label: ["ip prefix-list {name}"]}
+  rp.prefix_list.entry:
+    huawei: {name: {zh-CN: 前缀列表规则, en: Prefix list entry, pt-BR: Entrada da lista de prefixos}, label: ["index {seq}"]}
+    cisco: {name: {zh-CN: 前缀列表规则, en: Prefix list entry, pt-BR: Entrada da lista de prefixos}, label: ["seq {seq}"]}
+  rp.community_list:
+    huawei: {name: {zh-CN: 团体属性过滤器, en: Community filter, pt-BR: Filtro de comunidade}, label: ["ip community-filter {name}"]}
+    cisco: {name: {zh-CN: 团体属性列表, en: Community list, pt-BR: Lista de comunidades}, label: ["ip community-list {name}"]}
+  rp.community_list.entry:
+    huawei: {name: {zh-CN: 团体过滤规则, en: Community filter entry, pt-BR: Entrada do filtro}, label: ["index {seq}"]}
+    cisco: {name: {zh-CN: 团体列表规则, en: Community list entry, pt-BR: Entrada da lista}, label: ["seq {seq}"]}
+  # ---------- OSPF / IS-IS / BFD ----------
+  ospf.process:
+    huawei: {name: {zh-CN: OSPF 进程, en: OSPF process, pt-BR: Processo OSPF}, label: ["ospf {id}"]}
+    cisco: {name: {zh-CN: OSPF 进程, en: OSPF process, pt-BR: Processo OSPF}, label: ["router ospf {id}"]}
+  ospf.process.area:
+    huawei: {name: {zh-CN: OSPF 区域, en: OSPF area, pt-BR: Área OSPF}, label: ["area {id}"]}
+    cisco: {name: {zh-CN: OSPF 区域, en: OSPF area, pt-BR: Área OSPF}, label: ["area {id}"]}
+  ospf.process.area.network:
+    huawei: {name: {zh-CN: 宣告网段, en: Network, pt-BR: Rede}, label: ["network {prefix}"]}
+    cisco: {name: {zh-CN: 宣告网段, en: Network, pt-BR: Rede}, label: ["network {prefix} area"]}
+  ospf.process.passive:
+    huawei: {name: {zh-CN: 静默接口, en: Silent interface, pt-BR: Interface silenciosa}, label: ["silent-interface {interface}"]}
+    cisco: {name: {zh-CN: 被动接口, en: Passive interface, pt-BR: Interface passiva}, label: ["passive-interface {interface}"]}
+  ospf.process.redistribute:
+    huawei: {name: {zh-CN: 引入路由, en: Route import, pt-BR: Importação de rotas}, label: ["import-route {protocol}"]}
+    cisco: {name: {zh-CN: 重分发, en: Redistribution, pt-BR: Redistribuição}, label: ["redistribute {protocol}"]}
+  isis.process:
+    huawei: {name: {zh-CN: IS-IS 进程, en: IS-IS process, pt-BR: Processo IS-IS}, label: ["isis {id}"]}
+    cisco: {name: {zh-CN: IS-IS 进程, en: IS-IS process, pt-BR: Processo IS-IS}, label: ["router isis {id}"]}
+  isis.process.net:
+    huawei: {name: {zh-CN: 网络实体名称, en: Network entity title, pt-BR: NET}, label: ["network-entity {value}"]}
+    cisco: {name: {zh-CN: 网络实体名称, en: Network entity title, pt-BR: NET}, label: ["net {value}"]}
+  bfd.global:
+    huawei: {name: {zh-CN: BFD 全局使能, en: BFD global, pt-BR: BFD global}, label: ["bfd"]}
+    cisco: {name: {zh-CN: BFD（无全局开关）, en: BFD (no global switch), pt-BR: BFD (sem chave global)}, label: ["bfd"]}
+  bfd.session:
+    huawei: {name: {zh-CN: 静态 BFD 会话, en: Static BFD session, pt-BR: Sessão BFD estática}, label: ["bfd {name} bind"]}
+    cisco: {name: {zh-CN: 静态 BFD 会话, en: Static BFD session, pt-BR: Sessão BFD estática}, label: ["bfd {name}"]}
+  # ---------- 管理面 ----------
+  mgmt.ntp:
+    huawei: {name: {zh-CN: NTP 服务, en: NTP, pt-BR: NTP}, label: ["ntp-service"]}
+    cisco: {name: {zh-CN: NTP 服务, en: NTP, pt-BR: NTP}, label: ["ntp"]}
+  mgmt.ntp.server:
+    huawei: {name: {zh-CN: NTP 服务器, en: NTP server, pt-BR: Servidor NTP}, label: ["ntp-service unicast-server {address}"]}
+    cisco: {name: {zh-CN: NTP 服务器, en: NTP server, pt-BR: Servidor NTP}, label: ["ntp server {address}"]}
+  mgmt.ntp.access:
+    huawei: {name: {zh-CN: NTP 访问控制, en: NTP access control, pt-BR: Controle de acesso NTP}, label: ["ntp-service access {kind}"]}
+    cisco: {name: {zh-CN: NTP 访问控制, en: NTP access control, pt-BR: Controle de acesso NTP}, label: ["ntp access-group {kind}"]}
+  mgmt.snmp:
+    huawei: {name: {zh-CN: SNMP 代理, en: SNMP agent, pt-BR: Agente SNMP}, label: ["snmp-agent"]}
+    cisco: {name: {zh-CN: SNMP 服务, en: SNMP server, pt-BR: Servidor SNMP}, label: ["snmp-server"]}
+  mgmt.snmp.community:
+    huawei: {name: {zh-CN: 团体字, en: Community, pt-BR: Comunidade}, label: ["snmp-agent community {name}"]}
+    cisco: {name: {zh-CN: 团体字, en: Community, pt-BR: Comunidade}, label: ["snmp-server community {name}"]}
+  mgmt.snmp.host:
+    huawei: {name: {zh-CN: 告警目标主机, en: Trap target host, pt-BR: Host de trap}, label: ["snmp-agent target-host {address}"]}
+    cisco: {name: {zh-CN: 告警主机, en: Trap host, pt-BR: Host de trap}, label: ["snmp-server host {address}"]}
+  mgmt.syslog:
+    huawei: {name: {zh-CN: 信息中心, en: Information center, pt-BR: Centro de informações}, label: ["info-center"]}
+    cisco: {name: {zh-CN: 日志, en: Logging, pt-BR: Logging}, label: ["logging"]}
+  mgmt.syslog.host:
+    huawei: {name: {zh-CN: 日志主机, en: Log host, pt-BR: Host de log}, label: ["info-center loghost {address}"]}
+    cisco: {name: {zh-CN: 日志服务器, en: Logging host, pt-BR: Host de log}, label: ["logging host {address}"]}
+  mgmt.ssh:
+    huawei: {name: {zh-CN: STelnet / SSH 服务, en: STelnet / SSH server, pt-BR: Servidor STelnet / SSH}, label: ["stelnet server"]}
+    cisco: {name: {zh-CN: SSH 服务, en: SSH server, pt-BR: Servidor SSH}, label: ["ip ssh"]}
+  mgmt.ssh.user:
+    huawei: {name: {zh-CN: SSH 用户, en: SSH user, pt-BR: Usuário SSH}, label: ["ssh user {name}"]}
+    cisco: {name: {zh-CN: SSH 用户, en: SSH user, pt-BR: Usuário SSH}, label: ["username {name}"]}
+  mgmt.telnet:
+    huawei: {name: {zh-CN: Telnet 服务, en: Telnet server, pt-BR: Servidor Telnet}, label: ["telnet server"]}
+    cisco: {name: {zh-CN: Telnet 服务, en: Telnet server, pt-BR: Servidor Telnet}, label: ["transport input telnet"]}
+  mgmt.ftp:
+    huawei: {name: {zh-CN: FTP 服务, en: FTP server, pt-BR: Servidor FTP}, label: ["ftp server"]}
+    cisco: {name: {zh-CN: FTP 服务, en: FTP server, pt-BR: Servidor FTP}, label: ["ftp-server"]}
+  mgmt.aaa:
+    huawei: {name: {zh-CN: AAA, en: AAA, pt-BR: AAA}, label: ["aaa"]}
+    cisco: {name: {zh-CN: AAA, en: AAA, pt-BR: AAA}, label: ["aaa new-model"]}
+  mgmt.aaa.user:
+    huawei: {name: {zh-CN: 本地用户, en: Local user, pt-BR: Usuário local}, label: ["local-user {name}"]}
+    cisco: {name: {zh-CN: 本地用户, en: Local user, pt-BR: Usuário local}, label: ["username {name}"]}
+  mgmt.aaa.scheme:
+    huawei: {name: {zh-CN: 认证 / 授权 / 计费方案, en: AAA scheme, pt-BR: Esquema AAA}, label: ["{kind}-scheme {name}"]}
+    cisco: {name: {zh-CN: 方法列表, en: Method list, pt-BR: Lista de métodos}, label: ["aaa {kind} {name}"]}
+  mgmt.aaa.domain:
+    huawei: {name: {zh-CN: AAA 域, en: AAA domain, pt-BR: Domínio AAA}, label: ["domain {name}"]}
+    cisco: {name: {zh-CN: AAA 域（Cisco 无对应）, en: AAA domain (no Cisco equivalent), pt-BR: Domínio AAA (sem equivalente Cisco)}, label: ["domain {name}"]}
+  mgmt.tacacs:
+    huawei: {name: {zh-CN: HWTACACS 服务器模板, en: HWTACACS server template, pt-BR: Modelo de servidor HWTACACS}, label: ["hwtacacs-server template {name}"]}
+    cisco: {name: {zh-CN: TACACS+ 服务器, en: TACACS+ server, pt-BR: Servidor TACACS+}, label: ["tacacs server {name}"]}
+  mgmt.tacacs.server:
+    huawei: {name: {zh-CN: 服务器地址, en: Server address, pt-BR: Endereço do servidor}, label: ["hwtacacs-server {role} {address}"]}
+    cisco: {name: {zh-CN: 服务器地址, en: Server address, pt-BR: Endereço do servidor}, label: ["address {address}"]}
+  mgmt.line:
+    huawei: {name: {zh-CN: 用户界面, en: User interface, pt-BR: Interface de usuário}, label: ["user-interface {type} {range}"], values: {type: {con: con, console: con}}}
+    cisco: {name: {zh-CN: 登录线路, en: Line, pt-BR: Linha}, label: ["line {type} {range}"]}
+
+attrs:
+  interface.vrf: {huawei: ip binding vpn-instance, cisco: vrf forwarding}
+  interface.mtu: {huawei: mtu, cisco: mtu}
+  interface.shutdown: {huawei: shutdown, cisco: shutdown}
+  interface.lag: {huawei: eth-trunk, cisco: channel-group}
+  interface.l2: {huawei: portswitch / mode l2, cisco: service instance}
+  interface.dot1q_termination: {huawei: vlan-type dot1q, cisco: encapsulation dot1q}
+  vrf.instance.af.rd: {huawei: route-distinguisher, cisco: rd}
+  vrf.instance.af.import_policy: {huawei: import route-policy, cisco: import map}
+  vrf.instance.af.export_policy: {huawei: export route-policy, cisco: export map}
+  bgp.instance.router_id: {huawei: router-id, cisco: bgp router-id}
+  bgp.peer.remote_as: {huawei: as-number, cisco: remote-as}
+  bgp.peer.group: {huawei: group, cisco: peer-group}
+  bgp.peer.update_source: {huawei: connect-interface, cisco: update-source}
+  bgp.af.peer.import_policy: {huawei: route-policy … import, cisco: route-map … in}
+  bgp.af.peer.export_policy: {huawei: route-policy … export, cisco: route-map … out}
+  bgp.af.peer.enabled: {huawei: peer … enable, cisco: neighbor … activate}
+  bgp.af.peer.rr_client: {huawei: reflect-client, cisco: route-reflector-client}
+  bgp.af.peer.next_hop_self: {huawei: next-hop-local, cisco: next-hop-self}
+  bgp.af.peer.send_community: {huawei: advertise-community, cisco: send-community}
+  bgp.af.nexthop_policy: {huawei: nexthop recursive-lookup route-policy, cisco: bgp nexthop route-map}
+  rp.policy.node.match_prefix_list: {huawei: if-match ip-prefix, cisco: match ip address prefix-list}
+  rp.policy.node.match_community: {huawei: if-match community-filter, cisco: match community}
+  ospf.process.bandwidth_reference: {huawei: bandwidth-reference, cisco: auto-cost reference-bandwidth}
+  ospf.process.passive_default: {huawei: silent-interface all, cisco: passive-interface default}
+  ospf.process.default_originate: {huawei: default-route-advertise, cisco: default-information originate}
+  interface.ospf.cost: {huawei: ospf cost, cisco: ip ospf cost}
+  interface.ospf.network_type: {huawei: ospf network-type, cisco: ip ospf network}
+  interface.ospf.hello: {huawei: ospf timer hello, cisco: ip ospf hello-interval}
+  interface.ospf.dead: {huawei: ospf timer dead, cisco: ip ospf dead-interval}
+  interface.ospf.priority: {huawei: ospf dr-priority, cisco: ip ospf priority}
+  isis.process.level: {huawei: is-level, cisco: is-type}
+  isis.process.metric_style: {huawei: cost-style, cisco: metric-style}
+  interface.isis.metric: {huawei: isis cost, cisco: isis metric}
+  interface.isis.passive: {huawei: isis silent, cisco: passive-interface}
+  mgmt.ssh.enabled: {huawei: stelnet server enable, cisco: ip ssh version / transport input ssh}
+  mgmt.syslog.source_interface: {huawei: info-center loghost source, cisco: logging source-interface}
+  mgmt.snmp.trap_source: {huawei: snmp-agent trap source, cisco: snmp-server trap-source}
+  mgmt.line.acl_in: {huawei: acl … inbound, cisco: access-class … in}
+  mgmt.line.idle_timeout: {huawei: idle-timeout, cisco: exec-timeout}
+  mgmt.line.protocols: {huawei: protocol inbound, cisco: transport input}

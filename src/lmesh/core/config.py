@@ -54,6 +54,18 @@ FIELDS: tuple[Field, ...] = (
         choices=LANGS,
     ),
     Field(
+        "ui.term_style",
+        "huawei",
+        "ui",
+        "choice",
+        _d(
+            "配置图、对比、检查与报告的默认显示风格（华为或 Cisco 的叫法与命令写法）；浏览器里可随时切换",
+            "Default display style for graphs, comparisons, checks and reports (Huawei or Cisco terms and commands); switchable in the browser",
+            "Estilo de exibição padrão para grafos, comparações, verificações e relatórios (termos e comandos Huawei ou Cisco); pode ser trocado no navegador",
+        ),
+        choices=("huawei", "cisco"),
+    ),
+    Field(
         "server.host",
         "0.0.0.0",
         "network",

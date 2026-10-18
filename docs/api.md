@@ -1094,4 +1094,30 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.skipped.0.reason` = `"not_orphan"`
 - `data.verify.ok` = `true`
 
+### 显示风格的术语表（华为 / Cisco）
+
+`GET /api/v1/kb/terms`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/kb/terms' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/kb/terms' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/kb/terms', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.default` = `"huawei"`
+- `data.objects.vrf.instance.huawei.label.0` = `"ip vpn-instance {name}"`
+- `data.objects.vrf.instance.cisco.label.0` = `"vrf definition {name}"`
+
 <!-- examples:end -->

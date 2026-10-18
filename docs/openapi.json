@@ -3,7 +3,7 @@
   "info": {
     "title": "LucidMesh API",
     "description": "透网 LucidMesh 远程 API。除 /health 与首次运行向导外，所有接口都需要 Authorization: Bearer <令牌>。",
-    "version": "0.1.1"
+    "version": "0.2.0"
   },
   "paths": {
     "/api/v1/health": {
@@ -2399,6 +2399,29 @@
         }
       }
     },
+    "/api/v1/kb/terms": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "显示风格的术语表：对象的叫法与命令写法模板、属性的命令关键字（华为 / Cisco）",
+        "operationId": "kb_terms_api_v1_kb_terms_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Kb Terms Api V1 Kb Terms Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/kb/extractors": {
       "get": {
         "tags": [
@@ -3356,6 +3379,22 @@
               }
             ],
             "description": "kind=check 时必填，与 POST /check 相同"
+          },
+          "style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "huawei",
+                  "cisco"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style",
+            "description": "节点的显示风格；不填时用配置 ui.term_style"
           }
         },
         "type": "object",

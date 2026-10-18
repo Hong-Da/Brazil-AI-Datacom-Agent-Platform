@@ -1,0 +1,16 @@
+[[case]]
+id = "report-style-huawei"
+title = { zh-CN = "Cisco 配置的对比报告按华为风格显示节点", en = "Comparison report of Cisco configs shown in Huawei style", pt-BR = "Relatório de comparação de configs Cisco no estilo Huawei" }
+args = ["report", "compare", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg", "{samples}/compare/asr920-modified.cfg", "--format", "md", "--lang", "zh-CN", "--style", "huawei"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["ip vpn-instance RAN-2G", "vpn-target 64512:1 import-extcommunity"]
+in_docs = true
+
+[[case]]
+id = "report-style-bad"
+title = { zh-CN = "显示风格写错", en = "Unknown display style", pt-BR = "Estilo de exibição desconhecido" }
+args = ["--lang", "en", "report", "compare", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg", "{samples}/compare/asr920-modified.cfg", "--style", "juniper"]
+setup = "fresh-fullkb"
+expect_exit = 2
+expect_stderr = ["huawei"]

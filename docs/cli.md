@@ -627,4 +627,14 @@ JSON 输出中的关键字段：
 - `data.commands.0.fallback` = `false`
 - `data.verify.ok` = `true`
 
+### Cisco 配置的对比报告按华为风格显示节点
+
+```bash
+lmesh report compare knowledge/samples/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg knowledge/samples/compare/asr920-modified.cfg --format md --lang zh-CN --style huawei
+```
+
+退出码：`0`
+
+输出包含：`ip vpn-instance RAN-2G`、`vpn-target 64512:1 import-extcommunity`
+
 <!-- examples:end -->

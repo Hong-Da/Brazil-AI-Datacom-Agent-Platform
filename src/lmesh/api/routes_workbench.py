@@ -216,6 +216,16 @@ def kb_draft(request: Request) -> dict[str, Any]:
     return ok(request, {"base": rels[0].version if rels else None, "changes": changes, "commits": history})
 
 
+@router.get("/kb/terms", summary="显示风格的术语表：对象的叫法与命令写法模板、属性的命令关键字（华为 / Cisco）")
+def kb_terms(request: Request) -> dict[str, Any]:
+    from lmesh.core import terms
+
+    root = _root(request)
+    data = terms.load(root, analysis.load_kb(root)).as_dict()
+    data["default"] = str(settings_of(request).get("ui.term_style") or data["default"])
+    return ok(request, data)
+
+
 @router.get("/kb/extractors", summary="可用的命令卡抽取规则")
 def kb_extractors(request: Request) -> dict[str, Any]:
     root = _root(request)

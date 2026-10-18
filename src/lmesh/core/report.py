@@ -9,6 +9,7 @@ from __future__ import annotations
 import html
 import json
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
@@ -255,12 +256,31 @@ def _lines_text(lines: list[int] | None, limit: int = 8) -> str:
     return shown + (" …" if len(lines) > limit else "")
 
 
+Namer = Callable[[str], str]  # 规范编号 → 显示用的命令路径（见 core/terms.describe）
+
+
 class _Doc:
     """HTML 与 Markdown 共用的一组排版操作。"""
 
-    def __init__(self, fmt: str, lang: str):
-        self.fmt, self.lang = fmt, lang
+    def __init__(self, fmt: str, lang: str, namer: Namer | None = None):
+        self.fmt, self.lang, self.namer = fmt, lang, namer
         self.parts: list[str] = []
+
+    def name(self, node_id: str) -> str:
+        """节点按显示风格写成命令路径（没有给出显示方式时用规范编号）。"""
+        return self.namer(node_id) if self.namer else node_id
+
+    def node(self, node_id: str) -> str:
+        """表格里的节点：命令路径在前，规范编号附在后面便于追溯。"""
+        label = self.name(node_id)
+        if label == node_id:
+            return self.code(node_id)
+        sep = " " if self.fmt == "md" else "<br>"
+        return (
+            self.code(label)
+            + sep
+            + (f"`{node_id}`" if self.fmt == "md" else f'<span class="note">{html.escape(node_id)}</span>')
+        )
 
     def t(self, key: str, **kw: Any) -> str:
         text = TEXTS[self.lang].get(key, key)
@@ -428,11 +448,12 @@ def compare_report(
     fmt: str,
     meta: dict[str, dict[str, Any]] | None = None,
     now: datetime | None = None,
+    namer: Namer | None = None,
 ) -> Report:
     """result 是 compare.compare 的结果；meta 是 {"a": version_meta, "b": version_meta}（可省）。"""
     _check_args(lang, fmt)
     meta = meta or {}
-    doc = _Doc(fmt, lang)
+    doc = _Doc(fmt, lang, namer)
     a, b, s, opts = result["a"], result["b"], result["summary"], result["options"]
     title = doc.t("compare.title")
     doc.h(1, title)
@@ -499,9 +520,10 @@ def compare_report(
         for d in items:
             badge = doc.t(f"kind.{d['kind']}")
             kind_cell = f'<span class="badge">{html.escape(badge)}</span>' if fmt == "html" else badge
-            node = doc.code(d["node"])
+            node = doc.node(d["node"])
             if d.get("related"):
-                node += (" " if fmt == "md" else "<br>") + doc.esc(f"{doc.t('related')}: {', '.join(d['related'])}")
+                related = ", ".join(doc.name(r) for r in d["related"])
+                node += (" " if fmt == "md" else "<br>") + doc.esc(f"{doc.t('related')}: {related}")
             count = d.get("count")
             rows.append(
                 [
@@ -538,7 +560,7 @@ def compare_report(
             [
                 [
                     doc.esc(x["domain"]),
-                    doc.code(x["node"]),
+                    doc.node(x["node"]),
                     doc.esc(x["side"].upper()),
                     doc.code(_value_text(x["value"])),
                 ]
@@ -587,11 +609,12 @@ def check_report(
     clean: dict[str, Any] | None = None,
     meta: dict[str, Any] | None = None,
     now: datetime | None = None,
+    namer: Namer | None = None,
 ) -> Report:
     """result 是 checks.check 的结果；clean 是 cleanup.cleanup 的结果（有孤儿时附清理脚本）。"""
     _check_args(lang, fmt)
     meta = meta or {}
-    doc = _Doc(fmt, lang)
+    doc = _Doc(fmt, lang, namer)
     s = result["summary"]
     title = doc.t("check.title")
     doc.h(1, title)
@@ -634,7 +657,7 @@ def check_report(
                 sev,
                 doc.code(f["rule"]),
                 doc.esc(f["domain"] or "-"),
-                doc.code(f["node"]),
+                doc.node(f["node"]),
                 doc.esc(_lines_text(f["lines"], 12)),
                 doc.esc(checks.render_text(f["message"], lang, texts)),
                 doc.esc(checks.render_text(f["suggestion"], lang, texts)),
@@ -698,9 +721,10 @@ def build_check_report(
     fmt: str,
     meta: dict[str, Any] | None = None,
     now: datetime | None = None,
+    namer: Namer | None = None,
 ) -> Report:
     """检查报告：有没被忽略的孤儿发现时附上清理脚本（cleanup.cleanup 在同一张图上生成并验证）。"""
     _check_args(lang, fmt)
     orphan = any(f["rule"] in ORPHAN_RULES and not f.get("ignored") for f in result["findings"])
     clean = cleanup.cleanup(g, kb) if orphan else None
-    return check_report(result, lang, fmt, clean, meta, now)
+    return check_report(result, lang, fmt, clean, meta, now, namer)
