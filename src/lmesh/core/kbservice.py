@@ -78,6 +78,7 @@ def validate_report(root: Path) -> dict[str, Any]:
     }
 
 
+@repo.locked
 def import_package(root: Path, data: bytes, db_url: str, dry_run: bool = False) -> dict[str, Any]:
     plan, conflicts = package.import_package(root, data, dry_run=dry_run)
     out = plan.as_dict()
@@ -124,6 +125,7 @@ class ReleaseError(ValueError):
         self.key, self.data = key, data
 
 
+@repo.locked
 def release(root: Path, version: str | None, message: str, regression: RegressionFn | None = None) -> dict[str, Any]:
     """发布：校验无错误 → 回归测试通过 → 写入版本号 → 提交 → 打标签。版本号不填时按差异自动建议。"""
     repo.commit_all(root, "发布前保存工作区")

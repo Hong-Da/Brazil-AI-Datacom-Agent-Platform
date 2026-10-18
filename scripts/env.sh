@@ -16,6 +16,8 @@ export UV_INSTALL_DIR="$ROOT/.toolchain/bin"
 # Node（只用于构建前端）：运行时与缓存放在项目内；pnpm store 写在 frontend/.npmrc
 export npm_config_cache="$ROOT/.toolchain/cache/npm"
 export COREPACK_HOME="$ROOT/.toolchain/cache/corepack"
+# 端到端测试的浏览器（Playwright）也放在项目内
+export PLAYWRIGHT_BROWSERS_PATH="$ROOT/.toolchain/cache/ms-playwright"
 if [ -d "$ROOT/.toolchain/runtime/node/bin" ]; then
   export PATH="$ROOT/.toolchain/runtime/node/bin:$PATH"
 fi

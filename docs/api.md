@@ -60,6 +60,27 @@
 | `POST /roundtrip` | 是 | 往返测试：给出 `text` 时同步返回差异；`{"samples": true}` 时作为后台任务跑全部样本，返回 `task_id` |
 | `GET /devices/{id}/graph?domain=D&raw=false` | 是 | 设备最新配置版本的配置图：节点、边、悬空引用、统计；`raw=true` 时包含功能域外的原文节点与原始配置文本 |
 | `GET /unknown-lines?limit=50` | 是 | 已导入配置中的未识别行汇总 |
+| `GET /unknown-lines/states` | 是 | 各未识别行模式的送审状态（pending / approved / rejected） |
+| `POST /unknown-lines/review` | 是 | 把选中的模式送入审核队列：`{"patterns": ["…"]}`；已送审的跳过 |
+| `GET /summary` | 是 | 首页概况：知识库版本与草稿修改数、Profile 平均覆盖率、待审数、未识别行、设备（含用旧知识库解析过的数量）、最近一次样本回归、AI 状态 |
+| `POST /devices/rebuild` | 是 | 按当前知识库重新解析全部设备（后台任务，返回 `task_id`） |
+| `POST /devices/{id}/rebuild` | 是 | 按当前知识库重新解析一台设备 |
+| `GET /regression/last` | 是 | 最近一次样本往返回归的结果；没跑过时为 `null` |
+| `GET /tasks?kind=K&limit=20` | 是 | 最近的后台任务 |
+| `GET /kb/schema` | 是 | Schema：各功能域的节点、依赖规则、可用的节点类型 |
+| `PUT /kb/schema/nodes/{id}` | 是 | 新增或修改节点：`{"parent", "type", "key", "semantic", "range", "choices", "ordered", "ref", "deprecated", "replaced_by"}`；写入后校验，会引入错误时自动撤销并返回 422 |
+| `GET /kb/schema/nodes/{id}/usage` | 是 | 删除前检查：子节点、引用、依赖规则、Profile 条目、映射到它的命令卡 |
+| `DELETE /kb/schema/nodes/{id}` | 是 | 删除节点；仍被使用时 409，`data` 为使用情况（可改为标记 `deprecated`） |
+| `GET /kb/profiles` | 是 | Profile 列表：继承、条目数、覆盖率、可信度分布、设备数 |
+| `POST /kb/profiles` | 是 | 新建 Profile：`{"id", "title", "family", "inherits", "version", "platform", "software"}`，继承时只写差异 |
+| `GET /kb/profiles/{id}` | 是 | 继承展开后的全部条目（每个 Schema 节点一行，含来源 Profile 与可信度） |
+| `PUT /kb/profiles/{id}/entries/{node}` | 是 | 人工修改条目：`{"supported", "default", "show_rule", "source", "verified", "note"}`，标记 `manual`，重新汇总时保留 |
+| `DELETE /kb/profiles/{id}/entries/{node}` | 是 | 删除 Profile 自己的条目（继承来的条目在父 Profile 中修改） |
+| `GET /kb/profile-compare?a=A&b=B` | 是 | 两个 Profile 逐节点对比：same / only_a / only_b / default（默认值不同）/ unfilled |
+| `GET /kb/draft` | 是 | 草稿区：上次发布以来的修改（与 `/kb/diff` 相同结构）与提交记录 |
+| `GET /kb/extractors` | 是 | 可用的命令卡抽取规则 |
+| `GET /ai/settings` | 是 | AI 接口设置；API Key 只返回是否已设置；`sources` 标出各项来自配置文件还是环境变量 |
+| `PUT /ai/settings` | 是 | 保存 AI 设置（只改配置文件的 AI 分组）：`{"provider", "base_url", "api_key", "clear_api_key", "model", "model_extract", "model_merge", "timeout", "max_tokens"}`；`api_key` 留空保持原值，加密保存 |
 
 ## 示例
 

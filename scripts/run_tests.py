@@ -118,6 +118,8 @@ def main() -> int:
         rows.append(("frontend", int(state == "passed"), int(state == "failed"), int(state == "skipped")))
         failed |= state == "failed"
     if a.e2e:
+        # 端到端测试用构建好的前端（由 Python 服务提供），先按需构建
+        subprocess.run([sys.executable, str(ROOT / "scripts" / "build_frontend.py")], cwd=ROOT, env=node_env())
         state, _ = run_frontend("e2e")
         rows.append(("e2e", int(state == "passed"), int(state == "failed"), int(state == "skipped")))
         failed |= state == "failed"

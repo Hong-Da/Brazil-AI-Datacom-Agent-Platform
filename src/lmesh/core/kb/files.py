@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import os
+import threading
+import time
 from pathlib import Path
 from typing import Any
 
@@ -40,9 +43,20 @@ def load_rt(path: Path) -> Any:
 
 
 def dump_rt(path: Path, data: Any) -> None:
+    """原子写入：先写临时文件再替换，同时读取的请求不会读到写了一半的文件。"""
     path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8", newline="\n") as fh:
+    tmp = path.with_name(f".{path.name}.{os.getpid()}.{threading.get_ident()}.tmp")
+    with tmp.open("w", encoding="utf-8", newline="\n") as fh:
         _yaml().dump(data, fh)
+    for attempt in range(40):  # Windows 上文件正被读取时替换会失败，稍等重试
+        try:
+            os.replace(tmp, path)
+            return
+        except PermissionError:
+            if attempt == 39:
+                tmp.unlink(missing_ok=True)
+                raise
+            time.sleep(0.05)
 
 
 def card_file(kb_root: Path, family: str, domain: str) -> Path:

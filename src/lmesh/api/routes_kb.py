@@ -135,6 +135,17 @@ def review_get(request: Request, item_id: int) -> dict[str, Any]:
     item = review.get(_db(request), item_id)
     if not item:
         raise ApiError(E_NOT_FOUND, 404)
+    root = _root(request)
+    if item["kind"] == "card":
+        # 附上知识库中这张卡的当前内容（视图、参数、缺省值、映射），详情页与“修改后通过”要用
+        from lmesh.core.kb import files as kbfiles
+
+        found = kbfiles.find_card(root, str(item["target"]))
+        item["current"] = kbfiles._plain(found[1]["cards"][found[2]]) if found else None
+    elif item["kind"] == "conflict" and item.get("target"):
+        target = (root / str(item["target"])).resolve()
+        if target.is_relative_to(root.resolve()) and target.is_file():
+            item["current_preview"] = target.read_text(encoding="utf-8", errors="replace")[:4000]
     return ok(request, item)
 
 

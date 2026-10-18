@@ -287,6 +287,7 @@ def _clean_node(body: dict[str, Any]) -> CommentedMap:
     return out
 
 
+@repo.locked
 def upsert_node(root: Path, node_id: str, body: dict[str, Any]) -> dict[str, Any]:
     if not _ID.match(node_id):
         raise EditError("kb.node_id_invalid", node=node_id)
@@ -308,6 +309,7 @@ def upsert_node(root: Path, node_id: str, body: dict[str, Any]) -> dict[str, Any
     return {"node": node_id, "domain": domain, "created": existing is None}
 
 
+@repo.locked
 def delete_node(root: Path, node_id: str) -> dict[str, Any]:
     kb = load(root)
     if node_id not in kb.nodes:
@@ -324,6 +326,7 @@ def delete_node(root: Path, node_id: str) -> dict[str, Any]:
     return {"node": node_id, "deleted": True}
 
 
+@repo.locked
 def set_entry(root: Path, pid: str, node_id: str, body: dict[str, Any]) -> dict[str, Any]:
     kb = load(root)
     if pid not in kb.profiles:
@@ -337,7 +340,17 @@ def set_entry(root: Path, pid: str, node_id: str, body: dict[str, Any]) -> dict[
     doc = files.load_rt(path)
     if not isinstance(doc.get("entries"), dict):
         doc["entries"] = CommentedMap()
-    entry = doc["entries"].get(node_id) or CommentedMap()
+    entry = doc["entries"].get(node_id)
+    if entry is None:
+        entry = CommentedMap()
+        inherited = kb.resolve_profile(pid).entries.get(node_id)
+        if inherited is not None:  # 覆盖继承来的条目：以父条目为底（含命令卡），再改要改的字段
+            for k in ("supported", "default", "show_rule", "source", "verified"):
+                v = getattr(inherited, k)
+                if v not in (None, "", []):
+                    entry[k] = v
+            if inherited.cards:
+                entry["cards"] = list(inherited.cards)
     for k in ENTRY_FIELDS:
         if k in body:
             if body[k] is None or body[k] == "":
@@ -351,6 +364,7 @@ def set_entry(root: Path, pid: str, node_id: str, body: dict[str, Any]) -> dict[
     return {"profile": pid, "node": node_id}
 
 
+@repo.locked
 def clear_entry(root: Path, pid: str, node_id: str) -> dict[str, Any]:
     """删除 Profile 自己的条目（继承来的条目在父 Profile 中修改）。"""
     kb = load(root)
@@ -367,6 +381,7 @@ def clear_entry(root: Path, pid: str, node_id: str) -> dict[str, Any]:
     return {"profile": pid, "node": node_id, "deleted": True}
 
 
+@repo.locked
 def create_profile(root: Path, body: dict[str, Any]) -> dict[str, Any]:
     kb = load(root)
     pid = str(body.get("id") or "").strip()

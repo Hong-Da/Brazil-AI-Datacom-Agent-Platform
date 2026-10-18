@@ -54,8 +54,9 @@ def register(app: typer.Typer) -> None:
         profile: Annotated[str | None, typer.Option()] = None,
     ) -> None:
         c = output.get(ctx)
-        g, _ = _graph_for(c, target, profile)
-        data = graphmod.to_json(g, domain, include_raw=False)
+        g, kb = _graph_for(c, target, profile)
+        roots = [n.id for n in kb.nodes.values() if domain and n.domain == domain and not n.parent]
+        data = graphmod.to_json(g, domain, include_raw=False, roots=roots or None)
         s = data["summary"]
         lines = [
             c.t(

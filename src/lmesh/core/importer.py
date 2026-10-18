@@ -15,7 +15,7 @@ from sqlalchemy import select
 from lmesh.core import store
 from lmesh.core.parser import normalize_pattern
 from lmesh.core.sanitize import Level, Sanitizer, detect_vendor, detect_version, local_key
-from lmesh.core.store.models import ConfigVersion, Device, UnknownLine
+from lmesh.core.store.models import ConfigVersion, Device, UnknownLine, iso
 
 CONFIG_SUFFIXES = {"", ".txt", ".cfg", ".conf", ".config", ".log", ".zip"}
 MAX_BYTES = 20 * 1024 * 1024
@@ -197,7 +197,7 @@ def list_devices(db_url: str) -> list[dict[str, Any]]:
                     "profile": d.profile,
                     "versions": len(d.versions),
                     "latest_version_id": latest.id if latest else None,
-                    "collected_at": latest.collected_at.isoformat() if latest else None,
+                    "collected_at": iso(latest.collected_at) if latest else None,
                 }
             )
         return out

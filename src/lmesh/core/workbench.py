@@ -14,7 +14,7 @@ from lmesh.core import analysis, config, graphstore, kbservice, review, store
 from lmesh.core import graph as graphmod
 from lmesh.core.kb import repo
 from lmesh.core.renderer import render_roundtrip
-from lmesh.core.store.models import ConfigVersion, Device, UnknownLine
+from lmesh.core.store.models import ConfigVersion, Device, UnknownLine, iso
 
 LAST_REGRESSION = "roundtrip-last.json"
 
@@ -78,7 +78,7 @@ def device_rows(db_url: str, kb_version: str) -> list[dict[str, Any]]:
                 "versions": len(d.versions),
                 "latest_version_id": latest.id if latest else None,
                 "source_name": latest.source_name if latest else "",
-                "collected_at": latest.collected_at.isoformat() if latest else None,
+                "collected_at": iso(latest.collected_at) if latest else None,
             }
             if latest is not None:
                 row.update(_status(latest))

@@ -14,7 +14,7 @@ from typing import Any
 from sqlalchemy import func, select
 
 from lmesh.core import store
-from lmesh.core.store.models import ReviewItem
+from lmesh.core.store.models import ReviewItem, iso
 
 KINDS = ("card", "schema_node", "mapping", "conflict", "profile_entry")
 Action = Callable[[Path, ReviewItem, dict[str, Any] | None], None]
@@ -48,8 +48,8 @@ def as_dict(i: ReviewItem, with_payload: bool = True) -> dict[str, Any]:
         "target": i.target,
         "source": i.source,
         "note": i.note,
-        "created_at": i.created_at.isoformat() if i.created_at else None,
-        "decided_at": i.decided_at.isoformat() if i.decided_at else None,
+        "created_at": iso(i.created_at),
+        "decided_at": iso(i.decided_at),
     }
     if with_payload:
         d["payload"] = i.payload
@@ -121,7 +121,7 @@ def decide(
     from lmesh.core.kb import repo
 
     _load_actions()
-    with store.session(db_url) as s:
+    with repo.WRITE_LOCK, store.session(db_url) as s:
         item = s.get(ReviewItem, item_id)
         if item is None:
             raise ReviewError("review.not_found")

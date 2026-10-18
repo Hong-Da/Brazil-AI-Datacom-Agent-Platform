@@ -397,14 +397,34 @@ def summary(g: nx.MultiDiGraph) -> dict[str, Any]:
     }
 
 
-def to_json(g: nx.MultiDiGraph, domain: str | None = None, include_raw: bool = True) -> dict[str, Any]:
-    """前端与 API 使用的图数据。domain 只保留该功能域（按 Schema 节点的前缀）。"""
+def to_json(
+    g: nx.MultiDiGraph, domain: str | None = None, include_raw: bool = True, roots: list[str] | None = None
+) -> dict[str, Any]:
+    """前端与 API 使用的图数据。
+
+    domain：只保留该功能域——Schema 属于这些根节点（roots，由知识库按功能域给出；不给时用 domain 本身作前缀）
+    的节点、它们的子节点（含其下的原文与未识别行）以及祖先（设备节点）。
+    """
+    prefixes = roots or ([domain] if domain else [])
+
+    def in_domain(d: dict[str, Any]) -> bool:
+        sch = str(d.get("schema") or "")
+        return any(sch == p or sch.startswith(p + ".") for p in prefixes)
+
+    allowed: set[str] | None = None
+    if domain:
+        contains = nx.DiGraph([(a, b) for a, b, d in g.edges(data=True) if d.get("kind") == "contains"])
+        seeds = {n for n, d in g.nodes(data=True) if in_domain(d)}
+        allowed = set(seeds)
+        for n in seeds:
+            if n in contains:
+                allowed |= nx.descendants(contains, n) | nx.ancestors(contains, n)
 
     def keep(nid: str, d: dict[str, Any]) -> bool:
         if not include_raw and d.get("kind") in ("raw",):
             return False
-        if domain and d.get("schema") and not str(d["schema"]).startswith(domain):
-            return d.get("kind") == "device"
+        if allowed is not None:
+            return nid in allowed or d.get("kind") == "device"
         return True
 
     nodes = [

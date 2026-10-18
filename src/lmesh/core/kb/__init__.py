@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -19,12 +20,16 @@ from ruamel.yaml import YAML
 
 from lmesh.core.kb.model import Card, DepRule, Family, Issue, Profile, ProfileEntry, SchemaNode, View
 
-_yaml_safe = YAML(typ="safe", pure=True)
+# ruamel 的 YAML 实例不是线程安全的（Web 服务多个请求线程同时读知识库），每个线程用自己的实例
+_local = threading.local()
 
 
 def read_yaml(path: Path) -> Any:
+    y = getattr(_local, "yaml", None)
+    if y is None:
+        y = _local.yaml = YAML(typ="safe", pure=True)
     with path.open("r", encoding="utf-8") as fh:
-        return _yaml_safe.load(fh)
+        return y.load(fh)
 
 
 @dataclass

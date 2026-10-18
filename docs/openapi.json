@@ -3,7 +3,7 @@
   "info": {
     "title": "LucidMesh API",
     "description": "透网 LucidMesh 远程 API。除 /health 与首次运行向导外，所有接口都需要 Authorization: Bearer <令牌>。",
-    "version": "0.0.4"
+    "version": "0.0.5"
   },
   "paths": {
     "/api/v1/health": {
@@ -1180,10 +1180,898 @@
           }
         }
       }
+    },
+    "/api/v1/summary": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "首页概况：知识库、审核队列、未识别行、设备、最近一次样本回归、AI",
+        "operationId": "summary_api_v1_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Summary Api V1 Summary Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/rebuild": {
+      "post": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "按当前知识库重新解析全部设备（后台任务）",
+        "operationId": "devices_rebuild_api_v1_devices_rebuild_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Devices Rebuild Api V1 Devices Rebuild Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/rebuild": {
+      "post": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "按当前知识库重新解析一台设备",
+        "operationId": "device_rebuild_api_v1_devices__device_id__rebuild_post",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Device Rebuild Api V1 Devices  Device Id  Rebuild Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/regression/last": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "最近一次样本往返回归的结果（没有跑过时为 null）",
+        "operationId": "regression_last_api_v1_regression_last_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Regression Last Api V1 Regression Last Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tasks": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "最近的后台任务",
+        "operationId": "tasks_recent_api_v1_tasks_get",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "default": 20,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Tasks Recent Api V1 Tasks Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/schema": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "Schema：各功能域的节点与依赖规则",
+        "operationId": "kb_schema_api_v1_kb_schema_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Kb Schema Api V1 Kb Schema Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/schema/nodes/{node_id}": {
+      "put": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "新增或修改 Schema 节点（写入后校验，出错自动撤销）",
+        "operationId": "kb_node_put_api_v1_kb_schema_nodes__node_id__put",
+        "parameters": [
+          {
+            "name": "node_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Node Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NodeBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Kb Node Put Api V1 Kb Schema Nodes  Node Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "删除 Schema 节点（仍被使用时 409，data 中给出使用情况）",
+        "operationId": "kb_node_delete_api_v1_kb_schema_nodes__node_id__delete",
+        "parameters": [
+          {
+            "name": "node_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Node Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Kb Node Delete Api V1 Kb Schema Nodes  Node Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/schema/nodes/{node_id}/usage": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "删除前检查：子节点、引用、依赖、Profile 条目、命令卡",
+        "operationId": "kb_node_usage_api_v1_kb_schema_nodes__node_id__usage_get",
+        "parameters": [
+          {
+            "name": "node_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Node Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Kb Node Usage Api V1 Kb Schema Nodes  Node Id  Usage Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/profiles": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "Profile 列表：继承、条目数、覆盖率、可信度分布、设备数",
+        "operationId": "kb_profiles_api_v1_kb_profiles_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Kb Profiles Api V1 Kb Profiles Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "新建 Profile（可继承已有 Profile，只写差异）",
+        "operationId": "kb_profile_create_api_v1_kb_profiles_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Kb Profile Create Api V1 Kb Profiles Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/profiles/{profile_id}": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "Profile 详情：继承展开后的全部条目",
+        "operationId": "kb_profile_api_v1_kb_profiles__profile_id__get",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Kb Profile Api V1 Kb Profiles  Profile Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/profiles/{profile_id}/entries/{node_id}": {
+      "put": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "人工修改 Profile 条目（标记 manual，重新汇总时保留）",
+        "operationId": "kb_entry_put_api_v1_kb_profiles__profile_id__entries__node_id__put",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          },
+          {
+            "name": "node_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Node Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntryBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Kb Entry Put Api V1 Kb Profiles  Profile Id  Entries  Node Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "删除 Profile 自己的条目",
+        "operationId": "kb_entry_delete_api_v1_kb_profiles__profile_id__entries__node_id__delete",
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Profile Id"
+            }
+          },
+          {
+            "name": "node_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Node Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Kb Entry Delete Api V1 Kb Profiles  Profile Id  Entries  Node Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/profile-compare": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "对比两个 Profile：支持情况与默认值差异",
+        "operationId": "kb_profile_compare_api_v1_kb_profile_compare_get",
+        "parameters": [
+          {
+            "name": "a",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "A"
+            }
+          },
+          {
+            "name": "b",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "B"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Kb Profile Compare Api V1 Kb Profile Compare Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/draft": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "草稿区：上次发布以来的修改与提交",
+        "operationId": "kb_draft_api_v1_kb_draft_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Kb Draft Api V1 Kb Draft Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/extractors": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "可用的命令卡抽取规则",
+        "operationId": "kb_extractors_api_v1_kb_extractors_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Kb Extractors Api V1 Kb Extractors Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/unknown-lines/states": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "未识别行模式的送审状态",
+        "operationId": "unknown_states_api_v1_unknown_lines_states_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Unknown States Api V1 Unknown Lines States Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/unknown-lines/review": {
+      "post": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "把选中的未识别行模式送入审核队列",
+        "operationId": "unknown_review_api_v1_unknown_lines_review_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatternsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Unknown Review Api V1 Unknown Lines Review Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/settings": {
+      "get": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "AI 接口设置（API Key 只显示是否已设置）",
+        "operationId": "ai_settings_api_v1_ai_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Ai Settings Api V1 Ai Settings Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "workbench"
+        ],
+        "summary": "保存 AI 接口设置（写入配置文件，API Key 加密保存）",
+        "operationId": "ai_settings_put_api_v1_ai_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AISettingsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Ai Settings Put Api V1 Ai Settings Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AISettingsBody": {
+        "properties": {
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key"
+          },
+          "clear_api_key": {
+            "type": "boolean",
+            "title": "Clear Api Key",
+            "default": false
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "model_extract": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Extract"
+          },
+          "model_merge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Merge"
+          },
+          "timeout": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timeout"
+          },
+          "max_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Tokens"
+          }
+        },
+        "type": "object",
+        "title": "AISettingsBody"
+      },
       "BatchBody": {
         "properties": {
           "kind": {
@@ -1291,6 +2179,70 @@
         ],
         "title": "DecideBody"
       },
+      "EntryBody": {
+        "properties": {
+          "supported": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supported"
+          },
+          "default": {
+            "title": "Default"
+          },
+          "show_rule": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Show Rule"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "verified": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "title": "EntryBody"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1345,6 +2297,194 @@
           "rules"
         ],
         "title": "IngestBody"
+      },
+      "NodeBody": {
+        "properties": {
+          "parent": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent"
+          },
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "semantic": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Semantic"
+          },
+          "range": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Range"
+          },
+          "choices": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Choices"
+          },
+          "ordered": {
+            "type": "boolean",
+            "title": "Ordered",
+            "default": false
+          },
+          "ref": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ref"
+          },
+          "deprecated": {
+            "type": "boolean",
+            "title": "Deprecated",
+            "default": false
+          },
+          "replaced_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replaced By"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "title": "NodeBody"
+      },
+      "PatternsBody": {
+        "properties": {
+          "patterns": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Patterns"
+          }
+        },
+        "type": "object",
+        "required": [
+          "patterns"
+        ],
+        "title": "PatternsBody"
+      },
+      "ProfileBody": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "default": ""
+          },
+          "family": {
+            "type": "string",
+            "title": "Family",
+            "default": ""
+          },
+          "vendor": {
+            "type": "string",
+            "title": "Vendor",
+            "default": ""
+          },
+          "platform": {
+            "type": "string",
+            "title": "Platform",
+            "default": ""
+          },
+          "software": {
+            "type": "string",
+            "title": "Software",
+            "default": ""
+          },
+          "inherits": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inherits"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "ProfileBody"
       },
       "ReleaseBody": {
         "properties": {

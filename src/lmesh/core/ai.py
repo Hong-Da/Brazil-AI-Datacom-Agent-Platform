@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from lmesh.core import config, store
-from lmesh.core.store.models import AICall
+from lmesh.core.store.models import AICall, iso
 
 _log = logging.getLogger("lmesh.ai")
 TASK_MODEL_KEYS = {"extract": "ai.model_extract", "merge": "ai.model_merge"}
@@ -140,7 +140,7 @@ def recent_calls(db_url: str, limit: int = 100) -> list[dict[str, Any]]:
                 "status": c.status,
                 "error": c.error,
                 "review_item_id": c.review_item_id,
-                "created_at": c.created_at.isoformat() if c.created_at else None,
+                "created_at": iso(c.created_at),
             }
             for c in rows
         ]

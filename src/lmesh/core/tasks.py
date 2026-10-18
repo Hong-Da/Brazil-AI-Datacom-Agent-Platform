@@ -9,7 +9,7 @@ from collections.abc import Callable
 from typing import Any
 
 from lmesh.core import store
-from lmesh.core.store.models import Task
+from lmesh.core.store.models import Task, iso
 
 _log = logging.getLogger("lmesh.tasks")
 Progress = Callable[[int, str], None]
@@ -60,8 +60,8 @@ def get(db_url: str, task_id: str) -> dict[str, Any] | None:
             "progress": t.progress,
             "message": t.message,
             "result": t.result,
-            "created_at": t.created_at.isoformat() if t.created_at else None,
-            "updated_at": t.updated_at.isoformat() if t.updated_at else None,
+            "created_at": iso(t.created_at),
+            "updated_at": iso(t.updated_at),
         }
 
 

@@ -449,3 +449,9 @@ lmesh/
 ## K 项目专属 skill
 
 （开发完成后填写。第一轮初选：CLI、API、测试、更新 skill 全部生成）
+
+已生成（开发中按用户要求提前生成）：
+
+| skill | 位置 | 用途 |
+|---|---|---|
+| `lmesh-docs-to-graph` | `.claude/skills/lmesh-docs-to-graph/SKILL.md` | 从厂商产品文档到统一配置图的完整流程：文档转换、抽取规则与补丁、命令卡抽取与审核、Schema 与映射、Profile、样本检验与补漏、往返回归与发布（2026-10-17 用户要求总结） |

@@ -16,4 +16,6 @@ if exist "%LMESH_ROOT%\.toolchain\bin" set "PATH=%LMESH_ROOT%\.toolchain\bin;%PA
 rem Node（只用于构建前端）：运行时与缓存放在项目内；pnpm store 写在 frontend\.npmrc
 set "npm_config_cache=%LMESH_ROOT%\.toolchain\cache\npm"
 set "COREPACK_HOME=%LMESH_ROOT%\.toolchain\cache\corepack"
+rem 端到端测试的浏览器（Playwright）也放在项目内
+set "PLAYWRIGHT_BROWSERS_PATH=%LMESH_ROOT%\.toolchain\cache\ms-playwright"
 if exist "%LMESH_ROOT%\.toolchain\runtime\node\node.exe" set "PATH=%LMESH_ROOT%\.toolchain\runtime\node;%PATH%"

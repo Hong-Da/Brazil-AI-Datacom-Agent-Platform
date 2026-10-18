@@ -7,13 +7,16 @@
 
 from __future__ import annotations
 
+import functools
 import shutil
 import tempfile
+import threading
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from typing import ParamSpec, TypeVar
 
 from dulwich import porcelain
 from dulwich.objects import Blob, Commit, Tree
@@ -30,6 +33,24 @@ class Release:
     commit: str
     time: int
     message: str
+
+
+P = ParamSpec("P")
+T = TypeVar("T")
+
+# 同一进程内修改知识库（写文件 + 提交）的操作串行执行；Web 服务的多个请求线程共用
+WRITE_LOCK = threading.RLock()
+
+
+def locked[**P, T](fn: Callable[P, T]) -> Callable[P, T]:
+    """装饰器：在知识库写锁内执行。"""
+
+    @functools.wraps(fn)
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
+        with WRITE_LOCK:
+            return fn(*args, **kwargs)
+
+    return wrapper
 
 
 def ensure_repo(root: Path) -> Repo:

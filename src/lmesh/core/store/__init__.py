@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -38,6 +39,7 @@ def dispose_all() -> None:
     for e in _engines.values():
         e.dispose()
     _engines.clear()
+    _UPGRADED.clear()
 
 
 def _alembic_config(url: str):  # type: ignore[no-untyped-def]
@@ -49,14 +51,22 @@ def _alembic_config(url: str):  # type: ignore[no-untyped-def]
     return cfg
 
 
+_UPGRADED: set[str] = set()
+_UPGRADE_LOCK = threading.Lock()
+
+
 def upgrade(url: str) -> None:
-    """把数据库升级到最新结构（幂等）。"""
+    """把数据库升级到最新结构（幂等）；同一进程内每个地址只做一次，并发请求时串行。"""
     from alembic import command
 
-    cfg = _alembic_config(url)
-    with get_engine(url).begin() as conn:
-        cfg.attributes["connection"] = conn
-        command.upgrade(cfg, "head")
+    with _UPGRADE_LOCK:
+        if url in _UPGRADED:
+            return
+        cfg = _alembic_config(url)
+        with get_engine(url).begin() as conn:
+            cfg.attributes["connection"] = conn
+            command.upgrade(cfg, "head")
+        _UPGRADED.add(url)
 
 
 def table_names(url: str) -> list[str]:

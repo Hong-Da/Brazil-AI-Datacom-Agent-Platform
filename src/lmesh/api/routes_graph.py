@@ -86,7 +86,9 @@ def device_graph(
     if ver is None:
         raise ApiError(E_NOT_FOUND, 404)
     g, v, dev = graphstore.build_for_version(db, ver.id, _kb(request))
-    data = graphmod.to_json(g, domain, include_raw=raw)
+    kb = _kb(request)
+    roots = [n.id for n in kb.nodes.values() if domain and n.domain == domain and not n.parent]
+    data = graphmod.to_json(g, domain, include_raw=raw, roots=roots or None)
     data["version_id"] = v.id
     data["text"] = v.raw_text if raw else None
     return ok(request, data)

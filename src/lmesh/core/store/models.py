@@ -16,6 +16,15 @@ def utcnow() -> datetime:
     return datetime.now(UTC)
 
 
+def iso(dt: datetime | None) -> str | None:
+    """时间统一按 UTC 输出带时区的 ISO 文本（SQLite 读回来不带时区，按 UTC 补上）。"""
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=UTC)
+    return dt.isoformat()
+
+
 class Base(DeclarativeBase):
     pass
 

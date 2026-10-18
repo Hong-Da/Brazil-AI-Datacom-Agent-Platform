@@ -242,3 +242,20 @@ def test_coverage() -> None:
     cov = kbservice.coverage(TEST_KB)
     assert cov["totals"]["t-child"] == {"supported": 3, "unsupported": 1, "unfilled": 2}
     assert cov["matrix"]["bgp.peer.description"]["t-child"] == "unsupported"
+
+
+def test_concurrent_loads_are_consistent() -> None:
+    """Web 服务多个线程同时读知识库时结果一致（YAML 读取器不能跨线程共用）。"""
+    import concurrent.futures as cf
+
+    from lmesh.core.kb import load
+
+    root = Path(__file__).resolve().parent.parent / "inputs" / "kb"
+
+    def one(_: int) -> tuple[int, int, int]:
+        kb = load(root)
+        return len(kb.nodes), len(kb.cards), len(kb.load_issues)
+
+    with cf.ThreadPoolExecutor(8) as ex:
+        results = set(ex.map(one, range(32)))
+    assert len(results) == 1 and next(iter(results))[2] == 0

@@ -1,6 +1,6 @@
 # 测试说明
 
-后端用 pytest，前端用 Vitest（单元，写在 `frontend/src/**/*.test.ts`）与 Playwright（端到端，放在 `tests/e2e/`）。所有测试都能用根目录的 `test.bat` / `test.sh` 一键运行。
+后端用 pytest，前端用 Vitest（单元，写在 `frontend/src/**/*.test.ts`）与 Playwright（端到端，放在 `frontend/e2e/`，依赖前端的 node_modules）。所有测试都能用根目录的 `test.bat` / `test.sh` 一键运行。
 
 ## 目录
 
@@ -24,7 +24,6 @@ tests/
 ├── api/                 API 测试（离线用 TestClient，在线用 --live）
 ├── roundtrip/           往返回归：knowledge/samples/ 中全部样本“配置 → 图 → 配置”
 ├── docs/                文档测试
-├── e2e/                 Playwright 端到端测试
 └── output/              运行时产生的文件（不入库）
 ```
 
@@ -38,6 +37,7 @@ tests/
 | `cli` | 子进程执行 `cli.bat` / `cli.sh`：退出码、stdout（`--output json` 按字段检查）、出错时 stderr 有提示；至少一条用例分别用 `--lang zh-CN / en / pt-BR` 执行 |
 | `api` | 每个接口至少一条正常用例和一条错误用例；需要认证的接口额外测无令牌和错误令牌 |
 | `roundtrip` | 全部样本往返文本一致；功能域覆盖率不低于基准 |
+| `e2e` | `frontend/e2e/*.spec.ts`：`scripts/e2e_server.py` 在 `tests/output/e2e-root` 建临时项目（全量知识库 + 样本）并启动服务，浏览器逐页操作；Windows 用系统 Edge，其他系统用项目内的 Playwright Chromium（`PLAYWRIGHT_BROWSERS_PATH`）。报告在 `tests/output/e2e-report/` |
 | `docs` | 文档示例与用例数据一致、`docs/openapi.json` 最新、README 目录结构与实际一致、多语言键一致、相对链接有效 |
 | `live` | 对运行中的实例执行 `live = true` 的 API 用例 |
 | `pg` | 需要 PostgreSQL 的用例；没有可用的 PostgreSQL 时跳过并在结果中注明 |
