@@ -341,7 +341,11 @@ def find_orphans(g: nx.MultiDiGraph, kb: KnowledgeBase, ix: Index | None = None)
         vals = (
             [str(v) for v in key.values() if v not in (None, "")] if isinstance(key, dict) else [rulesmod.key_text(key)]
         )
+        parent = next((a for a, _, ed in g.in_edges(n, data=True) if ed.get("kind") == "contains"), None)
+        parent_key = rulesmod.key_text(g.nodes[parent].get("key")) if parent is not None else ""
         for v in vals:
+            if parent_key.endswith("." + v):
+                continue  # 键取自所在子接口的编号（接入点 GE0/2/9.1500 → 1500），不是对同名对象的使用
             key_users.setdefault(v, []).append(n)
             m = re.fullmatch(r"[A-Za-z][A-Za-z\-]*(\d+)", v)
             if m:

@@ -1,0 +1,84 @@
+# 拓扑还原与跨设备一致性（M4-6）的 CLI 用例
+
+[[case]]
+id = "topology-dir"
+title = { zh-CN = "从一个目录的配置文件还原拓扑", en = "Rebuild the topology from a directory of configs", pt-BR = "Reconstruir a topologia a partir de um diretório de configurações" }
+args = ["--output", "json", "topology", "{samples}/topology"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.summary.devices" = 5, "data.summary.links" = 26, "data.summary.by_type.bgp" = 4, "data.summary.by_type.pw" = 2, "data.links.0.type" = "subnet", "data.links.0.basis.rule" = "subnet.p2p", "data.nodes.0.id" = "TOPO-AGG-01" }
+in_docs = true
+
+[[case]]
+id = "topology-text"
+title = { zh-CN = "两台设备的拓扑（文字输出，列出不在这批设备中的对端）", en = "Topology of two devices (text output, lists peers outside the set)", pt-BR = "Topologia de dois dispositivos (saída em texto, lista vizinhos fora do conjunto)" }
+args = ["--lang", "en", "topology", "{samples}/topology/atn-a1.cfg", "{samples}/topology/atn-a2.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["2 device(s), 4 link(s), 5 peer(s) outside this set", "subnet.p2p", "bgp peer 10.255.1.1 of TOPO-ATN-A1 is not in this set"]
+in_docs = true
+
+[[case]]
+id = "consistency-dir"
+title = { zh-CN = "跨设备一致性检查（有 error 级发现时退出码 1）", en = "Cross-device consistency (exit 1 on error findings)", pt-BR = "Consistência entre dispositivos (saída 1 com achados de erro)" }
+args = ["--output", "json", "consistency", "{samples}/topology"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "ok" = true, "data.summary.total" = 13, "data.summary.by_severity.error" = 10, "data.summary.by_rule.xd.pw.vc_id" = 1, "data.summary.by_rule.xd.bgp.remote_as" = 1, "data.findings.0.severity" = "error", "data.rules_skipped.0.id" = "xd.vrrp.virtual_ip" }
+in_docs = true
+
+[[case]]
+id = "consistency-text"
+title = { zh-CN = "一条链路的一致性检查（文字输出）", en = "Consistency of one link (text output)", pt-BR = "Consistência de um enlace (saída em texto)" }
+args = ["--lang", "zh-CN", "consistency", "{samples}/topology/atn-a1.cfg", "{samples}/topology/agg-01.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["2 台设备、5 条链路：1 条发现", "xd.subnet.mtu", "TOPO-AGG-01 GigabitEthernet0/0/1 的 MTU 是 9216，TOPO-ATN-A1 GigabitEthernet0/2/1 是 9000（含默认值）"]
+in_docs = true
+
+[[case]]
+id = "consistency-no-targets"
+title = { zh-CN = "没有给出设备", en = "No devices given", pt-BR = "Nenhum dispositivo informado" }
+args = ["consistency"]
+setup = "fresh-fullkb"
+expect_exit = 2
+expect_stderr = ["--all"]
+
+[[case]]
+id = "consistency-bad-severity"
+title = { zh-CN = "级别写错", en = "Invalid severity", pt-BR = "Severidade inválida" }
+args = ["consistency", "{samples}/topology", "--severity", "fatal"]
+setup = "fresh-fullkb"
+expect_exit = 2
+expect_stderr = ["--severity"]
+
+[[case]]
+id = "consistency-device-missing"
+title = { zh-CN = "设备不存在", en = "Unknown device", pt-BR = "Dispositivo inexistente" }
+args = ["consistency", "NO-SUCH-DEVICE"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["NO-SUCH-DEVICE"]
+
+[[case]]
+id = "topology-all-empty"
+title = { zh-CN = "还没有导入任何设备", en = "No devices imported yet", pt-BR = "Nenhum dispositivo importado ainda" }
+args = ["topology", "--all"]
+setup = "configured"
+expect_exit = 4
+
+[[case]]
+id = "consistency-rules-missing"
+title = { zh-CN = "规则文件不存在", en = "Rule file not found", pt-BR = "Arquivo de regras inexistente" }
+args = ["consistency", "{samples}/topology", "--rules", "{inputs}/rules/no-such.yaml"]
+setup = "fresh-fullkb"
+expect_exit = 4
+expect_stderr = ["no-such.yaml"]
+
+[[case]]
+id = "consistency-bad-rules"
+title = { zh-CN = "规则文件写错：报出文件、规则与位置", en = "Broken rule file: file, rule and location are reported", pt-BR = "Arquivo de regras com erro: arquivo, regra e local são informados" }
+args = ["--lang", "en", "consistency", "{samples}/topology", "--rules", "{inputs}/rules/cross-device-bad.yaml"]
+setup = "fresh-fullkb"
+expect_exit = 3
+expect_stderr = ["2 error(s)", "cross-device-bad.yaml rule bad.link link: unknown link type vxlan", "rule bad.fact_only compare: pw links have no single endpoint object type"]

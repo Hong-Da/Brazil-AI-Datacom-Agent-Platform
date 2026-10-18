@@ -1,0 +1,78 @@
+# 拓扑还原与跨设备一致性（M4-6）的 API 用例
+
+[[case]]
+id = "topology-post"
+title = { zh-CN = "上传两台设备的配置还原拓扑", en = "Upload two configs and rebuild the topology", pt-BR = "Enviar duas configurações e reconstruir a topologia" }
+method = "POST"
+path = "/api/v1/topology"
+setup = "configured-fullkb"
+auth = true
+body = { configs = [{ name = "r1.cfg", text = "!Software Version V800R025C00SPC500\nsysname R1\n#\ninterface GigabitEthernet0/2/1\n mtu 9000\n ip address 10.0.0.1 255.255.255.252\n#\nospf 1\n area 0.0.0.0\n  network 10.0.0.0 0.0.0.3\n#\nreturn" }, { name = "r2.cfg", text = "!Software Version V800R025C00SPC500\nsysname R2\n#\ninterface GigabitEthernet0/2/1\n ip address 10.0.0.2 255.255.255.252\n#\nospf 1\n area 0.0.0.1\n  network 10.0.0.0 0.0.0.3\n#\nreturn" }] }
+expect_status = 200
+expect_json = { "code" = 0, "data.summary.devices" = 2, "data.summary.links" = 2, "data.links.0.id" = "subnet:R1:GigabitEthernet0/2/1~R2:GigabitEthernet0/2/1", "data.links.0.segment" = "10.0.0.0/30", "data.links.0.confidence" = "high", "data.links.1.type" = "ospf", "data.nodes.0.id" = "R1" }
+in_docs = true
+
+[[case]]
+id = "consistency-post"
+title = { zh-CN = "两台设备的跨设备一致性检查", en = "Cross-device consistency of two configs", pt-BR = "Consistência entre dois dispositivos" }
+method = "POST"
+path = "/api/v1/consistency"
+setup = "configured-fullkb"
+auth = true
+body = { severity = "info", configs = [{ name = "r1.cfg", text = "!Software Version V800R025C00SPC500\nsysname R1\n#\ninterface GigabitEthernet0/2/1\n mtu 9000\n ip address 10.0.0.1 255.255.255.252\n#\nospf 1\n area 0.0.0.0\n  network 10.0.0.0 0.0.0.3\n#\nreturn" }, { name = "r2.cfg", text = "!Software Version V800R025C00SPC500\nsysname R2\n#\ninterface GigabitEthernet0/2/1\n ip address 10.0.0.2 255.255.255.252\n#\nospf 1\n area 0.0.0.1\n  network 10.0.0.0 0.0.0.3\n#\nreturn" }] }
+expect_status = 200
+expect_json = { "code" = 0, "data.summary.total" = 2, "data.summary.by_rule.xd.ospf.area" = 1, "data.summary.by_rule.xd.subnet.mtu" = 1, "data.findings.0.rule" = "xd.ospf.area", "data.findings.0.ends.0.value" = "0.0.0.0", "data.links.1.severity" = "error", "data.links.1.issues.0" = "xd.ospf.area@ospf:R1:GigabitEthernet0/2/1~R2:GigabitEthernet0/2/1" }
+in_docs = true
+
+[[case]]
+id = "topology-bad-config"
+title = { zh-CN = "上传的不是路由器配置", en = "Uploaded text is not a router config", pt-BR = "O texto enviado não é uma configuração de roteador" }
+method = "POST"
+path = "/api/v1/topology"
+setup = "configured-fullkb"
+auth = true
+body = { configs = [{ name = "notes.txt", text = "hello" }] }
+expect_status = 422
+expect_json = { "code" = 1001, "data.source" = "notes.txt" }
+
+[[case]]
+id = "topology-get-empty"
+title = { zh-CN = "还没有导入任何设备", en = "No devices imported yet", pt-BR = "Nenhum dispositivo importado ainda" }
+method = "GET"
+path = "/api/v1/topology"
+setup = "configured"
+auth = true
+expect_status = 409
+expect_json = { "code" = 1003 }
+in_docs = true
+
+[[case]]
+id = "topology-get-missing"
+title = { zh-CN = "设备不存在", en = "Unknown device", pt-BR = "Dispositivo inexistente" }
+method = "GET"
+path = "/api/v1/topology?devices=NO-SUCH-DEVICE"
+setup = "configured"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "consistency-bad-severity"
+title = { zh-CN = "级别写错", en = "Invalid severity", pt-BR = "Severidade inválida" }
+method = "POST"
+path = "/api/v1/consistency"
+setup = "configured"
+auth = true
+body = { severity = "fatal" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "consistency-no-auth"
+title = { zh-CN = "没有令牌", en = "Missing token", pt-BR = "Sem token" }
+method = "POST"
+path = "/api/v1/consistency"
+setup = "configured"
+body = {}
+expect_status = 401
+expect_json = { "code" = 1002 }

@@ -1,0 +1,61 @@
+# 安全基线审计（M4-7）的 CLI 用例
+
+[[case]]
+id = "baseline-file"
+title = { zh-CN = "对现网 ATN 配置跑基础基线", en = "Run the basic baseline on the field ATN config", pt-BR = "Executar a baseline básica na configuração ATN de campo" }
+args = ["--output", "json", "baseline", "{samples}/huawei-atn-v800r023/atn-access-01.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.baseline" = "basic", "data.devices.0.score" = 95, "data.devices.0.results.sec.telnet_disabled" = "pass", "data.devices.0.results.sec.syslog_server" = "fail", "data.devices.0.failures.0.rule" = "sec.syslog_server", "data.devices.0.failures.0.remedy" = ["info-center loghost <IP>", "info-center loghost source LoopBack0"], "data.summary.has_errors" = false }
+in_docs = true
+
+[[case]]
+id = "baseline-strict-multi"
+title = { zh-CN = "两台设备跑严格基线（矩阵与得分）", en = "Strict baseline on two devices (matrix and scores)", pt-BR = "Baseline estrita em dois dispositivos (matriz e pontuações)" }
+args = ["--lang", "en", "baseline", "{samples}/huawei-atn-v800r023/atn-access-01.cfg", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-02-igp-mgmt.cfg", "--profile", "strict"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["Baseline strict: 2 device(s), 26 rule(s), score 87", "sec.snmp_v3_only               ✗              ✗", "pe-asr920-02-igp-mgmt (cisco-iosxe) score 91", "Reference commands: line con 0 | exec-timeout 10 0"]
+in_docs = true
+
+[[case]]
+id = "baseline-errors-exit"
+title = { zh-CN = "error 级规则不通过时退出码 1", en = "Exit 1 when an error-level rule fails", pt-BR = "Saída 1 quando uma regra de nível erro falha" }
+args = ["--output", "json", "baseline", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "data.summary.has_errors" = true, "data.devices.0.results.sec.ssh_enabled" = "fail", "data.devices.0.summary.failed_by_severity.error" = 1 }
+
+[[case]]
+id = "baseline-report"
+title = { zh-CN = "同时导出 Markdown 基线报告", en = "Also export a Markdown baseline report", pt-BR = "Exportar também o relatório de baseline em Markdown" }
+args = ["--output", "json", "baseline", "{samples}/huawei-atn-v800r025-synthetic/atn-igp-mgmt-01.cfg", "--report", "{out}/baseline.md", "--report-lang", "en"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.report.format" = "md", "data.report.lang" = "en", "data.report.filename" = "baseline-basic-atn-igp-mgmt-01.en.md" }
+in_docs = true
+
+[[case]]
+id = "baseline-list-rules"
+title = { zh-CN = "列出基线与规则", en = "List baselines and rules", pt-BR = "Listar baselines e regras" }
+args = ["--output", "json", "baseline", "--list-rules", "--profile", "strict"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "data.profile" = "strict", "data.profiles.0.id" = "basic", "data.profiles.1.chain" = ["basic", "strict"], "data.rules.0.id" = "sec.telnet_disabled", "data.rules.0.remedy.huawei" = ["undo telnet server enable", "undo telnet ipv6 server enable"] }
+in_docs = true
+
+[[case]]
+id = "baseline-bad-profile"
+title = { zh-CN = "基线名写错", en = "Unknown baseline", pt-BR = "Baseline desconhecida" }
+args = ["--lang", "en", "baseline", "{samples}/huawei-atn-v800r023/atn-access-01.cfg", "--profile", "gold"]
+setup = "fresh"
+expect_exit = 2
+expect_stderr = ["Unknown baseline gold; available: basic, strict"]
+
+[[case]]
+id = "baseline-no-target"
+title = { zh-CN = "没有给出设备", en = "No target given", pt-BR = "Nenhum alvo informado" }
+args = ["baseline"]
+setup = "fresh"
+expect_exit = 2
+expect_stderr = ["--all"]

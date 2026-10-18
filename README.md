@@ -64,10 +64,13 @@ lmesh/
 │   ├── profiles/               厂商 + 版本 Profile（M1-4 起）
 │   ├── rules/                  配置检查规则（写在统一 Schema 上，与厂商无关；M2-4 起）
 │   ├── render/                 规范渲染的平台族书写习惯（退出命令、推导规则、接口类型；M3-3 起）
+│   ├── change/                 增量变更脚本的平台族下发习惯（开头 / 结尾命令、补充的副作用与取消写法、先删后建、高风险节点；M4-3 起）
+│   ├── migration/              割接迁移的平台族操作命令、管理口识别与各型号端口清单（ports/；M4-5 起）
 │   ├── templates/              配置模板（M3-4 起）
 │   └── samples/                已脱敏的配置样本与往返期望结果（M1-3 起）
 │       ├── compare/            配置对比基准：由样本派生的变体与期望差异（manifest.yaml；M2-3 起）
-│       └── translate/          配置翻译回归：用例、接口映射表与合成样本（manifest.yaml；M3-3 起）
+│       ├── translate/          配置翻译回归：用例、接口映射表与合成样本（manifest.yaml；M3-3 起）
+│       └── migration/          割接迁移回归：用例、部分接口映射表、新设备现有配置（manifest.yaml；M4-5 起）
 ├── assets/brand/               Logo 与图标
 ├── docs/
 │   ├── project-spec.md         项目规范

@@ -4927,7 +4927,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
     maps:
-      interface.access: _
+      interface.access: ctx:subif
       interface.access.bridge_domain: $bd-id
   - id: huawei-vrp8.encapsulation-default
     syntax: encapsulation default
@@ -4965,7 +4965,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
     maps:
-      interface.access: _
+      interface.access: ctx:subif
       interface.access.encapsulation: dot1q
       interface.access.vlan: $low-pe-vid
   - id: huawei-vrp8.encapsulation-dot1q-vid-8021p
@@ -5002,7 +5002,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
     maps:
-      interface.access: _
+      interface.access: ctx:subif
       interface.access.encapsulation: dot1q
   - id: huawei-vrp8.encapsulation-qinq.1
     syntax: encapsulation qinq [ vid <pe-vid> ce-vid { <low-ce-vid> [ to <high-ce-vid> ] | default } ]
@@ -5061,7 +5061,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
     maps:
-      interface.access: _
+      interface.access: ctx:subif
       interface.access.encapsulation: untagged
   - id: huawei-vrp8.forward-mode
     syntax: forward-mode loopback
@@ -5076,7 +5076,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
   - id: huawei-vrp8.interface-l2
-    syntax: interface { <interface-name> | <interface-type> <interface-number> } { <mode> l2 }
+    syntax: interface { <interface-name> | <interface-type> <interface-number> } mode l2
     view: system
     enters_view: interface
     undo: undo interface { <interface-name> | <interface-type> <interface-number> }
@@ -5087,19 +5087,18 @@ cards:
         type: word
       interface-number:
         type: word
-      mode:
-        type: word
     default: By default, this type of port is not created.
+    maps:
+      interface: $interface-name||fmt:{interface-type}{interface-number}
+      interface.l2: 'true'
     source:
       doc: huawei-vrp8-md
       file: 06_LAN Access and MAN Access Commands.md
       title: interface l2
       line: 18455
       version: V800R025C00SPC500
+      patched: 原文语法 “interface … { mode l2 }” 把关键字 mode 排成了参数（<mode>），规范渲染与翻译写不出 mode l2；运行配置中是 interface GigabitEthernet0/2/1.101 mode l2
     status: draft
-    maps:
-      interface: $interface-name||fmt:{interface-type}{interface-number}
-      interface.l2: 'true'
   - id: huawei-vrp8.local-switch-enable
     syntax: local-switch enable
     view: interface
@@ -5125,7 +5124,7 @@ cards:
       version: V800R025C00SPC500
     status: draft
     maps:
-      interface.access: _
+      interface.access: ctx:subif
       interface.access.rewrite: kw:single=pop 1|double=pop 2
   - id: huawei-vrp8.rewrite.2
     syntax: rewrite swap

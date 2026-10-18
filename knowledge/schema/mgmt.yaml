@@ -67,6 +67,7 @@ nodes:
     type: object
     key: [name]
     semantic: {zh-CN: 团体字（按名称或别名区分；华为密文团体字按别名）, en: Community}
+    secret: true
   mgmt.snmp.community.access:
     parent: mgmt.snmp.community
     type: enum
@@ -303,10 +304,16 @@ nodes:
     type: ref
     ref: acl.instance
     semantic: {zh-CN: 入方向访问控制（华为 acl … inbound / Cisco access-class … in）, en: Inbound ACL}
+  # M3 知识库补缺：原来华为的认证方式与 Cisco 的方法列表名都记在 auth 上（图上相等但含义不同），拆成方式与列表名两个节点
   mgmt.line.auth:
     parent: mgmt.line
+    type: enum
+    choices: [aaa, password, none, local, tacacs]
+    semantic: {zh-CN: 登录认证方式（华为 authentication-mode aaa / password / none；Cisco login authentication 为 aaa，login 为 password，login local 为 local）, en: Login authentication mode}
+  mgmt.line.auth_list:
+    parent: mgmt.line
     type: string
-    semantic: {zh-CN: 登录认证方式（aaa / password / none / 方法列表名）, en: Login authentication}
+    semantic: {zh-CN: AAA 登录认证方法列表名（Cisco login authentication <列表>；华为用 AAA 域的认证方案，没有线路级的列表名）, en: AAA login authentication list name}
   mgmt.line.privilege:
     parent: mgmt.line
     type: integer

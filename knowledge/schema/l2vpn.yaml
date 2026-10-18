@@ -72,7 +72,13 @@ nodes:
   interface.access.pw.encapsulation:
     parent: interface.access.pw
     type: string
-    semantic: {zh-CN: 伪线封装（Cisco encapsulation mpls；华为 raw / tagged 写在这里）, en: PW encapsulation}
+    semantic: {zh-CN: 伪线封装类型（华为 raw / tagged / ip-interworking / ip-layer2）；承载方式（MPLS / L2TPv3）见 transport, en: PW encapsulation type (raw / tagged / interworking)}
+  # M3 知识库补缺：Cisco xconnect 的 encapsulation mpls | l2tpv3 是承载方式，与华为 raw / tagged（封装类型）含义不同，拆成两个节点
+  interface.access.pw.transport:
+    parent: interface.access.pw
+    type: enum
+    choices: [mpls, l2tpv3]
+    semantic: {zh-CN: 伪线承载方式（Cisco xconnect … encapsulation mpls / l2tpv3；华为 LDP 伪线固定为 MPLS，ASR 920 只支持 MPLS）, en: PW transport (MPLS / L2TPv3)}
   # ---------- Cisco 命名的点到点连接 ----------
   l2vpn.xconnect:
     type: object

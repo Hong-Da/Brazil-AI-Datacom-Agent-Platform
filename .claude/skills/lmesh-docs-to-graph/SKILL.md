@@ -102,6 +102,7 @@ draft 卡同样参与解析（状态只表示可信度），所以可以先跑�
 - 每台设备只有一个的对象（SNMP 代理、SSH 服务、接口上的 OSPF 参数）用固定编号 `"_"`；同一个对象的属性分散在多条命令里时，各条命令都映射到 `"_"`，进程号等作为属性。
 - 一条规则套到多张卡时，表达式引用了某张卡没有的参数，这条映射在那张卡上整条不写（`$protocol||kw:tcp|udp` 在没有 `protocol` 参数的 TCP 卡上会丢）：不同变体拆成不同规则，或只用该卡有的参数与字面量。
 - 0.3.0 补充的表达式：`if:$参数:表达式`（该参数有值时才取，例如 Cisco `host X` 的反掩码记 `0.0.0.0`）、`tail:关键字:截止词`（只取到截止词之前）、`$序号||auto`（有序号用序号，否则按出现顺序编号）。
+- M3 收尾补充：`ctx:subif`（上下文中接口的子接口编号，主接口为 `_`；接入点在接口视图里按它编号，与 Cisco service instance 编号对应）。Schema 节点可标 `secret: true`（取值或对象键是密码、密钥、团体字，跨平台族翻译时不写）、`alias: true`（属性取值也是所属对象的别名键，引用按它也能找到，例如 `acl.instance.number`）。两家结构形态不同的对象（接入点）在 `knowledge/render/<平台族>.yaml` 的 `access_form` 说明，翻译时换结构。
 - 原来是字符串的属性实际引用了新功能域的对象时（SNMP / VTY / NTP 引用的 ACL），把 Schema 类型改成 `ref` 并在新功能域的 `deps` 里写 reference 规则，配置检查才能发现悬空 / 孤儿。
 - 新的对象类型要在 `knowledge/terms.yaml` 登记华为与 Cisco 两种显示写法（`core/terms.py` 的 `check()` 与 `tests/unit/test_terms.py` 会检查）。
 

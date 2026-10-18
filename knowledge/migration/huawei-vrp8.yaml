@@ -1,0 +1,38 @@
+# 割接迁移（M4-5，REQ-017）用的平台族操作知识：管理口识别、割接步骤里的操作命令与核对命令。
+# 这些不是设备配置（不进图），只用于生成割接步骤清单；命令按华为下发习惯：system-view → 进入视图 → 命令 / undo → quit，最后 commit。
+#   management      管理口（接口名统一写法的正则，见 core/compare.interface_name），迁移时不迁移
+#   management_vrf  绑定到这些 VPN 实例的接口也视为管理口（正则）
+#   logical_types   逻辑接口类别（lag / loopback / bdi / vlanif / null / tunnel）在本平台族的类型写法
+#   enter / commit / leave  进入配置、提交、退出配置
+#   interface       端口开关：enter / exit / shutdown / no_shutdown，{name} 为接口名
+#   bgp             BGP 会话隔离与恢复：{asn} 本地 AS、{vrf} VPN 实例、{peer} 对等体地址
+#   show            核对命令（割接前后各执行一次对比）
+family: huawei-vrp8
+management: ['^MEth', '^Ethernet0/0/0$']
+management_vrf: ['^__LOCAL_OAM_VPN__$', '^(?i:mgmt)']
+logical_types: {lag: Eth-Trunk, loopback: LoopBack, bdi: Vbdif, vlanif: Vlanif, 'null': 'NULL', tunnel: Tunnel}
+enter: [system-view]
+commit: [commit]
+leave: [return]
+interface:
+  enter: interface {name}
+  exit: quit
+  shutdown: shutdown
+  no_shutdown: undo shutdown
+bgp:
+  enter: bgp {asn}
+  exit: quit
+  vrf_enter: ipv4-family vpn-instance {vrf}
+  vrf_exit: quit
+  drain: peer {peer} ignore
+  restore: undo peer {peer} ignore
+show:
+  interfaces: display interface brief
+  routes: display ip routing-table statistics
+  bgp: display bgp peer
+  bgp_vrf: display bgp vpnv4 all peer
+  ospf: display ospf peer brief
+  isis: display isis peer
+  ldp: display mpls ldp session
+  lag: display eth-trunk
+  config: display current-configuration

@@ -12,16 +12,20 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from lmesh import __version__, paths
 from lmesh.api.common import E_INTERNAL, E_NOT_FOUND, E_PARAM, ApiError, error_response
+from lmesh.api.routes_baseline import router as baseline_router
+from lmesh.api.routes_change import router as change_router
 from lmesh.api.routes_check import router as check_router
 from lmesh.api.routes_compare import router as compare_router
 from lmesh.api.routes_configs import router as configs_router
 from lmesh.api.routes_graph import router as graph_router
 from lmesh.api.routes_kb import router as kb_router
+from lmesh.api.routes_migrate import router as migrate_router
 from lmesh.api.routes_report import router as report_router
 from lmesh.api.routes_rules import router as rules_router
 from lmesh.api.routes_system import router as system_router
 from lmesh.api.routes_tasks_ai import router as tasks_ai_router
 from lmesh.api.routes_template import router as template_router
+from lmesh.api.routes_topology import router as topology_router
 from lmesh.api.routes_translate import router as translate_router
 from lmesh.api.routes_workbench import router as workbench_router
 from lmesh.core import config
@@ -78,6 +82,10 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     app.include_router(workbench_router, prefix=API_PREFIX, tags=["workbench"])
     app.include_router(template_router, prefix=API_PREFIX, tags=["template"])
     app.include_router(translate_router, prefix=API_PREFIX, tags=["translate"])
+    app.include_router(topology_router, prefix=API_PREFIX, tags=["topology"])
+    app.include_router(migrate_router, prefix=API_PREFIX, tags=["migrate"])
+    app.include_router(baseline_router, prefix=API_PREFIX, tags=["baseline"])
+    app.include_router(change_router, prefix=API_PREFIX, tags=["change"])
     _mount_web(app)
     return app
 

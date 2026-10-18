@@ -84,12 +84,16 @@
 | `lmesh graph show <文件\|设备名> [--domain D] [--profile P]` | 显示配置图：语义节点（含 Profile 补出的隐藏默认节点）、依赖边（contains / reference / prerequisite / side_effect / mutex）、悬空引用 |
 | `lmesh render <文件\|设备名> [--profile P] [--canonical] [--with-defaults]` | 解析建图后按图渲染回配置文本。默认往返模式：保留原有顺序、缩进与写法；`--canonical` 规范模式：只看图中的语义节点，按平台族写法重新生成命令（按视图分块、被引用的先出现，华为 `#` 分隔、`return` 结尾，Cisco `!` 与 `end`），未映射命令与功能域外原文按原文写回原位置；`--with-defaults` 含默认值的完整配置（规范模式，Profile 默认值也写成命令，集中放在所在块的显式行之后，前面一行注释 `! default`）。`--output json` 时 `lines` 给出每一行的来源节点、`origin`（explicit / default）、`kind`（command / original 按原文写回的命令 / extra 原文行 / separator / comment / exit / end），`default_lines` 为默认值行的行号，`uncovered` 为没能写成命令的节点（在 stderr 提示个数） |
 | `lmesh translate <文件\|设备名> --to <Profile> [--interface-map 文件] [-o 文件] [--profile P] [--no-verify]` | 配置翻译：按有效值把配置翻译到目标 Profile（另一个平台族），接口名按映射表改写（子接口按父接口映射，没给映射表时同名）。默认值差异：源设备依赖默认值而目标默认值不同时显式写出并告警（`default_differs`），目标没有登记默认值时只提示（`default_unknown`），两边相同时不写；源设备显式值等于目标默认值时省略（`defaults`）。目标 Profile 不支持或写不出命令的节点、跨平台族的密码类取值（需重新设置）、未映射命令、功能域外原文、未识别行列在 `unsupported`（附原文行号），人工处理；目标写法必须给出、源配置没有的取值按推导规则写出并告警（`inferred_value`）；接口类型不属于目标平台族时告警（`interface_type`）。译文再解析建图后与源图按有效值对比（`verify`），列出项之外的差异记为 `verify_diff`。不给 `-o` 时译文写到 stdout、摘要与告警写到 stderr；**校验发现没有解释的差异时退出码 1** |
+| `lmesh migrate <文件\|设备名> --to <Profile> [--interface-map 文件] [--target-config 文件] [--model 型号] [--on-conflict migrate\|keep] [-o 目录] [--suggest-only] [--profile P] [--no-verify]` | 割接迁移：翻译 + 接口映射，一次完成整机迁移。接口映射表可以只给部分（CSV / JSON / YAML / 两列文本，新接口写 `-` 表示不迁移），其余自动建议：逻辑接口（聚合口、环回口、桥域三层口等）编号不变换类型写法，物理口按同名 → 同速率同端口号 → 同速率依次 → 更高速率在端口清单中分配，每条附依据（`basis`）与置信度（`confidence`）；端口清单依次取 `--model` 指定型号的知识库清单（`knowledge/migration/ports/`）、`--target-config` 中的接口、知识库默认型号（提示 `port_inventory_assumed`）。管理口不迁移；没有映射的接口连同子接口、引用它们的配置不迁移；子接口跟随主接口；聚合口编号变化时成员口跟着改。给出新设备现有配置时在其上合并，只生成需要新增 / 修改的部分（`delta.cfg`），冲突按 `--on-conflict` 处理并告警。新配置再解析与旧设备按有效值对比（`verify`）。`-o` 目录里写 `new-config.cfg`、`delta.cfg`（有现有配置时）、`interface-map.csv`（可修改后用 `--interface-map` 传回）、`warnings.csv`、`steps.txt`（割接步骤：文字 + 命令，含回退）、`migration.json`，复用增量变更模块生成的下发与回滚脚本 `script.txt`、`rollback.txt`；`--suggest-only` 只给映射建议。不给 `-o` 时新配置写到 stdout、摘要与步骤写到 stderr；**校验发现没有解释的差异时退出码 1**，型号不存在等参数错误 2，文件不存在 4 |
 | `lmesh roundtrip [<文件>] [--samples] [--profile P]` | 往返测试：配置 → 图 → 配置逐字比较；`--samples` 跑 `knowledge/samples/manifest.yaml` 中的全部样本，门槛样本还要求功能域内没有未识别行；不一致时退出码 1 |
 | `lmesh compare <A> <B> [--domain D] [--raw] [--interface-map 文件] [--profile-a P] [--profile-b P] [--rename-threshold 0–1] [--hide-identity]` | 配置对比（同厂商或跨厂商都按 Schema 节点比较）：A、B 是配置文件或已导入的设备名（`设备名@版本编号` 取指定配置版本，版本编号见 `GET /devices/{id}/versions` 的 `id`，省略时取最新版本）。比较有效值（显式值，否则 Profile 默认值或派生值，显式写出默认值与不写结果相同）；值按节点类型规范化后比较（掩码与长度、接口名缩写与大小写、RD / RT 写法、RT 的 `both` 等于 import + export）；可被引用的对象（路由策略、前缀列表、VRF 等）内容相同只是名字不同时判为改名，引用随之对应；`--interface-map` 为跨厂商的接口对照（JSON / YAML 的 `{A: B}`，或每行两列的文本）；`--raw` 同时按所属对象比较功能域外的原文行；未识别行单独列出；只有一侧 Profile 有默认值的属性不可比，不算差异（`default_only`）。文本输出按功能域分组（`+` 新增、`-` 删除、`~` 修改、`»` 改名），`--output json` 输出完整结果；`--hide-identity` 隐藏设备身份差异（Router ID、接口 IPv4 地址、BGP 对等体地址、IS-IS NET、主机名等），被隐藏的个数见 `summary.hidden_identity`；**有差异时退出码仍为 0**，差异数见 `summary.total` |
 | `lmesh check <文件\|设备名> [--rules 目录] [--severity error\|warning\|info] [--domain D] [--profile P]` | 配置检查：悬空引用、孤儿对象（含级联孤儿）、互斥冲突，以及知识库 `rules/` 中的规则约束；每条发现带规则编号、级别、规范编号、行号、说明与修复建议，并按级别、规则、功能域汇总；目标是已导入的设备时合并该设备的忽略记录（被忽略的发现标注原因，不计入级别统计与退出码）；内置检查的开关与级别按 `rules/builtin.yaml`；`--severity` 是最低级别，`--domain` 只看一个功能域；**筛选后仍有 error 级发现时退出码 1**（便于脚本判断），规则文件写错时退出码 3 并列出文件、规则与出错位置，`--rules` 目录不存在时退出码 4 |
 | `lmesh cleanup <文件\|设备名> [-o 脚本文件] [--profile P] [--object 节点]…` | 冗余清理：为孤儿对象（含级联孤儿）生成删除命令脚本（华为 `undo …`、Cisco `no …`），先删引用方再删被引用方，`!` 注释行注明删除的对象与原配置行号；命令卡缺取消语法时用取消前缀 + 原命令兜底并标注 `FALLBACK`（JSON 中 `fallback: true`），需人工确认，`fallback_reason` 说明原因（`no_undo` / `undo_invalid` / `render_failed` / `match_failed`）；名称出现在未映射行中的对象不删除（`skipped`）；`--object` 只清理选中的对象（可多次）：只被它们引用的级联孤儿随之删除，只选级联孤儿而引用它的对象仍在时跳过（`parent_kept`），不是孤儿的跳过（`not_orphan`）；生成后在图上验证删除不会产生新的悬空引用，验证不通过时退出码 1 |
 | `lmesh report compare <A> <B> [--lang zh-CN\|en] [--format html\|md] [-o 文件] [--domain D] [--raw] [--hide-identity] [--interface-map 文件] [--profile-a P] [--profile-b P] [--rename-threshold 0–1]` | 导出配置对比报告：报告头写两侧的设备、配置版本、软件版本、Profile、知识库版本、生成时间与选项；按功能域分表列出差异（两侧有效值、来源、原文行号），单列改名、不可比（default_only）、未识别行；`--lang` 默认跟随界面语言（pt-BR 用英文）；HTML 是自包含单文件、可打印，Markdown 适合贴进工单；不给 `-o` 时把报告写到 stdout（`--output json` 时放在 `data.content`）；文件名建议 `compare-<A>-<B>.<lang>.<ext>`（`data.filename`） |
 | `lmesh report check <文件\|设备名> [--lang zh-CN\|en] [--format html\|md] [-o 文件] [--severity S] [--domain D] [--rules 目录] [--profile P]` | 导出配置检查报告：按严重度分组列出发现（规则、功能域、节点、行号、说明、建议），被忽略的发现单列并写明原因，有孤儿时附清理脚本与验证结论；文件名建议 `check-<设备>.<lang>.<ext>`；报告只是导出，不因 error 级发现返回非零退出码 |
+| `lmesh topology [文件\|目录\|设备名\|编号…] [--all] [--profile P]` | 拓扑还原：多台设备（配置文件、目录中的配置文件、已导入设备的最新版本，`--all` 为全部已导入设备）按同网段接口、OSPF / IS-IS 邻接、本地与远端 LDP、BGP 对等、伪线、BFD 会话推导三层拓扑；每条链路给出两端设备与接口、网段、推导依据与置信度；对端不在这批设备中的列为 unresolved；按 Schema 的 cross_device 规则生成跨设备依赖边；没有给出设备时退出码 2，设备不存在时退出码 4 |
+| `lmesh consistency [文件\|目录\|设备名\|编号…] [--all] [--severity error\|warning\|info] [--rules 文件] [--profile P]` | 跨设备一致性检查：按 `rules/cross-device.yaml` 比较链路两端（MTU、掩码、OSPF 区域 / 网络类型 / hello / dead / 认证 / 静默、IS-IS 级别与点到点、LDP 两端使能与认证、BGP 互相配置 / AS / 地址族 / 认证、伪线 VC ID / 控制字 / MTU、BFD 描述符与参数、VRRP），另有地址冲突检查；发现挂在链路上，按级别、规则、链路、设备汇总；**有 error 级发现时退出码 1**，规则文件写错时退出码 3，`--rules` 文件不存在时退出码 4 |
+| `lmesh baseline [文件\|设备名…] [--all] [--profile basic\|strict] [--rules 目录] [--parse-profile P] [--report 文件.html\|文件.md] [--report-lang zh-CN\|en] [--style huawei\|cisco]` / `lmesh baseline --list-rules [--profile P]` | 安全基线审计：对一台或多台设备（配置文件、已导入设备的最新版本，`--all` 为全部已导入设备）跑知识库 `rules/` 中的基线规则（`kind: baseline` 的文件，`lmesh check` 不加载），`--profile` 选基线（`strict` 包含 `basic`）。每条规则在每台设备上的结论为 `pass` / `fail` / `na`（没有适用的对象），文字输出给出设备 × 规则矩阵、每台设备的得分（按级别加权：error 3、warning 2、info 1）与不符合项（规则、节点、原文行号、说明、修复建议、按设备平台族写法的参考命令）；`--report` 同时导出基线报告（按扩展名 HTML / Markdown）；`--parse-profile` 是配置文件的知识库 Profile（默认自动识别）。**有 error 级规则不通过时退出码 1**，基线名写错或没有给出设备时退出码 2，规则文件写错时退出码 3，设备不存在时退出码 4 |
 | `lmesh rules list` / `lmesh rules set <规则> [--enable\|--disable] [--severity S]` | 检查规则的开关、级别与来源（`builtin` 或规则文件名）；`set` 修改运行时知识库：知识库规则写回所在的规则文件（保留注释与顺序），内置检查写入覆盖文件 `rules/builtin.yaml`，并提交一次；规则不存在退出码 4，什么都没给退出码 2 |
 | `lmesh ignore list [--device 设备名]` / `ignore add <设备名> <规则> <节点> --reason 原因` / `ignore remove <编号>` | 忽略的检查发现：按（设备、规则、节点）唯一，原因必填（空时退出码 2），重复添加时更新原因；设备、规则或记录不存在时退出码 4 |
 | `lmesh template list` / `template show <模板>` | 参数化模板（运行时知识库 `templates/`）：编号、名称、Profile、变量与块的个数；`show` 列出变量（类型、派生表达式）与正文；`<模板>` 是模板编号或模板文件路径；模板有问题时退出码 3 并列出位置与原因，不存在时退出码 4 |
@@ -413,6 +417,137 @@ JSON 输出中的关键字段：
 
 - `data.patterns` = `[]`
 
+### 对现网 ATN 配置跑基础基线
+
+```bash
+lmesh --output json baseline knowledge/samples/huawei-atn-v800r023/atn-access-01.cfg
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.baseline` = `"basic"`
+- `data.devices.0.score` = `95`
+- `data.devices.0.results.sec.telnet_disabled` = `"pass"`
+- `data.devices.0.results.sec.syslog_server` = `"fail"`
+- `data.devices.0.failures.0.rule` = `"sec.syslog_server"`
+- `data.devices.0.failures.0.remedy` = `["info-center loghost <IP>", "info-center loghost source LoopBack0"]`
+- `data.summary.has_errors` = `false`
+
+### 两台设备跑严格基线（矩阵与得分）
+
+```bash
+lmesh --lang en baseline knowledge/samples/huawei-atn-v800r023/atn-access-01.cfg knowledge/samples/cisco-iosxe-asr920-synthetic/pe-asr920-02-igp-mgmt.cfg --profile strict
+```
+
+退出码：`0`
+
+输出包含：`Baseline strict: 2 device(s), 26 rule(s), score 87`、`sec.snmp_v3_only               ✗              ✗`、`pe-asr920-02-igp-mgmt (cisco-iosxe) score 91`、`Reference commands: line con 0 | exec-timeout 10 0`
+
+### 同时导出 Markdown 基线报告
+
+```bash
+lmesh --output json baseline knowledge/samples/huawei-atn-v800r025-synthetic/atn-igp-mgmt-01.cfg --report out/baseline.md --report-lang en
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.report.format` = `"md"`
+- `data.report.lang` = `"en"`
+- `data.report.filename` = `"baseline-basic-atn-igp-mgmt-01.en.md"`
+
+### 列出基线与规则
+
+```bash
+lmesh --output json baseline --list-rules --profile strict
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.profile` = `"strict"`
+- `data.profiles.0.id` = `"basic"`
+- `data.profiles.1.chain` = `["basic", "strict"]`
+- `data.rules.0.id` = `"sec.telnet_disabled"`
+- `data.rules.0.remedy.huawei` = `["undo telnet server enable", "undo telnet ipv6 server enable"]`
+
+### 华为接口绑定 VPN：绑定后自动补发 IP 地址（副作用，高风险），附回滚脚本与模拟验证
+
+```bash
+lmesh --output json change knowledge/samples/change/atn-base.cfg knowledge/samples/change/atn-bind-vpn.cfg --style huawei
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.family` = `"huawei-vrp8"`
+- `data.ops.0.action` = `"add"`
+- `data.ops.0.text` = `"ip binding vpn-instance OAM"`
+- `data.ops.0.context` = `["interface GigabitEthernet0/2/2"]`
+- `data.ops.1.action` = `"side_effect"`
+- `data.ops.1.text` = `"ip address 10.3.0.1 255.255.255.252"`
+- `data.ops.1.after.0.seq` = `1`
+- `data.ops.1.after.0.kind` = `"side_effect"`
+- `data.ops.1.risk` = `"high"`
+- `data.risk.level` = `"high"`
+- `data.verify.ok` = `true`
+- `data.rollback.verify.ok` = `true`
+- `data.script_plain` = `"system-view\ninterface GigabitEthernet0/2/2\n ip binding vpn-instance OAM\n ip address 10.3.0.1 255.255.255.252\nquit\ncommit\nreturn\n"`
+
+### 下发脚本（带说明行）写到标准输出，摘要写到标准错误
+
+```bash
+lmesh --lang zh-CN change knowledge/samples/change/atn-base.cfg knowledge/samples/change/atn-policy-rename.cfg
+```
+
+退出码：`0`
+
+输出包含：`system-view`、`ip ip-prefix LOOPBACKS-V2 index 10`、`# [3] 修改`、`undo ip ip-prefix LOOPBACKS index 10`、`commit`
+
+错误提示（stderr）包含：`5 条命令`、`验证通过`
+
+### 当前与目标不是同一平台族
+
+```bash
+lmesh change knowledge/samples/change/atn-base.cfg knowledge/samples/change/asr920-base.cfg
+```
+
+退出码：`2`
+
+### 影响分析：改前缀列表影响哪些路由策略与 BGP 对等体（含路径）
+
+```bash
+lmesh --output json impact knowledge/samples/change/atn-base.cfg --node 'rp.prefix_list[LOOPBACKS]'
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.direction` = `"up"`
+- `data.seeds.0.node` = `"rp.prefix_list[LOOPBACKS]"`
+- `data.business.0.node` = `"bgp.instance[65000]/bgp.af[afi=ipv4,vrf=]/peer[RR]"`
+- `data.business.0.type` = `"peer"`
+- `data.business.0.path` = `["rp.prefix_list[LOOPBACKS]", "rp.policy[EXPORT-LOOPBACK]/node[10]/match_prefix_list", "rp.policy[EXPORT-LOOPBACK]/node[10]", "rp.policy[EXPORT-LOOPBACK]", "bgp.instance[65000]/bgp.af[afi=ipv4,vrf=]/peer[RR]/export_policy", "bgp.instance[65000]/bgp.af[afi=ipv4,vrf=]/peer[RR]"]`
+
+### 影响分析的文字输出（VPN 实例影响的接口与地址族）
+
+```bash
+lmesh --lang zh-CN impact knowledge/samples/change/atn-base.cfg --node 'vrf.instance[RAN]'
+```
+
+退出码：`0`
+
+输出包含：`业务对象`、`interface[GigabitEthernet0/2/1.101]`、`vrf.instance[RAN] → interface[GigabitEthernet0/2/1.101]/vrf`
+
 ### 检查配置文件（有 error 级发现时退出码 1）
 
 ```bash
@@ -558,6 +693,57 @@ lmesh compare NO-SUCH-DEVICE tests/inputs/compare/cs-pe.cfg
 退出码：`4`
 
 错误提示（stderr）包含：`NO-SUCH-DEVICE`
+
+### ASR 920 迁移到 ATN（新设备有出厂配置），输出目录里放新配置、增量配置、映射表、告警与步骤
+
+```bash
+lmesh --output json migrate knowledge/samples/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg --to huawei-atn-v800r025 --target-config knowledge/samples/migration/atn-factory.cfg -o out/mig
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.source.profile` = `"cisco-iosxe-asr920-17.15"`
+- `data.target.existing` = `true`
+- `data.inventory.source` = `"target_config"`
+- `data.verify.unexplained` = `0`
+- `data.interface_map.0.source` = `"BDI101"`
+- `data.interface_map.0.target` = `"Vbdif101"`
+- `data.interface_map.0.basis` = `"logical"`
+- `data.steps.0.key` = `"migrate.step.precheck"`
+- `data.files.0` = `"delta.cfg"`
+- `data.files.1` = `"interface-map.csv"`
+
+### 新配置写到标准输出，摘要、映射表、告警与割接步骤写到标准错误（部分映射表，其余自动建议）
+
+```bash
+lmesh --lang zh-CN migrate knowledge/samples/huawei-atn-v800r023/atn-access-01.cfg --to cisco-iosxe-asr920-17.15 --model ASR-920-24SZ-M --interface-map knowledge/samples/migration/atn-to-asr920.partial.yaml
+```
+
+退出码：`0`
+
+输出包含：`interface Port-channel1`、`interface GigabitEthernet0/0/0`、`end`
+
+错误提示（stderr）包含：`校验通过`、`同速率、同端口号`、`管理口，不迁移`、`速率不一致`、`按接口映射表迁移`
+
+### 只给接口映射建议
+
+```bash
+lmesh --output json migrate knowledge/samples/huawei-atn-v800r025-synthetic/atn-mpls-l2vpn-acl-01.cfg --to huawei-atn-v800r025 --target-config knowledge/samples/migration/atn-other-model.cfg --suggest-only
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.map.0.source` = `"GigabitEthernet0/2/1"`
+- `data.map.0.target` = `"GigabitEthernet0/1/1"`
+- `data.map.0.basis` = `"same_index"`
+- `data.map.0.confidence` = `0.8`
+- `data.unmapped` = `[]`
 
 ### 同角色设备对比时隐藏身份差异（主机名、Router ID、环回地址、对等体地址）
 
@@ -727,6 +913,63 @@ lmesh report compare knowledge/samples/cisco-iosxe-asr920-synthetic/pe-asr920-01
 退出码：`0`
 
 输出包含：`ip vpn-instance RAN-2G`、`vpn-target 64512:1 import-extcommunity`
+
+### 从一个目录的配置文件还原拓扑
+
+```bash
+lmesh --output json topology knowledge/samples/topology
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.summary.devices` = `5`
+- `data.summary.links` = `26`
+- `data.summary.by_type.bgp` = `4`
+- `data.summary.by_type.pw` = `2`
+- `data.links.0.type` = `"subnet"`
+- `data.links.0.basis.rule` = `"subnet.p2p"`
+- `data.nodes.0.id` = `"TOPO-AGG-01"`
+
+### 两台设备的拓扑（文字输出，列出不在这批设备中的对端）
+
+```bash
+lmesh --lang en topology knowledge/samples/topology/atn-a1.cfg knowledge/samples/topology/atn-a2.cfg
+```
+
+退出码：`0`
+
+输出包含：`2 device(s), 4 link(s), 5 peer(s) outside this set`、`subnet.p2p`、`bgp peer 10.255.1.1 of TOPO-ATN-A1 is not in this set`
+
+### 跨设备一致性检查（有 error 级发现时退出码 1）
+
+```bash
+lmesh --output json consistency knowledge/samples/topology
+```
+
+退出码：`1`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.summary.total` = `13`
+- `data.summary.by_severity.error` = `10`
+- `data.summary.by_rule.xd.pw.vc_id` = `1`
+- `data.summary.by_rule.xd.bgp.remote_as` = `1`
+- `data.findings.0.severity` = `"error"`
+- `data.rules_skipped.0.id` = `"xd.vrrp.virtual_ip"`
+
+### 一条链路的一致性检查（文字输出）
+
+```bash
+lmesh --lang zh-CN consistency knowledge/samples/topology/atn-a1.cfg knowledge/samples/topology/agg-01.cfg
+```
+
+退出码：`0`
+
+输出包含：`2 台设备、5 条链路：1 条发现`、`xd.subnet.mtu`、`TOPO-AGG-01 GigabitEthernet0/0/1 的 MTU 是 9216，TOPO-ATN-A1 GigabitEthernet0/2/1 是 9000（含默认值）`
 
 ### Cisco 配置翻译到华为（接口映射表；显式值等于目标默认值时省略）
 

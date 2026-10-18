@@ -255,6 +255,22 @@ from lmesh.cli import cmd_translate  # noqa: E402
 
 cmd_translate.register(app)
 
+from lmesh.cli import cmd_topology  # noqa: E402
+
+cmd_topology.register(app)
+
+from lmesh.cli import cmd_migrate  # noqa: E402
+
+cmd_migrate.register(app)
+
+from lmesh.cli import cmd_baseline  # noqa: E402
+
+cmd_baseline.register(app)
+
+from lmesh.cli import cmd_change  # noqa: E402
+
+cmd_change.register(app)
+
 
 def main() -> None:
     if os.name == "nt":  # Windows 控制台输出中文与葡语

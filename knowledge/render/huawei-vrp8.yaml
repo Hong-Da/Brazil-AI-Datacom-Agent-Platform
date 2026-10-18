@@ -11,4 +11,6 @@ infer:
   - {node: bgp.peer_group.type, value: internal, same: [remote_as, "^"]}
   - {node: bgp.peer_group.type, value: external, differ: [remote_as, "^"]}
 # 本平台族的接口类型（翻译时接口名不属于这些类型、又没有在接口映射表中给出时告警）
-interface_types: [GigabitEthernet, XGigabitEthernet, 25GE, 40GE, 50GE, 100GE, 200GE, 400GE, Ethernet, Eth-Trunk, LoopBack, Vbdif, Vlanif, NULL, Tunnel, MEth, Virtual-Template, Virtual-Ethernet, Global-VE, Serial, Pos, Cpos, E1, Mp-group]
+interface_types: [GigabitEthernet, XGigabitEthernet, 25GE, 40GE, 50GE, 100GE, 200GE, 400GE, Ethernet, Eth-Trunk, LoopBack, Vbdif, Vlanif, "NULL", Tunnel, MEth, Virtual-Template, Virtual-Ethernet, Global-VE, Serial, Pos, Cpos, E1, Mp-group]
+# 业务接入点的形态：二层子接口（interface <父接口>.<编号> mode l2）本身就是接入点，接入点编号 = 子接口编号
+access_form: subinterface

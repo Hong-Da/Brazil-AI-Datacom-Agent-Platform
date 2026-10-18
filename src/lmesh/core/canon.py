@@ -81,6 +81,7 @@ def load_style(kb: KnowledgeBase, family: str) -> dict[str, Any]:
         "no_declare": {str(x) for x in (data.get("no_declare") or [])},
         "infer": [dict(x) for x in (data.get("infer") or []) if isinstance(x, dict) and x.get("node")],
         "interface_types": [str(x) for x in (data.get("interface_types") or [])],
+        "access_form": str(data.get("access_form") or ""),
     }
 
 
@@ -229,8 +230,9 @@ def _same(a: Any, b: Any, node_type: str = "string") -> bool:
 
 
 class _Inverter:
-    def __init__(self, card: Card):
+    def __init__(self, card: Card, ctx: dict[str, Any] | None = None):
         self.card = card
+        self.ctx = ctx  # ctx: 表达式的上下文（所在接口的键）
 
     def param(self, name: str, value: Any) -> _Sol | None:
         spec = self.card.params.get(name)
@@ -278,8 +280,12 @@ class _Inverter:
             return [_Sol(neg=not norm_scalar("boolean", want))]
         if e == "auto":
             return [_Sol()]
+        if e.startswith("ctx:"):  # 由所在上下文决定，不能靠写法表达：取值必须与上下文一致
+            return [_Sol()] if _same(mapping.context_value(e, self.ctx), want, node_type) else []
         if e.startswith("if:"):
             _, kw, rest = e.split(":", 2)
+            if kw.startswith("$"):  # if:$参数:表达式——参数有值即可（通常由同一行的对象键给出）
+                return self.run(rest, want, node_type)
             return [m for s in self.run(rest, want, node_type) if (m := _merge(_Sol(kws=frozenset({kw.lower()})), s))]
         if e.startswith("tail:"):
             kw = e[5:].lower()
@@ -511,6 +517,8 @@ class RLine:
     nodes: list[str] = field(default_factory=list)
     card: str | None = None
     opens: bool = False  # 这一行进入了一个视图
+    objects: list[str] = field(default_factory=list)  # 这一行所在 / 创建的对象（增量变更按它定位视图）
+    matched: list[str] = field(default_factory=list)  # 这一行写出的全部节点（含不需要写、顺带写出的）
 
     def as_dict(self, no: int, indent: int) -> dict[str, Any]:
         return {
@@ -820,7 +828,7 @@ class _Renderer:
         anchor_schema = self.g.nodes[anchor].get("schema")
         nb = max((len(alts) for _, alts, _ in ct.targets), default=1)
         out: list[_Stmt] = []
-        inv = _Inverter(ct.card)
+        inv = _Inverter(ct.card, self.ctx_of(chain))
         for b in range(nb):
             chosen = [(alts[min(b, len(alts) - 1)], expr) for _, alts, expr in ct.targets]
             if anchor_schema not in {t.node for t, _ in chosen}:
@@ -924,8 +932,12 @@ class _Renderer:
         out.append((bare, True))
         return out
 
+    def ctx_of(self, chain: dict[str, str]) -> dict[str, Any] | None:
+        inst = chain.get("interface")
+        return {"interface": self.g.nodes[inst].get("key")} if inst else None
+
     def evaluate(
-        self, card: Card, values: dict[str, Any], tokens: list[str], neg: bool
+        self, card: Card, values: dict[str, Any], tokens: list[str], neg: bool, ctx: dict[str, Any] | None = None
     ) -> list[tuple[mapping.Target, SchemaNode, Any]]:
         targets = self.idx.targets.get(card.id)
         if targets is None:
@@ -933,7 +945,7 @@ class _Renderer:
         branch = 0
         for _, alts, expr in targets:
             if len(alts) > 1:
-                branch = mapping.choose_branch([mapping.evaluate(expr, values, tokens, neg)])
+                branch = mapping.choose_branch([mapping.evaluate(expr, values, tokens, neg, ctx=ctx)])
                 break
         out = []
         for _, alts, expr in targets:
@@ -941,7 +953,7 @@ class _Renderer:
             sn = self.kb.nodes.get(t.node)
             if sn is None:
                 continue
-            v: Any = _AUTO if expr == "auto" else mapping.evaluate(expr, values, tokens, neg)
+            v: Any = _AUTO if expr == "auto" else mapping.evaluate(expr, values, tokens, neg, ctx=ctx)
             if v is None or (v == "" and sn.type != "object"):
                 if sn.type == "object":
                     out.append((t, sn, None))
@@ -961,7 +973,7 @@ class _Renderer:
         if parsed is None:
             return None
         card, m = parsed
-        produced = self.evaluate(card, m.all_values(), text.split(), neg)
+        produced = self.evaluate(card, m.all_values(), text.split(), neg, self.ctx_of(chain))
         if not produced:
             return None
         objects: dict[str, str] = {}
@@ -1075,6 +1087,7 @@ class _Renderer:
         self.inferred_used |= st.matched & self.inferred
         origin = "default" if st.covers and st.covers <= self.default_facts else "explicit"
         line = RLine(depth, st.text, "command", origin, sorted(st.covers), st.card.id, bool(st.card.enters_view))
+        line.objects, line.matched = sorted(set(st.objects.values())), sorted(st.matched | st.covers)
         return [line, *self.attached_lines(st, depth)]
 
     def original(self, ctx: _Ctx, nid: str, header: bool = False) -> tuple[list[RLine], _Stmt | None]:

@@ -529,6 +529,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      mgmt.line.auth: kw:local|tacacs:password
   - id: cisco-iosxe.login-authentication
     syntax: login authentication { default | <list-name> }
     view: line
@@ -545,7 +547,8 @@ cards:
       version: '17.15'
     status: draft
     maps:
-      mgmt.line.auth: $list-name||default
+      mgmt.line.auth: aaa
+      mgmt.line.auth_list: $list-name||default
   - id: cisco-iosxe.ntp-access-group
     syntax: ntp access-group [ ipv4 | ipv6 ] { peer | query-only | serve | serve-only } { <access-list-number> | <access-list-number-expanded> | <access-list-name> } [ kod ]
     view: system
@@ -678,6 +681,7 @@ cards:
       mgmt.ntp.server.vrf: $vrf-name
       mgmt.ntp.server.key: $key-id
       mgmt.ntp.server.prefer: if:prefer:flag
+      mgmt.ntp.server.source_interface: $interface
   - id: cisco-iosxe.ntp-source
     syntax: ntp source <interface>
     view: system

@@ -1,0 +1,135 @@
+# 增量变更脚本回归（M4-3）：tests/roundtrip/test_change.py 逐个运行（pytest -m roundtrip）。
+# 每个用例由 current（当前配置）与 target（目标配置）生成下发脚本与回滚脚本，两个方向都必须通过模拟执行验证：
+#   在当前配置上执行脚本后重新解析建图，与目标按有效值一致；没有新的悬空引用；执行中没有“引用了还不存在的对象 / 删除了还被引用的对象”；
+#   每条取消命令都能按取消语法匹配到要删的行。
+# expect：对下发脚本的额外断言——actions（各动作至少出现的条数）、contains（脚本中必须出现的命令，按顺序）、
+#         before（[A, B]：命令 A 必须排在 B 之前）、risk（整体风险等级）。
+# 样本都是合成配置（按 ATN V800R025 / ASR 920 IOS-XE 17.15 的常见写法编写），地址与名称虚构，不含真实设备信息。
+cases:
+  # ---------- 华为 ATN ----------
+  - id: atn-add-vrf
+    current: atn-base.cfg
+    target: atn-add-vrf.cfg
+    note: 新增 VPN 实例 + 子接口绑定 + BGP VPN 实例地址族
+    expect:
+      actions: {add: 11}
+      contains: [system-view, ip vpn-instance IOT, ip binding vpn-instance IOT, ipv4-family vpn-instance IOT, commit]
+      before:
+        - [ip vpn-instance IOT, ip binding vpn-instance IOT]
+        - [ip binding vpn-instance IOT, ip address 172.18.1.1 255.255.255.0]
+        - [ip vpn-instance IOT, ipv4-family vpn-instance IOT]
+  - id: atn-policy-rename
+    current: atn-base.cfg
+    target: atn-policy-rename.cfg
+    note: 前缀列表改名（新建 + 改引用 + 删除旧的）、路由策略改 apply
+    expect:
+      contains: [ip ip-prefix LOOPBACKS-V2 index 10, if-match ip-prefix LOOPBACKS-V2, undo ip ip-prefix LOOPBACKS index 10]
+      before:
+        - [ip ip-prefix LOOPBACKS-V2 index 10, if-match ip-prefix LOOPBACKS-V2]
+        - [if-match ip-prefix LOOPBACKS-V2, undo ip ip-prefix LOOPBACKS index 10]
+  - id: atn-policy-action
+    current: atn-base.cfg
+    target: atn-policy-action.cfg
+    note: route-policy 节点 deny → permit（undo_first：不能直接覆盖，先删后建）
+    expect:
+      before:
+        - [undo route-policy EXPORT-LOOPBACK node 20, route-policy EXPORT-LOOPBACK permit node 20]
+  - id: atn-del-peer
+    current: atn-base.cfg
+    target: atn-del-peer.cfg
+    note: 删除对等体：先删地址族里的使能，再删对等体
+    expect:
+      actions: {delete: 3}
+      risk: high
+      before:
+        - [undo peer 10.255.0.102 enable, undo peer 10.255.0.102]
+  - id: atn-bind-vpn
+    current: atn-base.cfg
+    target: atn-bind-vpn.cfg
+    note: 已有地址的接口绑定 VPN：设备会删除接口 IP，绑定后补发并标为高风险
+    expect:
+      actions: {side_effect: 1}
+      risk: high
+      before:
+        - [ip binding vpn-instance OAM, ip address 10.3.0.1 255.255.255.252]
+  - id: atn-acl
+    current: atn-base.cfg
+    target: atn-acl.cfg
+    note: ACL 规则：修改（覆盖）、删除（undo rule 编号）、新增
+    expect:
+      contains: [acl number 3001, rule 15 permit icmp, undo rule 10]
+  - id: atn-ospf
+    current: atn-base.cfg
+    target: atn-ospf.cfg
+    note: OSPF 接口 cost、bandwidth-reference、区域网段
+    expect:
+      contains: [ospf cost 50, bandwidth-reference 400000, network 10.3.0.0 0.0.0.3]
+  - id: atn-shutdown
+    current: atn-base.cfg
+    target: atn-shutdown.cfg
+    note: 接口关闭 / 启用（undo shutdown 这类取消形式的设置命令在模拟执行中按取消语法解析）与描述修改
+    expect:
+      contains: [interface GigabitEthernet0/2/1, shutdown, description OAM-LINK-NEW]
+  - id: atn-real-modified
+    current: ../huawei-atn-v800r023/atn-access-01.cfg
+    target: ../compare/atn-modified.cfg
+    note: 现网配置（脱敏）上的真实修改：MTU、删除对等体、RT 替换、路由策略改名（对比基准 atn-modified）
+    expect:
+      before:
+        - [peer Client route-policy IMPORT_VPN_V2 import, undo route-policy IMPORT_ALL_VPN node 10]
+  # ---------- Cisco ASR 920 ----------
+  - id: asr920-add-vrf
+    current: asr920-base.cfg
+    target: asr920-add-vrf.cfg
+    note: 新增 VRF + BDI 绑定 + BGP VRF 地址族
+    expect:
+      contains: [configure terminal, vrf definition IOT, vrf forwarding IOT, address-family ipv4 vrf IOT, end]
+      before:
+        - [vrf definition IOT, vrf forwarding IOT]
+        - [vrf forwarding IOT, ip address 172.18.1.1 255.255.255.0]
+  - id: asr920-policy-rename
+    current: asr920-base.cfg
+    target: asr920-policy-rename.cfg
+    note: prefix-list 改名、route-map 改引用与 set
+    expect:
+      before:
+        - [ip prefix-list LOOPBACKS-V2 seq 10, match ip address prefix-list LOOPBACKS-V2]
+        - [match ip address prefix-list LOOPBACKS-V2, no ip prefix-list LOOPBACKS seq 10]
+  - id: asr920-del-peer
+    current: asr920-base.cfg
+    target: asr920-del-peer.cfg
+    note: 删除邻居：先删地址族里的 activate，再 no neighbor
+    expect:
+      before:
+        - [no neighbor 10.255.0.2 activate, no neighbor 10.255.0.2]
+  - id: asr920-bind-vrf
+    current: asr920-base.cfg
+    target: asr920-bind-vrf.cfg
+    note: vrf forwarding 会删除接口 IP（变更知识补充的副作用），绑定后补发
+    expect:
+      actions: {side_effect: 1}
+      risk: high
+      before:
+        - [vrf forwarding MGMT, ip address 10.3.0.2 255.255.255.252]
+  - id: asr920-acl
+    current: asr920-base.cfg
+    target: asr920-acl.cfg
+    note: 命名 ACL 的同一序号不能直接覆盖（undo_first：先 no 10 再重配）、删除 no 20、新增 25
+    expect:
+      contains: [ip access-list extended INFRA-IN, no 20]
+      before:
+        - [no 10, 10 permit tcp 10.90.0.0 0.0.0.255 host 10.255.0.22 eq 22]
+  - id: asr920-ospf
+    current: asr920-base.cfg
+    target: asr920-ospf.cfg
+    note: OSPF 接口 cost、reference-bandwidth、网段
+    expect:
+      contains: [ip ospf cost 50, auto-cost reference-bandwidth 400000, network 10.3.0.0 0.0.0.3 area 0]
+  - id: asr920-real-modified
+    current: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+    target: ../compare/asr920-modified.cfg
+    note: 对比基准 asr920-modified：MTU、删除邻居、RT 替换、两级改名
+    expect:
+      before:
+        - [neighbor RR route-map EXPORT-LO out, no route-map EXPORT-LOOPBACK permit 10]
+        - [ip prefix-list LOOPBACK-V4 seq 10, match ip address prefix-list LOOPBACK-V4]

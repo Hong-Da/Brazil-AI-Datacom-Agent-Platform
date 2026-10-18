@@ -13,6 +13,8 @@
            tail:关键字[:截止词]  关键字之后的全部词（到截止词为止）
            flag             开关：true；undo / no 形式时为 false
            auto             按出现顺序自动编号（没有序号的列表项）；$序号||auto 有序号用序号，否则自动编号
+           ctx:subif        上下文中接口的子接口编号（GE0/2/1.101 → 101；主接口为 _）：接入点在接口视图里的编号，
+                            华为二层子接口与 Cisco 子接口上的接入点按它编号，与 Cisco service instance 的编号对应
            其他             文字常量
     对象节点的表达式给出对象的键：单键直接写；复合键写成 {字段: 表达式}。
 
@@ -81,16 +83,32 @@ def _mask_to_len(v: str) -> str:
     return v
 
 
-def evaluate(expr: Any, values: dict[str, Any], tokens: list[str], negated: bool, auto: int = 0) -> Any:
-    """计算表达式；取不到值时返回 None。列表参数返回列表。"""
+def context_value(expr: str, ctx: dict[str, Any] | None) -> Any:
+    """ctx: 表达式：取决于所在上下文的取值（ctx 是 {对象类型: 上下文中该对象的键}）。"""
+    if expr == "ctx:subif":
+        name = str((ctx or {}).get("interface") or "")
+        _, dot, sub = name.rpartition(".")
+        return sub if dot and sub else "_"
+    return None
+
+
+def evaluate(
+    expr: Any,
+    values: dict[str, Any],
+    tokens: list[str],
+    negated: bool,
+    auto: int = 0,
+    ctx: dict[str, Any] | None = None,
+) -> Any:
+    """计算表达式；取不到值时返回 None。列表参数返回列表。ctx 是上下文中的对象键（ctx: 表达式用）。"""
     if isinstance(expr, dict):
-        return {k: evaluate(v, values, tokens, negated, auto) for k, v in expr.items()}
+        return {k: evaluate(v, values, tokens, negated, auto, ctx) for k, v in expr.items()}
     e = str(expr)
     low = [t.lower() for t in tokens]
     if "||" in e and not e.startswith("$"):
         # 多个候选：依次计算，取第一个有值的（每个候选本身可以是 kw: / if: / fmt: / tail: / $参数 / 字面量）
         for alt in e.split("||"):
-            v = evaluate(alt.strip(), values, tokens, negated, auto)
+            v = evaluate(alt.strip(), values, tokens, negated, auto, ctx)
             if v not in (None, "", []):
                 return v
         return None
@@ -98,11 +116,15 @@ def evaluate(expr: Any, values: dict[str, Any], tokens: list[str], negated: bool
         return not negated
     if e == "auto":
         return str(auto)
+    if e.startswith("ctx:"):
+        return context_value(e, ctx)
     if e.startswith("if:"):
         _, kw, rest = e.split(":", 2)
         if kw.startswith("$"):  # if:$参数:表达式——该参数有值时才取（Cisco host X 记反掩码 0.0.0.0）
-            return evaluate(rest, values, tokens, negated, auto) if values.get(kw[1:]) not in (None, "", []) else None
-        return evaluate(rest, values, tokens, negated, auto) if kw.lower() in low else None
+            return (
+                evaluate(rest, values, tokens, negated, auto, ctx) if values.get(kw[1:]) not in (None, "", []) else None
+            )
+        return evaluate(rest, values, tokens, negated, auto, ctx) if kw.lower() in low else None
     if e.startswith("tail:"):
         # 关键字之后的全部词（多个关键字选项重复出现时，例如 service-type ftp terminal telnet）
         # tail:关键字:截止词——只取到截止词之前（tunnel select-seq lsp cr-lsp load-balance-number 1 → "lsp cr-lsp"）
@@ -145,8 +167,8 @@ def evaluate(expr: Any, values: dict[str, Any], tokens: list[str], negated: bool
             v = values.get(alt[1:])
             if v not in (None, "", []):
                 return v
-        elif alt.startswith(("fmt:", "kw:", "tail:", "if:")):
-            v = evaluate(alt, values, tokens, negated, auto)
+        elif alt.startswith(("fmt:", "kw:", "tail:", "if:", "ctx:")):
+            v = evaluate(alt, values, tokens, negated, auto, ctx)
             if v not in (None, "", []):
                 return v
         elif alt != "":

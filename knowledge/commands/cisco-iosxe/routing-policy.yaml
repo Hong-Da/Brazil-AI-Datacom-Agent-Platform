@@ -421,25 +421,24 @@ cards:
       version: '17.15'
     status: draft
   - id: cisco-iosxe.set-community
-    syntax: set community { <community-number> [ additive ] [ <well-known-community> ] | none }
+    syntax: set community { { <community-number> } &<1-32> [ additive ] | none }
     view: route-map
     undo: no set community
     params:
       community-number:
-        type: word
-      well-known-community:
-        type: word
+        type: community
     default: No BGP communities attributes exist.
+    maps:
+      rp.policy.node.set_community: $community-number
+      rp.policy.node.set_community_additive: kw:additive=true:false
     source:
       doc: cisco-iosxe-md
       file: routing-policy/set community.md
       title: set community
       line: 5
       version: '17.15'
+      patched: 原文把团体值写成单个参数（community-number [ additive ] [ well-known-community ]）；运行配置中一行可以写多个团体值（set community 65082:3 65082:2 additive），改成重复写法，公认团体（no-export 等）也按团体值取
     status: draft
-    maps:
-      rp.policy.node.set_community: $community-number
-      rp.policy.node.set_community_additive: kw:additive=true:false
   - id: cisco-iosxe.set-extcommunity-rt
     syntax: set extcommunity rt { { <extended-community-value> } &<1-32> | range <start-range-value> <end-range-value> } [ additive ]
     view: route-map

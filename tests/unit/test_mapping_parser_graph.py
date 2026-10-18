@@ -134,8 +134,8 @@ def test_graph_objects_defaults_deps(kb) -> None:  # type: ignore[no-untyped-def
     assert n["interface[Vbdif101]/shutdown"]["value"] is False
     assert n["interface[Vbdif101]/mtu"]["origin"] == "default" and n["interface[Vbdif101]/mtu"]["value"] == 1500
     # 华为二层子接口上的业务接入点
-    assert n["interface[GigabitEthernet0/2/1.101]/access[_]/vlan"]["value"] == 101
-    assert n["interface[GigabitEthernet0/2/1.101]/access[_]/rewrite"]["value"] == "pop 1"
+    assert n["interface[GigabitEthernet0/2/1.101]/access[101]/vlan"]["value"] == 101
+    assert n["interface[GigabitEthernet0/2/1.101]/access[101]/rewrite"]["value"] == "pop 1"
     # vpn-target 一行两个值 → 两个 RT 对象
     rts = [k for k in n if k.startswith("vrf.instance[RAN]/af[ipv4]/rt[") and n[k]["kind"] == "object"]
     assert len(rts) == 2

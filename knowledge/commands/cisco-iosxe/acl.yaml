@@ -474,3 +474,18 @@ cards:
       acl.instance.rule.source_ip: $source||$source-host||any
       acl.instance.rule.source_wildcard: $source-wildcard||if:$source-host:0.0.0.0||if:$source:0.0.0.0
       acl.instance.rule.log: if:log:true
+  - id: cisco-iosxe.ip-access-list-name
+    syntax: ip access-list <access-list-name>
+    view: system
+    enters_view: acl
+    undo: no ip access-list <access-list-name>
+    params:
+      access-list-name:
+        type: word
+    source:
+      patched: ip access-list 页只列了带 standard / extended 的写法；运行配置与部分 IOS-XE 版本可以只写名称（ip access-list <名称>，进入扩展命名 ACL 模式），按运行配置补充
+      added_by_patch: true
+    status: draft
+    maps:
+      acl.instance: $access-list-name
+      acl.instance.type: advanced

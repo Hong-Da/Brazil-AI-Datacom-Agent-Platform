@@ -1,0 +1,66 @@
+# 安全基线审计（M4-7）的 API 用例；导入设备后按 device_ids / all 审计与报告文件写在 tests/api/test_baseline_api.py
+
+[[case]]
+id = "baseline-text"
+title = { zh-CN = "对一段配置跑基础基线", en = "Run the basic baseline on config text", pt-BR = "Executar a baseline básica em um texto de configuração" }
+method = "POST"
+path = "/api/v1/baseline"
+setup = "configured-fullkb"
+auth = true
+body = { baseline = "basic", configs = [{ name = "R1", text = "sysname R1\n#\ntelnet server enable\n#\nuser-interface vty 0 4\n authentication-mode aaa\n protocol inbound ssh\n#\nreturn" }] }
+expect_status = 200
+expect_json = { "code" = 0, "data.baseline" = "basic", "data.matrix.devices" = ["R1"], "data.devices.0.results.sec.telnet_disabled" = "fail", "data.devices.0.results.sec.vty_ssh_only" = "pass", "data.devices.0.results.sec.tacacs_key" = "na", "data.devices.0.failures.0.rule" = "sec.telnet_disabled", "data.devices.0.failures.0.lines" = [3], "data.devices.0.failures.0.remedy" = ["undo telnet server enable", "undo telnet ipv6 server enable"], "data.summary.has_errors" = true }
+in_docs = true
+
+[[case]]
+id = "baseline-rules"
+title = { zh-CN = "严格基线的规则清单", en = "Rules of the strict baseline", pt-BR = "Regras da baseline estrita" }
+method = "GET"
+path = "/api/v1/baseline/rules?baseline=strict"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.profile" = "strict", "data.total" = 26, "data.profiles.0.id" = "basic", "data.profiles.1.includes" = ["basic"], "data.rules.0.id" = "sec.telnet_disabled", "data.rules.0.severity" = "error" }
+in_docs = true
+
+[[case]]
+id = "baseline-bad-profile"
+title = { zh-CN = "基线名写错", en = "Unknown baseline", pt-BR = "Baseline desconhecida" }
+method = "POST"
+path = "/api/v1/baseline"
+setup = "configured"
+auth = true
+body = { baseline = "gold", configs = [{ text = "sysname R1" }] }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "baseline-no-target"
+title = { zh-CN = "没有给出配置或设备", en = "Neither configs nor devices", pt-BR = "Sem configurações nem dispositivos" }
+method = "POST"
+path = "/api/v1/baseline"
+setup = "configured"
+auth = true
+body = { baseline = "basic" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "baseline-device-missing"
+title = { zh-CN = "设备不存在", en = "Unknown device", pt-BR = "Dispositivo inexistente" }
+method = "POST"
+path = "/api/v1/baseline"
+setup = "configured"
+auth = true
+body = { device_ids = [999] }
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "baseline-no-auth"
+title = { zh-CN = "没有令牌", en = "Missing token", pt-BR = "Sem token" }
+method = "GET"
+path = "/api/v1/baseline/rules"
+setup = "configured"
+expect_status = 401
+expect_json = { "code" = 1002 }

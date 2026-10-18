@@ -383,3 +383,38 @@ patches:
       syntax: member <interface> [ service-instance <id> ] [ group <group-name> [ priority <number> ] ]
       undo: no member <interface> [ service-instance <id> ]
       params: {interface: {type: interface}, id: {type: integer, range: [1, 8000]}, group-name: {type: word}, number: {type: integer}}
+  # M3 知识库补缺：子接口终结单层 VLAN（三层子接口、子接口上的 xconnect），对应华为 vlan-type dot1q
+  - reason: 公开命令参考的 encapsulation dot1q 页只列了 QinQ（second-dot1q）写法，模式写成 config-ifsub（不在视图映射中）；子接口终结单层 VLAN 的写法按 IOS-XE 运行配置补充（encapsulation dot1Q 10）
+    add:
+      id: cisco-iosxe.subif-encapsulation-dot1q
+      domain: interface
+      view: interface
+      syntax: encapsulation dot1q <vlan-id> [ native ]
+      undo: no encapsulation dot1q
+      params: {vlan-id: {type: integer, range: [1, 4094]}}
+  - id: cisco-iosxe.set-community
+    reason: 原文把团体值写成单个参数（community-number [ additive ] [ well-known-community ]）；运行配置中一行可以写多个团体值（set community 65082:3 65082:2 additive），改成重复写法，公认团体（no-export 等）也按团体值取
+    set:
+      syntax: set community { { <community-number> } &<1-32> [ additive ] | none }
+      params: {community-number: {type: community}}
+  - id: cisco-iosxe.neighbor-timers@router-bgp
+    reason: 原文排版把 peer-group-name 拆成了 <p> <eer-group-name>，且邻居是必选的；运行配置中是 neighbor <地址或对等体组> timers <keepalive> <hold>
+    set:
+      syntax: neighbor { <ip-address> | <peer-group-name> } timers <keepalive> <holdtime> [ <min-holdtime> ]
+      undo: no neighbor { <ip-address> | <peer-group-name> } timers
+      params: {ip-address: {type: ipv4}, peer-group-name: {type: word}, keepalive: {type: integer, range: [0, 65535]}, holdtime: {type: integer, range: [0, 65535]}, min-holdtime: {type: integer, range: [0, 65535]}}
+  - id: cisco-iosxe.neighbor-timers@bgp-af
+    reason: 同上（地址族模式下的同一命令）。原文排版把 peer-group-name 拆成了 <p> <eer-group-name>，且邻居是必选的；运行配置中是 neighbor <地址或对等体组> timers <keepalive> <hold>
+    set:
+      syntax: neighbor { <ip-address> | <peer-group-name> } timers <keepalive> <holdtime> [ <min-holdtime> ]
+      undo: no neighbor { <ip-address> | <peer-group-name> } timers
+      params: {ip-address: {type: ipv4}, peer-group-name: {type: word}, keepalive: {type: integer, range: [0, 65535]}, holdtime: {type: integer, range: [0, 65535]}, min-holdtime: {type: integer, range: [0, 65535]}}
+  - reason: ip access-list 页只列了带 standard / extended 的写法；运行配置与部分 IOS-XE 版本可以只写名称（ip access-list <名称>，进入扩展命名 ACL 模式），按运行配置补充
+    add:
+      id: cisco-iosxe.ip-access-list-name
+      domain: acl
+      view: system
+      syntax: ip access-list <access-list-name>
+      enters_view: acl
+      undo: no ip access-list <access-list-name>
+      params: {access-list-name: {type: word}}

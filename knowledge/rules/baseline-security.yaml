@@ -1,0 +1,682 @@
+# 安全基线（REQ-020，M4-7）：写在统一 Schema 上，华为与 Cisco 两个平台族共用；由 lmesh baseline 加载，lmesh check 不加载。
+# 条件写法见 src/lmesh/core/rules.py 开头；基线的分组、变量覆盖与结果结构见 src/lmesh/core/baseline.py。
+# 团体字、密码等在样本里已经脱敏：规则只按名称 / 别名、版本、是否设置判断，不看密文。
+# remedy 是修复参考命令（不是可直接下发的脚本），风格名与 knowledge/terms.yaml 一致；{key} 是实例的键。
+kind: baseline
+
+vars:
+  # 弱团体字（按名称 / 别名比较，不区分大小写）；可按企业规范增删
+  weak_communities: [public, private, community, admin, administrator, cisco, huawei, snmp, snmpd, test, default,
+    manager, monitor, read, write, secret, password, system, guest, root, public@123, private@123, "123456"]
+  # 登录线路空闲超时上限（秒）；0 表示永不超时，一律不符合
+  max_idle_seconds: 900
+  # SSH 认证重试次数上限
+  max_ssh_retries: 3
+
+profiles:
+  basic:
+    title: {zh-CN: 基础基线, en: Basic baseline, pt-BR: Baseline básica}
+    description:
+      zh-CN: 管理面的最低要求：关闭明文协议、SSH 登录并限制来源、SNMP 团体字不弱且受 ACL 保护、AAA 与集中认证、NTP 与日志服务器
+      en: "Minimum management-plane requirements: no clear-text protocols, SSH logins restricted by ACL, strong ACL-protected SNMP communities, AAA with a central server, NTP and a log server"
+      pt-BR: "Requisitos mínimos do plano de gerência: sem protocolos em texto claro, login SSH restrito por ACL, comunidades SNMP fortes e protegidas por ACL, AAA com servidor central, NTP e servidor de log"
+  strict:
+    title: {zh-CN: 严格基线, en: Strict baseline, pt-BR: Baseline estrita}
+    description:
+      zh-CN: 在基础基线之上：只用 SNMPv3、NTP 服务器逐个绑定认证密钥、更短的空闲超时、限制最高级别的本地用户与 SSH 重试次数
+      en: "On top of the basic baseline: SNMPv3 only, an authentication key on every NTP server, shorter idle timeouts, limits on top-level local users and SSH retries"
+      pt-BR: "Além da baseline básica: apenas SNMPv3, chave de autenticação em cada servidor NTP, timeouts de inatividade menores, limites para usuários locais de nível máximo e tentativas SSH"
+    includes: [basic]
+    vars:
+      max_idle_seconds: 600
+      max_ssh_retries: 3
+
+rules:
+  # ---------- 明文与不安全服务 ----------
+  - id: sec.telnet_disabled
+    profiles: [basic]
+    tags: [services]
+    target: device
+    # Cisco 没有单独的 Telnet 服务开关，登录线路允许 telnet（或 all）即开启；华为由 telnet server enable 决定
+    assert:
+      not:
+        any:
+          - exists: mgmt.telnet/enabled
+          - all:
+              - family: [cisco-iosxe]
+              - match: {path: mgmt.line/protocols, pattern: '\b(telnet|all)\b'}
+    severity: error
+    title:
+      zh-CN: 关闭 Telnet 服务
+      en: Telnet server disabled
+      pt-BR: Servidor Telnet desativado
+    message:
+      zh-CN: 设备开启了 Telnet 服务；Telnet 以明文传输账号与口令
+      en: The Telnet server is enabled; Telnet sends user names and passwords in clear text
+      pt-BR: O servidor Telnet está ativado; o Telnet transmite usuários e senhas em texto claro
+    suggestion:
+      zh-CN: 关闭 Telnet 服务，改用 STelnet / SSH 登录；Cisco 在登录线路上只允许 SSH
+      en: Disable the Telnet server and log in with STelnet / SSH; on Cisco allow only SSH on the lines
+      pt-BR: Desative o servidor Telnet e use STelnet / SSH; no Cisco permita apenas SSH nas linhas
+    remedy:
+      huawei: [undo telnet server enable, undo telnet ipv6 server enable]
+      cisco: [line vty 0 15, " transport input ssh"]
+
+  - id: sec.ftp_disabled
+    profiles: [basic]
+    tags: [services]
+    target: device
+    assert: {not: {exists: mgmt.ftp/enabled}}
+    severity: warning
+    title:
+      zh-CN: 关闭 FTP 服务
+      en: FTP server disabled
+      pt-BR: Servidor FTP desativado
+    message:
+      zh-CN: 设备开启了 FTP 服务；FTP 以明文传输账号、口令与文件
+      en: The FTP server is enabled; FTP sends credentials and files in clear text
+      pt-BR: O servidor FTP está ativado; o FTP transmite credenciais e arquivos em texto claro
+    suggestion:
+      zh-CN: 关闭 FTP 服务，改用 SFTP / SCP 传输文件
+      en: Disable the FTP server and transfer files with SFTP / SCP
+      pt-BR: Desative o servidor FTP e transfira arquivos com SFTP / SCP
+    remedy:
+      huawei: [undo ftp server enable, sftp server enable]
+      cisco: [no ftp-server enable, ip scp server enable]
+
+  # ---------- SSH ----------
+  - id: sec.ssh_enabled
+    profiles: [basic]
+    tags: [ssh]
+    target: device
+    assert:
+      any:
+        - exists: mgmt.ssh/enabled
+        - exists: mgmt.ssh/version
+        - all:
+            - family: [cisco-iosxe]
+            - match: {path: mgmt.line/protocols, pattern: '\bssh\b'}
+    severity: error
+    title:
+      zh-CN: 启用 SSH 登录
+      en: SSH login enabled
+      pt-BR: Login SSH ativado
+    message:
+      zh-CN: 没有找到启用 SSH（华为 STelnet）服务的配置，设备只能通过不安全的方式或控制台管理
+      en: No configuration enables the SSH (Huawei STelnet) server; the device can only be managed insecurely or from the console
+      pt-BR: Nenhuma configuração ativa o servidor SSH (STelnet na Huawei); o equipamento só pode ser gerenciado de forma insegura ou pelo console
+    suggestion:
+      zh-CN: 启用 STelnet / SSH 服务并使用 SSHv2
+      en: Enable the STelnet / SSH server with SSHv2
+      pt-BR: Ative o servidor STelnet / SSH com SSHv2
+    remedy:
+      huawei: [stelnet server enable]
+      cisco: [ip ssh version 2, crypto key generate rsa modulus 3072]
+
+  - id: sec.ssh_v2
+    profiles: [basic]
+    tags: [ssh]
+    target: device
+    when:
+      any:
+        - exists: mgmt.ssh/enabled
+        - exists: mgmt.ssh/version
+        - match: {path: mgmt.line/protocols, pattern: '\bssh\b'}
+    # 华为 VRP8 缺省不开启 SSHv1 兼容（ssh server compatible-ssh1x），知识库还没有映射该命令，按缺省行为判断
+    assert:
+      any:
+        - equals: {path: mgmt.ssh/version, value: 2}
+        - all:
+            - family: [huawei-vrp8]
+            - not: {equals: {path: mgmt.ssh/version, value: 1}}
+    severity: error
+    title:
+      zh-CN: SSH 只用版本 2
+      en: SSH version 2 only
+      pt-BR: Somente SSH versão 2
+    message:
+      zh-CN: SSH 没有限定为版本 2（Cisco 缺省兼容 SSHv1，即 1.99）；SSHv1 存在已知漏洞
+      en: SSH is not restricted to version 2 (Cisco accepts SSHv1 by default, i.e. 1.99); SSHv1 has known weaknesses
+      pt-BR: O SSH não está restrito à versão 2 (o Cisco aceita SSHv1 por padrão, isto é, 1.99); o SSHv1 tem vulnerabilidades conhecidas
+    suggestion:
+      zh-CN: 把 SSH 限定为版本 2；华为不要开启 SSHv1 兼容
+      en: Restrict SSH to version 2; on Huawei keep SSHv1 compatibility disabled
+      pt-BR: Restrinja o SSH à versão 2; na Huawei mantenha a compatibilidade com SSHv1 desativada
+    remedy:
+      huawei: [undo ssh server compatible-ssh1x enable]
+      cisco: [ip ssh version 2]
+
+  - id: sec.ssh_retries
+    profiles: [strict]
+    tags: [ssh]
+    target: mgmt.ssh
+    when: {exists: retries}
+    assert: {range: {path: retries, min: 1, max: $max_ssh_retries}}
+    severity: info
+    title:
+      zh-CN: 限制 SSH 认证重试次数
+      en: SSH authentication retries limited
+      pt-BR: Tentativas de autenticação SSH limitadas
+    message:
+      zh-CN: SSH 认证重试次数超过基线上限，增加了暴力破解的机会
+      en: SSH authentication retries exceed the baseline limit, which helps brute-force attempts
+      pt-BR: As tentativas de autenticação SSH excedem o limite da baseline, o que facilita ataques de força bruta
+    suggestion:
+      zh-CN: 把 SSH 认证重试次数调到基线上限以内（缺省 3 次）
+      en: Lower the SSH authentication retries to the baseline limit (default 3)
+      pt-BR: Reduza as tentativas de autenticação SSH ao limite da baseline (padrão 3)
+    remedy:
+      huawei: [ssh server authentication-retries 3]
+      cisco: [ip ssh authentication-retries 3]
+
+  # ---------- 登录线路（VTY） ----------
+  - id: sec.vty_ssh_only
+    profiles: [basic]
+    tags: [line]
+    target: mgmt.line
+    when:
+      all:
+        - key: {pattern: '^vty\b'}
+        - not: {equals: {path: protocols, value: none}}
+    assert: {equals: {path: protocols, value: ssh}}
+    severity: error
+    title:
+      zh-CN: VTY 只允许 SSH
+      en: VTY lines accept SSH only
+      pt-BR: Linhas VTY aceitam apenas SSH
+    message:
+      zh-CN: 登录线路 {key} 没有限定只允许 SSH（没有配置时华为允许全部协议，Telnet 也能登录）
+      en: Line {key} is not restricted to SSH (without the command Huawei accepts all protocols, Telnet included)
+      pt-BR: A linha {key} não está restrita a SSH (sem o comando a Huawei aceita todos os protocolos, inclusive Telnet)
+    suggestion:
+      zh-CN: 在登录线路上只允许 SSH（华为 protocol inbound ssh，Cisco transport input ssh）
+      en: Allow only SSH on the line (Huawei protocol inbound ssh, Cisco transport input ssh)
+      pt-BR: Permita apenas SSH na linha (Huawei protocol inbound ssh, Cisco transport input ssh)
+    remedy:
+      huawei: ["user-interface {key}", " protocol inbound ssh"]
+      cisco: ["line {key}", " transport input ssh"]
+
+  - id: sec.vty_acl
+    profiles: [basic]
+    tags: [line, acl]
+    target: mgmt.line
+    when:
+      all:
+        - key: {pattern: '^vty\b'}
+        - not: {equals: {path: protocols, value: none}}
+    assert: {exists: acl_in}
+    severity: warning
+    title:
+      zh-CN: VTY 绑定入方向 ACL
+      en: VTY lines protected by an inbound ACL
+      pt-BR: Linhas VTY protegidas por ACL de entrada
+    message:
+      zh-CN: 登录线路 {key} 没有绑定入方向 ACL，任何地址都能尝试登录
+      en: Line {key} has no inbound ACL; any address can attempt to log in
+      pt-BR: A linha {key} não tem ACL de entrada; qualquer endereço pode tentar fazer login
+    suggestion:
+      zh-CN: 为登录线路绑定只放行网管网段的 ACL（华为 acl … inbound，Cisco access-class … in）
+      en: Bind an ACL that permits only the management networks (Huawei acl … inbound, Cisco access-class … in)
+      pt-BR: Associe uma ACL que permita apenas as redes de gerência (Huawei acl … inbound, Cisco access-class … in)
+    remedy:
+      huawei: ["user-interface {key}", " acl <ACL> inbound"]
+      cisco: ["line {key}", " access-class <ACL> in"]
+
+  - id: sec.vty_auth_aaa
+    profiles: [basic]
+    tags: [line, aaa]
+    target: mgmt.line
+    when:
+      all:
+        - key: {pattern: '^vty\b'}
+        - not: {equals: {path: protocols, value: none}}
+    # Cisco 开启 aaa new-model 后，没有 login authentication 的线路使用 default 方法列表
+    assert:
+      any:
+        - all:
+            - exists: auth
+            - not: {in: {path: auth, values: [password, none, line]}}
+        - all:
+            - family: [cisco-iosxe]
+            - not: {exists: auth}
+            - exists: /mgmt.aaa/scheme
+    severity: warning
+    title:
+      zh-CN: VTY 使用 AAA 认证
+      en: VTY lines use AAA authentication
+      pt-BR: Linhas VTY usam autenticação AAA
+    message:
+      zh-CN: 登录线路 {key} 没有使用 AAA 认证（未配置认证方式，或只用线路口令）
+      en: Line {key} does not use AAA authentication (no authentication mode, or only a line password)
+      pt-BR: A linha {key} não usa autenticação AAA (sem modo de autenticação ou apenas senha de linha)
+    suggestion:
+      zh-CN: 登录线路改用 AAA 认证，由 AAA 方案决定认证方式
+      en: Switch the line to AAA authentication and let the AAA scheme decide the methods
+      pt-BR: Passe a linha para autenticação AAA e deixe o esquema AAA definir os métodos
+    remedy:
+      huawei: ["user-interface {key}", " authentication-mode aaa"]
+      cisco: [aaa new-model, "line {key}", " login authentication default"]
+
+  - id: sec.line_idle_timeout
+    profiles: [basic]
+    tags: [line]
+    target: mgmt.line
+    when: {not: {equals: {path: protocols, value: none}}}
+    assert: {range: {path: idle_timeout, min: 1, max: $max_idle_seconds, unit: min_sec}}
+    severity: warning
+    title:
+      zh-CN: 登录线路空闲超时不为 0 且不超过上限
+      en: Line idle timeout set and within the limit
+      pt-BR: Timeout de inatividade da linha definido e dentro do limite
+    message:
+      zh-CN: 登录线路 {key} 的空闲超时为 0（永不超时）或超过基线上限
+      en: The idle timeout of line {key} is 0 (never) or above the baseline limit
+      pt-BR: O timeout de inatividade da linha {key} é 0 (nunca) ou está acima do limite da baseline
+    suggestion:
+      zh-CN: 把空闲超时设为不为 0、且不超过基线上限的值（基础 15 分钟，严格 10 分钟）
+      en: Set a non-zero idle timeout within the baseline limit (basic 15 minutes, strict 10 minutes)
+      pt-BR: Defina um timeout diferente de zero dentro do limite (básica 15 minutos, estrita 10 minutos)
+    remedy:
+      huawei: ["user-interface {key}", " idle-timeout 10 0"]
+      cisco: ["line {key}", " exec-timeout 10 0"]
+
+  # ---------- SNMP ----------
+  - id: sec.snmp_weak_community
+    profiles: [basic]
+    tags: [snmp]
+    target: mgmt.snmp.community
+    assert: {not: {key: {values: $weak_communities, ignore_case: true}}}
+    severity: error
+    title:
+      zh-CN: SNMP 不用默认 / 弱团体字
+      en: No default or weak SNMP community
+      pt-BR: Sem comunidade SNMP padrão ou fraca
+    message:
+      zh-CN: 团体字 {key} 是默认或常见的弱团体字，容易被猜到
+      en: Community {key} is a default or common weak community and easy to guess
+      pt-BR: A comunidade {key} é padrão ou fraca e fácil de adivinhar
+    suggestion:
+      zh-CN: 删除该团体字，改用复杂的团体字（华为用密文形式），最好改用 SNMPv3
+      en: Remove the community and use a complex one (cipher form on Huawei), preferably SNMPv3
+      pt-BR: Remova a comunidade e use uma complexa (forma cifrada na Huawei), de preferência SNMPv3
+    remedy:
+      huawei: ["undo snmp-agent community {key}", "snmp-agent community read cipher <COMPLEX> acl <ACL>"]
+      cisco: ["no snmp-server community {key}", "snmp-server community <COMPLEX> RO <ACL>"]
+
+  - id: sec.snmp_community_acl
+    profiles: [basic]
+    tags: [snmp, acl]
+    target: mgmt.snmp.community
+    assert: {exists: acl}
+    severity: warning
+    title:
+      zh-CN: SNMP 团体字绑定 ACL
+      en: SNMP community bound to an ACL
+      pt-BR: Comunidade SNMP associada a uma ACL
+    message:
+      zh-CN: 团体字 {key} 没有绑定 ACL，任何地址都能用它访问 SNMP
+      en: Community {key} has no ACL; any address can use it to access SNMP
+      pt-BR: A comunidade {key} não tem ACL; qualquer endereço pode usá-la para acessar o SNMP
+    suggestion:
+      zh-CN: 为团体字绑定只放行网管服务器的 ACL
+      en: Bind an ACL that permits only the management servers
+      pt-BR: Associe uma ACL que permita apenas os servidores de gerência
+    remedy:
+      huawei: ["snmp-agent community read cipher <COMMUNITY> acl <ACL>"]
+      cisco: ["snmp-server community <COMMUNITY> RO <ACL>"]
+
+  - id: sec.snmp_community_read_only
+    profiles: [basic]
+    tags: [snmp]
+    target: mgmt.snmp.community
+    assert: {not: {equals: {path: access, value: write}}}
+    severity: warning
+    title:
+      zh-CN: SNMP 团体字只读
+      en: SNMP communities are read-only
+      pt-BR: Comunidades SNMP somente leitura
+    message:
+      zh-CN: 团体字 {key} 有写权限，泄露后可被用来修改设备配置
+      en: Community {key} has write access and could be used to change the configuration if leaked
+      pt-BR: A comunidade {key} tem acesso de escrita e pode ser usada para alterar a configuração se vazar
+    suggestion:
+      zh-CN: 团体字改为只读；确需写操作时改用 SNMPv3 并限定视图
+      en: Make the community read-only; use SNMPv3 with a restricted view when writes are really needed
+      pt-BR: Torne a comunidade somente leitura; use SNMPv3 com visão restrita se escrita for necessária
+    remedy:
+      huawei: ["snmp-agent community read cipher <COMMUNITY> acl <ACL>"]
+      cisco: ["snmp-server community <COMMUNITY> RO <ACL>"]
+
+  - id: sec.snmp_v3_only
+    profiles: [strict]
+    tags: [snmp]
+    target: mgmt.snmp
+    assert:
+      all:
+        - count: {path: community, max: 0}
+        - not: {match: {path: versions, pattern: '\b(v1|v2c|all)\b'}}
+        - not: {in: {path: host/version, values: [v1, v2c]}}
+    severity: warning
+    title:
+      zh-CN: SNMP 只用 v3
+      en: SNMPv3 only
+      pt-BR: Somente SNMPv3
+    message:
+      zh-CN: SNMP 仍在使用 v1 / v2c（团体字、启用的版本或告警主机）；v1 / v2c 不加密也不做用户认证
+      en: SNMP still uses v1 / v2c (communities, enabled versions or trap hosts); v1 / v2c have no encryption or user authentication
+      pt-BR: O SNMP ainda usa v1 / v2c (comunidades, versões ativas ou hosts de trap); v1 / v2c não têm criptografia nem autenticação de usuário
+    suggestion:
+      zh-CN: 改用 SNMPv3（认证加加密），删除团体字，告警主机也改用 v3
+      en: Move to SNMPv3 with authentication and privacy, remove the communities and switch trap hosts to v3
+      pt-BR: Migre para SNMPv3 com autenticação e privacidade, remova as comunidades e passe os hosts de trap para v3
+    remedy:
+      huawei: [snmp-agent sys-info version v3, "undo snmp-agent community <COMMUNITY>"]
+      cisco: ["snmp-server group <GROUP> v3 priv", "no snmp-server community <COMMUNITY>"]
+
+  - id: sec.snmp_trap_source_loopback
+    profiles: [basic]
+    tags: [snmp, source]
+    target: mgmt.snmp
+    when:
+      any:
+        - count: {path: host, min: 1}
+        - exists: trap_enable
+    assert:
+      any:
+        - match: {path: trap_source, pattern: '^loop', ignore_case: true}
+        - match: {path: host/source_interface, pattern: '^loop', ignore_case: true}
+    severity: info
+    title:
+      zh-CN: SNMP 告警源接口为 Loopback
+      en: SNMP trap source is a loopback
+      pt-BR: Origem dos traps SNMP é uma loopback
+    message:
+      zh-CN: SNMP 告警没有以 Loopback 接口为源，网管侧按源地址识别设备与 ACL 放行会随出接口变化
+      en: SNMP traps are not sourced from a loopback; the source address seen by the NMS and its ACLs changes with the egress interface
+      pt-BR: Os traps SNMP não usam uma loopback como origem; o endereço visto pela gerência e suas ACLs muda com a interface de saída
+    suggestion:
+      zh-CN: 把告警源接口设为管理用的 Loopback 接口
+      en: Set the trap source to the management loopback
+      pt-BR: Defina a origem dos traps como a loopback de gerência
+    remedy:
+      huawei: [snmp-agent trap source LoopBack0]
+      cisco: [snmp-server trap-source Loopback0]
+
+  # ---------- AAA ----------
+  - id: sec.aaa_enabled
+    profiles: [basic]
+    tags: [aaa]
+    target: device
+    # 以认证方案 / 方法列表为准：Cisco 的 no aaa new-model 目前也映射成 mgmt.aaa 对象，不能只看对象是否存在
+    assert: {count: {path: mgmt.aaa/scheme, min: 1}}
+    severity: warning
+    title:
+      zh-CN: 配置 AAA
+      en: AAA configured
+      pt-BR: AAA configurado
+    message:
+      zh-CN: 没有配置 AAA 认证方案（Cisco 方法列表），登录认证无法集中管理
+      en: No AAA authentication scheme (Cisco method list) is configured; login authentication cannot be managed centrally
+      pt-BR: Nenhum esquema de autenticação AAA (lista de métodos no Cisco) está configurado; a autenticação de login não pode ser centralizada
+    suggestion:
+      zh-CN: 启用 AAA，配置认证 / 授权方案，先用 HWTACACS / TACACS+ 或 RADIUS，本地用户作为备份
+      en: Enable AAA with authentication / authorization schemes using HWTACACS / TACACS+ or RADIUS first and local users as fallback
+      pt-BR: Ative o AAA com esquemas de autenticação / autorização usando primeiro HWTACACS / TACACS+ ou RADIUS e usuários locais como reserva
+    remedy:
+      huawei: [aaa, " authentication-scheme <NAME>", "  authentication-mode hwtacacs local"]
+      cisco: [aaa new-model, aaa authentication login default group tacacs+ local]
+
+  - id: sec.aaa_server
+    profiles: [basic]
+    tags: [aaa]
+    target: device
+    # RADIUS 服务器还没有进入 Schema：方法里出现 radius 时按已配置处理
+    assert:
+      any:
+        - count: {path: mgmt.tacacs/server, min: 1}
+        - match: {path: mgmt.aaa/scheme/methods, pattern: '\bradius\b'}
+    severity: warning
+    title:
+      zh-CN: 配置 TACACS+ / RADIUS 服务器
+      en: TACACS+ / RADIUS server configured
+      pt-BR: Servidor TACACS+ / RADIUS configurado
+    message:
+      zh-CN: 没有配置 HWTACACS / TACACS+ 或 RADIUS 服务器，只能用本地账号登录，无法集中认证与审计
+      en: No HWTACACS / TACACS+ or RADIUS server is configured; only local accounts can log in, without central authentication or auditing
+      pt-BR: Nenhum servidor HWTACACS / TACACS+ ou RADIUS está configurado; só contas locais fazem login, sem autenticação ou auditoria central
+    suggestion:
+      zh-CN: 配置 HWTACACS / TACACS+（或 RADIUS）服务器模板并在 AAA 方案中引用
+      en: Configure an HWTACACS / TACACS+ (or RADIUS) server template and reference it in the AAA schemes
+      pt-BR: Configure um modelo de servidor HWTACACS / TACACS+ (ou RADIUS) e referencie-o nos esquemas AAA
+    remedy:
+      huawei: ["hwtacacs-server template <NAME>", " hwtacacs-server authentication <IP>", " hwtacacs-server shared-key cipher <KEY>"]
+      cisco: ["tacacs server <NAME>", " address ipv4 <IP>", " key <KEY>"]
+
+  - id: sec.tacacs_key
+    profiles: [basic]
+    tags: [aaa]
+    target: mgmt.tacacs
+    assert: {exists: key_set}
+    severity: warning
+    title:
+      zh-CN: TACACS+ 服务器设置共享密钥
+      en: TACACS+ server has a shared key
+      pt-BR: Servidor TACACS+ com chave compartilhada
+    message:
+      zh-CN: TACACS+ 服务器 {key} 没有设置共享密钥，报文不加密
+      en: TACACS+ server {key} has no shared key; packets are not encrypted
+      pt-BR: O servidor TACACS+ {key} não tem chave compartilhada; os pacotes não são criptografados
+    suggestion:
+      zh-CN: 为服务器设置共享密钥（密文形式）
+      en: Set a shared key for the server (cipher form)
+      pt-BR: Defina uma chave compartilhada para o servidor (forma cifrada)
+    remedy:
+      huawei: ["hwtacacs-server template {key}", " hwtacacs-server shared-key cipher <KEY>"]
+      cisco: ["tacacs server {key}", " key <KEY>"]
+
+  - id: sec.local_user_password
+    profiles: [basic]
+    tags: [aaa]
+    target: mgmt.aaa.user
+    assert: {exists: password_set}
+    severity: error
+    title:
+      zh-CN: 本地用户已设置密码
+      en: Local users have a password
+      pt-BR: Usuários locais com senha
+    message:
+      zh-CN: 本地用户 {key} 没有设置密码
+      en: Local user {key} has no password
+      pt-BR: O usuário local {key} não tem senha
+    suggestion:
+      zh-CN: 为本地用户设置强密码（密文形式），不用的账号删除
+      en: Set a strong password (cipher / secret form), or remove unused accounts
+      pt-BR: Defina uma senha forte (forma cifrada / secret) ou remova contas sem uso
+    remedy:
+      huawei: [aaa, " local-user {key} password irreversible-cipher <PASSWORD>"]
+      cisco: ["username {key} privilege 15 algorithm-type scrypt secret <PASSWORD>"]
+
+  - id: sec.local_user_secure_service
+    profiles: [basic]
+    tags: [aaa, services]
+    target: mgmt.aaa.user
+    when: {not: {match: {path: state, pattern: '\bblock\b'}}}
+    assert: {not: {match: {path: service_type, pattern: '\b(telnet|ftp)\b'}}}
+    severity: warning
+    title:
+      zh-CN: 本地用户不允许 Telnet / FTP
+      en: Local users not allowed Telnet / FTP
+      pt-BR: Usuários locais sem Telnet / FTP
+    message:
+      zh-CN: 本地用户 {key} 的服务类型包含 Telnet 或 FTP（明文协议）
+      en: The service types of local user {key} include Telnet or FTP (clear-text protocols)
+      pt-BR: Os tipos de serviço do usuário local {key} incluem Telnet ou FTP (protocolos em texto claro)
+    suggestion:
+      zh-CN: 服务类型只保留 SSH / 终端等安全方式
+      en: Keep only secure service types such as SSH / terminal
+      pt-BR: Mantenha apenas tipos de serviço seguros, como SSH / terminal
+    remedy:
+      huawei: [aaa, " local-user {key} service-type ssh terminal"]
+      cisco: ["line vty 0 15", " transport input ssh"]
+
+  - id: sec.local_user_top_level
+    profiles: [strict]
+    tags: [aaa]
+    target: mgmt.aaa.user
+    assert: {not: {equals: {path: level, value: 15}}}
+    severity: info
+    title:
+      zh-CN: 限制最高级别的本地用户
+      en: Top-level local users limited
+      pt-BR: Usuários locais de nível máximo limitados
+    message:
+      zh-CN: 本地用户 {key} 是最高级别（15）；本地账号应只作为 AAA 服务器不可用时的应急账号
+      en: Local user {key} has the top level (15); local accounts should only be emergency accounts for when the AAA server is down
+      pt-BR: O usuário local {key} tem o nível máximo (15); contas locais devem ser apenas de emergência para quando o servidor AAA estiver fora
+    suggestion:
+      zh-CN: 确认该账号是应急账号并妥善保管；日常运维使用 AAA 服务器下发的级别
+      en: Confirm it is an emergency account and keep it safe; use levels assigned by the AAA server for daily work
+      pt-BR: Confirme que é uma conta de emergência e guarde-a com cuidado; use níveis atribuídos pelo servidor AAA no dia a dia
+    remedy:
+      huawei: [aaa, " local-user {key} privilege level 3"]
+      cisco: ["username {key} privilege 1 algorithm-type scrypt secret <PASSWORD>"]
+
+  # ---------- NTP ----------
+  - id: sec.ntp_server
+    profiles: [basic]
+    tags: [ntp]
+    target: device
+    assert: {count: {path: mgmt.ntp/server, min: 1}}
+    severity: warning
+    title:
+      zh-CN: 配置 NTP 服务器
+      en: NTP server configured
+      pt-BR: Servidor NTP configurado
+    message:
+      zh-CN: 没有配置 NTP 服务器，日志与告警的时间不可信
+      en: No NTP server is configured; timestamps in logs and alarms cannot be trusted
+      pt-BR: Nenhum servidor NTP está configurado; os horários de logs e alarmes não são confiáveis
+    suggestion:
+      zh-CN: 配置至少一台（建议两台）NTP 服务器，源接口用 Loopback
+      en: Configure at least one (preferably two) NTP servers sourced from a loopback
+      pt-BR: Configure pelo menos um (de preferência dois) servidores NTP com origem em uma loopback
+    remedy:
+      huawei: [ntp-service unicast-server <IP> source-interface LoopBack0]
+      cisco: [ntp server <IP>, ntp source Loopback0]
+
+  - id: sec.ntp_auth
+    profiles: [basic]
+    tags: [ntp]
+    target: mgmt.ntp
+    when: {count: {path: server, min: 1}}
+    assert: {exists: authentication}
+    severity: warning
+    title:
+      zh-CN: 启用 NTP 认证
+      en: NTP authentication enabled
+      pt-BR: Autenticação NTP ativada
+    message:
+      zh-CN: 配置了 NTP 服务器但没有启用 NTP 认证，时间源可能被伪造
+      en: NTP servers are configured but NTP authentication is disabled; the time source can be spoofed
+      pt-BR: Há servidores NTP, mas a autenticação NTP está desativada; a fonte de tempo pode ser falsificada
+    suggestion:
+      zh-CN: 启用 NTP 认证，配置认证密钥并设为可信
+      en: Enable NTP authentication with a trusted authentication key
+      pt-BR: Ative a autenticação NTP com uma chave confiável
+    remedy:
+      huawei: [ntp-service authentication enable, "ntp-service authentication-keyid 1 authentication-mode hmac-sha256 cipher <KEY>", ntp-service reliable authentication-keyid 1]
+      cisco: [ntp authenticate, "ntp authentication-key 1 hmac-sha2-256 <KEY>", ntp trusted-key 1]
+
+  - id: sec.ntp_server_key
+    profiles: [strict]
+    tags: [ntp]
+    target: mgmt.ntp.server
+    when: {exists: ^/authentication}
+    assert: {exists: key}
+    severity: warning
+    title:
+      zh-CN: NTP 服务器绑定认证密钥
+      en: NTP servers use an authentication key
+      pt-BR: Servidores NTP usam chave de autenticação
+    message:
+      zh-CN: 启用了 NTP 认证，但 NTP 服务器 {key} 没有指定认证密钥，与它的同步不受认证保护
+      en: NTP authentication is enabled but server {key} has no authentication key, so synchronization with it is not authenticated
+      pt-BR: A autenticação NTP está ativa, mas o servidor {key} não tem chave, então a sincronização com ele não é autenticada
+    suggestion:
+      zh-CN: 为每台 NTP 服务器指定可信的认证密钥
+      en: Give every NTP server a trusted authentication key
+      pt-BR: Atribua uma chave confiável a cada servidor NTP
+    remedy:
+      huawei: ["ntp-service unicast-server {key} authentication-keyid 1"]
+      cisco: ["ntp server {key} key 1"]
+
+  - id: sec.ntp_source_loopback
+    profiles: [basic]
+    tags: [ntp, source]
+    target: mgmt.ntp.server
+    assert:
+      any:
+        - match: {path: source_interface, pattern: '^loop', ignore_case: true}
+        - match: {path: ^/source_interface, pattern: '^loop', ignore_case: true}
+    severity: info
+    title:
+      zh-CN: NTP 源接口为 Loopback
+      en: NTP source is a loopback
+      pt-BR: Origem NTP é uma loopback
+    message:
+      zh-CN: 与 NTP 服务器 {key} 同步没有以 Loopback 接口为源，服务器侧的 ACL 放行会随出接口变化
+      en: Synchronization with NTP server {key} is not sourced from a loopback; server-side ACLs change with the egress interface
+      pt-BR: A sincronização com o servidor NTP {key} não usa uma loopback como origem; as ACLs do servidor mudam com a interface de saída
+    suggestion:
+      zh-CN: 指定管理用的 Loopback 接口为 NTP 源接口
+      en: Use the management loopback as the NTP source interface
+      pt-BR: Use a loopback de gerência como interface de origem do NTP
+    remedy:
+      huawei: ["ntp-service unicast-server {key} source-interface LoopBack0"]
+      cisco: [ntp source Loopback0]
+
+  # ---------- 日志 ----------
+  - id: sec.syslog_server
+    profiles: [basic]
+    tags: [logging]
+    target: device
+    assert: {count: {path: mgmt.syslog/host, min: 1}}
+    severity: warning
+    title:
+      zh-CN: 配置日志服务器
+      en: Log server configured
+      pt-BR: Servidor de log configurado
+    message:
+      zh-CN: 没有配置日志服务器，设备日志只保存在本地，无法集中审计
+      en: No log server is configured; logs stay on the device and cannot be audited centrally
+      pt-BR: Nenhum servidor de log está configurado; os logs ficam no equipamento e não podem ser auditados centralmente
+    suggestion:
+      zh-CN: 配置至少一台日志服务器，源接口用 Loopback
+      en: Configure at least one log server sourced from a loopback
+      pt-BR: Configure pelo menos um servidor de log com origem em uma loopback
+    remedy:
+      huawei: [info-center loghost <IP>, info-center loghost source LoopBack0]
+      cisco: [logging host <IP>, logging source-interface Loopback0]
+
+  - id: sec.syslog_source_loopback
+    profiles: [basic]
+    tags: [logging, source]
+    target: mgmt.syslog
+    when: {count: {path: host, min: 1}}
+    assert: {match: {path: source_interface, pattern: '^loop', ignore_case: true}}
+    severity: info
+    title:
+      zh-CN: 日志源接口为 Loopback
+      en: Log source is a loopback
+      pt-BR: Origem dos logs é uma loopback
+    message:
+      zh-CN: 发往日志服务器的日志没有以 Loopback 接口为源，服务器侧按源地址识别设备会随出接口变化
+      en: Logs are not sourced from a loopback; the source address seen by the log server changes with the egress interface
+      pt-BR: Os logs não usam uma loopback como origem; o endereço visto pelo servidor de log muda com a interface de saída
+    suggestion:
+      zh-CN: 指定管理用的 Loopback 接口为日志源接口
+      en: Use the management loopback as the log source interface
+      pt-BR: Use a loopback de gerência como interface de origem dos logs
+    remedy:
+      huawei: [info-center loghost source LoopBack0]
+      cisco: [logging source-interface Loopback0]

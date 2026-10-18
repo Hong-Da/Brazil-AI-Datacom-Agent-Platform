@@ -1,0 +1,69 @@
+# 增量变更与影响分析接口的 API 用例（加载器与主文件 api_cases.toml 合并）。
+
+[[case]]
+id = "change-text"
+title = { zh-CN = "华为接口绑定 VPN 的变更脚本（副作用补发 IP、回滚、模拟验证）", en = "Change script for binding a Huawei interface to a VPN", pt-BR = "Script de mudança para vincular uma interface Huawei a uma VPN" }
+method = "POST"
+path = "/api/v1/change"
+setup = "configured-fullkb"
+auth = true
+body = { current = { text = "#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn", profile = "huawei-atn-v800r025" }, target = { text = "#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip binding vpn-instance OAM\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn", profile = "huawei-atn-v800r025" }, style = "huawei", lang = "en" }
+expect_status = 200
+expect_json = { "code" = 0, "data.family" = "huawei-vrp8", "data.equal" = false, "data.summary.ops" = 2, "data.summary.by_action.side_effect" = 1, "data.ops.0.text" = "ip binding vpn-instance OAM", "data.ops.1.action" = "side_effect", "data.ops.1.risk" = "high", "data.ops.1.after.0.kind" = "side_effect", "data.verify.ok" = true, "data.rollback.verify.ok" = true, "data.impact.business.0.type" = "interface" }
+in_docs = true
+
+[[case]]
+id = "change-equal"
+title = { zh-CN = "当前与目标一致：没有命令", en = "Current equals target: no commands", pt-BR = "Atual igual ao alvo: nenhum comando" }
+method = "POST"
+path = "/api/v1/change"
+setup = "configured-fullkb"
+auth = true
+body = { current = { text = "#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn" }, target = { text = "#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn" }, rollback = false, impact = false }
+expect_status = 200
+expect_json = { "code" = 0, "data.equal" = true, "data.ops" = [], "data.script_plain" = "system-view\ncommit\nreturn\n" }
+
+[[case]]
+id = "change-no-target"
+title = { zh-CN = "目标没有给出配置", en = "Target without a source", pt-BR = "Alvo sem origem" }
+method = "POST"
+path = "/api/v1/change"
+setup = "configured"
+auth = true
+body = { current = { text = "sysname A" }, target = { } }
+expect_status = 422
+expect_json = { "code" = 1001 }
+in_docs = true
+
+[[case]]
+id = "change-no-token"
+title = { zh-CN = "没有令牌", en = "No token", pt-BR = "Sem token" }
+method = "POST"
+path = "/api/v1/change"
+setup = "configured"
+auth = false
+body = { current = { text = "sysname A" }, target = { text = "sysname B" } }
+expect_status = 401
+
+[[case]]
+id = "impact-text"
+title = { zh-CN = "影响分析：VPN 实例影响的接口", en = "Impact: interfaces affected by a VPN instance", pt-BR = "Impacto: interfaces afetadas por uma instância VPN" }
+method = "POST"
+path = "/api/v1/impact"
+setup = "configured-fullkb"
+auth = true
+body = { text = "#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip binding vpn-instance OAM\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn", nodes = ["vrf.instance[OAM]"] }
+expect_status = 200
+expect_json = { "code" = 0, "data.direction" = "up", "data.business.0.node" = "interface[GigabitEthernet0/2/2]", "data.business.0.path" = ["vrf.instance[OAM]", "interface[GigabitEthernet0/2/2]/vrf", "interface[GigabitEthernet0/2/2]"], "data.summary.business" = 1 }
+in_docs = true
+
+[[case]]
+id = "impact-node-not-found"
+title = { zh-CN = "节点不存在", en = "Node not found", pt-BR = "Nó não encontrado" }
+method = "POST"
+path = "/api/v1/impact"
+setup = "configured-fullkb"
+auth = true
+body = { text = "#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip binding vpn-instance OAM\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn", nodes = ["vrf.instance[NOPE]"] }
+expect_status = 404
+expect_json = { "code" = 1004 }

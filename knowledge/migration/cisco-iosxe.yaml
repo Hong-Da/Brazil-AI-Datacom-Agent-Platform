@@ -1,0 +1,32 @@
+# 割接迁移（M4-5，REQ-017）用的平台族操作知识：管理口识别、割接步骤里的操作命令与核对命令。
+# 这些不是设备配置（不进图），只用于生成割接步骤清单；Cisco 写法：configure terminal … end。字段说明见 huawei-vrp8.yaml。
+family: cisco-iosxe
+management: ['^GigabitEthernet0$', '^MgmtEth', '^Management']
+management_vrf: ['^Mgmt-intf$', '^(?i:mgmt-intf)$']
+# 逻辑接口在本平台族的类型写法（跨平台族迁移时编号不变、换类型写法；Null 要加引号，否则 YAML 读成空值）
+logical_types: {lag: Port-channel, loopback: Loopback, bdi: BDI, vlanif: Vlan, 'null': 'Null', tunnel: Tunnel}
+enter: [configure terminal]
+commit: []
+leave: [end]
+interface:
+  enter: interface {name}
+  exit: exit
+  shutdown: shutdown
+  no_shutdown: no shutdown
+bgp:
+  enter: router bgp {asn}
+  exit: exit
+  vrf_enter: address-family ipv4 vrf {vrf}
+  vrf_exit: exit-address-family
+  drain: neighbor {peer} shutdown
+  restore: no neighbor {peer} shutdown
+show:
+  interfaces: show ip interface brief
+  routes: show ip route summary
+  bgp: show bgp ipv4 unicast summary
+  bgp_vrf: show bgp vpnv4 unicast all summary
+  ospf: show ip ospf neighbor
+  isis: show isis neighbors
+  ldp: show mpls ldp neighbor
+  lag: show etherchannel summary
+  config: show running-config

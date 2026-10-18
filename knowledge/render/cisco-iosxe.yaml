@@ -7,6 +7,10 @@
 #   infer            推导规则：写声明行必须给出、源配置又没有的取值，按同一对象的其他取值推出
 #                    {node, value, same: [a, b]} 或 differ: [a, b]；a、b 是同一对象的属性名，“^” 表示上级对象的键
 #   interface_types  本平台族的接口类型（翻译时接口名不属于这些类型、又没有在接口映射表中给出时告警）
+#   access_form      二层业务接入点（interface.access）的形态，两边不同时翻译换结构（core/translate.py: reshape_access）：
+#                    instance      父接口下的业务实例（service instance <编号> ethernet），接入点挂在父接口下；
+#                    subinterface  二层子接口本身就是接入点（华为 interface <父接口>.<编号> mode l2，子接口标为二层）。
+#                    两种形态的接入点编号相同（实例编号 = 子接口编号），描述在接入点 / 子接口之间对应
 family: cisco-iosxe
 nested_separator: true
 exits:
@@ -16,4 +20,5 @@ prefer: {}
 avoid: []
 no_declare: []
 infer: []
-interface_types: [GigabitEthernet, TenGigabitEthernet, TwentyFiveGigE, FortyGigabitEthernet, HundredGigE, FastEthernet, Ethernet, Port-channel, Loopback, BDI, Vlan, Null, Tunnel, Serial, BD-VIF, Dialer, Virtual-Template, Multilink]
+interface_types: [GigabitEthernet, TenGigabitEthernet, TwentyFiveGigE, FortyGigabitEthernet, HundredGigE, FastEthernet, Ethernet, Port-channel, Loopback, BDI, Vlan, "Null", Tunnel, Serial, BD-VIF, Dialer, Virtual-Template, Multilink]
+access_form: instance

@@ -26,9 +26,12 @@ class AnalysisError(ValueError):
 
 
 def _signature(root: Path) -> tuple[float, int]:
-    """缓存键：最新的修改时间 + 文件数（删除文件时修改时间不一定变大）。"""
+    """缓存键：最新的修改时间 + 文件数（删除文件时修改时间不一定变大）。
+
+    render/（平台族的书写习惯）也算在内：规范渲染的索引随知识库对象缓存，改书写习惯后要重新加载才生效。
+    """
     latest, count = 0.0, 0
-    for sub in ("kb.yaml", "commands", "schema", "profiles"):
+    for sub in ("kb.yaml", "commands", "schema", "profiles", "render"):
         p = root / sub
         if p.is_file():
             latest, count = max(latest, p.stat().st_mtime), count + 1

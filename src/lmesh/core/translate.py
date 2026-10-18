@@ -10,7 +10,7 @@
        - 源设备显式值等于目标默认值           → 省略，在 defaults[] 说明（explicit_equals_default）。
     3. 目标 Profile 标为不支持的节点 → unsupported[]（reason=profile_unsupported，附原文行号），不写；
        写不出命令的节点（目标平台族没有对应的命令卡或映射）→ unsupported[]（reason=no_render）；
-       密码类取值（Schema 节点名为 password / secret）跨平台族时不写 → unsupported[]（reason=secret），人工重新设置；
+       密码类取值（Schema 节点名为 password / secret，或节点标了 secret: true，例如 SNMP 团体字）跨平台族时不写 → unsupported[]（reason=secret），人工重新设置；
        未映射命令（ext）、功能域外原文（raw）、未识别行（unknown）不翻译 → unsupported[]（kind=ext / raw / unknown），人工处理。
     4. 用规范渲染器（canon）生成目标配置。
     5. 校验：译文用目标 Profile 解析建图，与源图按有效值对比（跨厂商 + 接口映射）；
@@ -33,8 +33,125 @@ from lmesh.core.graph import DEVICE, Builder, _key_text, _short
 from lmesh.core.kb import KnowledgeBase, mapping
 from lmesh.core.kb.model import NODE_TYPES, SchemaNode
 
-# 密码类属性（按 Schema 节点名）：跨平台族时不翻译取值
+# 密码类属性（按 Schema 节点名）：跨平台族时不翻译取值；名称看不出来的（团体字、共享密钥）在 Schema 上标 secret: true
 _SECRET = re.compile(r"(^|_)(password|secret)$")
+
+
+def is_secret(sn: SchemaNode) -> bool:
+    return sn.secret or bool(_SECRET.search(sn.id.rsplit(".", 1)[-1]))
+
+
+def _contains_parent(g: nx.MultiDiGraph, nid: str) -> str | None:
+    return next((a for a, _, d in g.in_edges(nid, data=True) if d.get("kind") == "contains"), None)
+
+
+def _move(g: nx.MultiDiGraph, old: str, new: str, new_parent: str, ren: dict[str, str]) -> None:
+    """把节点 old 及其子树改挂到 new_parent 下、编号改为 new（依赖边随节点一起改名）。"""
+    sub = [n for n in g.nodes if n == old or n.startswith(old + "/")]
+    mapping_ = {n: new + n[len(old) :] for n in sub}
+    parent = _contains_parent(g, old)
+    nx.relabel_nodes(g, mapping_, copy=False)
+    if parent is not None:
+        for k, d in list(g.get_edge_data(parent, new, default={}).items()):
+            if d.get("kind") == "contains":
+                g.remove_edge(parent, new, key=k)
+    g.add_edge(new_parent, new, kind="contains")
+    for a, b in mapping_.items():
+        ren[a] = b
+
+
+def _attr(g: nx.MultiDiGraph, nid: str) -> dict[str, Any] | None:
+    d = g.nodes.get(nid)
+    return d if d is not None and d.get("kind") == "attr" else None
+
+
+def _add(g: nx.MultiDiGraph, parent: str, nid: str, kind: str, schema: str, lines: list[int], **attrs: Any) -> None:
+    g.add_node(nid, kind=kind, schema=schema, origin="explicit", cards=[], lines=list(lines), **attrs)
+    g.add_edge(parent, nid, kind="contains")
+
+
+def _set_attr(g: nx.MultiDiGraph, owner: str, name: str, schema: str, value: Any, lines: list[int], src: str) -> str:
+    """新建属性节点（reshaped_from 记来源节点的原编号）。"""
+    nid = f"{owner}/{name}"
+    if nid not in g:
+        _add(g, owner, nid, "attr", schema, lines, value=value, raw=value, negated=False, reshaped_from=src)
+    return nid
+
+
+def _drop_if_empty(g: nx.MultiDiGraph, nid: str, ren: dict[str, str], to: str) -> None:
+    """接入点移走后只剩默认值（或未映射命令、原文）的接口一并去掉：只为承载接入点而存在的子接口 / 父接口。"""
+    rest = [c for _, c, d in g.out_edges(nid, data=True) if d.get("kind") == "contains"]
+    if all(g.nodes[c].get("origin") == "default" or g.nodes[c].get("kind") in ("ext", "raw", "unknown") for c in rest):
+        ren[nid] = to
+        g.remove_nodes_from([n for n in list(g.nodes) if n == nid or n.startswith(nid + "/")])
+
+
+def reshape_access(g: nx.MultiDiGraph, to_form: str) -> dict[str, str]:
+    """业务接入点在两种形态间换结构（就地修改图，返回 {旧编号: 新编号}；新建的节点带 reshaped_from = 来源节点的原编号）：
+
+    subinterface（华为）：接入点是子接口 interface[P.N]/access[N]——二层子接口（interface.l2 = true，封装、
+                          rewrite、桥域在接入点上），或终结 VLAN 的子接口（vlan-type dot1q V）上的伪线；描述在子接口上；
+    instance（Cisco）：   接入点是父接口下的业务实例 interface[P]/access[N]，封装与描述都在接入点上。
+    接入点编号两边相同（子接口编号 = 实例编号）；主接口上的接入点（编号 "_"，端口模式）两边一样，不换。
+    """
+    ren: dict[str, str] = {}
+    accesses = [n for n, d in g.nodes(data=True) if d.get("schema") == "interface.access" and d.get("kind") == "object"]
+    for acc in accesses:
+        key = str(g.nodes[acc].get("key"))
+        parent = _contains_parent(g, acc)
+        if parent is None or key in ("_", "") or g.nodes[parent].get("schema") != "interface":
+            continue
+        pkey = str(g.nodes[parent].get("key"))
+        base, dot, sub = pkey.rpartition(".")
+        lines = list(g.nodes[acc].get("lines") or [])
+        if to_form == "instance" and dot and sub == key:
+            l2 = _attr(g, f"{parent}/l2")
+            is_l2 = bool(l2 and l2.get("value") is True and not l2.get("negated"))
+            vlan = _attr(g, f"{parent}/dot1q_termination")
+            top = f"interface[{base}]"
+            new = f"{top}/access[{key}]"
+            if not (is_l2 or vlan) or new in g:
+                continue
+            if top not in g:
+                _add(
+                    g, _contains_parent(g, parent) or DEVICE, top, "object", "interface",
+                    list(g.nodes[parent].get("lines") or []), key=base, raw=base, reshaped_from=parent,
+                )  # fmt: skip
+            _move(g, acc, new, top, ren)
+            desc = f"{parent}/description"
+            if _attr(g, desc) and f"{new}/description" not in g:
+                _move(g, desc, f"{new}/description", new, ren)
+                g.nodes[f"{new}/description"]["schema"] = "interface.access.description"
+            if vlan is not None and f"{new}/encapsulation" not in g:
+                # 终结 VLAN 的子接口 → 业务实例匹配这个 VLAN（encapsulation dot1q V）
+                vid, vlines = vlan.get("value"), list(vlan.get("lines") or [])
+                old = f"{parent}/dot1q_termination"
+                ren[old] = _set_attr(g, new, "vlan", "interface.access.vlan", vid, vlines, old)
+                _set_attr(g, new, "encapsulation", "interface.access.encapsulation", "dot1q", vlines, old)
+                g.remove_node(f"{parent}/dot1q_termination")
+            if is_l2:
+                ren[f"{parent}/l2"] = new
+                g.remove_node(f"{parent}/l2")
+            _drop_if_empty(g, parent, ren, new)
+        elif to_form == "subinterface" and not dot:
+            name = f"{pkey}.{key}"
+            subif = f"interface[{name}]"
+            new = f"{subif}/access[{key}]"
+            if new in g:
+                continue
+            if subif not in g:  # 排在原来业务实例的位置
+                _add(
+                    g, _contains_parent(g, parent) or DEVICE, subif, "object", "interface", lines,
+                    key=name, raw=name, reshaped_from=acc,
+                )  # fmt: skip
+            _set_attr(g, subif, "l2", "interface.l2", True, [], acc)
+            _move(g, acc, new, subif, ren)
+            desc = f"{new}/description"
+            if _attr(g, desc) and f"{subif}/description" not in g:
+                _move(g, desc, f"{subif}/description", subif, ren)
+                g.nodes[f"{subif}/description"]["schema"] = "interface.description"
+            _drop_if_empty(g, parent, ren, subif)
+    return ren
 
 
 class TranslateError(ValueError):
@@ -80,6 +197,7 @@ class _Translator:
         self.unsupported: list[dict[str, Any]] = []
         self.defaults: list[dict[str, Any]] = []
         self.unmapped: set[str] = set()  # 映射表中没有的接口（保持原名）
+        self.secret_shells: set[str] = set()  # 只装着敏感对象的占位对象（源图编号）：不写，校验时视为已说明
 
     # ----- 接口名 -----
 
@@ -171,6 +289,18 @@ class _Translator:
         self.builder.g = gt
         return gt
 
+    def secret_item(self, src: str, sn: SchemaNode, d: dict[str, Any]) -> dict[str, Any]:
+        """敏感取值不写（参数里不带取值本身）。"""
+        return _item(
+            "node",
+            "translate.unsupported.secret",
+            src,
+            reason="secret",
+            schema=sn.id,
+            profile=self.dst,
+            lines=list(d.get("lines") or []),
+        )
+
     def dst_default(self, gt: nx.MultiDiGraph, sn: SchemaNode, owner: str) -> Any:
         e = self.dst_res.entries.get(sn.id)
         if e is None or not e.supported or e.default is None:
@@ -242,23 +372,18 @@ class _Translator:
                     continue
                 if canon.negated_object(self.g, src):
                     continue  # 只由取消形式产生的对象：作为原文列出，不翻译
+                if self.cross_family and sn.secret:
+                    # 键本身是敏感内容（SNMP 团体字）：对象整棵子树都不写，人工重新设置
+                    self.unsupported.append(self.secret_item(src, sn, d))
+                    dead.add(nid)
+                    continue
                 facts.add(nid)
                 continue
             if not canon.valued(d) or d.get("value") is None:
                 continue
-            if self.cross_family and _SECRET.search(sn.id.rsplit(".", 1)[-1]):
+            if self.cross_family and is_secret(sn):
                 # 密码类取值是源平台的密文（或脱敏后的占位），换平台后不能直接用：不写，人工重新设置
-                self.unsupported.append(
-                    _item(
-                        "node",
-                        "translate.unsupported.secret",
-                        src,
-                        reason="secret",
-                        schema=sn.id,
-                        profile=self.dst,
-                        lines=list(d.get("lines") or []),
-                    )
-                )
+                self.unsupported.append(self.secret_item(src, sn, d))
                 continue
             dd = self.dst_default(gt, sn, parent[nid])
             if dd is not None and canon._same(d.get("value"), dd, sn.type):
@@ -275,6 +400,14 @@ class _Translator:
                 )
                 continue
             facts.add(nid)
+        # 敏感对象（团体字）不写之后，只剩空壳的占位父对象（mgmt.snmp[_]）也不写，免得为了写出它编造别的命令
+        for nid in [
+            n for n in dead if gt.nodes[n].get("kind") == "object" and self.kb.nodes[str(gt.nodes[n]["schema"])].secret
+        ]:
+            p = parent.get(nid)
+            if p in facts and gt.nodes[p].get("key") in ("_", "") and not any(c in facts for c in kids.get(p, [])):
+                facts.discard(p)
+                self.secret_shells.add(self.to_src.get(p, p))
         self.dead = dead
         # 源设备依赖默认值的节点
         self.default_counts: Counter[str] = Counter()
@@ -384,11 +517,21 @@ class _Translator:
                 _item("verify_failed", "translate.warn.verify_failed", None, level="error", error=e.key)
             )
             return {"checked": False, "equal": False, "diffs": 0, "unexplained": 0}
+        back: dict[str, str] = {}  # 换结构后的编号 → 源图中的编号
+        src_form, dst_form = self.forms()
+        if src_form and dst_form and src_form != dst_form:
+            # 源图按目标平台族的接入点形态换结构后再对比（单向换，不要求两种形态互逆）
+            ga = self.g.copy()
+            ren = reshape_access(ga, dst_form)
+            back = {new: old for old, new in ren.items() if new in ga}
+            back.update({n: d["reshaped_from"] for n, d in ga.nodes(data=True) if d.get("reshaped_from")})
+            a = cmp.Side(ga, "source")
         r = cmp.compare(a, b, self.kb, interface_map=self.raw_map or None)
 
         def covered(node: str | None) -> bool:
             if not node:
                 return False
+            node = back.get(node, node)
             return any(node == x or node.startswith(x + "/") for x in explained)
 
         unexplained = 0
@@ -457,8 +600,32 @@ class _Translator:
 
     # ----- 主流程 -----
 
+    def forms(self) -> tuple[str, str]:
+        """源、目标平台族的接入点形态（knowledge/render 的 access_form）。"""
+        fam = self.kb.profiles
+        src = canon._index(self.kb, fam[self.src].family)[1]["access_form"]
+        dst = canon._index(self.kb, fam[self.dst].family)[1]["access_form"]
+        return src, dst
+
+    def reshape(self, gt: nx.MultiDiGraph) -> None:
+        """源、目标平台族的接入点形态不同时换结构（华为二层子接口 ↔ Cisco 业务实例）。"""
+        src_form, dst_form = self.forms()
+        if not (src_form and dst_form and src_form != dst_form):
+            return
+        ren = reshape_access(gt, dst_form)
+        old_src = dict(self.to_src)
+        for old, new in ren.items():
+            self.to_src.pop(old, None)
+            if old in old_src and new not in self.to_src:
+                self.to_src[new] = old_src[old]
+        for n, d in gt.nodes(data=True):
+            if d.get("reshaped_from") in old_src:
+                self.to_src[n] = old_src[d["reshaped_from"]]
+        self.src_defaults = [(ren.get(o, o), s, v) for o, s, v in self.src_defaults]
+
     def run(self, verify: bool = True) -> dict[str, Any]:
         gt = self.retarget()
+        self.reshape(gt)
         facts = self.classify(gt)
         rendered = canon.render_full(gt, self.kb, self.dst, facts=facts, extras=False)
         uncovered = set(rendered.uncovered)
@@ -496,7 +663,7 @@ class _Translator:
             )
         self.interface_types(gt)
         text = rendered.text
-        explained = {u["node"] for u in self.unsupported if u["node"]}
+        explained = {u["node"] for u in self.unsupported if u["node"]} | self.secret_shells
         explained |= {w["node"] for w in self.warnings if w["node"]}
         check = self.verify(text, explained) if verify else {"checked": False}
         src_family = self.kb.profiles[self.src].family

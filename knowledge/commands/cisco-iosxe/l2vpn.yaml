@@ -56,10 +56,11 @@ cards:
       version: '17.15'
     status: draft
     maps:
-      interface.access{id=_}.pw: backup
-      interface.access{id=_}.pw.peer: $peer-router-ip-addr
-      interface.access{id=_}.pw.vc_id: $vcid
-      interface.access{id=_}.pw.pw_class: $pw-class-name
+      interface.access: ctx:subif
+      interface.access.pw: backup
+      interface.access.pw.peer: $peer-router-ip-addr
+      interface.access.pw.vc_id: $vcid
+      interface.access.pw.pw_class: $pw-class-name
   - id: cisco-iosxe.backup-peer@xconnect
     syntax: backup peer <peer-router-ip-addr> <vcid> [ pw-class <pw-class-name> ] [ priority <value> ]
     view: xconnect
@@ -74,10 +75,10 @@ cards:
       version: '17.15'
     status: draft
     maps:
-      interface.access{id=_}.pw: backup
-      interface.access{id=_}.pw.peer: $peer-router-ip-addr
-      interface.access{id=_}.pw.vc_id: $vcid
-      interface.access{id=_}.pw.pw_class: $pw-class-name
+      interface.access.pw: backup
+      interface.access.pw.peer: $peer-router-ip-addr
+      interface.access.pw.vc_id: $vcid
+      interface.access.pw.pw_class: $pw-class-name
   - id: cisco-iosxe.control-word.1
     syntax: control-word
     view: pseudowire-class
@@ -436,11 +437,12 @@ cards:
       version: '17.15'
     status: draft
     maps:
-      interface.access{id=_}.pw: primary
-      interface.access{id=_}.pw.peer: $peer-ip-address
-      interface.access{id=_}.pw.vc_id: $vc-id
-      interface.access{id=_}.pw.pw_class: $pw-class-name
-      interface.access{id=_}.pw.encapsulation: kw:mpls|l2tpv3
+      interface.access: ctx:subif
+      interface.access.pw: primary
+      interface.access.pw.peer: $peer-ip-address
+      interface.access.pw.vc_id: $vc-id
+      interface.access.pw.pw_class: $pw-class-name
+      interface.access.pw.transport: kw:mpls|l2tpv3
   - id: cisco-iosxe.xconnect.2
     syntax: xconnect <peer-ip-address> <vc-id> encapsulation mpls [ <pw-type> ]
     view: interface
@@ -466,10 +468,11 @@ cards:
       patched: 原文把可选的 pw-type 写成 “*[pw-type]*”，转换后成了重复组
     status: draft
     maps:
-      interface.access{id=_}.pw: primary
-      interface.access{id=_}.pw.peer: $peer-ip-address
-      interface.access{id=_}.pw.vc_id: $vc-id
-      interface.access{id=_}.pw.encapsulation: kw:mpls|l2tpv3
+      interface.access: ctx:subif
+      interface.access.pw: primary
+      interface.access.pw.peer: $peer-ip-address
+      interface.access.pw.vc_id: $vc-id
+      interface.access.pw.transport: kw:mpls|l2tpv3
   - id: cisco-iosxe.service-instance-xconnect
     syntax: xconnect <peer-ip-address> <vc-id> { encapsulation mpls [ manual ] | pw-class <pw-class-name> } [ pw-class <pw-class-name> ]
     view: service-instance
@@ -494,11 +497,11 @@ cards:
       added_by_patch: true
     status: draft
     maps:
-      interface.access{id=_}.pw: primary
-      interface.access{id=_}.pw.peer: $peer-ip-address
-      interface.access{id=_}.pw.vc_id: $vc-id
-      interface.access{id=_}.pw.pw_class: $pw-class-name
-      interface.access{id=_}.pw.encapsulation: kw:mpls|l2tpv3
+      interface.access.pw: primary
+      interface.access.pw.peer: $peer-ip-address
+      interface.access.pw.vc_id: $vc-id
+      interface.access.pw.pw_class: $pw-class-name
+      interface.access.pw.transport: kw:mpls|l2tpv3
   - id: cisco-iosxe.bridge-domain-member-vfi
     syntax: member vfi <vfi-name>
     view: bridge-domain

@@ -1,0 +1,22 @@
+# 端口清单（M4-5 割接迁移的接口映射建议用）：每个型号的物理端口名与速率（Gbps）。
+# range 写法：GigabitEthernet0/0/{0-11} 展开成 GigabitEthernet0/0/0 … GigabitEthernet0/0/11。
+# 没有给出型号时：有新设备现有配置就用其中的接口，否则用 default_model 并提示（port_inventory_assumed）。
+# verified: false —— 按公开资料整理，没有在设备上核对；上线前请用 show ip interface brief 核对后改为 true。
+profile: cisco-iosxe-asr920-17.15
+default_model: ASR-920-12CZ-A
+verified: false
+source: Cisco ASR 920 系列公开硬件说明（端口布局），未在设备上核对
+management: ['^GigabitEthernet0$']
+models:
+  ASR-920-12CZ-A:
+    ports:
+      - {range: 'GigabitEthernet0/0/{0-11}', speed: 1}
+      - {range: 'TenGigabitEthernet0/0/{12-13}', speed: 10}
+  ASR-920-12CZ-D:
+    ports:
+      - {range: 'GigabitEthernet0/0/{0-11}', speed: 1}
+      - {range: 'TenGigabitEthernet0/0/{12-13}', speed: 10}
+  ASR-920-24SZ-M:
+    ports:
+      - {range: 'GigabitEthernet0/0/{0-23}', speed: 1}
+      - {range: 'TenGigabitEthernet0/0/{24-27}', speed: 10}

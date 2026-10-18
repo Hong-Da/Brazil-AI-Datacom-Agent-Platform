@@ -29,7 +29,7 @@ cards:
       version: '17.15'
     status: draft
     maps:
-      bgp.af: &id028
+      bgp.af: &id027
         afi: ipv4
         vrf: $vrf-name||
   - id: cisco-iosxe.address-family-ipv4.3
@@ -72,7 +72,7 @@ cards:
       patched: 原文把可选的 multicast | unicast 写成了连续的关键字
     status: draft
     maps:
-      bgp.af: &id030
+      bgp.af: &id029
         afi: vpnv4
         vrf: ''
   - id: cisco-iosxe.aggregate-address
@@ -789,6 +789,10 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ip-address||$ipv6-address||$peer-group-name
+      bgp.peer.keepalive | bgp.peer_group.keepalive: $keepalive
+      bgp.peer.hold | bgp.peer_group.hold: $holdtime
   - id: cisco-iosxe.neighbor-update-source.1
     syntax: neighbor { <ip-address> | <ipv6-address> [ % ] | <peer-group-name> } update-source <interface>
     view: router-bgp
@@ -914,6 +918,9 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      bgp.instance.keepalive: $keepalive
+      bgp.instance.hold: $holdtime
   - id: cisco-iosxe.aggregate-address@bgp-af
     syntax: aggregate-address <address> <mask> [ as-set ] [ as-confed-set ] [ summary-only ] [ suppress-map <map-name> ] [ advertise-map <map-name> ] [ attribute-map <map-name> ]
     view: bgp-af
@@ -1638,22 +1645,29 @@ cards:
       version: '17.15'
     status: draft
   - id: cisco-iosxe.neighbor-timers@bgp-af
-    syntax: neighbor [ <ip-address> | <p> <eer-group-name> ] timers <keepalive> <holdtime> [ <min-holdtime> ]
+    syntax: neighbor { <ip-address> | <peer-group-name> } timers <keepalive> <holdtime> [ <min-holdtime> ]
     view: bgp-af
-    undo: no neighbor [ <ip-address> | <peer-group-name> ] timers
-    params: &id024
+    undo: no neighbor { <ip-address> | <peer-group-name> } timers
+    params:
       ip-address:
         type: ipv4
-      p:
-        type: word
-      eer-group-name:
+      peer-group-name:
         type: word
       keepalive:
-        type: word
+        type: integer
+        range:
+          - 0
+          - 65535
       holdtime:
-        type: word
+        type: integer
+        range:
+          - 0
+          - 65535
       min-holdtime:
-        type: word
+        type: integer
+        range:
+          - 0
+          - 65535
     default: 'keepalive : 60 secondsholdtime : 180 seconds'
     source:
       doc: cisco-iosxe-md
@@ -1661,12 +1675,32 @@ cards:
       title: neighbor timers
       line: 5
       version: '17.15'
+      patched: 同上（地址族模式下的同一命令）。原文排版把 peer-group-name 拆成了 <p> <eer-group-name>，且邻居是必选的；运行配置中是 neighbor <地址或对等体组> timers <keepalive> <hold>
     status: draft
   - id: cisco-iosxe.neighbor-timers@router-bgp
-    syntax: neighbor [ <ip-address> | <p> <eer-group-name> ] timers <keepalive> <holdtime> [ <min-holdtime> ]
+    syntax: neighbor { <ip-address> | <peer-group-name> } timers <keepalive> <holdtime> [ <min-holdtime> ]
     view: router-bgp
-    undo: no neighbor [ <ip-address> | <peer-group-name> ] timers
-    params: *id024
+    undo: no neighbor { <ip-address> | <peer-group-name> } timers
+    params:
+      ip-address:
+        type: ipv4
+      peer-group-name:
+        type: word
+      keepalive:
+        type: integer
+        range:
+          - 0
+          - 65535
+      holdtime:
+        type: integer
+        range:
+          - 0
+          - 65535
+      min-holdtime:
+        type: integer
+        range:
+          - 0
+          - 65535
     default: 'keepalive : 60 secondsholdtime : 180 seconds'
     source:
       doc: cisco-iosxe-md
@@ -1674,12 +1708,17 @@ cards:
       title: neighbor timers
       line: 5
       version: '17.15'
+      patched: 原文排版把 peer-group-name 拆成了 <p> <eer-group-name>，且邻居是必选的；运行配置中是 neighbor <地址或对等体组> timers <keepalive> <hold>
     status: draft
+    maps:
+      bgp.peer | bgp.peer_group: $ip-address||$ipv6-address||$peer-group-name
+      bgp.peer.keepalive | bgp.peer_group.keepalive: $keepalive
+      bgp.peer.hold | bgp.peer_group.hold: $holdtime
   - id: cisco-iosxe.neighbor-weight@bgp-af
     syntax: neighbor { <ip-address> | <peer-group-name> } weight number
     view: bgp-af
     undo: no neighbor { <ip-address> | <peer-group-name> } weight <number>
-    params: &id025
+    params: &id024
       ip-address:
         type: ipv4
       peer-group-name:
@@ -1696,7 +1735,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> } weight number
     view: router-bgp
     undo: no neighbor { <ip-address> | <peer-group-name> } weight <number>
-    params: *id025
+    params: *id024
     default: Routes learned through another BGP peer have a default weight of 0 and routes sourced by the local router have a default weight of 32768.
     source:
       doc: cisco-iosxe-md
@@ -1709,7 +1748,7 @@ cards:
     syntax: network { <network-number> [ mask <network-mask> ] | <nsap-prefix> } [ route-map <map-tag> ]
     view: bgp-af
     undo: no network { <network-number> [ mask <network-mask> ] | <nsap-prefix> } [ route-map <map-tag> ]
-    params: &id026
+    params: &id025
       network-number:
         type: word
       network-mask:
@@ -1734,7 +1773,7 @@ cards:
     syntax: network { <network-number> [ mask <network-mask> ] | <nsap-prefix> } [ route-map <map-tag> ]
     view: router-bgp
     undo: no network { <network-number> [ mask <network-mask> ] | <nsap-prefix> } [ route-map <map-tag> ]
-    params: *id026
+    params: *id025
     default: No networks are specified.
     source:
       doc: cisco-iosxe-md
@@ -1747,7 +1786,7 @@ cards:
     syntax: redistribute <protocol> [ <process-id> ] { level-1 | level-1-2 | level-2 } [ <autonomous-system-number> ] [ metric { <metric-value> | transparent } ] [ metric-type <type-value> ] [ match { internal | external 1 | external 2 } ] [ tag <tag-value> ] [ route-map <map-tag> ] [ registered ] [ resolved ] [ summary ] [ subnets ] [ nssa-only ]
     view: router-bgp
     undo: no redistribute <protocol> [ <process-id> ] { level-1 | level-1-2 | level-2 } [ <autonomous-system-number> ] [ metric { <metric-value> | transparent } ] [ metric-type <type-value> ] [ match { internal | external 1 | external 2 } ] [ tag <tag-value> ] [ route-map <map-tag> ] [ registered ] [ resolved ] [ summary ] [ subnets ] [ nssa-only ]
-    params: &id027
+    params: &id026
       protocol:
         type: word
       process-id:
@@ -1774,7 +1813,7 @@ cards:
     syntax: redistribute <protocol> [ <process-id> ] { level-1 | level-1-2 | level-2 } [ <autonomous-system-number> ] [ metric { <metric-value> | transparent } ] [ metric-type <type-value> ] [ match { internal | external 1 | external 2 } ] [ tag <tag-value> ] [ route-map <map-tag> ] [ registered ] [ resolved ] [ summary ] [ subnets ] [ nssa-only ]
     view: bgp-af
     undo: no redistribute <protocol> [ <process-id> ] { level-1 | level-1-2 | level-2 } [ <autonomous-system-number> ] [ metric { <metric-value> | transparent } ] [ metric-type <type-value> ] [ match { internal | external 1 | external 2 } ] [ tag <tag-value> ] [ route-map <map-tag> ] [ registered ] [ resolved ] [ summary ] [ subnets ] [ nssa-only ]
-    params: *id027
+    params: *id026
     default: Route redistribution is disabled.
     source:
       doc: cisco-iosxe-md
@@ -1810,7 +1849,7 @@ cards:
     view: router-bgp
     enters_view: bgp-af
     undo: no address-family ipv4 [ mdt | tunnel | { multicast | unicast } [ vrf <vrf-name> ] | vrf <vrf-name> ]
-    params: &id029
+    params: &id028
       vrf-name:
         type: word
     default: IPv4 address prefixes are not enabled.
@@ -1822,12 +1861,12 @@ cards:
       version: '17.15'
     status: draft
     maps:
-      bgp.af: *id028
+      bgp.af: *id027
   - id: cisco-iosxe.address-family-ipv4.2@bgp-af
     syntax: address-family ipv4 [ mdt | tunnel | { multicast | unicast } [ vrf <vrf-name> ] | vrf <vrf-name> ]
     view: bgp-af
     undo: no address-family ipv4 [ mdt | tunnel | { multicast | unicast } [ vrf <vrf-name> ] | vrf <vrf-name> ]
-    params: *id029
+    params: *id028
     default: IPv4 address prefixes are not enabled.
     source:
       doc: cisco-iosxe-md
@@ -1898,7 +1937,7 @@ cards:
       version: '17.15'
     status: draft
     maps:
-      bgp.af: *id030
+      bgp.af: *id029
   - id: cisco-iosxe.address-family-vpnv4@bgp-af
     syntax: address-family vpnv4 multicast unicast
     view: bgp-af
@@ -1939,7 +1978,7 @@ cards:
     syntax: bgp default local-preference <number>
     view: router-bgp
     undo: no bgp default local-preference <number>
-    params: &id031
+    params: &id030
       number:
         type: word
     default: Cisco IOS software applies a local preference value of 100 if this command is not enabled or if the no form of this command is entered.
@@ -1954,7 +1993,7 @@ cards:
     syntax: bgp default local-preference <number>
     view: bgp-af
     undo: no bgp default local-preference <number>
-    params: *id031
+    params: *id030
     default: Cisco IOS software applies a local preference value of 100 if this command is not enabled or if the no form of this command is entered.
     source:
       doc: cisco-iosxe-md
@@ -1993,7 +2032,7 @@ cards:
     syntax: maximum-paths <number-of-paths>
     view: router-bgp
     undo: no maximum-paths <number-of-paths>
-    params: &id032
+    params: &id031
       number-of-paths:
         type: word
     default: The default number of parallel routes vary by Cisco IOS release and platform.
@@ -2008,7 +2047,7 @@ cards:
     syntax: maximum-paths <number-of-paths>
     view: bgp-af
     undo: no maximum-paths <number-of-paths>
-    params: *id032
+    params: *id031
     default: The default number of parallel routes vary by Cisco IOS release and platform.
     source:
       doc: cisco-iosxe-md
@@ -2021,7 +2060,7 @@ cards:
     syntax: neighbor <ip-address> allowas-in [ <number> ]
     view: router-bgp
     undo: no neighbor allowas-in [ <number> ]
-    params: &id033
+    params: &id032
       ip-address:
         type: ipv4
       number:
@@ -2041,7 +2080,7 @@ cards:
     syntax: neighbor <ip-address> allowas-in [ <number> ]
     view: bgp-af
     undo: no neighbor allowas-in [ <number> ]
-    params: *id033
+    params: *id032
     default: Readvertisement of all prefixes containing duplicate ASNs is disabled by default.
     source:
       doc: cisco-iosxe-md
@@ -2054,7 +2093,7 @@ cards:
     syntax: neighbor <ip-address> as-override
     view: router-bgp
     undo: no neighbor <ip-address> as-override
-    params: &id034
+    params: &id033
       ip-address:
         type: ipv4
     default: Automatic override of the ASN is disabled.
@@ -2069,7 +2108,7 @@ cards:
     syntax: neighbor <ip-address> as-override
     view: bgp-af
     undo: no neighbor <ip-address> as-override
-    params: *id034
+    params: *id033
     default: Automatic override of the ASN is disabled.
     source:
       doc: cisco-iosxe-md
@@ -2082,7 +2121,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> } description <text>
     view: router-bgp
     undo: no neighbor { <ip-address> | <peer-group-name> } description [ <text> ]
-    params: &id035
+    params: &id034
       ip-address:
         type: ipv4
       peer-group-name:
@@ -2104,7 +2143,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> } description <text>
     view: bgp-af
     undo: no neighbor { <ip-address> | <peer-group-name> } description [ <text> ]
-    params: *id035
+    params: *id034
     default: There is no description of the neighbor.
     source:
       doc: cisco-iosxe-md
@@ -2117,7 +2156,7 @@ cards:
     syntax: neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } ebgp-multihop [ <ttl> ]
     view: router-bgp
     undo: no neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } ebgp-multihop
-    params: &id036
+    params: &id035
       ip-address:
         type: ipv4
       ipv6-address:
@@ -2141,7 +2180,7 @@ cards:
     syntax: neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } ebgp-multihop [ <ttl> ]
     view: bgp-af
     undo: no neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } ebgp-multihop
-    params: *id036
+    params: *id035
     default: Only directly connected neighbors are allowed.
     source:
       doc: cisco-iosxe-md
@@ -2154,7 +2193,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> } maximum-prefix <maximum> [ <threshold> ] [ discard-extra ] [ restart <restart-interval> ] [ warning-only ]
     view: router-bgp
     undo: no neighbor { <ip-address> | <peer-group-name> } maximum-prefix <maximum>
-    params: &id037
+    params: &id036
       ip-address:
         type: ipv4
       peer-group-name:
@@ -2177,7 +2216,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> } maximum-prefix <maximum> [ <threshold> ] [ discard-extra ] [ restart <restart-interval> ] [ warning-only ]
     view: bgp-af
     undo: no neighbor { <ip-address> | <peer-group-name> } maximum-prefix <maximum>
-    params: *id037
+    params: *id036
     default: 'This command is disabled by default. Peering sessions are disabled when the maximum number of prefixes is exceeded. If the restart-interval argument is not configured, a disabled session will stay down after the maximum-prefix limit is exceeded. threshold : 75 percent'
     source:
       doc: cisco-iosxe-md
@@ -2190,7 +2229,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> } next-hop-self [ all ]
     view: router-bgp
     undo: no neighbor { <ip-address> | <peer-group-name> } next-hop-self [ all ]
-    params: &id038
+    params: &id037
       ip-address:
         type: ipv4
       peer-group-name:
@@ -2207,7 +2246,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> } next-hop-self [ all ]
     view: bgp-af
     undo: no neighbor { <ip-address> | <peer-group-name> } next-hop-self [ all ]
-    params: *id038
+    params: *id037
     default: This command is disabled by default.
     source:
       doc: cisco-iosxe-md
@@ -2223,7 +2262,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> } password <string>
     view: router-bgp
     undo: no neighbor { <ip-address> | <peer-group-name> } password
-    params: &id039
+    params: &id038
       ip-address:
         type: ipv4
       peer-group-name:
@@ -2245,7 +2284,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> } password <string>
     view: bgp-af
     undo: no neighbor { <ip-address> | <peer-group-name> } password
-    params: *id039
+    params: *id038
     default: MD5 is not authenticated on a TCP connection between two BGP peers.
     source:
       doc: cisco-iosxe-md
@@ -2258,7 +2297,7 @@ cards:
     syntax: neighbor { <ip-address> | <ipv6-address> % | <peer-group-name> } remote-as <autonomous-system-number> [ alternate-as <autonomous-system-number> ]
     view: router-bgp
     undo: no neighbor { <ip-address> | <ipv6-address> % | <peer-group-name> } remote-as <autonomous-system-number> [ alternate-as <autonomous-system-number> ]
-    params: &id040
+    params: &id039
       ip-address:
         type: ipv4
       ipv6-address:
@@ -2282,7 +2321,7 @@ cards:
     syntax: neighbor { <ip-address> | <ipv6-address> % | <peer-group-name> } remote-as <autonomous-system-number> [ alternate-as <autonomous-system-number> ]
     view: bgp-af
     undo: no neighbor { <ip-address> | <ipv6-address> % | <peer-group-name> } remote-as <autonomous-system-number> [ alternate-as <autonomous-system-number> ]
-    params: *id040
+    params: *id039
     default: There are no BGP or multiprotocol BGP neighbor peers.
     source:
       doc: cisco-iosxe-md
@@ -2295,7 +2334,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> | <ipv6-address> [ % ] } route-map <map-name> { in | out }
     view: router-bgp
     undo: no neighbor { <ip-address> | <peer-group-name> | <ipv6-address> [ % ] } route-map <map-name> { in | out }
-    params: &id041
+    params: &id040
       ip-address:
         type: ipv4
       peer-group-name:
@@ -2316,7 +2355,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> | <ipv6-address> [ % ] } route-map <map-name> { in | out }
     view: bgp-af
     undo: no neighbor { <ip-address> | <peer-group-name> | <ipv6-address> [ % ] } route-map <map-name> { in | out }
-    params: *id041
+    params: *id040
     default: No route maps are applied to a peer.
     source:
       doc: cisco-iosxe-md
@@ -2333,7 +2372,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> } soft-reconfiguration inbound
     view: router-bgp
     undo: no neighbor { <ip-address> | <peer-group-name> } soft-reconfiguration inbound
-    params: &id042
+    params: &id041
       ip-address:
         type: ipv4
       peer-group-name:
@@ -2350,7 +2389,7 @@ cards:
     syntax: neighbor { <ip-address> | <peer-group-name> } soft-reconfiguration inbound
     view: bgp-af
     undo: no neighbor { <ip-address> | <peer-group-name> } soft-reconfiguration inbound
-    params: *id042
+    params: *id041
     default: Soft reconfiguration is not enabled.
     source:
       doc: cisco-iosxe-md
@@ -2362,7 +2401,7 @@ cards:
   - id: cisco-iosxe.neighbor-update-source.1@router-bgp
     syntax: neighbor { <ip-address> | <ipv6-address> [ % ] | <peer-group-name> } update-source <interface>
     view: router-bgp
-    params: &id043
+    params: &id042
       ip-address:
         type: ipv4
       ipv6-address:
@@ -2385,7 +2424,7 @@ cards:
   - id: cisco-iosxe.neighbor-update-source.1@bgp-af
     syntax: neighbor { <ip-address> | <ipv6-address> [ % ] | <peer-group-name> } update-source <interface>
     view: bgp-af
-    params: *id043
+    params: *id042
     default: Best local address
     source:
       doc: cisco-iosxe-md
@@ -2398,7 +2437,7 @@ cards:
     syntax: timers bgp <keepalive> <holdtime> [ <min-holdtime> ]
     view: router-bgp
     undo: no timers bgp
-    params: &id044
+    params: &id043
       keepalive:
         type: word
       holdtime:
@@ -2413,11 +2452,14 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      bgp.instance.keepalive: $keepalive
+      bgp.instance.hold: $holdtime
   - id: cisco-iosxe.timers-bgp@bgp-af
     syntax: timers bgp <keepalive> <holdtime> [ <min-holdtime> ]
     view: bgp-af
     undo: no timers bgp
-    params: *id044
+    params: *id043
     default: 'keepalive : 60 secondsholdtime : 180 seconds'
     source:
       doc: cisco-iosxe-md

@@ -22,6 +22,7 @@ entries:
       - cisco-iosxe.access-list.4
       - cisco-iosxe.access-list.5
       - cisco-iosxe.ip-access-list
+      - cisco-iosxe.ip-access-list-name
   acl.instance.rule:
     supported: true
     cards:
@@ -142,6 +143,7 @@ entries:
       - cisco-iosxe.access-list.4
       - cisco-iosxe.access-list.5
       - cisco-iosxe.ip-access-list
+      - cisco-iosxe.ip-access-list-name
   bfd.session.multiplier:
     manual: true
     supported: true
@@ -215,6 +217,24 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.router-bgp
+  bgp.instance.hold:
+    manual: true
+    supported: true
+    default: 180
+    source: 命令参考 timers bgp：holdtime 缺省 180 秒
+    verified: doc
+    cards:
+      - cisco-iosxe.timers-bgp
+      - cisco-iosxe.timers-bgp@router-bgp
+  bgp.instance.keepalive:
+    manual: true
+    supported: true
+    default: 60
+    source: 命令参考 timers bgp：keepalive 缺省 60 秒
+    verified: doc
+    cards:
+      - cisco-iosxe.timers-bgp
+      - cisco-iosxe.timers-bgp@router-bgp
   bgp.instance.log_neighbor_changes:
     manual: true
     supported: true
@@ -242,6 +262,8 @@ entries:
       - cisco-iosxe.neighbor-peer-group@router-bgp
       - cisco-iosxe.neighbor-remote-as
       - cisco-iosxe.neighbor-remote-as@router-bgp
+      - cisco-iosxe.neighbor-timers
+      - cisco-iosxe.neighbor-timers@router-bgp
       - cisco-iosxe.neighbor-update-source.1
       - cisco-iosxe.neighbor-update-source.1@router-bgp
   bgp.peer.description:
@@ -260,12 +282,18 @@ entries:
     default: 180
     source: 同上
     verified: doc
+    cards:
+      - cisco-iosxe.neighbor-timers
+      - cisco-iosxe.neighbor-timers@router-bgp
   bgp.peer.keepalive:
     manual: true
     supported: true
     default: 60
     source: Cisco IOS-XE BGP 默认 keepalive 60 秒、hold 180 秒（命令参考 timers bgp）
     verified: doc
+    cards:
+      - cisco-iosxe.neighbor-timers
+      - cisco-iosxe.neighbor-timers@router-bgp
   bgp.peer.password:
     supported: true
     cards:
@@ -290,8 +318,20 @@ entries:
       - cisco-iosxe.neighbor-peer-group~2
       - cisco-iosxe.neighbor-remote-as
       - cisco-iosxe.neighbor-remote-as@router-bgp
+      - cisco-iosxe.neighbor-timers
+      - cisco-iosxe.neighbor-timers@router-bgp
       - cisco-iosxe.neighbor-update-source.1
       - cisco-iosxe.neighbor-update-source.1@router-bgp
+  bgp.peer_group.hold:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-timers
+      - cisco-iosxe.neighbor-timers@router-bgp
+  bgp.peer_group.keepalive:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-timers
+      - cisco-iosxe.neighbor-timers@router-bgp
   bgp.peer_group.password:
     supported: true
     cards:
@@ -327,10 +367,8 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.backup-peer@interface
-      - cisco-iosxe.backup-peer@xconnect
       - cisco-iosxe.service-instance-ethernet.1
       - cisco-iosxe.service-instance-ethernet.3
-      - cisco-iosxe.service-instance-xconnect
       - cisco-iosxe.xconnect.1
       - cisco-iosxe.xconnect.2
   interface.access.bridge_domain:
@@ -357,12 +395,6 @@ entries:
       - cisco-iosxe.service-instance-xconnect
       - cisco-iosxe.xconnect.1
       - cisco-iosxe.xconnect.2
-  interface.access.pw.encapsulation:
-    supported: true
-    cards:
-      - cisco-iosxe.service-instance-xconnect
-      - cisco-iosxe.xconnect.1
-      - cisco-iosxe.xconnect.2
   interface.access.pw.peer:
     supported: true
     cards:
@@ -378,6 +410,16 @@ entries:
       - cisco-iosxe.backup-peer@xconnect
       - cisco-iosxe.service-instance-xconnect
       - cisco-iosxe.xconnect.1
+  interface.access.pw.transport:
+    manual: true
+    supported: true
+    default: mpls
+    source: ASR 920 的伪线只支持 MPLS（xconnect … encapsulation mpls；用 pw-class 时由伪线类给出）
+    verified: doc
+    cards:
+      - cisco-iosxe.service-instance-xconnect
+      - cisco-iosxe.xconnect.1
+      - cisco-iosxe.xconnect.2
   interface.access.pw.vc_id:
     supported: true
     cards:
@@ -419,6 +461,10 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.description
+  interface.dot1q_termination:
+    supported: true
+    cards:
+      - cisco-iosxe.subif-encapsulation-dot1q
   interface.duplex:
     supported: true
     cards:
@@ -812,6 +858,15 @@ entries:
   mgmt.line.auth:
     supported: true
     cards:
+      - cisco-iosxe.login
+      - cisco-iosxe.login-authentication
+  mgmt.line.auth_list:
+    manual: true
+    supported: true
+    default: default
+    source: 命令参考 login authentication：不写时使用名为 default 的方法列表
+    verified: doc
+    cards:
       - cisco-iosxe.login-authentication
   mgmt.line.idle_timeout:
     supported: true
@@ -856,6 +911,10 @@ entries:
     cards:
       - cisco-iosxe.ntp-server
   mgmt.ntp.server.prefer:
+    supported: true
+    cards:
+      - cisco-iosxe.ntp-server
+  mgmt.ntp.server.source_interface:
     supported: true
     cards:
       - cisco-iosxe.ntp-server

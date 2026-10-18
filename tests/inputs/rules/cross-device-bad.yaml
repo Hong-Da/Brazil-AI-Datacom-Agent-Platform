@@ -1,0 +1,16 @@
+# 故意写错的跨设备规则文件：链路类型不存在、伪线链路用了 Schema 路径（只能用 fact:）
+rules:
+  - id: bad.link
+    link: vxlan
+    compare: {value: "fact:mtu"}
+    severity: warning
+    title: {zh-CN: 标题, en: Title, pt-BR: Título}
+    message: {zh-CN: 说明, en: Message, pt-BR: Mensagem}
+    suggestion: {zh-CN: 建议, en: Fix, pt-BR: Corrija}
+  - id: bad.fact_only
+    link: pw
+    compare: {value: vc_id}
+    severity: error
+    title: {zh-CN: 标题, en: Title, pt-BR: Título}
+    message: {zh-CN: 说明, en: Message, pt-BR: Mensagem}
+    suggestion: {zh-CN: 建议, en: Fix, pt-BR: Corrija}

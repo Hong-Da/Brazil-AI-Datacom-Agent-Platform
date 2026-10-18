@@ -100,6 +100,10 @@ class SchemaNode:
     deprecated: bool = False
     replaced_by: str | None = None
     status: str = "draft"
+    # 取值（对象节点为键）是密码、密钥、团体字等敏感内容：跨平台族翻译时不写（源平台的密文不能在另一平台使用）
+    secret: bool = False
+    # 属性取值也是所属对象的另一个键（华为 acl name X number N 的 N）：按它引用时也能找到这个对象
+    alias: bool = False
 
 
 @dataclass

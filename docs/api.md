@@ -58,6 +58,14 @@
 | `POST /parse` | 是 | 解析配置文本：`{"text": "…", "profile": null}`；返回 Profile、各类行数、覆盖率与每一行的结果 |
 | `POST /render` | 是 | 解析建图后渲染回文本：`{"text": "…", "profile": null, "canonical": false, "with_defaults": false}`；默认往返模式（`mode: roundtrip`）；`canonical: true` 规范模式，`with_defaults: true` 含默认值的完整配置（默认值行前有 `! default` 注释），返回 `text`、`lines`（`no`、`text`、`kind`、`origin` explicit / default、`nodes`、`card`）、`default_lines`、`uncovered`、`skipped_extras` |
 | `POST /translate` | 是 | 配置翻译：`{"text": "…" 或 "version_id": 1 或 "device_id": 1, "profile": null, "to": "<目标 Profile>", "interface_map": {"Port-channel1": "Eth-Trunk1"}, "verify": true}`；返回 `text` 译文、`lines`（同 `/render`）、`warnings`（`default_differs` / `default_unknown` / `inferred_value` / `implicit_object` / `interface_type` / `verify_diff` / `verify_unknown`）、`unsupported`（`kind` node / ext / raw / unknown / negated，`params.reason` 为 `profile_unsupported` / `no_render` / `secret` / `not_translated`）、`defaults`（`explicit_equals_default` 省略的默认值）、`stats` 与 `verify`（`checked`、`equal`、`diffs`、`unexplained`）；每一项都有 `kind`、`key`（文案键）、`params`（文案参数）、`node`（源图中的节点）、`schema`、`lines`（原文行号）；目标 Profile 不存在或没有给出源配置时 422，设备或版本不存在时 404 |
+| `POST /migrate` | 是 | 割接迁移：`{"text": "…" 或 "version_id": 1 或 "device_id": 1, "profile": null, "to": "<目标 Profile>", "interface_map": {"GE0/2/1": "GigabitEthernet0/0/1"}（可只给部分，`-` 表示不迁移）, "target_text": "<新设备现有配置>", "model": null, "on_conflict": "migrate", "verify": true}`；返回 `text`（新设备完整配置）、`delta`（只含需要新增 / 修改的部分；没有现有配置时同 `text`）、`interface_map`（`source`、`target`、`kind`、`source_speed`、`target_speed`、`basis` user / same_name / logical / same_index / same_speed / higher_speed / same_name_unverified / type_convert、`confidence`、`subinterfaces`、`configured`、`node`、`lines`）、`unmapped`（`reason` management / no_free_port / speed_unknown / no_target_type / unknown_type / duplicate_target / user_excluded）、`inventory`（`source` kb / target_config / none、`model`、`ports`、`verified`）、`warnings`（翻译告警 + `migrate.warn.*`：`speed_mismatch`、`type_mismatch`、`mgmt_not_migrated`、`interface_unmapped`、`ref_not_migrated`、`subinterfaces_follow`、`lag_renumbered`、`lag_member_not_migrated`、`lag_trunk_not_migrated`、`lag_speed_mismatch`、`target_conflict`、`target_coexist`、`target_occupied`、`verify_diff` 等）、`unsupported`、`defaults`、`merge`（`added`、`changed`、`same`、`conflicts`、`kept`）、`verify`（`checked`、`equal`、`diffs`、`unexplained`、`target_existing`）、`script`（复用增量变更模块：`available: true` 与 `script` / `rollback` / `items` / `verify`；模块不可用或出错时 `available: false` 与 `reason`）、`steps`（`no`、`phase`、`device` old / new / site、`key`、`params`、`commands`）、`stats`；目标 Profile、型号、冲突处理方式无效或没有给出源配置时 422，设备或版本不存在时 404 |
+| `POST /migrate/suggest-map` | 是 | 割接迁移的接口映射建议：请求同 `/migrate`（不含 `on_conflict`、`verify`）；返回 `map`（同 `interface_map`）、`unmapped`、`warnings`、`inventory`、`stats`（`mapped`、`unmapped`、`by_basis`） |
+| `GET /topology?devices=A,B,3` | 是 | 已导入设备（名称或编号，逗号分隔；省略时全部）的三层拓扑：`nodes`（设备：`id`、`device_id`、`version_id`、`profile`、`loopbacks`、`lsr_id`、`asn`、`links`）、`links`（`id`、`type` subnet / ospf / isis / ldp / ldp_remote / bgp / pw / bfd、`a` / `b`（`device`、`interface`、`address`、`node`、`facts`）、`segment`、`vrf`、`confidence` high / medium / low、`basis`（`rule`、`a_node`、`b_node`、`detail`））、`cross_edges`（跨设备依赖边：`rule`、`src` / `dst` 的设备与节点、`value`）、`unresolved`、`duplicates`、`summary`；没有设备时 409，设备不存在时 404 |
+| `POST /topology` | 是 | 上传配置推导拓扑（可与已导入设备混合）：`{"configs": [{"name": "r1.cfg", "text": "…", "profile": null}], "device_ids": [1]}`，两者都为空时取全部已导入设备；结果同上；无法识别的配置 422（`data.source` 为文件名） |
+| `POST /consistency` | 是 | 跨设备一致性检查：请求同 `POST /topology`，另加 `severity`；返回拓扑（链路带 `issues` 与 `severity`，设备带 `issues` 个数）+ `findings`（与 `/check` 相同的字段，另有 `link`、`link_type`、`device`、`devices`、`ends`（两端的设备、端点、节点、取值、行号））、`summary`（另有 `by_link`、`by_device`、`topology`）、`rules_loaded`、`rules_skipped`（Schema 中缺少节点而跳过的规则）、`texts`；规则文件写错时 409 |
+| `POST /baseline` | 是 | 安全基线审计：`{"baseline": "basic", "configs": [{"name": "R1", "text": "…", "profile": null}], "device_ids": [1], "all": false}`（三者至少给一项，可混合；`all` 为全部已导入设备的最新版本）；返回 `baseline`、`baseline_info`（`title`、`description`、`includes`、`chain`）、`rules`（`id`、`severity`、`target`、`tags`、`profiles`、三语 `title` / `message` / `suggestion`、`remedy`（`huawei` / `cisco` 参考命令））、`matrix`（`rules`、`devices`、`cells[规则][设备]` 为 `pass` / `fail` / `na`）、`devices`（`device`、`profile`、`family`、`style`、`score`、`summary`（`pass`、`fail`、`na`、`failed_by_severity`、`has_errors`）、`results`、`failures`（`rule`、`severity`、`node`、`schema`、`key`、`lines`、`evidence`、`message` / `suggestion` 为文案键 + 参数、`remedy` 按设备平台族写法））、`summary`（`devices`、`rules`、`score`、`pass`、`fail`、`na`、`failures`、`has_errors`、`by_rule`）、`texts`；基线名写错或没有目标时 422，设备不存在时 404，规则文件写错时 409 |
+| `GET /baseline/rules?baseline=strict` | 是 | 基线与规则：`profiles`（`id`、三语 `title` / `description`、`includes`、`chain`、`rules` 条数）、`rules`（字段同上，给出 `baseline` 时只列该基线的规则）、`total` |
+| `POST /baseline/report` | 是 | 导出基线报告，直接返回文件（Content-Disposition: attachment）：请求同 `POST /baseline`，另加 `lang`（zh-CN / en）、`format`（html / md）、`style`（huawei / cisco）；内容为概要、设备 × 规则矩阵、每台设备的不符合项（含参考命令）与规则清单 |
 | `POST /roundtrip` | 是 | 往返测试：给出 `text` 时同步返回差异；`{"samples": true}` 时作为后台任务跑全部样本，返回 `task_id` |
 | `GET /devices/{id}/graph?domain=D&raw=false&version_id=V` | 是 | 设备最新配置版本（给出 `version_id` 时为该版本，不属于该设备时 404）的配置图：节点、边、悬空引用、统计；`raw=true` 时包含功能域外的原文节点与原始配置文本 |
 | `POST /compare` | 是 | 配置对比：`{"a": {"text": "…" \| "version_id": 1 \| "device_id": 1, "profile": null}, "b": {…}, "domain": null, "include_raw": false, "interface_map": {"GE0/2/1": "Gi0/0/1"}, "rename_threshold": 1.0, "hide_identity": false}`（每边给 `text`、`version_id`、`device_id`（最新版本）之一；同时给 `device_id` 与 `version_id` 时检查版本属于该设备）；返回 `diffs`（`kind` added / removed / changed / renamed、`node_kind` object / attr / ext / raw、`node` 规范编号、`schema`、`domain`、`a` / `b` 各自的 `node` 原始编号、`value` 有效值、`origin`、`lines`，改名的 `from` / `to` / `similarity`，删除或新增对象的 `count`，`related` 关联差异）、`renames`、`summary`（`total`、`by_kind`、`by_domain`、`by_object`、`unknown`、`default_only`）、`unknown`（两边的未识别行）、`default_only`（只有一侧 Profile 有默认值、不可比的属性）、`a` / `b`（来源、设备、Profile、版本）与 `options`；`hide_identity: true` 时隐藏设备身份差异（Router ID、接口 IPv4 地址、BGP 对等体地址、IS-IS NET、主机名等，清单见 `options.hidden_identity`），被隐藏的差异放在 `hidden_diffs`，个数为 `summary.hidden_identity`；设备或版本不存在时 404 |
@@ -770,6 +778,159 @@ HTTP 状态：`200`；返回中的关键字段：
 - `code` = `0`
 - `data.patterns` = `[]`
 
+### 对一段配置跑基础基线
+
+`POST /api/v1/baseline`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/baseline' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"baseline": "basic", "configs": [{"name": "R1", "text": "sysname R1\n#\ntelnet server enable\n#\nuser-interface vty 0 4\n authentication-mode aaa\n protocol inbound ssh\n#\nreturn"}]}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/baseline' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"baseline": "basic", "configs": [{"name": "R1", "text": "sysname R1\n#\ntelnet server enable\n#\nuser-interface vty 0 4\n authentication-mode aaa\n protocol inbound ssh\n#\nreturn"}]}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/baseline', headers={'Authorization': 'Bearer <令牌>'}, json={'baseline': 'basic', 'configs': [{'name': 'R1', 'text': 'sysname R1\n#\ntelnet server enable\n#\nuser-interface vty 0 4\n authentication-mode aaa\n protocol inbound ssh\n#\nreturn'}]})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.baseline` = `"basic"`
+- `data.matrix.devices` = `["R1"]`
+- `data.devices.0.results.sec.telnet_disabled` = `"fail"`
+- `data.devices.0.results.sec.vty_ssh_only` = `"pass"`
+- `data.devices.0.results.sec.tacacs_key` = `"na"`
+- `data.devices.0.failures.0.rule` = `"sec.telnet_disabled"`
+- `data.devices.0.failures.0.lines` = `[3]`
+- `data.devices.0.failures.0.remedy` = `["undo telnet server enable", "undo telnet ipv6 server enable"]`
+- `data.summary.has_errors` = `true`
+
+### 严格基线的规则清单
+
+`GET /api/v1/baseline/rules?baseline=strict`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/baseline/rules?baseline=strict' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/baseline/rules?baseline=strict' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/baseline/rules?baseline=strict', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.profile` = `"strict"`
+- `data.total` = `26`
+- `data.profiles.0.id` = `"basic"`
+- `data.profiles.1.includes` = `["basic"]`
+- `data.rules.0.id` = `"sec.telnet_disabled"`
+- `data.rules.0.severity` = `"error"`
+
+### 华为接口绑定 VPN 的变更脚本（副作用补发 IP、回滚、模拟验证）
+
+`POST /api/v1/change`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/change' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"current": {"text": "#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn", "profile": "huawei-atn-v800r025"}, "target": {"text": "#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip binding vpn-instance OAM\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn", "profile": "huawei-atn-v800r025"}, "style": "huawei", "lang": "en"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/change' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"current": {"text": "#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn", "profile": "huawei-atn-v800r025"}, "target": {"text": "#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip binding vpn-instance OAM\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn", "profile": "huawei-atn-v800r025"}, "style": "huawei", "lang": "en"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/change', headers={'Authorization': 'Bearer <令牌>'}, json={'current': {'text': '#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn', 'profile': 'huawei-atn-v800r025'}, 'target': {'text': '#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip binding vpn-instance OAM\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn', 'profile': 'huawei-atn-v800r025'}, 'style': 'huawei', 'lang': 'en'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.family` = `"huawei-vrp8"`
+- `data.equal` = `false`
+- `data.summary.ops` = `2`
+- `data.summary.by_action.side_effect` = `1`
+- `data.ops.0.text` = `"ip binding vpn-instance OAM"`
+- `data.ops.1.action` = `"side_effect"`
+- `data.ops.1.risk` = `"high"`
+- `data.ops.1.after.0.kind` = `"side_effect"`
+- `data.verify.ok` = `true`
+- `data.rollback.verify.ok` = `true`
+- `data.impact.business.0.type` = `"interface"`
+
+### 目标没有给出配置
+
+`POST /api/v1/change`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/change' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"current": {"text": "sysname A"}, "target": {}}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/change' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"current": {"text": "sysname A"}, "target": {}}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/change', headers={'Authorization': 'Bearer <令牌>'}, json={'current': {'text': 'sysname A'}, 'target': {}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`422`；返回中的关键字段：
+
+- `code` = `1001`
+
+### 影响分析：VPN 实例影响的接口
+
+`POST /api/v1/impact`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/impact' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip binding vpn-instance OAM\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn", "nodes": ["vrf.instance[OAM]"]}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/impact' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip binding vpn-instance OAM\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn", "nodes": ["vrf.instance[OAM]"]}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/impact', headers={'Authorization': 'Bearer <令牌>'}, json={'text': '#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip binding vpn-instance OAM\n ip address 10.3.0.1 255.255.255.252\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn', 'nodes': ['vrf.instance[OAM]']})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.direction` = `"up"`
+- `data.business.0.node` = `"interface[GigabitEthernet0/2/2]"`
+- `data.business.0.path` = `["vrf.instance[OAM]", "interface[GigabitEthernet0/2/2]/vrf", "interface[GigabitEthernet0/2/2]"]`
+- `data.summary.business` = `1`
+
 ### 检查一段配置
 
 `POST /api/v1/check`（需要令牌）
@@ -984,6 +1145,72 @@ print(r.status_code, r.json())
 HTTP 状态：`404`；返回中的关键字段：
 
 - `code` = `1004`
+
+### Cisco 设备迁移到华为（新设备已有管理口与端口，只生成增量；端口冲突以旧设备为准）
+
+`POST /api/v1/migrate`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/migrate' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "hostname R1\n!\ninterface GigabitEthernet0/0/1\n description UPLINK\n mtu 9000\n ip address 10.0.0.1 255.255.255.252\n!\ninterface Port-channel1\n ip address 10.0.1.1 255.255.255.252\n!\nip route 0.0.0.0 0.0.0.0 10.0.0.2\n!\nend", "to": "huawei-atn-v800r025", "target_text": "#\nsysname NEW-01\n#\ninterface Ethernet0/0/0\n ip address 192.168.1.10 255.255.255.0\n#\ninterface GigabitEthernet0/2/1\n shutdown\n#\nreturn"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/migrate' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "hostname R1\n!\ninterface GigabitEthernet0/0/1\n description UPLINK\n mtu 9000\n ip address 10.0.0.1 255.255.255.252\n!\ninterface Port-channel1\n ip address 10.0.1.1 255.255.255.252\n!\nip route 0.0.0.0 0.0.0.0 10.0.0.2\n!\nend", "to": "huawei-atn-v800r025", "target_text": "#\nsysname NEW-01\n#\ninterface Ethernet0/0/0\n ip address 192.168.1.10 255.255.255.0\n#\ninterface GigabitEthernet0/2/1\n shutdown\n#\nreturn"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/migrate', headers={'Authorization': 'Bearer <令牌>'}, json={'text': 'hostname R1\n!\ninterface GigabitEthernet0/0/1\n description UPLINK\n mtu 9000\n ip address 10.0.0.1 255.255.255.252\n!\ninterface Port-channel1\n ip address 10.0.1.1 255.255.255.252\n!\nip route 0.0.0.0 0.0.0.0 10.0.0.2\n!\nend', 'to': 'huawei-atn-v800r025', 'target_text': '#\nsysname NEW-01\n#\ninterface Ethernet0/0/0\n ip address 192.168.1.10 255.255.255.0\n#\ninterface GigabitEthernet0/2/1\n shutdown\n#\nreturn'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.target.existing` = `true`
+- `data.inventory.source` = `"target_config"`
+- `data.interface_map.0.source` = `"GigabitEthernet0/0/1"`
+- `data.interface_map.0.target` = `"GigabitEthernet0/2/1"`
+- `data.interface_map.0.basis` = `"same_index"`
+- `data.interface_map.1.target` = `"Eth-Trunk1"`
+- `data.verify.checked` = `true`
+- `data.verify.unexplained` = `0`
+- `data.merge.conflicts` = `1`
+- `data.steps.1.key` = `"migrate.step.load_delta"`
+
+### 接口映射建议（按知识库的端口清单，附依据与置信度）
+
+`POST /api/v1/migrate/suggest-map`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/migrate/suggest-map' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "#\nsysname OLD\n#\ninterface GigabitEthernet0/2/1\n ip address 10.0.0.1 255.255.255.252\n#\ninterface Ethernet0/0/0\n ip address 192.168.1.2 255.255.255.0\n#\nreturn", "to": "cisco-iosxe-asr920-17.15", "model": "ASR-920-12CZ-A"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/migrate/suggest-map' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "#\nsysname OLD\n#\ninterface GigabitEthernet0/2/1\n ip address 10.0.0.1 255.255.255.252\n#\ninterface Ethernet0/0/0\n ip address 192.168.1.2 255.255.255.0\n#\nreturn", "to": "cisco-iosxe-asr920-17.15", "model": "ASR-920-12CZ-A"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/migrate/suggest-map', headers={'Authorization': 'Bearer <令牌>'}, json={'text': '#\nsysname OLD\n#\ninterface GigabitEthernet0/2/1\n ip address 10.0.0.1 255.255.255.252\n#\ninterface Ethernet0/0/0\n ip address 192.168.1.2 255.255.255.0\n#\nreturn', 'to': 'cisco-iosxe-asr920-17.15', 'model': 'ASR-920-12CZ-A'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.inventory.model` = `"ASR-920-12CZ-A"`
+- `data.map.0.target` = `"GigabitEthernet0/0/1"`
+- `data.map.0.basis` = `"same_index"`
+- `data.map.0.confidence` = `0.8`
+- `data.unmapped.0.source` = `"Ethernet0/0/0"`
+- `data.unmapped.0.reason` = `"management"`
 
 ### 对比时隐藏设备身份差异（Router ID 不同不算差异）
 
@@ -1327,6 +1554,93 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.default` = `"huawei"`
 - `data.objects.vrf.instance.huawei.label.0` = `"ip vpn-instance {name}"`
 - `data.objects.vrf.instance.cisco.label.0` = `"vrf definition {name}"`
+
+### 上传两台设备的配置还原拓扑
+
+`POST /api/v1/topology`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/topology' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"configs": [{"name": "r1.cfg", "text": "!Software Version V800R025C00SPC500\nsysname R1\n#\ninterface GigabitEthernet0/2/1\n mtu 9000\n ip address 10.0.0.1 255.255.255.252\n#\nospf 1\n area 0.0.0.0\n  network 10.0.0.0 0.0.0.3\n#\nreturn"}, {"name": "r2.cfg", "text": "!Software Version V800R025C00SPC500\nsysname R2\n#\ninterface GigabitEthernet0/2/1\n ip address 10.0.0.2 255.255.255.252\n#\nospf 1\n area 0.0.0.1\n  network 10.0.0.0 0.0.0.3\n#\nreturn"}]}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/topology' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"configs": [{"name": "r1.cfg", "text": "!Software Version V800R025C00SPC500\nsysname R1\n#\ninterface GigabitEthernet0/2/1\n mtu 9000\n ip address 10.0.0.1 255.255.255.252\n#\nospf 1\n area 0.0.0.0\n  network 10.0.0.0 0.0.0.3\n#\nreturn"}, {"name": "r2.cfg", "text": "!Software Version V800R025C00SPC500\nsysname R2\n#\ninterface GigabitEthernet0/2/1\n ip address 10.0.0.2 255.255.255.252\n#\nospf 1\n area 0.0.0.1\n  network 10.0.0.0 0.0.0.3\n#\nreturn"}]}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/topology', headers={'Authorization': 'Bearer <令牌>'}, json={'configs': [{'name': 'r1.cfg', 'text': '!Software Version V800R025C00SPC500\nsysname R1\n#\ninterface GigabitEthernet0/2/1\n mtu 9000\n ip address 10.0.0.1 255.255.255.252\n#\nospf 1\n area 0.0.0.0\n  network 10.0.0.0 0.0.0.3\n#\nreturn'}, {'name': 'r2.cfg', 'text': '!Software Version V800R025C00SPC500\nsysname R2\n#\ninterface GigabitEthernet0/2/1\n ip address 10.0.0.2 255.255.255.252\n#\nospf 1\n area 0.0.0.1\n  network 10.0.0.0 0.0.0.3\n#\nreturn'}]})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.summary.devices` = `2`
+- `data.summary.links` = `2`
+- `data.links.0.id` = `"subnet:R1:GigabitEthernet0/2/1~R2:GigabitEthernet0/2/1"`
+- `data.links.0.segment` = `"10.0.0.0/30"`
+- `data.links.0.confidence` = `"high"`
+- `data.links.1.type` = `"ospf"`
+- `data.nodes.0.id` = `"R1"`
+
+### 两台设备的跨设备一致性检查
+
+`POST /api/v1/consistency`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/consistency' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"severity": "info", "configs": [{"name": "r1.cfg", "text": "!Software Version V800R025C00SPC500\nsysname R1\n#\ninterface GigabitEthernet0/2/1\n mtu 9000\n ip address 10.0.0.1 255.255.255.252\n#\nospf 1\n area 0.0.0.0\n  network 10.0.0.0 0.0.0.3\n#\nreturn"}, {"name": "r2.cfg", "text": "!Software Version V800R025C00SPC500\nsysname R2\n#\ninterface GigabitEthernet0/2/1\n ip address 10.0.0.2 255.255.255.252\n#\nospf 1\n area 0.0.0.1\n  network 10.0.0.0 0.0.0.3\n#\nreturn"}]}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/consistency' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"severity": "info", "configs": [{"name": "r1.cfg", "text": "!Software Version V800R025C00SPC500\nsysname R1\n#\ninterface GigabitEthernet0/2/1\n mtu 9000\n ip address 10.0.0.1 255.255.255.252\n#\nospf 1\n area 0.0.0.0\n  network 10.0.0.0 0.0.0.3\n#\nreturn"}, {"name": "r2.cfg", "text": "!Software Version V800R025C00SPC500\nsysname R2\n#\ninterface GigabitEthernet0/2/1\n ip address 10.0.0.2 255.255.255.252\n#\nospf 1\n area 0.0.0.1\n  network 10.0.0.0 0.0.0.3\n#\nreturn"}]}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/consistency', headers={'Authorization': 'Bearer <令牌>'}, json={'severity': 'info', 'configs': [{'name': 'r1.cfg', 'text': '!Software Version V800R025C00SPC500\nsysname R1\n#\ninterface GigabitEthernet0/2/1\n mtu 9000\n ip address 10.0.0.1 255.255.255.252\n#\nospf 1\n area 0.0.0.0\n  network 10.0.0.0 0.0.0.3\n#\nreturn'}, {'name': 'r2.cfg', 'text': '!Software Version V800R025C00SPC500\nsysname R2\n#\ninterface GigabitEthernet0/2/1\n ip address 10.0.0.2 255.255.255.252\n#\nospf 1\n area 0.0.0.1\n  network 10.0.0.0 0.0.0.3\n#\nreturn'}]})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.summary.total` = `2`
+- `data.summary.by_rule.xd.ospf.area` = `1`
+- `data.summary.by_rule.xd.subnet.mtu` = `1`
+- `data.findings.0.rule` = `"xd.ospf.area"`
+- `data.findings.0.ends.0.value` = `"0.0.0.0"`
+- `data.links.1.severity` = `"error"`
+- `data.links.1.issues.0` = `"xd.ospf.area@ospf:R1:GigabitEthernet0/2/1~R2:GigabitEthernet0/2/1"`
+
+### 还没有导入任何设备
+
+`GET /api/v1/topology`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/topology' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/topology' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/topology', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`409`；返回中的关键字段：
+
+- `code` = `1003`
 
 ### 翻译一段 Cisco 配置到华为（接口映射表）
 

@@ -1207,3 +1207,19 @@ cards:
       patched: Command Modes 写成 config-if-svc 的旧写法之外，ASR 920 运行配置中 bridge-domain 只带编号
       added_by_patch: true
     status: draft
+  - id: cisco-iosxe.subif-encapsulation-dot1q
+    syntax: encapsulation dot1q <vlan-id> [ native ]
+    view: interface
+    undo: no encapsulation dot1q
+    params:
+      vlan-id:
+        type: integer
+        range:
+          - 1
+          - 4094
+    source:
+      patched: 公开命令参考的 encapsulation dot1q 页只列了 QinQ（second-dot1q）写法，模式写成 config-ifsub（不在视图映射中）；子接口终结单层 VLAN 的写法按 IOS-XE 运行配置补充（encapsulation dot1Q 10）
+      added_by_patch: true
+    status: draft
+    maps:
+      interface.dot1q_termination: $vlan-id

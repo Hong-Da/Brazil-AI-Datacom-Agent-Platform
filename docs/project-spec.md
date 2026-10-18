@@ -34,15 +34,15 @@
 | REQ-009 | 配置对比：按有效值对比，改名识别、语义等价 | 任务文档“功能需求” | M2 | `core/compare.py`、`lmesh compare`、`POST /compare`、Web 配置对比 | 已完成（v0.1.1） | 对比视图 v0.2.0 |
 | REQ-010 | 配置检查：悬空引用、孤儿对象、互斥冲突、规则约束 | 任务文档“功能需求” | M2 | `core/checks.py`、`core/rules.py`、`lmesh check`、`POST /check`、Web 配置检查 | 已完成（v0.1.1） | 忽略发现、规则开关 v0.2.0 |
 | REQ-011 | 冗余配置清理：列出未被引用的 ACL、route-policy、prefix-list 并生成删除脚本 | 任务文档“功能需求” | M2 | `core/cleanup.py`、`lmesh cleanup`、`POST /cleanup`、Web 冗余清理 | 已完成（v0.1.1） | 按选中对象清理 v0.2.0 |
-| REQ-012 | 配置翻译：切换目标 Profile 渲染，不支持项和默认值差异告警 | 任务文档“功能需求” | M3 | `core/canon.py`、`core/translate.py`、`lmesh translate`、`lmesh render --canonical --with-defaults`、`POST /translate`、`POST /render` | 后端已完成（M3-3） | 界面随 M3-6；含默认值的完整配置（用户 2026-10-18 要求）共用规范渲染器 |
-| REQ-013 | 配置模板：参数化模板校验并提取变量 | 任务文档“功能需求” | M3 | `core/template.py`、`core/template_match.py`、`core/template_draft.py`、`lmesh template check / extract / draft`、`POST /templates/check / extract / draft` | 后端完成（M3-4） | 界面随 M3-6 |
-| REQ-014 | 配置生成：模板 + 参数表批量生成配置 | 任务文档“功能需求” | M3 | `core/template_gen.py`、`lmesh template generate`、`POST /templates/generate` | 后端完成（M3-5） | 界面随 M3-6 |
+| REQ-012 | 配置翻译：切换目标 Profile 渲染，不支持项和默认值差异告警 | 任务文档“功能需求” | M3 | `core/canon.py`、`core/translate.py`、`lmesh translate`、`lmesh render --canonical --with-defaults`、`POST /translate`、`POST /render` | 已完成（v0.3.0） | 含默认值的完整配置（用户 2026-10-18 要求）共用规范渲染器 |
+| REQ-013 | 配置模板：参数化模板校验并提取变量 | 任务文档“功能需求” | M3 | `core/template.py`、`core/template_match.py`、`core/template_draft.py`、`lmesh template check / extract / draft`、`POST /templates/check / extract / draft` | 已完成（v0.3.0） | |
+| REQ-014 | 配置生成：模板 + 参数表批量生成配置 | 任务文档“功能需求” | M3 | `core/template_gen.py`、`lmesh template generate`、`POST /templates/generate` | 已完成（v0.3.0） | |
 | REQ-015 | 增量变更脚本：按依赖拓扑排序生成下发命令和回滚脚本 | 任务文档“功能需求” | M4 | | 待开发 | |
 | REQ-016 | 变更影响分析 | 任务文档“功能需求” | M4 | | 待开发 | |
-| REQ-017 | 割接迁移：翻译 + 接口映射表 | 任务文档“功能需求” | M4 | | 待开发 | |
+| REQ-017 | 割接迁移：翻译 + 接口映射表 | 任务文档“功能需求” | M4 | `core/migration.py`、`lmesh migrate`、`POST /migrate`、`POST /migrate/suggest-map` | 后端完成（M4-5） | 界面待做；增量下发脚本复用 `core/change.py` |
 | REQ-018 | 拓扑还原 | 任务文档“功能需求” | M4 | | 待开发 | |
 | REQ-019 | 跨设备一致性检查 | 任务文档“功能需求” | M4 | | 待开发 | |
-| REQ-020 | 安全基线审计 | 任务文档“功能需求” | M4 | | 待开发 | |
+| REQ-020 | 安全基线审计 | 任务文档“功能需求” | M4 | `core/baseline.py`、`core/report_baseline.py`、`knowledge/rules/baseline-security.yaml`、`lmesh baseline`、`POST /baseline`、`GET /baseline/rules`、`POST /baseline/report` | 后端完成（M4-7） | 界面待做；SSH 算法、RADIUS、SNMPv3 用户等待知识库补节点 |
 | REQ-021 | 版本历史：图快照，按时间查看配置变化 | 任务文档“功能需求” | M5 | | 待开发 | |
 | REQ-022 | 文档导出：IP 地址表、VLAN 表、BGP 邻居表、接口描述表 | 任务文档“功能需求” | M5 | | 待开发 | |
 | REQ-023 | 特性能力查询 | 任务文档“功能需求” | M5 | | 待开发 | |
@@ -545,7 +545,142 @@ Batfish 公开样本中的发现（未定义的 route-map / VRF 引用、没有 
 
 **回归**（`knowledge/samples/translate/manifest.yaml`）：同平台族规范渲染等价——全部 gate 样本（ATN 现网、ASR 920 合成三份、ATN 合成两份、Batfish 九份）与 `atn-l3vpn-synth.cfg`，规范渲染与含默认值两种方式重新解析后与原图对比（含原文行）都是 0 差异、不新增未识别行；翻译 8 个用例（ATN 现网 → ASR 920、ASR 920 → ATN、ATN 合成 L3VPN → ASR 920、IGP / 管理面双向、MPLS / L2VPN / ACL 双向、Batfish → ATN）全部 `verify.unexplained = 0`、译文没有未识别行，写出比例 0.72～0.97（下限写在清单中）。
 
-**已知限制**（多数是映射两边不对称，由知识库补映射解决，渲染器不用改）：华为二层子接口（接入点键 `_`）与 ASR 920 业务实例（按编号）结构不同，互译时接入点报不支持；Cisco 接口视图没有 `encapsulation dot1q` 的映射（`dot1q_termination` 写不出）；Cisco `set community` 只有单值语法；`mgmt.line.auth` 两边语义不同（华为认证方式、Cisco 认证列表名），图上相等但含义不同；ATN 的 `100GE` 接口名不符合 Cisco 的接口参数类型，需用映射表；同一对象只能由一张入口命令进入（华为 BGP 的 `vpn-instance X` 与 `ipv4-family vpn-instance X` 合成一个块）。
+**已知限制**（多数是映射两边不对称，由知识库补映射解决，渲染器不用改；前四项已在“知识库补缺（M3 收尾）”解决）：华为二层子接口（接入点键 `_`）与 ASR 920 业务实例（按编号）结构不同，互译时接入点报不支持；Cisco 接口视图没有 `encapsulation dot1q` 的映射（`dot1q_termination` 写不出）；Cisco `set community` 只有单值语法；`mgmt.line.auth` 两边语义不同（华为认证方式、Cisco 认证列表名），图上相等但含义不同；ATN 的 `100GE` 接口名不符合 Cisco 的接口参数类型，需用映射表；同一对象只能由一张入口命令进入（华为 BGP 的 `vpn-instance X` 与 `ipv4-family vpn-instance X` 合成一个块）。
+
+### 知识库补缺（M3 收尾）
+
+补齐配置翻译暴露出的知识库缺口（决策 D-0073～D-0076）。翻译回归的写出比例（写出节点 / 要写出节点）：
+
+| 用例 | 补缺前 | 补缺后 |
+|---|---|---|
+| ATN 现网 → ASR 920 | 1732 / 1939（0.893） | 1747 / 1889（0.925） |
+| ASR 920 → ATN | 121 / 135（0.896） | 136 / 138（0.986） |
+| ATN 合成 L3VPN → ASR 920 | 111 / 115（0.965） | 115 / 116（0.991） |
+| ASR 920 IGP / 管理面 → ATN | 91 / 116（0.784） | 89 / 114（0.781） |
+| ATN IGP / 管理面 → ASR 920 | 68 / 89（0.764） | 70 / 89（0.787） |
+| ASR 920 MPLS / L2VPN / ACL → ATN | 142 / 190（0.747） | 173 / 191（0.906） |
+| ATN MPLS / L2VPN / ACL → ASR 920 | 168 / 214（0.785） | 174 / 212（0.821） |
+| Batfish → ATN | 84 / 91（0.923） | 86 / 91（0.945） |
+
+全部用例 `verify.unexplained = 0`、译文没有未识别行；清单里的下限 `min_rendered` 按补缺后的结果调高。分母变化来自：接入点换结构后二层子接口的 `l2` 与描述并入接入点、SNMP 团体字按敏感取值整棵不写（IGP / 管理面用例的分子分母都少了团体字）、新增的 BGP 计时器与线路认证列表节点。
+
+| 缺口 | 做法 |
+|---|---|
+| 接入点结构（华为二层子接口 ↔ Cisco 业务实例） | 映射表达式 `ctx:subif`（上下文中接口的子接口编号，主接口为 `_`）：华为接口视图的封装、rewrite、桥域、`mpls l2vc` 与 Cisco 接口视图的 `xconnect` / `backup peer` 都按它给接入点编号，Cisco 业务实例按实例编号——两家接入点编号一致。形态写在 `knowledge/render/<平台族>.yaml` 的 `access_form`（华为 `subinterface`、Cisco `instance`），翻译时 `translate.reshape_access` 换结构：二层子接口 `P.N`（或终结 VLAN 的子接口上的伪线，`vlan-type dot1q V` → 接入点 `encapsulation dot1q V`）→ 父接口 `P` 下的 `service instance N`，子接口描述 ↔ 接入点描述；反方向写成 `interface P.N mode l2`。只承载接入点的接口（只剩默认值、未映射命令或原文）一并去掉。校验时把源图按目标形态换结构后再对比（单向换，不要求互逆）。解析图仍按配置的真实层级，同平台族往返与对比不受影响 |
+| 华为 `interface … mode l2` | 原文把关键字 mode 排成参数，修正文件改为 `… mode l2`（写得出二层子接口） |
+| Cisco 子接口 `encapsulation dot1Q N` | 公开文档只有 QinQ 写法且模式写成 config-ifsub，修正文件补卡 `cisco-iosxe.subif-encapsulation-dot1q` → `interface.dot1q_termination` |
+| Cisco `set community` 多值 | 修正文件改为 `set community { { <community-number> } &<1-32> [ additive ] \| none }` |
+| BGP 计时器 | 新增 `bgp.instance.keepalive` / `hold`（华为 `timer keepalive … hold …`，Cisco `timers bgp`，两家默认 60 / 180）；Cisco `neighbor … timers` 修正排版（`<p> <eer-group-name>`）后映射到对等体 / 组的计时器 |
+| `bgp log-neighbor-changes` | 华为没有实例级命令、默认记录（Profile 人工缺省 true）：Cisco 显式开启译到华为时省略并说明，华为译到 Cisco 时按默认值不同显式写出并告警 |
+| 伪线承载方式 | Cisco `xconnect … encapsulation mpls \| l2tpv3` 改映射到新节点 `interface.access.pw.transport`（两家默认 mpls），`interface.access.pw.encapsulation` 只表示华为 raw / tagged |
+| VRF 标签分配、NTP 服务器源接口 | 规范渲染的表达式反解支持 `if:$参数:表达式`（`mpls label mode vrf X …` 写得出）；Cisco `ntp server … source` 补映射，华为 `source-interface` 的占位名写错（`interface_number` → `interface_num`）一并改正 |
+| `mgmt.line.auth` 语义 | 拆成 `auth`（认证方式：aaa / password / none / local / tacacs）与 `auth_list`（AAA 方法列表名，两家默认 default）；Cisco `login authentication X` → `auth = aaa` + `auth_list = X`，`login [ local ]` → password / local |
+| 敏感取值 | Schema 节点可以标 `secret: true`（取值或对象键是敏感内容）；翻译跨平台族时与名称为 password / secret 的节点一样拦截（`unsupported[]`，`reason: secret`）。已标：`mgmt.snmp.community`（团体字是对象键，整棵子树不写，只剩空壳的 `mgmt.snmp[_]` 也不写）、BGP / LDP 密码。TACACS / RADIUS 共享密钥、NTP 认证密钥、OSPF / IS-IS 认证密码在图上只有“已设置”或编号、认证方式，没有取值，跨平台族不会带出密文 |
+| 书写习惯即时生效 | `knowledge/render/` 计入知识库缓存签名（`analysis._signature`），改书写习惯后下一次请求重新加载 |
+| 华为高级 ACL 端口 | 修正文件把 TCP / UDP 规则卡里同名的 `port-number` 拆成 `src-port-op`、`src-port`、`src-port-begin`、`src-port-end`（目的端口同理），映射成与 Cisco 一致的 `eq 22`、`range 1000 2000` |
+| `acl name X number N` 按编号引用 | Schema 属性可以标 `alias: true`：取值登记为所属对象的另一个键，`acl.instance.number` 已标，按 N 引用不再是悬空引用 |
+| Cisco `ip access-list <名称>` | 修正文件补卡（不写 standard / extended），按扩展 ACL（`type = advanced`）处理 |
+
+**仍未解决**（结构或平台能力不对等，列为不支持）：华为 `mpls l2vc pw-template X <vc-id>`（对端地址在 PW 模板里，Cisco `xconnect` 必须写对端）；华为 VSI 的 LDP 信令 / 封装 / MTU、隧道策略、`mpls lsr-id`（Cisco 只有 LDP router-id 接口）、OSPF network 描述、桥域描述、SSH 用户、AAA 域与方案；Cisco 命名的 `l2vpn xconnect context`、IS-IS 进程名（华为要求数字）、接口下的 `mpls ldp igp sync`；接口 `speed`（Cisco 没有对应命令卡）。
+
+### 拓扑还原与跨设备一致性（M4-6 结果）
+
+**输入**：多台设备的配置图——已导入设备的最新配置版本（按名称或编号），或一批配置文件 / 上传的配置文本（设备名取 `sysname` / `hostname`，没有时用文件名，重名加 `#2`）。全部推导由代码在图上计算（`core/topology.py`），不用 AI。
+
+**链路类型与推导规则**（每条链路记录两端设备、接口、地址、端点节点、事实 `facts`，以及推导依据 `basis`（规则、两端节点、说明）与置信度 high / medium / low）：
+
+| 类型 | 规则 | 说明 |
+|---|---|---|
+| `subnet` | `subnet.p2p` / `subnet.same_network` / `subnet.mask_overlap` | 同网段接口（VRF 内与公网分开，排除 Loopback 与 /32）。/30、/31 且只有两端为 high；多点网段两两成链为 medium；只有一端的掩码包含对端地址为 low；任一端 shutdown 降为 low |
+| `ospf` | `ospf.both_enabled` | 同网段链路两端都在 OSPF 中启用：接口下的区域，或进程（同 VRF）下 network 语句覆盖接口地址（最长匹配）；区域统一成点分写法；静默按进程缺省 + 接口例外计算 |
+| `isis` | `isis.both_enabled` | 两端接口都启用 IS-IS；可用级别 = 进程级别 ∩ 电路类型 |
+| `ldp` | `ldp.both_enabled` | 两端接口都使能 MPLS LDP |
+| `ldp_remote` | `ldp.remote_peer_lsr_id` | 远端对等体地址是另一台设备的 LSR ID / Loopback |
+| `bgp` | `bgp.peer_address` / `bgp.peer_address_one_sided` | 对等体地址落在另一台设备的接口 / Loopback 上；本端地址取 update-source / connect-interface（对等体或对等体组），没有时取同网段接口；对端 AS 取对等体、对等体组，internal 组取本地 AS；地址族取全局地址族中使能的（对等体或所属组） |
+| `pw` | `pw.peer_lsr_id_vc_id` / `pw.peer_lsr_id_vc_mismatch` / `pw.peer_lsr_id_one_sided` | 伪线（华为 l2vc 含 pw-template 的 peer-address、Cisco xconnect / l2vpn xconnect、VSI / VFI 对等体）对端 = 对端设备 LSR ID；两端 VC ID 相同为 high；两台设备之间只剩一对没配上的同类伪线时按 VC ID 不一致配对（low） |
+| `bfd` | `bfd.session_peer` / `bfd.interface_both` | 静态会话对端是另一台设备的接口地址（mode static）；同网段链路两端都有接口 BFD 参数（mode interface） |
+
+对端不在这批设备中的对等体 / 伪线 / 会话列在 `unresolved`；同一 VRF 中同一地址出现在多台设备上（含 Loopback）列在 `duplicates`。LSR ID 取 `mpls lsr-id`，没有时取 LDP router-id 或其接口地址。
+
+**跨设备依赖边**（`cross_edges`）：按 Schema deps 中 `kind: cross_device` 的规则生成（遵守规则的 `profiles`）。源与终点类型不同时，源节点取值（对象取键）等于另一台设备上终点类型节点的取值即连边（默认节点不参与）；源与终点类型相同（`interface.ospf.area`）时在同网段链路两端之间连边。目前的规则：BGP 对等体 → 接口地址、BFD 会话对端 → 接口地址、伪线对端 → LSR ID、远端 LDP → LSR ID、接口 OSPF 区域 ↔ 接口 OSPF 区域（只有接口下写了区域时才有节点）。
+
+**一致性规则**（`knowledge/rules/cross-device.yaml`，新建；`lmesh check` 不读它——`rules.NOT_RULE_FILES` 跳过）：在 `core/rules.py` 的格式上扩展出“链路规则”：`link`（链路类型）、`compare`（`{value: 取值}` 两端同一项，或 `{a, b, symmetric}` 交叉比较）、`op`（`equal` / `same_presence` / `both` / `overlap`）、`when`（`both` / `either`）、`pair`（端点下按键配对的子对象）、`requires`（Schema 缺少这些节点时跳过，列在 `rules_skipped`）、三语文案（占位符 `{link} {a_device} {a_end} {a_value} {b_device} {b_end} {b_value}`）。取值是 `fact:名称` 或 Schema 路径（subnet / ospf / isis / ldp 的端点是 interface，bgp 是 bgp.peer，其他链路类型只能用 fact:）。规则写错时与检查规则相同的问题格式（文件、规则、字段、文案键），CLI 退出码 3、API 409。28 条规则：链路掩码、MTU、OSPF / IS-IS / LDP 只在一端启用、一端 shutdown；OSPF 区域、网络类型、hello、dead、认证（接口没有时取区域认证）、静默；IS-IS 级别无交集、点到点不一致；LDP 认证只在一端、远端 LDP 只在一端；BGP 只在一端、对端 AS 与对端设备 AS 不符（双向）、地址族不同、认证只在一端；伪线只在一端、VC ID、控制字、MTU；BFD 只在一端、静态描述符不对应（双向）、发送间隔、检测倍数；VRRP 虚拟地址、VRRP 组只在一端（`requires: interface.vrrp`，M4-2 建好 VRRP 功能域、节点名一致后自动生效）。内置检查 `xd.ip_duplicate`（地址冲突，文案在 locales）。
+
+**结果格式**：与单台检查一致——`findings`（`id`、`rule`、`severity`、`domain`、`device`、`node`、`schema`、`nodes`、`lines`、`message` / `suggestion` 为文案键 + 参数）再加 `link`、`link_type`、`devices`、`ends`（两端的设备、端点、节点、取值、行号）；`summary` 在 `checks.summarize` 之外加 `by_link`、`by_device`、`topology`（拓扑汇总）；拓扑的每条链路带 `issues`（发现的 id）与 `severity`（最高级别），每个设备节点带 `issues` 个数；`texts` 是规则文件文案的三种语言。
+
+**接口**：CLI `lmesh topology [文件|目录|设备名|编号…] [--all] [--profile P]`、`lmesh consistency [同上] [--severity S] [--rules 文件]`（有 error 级发现时退出码 1）；API `GET /topology?devices=`（逗号分隔的名称或编号，省略时全部已导入设备）、`POST /topology`、`POST /consistency`（`{"configs": [{"name", "text", "profile"}], "device_ids": [], "severity"}`，两者都为空时取全部已导入设备）。
+
+**样本**：`knowledge/samples/topology/`（有自己的清单，往返回归由 `tests/roundtrip/test_topology_samples.py` 执行，`core/roundtrip.py` 与 `tests/roundtrip/test_samples.py` 的排除列表加了该目录）：2 台 ATN（华为 VRP8 V800R025）+ 2 台 ASR 920 汇聚 + 1 台 ASR 920 路由反射器，OSPF / IS-IS、BGP VPNv4、LDP（本地与远端）、两条伪线、静态与接口 BFD，故意放了 13 处不一致（清单 `expect_findings`），全部报出、没有多报。
+
+**已知限制**：VRF 内的 BGP 对等体（PE–CE）不参与（Schema 中 VRF 对等体没有独立的对象）；IS-IS L1 邻接的区域一致性没有检查；Cisco `passive-interface` 写在 IS-IS 进程下时没有映射到接口，静默只看接口下的配置；华为 `mtu` 与 Cisco `mtu` 计法不同，按数值直接比较（规则文案中已提示）；接口 BFD 只有 Cisco 写法有映射（min_rx 未映射）。
+
+### 割接迁移（M4-5 结果）
+
+| 功能 | 模块 | CLI / API |
+|---|---|---|
+| 接口映射建议 | `core/migration.py`（`suggest_map`） | `lmesh migrate … --suggest-only`；`POST /migrate/suggest-map` |
+| 整机迁移：新配置、增量配置、映射表、告警、校验、割接步骤 | `core/migration.py`（`migrate`、`build_steps`、`map_csv`、`load_map_file`） | `lmesh migrate <旧配置\|设备> --to <Profile> [--interface-map] [--target-config] [--model] [--on-conflict] [-o 目录]`；`POST /migrate` |
+| 平台族操作知识（管理口、逻辑接口类型写法、割接命令、核对命令） | `knowledge/migration/<平台族>.yaml` | — |
+| 端口清单（各型号的物理端口与速率） | `knowledge/migration/ports/<Profile>.yaml`（目前只有 ASR 920，`verified: false`） | — |
+| 回归 | `knowledge/samples/migration/manifest.yaml`、`tests/roundtrip/test_migration.py` | `pytest -m roundtrip` |
+
+**流程**（决策 D-0061～D-0065）：
+
+| 环节 | 做法 |
+|---|---|
+| 接口映射建议 | 用户给出的优先（`-` 表示不迁移；重复的目标告警 `duplicate_target`）；逻辑接口（聚合口 / 环回口 / 桥域三层口 / VLAN 接口 / Null / Tunnel）编号不变，按 `logical_types` 换类型写法；物理口依次按同名、同速率同端口号（最后一级编号）、同速率依次、更高速率分配（置信度 0.95 / 0.8 / 0.6 / 0.4），有配置的接口优先；分配不了的列入 `unmapped`（附原因）。管理口（`management` 正则，或绑定 `management_vrf`）不迁移 |
+| 端口清单 | `--model` 指定的知识库清单 → 新设备现有配置中的物理口（现有配置里已有实质配置的端口视为占用，不自动分配）→ 知识库默认型号（告警 `port_inventory_assumed`）→ 都没有时同平台族保持原名、跨平台族按速率换类型写法且编号不变（置信度 0.5 / 0.3，告警 `port_inventory_missing`） |
+| 换接口前的整理 | 在旧图副本上：没有映射的接口连同子接口删除，引用它们的配置（接口型取值、键字段是接口的对象）一并删除并告警 `ref_not_migrated`；聚合口编号变化时成员口的聚合组编号跟着改（`lag_renumbered`），聚合口不迁移时成员退出聚合，成员不全迁移、速率不一致时告警；子接口跟随主接口（`subinterfaces_follow`） |
+| 翻译 | 复用 `translate.translate`（不做它自己的校验），最终映射表作为接口映射 |
+| 合并到现有配置 | 译文解析成图后按节点编号（接口名统一写法、不分大小写）与现有配置对应：没有的新增，取值相同的跳过，显式取值不同的为冲突（`target_conflict`，`--on-conflict migrate` 以旧设备为准，`keep` 保留现有）；迁移需要的是目标默认值、而现有配置显式改过的（例如出厂 `shutdown`），写回默认值；同一对象下现有配置有、迁移内容没有的同类子对象并存并告警 `target_coexist`。新配置 = 合并后的图规范渲染（现有配置的原文行照常写回），增量配置 = 只渲染新增 / 修改的节点 |
+| 校验 | 新配置再解析，二层接入点形态不同时换回旧设备的形态（`translate.reshape_access`），与旧设备按有效值对比（接口映射）；有原因的节点（告警、不支持、删除的）与新设备原有的配置（`target_existing`）之外的差异记为 `verify_diff`，新增的未识别行记为 `verify_unknown`；CLI 有未解释的差异时退出码 1 |
+| 增量下发脚本 | 复用 `core/change.py`（现有配置或空配置 → 新配置）：优先用约定的 `plan(current_graph, target_graph, kb, profile) -> {script, rollback, items, verify}`，没有时用 `change.change(current_side, target_side, kb)`（取 `script`、`rollback.script`、`ops`、`verify`）；模块不可用或出错时 `script.available = false`（`reason`），迁移结果照常输出 |
+| 割接步骤 | 割接前核对 → 下发新配置 / 增量配置 → 新设备业务端口保持关闭、BGP 对等体隔离 → 旧设备隔离 BGP（VRF 先、骨干后）→ 旧设备关端口（接入先、上行后）→ 按映射表迁移线缆 → 新设备启用上行（含聚合成员）→ 核对 IGP / LDP / 聚合 → 启用接入 → 恢复 BGP（骨干先、VRF 后）→ 割接后核对；回退四步。上行 = 本身或子接口有 OSPF / IS-IS / MPLS 配置的接口（聚合口是上行时成员也是）。命令按各平台族的写法（华为 system-view … quit … commit / return，Cisco configure terminal … exit … end）；每步有 `key`（文案键）、`params`、`commands` |
+
+**输出目录**：`new-config.cfg`、`delta.cfg`（有现有配置时）、`interface-map.csv`（列 `source,target,kind,source_speed,target_speed,basis,confidence,subinterfaces,configured`，未映射的 target 为空、basis 为原因；修改后可用 `--interface-map` 传回）、`warnings.csv`、`steps.txt`、`migration.json`，增量变更模块可用时另有 `script.txt`、`rollback.txt`。
+
+**回归**：ATN 现网 → ASR 920（ASR-920-24SZ-M + 部分映射表）、ASR 920 → ATN（出厂配置作为现有配置，只生成增量）、同平台族换型号（槽位 2 → 槽位 1）三个用例全部 `verify.unexplained = 0`、新配置没有新增未识别行。
+
+**已知限制**：同平台族迁移也走翻译，未映射命令与功能域外原文不写回（列在 `unsupported`）；华为 ATN 还没有端口清单（用新设备现有配置）；ASR 920 端口清单按公开资料整理，未在设备上核对；BGP 会话切换只按“VRF / 骨干”两级排序，没有按对等体角色（RR、CE）细分；`knowledge/render/cisco-iosxe.yaml` 的 `interface_types` 中 `Null` 被 YAML 读成空值（翻译时 Null0 会误报 `interface_type`），迁移用 `knowledge/migration/` 的 `logical_types` 绕开，需知识库维护者给它加引号。
+
+### 安全基线审计（M4-7 结果）
+
+**基线文件**：`knowledge/rules/baseline-security.yaml`（新建），文件级 `kind: baseline`——`rules.read_docs` / `load_dir(kind=…)` 按 kind 分开读取，`lmesh check` 与规则开关（`rule_edit`）不加载基线文件。文件里定义多套基线 `profiles`（`basic` 基础、`strict` 严格，`includes` 表示包含，`strict` = `basic` + 严格项），规则用 `profiles` 字段归属基线；文件级 `vars` 是可调的取值（弱团体字清单 `weak_communities`、空闲超时上限 `max_idle_seconds`、SSH 重试上限 `max_ssh_retries`），基线的 `vars` 覆盖它们（严格基线超时上限 600 秒）。规则共 26 条（basic 22 条），覆盖：Telnet / FTP 关闭、SSH 启用且只用版本 2、SSH 重试次数、VTY 只允许 SSH / 绑定入方向 ACL / 用 AAA 认证、登录线路空闲超时不为 0 且不超过上限、SNMP 团体字不弱 / 绑定 ACL / 只读、只用 SNMPv3（严格）、告警 / 日志 / NTP 源接口为 Loopback、配置 AAA 与 TACACS+ / RADIUS、TACACS+ 共享密钥、本地用户已设密码 / 不允许 Telnet / FTP 服务类型 / 最高级别提示（严格）、NTP 服务器与认证、NTP 服务器绑定密钥（严格）、日志服务器。每条规则有严重度、三语标题 / 说明 / 建议、`tags` 分类与 `remedy`（`huawei` / `cisco` 两种写法的参考命令，叫法按 `knowledge/terms.yaml`，可用 `{key}`、`{node}`）。
+
+**规则引擎扩展**（`core/rules.py`，向后兼容，旧规则文件不变）：`target: device` 设备级规则（每台设备求值一次，用于“必须存在”“至少有一个”）；以 `/` 开头的绝对路径（从设备根节点出发，例如 `/mgmt.aaa/scheme`）；新条件 `match`（正则，可忽略大小写）、`range`（数值范围，`unit: min_sec` 把“分 秒”换算成秒）、`key`（实例或路径上节点的键在列表中 / 匹配正则，用于团体字名称 / 别名、线路类型）、`family`（平台族，只用于 Profile 缺少缺省值、必须按平台区分“没有配置时的行为”的情况：Cisco 没有 Telnet 服务开关而由线路的 transport input 决定、Cisco 开启 aaa new-model 后线路缺省用 default 方法列表、华为 VRP8 缺省不开 SSHv1 兼容）；条件取值可写 `$变量`。求值器记录证据节点：正向条件记路径上找到的节点（取值不符时看它们），取反条件只记命中的节点；`all` 不短路，以便一次列全证据。
+
+**结论与分数**（`core/baseline.py`）：每条规则在每台设备上为 `pass`（有适用实例且全部满足）、`fail`（至少一个实例不满足，每个实例一条不符合项）、`na`（没有适用实例：对象不存在或前提都不满足）。不符合项的行号 = 实例的第一行 + 证据节点的行；参考命令按设备平台族选写法并代入实例的键。得分按级别加权（error 3、warning 2、info 1）：通过权重 ÷ 适用权重 × 100，取整；多台设备的总分按全部格子计算。
+
+**接口**：CLI `lmesh baseline [文件|设备名…] [--all] [--profile basic|strict] [--report 文件]`（知识库 Profile 用 `--parse-profile`，因为 `--profile` 按需求用作基线名；有 error 级规则不通过时退出码 1）；API `POST /baseline`（请求里基线名用 `baseline`，`profile` 仍表示知识库 Profile，与其他接口一致）、`GET /baseline/rules`、`POST /baseline/report`；报告 `core/report_baseline.py` 复用 `core/report.py` 的排版（中英、HTML / Markdown）：概要、设备 × 规则矩阵、每台设备的不符合项（含参考命令）、规则清单。修复只给参考命令，不生成可下发脚本。
+
+**样本基准**（`tests/unit/test_baseline.py`，结论人工核对）：现网 ATN（atn-access-01）基础基线 95 分，只缺日志服务器；严格基线另有 NTP 服务器未绑定认证密钥（启用了认证但服务器没有 authentication-keyid，同步并未认证）、仍用 SNMPv2c、VTY 空闲超时 15 分钟。合成 ASR 920（pe-asr920-02）基础 100 分。片段样本（pe-asr920-01、MPLS / ACL 合成样本）缺管理面配置，按“不符合”计。ATN 上被锁定（state block）的本地用户不检查服务类型。
+
+**已知限制（需要知识库补的内容）**：SSH 服务端算法（华为 `ssh server cipher / hmac / key-exchange`、Cisco `ip ssh server algorithm …`）没有进入 Schema——现网 ATN 允许 3des_cbc、aes*_cbc、md5、sha1、dh_group_exchange_sha1 等弱算法，基线暂时查不到；华为 `ssh server compatible-ssh1x`、Cisco SSH 的 RSA 密钥未映射；RADIUS 服务器没有对象（方法里出现 radius 时按已配置处理）；SNMPv3 用户 / 组与 USM 安全级别未建模；华为明文团体字写法（命令卡 `snmp-agent-community.1`）未映射，只能检查密文团体字的别名；Cisco `no aaa new-model` 被映射成 mgmt.aaa 对象（没有取反），所以“配置 AAA”按认证方案 / 方法列表判断；`mgmt.line.protocols`、`mgmt.ssh.version` 在 Profile 中没有缺省值（华为未配置 protocol inbound 时允许全部协议，Cisco 缺省兼容 SSHv1）。
+
+### 增量变更脚本与变更影响分析（M4-3 / M4-4 结果）
+
+REQ-015、REQ-016。代码：`core/change.py`、`core/impact.py`、`core/report_change.py`、`cli/cmd_change.py`（`lmesh change`、`lmesh impact`）、`api/routes_change.py`（`POST /change`、`POST /change/report`、`POST /impact`）；变更知识 `knowledge/change/<平台族>.yaml`；回归 `knowledge/samples/change/manifest.yaml` + `tests/roundtrip/test_change.py`。
+
+**增量变更**（当前图 + 目标图，同一平台族；目标可以来自另一个配置版本、模板生成、翻译结果或粘贴的文本）：
+
+1. 差异：两张图用 `compare` 的规范化（`_Canonicalizer`，有效值、键的规范写法）逐节点比较；只差在默认值的不下发；**不做改名识别**——设备上改名就是“新建 + 改引用 + 删除旧的”。显式属性恢复默认 → 取消该行；属性写在对象入口行上（静态路由的 tag）→ 重写这一行（取消会删掉对象）；取消多取值的行后，目标仍要的其他取值补写（`rewrite`）。
+2. 命令：新增 / 修改的节点作为 facts 交给规范渲染器 `canon.render_full`（块结构一并得到）；同平台族时，若目标配置里有同一命令卡、写出了这些节点的原文行，用原文（保留未映射的参数与用户写法）；已有对象的块头用当前配置的原文。删除用清理模块的取消语法渲染；删除对象时优先选“写出对象全部键的最短写法”（`undo rule 10`、`no neighbor X`、`no 10`），命令卡里没有的取消写法放在变更知识的 `undo_extra`（应并入命令卡）。规范渲染写不出的节点按目标原文兜底（`fallback`），仍写不出的列在 `unsupported`。未映射命令（ext）按所属对象多重集合比较。
+3. 修改：默认新值覆盖；`undo_first` 中的对象（华为 `rp.policy.node`、Cisco `acl.instance.rule`）修改入口行上的取值时先删除对象再整体重建。
+4. 副作用与互斥：Profile 的 `side_effects` 加变更知识补充的（Cisco `vrf forwarding` 删除接口 IP——应归入 Profile）：src 变化（绑定或解绑）时，同一对象下目标仍有的 dst 补发（`side_effect`，高风险，排在触发命令之后），要删除的 dst 排在触发命令之前；Schema `mutex` 先撤旧再配新（删除命令的动作记为 `mutex`）；`replace_first`（接口地址）同一父对象下一删一增先删旧。
+5. 顺序：命令之间的约束——上下文对象由别的命令新建（`contains`）、目标图的依赖（图中的 reference / prerequisite 边、没有规则的 ref 属性、键字段引用、键别名，见影响分析）、删除时先处理引用方（删除、取消或改引用，`referenced_by`）、副作用、互斥、先删后建、补写；在约束之外保持规范渲染的顺序（新增与修改在前，视图内的删除紧跟同一顶层块，顶层对象的删除最后），`lexicographical_topological_sort`；出现循环时按优先级断开并告警。
+6. 脚本：按视图分块（进入视图的命令、缩进的子命令、退出）；华为 `system-view` … `quit` … `commit`、`return`（VRP8 两阶段提交），Cisco `configure terminal` … `exit` / `exit-address-family` … `end`（退出命令取 `knowledge/render` 的 exits，否则 `exit` / `quit`）。带说明的脚本在每条命令前加一行注释（华为 `#`、Cisco `!`）：动作、对象（按显示风格）、依赖原因、风险；`script_plain` 不带说明。
+7. 风险：副作用 → 高；修改或删除已有配置且命中 `risk_high`（Schema 节点前缀）→ 高；兜底命令、或影响分析从被改节点能到达业务对象 → 中；其余（纯新增）→ 低。
+8. 验证（下发与回滚都做）：在当前配置的行树上模拟执行——取消命令按取消语法（含 `undo_extra`）匹配要删的行（匹配不到记 `undo_no_match`），删除对象时一并删除只属于它的行；新命令解析后插入所在视图，同一属性的旧命令被覆盖（子行移到新命令下）；副作用删除同一视图中的 dst 行；每一步检查“引用了还不存在的对象 / 删除了还被引用的对象”（`order_violations`）。结果文本重新解析建图，与目标 `compare` 无差异、没有新的悬空引用、没有未识别行才算通过。
+
+**影响分析**：依赖关系 = 图中 reference / prerequisite 边 + Schema 中没有依赖规则的 ref 属性 + 键字段引用（键字段类型按 `compare._Schema.field_type`，如 `bgp.af` 的 `vrf`）+ 键别名（`KEY_ALIASES`：`bgp.af.peer` 的键指向 `bgp.peer` / `bgp.peer_group`，同一顶层对象内）。`up` 从节点沿 contains 向上到所属对象、再沿依赖反向到引用方，逐层 BFS（键别名双向传递，经别名到达的对象不再沿别名回到其他地址族）；`down` 沿依赖正向。业务对象 `BUSINESS`：VPN 实例（vrf）、接口（interface）、对等体（peer：BGP 对等体 / 对等体组 / 地址族对等体、LDP 远端对等体、BFD 会话）、二层业务（l2vpn）。一份变更的影响（`change.impact`）：删除 / 修改的节点在当前图上求、新增 / 修改的在目标图上求，按节点合并。
+
+**调用入口**：`change.change(Side, Side, kb, …)`（完整结果）；`change.plan(current_graph, target_graph, kb, profile)`（给割接迁移等模块：返回 `script`、`script_plain`、`rollback`、`rollback_plain`、`items`、`verify`、`rollback_verify`、`risk`、`summary`、`result`）；`change.change_text(当前文本, 目标文本, kb)`。模拟执行中，取消形式的设置命令（`undo shutdown`）按取消语法解析。
+
+**报告**：`core/report_change.py` 复用 `core/report.py` 的 `_Doc` 排版（中文 / English，HTML / Markdown）。
+
+**回归**（全部通过）：华为与 Cisco 各一套合成样本——新增 VRF + 接口绑定 + BGP VPN 实例、前缀列表改名 + 路由策略修改、删除对等体、接口绑定 VPN 的副作用、ACL 规则变化、OSPF 参数变化，加华为路由策略节点 deny → permit（先删后建）与两份对比基准的真实修改（现网 ATN 脱敏配置、ASR 920 两级改名）；每个用例下发与回滚都通过模拟执行验证，没有兜底命令。
+
+**已知限制 / 需要知识库补的**：华为 ACL `destination-port` 没有映射（改端口时差异看不出来）；`huawei-vrp8.rule`、Cisco 接口 / 邻居 / ACL 规则卡缺少按键删除的取消写法（暂放 `undo_extra`）；Cisco Profile 缺 `vrf forwarding` 的副作用（暂放变更知识）；Cisco 编号 ACL 的单条规则无法单独删除（`no access-list N …` 会删整个 ACL），目前按普通规则处理；副作用只处理同一对象下的 dst；风险等级是规则判断，不评估流量。
 
 ### 知识库的存放
 
@@ -697,6 +832,7 @@ lmesh/
 │   ├── schema/                 统一 Schema（按功能域分文件）
 │   ├── profiles/               厂商 + 版本 Profile
 │   ├── render/                 规范渲染的平台族书写习惯
+│   ├── change/                 增量变更脚本的平台族下发习惯
 │   ├── templates/              配置模板
 │   └── samples/                已脱敏的配置样本与往返期望结果
 ├── assets/brand/               Logo 源文件与导出的图标

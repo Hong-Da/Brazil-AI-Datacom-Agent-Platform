@@ -239,6 +239,8 @@ def _load_schema(kb: KnowledgeBase, f: Path, issues: list[Issue]) -> None:
             deprecated=bool(raw.get("deprecated", False)),
             replaced_by=raw.get("replaced_by"),
             status=str(raw.get("status", "draft")),
+            secret=bool(raw.get("secret", False)),
+            alias=bool(raw.get("alias", False)),
         )
         if node.id in kb.nodes:
             _err(issues, "node.duplicate", f"Schema 节点重复：{node.id}", f)

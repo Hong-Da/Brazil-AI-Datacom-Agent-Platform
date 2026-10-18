@@ -125,6 +125,18 @@ rules:
     syntax: '^bgp log-neighbor-changes'
     maps: {bgp.instance.log_neighbor_changes: flag}
   - view: ^router-bgp$
+    syntax: '^timers bgp <keepalive> <holdtime>'
+    maps:
+      bgp.instance.keepalive: $keepalive
+      bgp.instance.hold: $holdtime
+  - view: ^router-bgp$
+    # 早先抽取的 cisco-iosxe.neighbor-timers 仍是原文排版（<p> <eer-group-name>），只取地址
+    syntax: '^neighbor (\{ <ip-address> \| <peer-group-name> \}|\[ <ip-address> \| <p> <eer-group-name> \]) timers <keepalive> <holdtime>'
+    maps:
+      bgp.peer | bgp.peer_group: *peer
+      bgp.peer.keepalive | bgp.peer_group.keepalive: $keepalive
+      bgp.peer.hold | bgp.peer_group.hold: $holdtime
+  - view: ^router-bgp$
     syntax: '^neighbor <peer-group-name> peer-group$'
     maps: {bgp.peer_group: $peer-group-name}
   - view: ^router-bgp$
@@ -397,6 +409,7 @@ rules:
       mgmt.ntp.server.vrf: $vrf-name
       mgmt.ntp.server.key: $key-id
       mgmt.ntp.server.prefer: "if:prefer:flag"
+      mgmt.ntp.server.source_interface: $interface
   - view: ^system$
     syntax: '^ntp authenticate$'
     maps:
@@ -522,7 +535,10 @@ rules:
     maps: {mgmt.line.acl_in: "if:in:$access-list-number"}
   - view: ^line$
     syntax: '^login authentication '
-    maps: {mgmt.line.auth: "$list-name||default"}
+    maps: {mgmt.line.auth: aaa, mgmt.line.auth_list: "$list-name||default"}
+  - view: ^line$
+    syntax: '^login \[ local \| tacacs \]$'
+    maps: {mgmt.line.auth: "kw:local|tacacs:password"}
   - view: ^line$
     syntax: '^privilege level <level>$'
     maps: {mgmt.line.privilege: $level}
@@ -625,22 +641,40 @@ rules:
   - view: ^pseudowire-class$
     syntax: '^preferred-path '
     maps: {l2vpn.pw_class.preferred_path: "tail:preferred-path"}
-  # 接口（端口模式）或业务实例下的 xconnect：伪线挂在接入点下（端口模式的接入点编号为 "_"）
-  - view: ^(interface|service-instance)$
+  # 接口（端口模式或子接口）或业务实例下的 xconnect：伪线挂在接入点下。业务实例下接入点就是该实例；
+  # 接口下的接入点编号为子接口编号（Gi0/0/1.100 → 100，主接口为 "_"），与华为子接口上的 mpls l2vc 对应
+  - view: ^service-instance$
     syntax: '^xconnect <peer-ip-address> <vc-id>'
     maps:
-      "interface.access{id=_}.pw": primary
-      "interface.access{id=_}.pw.peer": $peer-ip-address
-      "interface.access{id=_}.pw.vc_id": $vc-id
-      "interface.access{id=_}.pw.pw_class": $pw-class-name
-      "interface.access{id=_}.pw.encapsulation": "kw:mpls|l2tpv3"
-  - view: ^(interface|xconnect)$
+      interface.access.pw: primary
+      interface.access.pw.peer: $peer-ip-address
+      interface.access.pw.vc_id: $vc-id
+      interface.access.pw.pw_class: $pw-class-name
+      interface.access.pw.transport: "kw:mpls|l2tpv3"
+  - view: ^interface$
+    syntax: '^xconnect <peer-ip-address> <vc-id>'
+    maps:
+      interface.access: ctx:subif
+      interface.access.pw: primary
+      interface.access.pw.peer: $peer-ip-address
+      interface.access.pw.vc_id: $vc-id
+      interface.access.pw.pw_class: $pw-class-name
+      interface.access.pw.transport: "kw:mpls|l2tpv3"
+  - view: ^xconnect$
     syntax: '^backup peer <peer-router-ip-addr> <vcid>'
     maps:
-      "interface.access{id=_}.pw": backup
-      "interface.access{id=_}.pw.peer": $peer-router-ip-addr
-      "interface.access{id=_}.pw.vc_id": $vcid
-      "interface.access{id=_}.pw.pw_class": $pw-class-name
+      interface.access.pw: backup
+      interface.access.pw.peer: $peer-router-ip-addr
+      interface.access.pw.vc_id: $vcid
+      interface.access.pw.pw_class: $pw-class-name
+  - view: ^interface$
+    syntax: '^backup peer <peer-router-ip-addr> <vcid>'
+    maps:
+      interface.access: ctx:subif
+      interface.access.pw: backup
+      interface.access.pw.peer: $peer-router-ip-addr
+      interface.access.pw.vc_id: $vcid
+      interface.access.pw.pw_class: $pw-class-name
   - view: ^system$
     syntax: '^l2vpn xconnect context <context-name>$'
     maps: {l2vpn.xconnect: $context-name}
@@ -700,6 +734,12 @@ rules:
     maps:
       acl.instance: "$access-list-name||$access-list-number"
       acl.instance.type: "kw:standard=basic|extended=advanced"
+  # 只写名称的命名 ACL（不带 standard / extended）按扩展 ACL 处理
+  - view: ^system$
+    syntax: '^ip access-list <access-list-name>$'
+    maps:
+      acl.instance: $access-list-name
+      acl.instance.type: advanced
   - view: ^interface$
     syntax: '^ip access-group \{'
     maps:

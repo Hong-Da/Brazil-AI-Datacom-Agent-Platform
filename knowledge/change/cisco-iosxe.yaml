@@ -1,0 +1,38 @@
+# 增量变更脚本（core/change.py，M4-3）在 Cisco IOS-XE 上的下发习惯与变更知识（字段说明见 huawei-vrp8.yaml）。
+family: cisco-iosxe
+begin: [configure terminal]
+finish: [end]
+exit: exit
+comment: "!"
+# IOS-XE 接口执行 vrf forwarding（绑定或解绑）时会删除接口上已有的 IPv4 地址，需要在绑定后补发。
+# 这条知识应归入 Profile 的 side_effects（cisco-iosxe-asr920-17.15），知识库补缺时移过去后可删除这里的一条。
+side_effects:
+  - {from: interface.vrf, to: interface.ipv4, note: Cisco 接口 vrf forwarding 会删除接口 IP，需在绑定后补发}
+# 命名 ACL 中已存在的序号不能直接覆盖（% Duplicate sequence number），修改规则要先 no 序号再重配
+undo_first: [acl.instance.rule]
+replace_first: [interface.ipv4]
+risk_high:
+  - interface.vrf
+  - interface.ipv4
+  - interface.shutdown
+  - interface.l2
+  - interface.access
+  - interface.mtu
+  - vrf.instance
+  - bgp.instance
+  - bgp.peer
+  - bgp.peer_group
+  - bgp.af.peer.enabled
+  - bridge_domain
+  - mpls.ldp
+  - isis.process
+  - ospf.process
+# 命令卡取消语法之外的取消写法（{命令卡: [语法]}，键可以用 * 结尾匹配一组卡）：删除对象时优先用只写出对象键的最短写法。
+# 知识库补缺时并入命令卡的 undo 后可删除这里的条目。
+undo_extra:
+  "cisco-iosxe.interface*": ["no interface <interface>"]
+  cisco-iosxe.neighbor-peer-group: ["no neighbor <ip-address>"]
+  cisco-iosxe.neighbor-remote-as: ["no neighbor <ip-address>", "no neighbor <peer-group-name>"]
+  "cisco-iosxe.permit*": ["no <sequence-number>"]
+  "cisco-iosxe.deny*": ["no <sequence-number>"]
+  "cisco-iosxe.remark*": ["no <sequence-number>"]

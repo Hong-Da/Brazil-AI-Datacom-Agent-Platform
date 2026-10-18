@@ -129,13 +129,13 @@ def test_cisco_mpls_ldp_graph(kb) -> None:  # type: ignore[no-untyped-def]
 
 
 def test_vpws_pw_under_access_point(kb) -> None:  # type: ignore[no-untyped-def]
-    """两家的伪线都挂在接入点下：华为子接口（编号 "_"）、Cisco 业务实例；备用伪线 role=backup。"""
+    """两家的伪线都挂在接入点下：华为子接口（编号 = 子接口编号）、Cisco 业务实例；备用伪线 role=backup。"""
     hw = (
         "interface GigabitEthernet0/2/5.100\n vlan-type dot1q 100\n"
         " mpls l2vc 10.255.0.1 1100 tunnel-policy TP\n mpls l2vc 10.255.0.2 1100 secondary\n#\nreturn"
     )
     _, g = _graph(kb, hw, "huawei-atn-v800r025")
-    base = "interface[GigabitEthernet0/2/5.100]/access[_]"
+    base = "interface[GigabitEthernet0/2/5.100]/access[100]"
     assert g.nodes[f"{base}/pw[primary]/tunnel_policy"]["value"] == "TP"
     assert g.nodes[f"{base}/pw[backup]/peer"]["value"] == "10.255.0.2"
     assert [d["value"] for d in g.graph["dangling"]] == ["TP"]  # 隧道策略没有定义

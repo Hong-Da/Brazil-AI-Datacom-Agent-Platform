@@ -54,7 +54,14 @@ def manifest(kb_root: Path) -> list[dict[str, Any]]:
         if p.is_file()
         and p.suffix in (".cfg", ".txt")
         and not p.name.startswith(("LICENSE", "README"))
-        and p.relative_to(kb_root / "samples").parts[0] not in ("compare", "translate")  # 对比与翻译基准有自己的清单
+        and p.relative_to(kb_root / "samples").parts[0]
+        not in (
+            "compare",
+            "translate",
+            "topology",
+            "migration",
+            "change",
+        )  # 对比、翻译、拓扑、迁移、变更基准有自己的清单
     ]
 
 

@@ -96,6 +96,11 @@ entries:
       - huawei-vrp8.rule.2
       - huawei-vrp8.rule~2
       - huawei-vrp8.rule~3
+  acl.instance.rule.destination_port:
+    supported: true
+    cards:
+      - huawei-vrp8.rule.1
+      - huawei-vrp8.rule~3
   acl.instance.rule.destination_wildcard:
     supported: true
     cards:
@@ -130,6 +135,11 @@ entries:
       - huawei-vrp8.rule~2
       - huawei-vrp8.rule~3
       - huawei-vrp8.rule~4
+  acl.instance.rule.source_port:
+    supported: true
+    cards:
+      - huawei-vrp8.rule.1
+      - huawei-vrp8.rule~3
   acl.instance.rule.source_wildcard:
     supported: true
     cards:
@@ -408,6 +418,28 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.bgp
+  bgp.instance.hold:
+    manual: true
+    supported: true
+    default: 180
+    source: 命令参考 timer keepalive hold：the hold time is 180s
+    verified: doc
+    cards:
+      - huawei-vrp8.timer-keepalive-hold
+  bgp.instance.keepalive:
+    manual: true
+    supported: true
+    default: 60
+    source: 命令参考 timer keepalive hold：By default, the Keepalive time is 60s
+    verified: doc
+    cards:
+      - huawei-vrp8.timer-keepalive-hold
+  bgp.instance.log_neighbor_changes:
+    manual: true
+    supported: true
+    default: true
+    source: 命令参考 peer log-change：By default, a BGP device is enabled to log the session status and events（华为没有实例级命令，默认记录）
+    verified: doc
   bgp.instance.router_id:
     supported: true
     cards:
@@ -673,6 +705,12 @@ entries:
       - huawei-vrp8.mpls-l2vc.3~2
       - huawei-vrp8.mpls-l2vc.4
       - huawei-vrp8.mpls-l2vc.4~2
+  interface.access.pw.transport:
+    manual: true
+    supported: true
+    default: mpls
+    source: 命令参考 mpls l2vc：LDP 伪线承载在 MPLS 上，没有选择承载方式的参数
+    verified: doc
   interface.access.pw.tunnel_policy:
     supported: true
     cards:
@@ -1038,6 +1076,12 @@ entries:
     verified: doc
     cards:
       - huawei-vrp8.control-word
+  l2vpn.pw_class.encapsulation:
+    manual: true
+    supported: true
+    default: mpls
+    source: PW 模板没有承载方式参数，LDP 伪线固定为 MPLS
+    verified: doc
   l2vpn.pw_class.mtu:
     supported: true
     cards:
@@ -1225,6 +1269,12 @@ entries:
       - huawei-vrp8.authentication-mode.1@user-interface-vty
       - huawei-vrp8.authentication-mode.2@user-interface-con
       - huawei-vrp8.authentication-mode.2@user-interface-vty
+  mgmt.line.auth_list:
+    manual: true
+    supported: true
+    default: default
+    source: 华为线路没有方法列表，AAA 认证按用户所属域的认证方案（默认域 default）
+    verified: doc
   mgmt.line.idle_timeout:
     supported: true
     cards:

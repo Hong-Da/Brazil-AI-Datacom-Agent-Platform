@@ -1,0 +1,44 @@
+# 拓扑还原与跨设备一致性（M4-6）的合成样本：2 台华为 ATN 接入 + 2 台 ASR 920 汇聚 + 1 台 ASR 920 路由反射器，地址与名称均为虚构。
+# tests/roundtrip/test_topology_samples.py 逐个跑往返（逐字一致、没有未识别行），tests/unit/test_topology.py 校验拓扑与发现。
+#
+# 网络：
+#   ATN-A1 ─(10.10.11.0/30 OSPF 区域 10，LDP)─ AGG-01 ─(10.20.12.0/30 IS-IS L2)─ AGG-02 ─(10.10.22.0/30 OSPF)─ ATN-A2
+#   ATN-A1 ─(10.10.12.0/30 OSPF 区域 10，LDP，静态 BFD)─ ATN-A2
+#   AGG-01 ─(10.20.1.0/30 IS-IS，LDP)─ RR-01 ─(10.20.2.0 IS-IS，LDP)─ AGG-02
+#   BGP VPNv4：四台客户端都与 RR-01（10.255.1.1）建 IBGP（AS 64512，Loopback0 为源地址）
+#   伪线：ATN-A1 GE0/2/5.100 ↔ AGG-01 Gi0/0/5 svc 100（VC 1100）；ATN-A2 GE0/2/5.200 ↔ AGG-02 Gi0/0/5 svc 200
+#   远端 LDP：ATN-A1 remote-peer 10.255.1.21 ↔ AGG-01 mpls ldp neighbor 10.255.1.11 targeted
+#
+# 故意放的不一致（expect_findings，规则 → 链路）：
+#   MTU 9000 / 9216、LDP 只在 AGG-01 一端、掩码 /30 与 /29、OSPF 区域 10 与 20、hello / dead 1/4 与默认 10/40、
+#   IS-IS 一端不是点到点、BGP 对端 AS 写成 64513、AGG-02 没有使能 VPNv4、BGP 密码只在 RR-01 一端、
+#   伪线 VC ID 1200 与 1201、静态 BFD 描述符 1003 ≠ 1001、接口 BFD 间隔 100 与 50
+samples:
+  - {file: atn-a1.cfg, profile: huawei-atn-v800r025}
+  - {file: atn-a2.cfg, profile: huawei-atn-v800r025}
+  - {file: agg-01.cfg, profile: cisco-iosxe-asr920-17.15}
+  - {file: agg-02.cfg, profile: cisco-iosxe-asr920-17.15}
+  - {file: rr-01.cfg, profile: cisco-iosxe-asr920-17.15}
+expect_links:
+  subnet: 6
+  ospf: 3
+  isis: 3
+  ldp: 5
+  ldp_remote: 1
+  bgp: 4
+  pw: 2
+  bfd: 2
+expect_findings:
+  - {rule: xd.subnet.mtu, link: "subnet:TOPO-AGG-01:GigabitEthernet0/0/1~TOPO-ATN-A1:GigabitEthernet0/2/1"}
+  - {rule: xd.subnet.ldp_one_side, link: "subnet:TOPO-AGG-01:GigabitEthernet0/0/2~TOPO-AGG-02:GigabitEthernet0/0/2"}
+  - {rule: xd.subnet.mask, link: "subnet:TOPO-AGG-02:GigabitEthernet0/0/3~TOPO-RR-01:GigabitEthernet0/0/2"}
+  - {rule: xd.ospf.area, link: "ospf:TOPO-AGG-02:GigabitEthernet0/0/1~TOPO-ATN-A2:GigabitEthernet0/2/1"}
+  - {rule: xd.ospf.hello, link: "ospf:TOPO-ATN-A1:GigabitEthernet0/2/2~TOPO-ATN-A2:GigabitEthernet0/2/2"}
+  - {rule: xd.ospf.dead, link: "ospf:TOPO-ATN-A1:GigabitEthernet0/2/2~TOPO-ATN-A2:GigabitEthernet0/2/2"}
+  - {rule: xd.isis.network_type, link: "isis:TOPO-AGG-01:GigabitEthernet0/0/3~TOPO-RR-01:GigabitEthernet0/0/1"}
+  - {rule: xd.bgp.remote_as, link: "bgp:TOPO-ATN-A2:LoopBack0~TOPO-RR-01:Loopback0"}
+  - {rule: xd.bgp.af, link: "bgp:TOPO-AGG-02:Loopback0~TOPO-RR-01:Loopback0"}
+  - {rule: xd.bgp.auth, link: "bgp:TOPO-AGG-01:Loopback0~TOPO-RR-01:Loopback0"}
+  - {rule: xd.pw.vc_id, link: "pw:TOPO-AGG-02:GigabitEthernet0/0/5~TOPO-ATN-A2:GigabitEthernet0/2/5.200#1201"}
+  - {rule: xd.bfd.discriminator, link: "bfd:TOPO-ATN-A1:GigabitEthernet0/2/2~TOPO-ATN-A2:GigabitEthernet0/2/2#static"}
+  - {rule: xd.bfd.min_tx, link: "bfd:TOPO-AGG-01:GigabitEthernet0/0/2~TOPO-AGG-02:GigabitEthernet0/0/2"}

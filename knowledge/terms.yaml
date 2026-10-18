@@ -21,7 +21,7 @@ objects:
     huawei: {name: {zh-CN: IPv4 地址, en: IPv4 address, pt-BR: Endereço IPv4}, label: ["ip address {address}"]}
     cisco: {name: {zh-CN: IPv4 地址, en: IPv4 address, pt-BR: Endereço IPv4}, label: ["ip address {address}"]}
   interface.access:
-    huawei: {name: {zh-CN: 二层子接口接入, en: Layer-2 sub-interface access, pt-BR: Acesso de subinterface L2}, label: ["encapsulation (l2 sub-interface)"]}
+    huawei: {name: {zh-CN: 子接口接入点, en: Sub-interface access point, pt-BR: Ponto de acesso da subinterface}, label: ["sub-interface .{id} ? id", "encapsulation (l2 sub-interface)"]}
     cisco: {name: {zh-CN: 业务实例（EFP）, en: Service instance (EFP), pt-BR: Instância de serviço (EFP)}, label: ["service instance {id} ethernet ? id", "service instance"]}
   interface.ospf:
     huawei: {name: {zh-CN: 接口 OSPF 参数, en: Interface OSPF settings, pt-BR: Parâmetros OSPF da interface}, label: ["ospf"]}
@@ -296,6 +296,8 @@ attrs:
   mgmt.line.acl_in: {huawei: acl … inbound, cisco: access-class … in}
   mgmt.line.idle_timeout: {huawei: idle-timeout, cisco: exec-timeout}
   mgmt.line.protocols: {huawei: protocol inbound, cisco: transport input}
+  mgmt.line.auth: {huawei: authentication-mode, cisco: login / login authentication}
+  mgmt.line.auth_list: {huawei: （AAA 域的认证方案）, cisco: login authentication <列表>}
   # 0.3.0：MPLS / L2VPN / ACL
   mpls.global.lsr_id: {huawei: mpls lsr-id, cisco: mpls ldp router-id（接口地址）}
   mpls.ldp.router_id_interface: {huawei: lsr-id, cisco: mpls ldp router-id}
@@ -309,6 +311,8 @@ attrs:
   vrf.instance.af.prefix_limit: {huawei: prefix limit, cisco: maximum routes}
   interface.access.pw.vc_id: {huawei: mpls l2vc … <vc-id>, cisco: xconnect … <vc-id>}
   interface.access.pw.pw_class: {huawei: pw-template, cisco: pw-class}
+  interface.access.pw.transport: {huawei: （LDP 伪线固定 MPLS）, cisco: xconnect … encapsulation}
+  interface.access.pw.encapsulation: {huawei: mpls l2vc … raw / tagged, cisco: （无对应写法）}
   l2vpn.vsi.vsi_id: {huawei: vsi-id, cisco: vpn id}
   l2vpn.vsi.signaling: {huawei: pwsignal, cisco: （VFI 固定 LDP）}
   interface.vsi: {huawei: l2 binding vsi, cisco: xconnect vfi}

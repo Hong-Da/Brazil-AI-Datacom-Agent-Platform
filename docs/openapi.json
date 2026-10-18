@@ -3,7 +3,7 @@
   "info": {
     "title": "LucidMesh API",
     "description": "透网 LucidMesh 远程 API。除 /health 与首次运行向导外，所有接口都需要 Authorization: Bearer <令牌>。",
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "paths": {
     "/api/v1/health": {
@@ -2908,6 +2908,475 @@
           }
         }
       }
+    },
+    "/api/v1/topology": {
+      "get": {
+        "tags": [
+          "topology"
+        ],
+        "summary": "已导入设备的三层拓扑：nodes（设备）、links（两端设备与接口、网段、推导依据、类型、置信度）、跨设备依赖边",
+        "operationId": "get_topology_api_v1_topology_get",
+        "parameters": [
+          {
+            "name": "devices",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Devices"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Topology Api V1 Topology Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "topology"
+        ],
+        "summary": "上传多台设备的配置（可与已导入设备混合）推导三层拓扑",
+        "operationId": "post_topology_api_v1_topology_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TopologyBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Topology Api V1 Topology Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/consistency": {
+      "post": {
+        "tags": [
+          "topology"
+        ],
+        "summary": "跨设备一致性检查：拓扑 + 发现（挂在链路上），按级别、规则、链路、设备汇总",
+        "operationId": "post_consistency_api_v1_consistency_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConsistencyBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Post Consistency Api V1 Consistency Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/migrate": {
+      "post": {
+        "tags": [
+          "migrate"
+        ],
+        "summary": "割接迁移：翻译 + 接口映射（自动建议），返回新设备配置、增量配置、映射表、告警、校验结果与割接步骤",
+        "operationId": "run_migrate_api_v1_migrate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MigrateBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Run Migrate Api V1 Migrate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/migrate/suggest-map": {
+      "post": {
+        "tags": [
+          "migrate"
+        ],
+        "summary": "割接迁移的接口映射建议：每条附依据与置信度，列出未映射的接口",
+        "operationId": "run_suggest_api_v1_migrate_suggest_map_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Run Suggest Api V1 Migrate Suggest Map Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/baseline": {
+      "post": {
+        "tags": [
+          "baseline"
+        ],
+        "summary": "安全基线审计：设备 × 规则矩阵（pass / fail / na）、每台设备的不符合项（原文行号、修复建议、参考命令）与分数",
+        "operationId": "baseline_api_v1_baseline_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BaselineBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Baseline Api V1 Baseline Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/baseline/rules": {
+      "get": {
+        "tags": [
+          "baseline"
+        ],
+        "summary": "基线与规则：各基线（含包含关系）与规则的三语说明、修复参考命令",
+        "operationId": "baseline_rules_api_v1_baseline_rules_get",
+        "parameters": [
+          {
+            "name": "baseline",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Baseline"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Baseline Rules Api V1 Baseline Rules Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/baseline/report": {
+      "post": {
+        "tags": [
+          "baseline"
+        ],
+        "summary": "导出基线报告：直接返回文件（Content-Disposition: attachment），中文 / English，HTML / Markdown",
+        "operationId": "baseline_report_api_v1_baseline_report_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BaselineReportBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change": {
+      "post": {
+        "tags": [
+          "change"
+        ],
+        "summary": "增量变更脚本：当前 → 目标，按依赖拓扑排序、补发副作用，返回逐条说明、风险、下发脚本、回滚脚本与模拟验证",
+        "operationId": "run_change_api_v1_change_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Run Change Api V1 Change Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/change/report": {
+      "post": {
+        "tags": [
+          "change"
+        ],
+        "summary": "导出变更报告（中文 / English，HTML / Markdown），直接返回文件",
+        "operationId": "change_report_api_v1_change_report_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeReportBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/impact": {
+      "post": {
+        "tags": [
+          "change"
+        ],
+        "summary": "变更影响分析：从一组节点沿依赖边求影响范围，列出受影响的对象、业务对象与路径",
+        "operationId": "run_impact_api_v1_impact_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImpactBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Run Impact Api V1 Impact Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3011,6 +3480,138 @@
         "type": "object",
         "title": "AISettingsBody"
       },
+      "BaselineBody": {
+        "properties": {
+          "baseline": {
+            "type": "string",
+            "title": "Baseline",
+            "description": "基线：basic | strict（见 GET /baseline/rules）",
+            "default": "basic"
+          },
+          "configs": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ConfigItem"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Configs",
+            "description": "配置文本（可多份）"
+          },
+          "device_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Ids",
+            "description": "已导入设备的编号：取最新配置版本"
+          },
+          "all": {
+            "type": "boolean",
+            "title": "All",
+            "description": "全部已导入设备的最新配置版本",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "BaselineBody"
+      },
+      "BaselineReportBody": {
+        "properties": {
+          "baseline": {
+            "type": "string",
+            "title": "Baseline",
+            "description": "基线：basic | strict（见 GET /baseline/rules）",
+            "default": "basic"
+          },
+          "configs": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ConfigItem"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Configs",
+            "description": "配置文本（可多份）"
+          },
+          "device_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Ids",
+            "description": "已导入设备的编号：取最新配置版本"
+          },
+          "all": {
+            "type": "boolean",
+            "title": "All",
+            "description": "全部已导入设备的最新配置版本",
+            "default": false
+          },
+          "lang": {
+            "type": "string",
+            "enum": [
+              "zh-CN",
+              "en"
+            ],
+            "title": "Lang",
+            "description": "报告语言（界面是 pt-BR 时用 en）",
+            "default": "zh-CN"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "html",
+              "md"
+            ],
+            "title": "Format",
+            "description": "html：自包含单文件、可打印；md：贴进工单",
+            "default": "html"
+          },
+          "style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "huawei",
+                  "cisco"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style",
+            "description": "节点的显示风格；不填时用配置 ui.term_style"
+          }
+        },
+        "type": "object",
+        "title": "BaselineReportBody"
+      },
       "BatchBody": {
         "properties": {
           "kind": {
@@ -3083,6 +3684,161 @@
           "file"
         ],
         "title": "Body_kb_import_api_v1_kb_import_post"
+      },
+      "ChangeBody": {
+        "properties": {
+          "current": {
+            "$ref": "#/components/schemas/SideBody"
+          },
+          "target": {
+            "$ref": "#/components/schemas/SideBody"
+          },
+          "rollback": {
+            "type": "boolean",
+            "title": "Rollback",
+            "description": "同时生成回滚脚本（目标 → 当前）",
+            "default": true
+          },
+          "verify": {
+            "type": "boolean",
+            "title": "Verify",
+            "description": "在当前配置上模拟执行脚本，与目标按有效值对比",
+            "default": true
+          },
+          "impact": {
+            "type": "boolean",
+            "title": "Impact",
+            "description": "附上变更的影响范围（受影响的业务对象）",
+            "default": true
+          },
+          "style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "huawei",
+                  "cisco"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style",
+            "description": "说明文字中对象的显示风格（label 字段）；不填时用配置 ui.term_style"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "zh-CN",
+                  "en",
+                  "pt-BR"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang",
+            "description": "脚本说明行的语言；不填时按请求的语言"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current",
+          "target"
+        ],
+        "title": "ChangeBody",
+        "description": "当前与目标：各给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一，同一平台族。"
+      },
+      "ChangeReportBody": {
+        "properties": {
+          "current": {
+            "$ref": "#/components/schemas/SideBody"
+          },
+          "target": {
+            "$ref": "#/components/schemas/SideBody"
+          },
+          "rollback": {
+            "type": "boolean",
+            "title": "Rollback",
+            "description": "同时生成回滚脚本（目标 → 当前）",
+            "default": true
+          },
+          "verify": {
+            "type": "boolean",
+            "title": "Verify",
+            "description": "在当前配置上模拟执行脚本，与目标按有效值对比",
+            "default": true
+          },
+          "impact": {
+            "type": "boolean",
+            "title": "Impact",
+            "description": "附上变更的影响范围（受影响的业务对象）",
+            "default": true
+          },
+          "style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "huawei",
+                  "cisco"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style",
+            "description": "说明文字中对象的显示风格（label 字段）；不填时用配置 ui.term_style"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "zh-CN",
+                  "en",
+                  "pt-BR"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang",
+            "description": "脚本说明行的语言；不填时按请求的语言"
+          },
+          "report_lang": {
+            "type": "string",
+            "enum": [
+              "zh-CN",
+              "en"
+            ],
+            "title": "Report Lang",
+            "description": "报告语言（界面是 pt-BR 时用 en）",
+            "default": "zh-CN"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "html",
+              "md"
+            ],
+            "title": "Format",
+            "description": "html：自包含单文件、可打印；md：贴进工单",
+            "default": "html"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current",
+          "target"
+        ],
+        "title": "ChangeReportBody"
       },
       "CheckBody": {
         "properties": {
@@ -3264,6 +4020,108 @@
           "b"
         ],
         "title": "CompareBody"
+      },
+      "ConfigItem": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Name",
+            "description": "设备名（结果与报告中显示）",
+            "default": "device"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 20971520,
+            "title": "Text",
+            "description": "配置文本"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile",
+            "description": "知识库 Profile；不填时自动识别"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "ConfigItem"
+      },
+      "ConfigText": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Name",
+            "description": "文件名（配置中没有 sysname / hostname 时作为设备名）",
+            "default": ""
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 20971520,
+            "title": "Text",
+            "description": "配置文本"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile",
+            "description": "Profile（默认自动识别）"
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "ConfigText"
+      },
+      "ConsistencyBody": {
+        "properties": {
+          "configs": {
+            "items": {
+              "$ref": "#/components/schemas/ConfigText"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Configs",
+            "description": "上传的配置文本"
+          },
+          "device_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Device Ids",
+            "description": "已导入设备的编号（取最新配置版本）；configs 与 device_ids 都为空时取全部设备"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ],
+            "title": "Severity",
+            "description": "最低级别",
+            "default": "info"
+          }
+        },
+        "type": "object",
+        "title": "ConsistencyBody"
       },
       "DecideBody": {
         "properties": {
@@ -3569,6 +4427,79 @@
         ],
         "title": "IgnoreBody"
       },
+      "ImpactBody": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "nodes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Nodes"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "up",
+              "down",
+              "both"
+            ],
+            "title": "Direction",
+            "description": "up：谁受影响；down：依赖谁；both：两个方向",
+            "default": "up"
+          }
+        },
+        "type": "object",
+        "required": [
+          "nodes"
+        ],
+        "title": "ImpactBody",
+        "description": "配置：给出 text、version_id 或 device_id 之一；nodes 是起点节点编号（也可以写对象编号中唯一的一段）。"
+      },
       "IngestBody": {
         "properties": {
           "doc_dir": {
@@ -3610,6 +4541,118 @@
           "rules"
         ],
         "title": "IngestBody"
+      },
+      "MigrateBody": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile",
+            "description": "旧配置的 Profile（不给时自动识别）"
+          },
+          "to": {
+            "type": "string",
+            "title": "To",
+            "description": "新设备的目标 Profile，例如 cisco-iosxe-asr920-17.15"
+          },
+          "interface_map": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Map",
+            "description": "接口映射表 {旧接口: 新接口}，可以只给部分，其余自动建议；新接口为 - 表示不迁移"
+          },
+          "target_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Text",
+            "description": "新设备现有配置（出厂 / 已配置的管理口），按目标 Profile 解析"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model",
+            "description": "新设备型号（按知识库的端口清单分配接口）"
+          },
+          "on_conflict": {
+            "type": "string",
+            "title": "On Conflict",
+            "description": "现有配置与迁移内容冲突时：migrate 以旧设备为准，keep 保留现有",
+            "default": "migrate"
+          },
+          "verify": {
+            "type": "boolean",
+            "title": "Verify",
+            "description": "新配置再解析建图，与旧设备按有效值对比",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "to"
+        ],
+        "title": "MigrateBody"
       },
       "NodeBody": {
         "properties": {
@@ -4127,6 +5170,107 @@
         "title": "SideBody",
         "description": "对比的一边：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
       },
+      "SuggestBody": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile",
+            "description": "旧配置的 Profile（不给时自动识别）"
+          },
+          "to": {
+            "type": "string",
+            "title": "To",
+            "description": "新设备的目标 Profile，例如 cisco-iosxe-asr920-17.15"
+          },
+          "interface_map": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Map",
+            "description": "接口映射表 {旧接口: 新接口}，可以只给部分，其余自动建议；新接口为 - 表示不迁移"
+          },
+          "target_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Text",
+            "description": "新设备现有配置（出厂 / 已配置的管理口），按目标 Profile 解析"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model",
+            "description": "新设备型号（按知识库的端口清单分配接口）"
+          }
+        },
+        "type": "object",
+        "required": [
+          "to"
+        ],
+        "title": "SuggestBody",
+        "description": "旧设备配置：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
+      },
       "TargetBody": {
         "properties": {
           "template_id": {
@@ -4274,6 +5418,29 @@
           "text"
         ],
         "title": "TextBody"
+      },
+      "TopologyBody": {
+        "properties": {
+          "configs": {
+            "items": {
+              "$ref": "#/components/schemas/ConfigText"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Configs",
+            "description": "上传的配置文本"
+          },
+          "device_ids": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Device Ids",
+            "description": "已导入设备的编号（取最新配置版本）；configs 与 device_ids 都为空时取全部设备"
+          }
+        },
+        "type": "object",
+        "title": "TopologyBody"
       },
       "TranslateBody": {
         "properties": {

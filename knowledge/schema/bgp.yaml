@@ -15,6 +15,17 @@ nodes:
     parent: bgp.instance
     type: boolean
     semantic: {zh-CN: 记录邻居状态变化（华为默认开启，Cisco 需显式配置）, en: Log neighbor changes}
+  # M3 知识库补缺：实例级的 BGP 计时器（华为 timer keepalive … hold …，Cisco timers bgp …），对等体级的见 bgp.peer.keepalive
+  bgp.instance.keepalive:
+    parent: bgp.instance
+    type: integer
+    range: [0, 65535]
+    semantic: {zh-CN: 全局 keepalive 间隔（秒）, en: Global keepalive interval (s)}
+  bgp.instance.hold:
+    parent: bgp.instance
+    type: integer
+    range: [0, 65535]
+    semantic: {zh-CN: 全局 hold 时间（秒）, en: Global hold time (s)}
   bgp.peer:
     parent: bgp.instance
     type: object
@@ -37,6 +48,7 @@ nodes:
     parent: bgp.peer
     type: string
     semantic: {zh-CN: MD5 认证密码（脱敏后的值）, en: Session password}
+    secret: true
   bgp.peer.description:
     parent: bgp.peer
     type: text
@@ -73,6 +85,7 @@ nodes:
     parent: bgp.peer_group
     type: string
     semantic: {zh-CN: 组的认证密码（脱敏后的值）, en: Session password}
+    secret: true
   bgp.peer_group.keepalive:
     parent: bgp.peer_group
     type: integer

@@ -1,0 +1,549 @@
+# 跨设备一致性规则（M4-6）：在拓扑还原出的链路上比较两端，与厂商无关。lmesh check 不读本文件（单台检查跳过它），
+# lmesh consistency 与 POST /api/v1/consistency 使用。格式见 src/lmesh/core/consistency.py 开头的说明：
+#   link     链路类型：subnet / ospf / isis / ldp / ldp_remote / bgp / pw / bfd（见 core/topology.py）
+#   compare  {value: 取值} 两端取同一项；{a: 取值, b: 取值, symmetric: true} 交叉比较（a 端的 a 对 b 端的 b，反向再比一次）
+#            取值写 fact:名称（拓扑推导出的事实）或 Schema 路径（从链路端点对象出发，写法同 rules.py）
+#   op       equal（默认，两端都有值且不同时报出）/ same_presence（一端有、一端没有）/ both（两端都必须有）/ overlap（两个列表没有交集）
+#   when     {both: [取值…]} 两端都为真才检查；{either: [取值…]} 至少一端为真才检查
+#   pair     端点下按键配对的子对象（例如 vrrp：两端同一 VRRP 组号的对象），compare 的路径从配对对象出发；fact:paired 表示该端有这个对象
+#   requires Schema 中缺少这些节点时跳过该规则（功能域还没建好，例如 VRRP），结果中列在 rules_skipped
+# 文案可用占位符：{link} {a_device} {a_end} {a_value} {b_device} {b_end} {b_value}
+rules:
+  # ---------- 同网段链路 ----------
+  - id: xd.subnet.mask
+    link: subnet
+    compare: {value: "fact:prefix_length"}
+    severity: error
+    title:
+      zh-CN: 链路两端掩码不一致
+      en: Subnet mask differs on the two ends of a link
+      pt-BR: Máscara diferente nas duas pontas do enlace
+    message:
+      zh-CN: "{a_device} {a_end} 的前缀长度是 /{a_value}，{b_device} {b_end} 是 /{b_value}"
+      en: "{a_device} {a_end} uses /{a_value} while {b_device} {b_end} uses /{b_value}"
+      pt-BR: "{a_device} {a_end} usa /{a_value}, enquanto {b_device} {b_end} usa /{b_value}"
+    suggestion:
+      zh-CN: 按地址规划统一两端掩码（点到点链路通常用 /30 或 /31）
+      en: Use the same mask on both ends as planned (point-to-point links usually use /30 or /31)
+      pt-BR: Use a mesma máscara nas duas pontas conforme o planejamento (enlaces ponto a ponto costumam usar /30 ou /31)
+
+  - id: xd.subnet.mtu
+    link: subnet
+    compare: {value: mtu}
+    severity: warning
+    title:
+      zh-CN: 链路两端 MTU 不一致
+      en: MTU differs on the two ends of a link
+      pt-BR: MTU diferente nas duas pontas do enlace
+    message:
+      zh-CN: "{a_device} {a_end} 的 MTU 是 {a_value}，{b_device} {b_end} 是 {b_value}（含默认值）"
+      en: "{a_device} {a_end} has MTU {a_value} while {b_device} {b_end} has {b_value} (defaults included)"
+      pt-BR: "{a_device} {a_end} tem MTU {a_value}, enquanto {b_device} {b_end} tem {b_value} (padrões incluídos)"
+    suggestion:
+      zh-CN: 统一两端 MTU；OSPF 会因 MTU 不一致停在 ExStart，大包会被丢弃（注意华为 mtu 是三层 MTU，Cisco mtu 含二层头的差异）
+      en: Align the MTU on both ends; OSPF stalls in ExStart on an MTU mismatch and large packets are dropped (mind that Huawei mtu is the IP MTU while Cisco mtu counts differently)
+      pt-BR: "Alinhe a MTU nas duas pontas; o OSPF fica em ExStart com MTU diferente e pacotes grandes são descartados (atenção: no Huawei mtu é a MTU IP, no Cisco a contagem é diferente)"
+
+  - id: xd.subnet.ospf_one_side
+    link: subnet
+    compare: {value: "fact:ospf"}
+    op: same_presence
+    severity: warning
+    title:
+      zh-CN: 只有一端在 OSPF 中启用
+      en: OSPF enabled on only one end
+      pt-BR: OSPF habilitado em apenas uma ponta
+    message:
+      zh-CN: "{a_device} {a_end} OSPF：{a_value}；{b_device} {b_end} OSPF：{b_value}"
+      en: "{a_device} {a_end} OSPF: {a_value}; {b_device} {b_end} OSPF: {b_value}"
+      pt-BR: "{a_device} {a_end} OSPF: {a_value}; {b_device} {b_end} OSPF: {b_value}"
+    suggestion:
+      zh-CN: 在另一端也启用 OSPF（network 或接口下 ospf enable），或确认这条链路本来就不跑 OSPF
+      en: Enable OSPF on the other end as well (network statement or interface-level enable), or confirm the link is not meant to run OSPF
+      pt-BR: Habilite o OSPF também na outra ponta (comando network ou habilitação na interface) ou confirme que o enlace não deve rodar OSPF
+
+  - id: xd.subnet.isis_one_side
+    link: subnet
+    compare: {value: "fact:isis"}
+    op: same_presence
+    severity: warning
+    title:
+      zh-CN: 只有一端在 IS-IS 中启用
+      en: IS-IS enabled on only one end
+      pt-BR: IS-IS habilitado em apenas uma ponta
+    message:
+      zh-CN: "{a_device} {a_end} IS-IS：{a_value}；{b_device} {b_end} IS-IS：{b_value}"
+      en: "{a_device} {a_end} IS-IS: {a_value}; {b_device} {b_end} IS-IS: {b_value}"
+      pt-BR: "{a_device} {a_end} IS-IS: {a_value}; {b_device} {b_end} IS-IS: {b_value}"
+    suggestion:
+      zh-CN: 在另一端也启用 IS-IS（华为 isis enable，Cisco ip router isis），或确认这条链路本来就不跑 IS-IS
+      en: Enable IS-IS on the other end as well (Huawei isis enable, Cisco ip router isis), or confirm the link is not meant to run IS-IS
+      pt-BR: Habilite o IS-IS também na outra ponta (Huawei isis enable, Cisco ip router isis) ou confirme que o enlace não deve rodar IS-IS
+
+  - id: xd.subnet.ldp_one_side
+    link: subnet
+    compare: {value: "fact:ldp"}
+    op: same_presence
+    severity: error
+    title:
+      zh-CN: 只有一端使能 MPLS LDP
+      en: MPLS LDP enabled on only one end
+      pt-BR: MPLS LDP habilitado em apenas uma ponta
+    message:
+      zh-CN: "{a_device} {a_end} LDP：{a_value}；{b_device} {b_end} LDP：{b_value}；LDP 会话建不起来，经过这条链路的 LSP 中断"
+      en: "{a_device} {a_end} LDP: {a_value}; {b_device} {b_end} LDP: {b_value}; the LDP session cannot come up and LSPs over this link break"
+      pt-BR: "{a_device} {a_end} LDP: {a_value}; {b_device} {b_end} LDP: {b_value}; a sessão LDP não sobe e os LSPs por este enlace são interrompidos"
+    suggestion:
+      zh-CN: 在另一端接口下使能 MPLS 与 LDP（华为 mpls / mpls ldp，Cisco mpls ip）
+      en: Enable MPLS and LDP on the other interface (Huawei mpls / mpls ldp, Cisco mpls ip)
+      pt-BR: Habilite MPLS e LDP na outra interface (Huawei mpls / mpls ldp, Cisco mpls ip)
+
+  - id: xd.subnet.shutdown
+    link: subnet
+    compare: {value: "fact:shutdown"}
+    op: same_presence
+    severity: info
+    title:
+      zh-CN: 链路一端处于关闭状态
+      en: One end of the link is shut down
+      pt-BR: Uma ponta do enlace está desativada
+    message:
+      zh-CN: "{a_device} {a_end} shutdown：{a_value}；{b_device} {b_end} shutdown：{b_value}"
+      en: "{a_device} {a_end} shutdown: {a_value}; {b_device} {b_end} shutdown: {b_value}"
+      pt-BR: "{a_device} {a_end} shutdown: {a_value}; {b_device} {b_end} shutdown: {b_value}"
+    suggestion:
+      zh-CN: 确认是计划内的关闭；否则在该端执行 undo shutdown / no shutdown
+      en: Confirm the shutdown is planned; otherwise run undo shutdown / no shutdown on that end
+      pt-BR: Confirme que a desativação é planejada; caso contrário, execute undo shutdown / no shutdown nessa ponta
+
+  # ---------- OSPF ----------
+  - id: xd.ospf.area
+    link: ospf
+    compare: {value: "fact:area"}
+    severity: error
+    title:
+      zh-CN: OSPF 区域不一致
+      en: OSPF area mismatch
+      pt-BR: Área OSPF diferente
+    message:
+      zh-CN: "{a_device} {a_end} 在区域 {a_value}，{b_device} {b_end} 在区域 {b_value}，邻接建不起来"
+      en: "{a_device} {a_end} is in area {a_value} and {b_device} {b_end} in area {b_value}; no adjacency can form"
+      pt-BR: "{a_device} {a_end} está na área {a_value} e {b_device} {b_end} na área {b_value}; a adjacência não se forma"
+    suggestion:
+      zh-CN: 把两端放进同一区域（检查 network 语句与接口下的区域配置）
+      en: Put both ends in the same area (check the network statements and interface-level area settings)
+      pt-BR: Coloque as duas pontas na mesma área (verifique os comandos network e a área configurada na interface)
+
+  - id: xd.ospf.network_type
+    link: ospf
+    compare: {value: "fact:network_type"}
+    severity: warning
+    title:
+      zh-CN: OSPF 网络类型不一致
+      en: OSPF network type mismatch
+      pt-BR: Tipo de rede OSPF diferente
+    message:
+      zh-CN: "{a_device} {a_end} 是 {a_value}，{b_device} {b_end} 是 {b_value}（含默认值）"
+      en: "{a_device} {a_end} is {a_value} while {b_device} {b_end} is {b_value} (defaults included)"
+      pt-BR: "{a_device} {a_end} é {a_value}, enquanto {b_device} {b_end} é {b_value} (padrões incluídos)"
+    suggestion:
+      zh-CN: 两端统一网络类型（点到点链路建议都配 p2p / point-to-point）
+      en: Use the same network type on both ends (point-to-point links should use p2p / point-to-point on both)
+      pt-BR: Use o mesmo tipo de rede nas duas pontas (enlaces ponto a ponto devem usar p2p / point-to-point nas duas)
+
+  - id: xd.ospf.hello
+    link: ospf
+    compare: {value: "fact:hello"}
+    severity: error
+    title:
+      zh-CN: OSPF hello 间隔不一致
+      en: OSPF hello interval mismatch
+      pt-BR: Intervalo hello do OSPF diferente
+    message:
+      zh-CN: "{a_device} {a_end} hello {a_value} 秒，{b_device} {b_end} hello {b_value} 秒（含默认值），邻接建不起来"
+      en: "{a_device} {a_end} hello {a_value}s, {b_device} {b_end} hello {b_value}s (defaults included); no adjacency can form"
+      pt-BR: "{a_device} {a_end} hello {a_value}s, {b_device} {b_end} hello {b_value}s (padrões incluídos); a adjacência não se forma"
+    suggestion:
+      zh-CN: 两端配置相同的 hello 间隔（华为 ospf timer hello，Cisco ip ospf hello-interval）
+      en: Configure the same hello interval on both ends (Huawei ospf timer hello, Cisco ip ospf hello-interval)
+      pt-BR: Configure o mesmo intervalo hello nas duas pontas (Huawei ospf timer hello, Cisco ip ospf hello-interval)
+
+  - id: xd.ospf.dead
+    link: ospf
+    compare: {value: "fact:dead"}
+    severity: error
+    title:
+      zh-CN: OSPF dead 间隔不一致
+      en: OSPF dead interval mismatch
+      pt-BR: Intervalo dead do OSPF diferente
+    message:
+      zh-CN: "{a_device} {a_end} dead {a_value} 秒，{b_device} {b_end} dead {b_value} 秒（含默认值），邻接建不起来"
+      en: "{a_device} {a_end} dead {a_value}s, {b_device} {b_end} dead {b_value}s (defaults included); no adjacency can form"
+      pt-BR: "{a_device} {a_end} dead {a_value}s, {b_device} {b_end} dead {b_value}s (padrões incluídos); a adjacência não se forma"
+    suggestion:
+      zh-CN: 两端配置相同的 dead 间隔（华为 ospf timer dead，Cisco ip ospf dead-interval）
+      en: Configure the same dead interval on both ends (Huawei ospf timer dead, Cisco ip ospf dead-interval)
+      pt-BR: Configure o mesmo intervalo dead nas duas pontas (Huawei ospf timer dead, Cisco ip ospf dead-interval)
+
+  - id: xd.ospf.auth
+    link: ospf
+    compare: {value: "fact:authentication"}
+    severity: error
+    title:
+      zh-CN: OSPF 认证方式不一致
+      en: OSPF authentication mismatch
+      pt-BR: Autenticação OSPF diferente
+    message:
+      zh-CN: "{a_device} {a_end} 认证方式 {a_value}，{b_device} {b_end} 认证方式 {b_value}（接口没有配置时取区域认证）"
+      en: "{a_device} {a_end} uses {a_value} authentication and {b_device} {b_end} uses {b_value} (area authentication when the interface sets none)"
+      pt-BR: "{a_device} {a_end} usa autenticação {a_value} e {b_device} {b_end} usa {b_value} (autenticação da área quando a interface não define)"
+    suggestion:
+      zh-CN: 两端使用相同的认证方式与密钥
+      en: Use the same authentication type and key on both ends
+      pt-BR: Use o mesmo tipo de autenticação e chave nas duas pontas
+
+  - id: xd.ospf.passive
+    link: ospf
+    compare: {value: "fact:passive"}
+    op: same_presence
+    severity: warning
+    title:
+      zh-CN: 一端是 OSPF 静默接口
+      en: OSPF passive on one end
+      pt-BR: OSPF passivo em uma ponta
+    message:
+      zh-CN: "{a_device} {a_end} 静默：{a_value}；{b_device} {b_end} 静默：{b_value}；静默接口不发 hello，邻接建不起来"
+      en: "{a_device} {a_end} passive: {a_value}; {b_device} {b_end} passive: {b_value}; a passive interface sends no hellos, so no adjacency forms"
+      pt-BR: "{a_device} {a_end} passivo: {a_value}; {b_device} {b_end} passivo: {b_value}; interface passiva não envia hellos e a adjacência não se forma"
+    suggestion:
+      zh-CN: 对互联接口取消静默（华为 undo silent-interface，Cisco no passive-interface）
+      en: Remove passive mode on the link interface (Huawei undo silent-interface, Cisco no passive-interface)
+      pt-BR: Remova o modo passivo na interface do enlace (Huawei undo silent-interface, Cisco no passive-interface)
+
+  # ---------- IS-IS ----------
+  - id: xd.isis.level
+    link: isis
+    compare: {value: "fact:levels"}
+    op: overlap
+    severity: error
+    title:
+      zh-CN: IS-IS 级别不匹配
+      en: IS-IS levels do not match
+      pt-BR: Níveis IS-IS incompatíveis
+    message:
+      zh-CN: "{a_device} {a_end} 可用级别 {a_value}，{b_device} {b_end} 可用级别 {b_value}（进程级别与电路类型的交集），没有共同的级别"
+      en: "{a_device} {a_end} runs {a_value} and {b_device} {b_end} runs {b_value} (process level ∩ circuit type); no common level"
+      pt-BR: "{a_device} {a_end} roda {a_value} e {b_device} {b_end} roda {b_value} (nível do processo ∩ tipo de circuito); nenhum nível em comum"
+    suggestion:
+      zh-CN: 调整进程级别（is-level / is-type）或接口电路类型（circuit-type），让两端有共同的级别
+      en: Adjust the process level (is-level / is-type) or the interface circuit type so both ends share a level
+      pt-BR: Ajuste o nível do processo (is-level / is-type) ou o tipo de circuito da interface para que as pontas compartilhem um nível
+
+  - id: xd.isis.network_type
+    link: isis
+    compare: {value: "fact:p2p"}
+    severity: error
+    title:
+      zh-CN: IS-IS 网络类型不一致（点到点 / 广播）
+      en: IS-IS network type mismatch (point-to-point / broadcast)
+      pt-BR: Tipo de rede IS-IS diferente (ponto a ponto / broadcast)
+    message:
+      zh-CN: "{a_device} {a_end} 点到点：{a_value}；{b_device} {b_end} 点到点：{b_value}；邻接建不起来"
+      en: "{a_device} {a_end} point-to-point: {a_value}; {b_device} {b_end} point-to-point: {b_value}; no adjacency can form"
+      pt-BR: "{a_device} {a_end} ponto a ponto: {a_value}; {b_device} {b_end} ponto a ponto: {b_value}; a adjacência não se forma"
+    suggestion:
+      zh-CN: 两端都配置点到点（华为 isis circuit-type p2p，Cisco isis network point-to-point）或都用广播
+      en: Configure point-to-point on both ends (Huawei isis circuit-type p2p, Cisco isis network point-to-point) or broadcast on both
+      pt-BR: Configure ponto a ponto nas duas pontas (Huawei isis circuit-type p2p, Cisco isis network point-to-point) ou broadcast nas duas
+
+  # ---------- MPLS LDP ----------
+  - id: xd.ldp.auth
+    link: ldp
+    compare: {value: "fact:auth"}
+    op: same_presence
+    severity: error
+    title:
+      zh-CN: LDP 认证只在一端配置
+      en: LDP authentication on one end only
+      pt-BR: Autenticação LDP em apenas uma ponta
+    message:
+      zh-CN: "{a_device} 对 {b_device} 的 LDP MD5 认证：{a_value}；{b_device} 对 {a_device}：{b_value}"
+      en: "LDP MD5 from {a_device} to {b_device}: {a_value}; from {b_device} to {a_device}: {b_value}"
+      pt-BR: "MD5 do LDP de {a_device} para {b_device}: {a_value}; de {b_device} para {a_device}: {b_value}"
+    suggestion:
+      zh-CN: 两端按对端 LSR ID 配置相同的 LDP 密码（华为 md5-password，Cisco mpls ldp neighbor … password），或都不配
+      en: Configure the same LDP password for the peer LSR ID on both ends (Huawei md5-password, Cisco mpls ldp neighbor … password), or on neither
+      pt-BR: Configure a mesma senha LDP para o LSR ID do vizinho nas duas pontas (Huawei md5-password, Cisco mpls ldp neighbor … password) ou em nenhuma
+
+  - id: xd.ldp_remote.one_sided
+    link: ldp_remote
+    compare: {value: "fact:configured"}
+    op: both
+    severity: warning
+    title:
+      zh-CN: 远端 LDP 对等体只在一端配置
+      en: Remote LDP peer configured on one end only
+      pt-BR: Par LDP remoto configurado em apenas uma ponta
+    message:
+      zh-CN: "{a_device} 配置了：{a_value}；{b_device} 配置了：{b_value}；对端不接受 targeted hello 时会话建不起来"
+      en: "configured on {a_device}: {a_value}; on {b_device}: {b_value}; the session fails unless the other end accepts targeted hellos"
+      pt-BR: "configurado em {a_device}: {a_value}; em {b_device}: {b_value}; a sessão falha se a outra ponta não aceitar targeted hellos"
+    suggestion:
+      zh-CN: 在另一端也配置远端对等体（华为 mpls ldp remote-peer，Cisco mpls ldp neighbor … targeted），或让它接受 targeted hello
+      en: Configure the remote peer on the other end too (Huawei mpls ldp remote-peer, Cisco mpls ldp neighbor … targeted), or let it accept targeted hellos
+      pt-BR: Configure o par remoto também na outra ponta (Huawei mpls ldp remote-peer, Cisco mpls ldp neighbor … targeted) ou faça-a aceitar targeted hellos
+
+  # ---------- BGP ----------
+  - id: xd.bgp.one_sided
+    link: bgp
+    compare: {value: "fact:configured"}
+    op: both
+    severity: error
+    title:
+      zh-CN: BGP 对等体只在一端配置
+      en: BGP peer configured on one end only
+      pt-BR: Peer BGP configurado em apenas uma ponta
+    message:
+      zh-CN: "{a_device}（{a_end}）配置了对等体：{a_value}；{b_device}（{b_end}）：{b_value}；会话建不起来"
+      en: "peer configured on {a_device} ({a_end}): {a_value}; on {b_device} ({b_end}): {b_value}; the session cannot come up"
+      pt-BR: "peer configurado em {a_device} ({a_end}): {a_value}; em {b_device} ({b_end}): {b_value}; a sessão não sobe"
+    suggestion:
+      zh-CN: 在另一端用本端的源地址（update-source / connect-interface 的地址）配置对等体
+      en: Configure the peer on the other end using this end's source address (the update-source / connect-interface address)
+      pt-BR: Configure o peer na outra ponta usando o endereço de origem desta ponta (o endereço de update-source / connect-interface)
+
+  - id: xd.bgp.remote_as
+    link: bgp
+    compare: {a: "fact:remote_as", b: "fact:local_as", symmetric: true}
+    severity: error
+    title:
+      zh-CN: BGP 对端 AS 与对端设备的 AS 不符
+      en: BGP remote AS does not match the peer's AS
+      pt-BR: AS remoto do BGP não corresponde ao AS do vizinho
+    message:
+      zh-CN: "{a_device} 把 {b_device} 配置为 AS {a_value}，但 {b_device} 的 AS 是 {b_value}"
+      en: "{a_device} expects {b_device} in AS {a_value}, but {b_device} is in AS {b_value}"
+      pt-BR: "{a_device} espera {b_device} no AS {a_value}, mas {b_device} está no AS {b_value}"
+    suggestion:
+      zh-CN: 修正对端 AS（华为 peer … as-number，Cisco neighbor … remote-as）
+      en: Fix the remote AS (Huawei peer … as-number, Cisco neighbor … remote-as)
+      pt-BR: Corrija o AS remoto (Huawei peer … as-number, Cisco neighbor … remote-as)
+
+  - id: xd.bgp.af
+    link: bgp
+    compare: {value: "fact:afs"}
+    when: {both: ["fact:configured"]}
+    severity: warning
+    title:
+      zh-CN: BGP 两端使能的地址族不同
+      en: BGP address families differ between the two ends
+      pt-BR: Famílias de endereços BGP diferentes nas duas pontas
+    message:
+      zh-CN: "{a_device} 对该对等体使能 {a_value}，{b_device} 使能 {b_value}；只有两端都使能的地址族会交换路由"
+      en: "{a_device} enables {a_value} for this peer and {b_device} enables {b_value}; only families enabled on both ends exchange routes"
+      pt-BR: "{a_device} habilita {a_value} para este peer e {b_device} habilita {b_value}; só as famílias habilitadas nas duas pontas trocam rotas"
+    suggestion:
+      zh-CN: 在缺少的一端使能对应地址族（华为 ipv4-family vpnv4 下 peer … enable，Cisco address-family vpnv4 下 neighbor … activate）
+      en: Enable the missing family on the other end (Huawei peer … enable under ipv4-family vpnv4, Cisco neighbor … activate under address-family vpnv4)
+      pt-BR: Habilite a família que falta na outra ponta (Huawei peer … enable em ipv4-family vpnv4, Cisco neighbor … activate em address-family vpnv4)
+
+  - id: xd.bgp.auth
+    link: bgp
+    compare: {value: "fact:auth"}
+    op: same_presence
+    when: {both: ["fact:configured"]}
+    severity: error
+    title:
+      zh-CN: BGP 认证只在一端配置
+      en: BGP authentication on one end only
+      pt-BR: Autenticação BGP em apenas uma ponta
+    message:
+      zh-CN: "{a_device} 配置了密码：{a_value}；{b_device} 配置了密码：{b_value}；会话建不起来"
+      en: "password on {a_device}: {a_value}; on {b_device}: {b_value}; the session cannot come up"
+      pt-BR: "senha em {a_device}: {a_value}; em {b_device}: {b_value}; a sessão não sobe"
+    suggestion:
+      zh-CN: 两端配置相同的对等体密码（华为 peer … password，Cisco neighbor … password），或都不配
+      en: Configure the same peer password on both ends (Huawei peer … password, Cisco neighbor … password), or on neither
+      pt-BR: Configure a mesma senha do peer nas duas pontas (Huawei peer … password, Cisco neighbor … password) ou em nenhuma
+
+  # ---------- L2VPN 伪线 ----------
+  - id: xd.pw.one_sided
+    link: pw
+    compare: {value: "fact:configured"}
+    op: both
+    severity: error
+    title:
+      zh-CN: 伪线只在一端配置
+      en: Pseudowire configured on one end only
+      pt-BR: Pseudowire configurado em apenas uma ponta
+    message:
+      zh-CN: "{a_device} 配置了：{a_value}；{b_device} 配置了：{b_value}；伪线建不起来"
+      en: "configured on {a_device}: {a_value}; on {b_device}: {b_value}; the pseudowire cannot come up"
+      pt-BR: "configurado em {a_device}: {a_value}; em {b_device}: {b_value}; o pseudowire não sobe"
+    suggestion:
+      zh-CN: 在另一端配置指向本端 LSR ID、VC ID 相同的伪线
+      en: Configure a pseudowire on the other end pointing to this end's LSR ID with the same VC ID
+      pt-BR: Configure na outra ponta um pseudowire apontando para o LSR ID desta ponta com o mesmo VC ID
+
+  - id: xd.pw.vc_id
+    link: pw
+    compare: {value: "fact:vc_id"}
+    severity: error
+    title:
+      zh-CN: 伪线两端 VC ID 不一致
+      en: Pseudowire VC ID mismatch
+      pt-BR: VC ID do pseudowire diferente
+    message:
+      zh-CN: "{a_device} {a_end} 的 VC ID 是 {a_value}，{b_device} {b_end} 是 {b_value}"
+      en: "{a_device} {a_end} uses VC ID {a_value} and {b_device} {b_end} uses {b_value}"
+      pt-BR: "{a_device} {a_end} usa VC ID {a_value} e {b_device} {b_end} usa {b_value}"
+    suggestion:
+      zh-CN: 两端使用相同的 VC ID（华为 mpls l2vc … <vc-id>，Cisco xconnect … <vc-id>）
+      en: Use the same VC ID on both ends (Huawei mpls l2vc … <vc-id>, Cisco xconnect … <vc-id>)
+      pt-BR: Use o mesmo VC ID nas duas pontas (Huawei mpls l2vc … <vc-id>, Cisco xconnect … <vc-id>)
+
+  - id: xd.pw.control_word
+    link: pw
+    compare: {value: "fact:control_word"}
+    when: {both: ["fact:configured"]}
+    severity: warning
+    title:
+      zh-CN: 伪线两端控制字设置不同
+      en: Pseudowire control word differs
+      pt-BR: Control word do pseudowire diferente
+    message:
+      zh-CN: "{a_device} {a_end} 控制字：{a_value}；{b_device} {b_end} 控制字：{b_value}"
+      en: "{a_device} {a_end} control word: {a_value}; {b_device} {b_end} control word: {b_value}"
+      pt-BR: "{a_device} {a_end} control word: {a_value}; {b_device} {b_end} control word: {b_value}"
+    suggestion:
+      zh-CN: 两端统一启用或关闭控制字（华为 pw-template 的 control-word，Cisco pseudowire-class 的 control-word）
+      en: Enable or disable the control word on both ends (control-word in the Huawei pw-template / Cisco pseudowire-class)
+      pt-BR: Habilite ou desabilite a control word nas duas pontas (control-word no pw-template Huawei / pseudowire-class Cisco)
+
+  - id: xd.pw.mtu
+    link: pw
+    compare: {value: "fact:mtu"}
+    severity: warning
+    title:
+      zh-CN: 伪线两端 MTU 不一致
+      en: Pseudowire MTU mismatch
+      pt-BR: MTU do pseudowire diferente
+    message:
+      zh-CN: "{a_device} {a_end} 伪线 MTU {a_value}，{b_device} {b_end} 是 {b_value}；MTU 不同时 LDP 信令的伪线不会 up"
+      en: "{a_device} {a_end} PW MTU {a_value}, {b_device} {b_end} {b_value}; LDP-signalled pseudowires stay down on an MTU mismatch"
+      pt-BR: "{a_device} {a_end} MTU do PW {a_value}, {b_device} {b_end} {b_value}; pseudowires sinalizados por LDP não sobem com MTU diferente"
+    suggestion:
+      zh-CN: 两端配置相同的伪线 MTU
+      en: Configure the same pseudowire MTU on both ends
+      pt-BR: Configure a mesma MTU de pseudowire nas duas pontas
+
+  # ---------- BFD ----------
+  - id: xd.bfd.one_sided
+    link: bfd
+    compare: {value: "fact:configured"}
+    op: both
+    severity: warning
+    title:
+      zh-CN: BFD 会话只在一端配置
+      en: BFD session configured on one end only
+      pt-BR: Sessão BFD configurada em apenas uma ponta
+    message:
+      zh-CN: "{a_device} 配置了：{a_value}；{b_device} 配置了：{b_value}"
+      en: "configured on {a_device}: {a_value}; on {b_device}: {b_value}"
+      pt-BR: "configurada em {a_device}: {a_value}; em {b_device}: {b_value}"
+    suggestion:
+      zh-CN: 在另一端配置对应的 BFD 会话
+      en: Configure the matching BFD session on the other end
+      pt-BR: Configure a sessão BFD correspondente na outra ponta
+
+  - id: xd.bfd.discriminator
+    link: bfd
+    compare: {a: "fact:remote_discr", b: "fact:local_discr", symmetric: true}
+    when: {both: ["fact:static", "fact:configured"]}
+    severity: error
+    title:
+      zh-CN: 静态 BFD 描述符不对应
+      en: Static BFD discriminators do not match
+      pt-BR: Discriminadores BFD estáticos não correspondem
+    message:
+      zh-CN: "{a_device} 的远端描述符是 {a_value}，但 {b_device} 的本地描述符是 {b_value}"
+      en: "{a_device} expects remote discriminator {a_value}, but the local discriminator on {b_device} is {b_value}"
+      pt-BR: "{a_device} espera o discriminador remoto {a_value}, mas o discriminador local em {b_device} é {b_value}"
+    suggestion:
+      zh-CN: 一端的 discriminator remote 应等于另一端的 discriminator local
+      en: The discriminator remote on one end must equal the discriminator local on the other
+      pt-BR: O discriminator remote de uma ponta deve ser igual ao discriminator local da outra
+
+  - id: xd.bfd.min_tx
+    link: bfd
+    compare: {value: "fact:min_tx"}
+    severity: warning
+    title:
+      zh-CN: BFD 发送间隔两端不同
+      en: BFD transmit interval differs
+      pt-BR: Intervalo de transmissão BFD diferente
+    message:
+      zh-CN: "{a_device} {a_end} 发送间隔 {a_value} ms，{b_device} {b_end} 是 {b_value} ms；实际检测时间按协商结果，可能与规划不符"
+      en: "{a_device} {a_end} transmits every {a_value} ms and {b_device} {b_end} every {b_value} ms; the negotiated detection time may differ from the plan"
+      pt-BR: "{a_device} {a_end} transmite a cada {a_value} ms e {b_device} {b_end} a cada {b_value} ms; o tempo de detecção negociado pode diferir do planejado"
+    suggestion:
+      zh-CN: 两端按规划配置相同的 BFD 间隔
+      en: Configure the same BFD intervals on both ends as planned
+      pt-BR: Configure os mesmos intervalos BFD nas duas pontas conforme o planejamento
+
+  - id: xd.bfd.multiplier
+    link: bfd
+    compare: {value: "fact:multiplier"}
+    severity: info
+    title:
+      zh-CN: BFD 检测倍数两端不同
+      en: BFD detection multiplier differs
+      pt-BR: Multiplicador de detecção BFD diferente
+    message:
+      zh-CN: "{a_device} {a_end} 检测倍数 {a_value}，{b_device} {b_end} 是 {b_value}"
+      en: "{a_device} {a_end} multiplier {a_value}, {b_device} {b_end} {b_value}"
+      pt-BR: "{a_device} {a_end} multiplicador {a_value}, {b_device} {b_end} {b_value}"
+    suggestion:
+      zh-CN: 两端按规划配置相同的检测倍数
+      en: Configure the same multiplier on both ends as planned
+      pt-BR: Configure o mesmo multiplicador nas duas pontas conforme o planejamento
+
+  # ---------- VRRP（功能域在 M4-2 建立；Schema 中没有这些节点时跳过）----------
+  - id: xd.vrrp.virtual_ip
+    link: subnet
+    pair: vrrp
+    requires: [interface.vrrp, interface.vrrp.virtual_ip]
+    compare: {value: virtual_ip}
+    severity: error
+    title:
+      zh-CN: 同一 VRRP 组的虚拟地址不一致
+      en: VRRP virtual IP differs within a group
+      pt-BR: IP virtual diferente no mesmo grupo VRRP
+    message:
+      zh-CN: "{a_device} {a_end} 的虚拟地址是 {a_value}，{b_device} {b_end} 是 {b_value}"
+      en: "{a_device} {a_end} uses virtual IP {a_value} and {b_device} {b_end} uses {b_value}"
+      pt-BR: "{a_device} {a_end} usa o IP virtual {a_value} e {b_device} {b_end} usa {b_value}"
+    suggestion:
+      zh-CN: 同一 VRRP 组在各成员上配置相同的虚拟地址
+      en: Configure the same virtual IP for the group on every member
+      pt-BR: Configure o mesmo IP virtual do grupo em todos os membros
+
+  - id: xd.vrrp.one_side
+    link: subnet
+    pair: vrrp
+    requires: [interface.vrrp]
+    compare: {value: "fact:paired"}
+    op: same_presence
+    severity: warning
+    title:
+      zh-CN: VRRP 组只在一端配置
+      en: VRRP group configured on one end only
+      pt-BR: Grupo VRRP configurado em apenas uma ponta
+    message:
+      zh-CN: "{a_device} {a_end}：{a_value}；{b_device} {b_end}：{b_value}"
+      en: "{a_device} {a_end}: {a_value}; {b_device} {b_end}: {b_value}"
+      pt-BR: "{a_device} {a_end}: {a_value}; {b_device} {b_end}: {b_value}"
+    suggestion:
+      zh-CN: 在同网段的另一台设备上配置同一 VRRP 组，或删除多余的组
+      en: Configure the same VRRP group on the other device in the segment, or remove the extra group
+      pt-BR: Configure o mesmo grupo VRRP no outro dispositivo do segmento ou remova o grupo excedente

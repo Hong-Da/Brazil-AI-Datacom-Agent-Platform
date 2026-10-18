@@ -1,0 +1,39 @@
+# 割接迁移回归（M4-5，REQ-017）：tests/roundtrip/test_migration.py 逐个运行。
+# 每个用例：旧设备配置 src（src_profile）迁移到 dst_profile；
+#   interface_map（可选）：部分接口映射表文件（其余自动建议）；
+#   target_config（可选）：新设备现有配置（出厂 / 已配置管理口），只生成需要新增的部分；
+#   model（可选）：新设备型号（knowledge/migration/ports/ 的端口清单）；
+#   要求：新配置再解析没有未识别行、与旧设备按有效值对比 verify.unexplained = 0；
+#   expect_map：这些接口必须映射成指定的接口；expect_unmapped：这些接口必须在未映射清单中（值为原因）；
+#   expect_warnings：这些告警种类至少出现一次；min_mapped：映射上的接口个数下限。
+# 路径相对本目录。
+cases:
+  - id: atn-to-asr920
+    src: ../huawei-atn-v800r023/atn-access-01.cfg
+    src_profile: huawei-atn-v800r023
+    dst_profile: cisco-iosxe-asr920-17.15
+    model: ASR-920-24SZ-M
+    interface_map: atn-to-asr920.partial.yaml
+    expect_map: {GigabitEthernet0/2/0: GigabitEthernet0/0/0, Eth-Trunk1: Port-channel1, LoopBack100: Loopback100, Vbdif1584: BDI1584, 100GE0/2/24: TenGigabitEthernet0/0/24}
+    expect_unmapped: {Ethernet0/0/0: management, 100GE0/2/25: user_excluded}
+    expect_warnings: [speed_mismatch, mgmt_not_migrated, subinterfaces_follow]
+    min_mapped: 30
+    note: 现网 ATN（严格脱敏）→ ASR 920；部分映射表 + 按端口清单自动建议；管理口不迁移
+  - id: asr920-to-atn
+    src: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+    src_profile: cisco-iosxe-asr920-17.15
+    dst_profile: huawei-atn-v800r025
+    target_config: atn-factory.cfg
+    expect_map: {GigabitEthernet0/0/0: GigabitEthernet0/2/0, Port-channel1: Eth-Trunk1, BDI101: Vbdif101, Loopback0: LoopBack0}
+    expect_warnings: [target_conflict, target_coexist, inferred_value]
+    min_mapped: 8
+    note: ASR 920 → ATN；新设备有出厂配置（管理口、关闭的端口、LoopBack0），端口清单取自现有配置，只生成增量
+  - id: atn-same-family-renumber
+    src: ../huawei-atn-v800r025-synthetic/atn-mpls-l2vpn-acl-01.cfg
+    src_profile: huawei-atn-v800r025
+    dst_profile: huawei-atn-v800r025
+    target_config: atn-other-model.cfg
+    expect_map: {GigabitEthernet0/2/1: GigabitEthernet0/1/1, GigabitEthernet0/2/5: GigabitEthernet0/1/5, LoopBack0: LoopBack0}
+    expect_warnings: [subinterfaces_follow]
+    min_mapped: 6
+    note: 同厂商换型号（同一平台族，槽位 2 → 槽位 1）；子接口跟随主接口

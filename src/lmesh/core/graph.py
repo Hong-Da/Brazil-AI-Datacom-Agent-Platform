@@ -177,12 +177,14 @@ class Builder:
         values = ln.values()
         tokens = ln.text.split()
         created = False
+        # ctx: 表达式用的上下文（所在接口的键：接入点按子接口编号）
+        ctxv = {"interface": self.g.nodes[scope["interface"]].get("key")} if "interface" in scope else None
         targets = [(text, mapping.parse_target(text), expr) for text, expr in card.maps.items()]
         # 二选一：按第一个“对象”目标的取值决定走哪一支
         branch = 0
         for _, alts, expr in targets:
             if len(alts) > 1:
-                v = mapping.evaluate(expr, values, tokens, ln.negated)
+                v = mapping.evaluate(expr, values, tokens, ln.negated, ctx=ctxv)
                 branch = mapping.choose_branch([v])
                 break
         # 先对象，后属性
@@ -205,7 +207,7 @@ class Builder:
             value: Any = None
             if isinstance(expr, str) and expr.endswith("||auto") and expr != "auto":
                 # $序号||auto：行里有序号就用序号，没有时按出现顺序编号（Cisco 编号 ACL 的规则）
-                value = mapping.evaluate(expr[: -len("||auto")], values, tokens, ln.negated)
+                value = mapping.evaluate(expr[: -len("||auto")], values, tokens, ln.negated, ctx=ctxv)
             if value not in (None, ""):
                 pass
             elif expr == "auto" or (isinstance(expr, str) and expr.endswith("||auto")):
@@ -214,7 +216,7 @@ class Builder:
                 key = (schema.id, parent_scope)
                 value = str(self.auto[key] * 10)
             else:
-                value = mapping.evaluate(expr, values, tokens, ln.negated)
+                value = mapping.evaluate(expr, values, tokens, ln.negated, ctx=ctxv)
             if value is None or value == "" and schema.type != "object":
                 if schema.type == "object":
                     skipped.add(schema.id)  # 这一行没有给出对象（例如 silent-interface all）
@@ -345,6 +347,16 @@ class Builder:
 
     # ----- 依赖边 -----
 
+    def _aliases(self) -> None:
+        """Schema 标了 alias 的属性：取值登记为所属对象的另一个键（引用按别名也能找到对象，已有同键对象时不覆盖）。"""
+        for nid, d in list(self.g.nodes(data=True)):
+            sn = self.kb.nodes.get(str(d.get("schema")))
+            if sn is None or not sn.alias or d.get("kind") != "attr" or d.get("value") in (None, ""):
+                continue
+            owner = next((a for a, _, ed in self.g.in_edges(nid, data=True) if ed.get("kind") == "contains"), None)
+            if owner is not None and self.g.nodes[owner].get("schema"):
+                self.index.setdefault((str(self.g.nodes[owner]["schema"]), str(d["value"])), owner)
+
     def _dependencies(self) -> None:
         dangling: list[dict[str, Any]] = []
         missing: list[dict[str, Any]] = []
@@ -354,6 +366,7 @@ class Builder:
         for nid, d in self.g.nodes(data=True):
             if d.get("schema"):
                 attrs_by_schema[d["schema"]].append(nid)
+        self._aliases()
         for r in rules:
             if (
                 r.profiles

@@ -51,9 +51,11 @@ def rule_view(kb: KnowledgeBase, directory: Path, rule_id: str) -> dict[str, Any
 
 def _find(directory: Path, rule_id: str) -> tuple[Path, Any, CommentedMap] | None:
     for f in sorted(directory.glob("*.yaml")):
-        if f.name == rulesmod.BUILTIN_FILE:
+        if f.name in rulesmod.NOT_RULE_FILES:
             continue
         doc = files.load_rt(f)
+        if isinstance(doc, CommentedMap) and doc.get("kind") == "baseline":  # 基线文件不是检查规则
+            continue
         for item in (doc or {}).get("rules") or []:
             if isinstance(item, CommentedMap) and str(item.get("id")) == rule_id:
                 return f, doc, item

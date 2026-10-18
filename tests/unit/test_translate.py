@@ -182,7 +182,8 @@ def test_translate_no_render_and_inferred(kb) -> None:  # type: ignore[no-untype
     text = (KB_ROOT / "samples" / "cisco-iosxe-asr920-synthetic" / "pe-asr920-01.cfg").read_text(encoding="utf-8")
     r = translate.translate(graph(kb, text, CISCO), kb, CISCO, HUAWEI)
     nr = {u["schema"] for u in r["unsupported"] if u["params"].get("reason") == "no_render"}
-    assert "interface.access" in nr  # 业务实例 → 华为二层子接口：结构不同，列为不支持
+    assert "interface.access" not in nr  # 业务实例 → 华为二层子接口：换结构后能写出（M3 知识库补缺）
+    assert "interface GigabitEthernet0/0/1.101 mode l2" in r["text"]
     inf = [w for w in r["warnings"] if w["kind"] == "inferred_value"]
     assert inf and inf[0]["params"]["value"] == "internal"
     assert "group RR internal" in [ln.strip() for ln in r["text"].split("\n")]

@@ -1,0 +1,68 @@
+# 增量变更脚本 lmesh change 与影响分析 lmesh impact 的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+
+[[case]]
+id = "change-bind-vpn"
+title = { zh-CN = "华为接口绑定 VPN：绑定后自动补发 IP 地址（副作用，高风险），附回滚脚本与模拟验证", en = "Huawei interface bound to a VPN: the IP address is restored after binding (side effect, high risk)", pt-BR = "Interface Huawei vinculada a uma VPN: o endereço IP é reaplicado após o vínculo (efeito colateral, risco alto)" }
+args = ["--output", "json", "change", "{samples}/change/atn-base.cfg", "{samples}/change/atn-bind-vpn.cfg", "--style", "huawei"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.family" = "huawei-vrp8", "data.ops.0.action" = "add", "data.ops.0.text" = "ip binding vpn-instance OAM", "data.ops.0.context" = ["interface GigabitEthernet0/2/2"], "data.ops.1.action" = "side_effect", "data.ops.1.text" = "ip address 10.3.0.1 255.255.255.252", "data.ops.1.after.0.seq" = 1, "data.ops.1.after.0.kind" = "side_effect", "data.ops.1.risk" = "high", "data.risk.level" = "high", "data.verify.ok" = true, "data.rollback.verify.ok" = true, "data.script_plain" = "system-view\ninterface GigabitEthernet0/2/2\n ip binding vpn-instance OAM\n ip address 10.3.0.1 255.255.255.252\nquit\ncommit\nreturn\n" }
+in_docs = true
+
+[[case]]
+id = "change-script-stdout"
+title = { zh-CN = "下发脚本（带说明行）写到标准输出，摘要写到标准错误", en = "Annotated change script on stdout, summary on stderr", pt-BR = "Script anotado na saída padrão, resumo no erro padrão" }
+args = ["--lang", "zh-CN", "change", "{samples}/change/atn-base.cfg", "{samples}/change/atn-policy-rename.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["system-view", "ip ip-prefix LOOPBACKS-V2 index 10", "# [3] 修改", "undo ip ip-prefix LOOPBACKS index 10", "commit"]
+expect_stderr = ["5 条命令", "验证通过"]
+in_docs = true
+
+[[case]]
+id = "change-cisco-files"
+title = { zh-CN = "Cisco：下发脚本、回滚脚本与变更报告写到文件（不带说明行）", en = "Cisco: write the change script, rollback script and change report to files", pt-BR = "Cisco: gravar o script, o script de reversão e o relatório em arquivos" }
+args = ["--lang", "en", "change", "{samples}/change/asr920-base.cfg", "{samples}/change/asr920-del-peer.cfg", "--plain", "-o", "{out}/change.txt", "--rollback", "{out}/rollback.txt", "--report", "{out}/change.en.md", "--report-lang", "en"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["3 command(s)", "change script written to", "rollback script written to", "change report written to"]
+
+[[case]]
+id = "change-family-mismatch"
+title = { zh-CN = "当前与目标不是同一平台族", en = "Current and target are different platform families", pt-BR = "Atual e alvo são de famílias diferentes" }
+args = ["change", "{samples}/change/atn-base.cfg", "{samples}/change/asr920-base.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 2
+in_docs = true
+
+[[case]]
+id = "change-bad-style"
+title = { zh-CN = "显示风格写错", en = "Bad style", pt-BR = "Estilo inválido" }
+args = ["change", "{samples}/change/atn-base.cfg", "{samples}/change/atn-acl.cfg", "--style", "juniper"]
+setup = "fresh-fullkb"
+expect_exit = 2
+
+[[case]]
+id = "impact-prefix-list"
+title = { zh-CN = "影响分析：改前缀列表影响哪些路由策略与 BGP 对等体（含路径）", en = "Impact: which route policies and BGP peers a prefix list affects (with paths)", pt-BR = "Impacto: quais políticas e pares BGP uma prefix-list afeta (com caminhos)" }
+args = ["--output", "json", "impact", "{samples}/change/atn-base.cfg", "--node", "rp.prefix_list[LOOPBACKS]"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.direction" = "up", "data.seeds.0.node" = "rp.prefix_list[LOOPBACKS]", "data.business.0.node" = "bgp.instance[65000]/bgp.af[afi=ipv4,vrf=]/peer[RR]", "data.business.0.type" = "peer", "data.business.0.path" = ["rp.prefix_list[LOOPBACKS]", "rp.policy[EXPORT-LOOPBACK]/node[10]/match_prefix_list", "rp.policy[EXPORT-LOOPBACK]/node[10]", "rp.policy[EXPORT-LOOPBACK]", "bgp.instance[65000]/bgp.af[afi=ipv4,vrf=]/peer[RR]/export_policy", "bgp.instance[65000]/bgp.af[afi=ipv4,vrf=]/peer[RR]"] }
+in_docs = true
+
+[[case]]
+id = "impact-text"
+title = { zh-CN = "影响分析的文字输出（VPN 实例影响的接口与地址族）", en = "Impact text output", pt-BR = "Saída de texto da análise de impacto" }
+args = ["--lang", "zh-CN", "impact", "{samples}/change/atn-base.cfg", "--node", "vrf.instance[RAN]"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["业务对象", "interface[GigabitEthernet0/2/1.101]", "vrf.instance[RAN] → interface[GigabitEthernet0/2/1.101]/vrf"]
+in_docs = true
+
+[[case]]
+id = "impact-node-not-found"
+title = { zh-CN = "节点不存在", en = "Node not found", pt-BR = "Nó não encontrado" }
+args = ["impact", "{samples}/change/atn-base.cfg", "--node", "rp.policy[NOPE]"]
+setup = "fresh-fullkb"
+expect_exit = 4

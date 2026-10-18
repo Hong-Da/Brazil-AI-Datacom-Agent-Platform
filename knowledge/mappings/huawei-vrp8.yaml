@@ -9,7 +9,7 @@ _peer: &peer "$ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group
 rules:
   # ---------- 接口 ----------
   - view: ^system$
-    syntax: '^interface \{ <interface-name> \| <interface-type> <interface-number> \} \{ <mode> l2 \}$'
+    syntax: '^interface \{ <interface-name> \| <interface-type> <interface-number> \} mode l2$'
     maps:
       interface: "$interface-name||fmt:{interface-type}{interface-number}"
       interface.l2: "true"
@@ -59,27 +59,28 @@ rules:
   - view: ^interface$
     syntax: '^negotiation auto$'
     maps: {interface.negotiation: flag}
-  # 二层子接口上的业务接入点：接入点就是子接口本身，编号固定为 "_"
+  # 二层子接口上的业务接入点：接入点就是子接口本身，编号为子接口编号（GE0/2/1.101 → 101，主接口为 "_"），
+  # 与 Cisco service instance 的编号对应（knowledge/render 的 access_form 说明两种形态，翻译时换结构）
   - view: ^interface$
     syntax: '^encapsulation dot1q '
     maps:
-      interface.access: "_"
+      interface.access: ctx:subif
       interface.access.encapsulation: dot1q
       interface.access.vlan: $low-pe-vid
   - view: ^interface$
     syntax: '^encapsulation untag$'
     maps:
-      interface.access: "_"
+      interface.access: ctx:subif
       interface.access.encapsulation: untagged
   - view: ^interface$
     syntax: '^rewrite pop \{ single \| double \}$'
     maps:
-      interface.access: "_"
+      interface.access: ctx:subif
       interface.access.rewrite: "kw:single=pop 1|double=pop 2"
   - view: ^interface$
     syntax: '^bridge-domain <bd-id>$'
     maps:
-      interface.access: "_"
+      interface.access: ctx:subif
       interface.access.bridge_domain: $bd-id
   - view: ^system$
     syntax: '^bridge-domain <bd-id>$'
@@ -163,6 +164,11 @@ rules:
     maps:
       bgp.peer | bgp.peer_group: *peer
       bgp.peer.password | bgp.peer_group.password: $cipher-password
+  - view: ^bgp$
+    syntax: '^timer keepalive <keepalive-time> hold <hold-time>'
+    maps:
+      bgp.instance.keepalive: $keepalive-time
+      bgp.instance.hold: $hold-time
   - view: ^bgp$
     syntax: '^peer <[\w-]+> timer keepalive <keepalive-time> hold <hold-time>'
     maps:
@@ -519,7 +525,7 @@ rules:
     maps:
       mgmt.ntp: "_"
       mgmt.ntp.server: $ipv4Addr
-      mgmt.ntp.server.source_interface: "$ifName||fmt:{interface_type}{interface_number}"
+      mgmt.ntp.server.source_interface: "$ifName||fmt:{interface_type}{interface_num}"
       mgmt.ntp.server.vrf: $vpnName
       mgmt.ntp.server.prefer: "if:preference:flag"
       mgmt.ntp.server.key: $authkeyid
@@ -901,17 +907,18 @@ rules:
   - view: ^pw-template$
     syntax: '^mtu <mtu>$'
     maps: {l2vpn.pw_class.mtu: $mtu}
-  # 接口（子接口即接入点 "_"）上的 LDP 伪线：主用 / secondary 备用 / bypass
+  # 接口（子接口即接入点，编号为子接口编号，主接口为 "_"）上的 LDP 伪线：主用 / secondary 备用 / bypass
   - view: ^interface$
     syntax: '^mpls l2vc (instance-name <instance-name> )?\{ <ip-address> \| pw-template <[\w-]+> \} &<1-9> <vc-id>'
     maps:
-      "interface.access{id=_}.pw": "kw:secondary=backup|bypass=bypass:primary"
-      "interface.access{id=_}.pw.peer": $ip-address
-      "interface.access{id=_}.pw.vc_id": $vc-id
-      "interface.access{id=_}.pw.pw_class": "$pw-template-name||$template-name"
-      "interface.access{id=_}.pw.tunnel_policy": "$policy-name||$tnl-policy-name"
-      "interface.access{id=_}.pw.control_word": "kw:control-word=true|no-control-word=false"
-      "interface.access{id=_}.pw.encapsulation": "kw:raw|tagged|ip-interworking|ip-layer2"
+      interface.access: ctx:subif
+      interface.access.pw: "kw:secondary=backup|bypass=bypass:primary"
+      interface.access.pw.peer: $ip-address
+      interface.access.pw.vc_id: $vc-id
+      interface.access.pw.pw_class: "$pw-template-name||$template-name"
+      interface.access.pw.tunnel_policy: "$policy-name||$tnl-policy-name"
+      interface.access.pw.control_word: "kw:control-word=true|no-control-word=false"
+      interface.access.pw.encapsulation: "kw:raw|tagged|ip-interworking|ip-layer2"
   # ---------- L2VPN：VPLS ----------
   - view: ^system$
     syntax: '^vsi <vsi-name>'
@@ -1006,7 +1013,8 @@ rules:
       acl.instance.rule.source_ip: "$source-ip-address||any"
       acl.instance.rule.source_wildcard: "$source-wildcard||$src-netmask||if:$source-ip-address:0.0.0.0"
       acl.instance.rule.vrf: $vpn-instance-name
-  # 高级 ACL 规则（IP / ICMP / TCP / UDP 各一张卡）：协议、源、目的；端口条件与源端口同名参数，暂不映射（原文保留）
+  # 高级 ACL 规则（IP / ICMP / TCP / UDP 各一张卡）：协议、源、目的、端口条件（修正文件把源 / 目的端口拆成各自的参数，
+  # 写法与 Cisco 一致：eq 22、range 1000 2000）
   - view: ^acl$
     syntax: '^rule \[ <rule-id> \] \[ name <rule-name> \] \{ permit \| deny \} \{ '
     maps:
@@ -1018,6 +1026,8 @@ rules:
       acl.instance.rule.source_wildcard: "$source-wildcard||$src-netmask||if:$source-ip-address:0.0.0.0"
       acl.instance.rule.destination_ip: "$destination-ip-address||any"
       acl.instance.rule.destination_wildcard: "$destination-wildcard||$des-netmask||if:$destination-ip-address:0.0.0.0"
+      acl.instance.rule.source_port: "fmt:{src-port-op} {src-port}||if:$src-port-begin:fmt:range {src-port-begin} {src-port-end}"
+      acl.instance.rule.destination_port: "fmt:{dst-port-op} {dst-port}||if:$dst-port-begin:fmt:range {dst-port-begin} {dst-port-end}"
       acl.instance.rule.vrf: $vpn-instance-name
   - view: ^route-policy$
     syntax: '^if-match acl \{ <acl-number> \| <acl-name> \}$'
