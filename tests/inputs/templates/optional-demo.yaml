@@ -1,0 +1,22 @@
+# 测试用模板：可选块（关闭端口）与派生变量
+id: optional-demo
+title: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}
+profile: cisco-iosxe-asr920-17.15
+match: {extra: deny, extra_scope: matched}
+vars:
+  hostname: {type: word}
+  port: {type: interface, example: GigabitEthernet0/0/5}
+  net: {type: prefix, length: 30, network: true}
+  ip: {expr: "net|host(1)"}
+blocks:
+  shut: {optional: true}
+body: |
+  hostname {{hostname}}
+  !
+  interface {{port}}
+   ip address {{ip}} {{net|mask}}
+  {% optional shut %}
+   shutdown
+  {% end %}
+  !
+  end

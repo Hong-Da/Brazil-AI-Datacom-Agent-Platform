@@ -34,9 +34,9 @@
 | REQ-009 | 配置对比：按有效值对比，改名识别、语义等价 | 任务文档“功能需求” | M2 | `core/compare.py`、`lmesh compare`、`POST /compare`、Web 配置对比 | 已完成（v0.1.1） | 对比视图 v0.2.0 |
 | REQ-010 | 配置检查：悬空引用、孤儿对象、互斥冲突、规则约束 | 任务文档“功能需求” | M2 | `core/checks.py`、`core/rules.py`、`lmesh check`、`POST /check`、Web 配置检查 | 已完成（v0.1.1） | 忽略发现、规则开关 v0.2.0 |
 | REQ-011 | 冗余配置清理：列出未被引用的 ACL、route-policy、prefix-list 并生成删除脚本 | 任务文档“功能需求” | M2 | `core/cleanup.py`、`lmesh cleanup`、`POST /cleanup`、Web 冗余清理 | 已完成（v0.1.1） | 按选中对象清理 v0.2.0 |
-| REQ-012 | 配置翻译：切换目标 Profile 渲染，不支持项和默认值差异告警 | 任务文档“功能需求” | M3 | | 待开发 | |
-| REQ-013 | 配置模板：参数化模板校验并提取变量 | 任务文档“功能需求” | M3 | | 待开发 | |
-| REQ-014 | 配置生成：模板 + 参数表批量生成配置 | 任务文档“功能需求” | M3 | | 待开发 | |
+| REQ-012 | 配置翻译：切换目标 Profile 渲染，不支持项和默认值差异告警 | 任务文档“功能需求” | M3 | `core/canon.py`、`core/translate.py`、`lmesh translate`、`lmesh render --canonical --with-defaults`、`POST /translate`、`POST /render` | 后端已完成（M3-3） | 界面随 M3-6；含默认值的完整配置（用户 2026-10-18 要求）共用规范渲染器 |
+| REQ-013 | 配置模板：参数化模板校验并提取变量 | 任务文档“功能需求” | M3 | `core/template.py`、`core/template_match.py`、`core/template_draft.py`、`lmesh template check / extract / draft`、`POST /templates/check / extract / draft` | 后端完成（M3-4） | 界面随 M3-6 |
+| REQ-014 | 配置生成：模板 + 参数表批量生成配置 | 任务文档“功能需求” | M3 | `core/template_gen.py`、`lmesh template generate`、`POST /templates/generate` | 后端完成（M3-5） | 界面随 M3-6 |
 | REQ-015 | 增量变更脚本：按依赖拓扑排序生成下发命令和回滚脚本 | 任务文档“功能需求” | M4 | | 待开发 | |
 | REQ-016 | 变更影响分析 | 任务文档“功能需求” | M4 | | 待开发 | |
 | REQ-017 | 割接迁移：翻译 + 接口映射表 | 任务文档“功能需求” | M4 | | 待开发 | |
@@ -144,8 +144,8 @@
 | 冗余配置清理 | `lmesh cleanup <设备>` | `POST /api/v1/cleanup` | 生成删除脚本 | 0.2.0 |
 | 报告导出 | `lmesh report <compare\|check> --lang zh-CN\|en --format html\|md` | `POST /api/v1/reports` | 结果交给他人（中英双语；格式由 xlsx 改为 Markdown，见决策 D-0016） | 0.2.0 |
 | 配置翻译 | `lmesh translate <设备> --to <profile>` | `POST /api/v1/translate` | 多厂商迁移 | 0.3.0 |
-| 模板校验与变量提取 | `lmesh template check <设备> --template <名>` | `POST /api/v1/templates/{name}/check` | 新设备上线核查 | 0.3.0 |
-| 模板批量生成 | `lmesh generate --template <名> --params <表格>` | `POST /api/v1/generate` | 按 IP 规划表生成 | 0.3.0 |
+| 模板校验与变量提取 | `lmesh template check <模板> <设备>`、`lmesh template extract`、`lmesh template draft` | `POST /api/v1/templates/check`、`/extract`、`/draft` | 新设备上线核查、从现网配置做模板 | 0.3.0 |
+| 模板批量生成 | `lmesh template generate <模板> <参数表>` | `POST /api/v1/templates/generate` | 按 IP 规划表生成 | 0.3.0 |
 | 增量变更与回滚脚本 | `lmesh change plan <旧> <新>` | `POST /api/v1/changes` | 下发与回滚 | 0.4.0 |
 | 变更影响分析 | `lmesh impact <设备> <对象>` | `GET /api/v1/devices/{id}/impact` | 改前看影响 | 0.4.0 |
 | 割接迁移 | `lmesh migrate <设备> --to <profile> --map <映射表>` | `POST /api/v1/migrations` | 整机换厂商 | 0.4.0 |
@@ -289,6 +289,67 @@ Profile 匹配：版本正则匹配上的优先；都不匹配时用标了 `fall
 | 条件缺省值 | Profile 条目的 `when`：`{key: 正则}`、`{not_key: 正则}` 按所属对象编号判断，`{attr: {兄弟属性: 取值或取值列表}}` 按兄弟属性的有效值判断。解决了 0.1.0 的已知限制：Cisco `negotiation auto` 只补到物理口；OSPF hello / dead 只在广播与点到点网络上补 10 / 40 秒 |
 | 对象前置依赖 | Schema 依赖规则可以是“对象 → 对象”的前置关系（BFD 会话需要先全局使能 BFD）；缺少时记入图的 `missing_prerequisites`，供配置检查使用，不算悬空引用 |
 
+### 功能域扩展：MPLS、L2VPN、ACL（M3-2 结果）
+
+新增三个功能域并完善 L3VPN：`mpls`（MPLS 全局与 LSR-ID、LDP 全局 / 远端对等体 / MD5 认证、接口 MPLS 与 LDP 使能及 LDP 与 IGP 同步参数）、`l2vpn`（VPWS：PW 模板 / 伪线类、接入点上的伪线、Cisco 命名的 xconnect；VPLS：VSI / VFI 与对等体、接口与桥域绑定）、`acl`（基本 / 高级 ACL 与规则，以及接口、VTY、SNMP、NTP、路由策略对 ACL 的引用）；`vrf` 补隧道策略、路由数量限制、VPN FRR、VPN 实例的路由策略与 IPv6 地址族入口。Schema 共 322 个节点（M2 为 225 个；新增 97 个：mpls 29、l2vpn 37、acl 22、vrf 9）。MPLS TE / RSVP-TE 不在范围，原文保留（决策 D-0041）。
+
+| 平台族 | 新增命令卡 | 资料 |
+|---|---|---|
+| huawei-vrp8 | 429（mpls 167、l2vpn 199、acl 28、vrf 29、interface 6——桥域视图） | 命令参考 V800R025：MPLS 一章的 MPLS LDP 一节、VPWS、VPLS、ACL、VPN 隧道管理、IPv6 VPN（只取进入 IPv6 地址族的命令） |
+| cisco-iosxe | 64（mpls 22、l2vpn 25、acl 14、vrf 3，含修正文件新增与改写的卡） | 公开命令参考新增 47 页（mpls 20、l2vpn 17、acl 8、vrf 2），`DevelopDocs/设备产品文档/Cisco/.../README.md` 列出来源与原文问题 |
+
+**Schema 节点（新节点编号固定，翻译与模板可以直接引用）**：
+
+| 功能域 | 对象 | 属性 |
+|---|---|---|
+| mpls | `mpls.global`（"_"） | `lsr_id`、`label_protocol` |
+| | `mpls.ldp`（"_"） | `lsr_id`、`router_id_interface`、`router_id_force`、`graceful_restart`、`session_protection`、`accept_target_hello`、`send_all_loopback`、`mldp_p2mp`、`igp_sync_delay`、`igp_sync_holddown`、`holdtime`、`log_neighbor_changes` |
+| | `mpls.ldp.auth`（键 peer） | `password` |
+| | `mpls.ldp.remote_peer`（键 name；Cisco 名称即地址） | `remote_ip`、`description` |
+| | `interface.mpls`（"_"） | `ldp`、`mtu`、`label_protocol`、`ldp_transport_address`、`ldp_local_lsr_id`、`ldp_igp_sync_delay`、`ldp_igp_sync` |
+| l2vpn | `l2vpn.global`（"_"） | — |
+| | `l2vpn.pw_class`（键 name） | `control_word`、`peer`、`tunnel_policy`、`mtu`、`encapsulation`、`preferred_path` |
+| | `interface.access.pw`（键 role：primary / backup / bypass） | `peer`、`vc_id`、`pw_class`、`tunnel_policy`、`control_word`、`encapsulation` |
+| | `l2vpn.xconnect`（键 name，Cisco 专有）、`.ac`（键 interface、instance）、`.pw`（键 peer、vc_id） | `pw.pw_class` |
+| | `l2vpn.vsi`（键 name） | `description`、`vsi_id`、`signaling`、`mode`、`bd_mode`、`mtu`、`encapsulation`、`tunnel_policy` |
+| | `l2vpn.vsi.peer`（键 address） | `vc_id`、`tunnel_policy`、`pw_class`、`encapsulation` |
+| | `bridge_domain.member`（键 interface、instance） | 另有属性 `interface.vsi`、`bridge_domain.vsi`、`bridge_domain.description` |
+| acl | `acl.instance`（键 name：编号或名称） | `type`（basic / advanced / interface / link / mpls）、`number`、`match_order`、`description`、`step` |
+| | `acl.instance.rule`（键 id） | `action`、`protocol`、`source_ip`、`source_wildcard`、`destination_ip`、`destination_wildcard`、`source_port`、`destination_port`、`vrf`、`name`、`description`、`log` |
+| | — | 引用：`interface.acl_in`、`interface.acl_out`、`rp.policy.node.match_acl`；`mgmt.line.acl_in`、`mgmt.snmp.community.acl`、`mgmt.ntp.access.acl` 由字符串改为 `ref: acl.instance` |
+| vrf | `tunnel_policy`（键 name） | `description`、`select_seq`、`load_balance`；`vrf.instance.af` 新增 `tunnel_policy`、`prefix_limit`、`prefix_limit_threshold`、`prefix_limit_warn_only`、`vpn_frr` |
+
+**跨厂商的归并**：
+
+| 内容 | 华为 | Cisco | 图上的写法 |
+|---|---|---|---|
+| 接口 MPLS 与 LDP | `mpls` + `mpls ldp` | `mpls ip` | `interface.mpls[_]` + `ldp = true` |
+| LSR ID | `mpls lsr-id` | `mpls ldp router-id <接口> [force]` | `mpls.global.lsr_id` / `mpls.ldp.router_id_interface` |
+| VPWS 伪线（D-0039） | 子接口上 `mpls l2vc … [secondary]` | 业务实例（或端口）下 `xconnect` + `backup peer` | 接入点下 `interface.access[…]/pw[primary\|backup]` |
+| VPLS | `vsi` + `pwsignal ldp` + `vsi-id` + `peer`；桥域 `l2 binding vsi` | `l2vpn vfi context` / `l2 vfi … manual` + `vpn id` + `member` / `neighbor`；`bridge-domain` 下 `member vfi` | `l2vpn.vsi[…]`、`bridge_domain.vsi` |
+| 标签分配 | `apply-label per-instance\|per-route\|per-nexthop` | `mpls label mode vrf X protocol bgp-vpnv4 per-vrf\|per-prefix\|per-ce` | `vrf.instance.af.label_mode`（per-vrf → per-instance、per-prefix → per-route、per-ce → per-nexthop） |
+| ACL 源 / 目的（D-0040） | `source X W` / `source X 0` / 不写 | `X W` / `host X` / `any` | `source_ip` + `source_wildcard`（0 与 host 记为 0.0.0.0，不写与 any 记为 any） |
+| ACL 类型 | `acl number 2000–2999` / `basic`、`3000–3999` / `advance` | `standard` / `extended`、编号 ACL 按命令格式 | `acl.instance.type` basic / advanced |
+
+**依赖规则**：引用——伪线、PW 模板、VSI、VSI 对等体对隧道策略与 PW 模板的引用，接口 / 桥域对 VSI 的引用，接口、VTY、SNMP、NTP、路由策略对 ACL 的引用，规则对 VPN 实例的引用，VPN 实例对隧道策略的引用；前置条件（只在华为 Profile 生效）——全局 MPLS 需要 LSR ID、LDP 与接口 MPLS 需要全局 MPLS、伪线与 VSI 需要 `mpls l2vpn`、`mpls l2vpn` 需要全局 MPLS；跨设备——远端 LDP 对等体与伪线的对端地址应是对端的 LSR ID。配置检查因此能发现悬空 ACL（引用了不存在的 ACL）与孤儿 ACL：现网 ATN 样本 5 个 ACL 中 4 个被 SNMP / NTP / VTY 引用，`ACL_MCAST_SSM` 只被范围外的 `pim ssm-policy` 使用，判为 `ref.orphan_unsure`（不进清理脚本）。
+
+**Profile 人工缺省值**：华为——LDP GR / 会话保护 / mLDP P2MP / 通告全部 Loopback 为否、`igp-sync-delay` 10 秒、接口 LDP 为否、PW 模板控制字为否、VSI 封装 vlan 与 MTU 1500、ACL 步长 5 与匹配顺序 config、VPN FRR 为否；Cisco——标签分发协议 ldp、LDP GR / 会话保护为否、会话保持 180 秒、VRF 标签分配 per-route（per-prefix）。两家默认值不同的节点（如标签分配：华为 per-instance、Cisco per-route）由 Profile 对比列出，供翻译告警。
+
+**样本**：现网 ATN 样本中 `mpls lsr-id`、`mpls`、`mpls ldp`（全局与接口）、`mpls l2vpn`、`acl number` / `acl name` 与全部规则、桥域描述都成为命令（命令行 904 → 1151，原文行 1021 → 774，未识别 0）；剩下的 `mpls te`、`mpls rsvp-te` 等按原文保留。新增合成样本 `huawei-atn-v800r025-synthetic/atn-mpls-l2vpn-acl-01.cfg`、`cisco-iosxe-asr920-synthetic/pe-asr920-03-mpls-l2vpn-acl.cfg`（四个功能域都覆盖，登记为门槛样本）。全部 17 个样本往返逐字一致，门槛样本未识别行 0；Batfish 片段中原来是原文的 ACL 与 `ip access-group` 行成为命令，其中未定义的 ACL 引用如实报为悬空引用。
+
+本阶段的通用改动：
+
+| 改动 | 说明 |
+|---|---|
+| 单关键字命令卡 | 整条语法只有一个关键字的卡（华为接口下的 `mpls`、`shutdown`）不再登记为“已知前缀”：同前缀的范围外命令（`mpls te`、`mpls rsvp-te`）按原文保留，不算未识别行（`core/parser.py`） |
+| 进入子视图后的分页痕迹 | 上一行刚进入子视图、本行异常缩进时，先当作子视图的第一行；子视图里匹配不到而外层匹配得到时按外层算（ATN 样本 `ipv4-family` 之后的 `ipv6-family`） |
+| 映射表达式 | `if:$参数:表达式`（参数有值时才取）、`tail:关键字:截止词`、`$序号\|\|auto`（有序号用序号，否则按出现顺序编号） |
+| 抽取规则 | 功能域文件条目的 `views_map` 中 `view: null` 表示命中即丢弃（只取一页里范围内的模式）；华为 `enters` 的 `^interface\b` 收紧为 `^interface( \|$)`（`interface-mtu check-mode` 不再进入接口视图） |
+| 抽取合并编号（D-0044） | 先按“语法 + 视图”认领已有卡；编号被认领而内容不同的新卡在整个平台族内改用空闲的 `~N`，不再覆盖已有的卡或与其他功能域重号 |
+| 修正文件 | Cisco 新增 18 条（ACL 条目的三种格式与编号标准 ACL、`mpls ldp discovery targeted-hello accept`、业务实例下的 `xconnect`、`member vfi`、`member <接口>` 等）；华为通过 `views_map` 与 `enters` 解决，没有新增修正 |
+
+**遗留**：华为高级 ACL 的源端口与目的端口在命令卡里是同名参数 `port-number`，端口条件暂未映射（原文保留，往返不受影响）；华为编号 ACL 的类型由命中的命令卡（编号范围）决定，`acl name X number N` 被以编号 N 引用时还对不上；Cisco 的 `ip access-list <名称>`（不写 standard / extended）、`interface pseudowire` 写法未收；Cisco PW 控制字缺省是自动协商，没有写成布尔缺省值。
+
 ### Web 界面（M1-9 结果）
 
 按 `DevelopDocs/ui-preview/M1/` 的 13 个预览页实现（预览尚未经用户评审，见决策记录 D-0012）。设计系统（配色、字体、面板、表格等样式类）从预览移植到 `frontend/src/styles/app.css`，Element Plus 的变量跟随它；页面文案按页放在 `frontend/src/i18n/pages/<页>.json`（三语键一致由单元测试检查）。
@@ -389,6 +450,102 @@ Batfish 公开样本中的发现（未定义的 route-map / VRF 引用、没有 
 **按对象清理**（D-0032）：`objects` 给出时只删选中的孤儿；只被选中对象引用的级联孤儿随之删除；只选级联孤儿而引用它的对象仍在时跳过（`parent_kept`，附 `via`），不是孤儿的跳过（`not_orphan`），名称出现在未映射行中的跳过（`maybe_referenced`）。验证时，删除前就是孤儿、这次没选中的对象不算新孤儿。每条命令带 `fallback_reason`：`no_undo`（命令卡没有取消语法）、`undo_invalid`（取消语法写错）、`render_failed`（用原行参数渲染不出）、`match_failed`（回匹配失败）。`GET /devices/{id}/check` 支持 `version_id` 检查指定版本。
 
 **报告**（D-0030）：只排版 core 已算好的结果，不重新计算结论。正文只有中文与英文（文案在 `core/report.py` 的 `TEXTS` 表），界面语言是 pt-BR 时用英文。HTML 是自包含单文件（内联样式、明亮配色、`@media print` 分页时表头重复、行不拆开），Markdown 是表格（单元格中的 `|` 转义）。报告头写设备、配置版本（编号与采集时间）、软件版本、Profile、知识库版本、生成时间与选项。对比报告：概要、按功能域分表的差异（类型、节点与关联、两侧有效值 + 来源 + 原文行号；对象附子节点数），单列改名、不可比（default_only）、未识别行，隐藏身份差异时注明个数。检查报告：按严重度分组（规则、功能域、节点、行号、说明、建议），被忽略的单列并写原因，有未被忽略的孤儿时附清理脚本与验证结论。文件名 `compare-<A>-<B>.<lang>.<ext>`、`check-<设备>.<lang>.<ext>`；`Content-Disposition` 同时给 ASCII 文件名与 `filename*`（UTF-8）。
+
+### 参数化模板与批量生成（M3-4 / M3-5 结果）
+
+| 功能 | 模块 | CLI / API |
+|---|---|---|
+| 模板格式、加载与校验、取值检查、正文渲染 | `core/template.py` | `lmesh template list\|show\|save`；`GET /templates`、`GET` / `PUT /templates/{id}` |
+| 约束匹配与变量提取 | `core/template_match.py` | `lmesh template check\|extract`；`POST /templates/check`、`POST /templates/extract` |
+| 模板制作辅助 | `core/template_draft.py` | `lmesh template draft`；`POST /templates/draft` |
+| 批量生成 | `core/template_gen.py` | `lmesh template generate`；`POST /templates/generate` |
+
+**模板文件**（`knowledge/templates/<编号>.yaml`，运行时知识库没有 `templates/` 时用程序自带的，保存时先复制）：元数据 + 变量 + 块 + 带占位符的配置正文。
+
+| 字段 | 说明 |
+|---|---|
+| `id`、`version`、`title` / `description`（三语） | 编号只能是字母数字开头、可含 `_ . -` |
+| `profile` | 解析模板正文、生成配置用的 Profile；`profiles` 为适用的 Profile（省略时同一平台族都适用，不适用时结果中给出提示，不算错误） |
+| `match.extra` | `allow`（模板外的配置只列出，级别 info）/ `deny`（算不符合，级别 error），默认 `allow` |
+| `match.extra_scope` | `none` / `matched`（只看模板对上的对象下面，默认）/ `domains`（另外包括模板涉及的功能域中的顶层对象） |
+| `vars.<名>` | `type`：`ipv4`、`prefix`、`integer`、`vlan`、`asn`、`rd`、`enum`、`interface`、`word`、`text`；可选 `default`、`example`、`min` / `max`、`choices`、`pattern`（整串匹配）、`length`（前缀长度或 `[最小, 最大]`）、`within`（必须落在这些网段内）、`network`（主机位为 0）、`title`；`expr` 为派生变量（如 `gw: {expr: "lan\|host(1)"}`） |
+| `blocks.<名>` | `repeat: {min, max}`（重复块）或 `optional: true`（可选块）；块变量写在块的 `vars` 下，可加 `unique`（各实例取值不同）；`anchor` 指定识别实例用的 Schema 对象 |
+| `body` | 配置正文：占位符 `{{名字}}`、`{{名字\|过滤器\|…}}`，块变量写成 `{{块名.变量}}`；块用独占一行的 `{% repeat 名 %}` / `{% optional 名 %}` 开始、`{% end %}` 结束，不能嵌套；同一个块可以出现在正文多处（每个业务既有 VRF 定义、又有子接口和 BGP 地址族），各处按同样的实例展开 |
+
+过滤器：`ip`、`network`、`len`、`mask`、`wildcard`、`broadcast`、`host(n)`（网段第 n 个地址，负数从广播地址往回数，`host(-1)` 是最后一个可用地址）、`add(n)`（整数或 IPv4 地址加 n）、`upper`、`lower`。一行参数（生成的输入、提取的输出）：`{"device": …, "变量": 值, "重复块": [{"变量": 值}, …], "可选块": true | false | {"变量": 值}}`；CSV 的表头是 `device`、基础变量、可选块名（true / false）、`块名.变量`，重复块的取值用分号分隔。
+
+**约束匹配**（全部在图上按有效值比较，不做文本比较）：
+
+| 环节 | 做法 |
+|---|---|
+| 编译 | 每个变量按类型取互不相同的探针值（同一行中探针值与固定文字冲突时换一组），渲染整份正文（重复块一个实例、可选块都带上），解析、建图，用配置对比的规范化得到规范编号与有效值；再为每个块渲染“去掉这个块”的正文，两次结果不同的节点（不存在、只剩默认值或取值不同）属于这个块。每个显式节点变成一个模式：对象的键、属性的有效值中出现的探针值（只看该节点所在行用到的表达式，掩码、接口名缩写等写法都认）换成变量，其余是固定值；Profile 补出的默认节点不进模式。编译结果按模板内容与知识库缓存 |
+| 匹配 | 沿 contains 层级：父模式对上实际对象后在它下面找子模式；属性按有效值比较（实际配置没写时用 Profile 默认值，所以模板写了等于默认值的命令、配置里不写也符合）；同一层先匹配键里未绑定变量最少的对象；一个对象模式能对上多个实际对象时（例如 `{{uplink}}`）先试探每个候选下面能对上多少模式，取最多的；并列且绑定不同时报 `ambiguous`（并列的候选最后都被别的模式对上时不报，例如两个 RR） |
+| 块 | 基础部分先匹配，再按块：重复块的锚点（键里含本块变量的对象，优先 `unique` 变量、基础变量与固定文字多的，或 `anchor` 指定的）在实际配置中的每个匹配是一个实例；锚点键里有只在块中出现的基础变量（L2 模板的 `{{port}}`）时，按它的取值分组取能对上最多的一组；可选块有匹配就算出现。实例个数不在 `min`～`max` 之内报 `count` |
+| 变量反推 | 捕获的是表达式的值：直接的变量取值；`prefix` 由 `host(n)` / `ip` / `network` 加 `mask` / `len` 反推；`add(n)` 反减；然后每个表达式用反推出的变量重新计算，与捕获值逐个验算（派生关系不成立报 `inconsistent`），再按类型与约束检查（报 `constraint`），`unique` 跨实例检查 |
+| 模板外的配置 | 没有被任何模式对上的显式节点，只在最上层报一次（对象附子节点数与整块行号）；显式写出、等于 Profile 默认值的属性不算；未映射的命令（ext）在模板对上的对象下面才报；跨平台族时未映射的命令与原文行不比较（给出提示） |
+
+**结果**：`compliant`、`variables`（基础变量与派生变量）、`blocks`（重复块为实例列表，含 `_node` 锚点与 `_lines` 行号；可选块为 true / false 或变量）、`row`（可直接作为生成参数的一行）、`unresolved`、`findings`、`notes`、`warnings`、`summary`（`patterns`、`matched`、`by_kind`、`by_severity`、`instances`、`extra`）。每条发现：`kind`（`missing` 缺少、`value` 取值不符、`inconsistent` 前后不一致、`constraint` 违反约束、`count` 实例个数、`ambiguous`、`extra` 模板外）、`severity`、`block` / `instance`、`node`（模板中的模式，探针值写成 `{表达式}`）、`node_kind`、`schema`、`domain`、`actual_node`、`expected`、`actual`、`actual_origin`、`var`、`problem`（约束的文案键）、`count`、`parent`（缺少时在哪个实际对象下面找的）、`lines`（实际配置行号）、`template_lines`（模板正文行号）。文案在 locales（`template.finding.*`），结果本身不随语言变化。CLI `check` 不符合时退出码 1；模板有问题时 CLI 退出码 3、API 409 与问题清单（`where`、`key`、`args`）。
+
+**模板制作辅助**：以第一份配置为基准，按规范编号对齐其他配置的对象与属性（编号不同的对象在同一父对象、同一 Schema 下按内容相似度配对，未映射命令与原文行按所属对象与命令卡 / 首个词配对），对上的行逐词比较，取值不同的词是候选变量；各设备取值完全相同的位置归为同一个变量；接口名只去掉共同的接口类型前缀或到子接口点为止的前缀（`Vbdif1584` / `Vbdif1585` → 1584，`GE0/2/0.1584` → 1584），其余整词作为变量。变量名按所在节点的 Schema 建议，类型按取值推断。只有一份配置时，设备身份（对比的 IDENTITY 清单：主机名、Router ID、接口地址、对等体地址等）与描述作为候选。只在部分设备上出现的对象列为可选块候选，同一父对象下内容相似的兄弟对象列为重复块候选（只给建议，不改写正文）。输出模板草稿（YAML 文本）、变量表（每台设备的取值与依据的节点）、参数表，并用草稿校验每份源配置（`verify`：应当符合、提取出的变量与参数表一致）。哪些值真正应该是变量由人确认，AI 可在此基础上建议（M5 接入）。
+
+**批量生成**：参数先按类型规范化、补默认值、检查约束（未知列、派生变量给了值、块各列个数不同、实例个数、`unique` 都报出）；`engine: text` 按正文替换，`engine: canon` 先替换再建图、交给规范渲染器 `core/canon.py` 的 `render_full` 输出（可用 `target_profile` 生成另一平台族的配置，渲染器写不出的节点作为错误报出）。每行验证：未识别行为 0、往返逐字一致、按模板校验符合且提取出的变量与输入一致（生成到另一平台族时不按模板校验）；任何一项不通过这一行算失败。文件名 `<设备名>.cfg`，重名时加序号；CLI `--out-dir` 只写成功的行，有失败的行时退出码 1。
+
+**示例模板**：
+
+| 模板 | 内容 | 验证 |
+|---|---|---|
+| `cisco-asr920-efp-bdi-vrf` | ASR 920 接入 PE：上联口（`uplink_net\|host(2)`）、Loopback（`within` 约束）、到两个 RR 的 VPNv4；每个业务一个 EFP + BDI（网关 `lan\|host(1)`）+ VRF（RD / RT = `asn:rt`）+ BGP VRF 地址族 | 合成样本 `pe-asr920-01.cfg` 报出 1 处错误（BDI102 缺描述）与 5 处模板外的配置（RAN-2G 多一条 import RT、上联口描述、EFP 描述、IPv4 单播地址族、RAN-2G 的 redistribute static） |
+| `huawei-atn-l2-bd-vbdif` | ATN 二层接入：桥域 + Vbdif（网关 `lan\|host(-1)`）+ 二层子接口，`{{port}}` 只在块中出现 | 现网 ATN 样本：识别出 GE0/2/0 下 10 个业务，报出 4 个 Vbdif 没有绑定 VPN 实例、8 个网关不是最后一个可用地址（都是样本中真实存在的差异） |
+| `huawei-atn-l3vpn-subif` | ATN 三层接入：VPN 实例（RD = RT）+ dot1q 子接口 + BGP VPN 地址族 | JSON 参数表生成 2 份，全部通过；`engine: canon` 生成到 ASR 920 时报出渲染器写不出的节点（`label_mode`、`dot1q_termination`） |
+
+**已知限制**：块不能嵌套（业务下再分可选项时拆成两个块）；重复块实例之间允许共用非锚点对象（两个业务指向同一 VRF 时不报错）；模板制作辅助不自动改写为块，变量名是建议名；参数表不支持 Excel（CSV 与 JSON）；模板编辑与校验的界面随 M3-6 实现。
+
+### 配置翻译与规范渲染（M3-3 结果）
+
+| 功能 | 模块 | CLI / API |
+|---|---|---|
+| 规范模式渲染、含默认值的完整配置 | `core/canon.py`（`render`、`render_full`、`result_dict`） | `lmesh render --canonical [--with-defaults]`；`POST /render` 的 `canonical`、`with_defaults` |
+| 配置翻译与告警 | `core/translate.py`（`translate`、`translate_text`） | `lmesh translate <配置\|设备> --to <Profile> [--interface-map] [-o]`；`POST /translate` |
+| 平台族书写习惯 | `knowledge/render/<平台族>.yaml` | — |
+| 回归 | `knowledge/samples/translate/manifest.yaml`、`tests/roundtrip/test_translate.py` | `pytest -m roundtrip` |
+
+**生成方向的知识**（决策 D-0050～D-0056）：不另写“Schema 节点 → 命令”的模板，而是由命令卡 + 映射规则反推，生成后校验：
+
+| 环节 | 做法 |
+|---|---|
+| 候选命令卡 | 目标平台族中，当前视图里映射到该 Schema 节点的命令卡（按视图 + 节点建索引；`avoid` 中的卡不用） |
+| 反解表达式 | 对象的键与 anchor 自己的取值必须表达，卡上其他属性能顺带写出就写（贪心），写不出就不写；`$参数` → 参数取值（按参数类型换写法：掩码长度 ↔ 点分掩码、通配符；有空格的取值拆成重复组），`a\|\|b` → 任一备选，`fmt:` → 按模板拆开（只给了前几个占位时依次去掉末尾的占位），`kw:` → 需要出现的关键字（等于缺省值时也可以不写），`flag` → 正 / 取消形式，`if:` → 关键字出现与否，`tail:` → 关键字后的全部词，常量 → 必须相等；不在 anchor 所在链上的对象及其属性必须取不到值 |
+| 按语法生成 | 可选部分：含需要的关键字或已有取值的参数时写；多选一：含需要的关键字的分支优先，其次参数有值的、纯关键字的；重复组按列表展开；重复的多选一（`[ a \| b ] &<1-N>`）每个需要的选项各写一次；enum 参数的选项正好是需要的关键字时用它；取消形式用命令卡的 undo 语法，没有时用“取消前缀 + 开头关键字” |
+| 校验 | 每个候选行交给解析器在同一视图中匹配（解析器选中的卡可能不是生成用的卡），按映射规则求值：对象的键、固定键、所在父对象（必须在上下文或同一行中）、属性的有效值都与图一致才采用；顺带写出的、图中没有的取值只允许是 false 或目标 Profile 的默认值 |
+| 选择 | 覆盖待写节点多的优先；其次不把默认值写成显式的、同平台族时原来用的卡、取值写全的（`route-map X permit 10` 而不是 `route-map X`）、命令卡状态高的、文本短的；`prefer` 可指定某个节点优先用的卡 |
+
+**结构**：对象有入口命令（进入视图的卡）时写成块，块内写它的属性与子对象，块里写不出、外层视图能写的先写在块前；多张卡进入不同视图时（华为 `vpn-instance X` 与 `ipv4-family vpn-instance X`）选块内能写出最多节点的视图。没有入口命令的对象由属性行顺带给出键；有“只给键”的声明卡（Cisco `neighbor RR peer-group`、华为 `group RR internal`，判定：唯一的对象目标、键来自参数、其他目标不用参数）且一行写不全时先写声明行。属性行进入子视图时（华为 `pwsignal ldp` → VSI-LDP 视图），同一对象只能在子视图里写的属性接着写在它下面；本层写不出的子对象试着写进兄弟对象的块里（Cisco 的 `backup peer` 写在 `xconnect` 块中）。同一层按依赖排序（引用 / 前置边：被引用的先出现），其余按原始行号。华为 `#` 分隔顶层块、`return` 结尾，Cisco `!` 与 `end`；块内第一层子块前加 ` #` / ` !`；Cisco 离开 `vrf-af`、`bgp-af` 写 `exit-address-family`（`exits`）。
+
+**同平台族**：未映射命令（ext）、功能域外原文（raw）、未识别行按原文写回原来的位置（父行是入口命令时写在对象块内；父行是生成的语义行时挂在那一行下面；父行是原文时嵌在原文下面）；只由取消形式产生、没有属性的对象（Cisco `no aaa new-model`）按原文写回。反推不出命令的节点（带密文的 `local-user … password irreversible-cipher`、`hwtacacs-server shared-key cipher`、`username … secret`）按原文写回（行的 `kind` 为 `original`），跨平台族时报不支持。
+
+**含默认值的完整配置**（`include_defaults`）：Profile 补出的默认值节点（origin=default）也写成命令，集中放在所在块的显式行之后，前面加一行注释 `! default`（与块内缩进相同；华为、Cisco 都把 `!` 开头的行解析为注释，重新解析不影响图）；逐行结果的 `origin` 为 `default`，`default_lines` 为行号。写不出命令的默认值（例如 Cisco 没有映射 BGP 计时器）不报错，列在 `uncovered`。
+
+**翻译**：
+
+| 情况 | 处理 |
+|---|---|
+| 接口名 | 按映射表改写对象键（`interface`、键字段名为 `interface` 的对象）与接口类型的属性取值，子接口按父接口映射；映射表的值按原样写出；没给映射表时同名，接口类型不在目标平台族的 `interface_types` 中时告警 `interface_type` |
+| 源依赖默认值、目标默认值不同 | 显式写出，告警 `default_differs`（`src_default`、`dst_default`） |
+| 源依赖默认值、目标没有登记默认值 | 不写，提示 `default_unknown`（level info） |
+| 两边默认值相同 | 不写（`stats.defaults_same`） |
+| 源显式值等于目标默认值 | 省略，`defaults[]`（`explicit_equals_default`） |
+| 目标 Profile 不支持 | `unsupported[]`（`reason: profile_unsupported`），对象的子树都不写 |
+| 写不出命令 | `unsupported[]`（`reason: no_render`，所属对象已报时子节点不再列出，`count` 为子节点数） |
+| 密码类取值（Schema 节点名为 `password` / `secret`，跨平台族） | 不写，`unsupported[]`（`reason: secret`）：源平台的密文或脱敏占位不能在另一平台直接使用，人工重新设置 |
+| ext / raw / unknown / 取消形式的对象 | 不翻译，`unsupported[]`（`kind` 为 `ext` / `raw` / `unknown` / `negated`，原文块只列第一行，`lines` 为整块行号） |
+| 目标写法必须给出、源配置没有的取值 | 按 `infer` 推导规则写出并告警 `inferred_value`（华为 `group <名> internal\|external`：remote-as 等于本地 AS 时 internal，否则 external） |
+| 目标隐式存在的对象 | 不写（ASR 920 的桥域被引用即存在）；没有被引用时提示 `implicit_object` |
+
+每一项都有 `kind`、`key`（文案键，三语文案在 locales 的 `translate.*`）、`params`（文案参数，含 `node`、`schema`）、`node`（源图中的节点）、`lines`（原文行号）。**校验**：译文用目标 Profile 解析建图，与源图按有效值对比（跨厂商 + 接口映射）；差异的源节点（或其祖先）不在告警 / unsupported 中时记为 `verify_diff`，译文有未识别行时记为 `verify_unknown`；CLI 在有未解释的差异时退出码 1。
+
+**回归**（`knowledge/samples/translate/manifest.yaml`）：同平台族规范渲染等价——全部 gate 样本（ATN 现网、ASR 920 合成三份、ATN 合成两份、Batfish 九份）与 `atn-l3vpn-synth.cfg`，规范渲染与含默认值两种方式重新解析后与原图对比（含原文行）都是 0 差异、不新增未识别行；翻译 8 个用例（ATN 现网 → ASR 920、ASR 920 → ATN、ATN 合成 L3VPN → ASR 920、IGP / 管理面双向、MPLS / L2VPN / ACL 双向、Batfish → ATN）全部 `verify.unexplained = 0`、译文没有未识别行，写出比例 0.72～0.97（下限写在清单中）。
+
+**已知限制**（多数是映射两边不对称，由知识库补映射解决，渲染器不用改）：华为二层子接口（接入点键 `_`）与 ASR 920 业务实例（按编号）结构不同，互译时接入点报不支持；Cisco 接口视图没有 `encapsulation dot1q` 的映射（`dot1q_termination` 写不出）；Cisco `set community` 只有单值语法；`mgmt.line.auth` 两边语义不同（华为认证方式、Cisco 认证列表名），图上相等但含义不同；ATN 的 `100GE` 接口名不符合 Cisco 的接口参数类型，需用映射表；同一对象只能由一张入口命令进入（华为 BGP 的 `vpn-instance X` 与 `ipv4-family vpn-instance X` 合成一个块）。
 
 ### 知识库的存放
 
@@ -539,6 +696,7 @@ lmesh/
 │   ├── commands/               命令卡（按厂商版本与功能域分文件）
 │   ├── schema/                 统一 Schema（按功能域分文件）
 │   ├── profiles/               厂商 + 版本 Profile
+│   ├── render/                 规范渲染的平台族书写习惯
 │   ├── templates/              配置模板
 │   └── samples/                已脱敏的配置样本与往返期望结果
 ├── assets/brand/               Logo 源文件与导出的图标

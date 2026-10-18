@@ -1,0 +1,53 @@
+# 配置翻译与规范渲染 lmesh translate / lmesh render --canonical 的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+
+[[case]]
+id = "translate-file"
+title = { zh-CN = "Cisco 配置翻译到华为（接口映射表；显式值等于目标默认值时省略）", en = "Translate a Cisco configuration to Huawei", pt-BR = "Traduzir uma configuração Cisco para Huawei" }
+args = ["--output", "json", "translate", "{inputs}/translate/cs-small.cfg", "--to", "huawei-atn-v800r025", "--interface-map", "{inputs}/translate/ifmap.yaml"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.source.profile" = "cisco-iosxe-asr920-17.15", "data.target.profile" = "huawei-atn-v800r025", "data.verify.unexplained" = 0, "data.stats.defaults_omitted" = 1, "data.defaults.0.kind" = "explicit_equals_default", "data.defaults.0.node" = "interface[GigabitEthernet0/0/1]/mtu", "data.unsupported.0.kind" = "raw", "data.unsupported.0.params.text" = "hostname R1", "data.lines.5.text" = "interface Eth-Trunk1" }
+in_docs = true
+
+[[case]]
+id = "translate-text"
+title = { zh-CN = "译文写到标准输出，摘要与告警写到标准错误", en = "Translation on stdout, summary and warnings on stderr", pt-BR = "Tradução na saída padrão, resumo e avisos no erro padrão" }
+args = ["--lang", "zh-CN", "translate", "{inputs}/translate/cs-small.cfg", "--to", "huawei-atn-v800r025"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["interface Port-channel1", "ip route-static 0.0.0.0 0.0.0.0 10.0.0.2", "return"]
+expect_stderr = ["校验通过", "Port-channel 不是 huawei-vrp8 的接口类型", "已省略"]
+in_docs = true
+
+[[case]]
+id = "translate-out-file"
+title = { zh-CN = "译文写到文件（英文摘要）", en = "Write the translation to a file", pt-BR = "Gravar a tradução em arquivo" }
+args = ["--lang", "en", "translate", "{inputs}/translate/cs-small.cfg", "--to", "huawei-atn-v800r025", "-o", "{out}/r1-huawei.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["Check passed", "Translation written to"]
+
+[[case]]
+id = "translate-bad-profile"
+title = { zh-CN = "目标 Profile 不存在", en = "Unknown target profile", pt-BR = "Profile de destino inexistente" }
+args = ["translate", "{inputs}/translate/cs-small.cfg", "--to", "nope"]
+setup = "fresh-fullkb"
+expect_exit = 2
+
+[[case]]
+id = "render-canonical"
+title = { zh-CN = "规范模式渲染（按视图分块，Cisco 写 exit-address-family）", en = "Canonical rendering", pt-BR = "Renderização canônica" }
+args = ["--output", "json", "render", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg", "--canonical"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.mode" = "canonical", "data.with_defaults" = false, "data.profile" = "cisco-iosxe-asr920-17.15", "data.uncovered" = [], "data.default_lines" = [], "data.lines.0.text" = "!" }
+in_docs = true
+
+[[case]]
+id = "render-with-defaults"
+title = { zh-CN = "含默认值的完整配置（默认值行前有 ! default 注释）", en = "Full configuration including defaults", pt-BR = "Configuração completa com padrões" }
+args = ["render", "{inputs}/translate/cs-small.cfg", "--with-defaults"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["! default", " no shutdown", "end"]
+in_docs = true

@@ -1,0 +1,11 @@
+# 有问题的模板（测试用）：未定义的变量、不认识的类型、块没有结束
+id: bad-template
+profile: cisco-iosxe-asr920-17.15
+vars:
+  hostname: {type: hostname}
+blocks:
+  svc: {repeat: {min: 1}}
+body: |
+  hostname {{hostname}}
+  {% repeat svc %}
+  interface {{port}}

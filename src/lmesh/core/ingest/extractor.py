@@ -8,7 +8,8 @@
     negative_prefix   取消命令的前缀（undo / no），这类格式行作为对应命令卡的 undo
     exclude_titles    排除的命令（display、show、reset 等非配置命令）
     views_split       视图小节中多个视图之间的分隔符（正则）
-    views_map         视图名（正则）→ views.yaml 中的视图编号；映射不上的视图丢弃
+    views_map         视图名（正则）→ views.yaml 中的视图编号；映射不上的视图丢弃；view 为空表示命中即丢弃
+                      （用在功能域文件条目自己的 views_map 里，排除该文件中不在范围的模式）
     enters            进入子视图的命令：{view, syntax（正则）, enters}
     param_types       参数类型推断：{name（参数名正则）, value（取值说明正则）, type, range_groups}，按顺序第一条命中生效
     domains           功能域 → 文件列表 {path（相对文档根的 glob）, sections（只取这些章节，可选）}
@@ -156,8 +157,10 @@ def _map_views(text: str, rules: Rules, extra: list[dict[str, Any]] | None = Non
             continue
         for vm in [*(extra or []), *(rules.raw.get("views_map") or [])]:
             if re.search(str(vm["match"]), name, re.I):
-                v = str(vm["view"])
-                if v not in found:
+                # view 为空：这个文件里的该模式不在范围（例如 Cisco 的 encapsulation 页同时列了接口模式与 pw-class 模式，
+                # 只取后者），命中即停止，不再落到全局映射
+                v = str(vm.get("view") or "")
+                if v and v not in found:
                     found.append(v)
                 break
     return found

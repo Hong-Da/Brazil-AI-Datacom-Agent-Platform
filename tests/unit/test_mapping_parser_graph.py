@@ -102,7 +102,7 @@ def test_parser_views_negation_raw(kb) -> None:  # type: ignore[no-untyped-def]
     by_no = {ln.no: ln for ln in p.lines}
     assert by_no[3].view == "system" and by_no[4].view == "interface" and by_no[4].card
     assert by_no[11].negated and by_no[11].kind == "command"  # undo shutdown
-    assert by_no[12].kind == "raw"  # mpls：功能域外
+    assert by_no[12].kind == "command" and by_no[12].domain == "mpls"  # mpls：0.3.0 起是功能域（M3-2）
     assert by_no[16].view == "vpn-instance-af-ipv4"
     # 异常缩进（终端分页痕迹）仍归在上一行的视图里，原始空白保留
     weird = next(ln for ln in p.lines if "IMPORT-ALL import" in ln.text)

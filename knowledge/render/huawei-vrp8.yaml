@@ -1,0 +1,14 @@
+# 华为 VRP8 的规范渲染书写习惯（core/canon.py 读取；字段说明见 cisco-iosxe.yaml）。
+# 华为的视图靠缩进区分，display current-configuration 不写 quit，所以没有 exits。
+family: huawei-vrp8
+nested_separator: true
+exits: {}
+prefer: {}
+avoid: []
+no_declare: []
+# 推导：写声明行（group <名称> internal|external）必须给出、源配置（例如 Cisco 的 peer-group）又没有的取值
+infer:
+  - {node: bgp.peer_group.type, value: internal, same: [remote_as, "^"]}
+  - {node: bgp.peer_group.type, value: external, differ: [remote_as, "^"]}
+# 本平台族的接口类型（翻译时接口名不属于这些类型、又没有在接口映射表中给出时告警）
+interface_types: [GigabitEthernet, XGigabitEthernet, 25GE, 40GE, 50GE, 100GE, 200GE, 400GE, Ethernet, Eth-Trunk, LoopBack, Vbdif, Vlanif, NULL, Tunnel, MEth, Virtual-Template, Virtual-Ethernet, Global-VE, Serial, Pos, Cpos, E1, Mp-group]

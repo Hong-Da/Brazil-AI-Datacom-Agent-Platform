@@ -1,0 +1,3733 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: l2vpn
+cards:
+  - id: huawei-vrp8.atm-pack-overtime
+    syntax: atm-pack-overtime <atm-pack-overtime>
+    view: pw-template
+    undo: undo atm-pack-overtime
+    params:
+      atm-pack-overtime:
+        type: integer
+        range:
+          - 100
+          - 10000
+    default: By default, the ATM cell encapsulation period is 1000 µs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: atm-pack-overtime
+      line: 9
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-detect.1
+    syntax: bfd-detect [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ track group <group-name> ]
+    view: pw-template
+    undo: undo bfd-detect
+    params:
+      multiplier: &id001
+        type: integer
+        range:
+          - 3
+          - 50
+      rx-interval: &id002
+        type: integer
+        range:
+          - 3
+          - 1000
+      tx-interval: &id003
+        type: integer
+        range:
+          - 3
+          - 1000
+      group-name:
+        type: word
+    default: By default, dynamic BFD for VPWS PW is not configured in PW templates.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: bfd-detect (PW template view)
+      line: 81
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-detect.2
+    syntax: bfd-detect [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9>
+    view: pw-template
+    undo: undo bfd-detect
+    params:
+      multiplier: *id001
+      rx-interval: *id002
+      tx-interval: *id003
+    default: By default, dynamic BFD for VPWS PW is not configured in PW templates.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: bfd-detect (PW template view)
+      line: 81
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.cc-seq-number
+    syntax: cc seq-number
+    view: pw-template
+    undo: undo cc seq-number
+    default: By default, the sequence number function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: cc seq-number
+      line: 178
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ccc.1
+    syntax: ccc [ ip-interworking ] <ccc-connection-name> interface { <interface-name1> | <interface-type1> <interface-number1> } [ access-port ] [ <raw> ] out-interface { <interface-name2> | <interface-type2> <interface-number2> } [ access-port ] [ <outraw> ] [ jitter-buffer <depth> | idle-code <idle-code-value> | tdm-encapsulation <number> | rtp-header | max-atm-cells <max-atm-cell-value> | atm-pack-overtime <atm-pack-overtime> ] &<1-9>
+    view: system
+    undo: undo ccc [ ip-interworking ] <ccc-connection-name>
+    params:
+      ccc-connection-name: &id004
+        type: word
+      interface-name1: &id005
+        type: word
+      interface-type1: &id006
+        type: word
+      interface-number1: &id007
+        type: word
+      raw: &id008
+        type: word
+      interface-name2: &id009
+        type: word
+      interface-type2: &id010
+        type: word
+      interface-number2: &id011
+        type: word
+      outraw: &id012
+        type: word
+      depth:
+        type: integer
+        range:
+          - 1
+          - 8
+      idle-code-value:
+        type: word
+      number:
+        type: integer
+        range:
+          - 1
+          - 64
+      max-atm-cell-value:
+        type: integer
+        range:
+          - 1
+          - 28
+      atm-pack-overtime:
+        type: integer
+        range:
+          - 100
+          - 10000
+    default: By default, no local CCC connection is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: ccc
+      line: 253
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ccc.2
+    syntax: ccc <ccc-connection-name> interface { <interface-name1> | <interface-type1> <interface-number1> } [ <raw> ] out-interface { <interface-name2> | <interface-type2> <interface-number2> } [ <outraw> ]
+    view: system
+    undo: undo ccc [ ip-interworking ] <ccc-connection-name>
+    params:
+      ccc-connection-name: *id004
+      interface-name1: *id005
+      interface-type1: *id006
+      interface-number1: *id007
+      raw: *id008
+      interface-name2: *id009
+      interface-type2: *id010
+      interface-number2: *id011
+      outraw: *id012
+    default: By default, no local CCC connection is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: ccc
+      line: 253
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ccc-description
+    syntax: ccc <cccName> description <text>
+    view: system
+    undo: undo ccc <cccName> description
+    params:
+      cccName:
+        type: word
+      text:
+        type: text
+    default: By default, no description is configured for a CCC connection.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: ccc description
+      line: 357
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ccc-interface-in-label-out-label.1
+    syntax: ccc <ccc-connection-name> interface { <interface-type1> | <interface-type1> <interface-number1> } [ <raw> ] in-label <in-label-value> out-label <out-label-value> { nexthop <nexthop-address> | out-interface { <interface-name2> | <interface-type2> <interface-number2> } } [ control-word | no-control-word ]
+    view: system
+    params:
+      ccc-connection-name: &id013
+        type: word
+      interface-type1: &id014
+        type: word
+      interface-number1: &id015
+        type: word
+      raw:
+        type: word
+      in-label-value: &id016
+        type: integer
+        range:
+          - 16
+          - 2047
+      out-label-value: &id017
+        type: integer
+        range:
+          - 0
+          - 1048575
+      nexthop-address: &id018
+        type: ipv4
+      interface-name2:
+        type: word
+      interface-type2: &id019
+        type: word
+      interface-number2: &id020
+        type: word
+    default: By default, no remote CCC connection is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: ccc interface in-label out-label
+      line: 416
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ccc-interface-in-label-out-label.2
+    syntax: ccc ip-interworking <ccc-connection-name> interface { <interface-type1> | <interface-type1> <interface-number1> } in-label <in-label-value> out-label <out-label-value> { nexthop <nexthop-address> | out-interface { <interface-name2> | <interface-type2> <interface-number2> } } [ control-word | no-control-word ]
+    view: system
+    params:
+      ccc-connection-name: *id013
+      interface-type1: *id014
+      interface-number1: *id015
+      in-label-value: *id016
+      out-label-value: *id017
+      nexthop-address: *id018
+      interface-name2:
+        type: word
+      interface-type2: *id019
+      interface-number2: *id020
+    default: By default, no remote CCC connection is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: ccc interface in-label out-label
+      line: 416
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.control-word
+    syntax: control-word
+    view: pw-template
+    undo: undo control-word
+    default: By default, the control word function is not enabled for a PW template.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: control-word
+      line: 650
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.pw_class.control_word: flag
+  - id: huawei-vrp8.flow-label
+    syntax: flow-label { both | send | receive } [ static ]
+    view: pw-template
+    undo: undo flow-label { both | send | receive } [ static ]
+    default: By default, flow label-based load balancing is disabled for a PW template.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: flow-label (PW template view)
+      line: 5086
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flow-label-srv6-vpws-hash-fields.1
+    syntax: flow-label srv6-vpws hash-fields l3
+    view: system
+    undo: undo flow-label srv6-vpws hash-fields
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: flow-label srv6-vpws hash-fields
+      line: 5166
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flow-label-srv6-vpws-hash-fields.2
+    syntax: flow-label srv6-vpws hash-fields l4
+    view: system
+    undo: undo flow-label srv6-vpws hash-fields
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: flow-label srv6-vpws hash-fields
+      line: 5166
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.interface-parameter-type-vccv
+    syntax: interface-parameter-type vccv [ secondary ]
+    view: interface
+    undo: undo interface-parameter-type vccv [ secondary ]
+    default: By default, a Mapping packet carries the VCCV byte.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: interface-parameter-type vccv (Interface view)
+      line: 5387
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.jitter-buffer-depth
+    syntax: jitter-buffer depth <depth>
+    view: pw-template
+    undo: undo jitter-buffer depth
+    params:
+      depth:
+        type: integer
+        range:
+          - 1
+          - 64
+    default: By default, the depth of the jitter buffer is 4 ms.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: jitter-buffer depth
+      line: 5450
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.jitter-buffer-cep-depth
+    syntax: jitter-buffer-cep depth <depthValue>
+    view: pw-template
+    undo: undo jitter-buffer-cep depth
+    params:
+      depthValue:
+        type: integer
+        range:
+          - 125
+          - 16000
+    default: By default, the CEP jitter buffer depth is 1000 microseconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: jitter-buffer-cep depth
+      line: 5530
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-ce
+    syntax: local-ce { ip <ip-address> | mac { <mac-address> | broadcast } }
+    view: interface
+    undo: undo local-ce ip
+    params:
+      ip-address:
+        type: ipv4
+      mac-address:
+        type: word
+    default: By default, the IP address of the Ethernet interface used by a local CE to connect to an AC interface is not specified on the AC interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: local-ce
+      line: 5610
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.manual-set-pw-ac-fault
+    syntax: manual-set pw-ac-fault [ secondary ]
+    view: interface
+    undo: undo manual-set pw-ac-fault [ secondary ]
+    default: By default, no PW fault is simulated.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: manual-set pw-ac-fault
+      line: 5720
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.max-atm-cells
+    syntax: max-atm-cells <max-atm-cells-value>
+    view: pw-template
+    undo: undo max-atm-cells
+    params:
+      max-atm-cells-value:
+        type: integer
+        range:
+          - 1
+          - 28
+    default: By default, the maximum number of ATM cells that can be transmitted in a PW template is 28.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: max-atm-cells
+      line: 5787
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ccc.1
+    syntax: mpls ccc instance-name <instance-name-value> out-interface { <interface-name> | <interface-type> <interface-number> } [ [ ip-interworking | ip-layer2 | raw | tagged ] | [ access-port ] ] &<1-9>
+    view: interface
+    undo: undo mpls ccc [ instance-name <instance-name-value> ]
+    params:
+      instance-name-value:
+        type: word
+      interface-name:
+        type: word
+      interface-type: &id021
+        type: word
+      interface-number: &id022
+        type: word
+    default: By default, no local CCC connection is created on an AC interface of a PE.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls ccc (interface view)
+      line: 5867
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ccc.2
+    syntax: mpls ccc out-interface { <interface-name> | <interface-type> <interface-number> } [ [ ip-interworking | ip-layer2 | raw | tagged ] | [ access-port ] | [ secondary ] ] &<1-9>
+    view: interface
+    undo: undo mpls ccc [ out-interface { <interface-name> | <interface-type> <interface-number> } [ [ ip-interworking | ip-layer2 | raw | tagged ] | [ access-port ] ] &<1-9> ] secondary
+    params:
+      interface-name:
+        type: word
+      interface-type: *id021
+      interface-number: *id022
+    default: By default, no local CCC connection is created on an AC interface of a PE.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls ccc (interface view)
+      line: 5867
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vc.1
+    syntax: mpls l2vc instance-name <instance-name> { <ip-address> | pw-template <template-name> } &<1-9> <vc-id> [ [ control-word [ seq-number ] | no-control-word ] | [ ip-interworking | ip-layer2 ] | tunnel-policy <policy-name> [ endpoint <endpoint-address> color <color-value> ] | ignore-standby-state | max-atm-cells <max-atm-cell-value> | atm-pack-overtime <atm-pack-overtime> | transmit-atm-cells <transmit-atm-cell-value> ] &<1-9>
+    view: interface
+    undo: undo mpls l2vc instance-name <instance-name> { <ip-address> | pw-template <template-name> } &<1-9> <vc-id> [ [ control-word [ seq-number ] | no-control-word ] | [ ip-interworking | ip-layer2 ] | tunnel-policy <policy-name> [ endpoint <endpoint-address> color <color-value> ] | ignore-standby-state | max-atm-cells <max-atm-cell-value> | atm-pack-overtime <atm-pack-overtime> | transmit-atm-cells <transmit-atm-cell-value> ] &<1-9>
+    params:
+      instance-name:
+        type: word
+      ip-address: &id023
+        type: ipv4
+      template-name: &id024
+        type: word
+      vc-id: &id025
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      policy-name: &id026
+        type: word
+      endpoint-address: &id027
+        type: word
+      color-value: &id028
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      max-atm-cell-value: &id029
+        type: integer
+        range:
+          - 1
+          - 28
+      atm-pack-overtime: &id030
+        type: integer
+        range:
+          - 100
+          - 10000
+      transmit-atm-cell-value: &id031
+        type: integer
+        range:
+          - 1
+          - 28
+    default: By default, no VPWS connection is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc (IMA group interface view)
+      line: 6151
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.access{id=_}.pw: kw:secondary=backup|bypass=bypass:primary
+      interface.access{id=_}.pw.peer: $ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-template-name||$template-name
+      interface.access{id=_}.pw.tunnel_policy: $policy-name||$tnl-policy-name
+      interface.access{id=_}.pw.control_word: kw:control-word=true|no-control-word=false
+      interface.access{id=_}.pw.encapsulation: kw:raw|tagged|ip-interworking|ip-layer2
+  - id: huawei-vrp8.mpls-l2vc.2
+    syntax: mpls l2vc { <ip-address> | pw-template <template-name> } &<1-9> <vc-id> [ [ control-word [ seq-number ] | no-control-word ] | [ ip-interworking | ip-layer2 ] | tunnel-policy <policy-name> [ endpoint <endpoint-address> color <color-value> ] | [ secondary ] | ignore-standby-state | max-atm-cells <max-atm-cell-value> | atm-pack-overtime <atm-pack-overtime> | transmit-atm-cells <transmit-atm-cell-value> ] &<1-9>
+    view: interface
+    undo: undo mpls l2vc { <ip-address> | pw-template <template-name> } &<1-9> <vc-id> [ [ control-word [ seq-number ] | no-control-word ] | [ ip-interworking | ip-layer2 ] | tunnel-policy <policy-name> [ endpoint <endpoint-address> color <color-value> ] | [ secondary ] | ignore-standby-state | max-atm-cells <max-atm-cell-value> | atm-pack-overtime <atm-pack-overtime> | transmit-atm-cells <transmit-atm-cell-value> ] &<1-9>
+    params:
+      ip-address: *id023
+      template-name: *id024
+      vc-id: *id025
+      policy-name: *id026
+      endpoint-address: *id027
+      color-value: *id028
+      max-atm-cell-value: *id029
+      atm-pack-overtime: *id030
+      transmit-atm-cell-value: *id031
+    default: By default, no VPWS connection is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc (IMA group interface view)
+      line: 6151
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.access{id=_}.pw: kw:secondary=backup|bypass=bypass:primary
+      interface.access{id=_}.pw.peer: $ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-template-name||$template-name
+      interface.access{id=_}.pw.tunnel_policy: $policy-name||$tnl-policy-name
+      interface.access{id=_}.pw.control_word: kw:control-word=true|no-control-word=false
+      interface.access{id=_}.pw.encapsulation: kw:raw|tagged|ip-interworking|ip-layer2
+  - id: huawei-vrp8.mpls-l2vc
+    syntax: mpls l2vc { <ip-address> | pw-template <template-name> } &<1-9> <vc-id> [ [ control-word [ seq-number ] | no-control-word ] | [ ip-interworking | ip-layer2 ] | tunnel-policy <tnl-policy-name> [ endpoint <endpoint-address> color <color-value> ] | [ secondary | bypass ] | ignore-standby-state | max-atm-cells <max-atm-cell-value> | atm-pack-overtime <atm-pack-overtime> | transmit-atm-cells <transmit-atm-cell-value> ] &<1-9>
+    view: interface
+    undo: undo mpls l2vc { <ip-address> | pw-template <template-name> } &<1-9> <vc-id> [ [ control-word [ seq-number ] | no-control-word ] | [ ip-interworking | ip-layer2 ] | tunnel-policy <tnl-policy-name> [ endpoint <endpoint-address> color <color-value> ] | [ secondary | bypass ] | ignore-standby-state | max-atm-cells <max-atm-cell-value> | atm-pack-overtime <atm-pack-overtime> | transmit-atm-cells <transmit-atm-cell-value> ] &<1-9>
+    params:
+      ip-address:
+        type: ipv4
+      template-name:
+        type: word
+      vc-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      tnl-policy-name:
+        type: word
+      endpoint-address:
+        type: word
+      color-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      max-atm-cell-value:
+        type: integer
+        range:
+          - 1
+          - 28
+      atm-pack-overtime:
+        type: integer
+        range:
+          - 100
+          - 10000
+      transmit-atm-cell-value:
+        type: integer
+        range:
+          - 1
+          - 28
+    default: By default, no VPWS connection is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc (IMA-group sub-interface view)
+      line: 6268
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.access{id=_}.pw: kw:secondary=backup|bypass=bypass:primary
+      interface.access{id=_}.pw.peer: $ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-template-name||$template-name
+      interface.access{id=_}.pw.tunnel_policy: $policy-name||$tnl-policy-name
+      interface.access{id=_}.pw.control_word: kw:control-word=true|no-control-word=false
+      interface.access{id=_}.pw.encapsulation: kw:raw|tagged|ip-interworking|ip-layer2
+  - id: huawei-vrp8.mpls-l2vc.1~2
+    syntax: mpls l2vc { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> [ [ control-word | no-control-word ] | [ raw | tagged | ip-interworking | ip-layer2 ] | [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | access-port | [ secondary | bypass ] | ignore-standby-state ] &<1-9>
+    view: interface
+    undo: undo mpls l2vc { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> [ [ control-word | no-control-word ] | [ raw | tagged | ip-interworking | ip-layer2 ] | [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | access-port | [ secondary | bypass ] | ignore-standby-state ] &<1-9>
+    params:
+      ip-address: &id032
+        type: ipv4
+      pw-template-name: &id033
+        type: word
+      vc-id: &id034
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      policy-name: &id035
+        type: word
+      endpoint-address: &id036
+        type: word
+      endpoint4-address: &id037
+        type: ipv4
+      color-value: &id038
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      srv6-sid-address: &id039
+        type: word
+      sid-mask-length: &id040
+        type: mask-length
+    default: By default, no VPWS connection is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc (interface view)
+      line: 6381
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.access{id=_}.pw: kw:secondary=backup|bypass=bypass:primary
+      interface.access{id=_}.pw.peer: $ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-template-name||$template-name
+      interface.access{id=_}.pw.tunnel_policy: $policy-name||$tnl-policy-name
+      interface.access{id=_}.pw.control_word: kw:control-word=true|no-control-word=false
+      interface.access{id=_}.pw.encapsulation: kw:raw|tagged|ip-interworking|ip-layer2
+  - id: huawei-vrp8.mpls-l2vc.2~2
+    syntax: mpls l2vc instance-name <instance-name> { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> [ [ control-word | no-control-word ] | [ raw | tagged | ip-interworking | ip-layer2 ] | [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | access-port | ignore-standby-state ] &<1-9>
+    view: interface
+    undo: undo mpls l2vc instance-name <instance-name> { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> [ [ control-word | no-control-word ] | [ raw | tagged | ip-interworking | ip-layer2 ] | [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | access-port | ignore-standby-state ] &<1-9>
+    params:
+      instance-name: &id041
+        type: word
+      ip-address: *id032
+      pw-template-name: *id033
+      vc-id: *id034
+      policy-name: *id035
+      endpoint-address: *id036
+      endpoint4-address: *id037
+      color-value: *id038
+      srv6-sid-address: *id039
+      sid-mask-length: *id040
+    default: By default, no VPWS connection is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc (interface view)
+      line: 6381
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.access{id=_}.pw: kw:secondary=backup|bypass=bypass:primary
+      interface.access{id=_}.pw.peer: $ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-template-name||$template-name
+      interface.access{id=_}.pw.tunnel_policy: $policy-name||$tnl-policy-name
+      interface.access{id=_}.pw.control_word: kw:control-word=true|no-control-word=false
+      interface.access{id=_}.pw.encapsulation: kw:raw|tagged|ip-interworking|ip-layer2
+  - id: huawei-vrp8.mpls-l2vc.3
+    syntax: mpls l2vc { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> [ [ control-word | no-control-word ] | [ raw | tagged ] | tunnel-policy <policy-name> | [ secondary ] | ignore-standby-state ] &<1-9>
+    view: interface
+    undo: undo mpls l2vc { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> [ [ control-word | no-control-word ] | [ raw | tagged ] | tunnel-policy <policy-name> | [ secondary ] | ignore-standby-state ] &<1-9>
+    params:
+      ip-address: *id032
+      pw-template-name: *id033
+      vc-id: *id034
+      policy-name: *id035
+    default: By default, no VPWS connection is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc (interface view)
+      line: 6381
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.access{id=_}.pw: kw:secondary=backup|bypass=bypass:primary
+      interface.access{id=_}.pw.peer: $ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-template-name||$template-name
+      interface.access{id=_}.pw.tunnel_policy: $policy-name||$tnl-policy-name
+      interface.access{id=_}.pw.control_word: kw:control-word=true|no-control-word=false
+      interface.access{id=_}.pw.encapsulation: kw:raw|tagged|ip-interworking|ip-layer2
+  - id: huawei-vrp8.mpls-l2vc.4
+    syntax: mpls l2vc instance-name <instance-name> { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> [ [ control-word | no-control-word ] | [ raw | tagged ] | tunnel-policy <policy-name> | ignore-standby-state ] &<1-9>
+    view: interface
+    undo: undo mpls l2vc instance-name <instance-name> { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> [ [ control-word | no-control-word ] | [ raw | tagged ] | tunnel-policy <policy-name> | ignore-standby-state ] &<1-9>
+    params:
+      instance-name: *id041
+      ip-address: *id032
+      pw-template-name: *id033
+      vc-id: *id034
+      policy-name: *id035
+    default: By default, no VPWS connection is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc (interface view)
+      line: 6381
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.access{id=_}.pw: kw:secondary=backup|bypass=bypass:primary
+      interface.access{id=_}.pw.peer: $ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-template-name||$template-name
+      interface.access{id=_}.pw.tunnel_policy: $policy-name||$tnl-policy-name
+      interface.access{id=_}.pw.control_word: kw:control-word=true|no-control-word=false
+      interface.access{id=_}.pw.encapsulation: kw:raw|tagged|ip-interworking|ip-layer2
+  - id: huawei-vrp8.mpls-l2vc.1~3
+    syntax: mpls l2vc { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> { [ control-word | [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] ] &<1-9> admin | admin [ control-word | [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] ] &<1-9> | [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] admin control-word | control-word admin [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] }
+    view: interface
+    undo: undo mpls l2vc [ { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> [ [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | control-word ] &<1-9> [ admin ] ]
+    params:
+      ip-address: &id042
+        type: ipv4
+      pw-template-name: &id043
+        type: word
+      vc-id: &id044
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      policy-name: &id045
+        type: word
+      endpoint-address: &id046
+        type: word
+      endpoint4-address: &id047
+        type: word
+      color-value: &id048
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      srv6-sid-address: &id049
+        type: word
+      sid-mask-length: &id050
+        type: mask-length
+    default: By default, no mPW is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc (Loopback interface view)
+      line: 6636
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.access{id=_}.pw: kw:secondary=backup|bypass=bypass:primary
+      interface.access{id=_}.pw.peer: $ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-template-name||$template-name
+      interface.access{id=_}.pw.tunnel_policy: $policy-name||$tnl-policy-name
+      interface.access{id=_}.pw.control_word: kw:control-word=true|no-control-word=false
+      interface.access{id=_}.pw.encapsulation: kw:raw|tagged|ip-interworking|ip-layer2
+  - id: huawei-vrp8.mpls-l2vc.2~3
+    syntax: mpls l2vc instance-name <instance-name> { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> { [ control-word | [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] ] &<1-9> admin | admin [ control-word | [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] ] &<1-9> | [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] admin control-word | control-word admin [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] }
+    view: interface
+    undo: undo mpls l2vc instance-name <instance-name> [ { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> [ [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | control-word ] &<1-9> [ admin ] ]
+    params:
+      instance-name: &id051
+        type: word
+      ip-address: *id042
+      pw-template-name: *id043
+      vc-id: *id044
+      policy-name: *id045
+      endpoint-address: *id046
+      endpoint4-address: *id047
+      color-value: *id048
+      srv6-sid-address: *id049
+      sid-mask-length: *id050
+    default: By default, no mPW is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc (Loopback interface view)
+      line: 6636
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.access{id=_}.pw: kw:secondary=backup|bypass=bypass:primary
+      interface.access{id=_}.pw.peer: $ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-template-name||$template-name
+      interface.access{id=_}.pw.tunnel_policy: $policy-name||$tnl-policy-name
+      interface.access{id=_}.pw.control_word: kw:control-word=true|no-control-word=false
+      interface.access{id=_}.pw.encapsulation: kw:raw|tagged|ip-interworking|ip-layer2
+  - id: huawei-vrp8.mpls-l2vc.3~2
+    syntax: mpls l2vc { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> { [ control-word | tunnel-policy <policy-name> ] &<1-9> admin | admin [ control-word | tunnel-policy <policy-name> ] &<1-9> | tunnel-policy <policy-name> admin control-word | control-word admin tunnel-policy <policy-name> }
+    view: interface
+    undo: undo mpls l2vc [ { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> [ [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | control-word ] &<1-9> [ admin ] ]
+    params:
+      ip-address: *id042
+      pw-template-name: *id043
+      vc-id: *id044
+      policy-name: *id045
+    default: By default, no mPW is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc (Loopback interface view)
+      line: 6636
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.access{id=_}.pw: kw:secondary=backup|bypass=bypass:primary
+      interface.access{id=_}.pw.peer: $ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-template-name||$template-name
+      interface.access{id=_}.pw.tunnel_policy: $policy-name||$tnl-policy-name
+      interface.access{id=_}.pw.control_word: kw:control-word=true|no-control-word=false
+      interface.access{id=_}.pw.encapsulation: kw:raw|tagged|ip-interworking|ip-layer2
+  - id: huawei-vrp8.mpls-l2vc.4~2
+    syntax: mpls l2vc instance-name <instance-name> { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> { [ control-word | tunnel-policy <policy-name> ] &<1-9> admin | admin [ control-word | tunnel-policy <policy-name> ] &<1-9> | tunnel-policy <policy-name> admin control-word | control-word admin tunnel-policy <policy-name> }
+    view: interface
+    undo: undo mpls l2vc instance-name <instance-name> [ { <ip-address> | pw-template <pw-template-name> } &<1-9> <vc-id> [ [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | control-word ] &<1-9> [ admin ] ]
+    params:
+      instance-name: *id051
+      ip-address: *id042
+      pw-template-name: *id043
+      vc-id: *id044
+      policy-name: *id045
+    default: By default, no mPW is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc (Loopback interface view)
+      line: 6636
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.access{id=_}.pw: kw:secondary=backup|bypass=bypass:primary
+      interface.access{id=_}.pw.peer: $ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-template-name||$template-name
+      interface.access{id=_}.pw.tunnel_policy: $policy-name||$tnl-policy-name
+      interface.access{id=_}.pw.control_word: kw:control-word=true|no-control-word=false
+      interface.access{id=_}.pw.encapsulation: kw:raw|tagged|ip-interworking|ip-layer2
+  - id: huawei-vrp8.mpls-l2vc-ac-bypass
+    syntax: mpls l2vc { <ip-address> | pw-template <pw-template-name> } &<1-9> ac-bypass <vc-id> [ pw-bypass <vc-id> ] [ [ control-word | no-control-word ] | [ raw | tagged | ip-interworking | ip-layer2 ] | [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | access-port ] &<1-9>
+    view: interface
+    undo: undo mpls l2vc { <ip-address> | pw-template <pw-template-name> } &<1-9> ac-bypass <vc-id> [ pw-bypass <vc-id> ] [ [ control-word | no-control-word ] | [ raw | tagged | ip-interworking | ip-layer2 ] | [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | access-port ] &<1-9>
+    params:
+      ip-address:
+        type: ipv4
+      pw-template-name:
+        type: word
+      vc-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      policy-name:
+        type: word
+      endpoint-address:
+        type: word
+      endpoint4-address:
+        type: ipv4
+      color-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      srv6-sid-address:
+        type: word
+      sid-mask-length:
+        type: mask-length
+    default: By default, no VPWS connection is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc ac-bypass (interface view)
+      line: 6996
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vc-track-admin-vc.1
+    syntax: mpls l2vc [ secondary | bypass ] track admin-vc interface { <interface-name> | <interface-type> <interface-number> }
+    view: interface
+    undo: undo mpls l2vc [ secondary | bypass ] track admin-vc
+    params:
+      interface-name: &id052
+        type: word
+      interface-type: &id053
+        type: word
+      interface-number: &id054
+        type: word
+    default: By default, no service PW is bound to an mPW.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc track admin-vc
+      line: 7344
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vc-track-admin-vc.2
+    syntax: mpls l2vc [ secondary ] track admin-vc interface { <interface-name> | <interface-type> <interface-number> }
+    view: interface
+    undo: undo mpls l2vc [ secondary ] track admin-vc
+    params:
+      interface-name: *id052
+      interface-type: *id053
+      interface-number: *id054
+    default: By default, no service PW is bound to an mPW.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc track admin-vc
+      line: 7344
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vc-track-admin-vrrp
+    syntax: mpls l2vc track admin-vrrp interface { <interface-number> | <interface-type> <interface-number> } vrid <virtual-router-id> [ pw-redundancy ]
+    view: interface
+    undo: undo mpls l2vc track admin-vrrp
+    params:
+      interface-number:
+        type: word
+      interface-type:
+        type: word
+      virtual-router-id:
+        type: ipv4
+    default: By default, no service PW is bound to mVRRP.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc track admin-vrrp
+      line: 7461
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vc-track-admin-vrrp-secondary
+    syntax: mpls l2vc track admin-vrrp secondary
+    view: interface
+    undo: undo mpls l2vc track admin-vrrp secondary
+    default: By default, no secondary service VLL is bound to an mVRRP group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vc track admin-vrrp secondary
+      line: 7543
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn
+    syntax: mpls l2vpn
+    view: system
+    enters_view: mpls-l2vpn
+    undo: undo mpls l2vpn
+    default: By default, the MPLS L2VPN function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn
+      line: 7808
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.global: _
+  - id: huawei-vrp8.mpls-l2vpn~2
+    syntax: mpls l2vpn { arp-dual-sending | arp-sending } [ expire-time <expire-time-value> ]
+    view: interface
+    undo: undo mpls l2vpn { arp-dual-sending | arp-sending }
+    params:
+      expire-time-value:
+        type: integer
+        range:
+          - 60
+          - 4294967295
+    default: By default, ARP dual-fed/single-fed is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn (interface view)
+      line: 7907
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn.1
+    syntax: mpls l2vpn <l2vpn-name> [ encapsulation { ethernet | vlan | hdlc | ppp | ip-interworking | ip-layer2 } [ control-word | no-control-word ] ]
+    view: system
+    undo: undo mpls l2vpn <l2vpn-name>
+    params:
+      l2vpn-name: &id055
+        type: word
+    default: By default, no MPLS-L2VPN instance in BGP VPWS mode is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn (System view)
+      line: 7993
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn.2
+    syntax: mpls l2vpn <l2vpn-name> [ encapsulation { ethernet | vlan } [ control-word | no-control-word ] ]
+    view: system
+    undo: undo mpls l2vpn <l2vpn-name>
+    params:
+      l2vpn-name: *id055
+    default: By default, no MPLS-L2VPN instance in BGP VPWS mode is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn (System view)
+      line: 7993
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-auto-create-session
+    syntax: mpls l2vpn auto-create-session
+    view: mpls-l2vpn
+    undo: undo mpls l2vpn auto-create-session
+    default: By default, a device cannot automatically establish remote LDP sessions during LDP PW establishment.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn auto-create-session
+      line: 8079
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-default-martini
+    syntax: mpls l2vpn default martini
+    view: mpls-l2vpn
+    undo: undo mpls l2vpn default martini
+    default: By default, an LDP PW endpoint can send Notification messages.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn default martini
+      line: 8140
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-description
+    syntax: mpls l2vpn description <description-text>
+    view: interface
+    undo: undo mpls l2vpn description
+    params:
+      description-text:
+        type: text
+    default: By default, no description is configured for an L2VPN PW.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn description
+      line: 8210
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-flow-label
+    syntax: mpls l2vpn flow-label { both | send | receive } [ secondary ] [ static ]
+    view: interface
+    undo: undo mpls l2vpn flow-label { both | send | receive } [ secondary ] [ static ]
+    default: By default, flow-label-based load balancing of PWs is disabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn flow-label
+      line: 8273
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-holdoff
+    syntax: mpls l2vpn holdoff <holdoffTime>
+    view: interface
+    undo: undo mpls l2vpn holdoff <holdoffTime>
+    params:
+      holdoffTime:
+        type: integer
+        range:
+          - 1
+          - 180
+    default: By default, no switching delay is configured for a PW.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn holdoff
+      line: 8501
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-load-balance-packet
+    syntax: mpls l2vpn load-balance packet
+    view: interface
+    undo: undo mpls l2vpn load-balance packet
+    default: By default, per-flow load balancing is used for LDP and SVC VPWS.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn load-balance packet
+      line: 8655
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-loop-check
+    syntax: mpls l2vpn loop-check [ <loop-check-time> ]
+    view: interface
+    undo: undo mpls l2vpn loop-check
+    params:
+      loop-check-time:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, the PW loopback function is disabled for a PWE3 service.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn loop-check
+      line: 8728
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-mac-withdraw-disable
+    syntax: mpls l2vpn mac-withdraw disable
+    view: interface
+    undo: undo mpls l2vpn mac-withdraw disable
+    default: By default, a VLL in Ethernet or VLAN encapsulation mode is enabled to send MAC Withdraw messages during a primary/secondary PW switchover.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn mac-withdraw disable
+      line: 8792
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-nd-dual-sending
+    syntax: mpls l2vpn nd-dual-sending [ expire-time <expire-time> ]
+    view: interface
+    undo: undo mpls l2vpn nd-dual-sending [ expire-time <expire-time> ]
+    params:
+      expire-time:
+        type: integer
+        range:
+          - 60
+          - 4294967295
+    default: By default, ND dual feed is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn nd-dual-sending
+      line: 8922
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-no-request-message-peer
+    syntax: mpls l2vpn no-request-message peer <ip-address>
+    view: mpls-l2vpn
+    undo: undo mpls l2vpn no-request-message peer <ip-address>
+    params:
+      ip-address:
+        type: ipv4
+    default: By default, the device sends L2VPN Label Request messages to all remote peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn no-request-message peer
+      line: 8986
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-oam-mapping
+    syntax: mpls l2vpn oam-mapping
+    view: interface
+    undo: undo mpls l2vpn oam-mapping
+    default: By default, the mapping between the AC status and the PSN status is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn oam-mapping
+      line: 9046
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-oam-mapping-1ag-md-ma
+    syntax: mpls l2vpn oam-mapping 1ag md <md-name> ma <ma-name>
+    view: interface
+    undo: undo mpls l2vpn oam-mapping [ 1ag md <md-name> ma <ma-name> ]
+    params:
+      md-name:
+        type: word
+      ma-name:
+        type: word
+    default: By default, the mapping between the AC status and the PSN status is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn oam-mapping 1ag md ma
+      line: 9107
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-protect-group
+    syntax: mpls l2vpn protect-group <protect-group-name>
+    view: interface
+    undo: undo mpls l2vpn protect-group <protect-group-name>
+    params:
+      protect-group-name:
+        type: word
+    default: By default, no protection group name is configured for a VPWS service.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn protect-group
+      line: 9191
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-bfd.1
+    syntax: mpls l2vpn pw bfd [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ track group <group-name> ] [ remote-vcid <vc-id> ] [ secondary ]
+    view: interface
+    undo: undo mpls l2vpn pw bfd { [ remote-vcid <vc-id> ] | [ detect-multiplier | min-rx-interval | min-tx-interval ] &<1-9> [ track group ] | [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ track group <group-name> ] } [ secondary ]
+    params:
+      multiplier: &id056
+        type: integer
+        range:
+          - 3
+          - 50
+      rx-interval: &id057
+        type: word
+      tx-interval: &id058
+        type: word
+      group-name: &id059
+        type: word
+      vc-id: &id060
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, dynamic BFD for VPWS PW is not configured on AC interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw bfd
+      line: 9254
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-bfd.2
+    syntax: mpls l2vpn pw bfd [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ track group <group-name> ] [ remote-vcid <vc-id> ] [ track-interface ] [ secondary ]
+    view: interface
+    undo: undo mpls l2vpn pw bfd { [ remote-vcid <vc-id> ] | [ detect-multiplier | min-rx-interval | min-tx-interval ] &<1-9> [ track group ] | [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ track group <group-name> ] } [ secondary ]
+    params:
+      multiplier: *id056
+      rx-interval: *id057
+      tx-interval: *id058
+      group-name: *id059
+      vc-id: *id060
+    default: By default, dynamic BFD for VPWS PW is not configured on AC interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw bfd
+      line: 9254
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-bfd.3
+    syntax: mpls l2vpn pw bfd [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ remote-vcid <vc-id> ] [ secondary ]
+    view: interface
+    undo: undo mpls l2vpn pw bfd { [ remote-vcid <vc-id> ] | [ detect-multiplier | min-rx-interval | min-tx-interval ] &<1-9> [ track group ] | [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ track group <group-name> ] } [ secondary ]
+    params:
+      multiplier: *id056
+      rx-interval: *id057
+      tx-interval: *id058
+      vc-id: *id060
+    default: By default, dynamic BFD for VPWS PW is not configured on AC interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw bfd
+      line: 9254
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-bfd.4
+    syntax: mpls l2vpn pw bfd [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ remote-vcid <vc-id> ] [ track-interface ] [ secondary ]
+    view: interface
+    undo: undo mpls l2vpn pw bfd { [ remote-vcid <vc-id> ] | [ detect-multiplier | min-rx-interval | min-tx-interval ] &<1-9> [ track group ] | [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ track group <group-name> ] } [ secondary ]
+    params:
+      multiplier: *id056
+      rx-interval: *id057
+      tx-interval: *id058
+      vc-id: *id060
+    default: By default, dynamic BFD for VPWS PW is not configured on AC interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw bfd
+      line: 9254
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-bfd.1~2
+    syntax: mpls l2vpn pw bfd [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ track group <group-name> ] [ remote-vcid <vc-id> ]
+    view: interface
+    undo: undo mpls l2vpn pw bfd { [ remote-vcid <vc-id> ] | [ detect-multiplier | min-rx-interval | min-tx-interval ] &<1-9> [ track group ] | [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ track group <group-name> ] }
+    params:
+      multiplier: &id061
+        type: integer
+        range:
+          - 3
+          - 50
+      rx-interval: &id062
+        type: integer
+        range:
+          - 3
+          - 20000
+      tx-interval: &id063
+        type: integer
+        range:
+          - 3
+          - 20000
+      group-name: &id064
+        type: word
+      vc-id: &id065
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, dynamic BFD for VPWS PW is not configured on AC interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw bfd (Loopback interface view)
+      line: 9374
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-bfd.2~2
+    syntax: mpls l2vpn pw bfd [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ track group <group-name> ] [ remote-vcid <vc-id> ] [ track-interface { <interface-name> | <interface-type> <interface-number> } ]
+    view: interface
+    undo: undo mpls l2vpn pw bfd { [ remote-vcid <vc-id> ] | [ detect-multiplier | min-rx-interval | min-tx-interval ] &<1-9> [ track group ] | [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ track group <group-name> ] }
+    params:
+      multiplier: *id061
+      rx-interval: *id062
+      tx-interval: *id063
+      group-name: *id064
+      vc-id: *id065
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, dynamic BFD for VPWS PW is not configured on AC interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw bfd (Loopback interface view)
+      line: 9374
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-ignore-ac-state.1
+    syntax: mpls l2vpn pw ignore-ac-state [ bypass | secondary ]
+    view: interface
+    undo: undo mpls l2vpn pw ignore-ac-state [ bypass | secondary ]
+    default: By default, the status change of an AC interface affects the PW status.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw ignore-ac-state
+      line: 9562
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-ignore-ac-state.2
+    syntax: mpls l2vpn pw ignore-ac-state [ secondary ]
+    view: interface
+    undo: undo mpls l2vpn pw ignore-ac-state [ secondary ]
+    default: By default, the status change of an AC interface affects the PW status.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw ignore-ac-state
+      line: 9562
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-name
+    syntax: mpls l2vpn pw name <pw-name> [ secondary ]
+    view: interface
+    undo: undo mpls l2vpn pw name <pw-name> [ secondary ]
+    params:
+      pw-name:
+        type: word
+    default: By default, no PW name is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw name
+      line: 9634
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-traffic-statistics-enable.1
+    syntax: mpls l2vpn pw traffic-statistics enable [ secondary | bypass ]
+    view: interface
+    undo: undo mpls l2vpn pw traffic-statistics enable [ secondary | bypass ]
+    default: By default, the function to collect traffic statistics about VPWS PWs is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw traffic-statistics enable
+      line: 9765
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-traffic-statistics-enable.2
+    syntax: mpls l2vpn pw traffic-statistics enable [ secondary ]
+    view: interface
+    undo: undo mpls l2vpn pw traffic-statistics enable [ secondary | bypass ]
+    default: By default, the function to collect traffic statistics about VPWS PWs is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw traffic-statistics enable
+      line: 9765
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-aps
+    syntax: mpls l2vpn pw-aps <apsId> { admin | reference }
+    view: interface
+    undo: undo mpls l2vpn pw-aps
+    params:
+      apsId:
+        type: integer
+        range:
+          - 1
+          - 16384
+    default: By default, a PW APS instance is not associated with any PW protection group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw-aps
+      line: 9867
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-ttl.1
+    syntax: mpls l2vpn pw-ttl <ttlValue> [ bypass | secondary ]
+    view: interface
+    undo: undo mpls l2vpn pw-ttl <ttlValue> [ bypass | secondary ]
+    params:
+      ttlValue: &id066
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the TTL value of a PW is 1.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw-ttl
+      line: 9955
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-pw-ttl.2
+    syntax: mpls l2vpn pw-ttl <ttlValue> [ secondary ]
+    view: interface
+    undo: undo mpls l2vpn pw-ttl <ttlValue> [ secondary ]
+    params:
+      ttlValue: *id066
+    default: By default, the TTL value of a PW is 1.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn pw-ttl
+      line: 9955
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-redundancy
+    syntax: mpls l2vpn redundancy { independent | master }
+    view: interface
+    undo: undo mpls l2vpn redundancy { independent | master }
+    default: By default, a device determines the primary and secondary PWs locally using FRR, without negotiating with other nodes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn redundancy
+      line: 10041
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-reroute
+    syntax: mpls l2vpn reroute { { delay <delayTime> | immediately } [ resume <resumeTime> ] | never }
+    view: interface
+    undo: undo mpls l2vpn reroute
+    params:
+      delayTime:
+        type: integer
+        range:
+          - 10
+          - 10800
+      resumeTime:
+        type: integer
+        range:
+          - 0
+          - 600
+    default: By default, delayed switchback is used in FRR or master/slave PW redundancy mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn reroute
+      line: 10127
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-service-name
+    syntax: mpls l2vpn service-name <service-name>
+    view: interface
+    undo: undo mpls l2vpn service-name
+    params:
+      service-name:
+        type: word
+    default: By default, no L2VPN service name is configured in the system.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn service-name
+      line: 10212
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-stream-dual-receiving
+    syntax: mpls l2vpn stream-dual-receiving
+    view: interface
+    undo: undo mpls l2vpn stream-dual-receiving
+    default: By default, an interface cannot receive packets from the secondary PW.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn stream-dual-receiving
+      line: 10292
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-switchover
+    syntax: mpls l2vpn switchover
+    view: interface
+    undo: undo mpls l2vpn switchover
+    default: By default, traffic switchover is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn switchover
+      line: 10428
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-trigger-if-down
+    syntax: mpls l2vpn trigger if-down
+    view: interface
+    undo: undo mpls l2vpn trigger if-down
+    default: By default, the notification of physical layer faults is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn trigger if-down
+      line: 10502
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-vccv-bfd-cv-negotiation
+    syntax: mpls l2vpn vccv bfd-cv-negotiation { fault-detection-only | ach-fault-detection-only }
+    view: mpls-l2vpn
+    undo: undo mpls l2vpn vccv bfd-cv-negotiation [ fault-detection-only | ach-fault-detection-only ]
+    default: By default, the BFD CV Type value in the VCCV field is 0x08.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn vccv bfd-cv-negotiation
+      line: 10567
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-vccv-bfd-cv-negotiation-peer.1
+    syntax: mpls l2vpn vccv bfd-cv-negotiation fault-detection-only peer <peer-address> { enable | disable }
+    view: mpls-l2vpn
+    undo: undo mpls l2vpn vccv bfd-cv-negotiation { fault-detection-only | ach-fault-detection-only | detection-and-signaling } peer <peer-address>
+    params:
+      peer-address: &id067
+        type: ipv4
+    default: By default, the BFD CV Type value in the VCCV field is 0x08.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn vccv bfd-cv-negotiation peer
+      line: 10654
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-vccv-bfd-cv-negotiation-peer.2
+    syntax: mpls l2vpn vccv bfd-cv-negotiation { ach-fault-detection-only | detection-and-signaling } peer <peer-address> enable
+    view: mpls-l2vpn
+    undo: undo mpls l2vpn vccv bfd-cv-negotiation { fault-detection-only | ach-fault-detection-only | detection-and-signaling } peer <peer-address>
+    params:
+      peer-address: *id067
+    default: By default, the BFD CV Type value in the VCCV field is 0x08.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls l2vpn vccv bfd-cv-negotiation peer
+      line: 10654
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-static-l2vc.1
+    syntax: mpls static-l2vc { { destination <ip-address> | pw-template <pw-template-name> <vc-id> } &<1-9> | destination <ip-address> <vc-id> } transmit-vpn-label <transmit-label-value> receive-vpn-label <receive-label-value> [ [ tunnel-policy <tnl-policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | access-port | [ control-word | no-control-word ] | [ raw | tagged | ip-interworking ] | [ secondary | bypass ] ] &<1-9>
+    view: interface
+    undo: undo mpls static-l2vc { { destination <ip-address> | pw-template <pw-template-name> <vc-id> } &<1-9> | destination <ip-address> <vc-id> } transmit-vpn-label <transmit-label-value> receive-vpn-label <receive-label-value> [ [ tunnel-policy <tnl-policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | access-port | [ control-word | no-control-word ] | [ raw | tagged | ip-interworking ] | [ secondary | bypass ] ] &<1-9>
+    params:
+      ip-address: &id068
+        type: ipv4
+      pw-template-name: &id069
+        type: word
+      vc-id: &id070
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      transmit-label-value: &id071
+        type: integer
+        range:
+          - 0
+          - 1048575
+      receive-label-value: &id072
+        type: integer
+        range:
+          - 16
+          - 2047
+      tnl-policy-name: &id073
+        type: word
+      endpoint-address: &id074
+        type: word
+      endpoint4-address: &id075
+        type: ipv4
+      color-value: &id076
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      srv6-sid-address: &id077
+        type: word
+      sid-mask-length: &id078
+        type: mask-length
+    default: By default, no static PW is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls static-l2vc (interface view)
+      line: 10747
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-static-l2vc.2
+    syntax: mpls static-l2vc instance-name <instance-name> { { destination <ip-address> | pw-template <pw-template-name> <vc-id> } &<1-9> | destination <ip-address> <vc-id> } transmit-vpn-label <transmit-label-value> receive-vpn-label <receive-label-value> [ [ tunnel-policy <tnl-policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | access-port | [ control-word | no-control-word ] | [ raw | tagged | ip-interworking ] ] &<1-9>
+    view: interface
+    undo: undo mpls static-l2vc instance-name <instance-name> { { destination <ip-address> | pw-template <pw-template-name> <vc-id> } &<1-9> | destination <ip-address> <vc-id> } transmit-vpn-label <transmit-label-value> receive-vpn-label <receive-label-value> [ [ tunnel-policy <tnl-policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] | access-port | [ control-word | no-control-word ] | [ raw | tagged | ip-interworking ] ] &<1-9>
+    params:
+      instance-name: &id079
+        type: word
+      ip-address: *id068
+      pw-template-name: *id069
+      vc-id: *id070
+      transmit-label-value: *id071
+      receive-label-value: *id072
+      tnl-policy-name: *id073
+      endpoint-address: *id074
+      endpoint4-address: *id075
+      color-value: *id076
+      srv6-sid-address: *id077
+      sid-mask-length: *id078
+    default: By default, no static PW is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls static-l2vc (interface view)
+      line: 10747
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-static-l2vc.3
+    syntax: mpls static-l2vc { { destination <ip-address> | pw-template <pw-template-name> <vc-id> } &<1-9> | destination <ip-address> <vc-id> } transmit-vpn-label <transmit-label-value> receive-vpn-label <receive-label-value> [ tunnel-policy <tnl-policy-name> | [ control-word | no-control-word ] | [ raw | tagged ] | [ secondary ] ] &<1-9>
+    view: interface
+    undo: undo mpls static-l2vc { { destination <ip-address> | pw-template <pw-template-name> <vc-id> } &<1-9> | destination <ip-address> <vc-id> } transmit-vpn-label <transmit-label-value> receive-vpn-label <receive-label-value> [ tunnel-policy <tnl-policy-name> | [ control-word | no-control-word ] | [ raw | tagged ] | [ secondary ] ] &<1-9>
+    params:
+      ip-address: *id068
+      pw-template-name: *id069
+      vc-id: *id070
+      transmit-label-value: *id071
+      receive-label-value: *id072
+      tnl-policy-name: *id073
+    default: By default, no static PW is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls static-l2vc (interface view)
+      line: 10747
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-static-l2vc.4
+    syntax: mpls static-l2vc instance-name <instance-name> { { destination <ip-address> | pw-template <pw-template-name> <vc-id> } &<1-9> | destination <ip-address> <vc-id> } transmit-vpn-label <transmit-label-value> receive-vpn-label <receive-label-value> [ tunnel-policy <tnl-policy-name> | [ control-word | no-control-word ] | [ raw | tagged ] ] &<1-9>
+    view: interface
+    undo: undo mpls static-l2vc instance-name <instance-name> { { destination <ip-address> | pw-template <pw-template-name> <vc-id> } &<1-9> | destination <ip-address> <vc-id> } transmit-vpn-label <transmit-label-value> receive-vpn-label <receive-label-value> [ tunnel-policy <tnl-policy-name> | [ control-word | no-control-word ] | [ raw | tagged ] ] &<1-9>
+    params:
+      instance-name: *id079
+      ip-address: *id068
+      pw-template-name: *id069
+      vc-id: *id070
+      transmit-label-value: *id071
+      receive-label-value: *id072
+      tnl-policy-name: *id073
+    default: By default, no static PW is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls static-l2vc (interface view)
+      line: 10747
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-static-l2vc-transmit-vpn-label-receive-vpn-label
+    syntax: mpls static-l2vc { { destination <ip-address> | pw-template <template-name> <vc-id> } &<1-9> | destination <ip-address> <vc-id> } transmit-vpn-label <transmit-label-value> receive-vpn-label <receive-label-value> [ tunnel-policy <tnl-policy-name> [ endpoint <endpoint-address> color <color-value> ] | [ control-word [ seq-number ] | no-control-word ] | [ ip-interworking ] | [ secondary | bypass ] | max-atm-cells <max-atm-cell-value> | atm-pack-overtime <atm-pack-overtime> ] &<1-9>
+    view: interface
+    undo: undo mpls static-l2vc { { destination <ip-address> | pw-template <template-name> <vc-id> } &<1-9> | destination <ip-address> <vc-id> } transmit-vpn-label <transmit-label-value> receive-vpn-label <receive-label-value> [ tunnel-policy <tnl-policy-name> [ endpoint <endpoint-address> color <color-value> ] | [ control-word [ seq-number ] | no-control-word ] | [ ip-interworking ] | [ secondary | bypass ] | max-atm-cells <max-atm-cell-value> | atm-pack-overtime <atm-pack-overtime> ] &<1-9>
+    params:
+      ip-address:
+        type: ipv4
+      template-name:
+        type: word
+      vc-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      transmit-label-value:
+        type: integer
+        range:
+          - 0
+          - 1048575
+      receive-label-value:
+        type: integer
+        range:
+          - 16
+          - 2047
+      tnl-policy-name:
+        type: word
+      endpoint-address:
+        type: word
+      color-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      max-atm-cell-value:
+        type: integer
+        range:
+          - 1
+          - 28
+      atm-pack-overtime:
+        type: integer
+        range:
+          - 100
+          - 10000
+    default: By default, no static PW is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls static-l2vc transmit-vpn-label receive-vpn-label (interface view)
+      line: 11409
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.1
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ control-word-transparent ]
+    params:
+      instance-name: &id080
+        type: word
+      ip-address: &id081
+        type: ipv4
+      vc-id: &id082
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      policy-name: &id083
+        type: word
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.2
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ control-word | no-control-word ] [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ [ control-word | no-control-word ] ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      trans-label: &id084
+        type: integer
+        range:
+          - 0
+          - 1048575
+      received-label: &id085
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      policy-name: *id083
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.3
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ control-word | no-control-word ] { cc { cw | alert } &<1-9> cv lsp-ping } [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ [ control-word | no-control-word ] ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      trans-label: *id084
+      received-label: *id085
+      policy-name: *id083
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.4
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ mtu <mtu-value> ] control-word cc { cw | alert } &<1-9> cv lsp-ping [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ mtu <mtu-value> ] [ control-word | no-control-word ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      policy-name: *id083
+      trans-label: *id084
+      received-label: *id085
+      mtu-value: &id086
+        type: word
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.5
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ mtu <mtu-value> ] [ no-control-word ] cc alert cv lsp-ping [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ mtu <mtu-value> ] [ control-word | no-control-word ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      policy-name: *id083
+      trans-label: *id084
+      received-label: *id085
+      mtu-value: *id086
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.6
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ mtu <mtu-value> ] [ control-word | no-control-word ] [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ mtu <mtu-value> ] [ control-word | no-control-word ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      policy-name: *id083
+      trans-label: *id084
+      received-label: *id085
+      mtu-value: *id086
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.7
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> [ tunnel-policy <policy-name> ] backup <ip-address> <vc-id> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ tunnel-policy <policy-name> ] between <ip-address> <vc-id> [ tunnel-policy <policy-name> ] backup <ip-address> <vc-id> [ tunnel-policy <policy-name> ] encapsulation { ethernet | vlan } [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      policy-name: *id083
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.8
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] [ oam-packet pop flow-label ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | cesopsn-basic | ethernet | fr | ip-interworking | ip-layer2 | ppp | satop-e1 | satop-e3 | satop-t1 | vlan | cep } [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] [ oam-packet pop flow-label ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | cesopsn-basic | ethernet | fr | ip-interworking | ip-layer2 | ppp | satop-e1 | satop-e3 | satop-t1 | vlan | cep } [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      cir-value: &id095
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      pir-value: &id096
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      qos-profile-name: &id097
+        type: word
+      policy-name: *id083
+      endpoint-address: &id087
+        type: word
+      endpoint4-address: &id088
+        type: ipv4
+      color-value: &id089
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      srv6-sid-address: &id090
+        type: word
+      sid-mask-length: &id091
+        type: mask-length
+      sw-endpoint4-address: &id092
+        type: ipv4
+      sw-srv6-sid-address: &id093
+        type: word
+      sw-sid-mask-length: &id094
+        type: mask-length
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.9
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | cesopsn-basic | ethernet | fr | ip-interworking | ip-layer2 | ppp | satop-e1 | satop-e3 | satop-t1 | vlan | cep } [ [ control-word | no-control-word ] ] [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | cesopsn-basic | ethernet | fr | ip-interworking | ip-layer2 | ppp | satop-e1 | satop-e3 | satop-t1 | vlan | cep } [ [ control-word | no-control-word ] ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      trans-label: *id084
+      received-label: *id085
+      policy-name: *id083
+      endpoint-address: *id087
+      endpoint4-address: *id088
+      color-value: *id089
+      srv6-sid-address: *id090
+      sid-mask-length: *id091
+      sw-endpoint4-address: *id092
+      sw-srv6-sid-address: *id093
+      sw-sid-mask-length: *id094
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.10
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | cesopsn-basic | ethernet | ip-interworking | ip-layer2 | satop-e1 | vlan } [ control-word | no-control-word ] { cc { cw | alert } &<1-9> cv lsp-ping } [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | cesopsn-basic | ethernet | fr | ip-interworking | ip-layer2 | ppp | satop-e1 | satop-e3 | satop-t1 | vlan | cep } [ [ control-word | no-control-word ] ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      trans-label: *id084
+      received-label: *id085
+      policy-name: *id083
+      endpoint-address: *id087
+      endpoint4-address: *id088
+      color-value: *id089
+      srv6-sid-address: *id090
+      sid-mask-length: *id091
+      sw-endpoint4-address: *id092
+      sw-srv6-sid-address: *id093
+      sw-sid-mask-length: *id094
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.11
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] [ oam-packet pop flow-label ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | cesopsn-basic | satop-e1 | ethernet | fr | ip-interworking | ip-layer2 | ppp | satop-e3 | satop-t1 | vlan | cep } [ control-word | no-control-word ] [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] [ oam-packet pop flow-label ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | cesopsn-basic | satop-e1 | ethernet | fr | ip-interworking | ip-layer2 | ppp | satop-e3 | satop-t1 | vlan | cep } [ control-word | no-control-word ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      trans-label: *id084
+      received-label: *id085
+      cir-value: *id095
+      pir-value: *id096
+      qos-profile-name: *id097
+      policy-name: *id083
+      endpoint-address: *id087
+      endpoint4-address: *id088
+      color-value: *id089
+      srv6-sid-address: *id090
+      sid-mask-length: *id091
+      sw-endpoint4-address: *id092
+      sw-srv6-sid-address: *id093
+      sw-sid-mask-length: *id094
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.12
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] [ oam-packet pop flow-label ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | ethernet | fr | ip-interworking | ip-layer2 | ppp | vlan } [ mtu <mtu-value> ] control-word cc { cw | alert } &<1-9> cv lsp-ping [ flow-label { both | send | receive } ] [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] [ oam-packet pop flow-label ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | fr | ethernet | ip-interworking | ip-layer2 | ppp | vlan } [ mtu <mtu-value> ] [ control-word | no-control-word ] [ flow-label { both | send | receive } ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      cir-value: *id095
+      pir-value: *id096
+      qos-profile-name: *id097
+      policy-name: *id083
+      endpoint-address: *id087
+      endpoint4-address: *id088
+      color-value: *id089
+      srv6-sid-address: *id090
+      sid-mask-length: *id091
+      trans-label: *id084
+      received-label: *id085
+      sw-endpoint4-address: *id092
+      sw-srv6-sid-address: *id093
+      sw-sid-mask-length: *id094
+      mtu-value: *id086
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.13
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] [ oam-packet pop flow-label ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | ethernet | fr | ip-interworking | ip-layer2 | ppp | vlan } [ mtu <mtu-value> ] [ no-control-word ] cc alert cv lsp-ping [ flow-label { both | send | receive } ] [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] [ oam-packet pop flow-label ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | fr | ethernet | ip-interworking | ip-layer2 | ppp | vlan } [ mtu <mtu-value> ] [ control-word | no-control-word ] [ flow-label { both | send | receive } ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      cir-value: *id095
+      pir-value: *id096
+      qos-profile-name: *id097
+      policy-name: *id083
+      endpoint-address: *id087
+      endpoint4-address: *id088
+      color-value: *id089
+      srv6-sid-address: *id090
+      sid-mask-length: *id091
+      trans-label: *id084
+      received-label: *id085
+      sw-endpoint4-address: *id092
+      sw-srv6-sid-address: *id093
+      sw-sid-mask-length: *id094
+      mtu-value: *id086
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.14
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] [ oam-packet pop flow-label ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | ethernet | fr | ip-interworking | ip-layer2 | ppp | vlan } [ mtu <mtu-value> ] [ control-word | no-control-word ] [ flow-label { both | send | receive } ] [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] [ oam-packet pop flow-label ] encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | fr | ethernet | ip-interworking | ip-layer2 | ppp | vlan } [ mtu <mtu-value> ] [ control-word | no-control-word ] [ flow-label { both | send | receive } ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      cir-value: *id095
+      pir-value: *id096
+      qos-profile-name: *id097
+      policy-name: *id083
+      endpoint-address: *id087
+      endpoint4-address: *id088
+      color-value: *id089
+      srv6-sid-address: *id090
+      sid-mask-length: *id091
+      trans-label: *id084
+      received-label: *id085
+      sw-endpoint4-address: *id092
+      sw-srv6-sid-address: *id093
+      sw-sid-mask-length: *id094
+      mtu-value: *id086
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.15
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] ] [ oam-packet pop flow-label ] encapsulation { satop-e1 | satop-e3 | satop-t1 } [ mtu <mtu-value> ] [ control-word | no-control-word ] [ rtp-header ] [ tdm-encapsulation <number> ] [ flow-label { both | send | receive } ] [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] ] [ oam-packet pop flow-label ] encapsulation { satop-e1 | satop-e3 | satop-t1 } [ mtu <mtu-value> ] [ control-word | no-control-word ] [ rtp-header ] [ tdm-encapsulation <number> ] [ flow-label { both | send | receive } ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      cir-value: *id095
+      pir-value: *id096
+      qos-profile-name: *id097
+      policy-name: *id083
+      endpoint-address: *id087
+      endpoint4-address: *id088
+      color-value: *id089
+      trans-label: *id084
+      received-label: *id085
+      sw-endpoint4-address: *id092
+      mtu-value: *id086
+      number: &id098
+        type: word
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.16
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] ] [ oam-packet pop flow-label ] encapsulation cesopsn-basic [ mtu <mtu-value> ] [ control-word | no-control-word ] [ rtp-header ] [ timeslotnum <timeslotnum-value> ] [ tdm-encapsulation <number> ] [ flow-label { both | send | receive } ] [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] ] [ oam-packet pop flow-label ] between <ip-address> <vc-id> trans <trans-label> recv <received-label> [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] ] [ oam-packet pop flow-label ] encapsulation cesopsn-basic [ mtu <mtu-value> ] [ control-word | no-control-word ] [ rtp-header ] [ timeslotnum <timeslotnum-value> ] [ tdm-encapsulation <number> ] [ flow-label { both | send | receive } ] [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      cir-value: *id095
+      pir-value: *id096
+      qos-profile-name: *id097
+      policy-name: *id083
+      endpoint-address: *id087
+      endpoint4-address: *id088
+      color-value: *id089
+      trans-label: *id084
+      received-label: *id085
+      sw-endpoint4-address: *id092
+      mtu-value: *id086
+      timeslotnum-value:
+        type: word
+      number: *id098
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc.17
+    syntax: mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] between <ip-address> <vc-id> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] backup <ip-address> <vc-id> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <bak-endpoint4-address> ] } color <color-value> ] | srv6-sid <bak-srv6-sid-address> [ <bak-sid-mask-length> ] ] encapsulation { ethernet | fr | ip-interworking | ip-layer2 | ppp | vlan | cep } [ control-word-transparent ]
+    view: system
+    undo: undo mpls switch-l2vc [ instance-name <instance-name> ] <ip-address> <vc-id> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <endpoint4-address> ] } color <color-value> ] | srv6-sid <srv6-sid-address> [ <sid-mask-length> ] ] between <ip-address> <vc-id> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <sw-endpoint4-address> ] } color <color-value> ] | srv6-sid <sw-srv6-sid-address> [ <sw-sid-mask-length> ] ] backup <ip-address> <vc-id> [ tunnel-policy <policy-name> [ { endpoint <endpoint-address> | [ endpoint <bak-endpoint4-address> ] } color <color-value> ] | srv6-sid <bak-srv6-sid-address> [ <bak-sid-mask-length> ] ] encapsulation { ethernet | fr | ip-interworking | ip-layer2 | ppp | vlan | cep } [ control-word-transparent ]
+    params:
+      instance-name: *id080
+      ip-address: *id081
+      vc-id: *id082
+      policy-name: *id083
+      endpoint-address: *id087
+      endpoint4-address: *id088
+      color-value: *id089
+      srv6-sid-address: *id090
+      sid-mask-length: *id091
+      sw-endpoint4-address: *id092
+      sw-srv6-sid-address: *id093
+      sw-sid-mask-length: *id094
+      bak-endpoint4-address:
+        type: ipv4
+      bak-srv6-sid-address:
+        type: word
+      bak-sid-mask-length:
+        type: mask-length
+    default: By default, QoS parameters are not configured for MS-PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc (System view)
+      line: 11646
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc-between-encapsulation-bit-error-detection.1
+    syntax: mpls switch-l2vc <ip-address> <vc-id> between <ip-address> <vc-id> encapsulation { ethernet | vlan } bit-error-detection
+    view: system
+    undo: undo mpls switch-l2vc <ip-address> <vc-id> between <ip-address> <vc-id> encapsulation { ethernet | vlan } bit-error-detection
+    params:
+      ip-address: &id099
+        type: ipv4
+      vc-id: &id100
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, bit-error-triggered PW switching is disabled on the S-PE for an LDP multi-segment PW.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc between encapsulation bit-error-detection
+      line: 11901
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc-between-encapsulation-bit-error-detection.2
+    syntax: mpls switch-l2vc <ip-address> <vc-id> between <ip-address> <vc-id> encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | cesopsn-basic | ethernet | ip-interworking | ip-layer2 | ppp | satop-e1 | satop-e3 | satop-t1 | vlan | cep } bit-error-detection
+    view: system
+    undo: undo mpls switch-l2vc <ip-address> <vc-id> between <ip-address> <vc-id> encapsulation { atm-1to1-vcc | atm-1to1-vpc | atm-aal5-pdu | atm-aal5-sdu | atm-nto1-vcc | atm-nto1-vpc | atm-trans-cell | cesopsn-basic | ethernet | ip-interworking | ip-layer2 | ppp | satop-e1 | satop-e3 | satop-t1 | vlan | cep } bit-error-detection
+    params:
+      ip-address: *id099
+      vc-id: *id100
+    default: By default, bit-error-triggered PW switching is disabled on the S-PE for an LDP multi-segment PW.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc between encapsulation bit-error-detection
+      line: 11901
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc-encapsulation-reroute
+    syntax: mpls switch-l2vc <ip-address> <vc-id> encapsulation { ethernet | ip-interworking | ip-layer2 | ppp | vlan | cep } reroute { delay <delay-time> | immediately | never }
+    view: system
+    undo: undo mpls switch-l2vc <ip-address> <vc-id> encapsulation { ethernet | ip-interworking | ip-layer2 | ppp | vlan | cep } reroute { delay <delay-time> | immediately | never }
+    params:
+      ip-address:
+        type: ipv4
+      vc-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      delay-time:
+        type: integer
+        range:
+          - 10
+          - 10800
+    default: By default, in master/slave mode of PW redundancy, the switchback policy is configured as delayed switchback with the delay being 30 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc encapsulation reroute
+      line: 12010
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-switch-l2vc-encapsulation-switchover
+    syntax: mpls switch-l2vc <ip-address> <vc-id> encapsulation { ethernet | ip-interworking | ip-layer2 | ppp | vlan | cep } switchover
+    view: system
+    undo: undo mpls switch-l2vc <ip-address> <vc-id> encapsulation { ethernet | ip-interworking | ip-layer2 | ppp | vlan | cep } switchover
+    params:
+      ip-address:
+        type: ipv4
+      vc-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, the mpls switch-l2vc switchover command is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mpls switch-l2vc encapsulation switchover
+      line: 12099
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mtu~3
+    syntax: mtu <mtu>
+    view: pw-template
+    undo: undo mtu
+    params:
+      mtu:
+        type: integer
+        range:
+          - 46
+          - 9600
+    default: By default, the MTU of a PW template is 0 bytes and the MTU of a PWE3 service is 1500 bytes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: mtu (PW template view)
+      line: 12272
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.pw_class.mtu: $mtu
+  - id: huawei-vrp8.payload-compression-dba
+    syntax: payload-compression dba uneq
+    view: pw-template
+    undo: undo payload-compression dba
+    default: By default, payload compression DBA is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: payload-compression dba
+      line: 12427
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer~2
+    syntax: peer <peer-address>
+    view: mpls-l2vpn
+    undo: undo peer <peer-address>
+    params:
+      peer-address:
+        type: ipv4
+    default: By default, the L2VPN peer view does not exist.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: peer (MPLS-L2VPN view)
+      line: 12497
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-address
+    syntax: peer-address <ip-address>
+    view: pw-template
+    undo: undo peer-address
+    params:
+      ip-address:
+        type: ipv4
+    default: By default, no peer address is configured for a PW.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: peer-address (PW template view)
+      line: 12565
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.pw_class.peer: $ip-address
+  - id: huawei-vrp8.pw-aps
+    syntax: pw-aps <apsId> [ frr ]
+    view: system
+    undo: undo pw-aps <apsId> [ frr ]
+    params:
+      apsId:
+        type: integer
+        range:
+          - 1
+          - 16384
+    default: By default, no PW APS instance is configured in the system.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: pw-aps (System view)
+      line: 12816
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.pw-template
+    syntax: pw-template <pwname>
+    view: system
+    enters_view: pw-template
+    undo: undo pw-template <pwname>
+    params:
+      pwname:
+        type: word
+    default: By default, no PW template is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: pw-template
+      line: 12905
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.pw_class: $pwname
+  - id: huawei-vrp8.remote-ce-ip
+    syntax: remote-ce ip <ip-address>
+    view: interface
+    undo: undo remote-ce ip
+    params:
+      ip-address:
+        type: ipv4
+    default: By default, the IP address of the remote CE corresponding to an access interface or its sub-interface on a PE is not specified.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: remote-ce ip
+      line: 12974
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.rtp-header
+    syntax: rtp-header
+    view: pw-template
+    undo: undo rtp-header
+    default: By default, the transparently transmitted TDM frames do not contain the RTP header.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: rtp-header
+      line: 13449
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tdm-encapsulation-number
+    syntax: tdm-encapsulation-number <tdmEncapNumber>
+    view: pw-template
+    undo: undo tdm-encapsulation-number
+    params:
+      tdmEncapNumber:
+        type: integer
+        range:
+          - 1
+          - 24
+    default: By default, the number of encapsulated TDM frames in a CESoPSN or SAToP packet is 8.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: tdm-encapsulation-number
+      line: 13507
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tnl-policy~3
+    syntax: tnl-policy <tnlPolicyName>
+    view: pw-template
+    undo: undo tnl-policy
+    params:
+      tnlPolicyName:
+        type: word
+    default: By default, no tunnel policy is specified for PWs applying a PW template.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: tnl-policy (PW template view)
+      line: 13587
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.pw_class.tunnel_policy: $tnlPolicyName
+  - id: huawei-vrp8.transmit-atm-cells
+    syntax: transmit-atm-cells <transmit-atm-cells-value>
+    view: pw-template
+    undo: undo transmit-atm-cells
+    params:
+      transmit-atm-cells-value:
+        type: integer
+        range:
+          - 1
+          - 28
+    default: By default, the maximum number of ATM cells to be encapsulated into a packet that can be sent by a device is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/01_VPWS Configuration Commands.md
+      title: transmit-atm-cells
+      line: 13882
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.admin-vsi
+    syntax: admin-vsi
+    view: vsi
+    undo: undo admin-vsi
+    default: By default, no mVSI is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: admin-vsi
+      line: 75
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-detect
+    syntax: bfd-detect [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> | option-tlv ] &<1-9> [ track group <group-name> ]
+    view: vsi-ldp-pw
+    undo: undo bfd-detect [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> | option-tlv ] &<1-9> [ track group <group-name> ]
+    params:
+      multiplier:
+        type: integer
+        range:
+          - 3
+          - 50
+      rx-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      tx-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      group-name:
+        type: word
+    default: By default, dynamic BFD for VPLS PW is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: bfd-detect (VSI-LDP-PW view)
+      line: 303
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bgp-ad
+    syntax: bgp-ad
+    view: vsi
+    undo: undo bgp-ad
+    default: By default, no BGP AD view is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: bgp-ad
+      line: 398
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bgp-vpn-label-block-size
+    syntax: bgp-vpn label-block-size <size-value>
+    view: mpls-l2vpn
+    undo: undo bgp-vpn label-block-size [ <size-value> ]
+    params:
+      size-value:
+        type: integer
+    default: By default, the BGP L2VPN label block size is 8.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: bgp-vpn label-block-size
+      line: 454
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.control-word~2
+    syntax: control-word { enable | disable }
+    view: vsi-ldp-pw
+    undo: undo control-word enable
+    default: By default, a PW has the same control word function as the VSI to which the PW belongs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: control-word (VSI-LDP-PW view)
+      line: 650
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.control-word-enable
+    syntax: control-word enable
+    view: vsi-ldp
+    undo: undo control-word enable
+    default: By default, the control word function is disabled for VSIs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: control-word enable (VSI-LDP view)
+      line: 818
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.description~9
+    syntax: description <description>
+    view: vsi
+    undo: undo description
+    params:
+      description:
+        type: text
+    default: By default, no description is configured for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: description (VSI view)
+      line: 958
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.description: $description
+  - id: huawei-vrp8.encapsulation.1~2
+    syntax: encapsulation vlan
+    view: vsi
+    undo: undo encapsulation [ ethernet ]
+    default: By default, the encapsulation type of a VSI is VLAN.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: encapsulation
+      line: 3629
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.encapsulation: kw:vlan|ethernet
+  - id: huawei-vrp8.encapsulation.2~2
+    syntax: encapsulation ethernet
+    view: vsi
+    undo: undo encapsulation [ ethernet ]
+    default: By default, the encapsulation type of a VSI is VLAN.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: encapsulation
+      line: 3629
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.encapsulation: kw:vlan|ethernet
+  - id: huawei-vrp8.encapsulation-vlan-pass
+    syntax: encapsulation vlan pass
+    view: vsi-ldp-pw
+    undo: undo encapsulation vlan pass
+    default: By default, the BD VPLS forwarding mode is raw.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: encapsulation vlan pass(VSI-LDP-PW view)
+      line: 3764
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flow-label~2
+    syntax: flow-label { both | send | receive } [ static ]
+    view: vsi-ldp
+    undo: undo flow-label { both | send | receive } [ static ]
+    default: By default, flow-label-based load balancing of L2VPN VSIs is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: flow-label (VSI-LDP view)
+      line: 3974
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flow-label~3
+    syntax: flow-label { { both | send | receive } [ static ] | disable }
+    view: vsi-ldp-pw
+    undo: undo flow-label { { both | send | receive } [ static ] | disable }
+    default: By default, a PW has the same L2VPN flow label-based load balancing capability as the VSI to which it belongs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: flow-label (VSI-LDP-PW view)
+      line: 4059
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flow-label-hash-fields
+    syntax: flow-label hash-fields { l2 | l3 | l4 }
+    view: system
+    undo: undo flow-label hash-fields { l2 | l3 | l4 }
+    default: By default, L4 is used as a flow label hash element.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: flow-label hash-fields
+      line: 4171
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.hub-mode-enable
+    syntax: hub-mode enable
+    view: interface
+    undo: undo hub-mode enable
+    default: By default, the VSI attributes on the AC and PW sides are spoke and hub, respectively.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: hub-mode enable
+      line: 4314
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ignore-ac-state
+    syntax: ignore-ac-state
+    view: vsi
+    undo: undo ignore-ac-state
+    default: By default, AC status changes affect the VSI status.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: ignore-ac-state
+      line: 4388
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ignore-stp-loopcheck
+    syntax: ignore-stp-loopcheck
+    view: vsi-ldp-pw
+    undo: undo ignore-stp-loopcheck
+    default: By default, STP loopback detection is enabled for PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: ignore-stp-loopcheck
+      line: 4461
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.inclusive-provider-tunnel
+    syntax: inclusive-provider-tunnel
+    view: vsi
+    undo: undo inclusive-provider-tunnel
+    default: By default, the VSI-Inclusive view does not exist.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: inclusive-provider-tunnel (VSI view)
+      line: 4538
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.interface-parameter-type-vccv~2
+    syntax: interface-parameter-type vccv
+    view: vsi-ldp-pw
+    undo: undo interface-parameter-type vccv
+    default: By default, a Mapping packet carries the VCCV byte.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: interface-parameter-type vccv
+      line: 4615
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.interface-status-change-mac-withdraw-enable
+    syntax: interface-status-change [ up | down ] mac-withdraw enable
+    view: vsi
+    undo: undo interface-status-change [ up | down ] mac-withdraw enable
+    default: By default, a VSI does not send LDP MAC Withdraw messages.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: interface-status-change mac-withdraw enable
+      line: 4679
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.interface-status-change-mac-withdraw-enable~2
+    syntax: interface-status-change [ up | down ] mac-withdraw enable
+    view: vsi-ldp
+    undo: undo interface-status-change [ up | down ] mac-withdraw enable
+    default: By default, a VSI does not send LDP MAC Withdraw messages.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: interface-status-change mac-withdraw enable (VSI-LDP view)
+      line: 4745
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isolate-spoken.1
+    syntax: isolate spoken
+    view: vsi
+    undo: undo isolate spoken
+    default: By default, forwarding isolation between AC interfaces, between UPE PWs, and between AC interfaces and UPE PWs in a VSI is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: isolate spoken
+      line: 4814
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isolate-spoken.2
+    syntax: isolate spoken include-multicast
+    view: vsi
+    undo: undo isolate spoken
+    default: By default, forwarding isolation between AC interfaces, between UPE PWs, and between AC interfaces and UPE PWs in a VSI is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: isolate spoken
+      line: 4814
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.l2-binding
+    syntax: l2 binding vsi <vsi-name> [ pw-tag <pw-tag-value> ]
+    view: bridge-domain
+    undo: undo l2 binding vsi <vsi-name>
+    params:
+      vsi-name:
+        type: word
+      pw-tag-value:
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, a BD is not bound to any VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: l2 binding (Bridge domain view)
+      line: 4908
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bridge_domain.vsi: $vsi-name
+  - id: huawei-vrp8.l2-binding-vsi
+    syntax: l2 binding vsi <vsi-name> [ multi-homing-site <site-name> ]
+    view: interface
+    undo: undo l2 binding vsi <vsi-name> [ multi-homing-site <site-name> ]
+    params:
+      vsi-name:
+        type: word
+      site-name:
+        type: word
+    default: By default, a VSI instance is not bound to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: l2 binding vsi
+      line: 4986
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.vsi: $vsi-name
+  - id: huawei-vrp8.l2-binding-vsi-access-port
+    syntax: l2 binding vsi <vsi-name> access-port
+    view: interface
+    params:
+      vsi-name:
+        type: word
+    default: By default, a VSI instance is not bound to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: l2 binding vsi access-port
+      line: 5204
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.vsi: $vsi-name
+  - id: huawei-vrp8.local-mac-remove-all-but-mine
+    syntax: local-mac remove all-but-mine
+    view: vsi
+    undo: undo local-mac remove all-but-mine
+    default: By default, when a VSI on a PE receives a MAC Withdraw message with the 0x404 TLV, it clears the MAC addresses learned from all PWs and AC interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: local-mac remove all-but-mine
+      line: 5350
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-mac-remove-all-from-me
+    syntax: local-mac remove all-from-me
+    view: vsi
+    undo: undo local-mac remove all-from-me
+    default: By default, when a VSI receives a MAC Withdraw message carrying 0x404 TLV, it deletes the MAC addresses of all PWs and AC interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: local-mac remove all-from-me
+      line: 5412
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-address-aging-time.1
+    syntax: mac-address aging-time <interval>
+    view: vsi
+    undo: undo mac-address aging-time
+    params:
+      interval:
+        type: integer
+        range:
+          - 60
+          - 1000000
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-address aging-time
+      line: 5472
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-address-aging-time.2
+    syntax: mac-address aging-time local <local-seconds>
+    view: vsi
+    undo: undo mac-address aging-time local
+    params:
+      local-seconds:
+        type: integer
+        range:
+          - 60
+          - 1000000
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-address aging-time
+      line: 5472
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-address-aging-time.3
+    syntax: mac-address aging-time remote <remote-seconds>
+    view: vsi
+    undo: undo mac-address aging-time remote
+    params:
+      remote-seconds:
+        type: integer
+        range:
+          - 60
+          - 1000000
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-address aging-time
+      line: 5472
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-learn-style.1
+    syntax: mac-learn-style { qualify | unqualify }
+    view: vsi
+    undo: undo mac-learn-style qualify
+    default: By default, the MAC address learning mode is unqualify.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-learn-style
+      line: 5549
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-learn-style.2
+    syntax: mac-learn-style unqualify
+    view: vsi
+    undo: undo mac-learn-style qualify
+    default: By default, the MAC address learning mode is unqualify.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-learn-style
+      line: 5549
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-learn-style.3
+    syntax: mac-learn-style qualify { outer-vlan | inner-vlan }
+    view: vsi
+    undo: undo mac-learn-style qualify { outer-vlan | inner-vlan }
+    default: By default, the MAC address learning mode is unqualify.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-learn-style
+      line: 5549
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-learning.1
+    syntax: mac-learning enable
+    view: vsi
+    undo: undo mac-learning disable
+    default: By default, MAC address learning is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-learning
+      line: 5660
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-learning.2
+    syntax: mac-learning disable
+    view: vsi
+    undo: undo mac-learning disable
+    default: By default, MAC address learning is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-learning
+      line: 5660
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-withdraw-bd-pw-tag-enable
+    syntax: mac-withdraw bd pw-tag enable
+    view: vsi
+    undo: undo mac-withdraw bd pw-tag enable
+    default: By default, a PE sends MAC Withdraw messages that do not carry the PW tag to all its peers when the status of an EVC Layer 2 sub-interface changes or a BD goes Down.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-withdraw bd pw-tag enable
+      line: 5724
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-withdraw-bd-status-down-disable
+    syntax: mac-withdraw bd-status down disable
+    view: vsi
+    undo: undo mac-withdraw bd-status down disable
+    default: By default, a PE sends MAC Withdraw messages with the 0x404 TLV type to all peers when a BD goes Down.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-withdraw bd-status down disable
+      line: 5796
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-withdraw-enable
+    syntax: mac-withdraw enable
+    view: vsi
+    undo: undo mac-withdraw enable
+    default: By default, MAC Withdraw is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-withdraw enable
+      line: 5856
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-withdraw-enable~2
+    syntax: mac-withdraw enable
+    view: vsi-ldp
+    undo: undo mac-withdraw enable
+    default: By default, MAC Withdraw is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-withdraw enable (VSI-LDP view)
+      line: 5920
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-withdraw-propagate-enable
+    syntax: mac-withdraw propagate enable
+    view: vsi
+    undo: undo mac-withdraw propagate enable
+    default: By default, a PE does not forward a received MAC Withdraw message.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mac-withdraw propagate enable
+      line: 5982
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.monitor-group~2
+    syntax: monitor-group <group-name>
+    view: mpls-l2vpn
+    undo: undo monitor-group <group-name>
+    params:
+      group-name:
+        type: word
+    default: By default, no L2VPN monitoring group is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: monitor-group (MPLS-L2VPN view)
+      line: 6368
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-multi-homing-trigger-cfm
+    syntax: mpls l2vpn multi-homing trigger cfm md <md-name> ma <ma-name>
+    view: interface
+    undo: undo mpls l2vpn multi-homing trigger cfm [ md <md-name> ma <ma-name> ]
+    params:
+      md-name:
+        type: word
+      ma-name:
+        type: word
+    default: By default, CFM is not associated with any AC interface's blocked state.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mpls l2vpn multi-homing trigger cfm
+      line: 6431
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-multi-homing-trigger-efm
+    syntax: mpls l2vpn multi-homing trigger efm
+    view: interface
+    undo: undo mpls l2vpn multi-homing trigger efm
+    default: By default, EFM is not associated with an AC interface's blocked state.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mpls l2vpn multi-homing trigger efm
+      line: 6522
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mtu~2
+    syntax: mtu <mtu>
+    view: vsi
+    undo: undo mtu
+    params:
+      mtu:
+        type: integer
+        range:
+          - 328
+          - 65535
+    default: By default, the MTU of a VSI is 1500 bytes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: mtu (VSI view)
+      line: 6685
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.mtu: $mtu
+  - id: huawei-vrp8.npe-upe-mac-withdraw-enable
+    syntax: npe-upe mac-withdraw enable
+    view: vsi-ldp
+    undo: undo npe-upe mac-withdraw enable
+    default: By default, an SPE does not forward the LDP MAC Withdraw messages received from other NPEs to UPEs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: npe-upe mac-withdraw enable
+      line: 6823
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.p2p-vsi-enable
+    syntax: p2p-vsi enable
+    view: vsi
+    undo: undo p2p-vsi enable
+    default: By default, no local VPLS connection is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: p2p-vsi enable
+      line: 7046
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer.1
+    syntax: peer <peer-address> [ negotiation-vc-id <pwIdValue> ] [ encapsulation { vlan | ethernet } ] [ tnl-policy <policy-name> [ [ endpoint <endpoint4-address> ] color <color-value> ] ] { static-npe | static-upe } trans <transmit-label> recv <receive-label>
+    view: vsi-ldp
+    undo: undo peer <peer-address> [ negotiation-vc-id <pwIdValue> ] [ encapsulation { vlan | ethernet } ] [ tnl-policy <policy-name> [ [ endpoint <endpoint4-address> ] color <color-value> ] ] { static-npe | static-upe } trans <transmit-label> recv <receive-label>
+    params:
+      peer-address: &id101
+        type: ipv4
+      pwIdValue: &id102
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      policy-name: &id103
+        type: word
+      endpoint4-address:
+        type: ipv4
+      color-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      transmit-label: &id104
+        type: integer
+        range:
+          - 0
+          - 1048575
+      receive-label: &id105
+        type: integer
+        range:
+          - 16
+          - 2047
+    default: By default, no static UPE peer is configured for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: peer
+      line: 7120
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.peer: $peer-address
+      l2vpn.vsi.peer.vc_id: $vc-id||$pwIdValue
+      l2vpn.vsi.peer.tunnel_policy: $policy-name
+      l2vpn.vsi.peer.encapsulation: kw:vlan|ethernet
+  - id: huawei-vrp8.peer.2
+    syntax: peer <peer-address> [ negotiation-vc-id <pwIdValue> ] [ encapsulation { vlan | ethernet } ] [ tnl-policy <policy-name> ] { static-npe | static-upe } trans <transmit-label> recv <receive-label> hard-pipe bandwidth <bandwidth> [ burst-time <burst-time> ]
+    view: vsi-ldp
+    undo: undo peer <peer-address> [ negotiation-vc-id <pwIdValue> ] [ encapsulation { vlan | ethernet } ] [ tnl-policy <policy-name> ] { static-npe | static-upe } trans <transmit-label> recv <receive-label> hard-pipe bandwidth <bandwidth> [ burst-time <burst-time> ]
+    params:
+      peer-address: *id101
+      pwIdValue: *id102
+      policy-name: *id103
+      transmit-label: *id104
+      receive-label: *id105
+      bandwidth:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      burst-time:
+        type: integer
+        range:
+          - 100
+          - 5000
+    default: By default, no static UPE peer is configured for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: peer
+      line: 7120
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.peer: $peer-address
+      l2vpn.vsi.peer.vc_id: $vc-id||$pwIdValue
+      l2vpn.vsi.peer.tunnel_policy: $policy-name
+      l2vpn.vsi.peer.encapsulation: kw:vlan|ethernet
+  - id: huawei-vrp8.peer.3
+    syntax: peer <peer-address> [ negotiation-vc-id <pwIdValue> ] [ encapsulation { vlan | ethernet } ] [ tnl-policy <policy-name> ] { static-npe | static-upe } trans <transmit-label> recv <receive-label>
+    view: vsi-ldp
+    undo: undo peer <peer-address> [ negotiation-vc-id <pwIdValue> ] [ encapsulation { vlan | ethernet } ] [ tnl-policy <policy-name> ] { static-npe | static-upe } trans <transmit-label> recv <receive-label> hard-pipe bandwidth <bandwidth> [ burst-time <burst-time> ]
+    params:
+      peer-address: *id101
+      pwIdValue: *id102
+      policy-name: *id103
+      transmit-label: *id104
+      receive-label: *id105
+    default: By default, no static UPE peer is configured for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: peer
+      line: 7120
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.peer: $peer-address
+      l2vpn.vsi.peer.vc_id: $vc-id||$pwIdValue
+      l2vpn.vsi.peer.tunnel_policy: $policy-name
+      l2vpn.vsi.peer.encapsulation: kw:vlan|ethernet
+  - id: huawei-vrp8.peer.4
+    syntax: peer <peer-address> [ negotiation-vc-id <pwIdValue> ] [ encapsulation { vlan | ethernet } ] [ tnl-policy <policy-name> ] { static-npe | static-upe } trans <transmit-label> recv <receive-label> ignore-standby-state
+    view: vsi-ldp
+    undo: undo peer <peer-address> [ negotiation-vc-id <pwIdValue> ] [ encapsulation { vlan | ethernet } ] [ tnl-policy <policy-name> ] { static-npe | static-upe } trans <transmit-label> recv <receive-label> hard-pipe bandwidth <bandwidth> [ burst-time <burst-time> ]
+    params:
+      peer-address: *id101
+      pwIdValue: *id102
+      policy-name: *id103
+      transmit-label: *id104
+      receive-label: *id105
+    default: By default, no static UPE peer is configured for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: peer
+      line: 7120
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.peer: $peer-address
+      l2vpn.vsi.peer.vc_id: $vc-id||$pwIdValue
+      l2vpn.vsi.peer.tunnel_policy: $policy-name
+      l2vpn.vsi.peer.encapsulation: kw:vlan|ethernet
+  - id: huawei-vrp8.peer.1~2
+    syntax: peer <peer-address> [ negotiation-vc-id <vc-id> ] [ encapsulation { vlan | ethernet } ] [ tnl-policy <policy-name> [ [ endpoint <endpoint4-address> ] color <color-value> ] ] [ upe ] [ secondary ] [ ignore-standby-state ]
+    view: vsi-ldp
+    undo: undo peer <peer-address> [ negotiation-vc-id <vc-id> ] [ encapsulation { vlan | ethernet } ] [ tnl-policy <policy-name> [ [ endpoint <endpoint4-address> ] color <color-value> ] ] [ upe ] [ secondary ] [ ignore-standby-state ]
+    params:
+      peer-address: &id106
+        type: ipv4
+      vc-id: &id107
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      policy-name: &id108
+        type: word
+      endpoint4-address:
+        type: ipv4
+      color-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no peer is specified for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: peer (VSI-LDP view)
+      line: 7251
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.peer: $peer-address
+      l2vpn.vsi.peer.vc_id: $vc-id||$pwIdValue
+      l2vpn.vsi.peer.tunnel_policy: $policy-name
+      l2vpn.vsi.peer.encapsulation: kw:vlan|ethernet
+  - id: huawei-vrp8.peer.2~2
+    syntax: peer <peer-address> [ negotiation-vc-id <vc-id> ] [ encapsulation { vlan | ethernet } ] [ tnl-policy <policy-name> ] [ upe ] [ secondary ] [ ignore-standby-state ]
+    view: vsi-ldp
+    undo: undo peer <peer-address> [ negotiation-vc-id <vc-id> ] [ encapsulation { vlan | ethernet } ] [ tnl-policy <policy-name> ] [ upe ] [ secondary ] [ ignore-standby-state ]
+    params:
+      peer-address: *id106
+      vc-id: *id107
+      policy-name: *id108
+    default: By default, no peer is specified for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: peer (VSI-LDP view)
+      line: 7251
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.peer: $peer-address
+      l2vpn.vsi.peer.vc_id: $vc-id||$pwIdValue
+      l2vpn.vsi.peer.tunnel_policy: $policy-name
+      l2vpn.vsi.peer.encapsulation: kw:vlan|ethernet
+  - id: huawei-vrp8.peer-pw.1
+    syntax: peer <peer-address> pw <pw-name>
+    view: vsi-ldp
+    undo: undo peer <peer-address> [ negotiation-vc-id <vc-id> ] pw
+    params:
+      peer-address: &id109
+        type: ipv4
+      pw-name: &id110
+        type: word
+    default: By default, no peer is specified for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: peer pw (VSI-LDP view)
+      line: 7576
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-pw.2
+    syntax: peer <peer-address> negotiation-vc-id <vc-id> pw <pw-name>
+    view: vsi-ldp
+    undo: undo peer <peer-address> [ negotiation-vc-id <vc-id> ] pw
+    params:
+      peer-address: *id109
+      vc-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      pw-name: *id110
+    default: By default, no peer is specified for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: peer pw (VSI-LDP view)
+      line: 7576
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-track-admin-vrrp-vrid
+    syntax: peer <peer-address> [ negotiation-vc-id <vc-id> ] track admin-vrrp interface { <interface-name> | <interface-type> <interface-number> } vrid <virtual-router-id> pw-redundancy backup-block-all
+    view: vsi-ldp
+    undo: undo peer <peer-address> [ negotiation-vc-id <vc-id> ] track admin-vrrp [ interface { <interface-name> | <interface-type> <interface-number> } vrid <virtual-router-id> pw-redundancy backup-block-all ]
+    params:
+      peer-address:
+        type: ipv4
+      vc-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      virtual-router-id:
+        type: ipv4
+    default: By default, no service PW in a service VSI is bound to an mVRRP group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: peer track admin-vrrp vrid(VSI-LDP view)
+      line: 7751
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.peer: $peer-address
+      l2vpn.vsi.peer.vc_id: $vc-id||$pwIdValue
+      l2vpn.vsi.peer.encapsulation: kw:vlan|ethernet
+  - id: huawei-vrp8.preferred-control-word
+    syntax: preferred-control-word
+    view: vsi-ldp-pw
+    undo: undo preferred-control-word
+    default: By default, the preferred control word function is disabled for a VPLS PW.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: preferred-control-word(VSI-LDP-PW view)
+      line: 7910
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.protect-group
+    syntax: protect-group <group-name>
+    view: vsi-ldp
+    undo: undo protect-group <group-name>
+    params:
+      group-name:
+        type: word
+    default: By default, no PW protection group is created in a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: protect-group
+      line: 8065
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.pw
+    syntax: pw <pw-name>
+    view: vsi-ldp
+    enters_view: vsi-ldp-pw
+    undo: undo pw <pw-name>
+    params:
+      pw-name:
+        type: word
+    default: By default, the PW view is not displayed.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: pw (VSI-LDP view)
+      line: 8446
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.pwsignal-bgp
+    syntax: pwsignal bgp
+    view: vsi
+    undo: undo pwsignal bgp
+    default: By default, no signaling mode is configured for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: pwsignal bgp
+      line: 8587
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.signaling: kw:ldp|bgp
+  - id: huawei-vrp8.pwsignal-bgp-multi-homing
+    syntax: pwsignal bgp multi-homing
+    view: vsi
+    undo: undo pwsignal bgp multi-homing
+    default: By default, VPLS multi-homing is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: pwsignal bgp multi-homing
+      line: 8657
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.pwsignal-ldp
+    syntax: pwsignal ldp
+    view: vsi
+    enters_view: vsi-ldp
+    undo: undo pwsignal ldp
+    default: By default, no signaling mode is configured for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: pwsignal ldp
+      line: 8738
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.signaling: kw:ldp|bgp
+  - id: huawei-vrp8.response-ac-state
+    syntax: response-ac-state
+    view: vsi
+    undo: undo response-ac-state
+    default: By default, a VSI is unaware of the EVC Layer 2 sub-interface Down event when all EVC Layer 2 sub-interfaces in a BD are Down.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: response-ac-state
+      line: 9123
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.shutdown~7
+    syntax: shutdown
+    view: vsi
+    undo: undo shutdown
+    default: By default, a VSI is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: shutdown (VSI view)
+      line: 9444
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.status-code-change-flush-mac-disable
+    syntax: status-code-change flush-mac disable
+    view: vsi-ldp-pw
+    undo: undo status-code-change flush-mac disable
+    default: By default, a VPLS PW clears local MAC addresses when it receives the remote status code of 20.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: status-code-change flush-mac disable
+      line: 9864
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tnl-policy~4
+    syntax: tnl-policy <policy-name>
+    view: vsi
+    undo: undo tnl-policy
+    params:
+      policy-name:
+        type: word
+    default: By default, no tunnel policy is configured for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: tnl-policy (VSI view)
+      line: 10002
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.tunnel_policy: $policy-name
+  - id: huawei-vrp8.track-admin-vsi
+    syntax: track admin-vsi <vsi-name>
+    view: vsi
+    undo: undo track admin-vsi
+    params:
+      vsi-name:
+        type: word
+    default: By default, a service VSI is not bound to any mVSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: track admin-vsi
+      line: 10077
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.track-bfd
+    syntax: track bfd <bfd-session>
+    view: vsi-ldp-pw
+    undo: undo track bfd [ <bfd-session> ]
+    params:
+      bfd-session:
+        type: word
+    default: By default, a VPLS LDP PW does not track a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: track bfd
+      line: 10144
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.track-bum-member
+    syntax: track bum-member
+    view: vsi-ldp-pw
+    undo: undo track bum-member
+    default: By default, spoke PW status is not associated with EVPN IMET route status.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: track bum-member
+      line: 10224
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.track-hub-pw
+    syntax: track hub-pw
+    view: vsi-ldp-pw
+    undo: undo track hub-pw
+    default: By default, the spoke PW status is not associated with the hub PW status.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: track hub-pw
+      line: 10290
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.track-monitor-group~2
+    syntax: track monitor-group <group-name>
+    view: vsi-ldp-pw
+    undo: undo track monitor-group <group-name>
+    params:
+      group-name:
+        type: word
+    default: By default, no service VSI PW tracks an L2VPN monitoring group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: track monitor-group (VSI-LDP-PW view)
+      line: 10352
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-statistics-enable~3
+    syntax: traffic-statistics enable
+    view: vsi
+    undo: undo traffic-statistics enable
+    default: By default, VPLS QoS traffic statistics collection is disabled globally in the VSI view.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: traffic-statistics enable (VSI view)
+      line: 10423
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-statistics-enable~2
+    syntax: traffic-statistics enable
+    view: vsi-ldp
+    undo: undo traffic-statistics enable
+    default: By default, PW traffic statistics collection is disabled globally in the VSI-LDP view.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: traffic-statistics enable (VSI-LDP view)
+      line: 10553
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-statistics-packet-type-enable
+    syntax: traffic-statistics packet-type enable
+    view: vsi
+    undo: undo traffic-statistics packet-type enable
+    default: By default, packet-type-based traffic statistics collection is disabled for VPLS PWs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: traffic-statistics packet-type enable
+      line: 10616
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-statistics-peer
+    syntax: traffic-statistics peer <peer-address> [ negotiation-vc-id <vc-id> ] { enable | disable }
+    view: vsi-ldp
+    undo: undo traffic-statistics peer <peer-address> [ negotiation-vc-id <vc-id> ] { enable | disable }
+    params:
+      peer-address:
+        type: ipv4
+      vc-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, the function to collect statistics about the public traffic on the LDP VPLS PW is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: traffic-statistics peer (VSI-LDP view)
+      line: 10753
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.unknown-frame
+    syntax: unknown-frame { unicast { broadcast | drop [ mac-learning ] } | multicast { broadcast | drop } }
+    view: vsi
+    undo: undo unknown-frame { unicast | multicast } { drop }
+    default: By default, the system broadcasts unknown unicast and multicast frames.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: unknown-frame
+      line: 11013
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.upe-npe-mac-withdraw-enable
+    syntax: upe-npe mac-withdraw enable
+    view: vsi-ldp
+    undo: undo upe-npe mac-withdraw enable
+    default: By default, an NPE does not forward the LDP MAC Withdraw messages received from UPEs to other NPEs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: upe-npe mac-withdraw enable
+      line: 11085
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.upe-upe-mac-withdraw-enable
+    syntax: upe-upe mac-withdraw enable
+    view: vsi-ldp
+    undo: undo upe-upe mac-withdraw enable
+    default: By default, an NPE does not forward the LDP MAC Withdraw messages received from a UPE to other UPEs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: upe-upe mac-withdraw enable
+      line: 11146
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpls-ignore-ac-state
+    syntax: vpls ignore-ac-state
+    view: mpls-l2vpn
+    undo: undo vpls ignore-ac-state
+    default: By default, a service VSI can be Up only if at least one AC interface or UPE PW is Up.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: vpls ignore-ac-state
+      line: 11207
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpls-mac-withdraw-loop-detect-enable
+    syntax: vpls mac-withdraw loop-detect enable
+    view: mpls-l2vpn
+    undo: undo vpls mac-withdraw loop-detect enable
+    default: By default, MAC withdraw loop detection is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: vpls mac-withdraw loop-detect enable
+      line: 11268
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpls-p2mp-group-select-ldp-enable
+    syntax: vpls p2mp group-select ldp enable
+    view: mpls-l2vpn
+    undo: undo vpls p2mp group-select ldp enable
+    default: By default, leaf nodes are disabled from selectively receiving traffic from mLDP P2MP tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: vpls p2mp group-select ldp enable
+      line: 11330
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpls-to-evpn-migration
+    syntax: vpls-to-evpn migration in-process
+    view: bridge-domain
+    undo: undo vpls-to-evpn migration in-process
+    default: By default, there is no flag indicating that a VPLS network is evolving to EVPN.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: vpls-to-evpn migration (Bridge domain view)
+      line: 11489
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-backup-mac-withdraw-retry-interval
+    syntax: vrrp-backup mac-withdraw retry-interval <retry-interval-time>
+    view: vsi
+    undo: undo vrrp-backup mac-withdraw retry-interval <retry-interval-time>
+    params:
+      retry-interval-time:
+        type: integer
+        range:
+          - 0
+          - 60
+    default: By default, a device does not resend a MAC-Withdraw message in case that the VRRP status changes to backup.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: vrrp-backup mac-withdraw retry-interval
+      line: 11717
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vsi.1
+    syntax: vsi <vsi-name> [ static | auto ] [ bd-mode ]
+    view: system
+    enters_view: vsi
+    undo: undo vsi <vsi-name>
+    params:
+      vsi-name: &id111
+        type: word
+    default: By default, no VSI is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: vsi (System view)
+      line: 11781
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi: $vsi-name
+      l2vpn.vsi.mode: kw:static|auto
+      l2vpn.vsi.bd_mode: if:bd-mode:true
+  - id: huawei-vrp8.vsi.2
+    syntax: vsi <vsi-name> [ static | auto ]
+    view: system
+    enters_view: vsi
+    undo: undo vsi <vsi-name>
+    params:
+      vsi-name: *id111
+    default: By default, no VSI is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: vsi (System view)
+      line: 11781
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi: $vsi-name
+      l2vpn.vsi.mode: kw:static|auto
+      l2vpn.vsi.bd_mode: if:bd-mode:true
+  - id: huawei-vrp8.vsi-id
+    syntax: vsi-id <vsi-id>
+    view: vsi-ldp
+    undo: undo vsi-id
+    params:
+      vsi-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no VSI ID is set for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/07_VPLS Configuration Commands.md
+      title: vsi-id
+      line: 11894
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      l2vpn.vsi.vsi_id: $vsi-id

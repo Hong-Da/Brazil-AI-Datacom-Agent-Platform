@@ -1,0 +1,94 @@
+# 参数化模板 lmesh template 的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+
+[[case]]
+id = "template-list"
+title = { zh-CN = "列出模板", en = "List templates", pt-BR = "Listar modelos" }
+args = ["--output", "json", "template", "list"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "ok" = true, "data.templates.0.id" = "cisco-asr920-efp-bdi-vrf", "data.templates.0.valid" = true, "data.templates.0.blocks" = 1 }
+in_docs = true
+
+[[case]]
+id = "template-show"
+title = { zh-CN = "显示模板的变量与正文", en = "Show a template", pt-BR = "Mostrar um modelo" }
+args = ["--output", "json", "template", "show", "huawei-atn-l3vpn-subif"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "data.id" = "huawei-atn-l3vpn-subif", "data.profile" = "huawei-atn-v800r025", "data.blocks.0.name" = "svc", "data.blocks.0.kind" = "repeat" }
+
+[[case]]
+id = "template-check-ok"
+title = { zh-CN = "按模板校验配置：符合，并提取变量", en = "Check a configuration against a template: compliant", pt-BR = "Verificar uma configuração contra um modelo: conforme" }
+args = ["--output", "json", "template", "check", "cisco-asr920-efp-bdi-vrf", "{inputs}/templates/pe-asr920-11.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.compliant" = true, "data.variables.loopback" = "10.255.0.31", "data.variables.uplink_net" = "10.1.0.20/30", "data.blocks.svc.1.vrf" = "MGMT", "data.summary.instances.svc" = 2 }
+in_docs = true
+
+[[case]]
+id = "template-check-bad"
+title = { zh-CN = "不符合模板：逐项原因与行号，退出码 1", en = "Not compliant: findings with line numbers, exit code 1", pt-BR = "Não conforme: resultados com números de linha, código de saída 1" }
+args = ["--lang", "zh-CN", "template", "check", "cisco-asr920-efp-bdi-vrf", "{inputs}/templates/pe-asr920-11-bad.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_stdout = ["不符合模板：2 处错误", "interface[{uplink}]/mtu: 取值不符：模板 9216，实际 9000", "svc.vlan 前后不一致：应为 102，实际 103", "配置第 36 行"]
+in_docs = true
+
+[[case]]
+id = "template-check-deny"
+title = { zh-CN = "模板外的配置算不符合（--extra deny）", en = "Configuration outside the template is an error (--extra deny)", pt-BR = "Configuração fora do modelo é erro (--extra deny)" }
+args = ["--output", "json", "template", "check", "cisco-asr920-efp-bdi-vrf", "{inputs}/templates/pe-asr920-11-bad.cfg", "--extra", "deny"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "data.compliant" = false, "data.options.extra" = "deny", "data.summary.by_kind.extra" = 1, "data.summary.by_severity.error" = 3 }
+
+[[case]]
+id = "template-extract-csv"
+title = { zh-CN = "提取变量为参数表（CSV，可直接用于生成）", en = "Extract variables as a CSV parameter table", pt-BR = "Extrair variáveis como tabela CSV" }
+args = ["template", "extract", "cisco-asr920-efp-bdi-vrf", "{inputs}/templates/pe-asr920-11.cfg", "--format", "csv"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["device,hostname,asn,loopback", "101;102,RAN-2G;MGMT,101;10"]
+in_docs = true
+
+[[case]]
+id = "template-generate"
+title = { zh-CN = "模板 + 参数表批量生成：每行解析、往返并按模板校验", en = "Generate configurations from a template and a parameter table", pt-BR = "Gerar configurações a partir de modelo e tabela" }
+args = ["--output", "json", "template", "generate", "huawei-atn-l3vpn-subif", "{inputs}/templates/atn-l3-sites.json", "--out-dir", "{out}/gen"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.summary.total" = 2, "data.summary.failed" = 0, "data.rows.0.file" = "ATN-SITE-21.cfg", "data.rows.0.checks.roundtrip" = true, "data.rows.0.checks.template.compliant" = true }
+in_docs = true
+
+[[case]]
+id = "template-generate-bad-row"
+title = { zh-CN = "参数不合法的行给出原因，退出码 1", en = "Rows with invalid parameters are reported, exit code 1", pt-BR = "Linhas com parâmetros inválidos são relatadas, código de saída 1" }
+args = ["--lang", "en", "template", "generate", "cisco-asr920-efp-bdi-vrf", "{inputs}/templates/asr920-sites.csv"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_stdout = ["Generated 3: 2 ok, 1 failed", "loopback: Not within the allowed networks", "svc.vlan#2: Duplicated in another instance"]
+
+[[case]]
+id = "template-draft"
+title = { zh-CN = "从同角色设备的配置生成模板草稿", en = "Draft a template from configurations of the same role", pt-BR = "Rascunho de modelo a partir de configurações do mesmo papel" }
+args = ["--output", "json", "template", "draft", "{inputs}/templates/pe-asr920-11.cfg", "{inputs}/templates/pe-asr920-12.cfg", "--id", "asr-draft", "-o", "{out}/asr-draft.yaml", "--params-out", "{out}/asr-draft.csv"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "data.valid" = true, "data.template_id" = "asr-draft", "data.vars.0.name" = "hostname", "data.vars.0.values" = ["PE-ASR920-11", "PE-ASR920-12"], "data.verify.0.compliant" = true, "data.verify.1.compliant" = true }
+in_docs = true
+
+[[case]]
+id = "template-invalid"
+title = { zh-CN = "模板文件有问题：列出问题，退出码 3", en = "Invalid template file: problems listed, exit code 3", pt-BR = "Modelo inválido: problemas listados, código de saída 3" }
+args = ["--lang", "zh-CN", "template", "show", "{inputs}/templates/bad-template.yaml"]
+setup = "fresh"
+expect_exit = 3
+expect_stderr = ["模板有 3 处问题", "不认识的变量类型：hostname", "占位符中的变量没有定义：port"]
+
+[[case]]
+id = "template-not-found"
+title = { zh-CN = "模板不存在", en = "Template not found", pt-BR = "Modelo não encontrado" }
+args = ["template", "show", "nope"]
+setup = "fresh"
+expect_exit = 4

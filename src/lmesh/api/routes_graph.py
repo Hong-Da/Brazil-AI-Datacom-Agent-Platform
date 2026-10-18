@@ -44,11 +44,21 @@ def parse(request: Request, body: TextBody) -> dict[str, Any]:
     return ok(request, res.as_dict())
 
 
-@router.post("/render", summary="解析建图后渲染回配置文本（往返模式）")
-def render(request: Request, body: TextBody) -> dict[str, Any]:
+class RenderBody(TextBody):
+    canonical: bool = Field(False, description="规范模式：按图重新生成命令（按视图分块、被引用的先出现）")
+    with_defaults: bool = Field(False, description="含默认值的完整配置（规范模式；默认值行前有 “! default” 注释）")
+
+
+@router.post("/render", summary="解析建图后渲染回配置文本（往返模式；canonical 规范模式，with_defaults 含默认值）")
+def render(request: Request, body: RenderBody) -> dict[str, Any]:
     res, kb = _parse(request, body)
     g = graphmod.build(res.parsed, kb, res.profile)
-    return ok(request, {"profile": res.profile, "text": render_roundtrip(g, kb)})
+    if not (body.canonical or body.with_defaults):
+        return ok(request, {"profile": res.profile, "text": render_roundtrip(g, kb), "mode": "roundtrip"})
+    from lmesh.core import canon
+
+    r = canon.render_full(g, kb, res.profile, include_defaults=body.with_defaults)
+    return ok(request, canon.result_dict(r, body.with_defaults))
 
 
 class RoundtripBody(BaseModel):

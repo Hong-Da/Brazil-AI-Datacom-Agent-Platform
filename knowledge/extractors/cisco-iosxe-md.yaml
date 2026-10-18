@@ -55,6 +55,16 @@ enters:
   - {view: system, syntax: '^tacacs server\b', enters: tacacs-server}
   - {view: system, syntax: '^radius server\b', enters: radius-server}
   - {view: system, syntax: '^aaa group server tacacs\+', enters: sg-tacacs}
+  # 0.3.0：L2VPN（VPWS / VPLS）与 ACL
+  - {view: system, syntax: '^pseudowire-class <', enters: pseudowire-class}
+  - {view: interface, syntax: '^xconnect <', enters: xconnect}
+  - {view: service-instance, syntax: '^xconnect <', enters: xconnect}
+  - {view: system, syntax: '^l2vpn xconnect context <', enters: l2vpn-xconnect}
+  - {view: system, syntax: '^l2vpn vfi context <', enters: vfi}
+  - {view: system, syntax: '^l2 vfi <[^>]+> manual', enters: vfi}
+  - {view: system, syntax: '^bridge-domain \{ <bridge-id>', enters: bridge-domain}
+  - {view: system, syntax: '^l2vpn$', enters: l2vpn}
+  - {view: system, syntax: '^ip access-list \{', enters: acl}
 
 param_types:
   - {name: '(mask-length|prefix-length|length)$', type: mask-length}
@@ -95,6 +105,40 @@ domains:
     - {path: 'bfd/bfd echo.md'}
   mgmt:
     - {path: 'mgmt/*.md'}
+  # 0.3.0：MPLS LDP、L2VPN（VPWS / VPLS）、ACL（L3VPN 完善的 mpls label mode、maximum routes 在 vrf/ 目录，随 vrf 功能域）
+  mpls:
+    - {path: 'mpls/*.md'}
+  l2vpn:
+    # 同一页同时列了接口模式与 pw-class / 模板模式的命令（encapsulation、preferred-path），只取 pw-class 模式
+    - path: 'l2vpn/encapsulation (pseudowire).md'
+      views_map: [{match: '\(config-pw-class\)', view: pseudowire-class}, {match: '.', view: null}]
+    - path: 'l2vpn/preferred-path.md'
+      views_map: [{match: '\(config-pw-class\)', view: pseudowire-class}, {match: '.', view: null}]
+    # 其余页面（signaling protocol 只用于 interface pseudowire，不收）
+    - path: 'l2vpn/backup peer.md'
+      views_map: &l2vpn_views
+        - {match: '\(config-pw-class\)', view: pseudowire-class}
+        - {match: '\(config-if-xconn\)', view: xconnect}
+        - {match: '\(config-xconnect\)', view: l2vpn-xconnect}
+        - {match: '\(config-vfi\)', view: vfi}
+        - {match: '\(config-bdomain\)', view: bridge-domain}
+        - {match: '\(config-conn\)|\(xconnect-conn-config\)|\(config-template\)', view: null}
+    - {path: 'l2vpn/control-word.md', views_map: *l2vpn_views}
+    - {path: 'l2vpn/description (l2 vfi).md', views_map: *l2vpn_views}
+    - {path: 'l2vpn/l2 vfi manual.md', views_map: *l2vpn_views}
+    - {path: 'l2vpn/l2vpn vfi context.md', views_map: *l2vpn_views}
+    - {path: 'l2vpn/l2vpn xconnect context.md', views_map: *l2vpn_views}
+    - {path: 'l2vpn/l2vpn.md', views_map: *l2vpn_views}
+    - {path: 'l2vpn/member (bridge-domain).md', views_map: *l2vpn_views}
+    - {path: 'l2vpn/member (l2vpn vfi).md', views_map: *l2vpn_views}
+    - {path: 'l2vpn/member (xconnect).md', views_map: *l2vpn_views}
+    - {path: 'l2vpn/neighbor (VPLS).md', views_map: *l2vpn_views}
+    - {path: 'l2vpn/pseudowire-class.md', views_map: *l2vpn_views}
+    - {path: 'l2vpn/vpn id (mpls).md', views_map: *l2vpn_views}
+    - {path: 'l2vpn/xconnect.md', views_map: *l2vpn_views}
+  acl:
+    - path: 'acl/*.md'
+      views_map: [{match: 'access.list configuration|\(config-(std|ext)-nacl\)', view: acl}]
 
 # 统一改写：运行配置中接口名、前缀都是一个词，文档把它们拆成了两个参数
 syntax_rewrites:

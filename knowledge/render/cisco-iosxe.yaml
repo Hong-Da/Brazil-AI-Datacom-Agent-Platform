@@ -1,0 +1,19 @@
+# Cisco IOS-XE 的规范渲染书写习惯（core/canon.py 读取）。生成命令本身由命令卡 + 映射规则反推，这里只放反推不出来的习惯：
+#   exits            离开这些视图时写的命令（show running-config 的写法）
+#   nested_separator 块内第一层的子块之前加一行 “ !”
+#   prefer           {Schema 节点: [命令卡]}：多张卡都能写出同一个节点时优先用的卡
+#   avoid            [命令卡]：不用于生成的卡
+#   no_declare       [对象类型]：不写声明行（默认：有“只给键”的卡时先写声明行，例如 neighbor RR peer-group）
+#   infer            推导规则：写声明行必须给出、源配置又没有的取值，按同一对象的其他取值推出
+#                    {node, value, same: [a, b]} 或 differ: [a, b]；a、b 是同一对象的属性名，“^” 表示上级对象的键
+#   interface_types  本平台族的接口类型（翻译时接口名不属于这些类型、又没有在接口映射表中给出时告警）
+family: cisco-iosxe
+nested_separator: true
+exits:
+  vrf-af: exit-address-family
+  bgp-af: exit-address-family
+prefer: {}
+avoid: []
+no_declare: []
+infer: []
+interface_types: [GigabitEthernet, TenGigabitEthernet, TwentyFiveGigE, FortyGigabitEthernet, HundredGigE, FastEthernet, Ethernet, Port-channel, Loopback, BDI, Vlan, Null, Tunnel, Serial, BD-VIF, Dialer, Virtual-Template, Multilink]

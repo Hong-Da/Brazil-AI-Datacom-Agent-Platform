@@ -53,16 +53,31 @@ views_map:
   - {match: '^Local AAA server view$', view: local-aaa-server}
   - {match: '^VTY-type user interface view$', view: user-interface-vty}
   - {match: '^CONSOLE-type user interface view$', view: user-interface-con}
+  # 0.3.0：MPLS LDP、L2VPN（VPWS / VPLS）、ACL、隧道策略、桥域
+  - {match: '^MPLS view$', view: mpls}
+  - {match: '^MPLS-LDP view$', view: mpls-ldp}
+  - {match: '^MPLS-LDP-IPv4 view$', view: mpls-ldp-ipv4}
+  - {match: '^Remote MPLS LDP peer view$', view: mpls-ldp-remote-peer}
+  - {match: '^MPLS-L2VPN view$', view: mpls-l2vpn}
+  - {match: '^PW template view$', view: pw-template}
+  - {match: '^VSI(-AUTO|-BD|-DEFAULT|-STATIC)? view$', view: vsi}
+  - {match: '^VSI-LDP view$', view: vsi-ldp}
+  - {match: '^VSI-LDP-PW view$', view: vsi-ldp-pw}
+  - {match: '^(Basic|Advanced) ACL view$', view: acl}
+  - {match: '^Tunnel policy view$', view: tunnel-policy}
+  - {match: '^Bridge domain view$', view: bridge-domain}
   # 各类接口视图（GE / 10GE / 50|100GE / Eth-Trunk / Loopback / 子接口 / 二层接口等）都归到通用的接口视图
   - {match: '(?i)^(?!.*(tunnel|mtunnel|cpos|serial|mp-group|global-ve|pw-ve|ve sub)).*(interface|sub-interface|-L2) view$', view: interface}
 
 # 进入子视图的命令
 enters:
-  - {view: system, syntax: '^interface\b', enters: interface}
+  # 0.3.0 收紧为 interface 后跟空格：系统视图的 interface-mtu check-mode 等命令不进入接口视图
+  - {view: system, syntax: '^interface( |$)', enters: interface}
   - {view: system, syntax: '^bgp\b', enters: bgp}
   - {view: system, syntax: '^ip vpn-instance\b', enters: vpn-instance}
   - {view: system, syntax: '^route-policy\b', enters: route-policy}
   - {view: vpn-instance, syntax: '^ipv4-family\b', enters: vpn-instance-af-ipv4}
+  - {view: vpn-instance, syntax: '^ipv6-family\b', enters: vpn-instance-af-ipv6}
   - {view: bgp, syntax: '^ipv4-family unicast\b', enters: bgp-af-ipv4}
   - {view: bgp, syntax: '^ipv4-family vpnv4\b', enters: bgp-af-vpnv4}
   - {view: bgp, syntax: '^ipv4-family vpn-instance\b', enters: bgp-af-vpn-instance-ipv4}
@@ -87,6 +102,20 @@ enters:
   - {view: system, syntax: '^local-aaa-server$', enters: local-aaa-server}
   - {view: system, syntax: '^user-interface vty <', enters: user-interface-vty}
   - {view: system, syntax: '^user-interface con(sole)?\b', enters: user-interface-con}
+  # 0.3.0
+  - {view: system, syntax: '^mpls$', enters: mpls}
+  - {view: system, syntax: '^mpls ldp$', enters: mpls-ldp}
+  - {view: mpls-ldp, syntax: '^ipv4-family$', enters: mpls-ldp-ipv4}
+  - {view: system, syntax: '^mpls ldp remote-peer ', enters: mpls-ldp-remote-peer}
+  - {view: system, syntax: '^mpls l2vpn$', enters: mpls-l2vpn}
+  - {view: system, syntax: '^pw-template <', enters: pw-template}
+  - {view: system, syntax: '^vsi <', enters: vsi}
+  - {view: vsi, syntax: '^pwsignal ldp$', enters: vsi-ldp}
+  - {view: vsi-ldp, syntax: '^pw <', enters: vsi-ldp-pw}
+  # acl ip-pool / acl port-pool 进入的是地址池视图（不在范围），只收紧到 acl [ number ] … 与 acl name …
+  - {view: system, syntax: '^acl (\[ number \]|name) ', enters: acl}
+  - {view: system, syntax: '^tunnel-policy <', enters: tunnel-policy}
+  - {view: system, syntax: '^bridge-domain <', enters: bridge-domain}
 
 # 参数类型推断：先按参数名，再按取值说明；第一条命中生效
 param_types:
@@ -115,6 +144,10 @@ domains:
     - {path: '09_IP Routing Commands/12_IPv4 and IPv6 Static Route Configuration Commands.md'}
   vrf:
     - {path: '16_VPN Commands/03_BGP_MPLS IP VPN Configuration Commands.md'}
+    - {path: '16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md'}
+    # IPv6 VPN 不在范围：只取 VPN 实例视图下进入 IPv6 地址族的命令，块内按原文保留
+    - path: '16_VPN Commands/04_BGP_MPLS IPv6 VPN Configuration Commands.md'
+      views_map: [{match: '^VPN instance view$', view: vpn-instance}, {match: '.', view: null}]
   interface:
     - path: '05_Interface and Data Link Commands.md'
       sections: [Ethernet Interface Configuration Commands, Basic Interface Configuration Commands]
@@ -137,6 +170,15 @@ domains:
     - {path: '18_Security Commands/11_AAA and User Management Configuration Commands (Administrative User).md'}
     - path: '01_Basic Configurations Commands.md'
       sections: [Configuring User Login Commands, Configuring User Interface Commands]
+  # 0.3.0：MPLS LDP（MPLS 一章中 MPLS TE / RSVP-TE 不在范围）、VPWS / VPLS、ACL；隧道策略属于 L3VPN 完善，归 vrf
+  mpls:
+    - path: '11_MPLS Commands.md'
+      sections: [MPLS LDP Configuration Commands]
+  l2vpn:
+    - {path: '16_VPN Commands/01_VPWS Configuration Commands.md'}
+    - {path: '16_VPN Commands/07_VPLS Configuration Commands.md'}
+  acl:
+    - {path: '08_IP Services Commands/17_ACL Configuration Commands.md'}
 
 # 枚举类型参数：取值说明里列出的每一项（“- deny: …”）作为可选值
 enum_marker: enumerated type

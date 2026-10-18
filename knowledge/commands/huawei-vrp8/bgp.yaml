@@ -22998,3 +22998,70 @@ cards:
       line: 3
       version: V800R025C00SPC500
     status: draft
+  - id: huawei-vrp8.mpls-bgp-bfd
+    syntax: mpls bgp bfd { detect-multiplier <multiplier> | min-rx-interval <value-min-rx-interval> | min-tx-interval <value-min-tx-interval> } &<1-9>
+    view: mpls
+    undo: undo mpls bgp bfd { detect-multiplier <multiplier> | min-rx-interval <value-min-rx-interval> | min-tx-interval <value-min-tx-interval> } &<1-9>
+    params:
+      multiplier:
+        type: integer
+        range:
+          - 3
+          - 50
+      value-min-rx-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+      value-min-tx-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+    default: By default, no time parameters are set for BGP BFD sessions.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/664_mpls bgp bfd.md
+      title: mpls bgp bfd
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-bgp-bfd-enable.1
+    syntax: mpls bgp bfd enable
+    view: mpls
+    undo: undo mpls bgp bfd enable
+    default: By default, MPLS is disabled from dynamically creating BGP BFD sessions.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/666_mpls bgp bfd enable.md
+      title: mpls bgp bfd enable
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-bgp-bfd-enable.2
+    syntax: mpls bgp bfd enable one-arm-echo
+    view: mpls
+    undo: undo mpls bgp bfd enable one-arm-echo
+    default: By default, MPLS is disabled from dynamically creating BGP BFD sessions.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/666_mpls bgp bfd enable.md
+      title: mpls bgp bfd enable
+      line: 3
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-bgp-bfd-trigger-tunnel
+    syntax: mpls bgp bfd-trigger-tunnel { host | ip-prefix <ip-prefix-name> }
+    view: mpls
+    undo: undo mpls bgp bfd-trigger-tunnel
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, no policy used to establish BGP BFD sessions is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 09_IP Routing Commands/01_BGP Configuration Commands/668_mpls bgp bfd-trigger-tunnel.md
+      title: mpls bgp bfd-trigger-tunnel
+      line: 3
+      version: V800R025C00SPC500
+    status: draft

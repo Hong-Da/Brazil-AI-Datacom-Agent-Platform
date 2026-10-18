@@ -1,0 +1,134 @@
+# MPLS 功能域（0.3.0，M3-2）：MPLS 全局与 LSR-ID、LDP 全局 / 远端对等体 / 认证、接口 MPLS 与 LDP 使能（含 LDP 与 IGP 同步）。
+# 以华为为基准：华为分两步（mpls → mpls ldp，全局与接口各一次）；Cisco 全局 MPLS 缺省开启，接口 mpls ip 同时使能 LDP。
+# MPLS TE / RSVP-TE 不在范围（原文保留）；IGP 侧的 LDP 同步开关在 ospf / isis 功能域（ospf ldp-sync、mpls ldp sync）。
+domain: mpls
+nodes:
+  mpls.global:
+    type: object
+    key: [id]
+    semantic: {zh-CN: MPLS 全局使能（华为 mpls 视图；Cisco 全局 mpls ip 缺省开启；编号固定为 "_"）, en: MPLS global}
+    status: reviewed
+  mpls.global.lsr_id:
+    parent: mpls.global
+    type: ipv4
+    semantic: {zh-CN: LSR ID（华为 mpls lsr-id；Cisco 没有单独命令，取 mpls ldp router-id 指定接口的地址）, en: LSR ID}
+  mpls.global.label_protocol:
+    parent: mpls.global
+    type: enum
+    choices: [ldp, tdp]
+    semantic: {zh-CN: 标签分发协议（Cisco mpls label protocol；华为只有 LDP）, en: Label distribution protocol}
+  mpls.ldp:
+    type: object
+    key: [id]
+    semantic: {zh-CN: LDP 全局（华为 mpls ldp 视图；Cisco 全局 mpls ldp … 命令；编号固定为 "_"）, en: LDP global}
+    status: reviewed
+  mpls.ldp.lsr_id:
+    parent: mpls.ldp
+    type: ipv4
+    semantic: {zh-CN: LDP LSR ID（华为 mpls ldp 视图 lsr-id，缺省取 MPLS LSR ID）, en: LDP LSR ID}
+  mpls.ldp.router_id_interface:
+    parent: mpls.ldp
+    type: interface
+    semantic: {zh-CN: LDP Router ID 取自的接口（Cisco mpls ldp router-id <接口>）, en: LDP router-ID interface}
+  mpls.ldp.router_id_force:
+    parent: mpls.ldp
+    type: boolean
+    semantic: {zh-CN: 立即生效的 Router ID（Cisco force）, en: Force router ID}
+  mpls.ldp.graceful_restart:
+    parent: mpls.ldp
+    type: boolean
+    semantic: {zh-CN: LDP 平滑重启（华为 graceful-restart；Cisco mpls ldp graceful-restart）, en: LDP graceful restart}
+  mpls.ldp.session_protection:
+    parent: mpls.ldp
+    type: boolean
+    semantic: {zh-CN: LDP 会话保护（华为 session protection；Cisco mpls ldp session protection）, en: Session protection}
+  mpls.ldp.accept_target_hello:
+    parent: mpls.ldp
+    type: string
+    semantic: {zh-CN: 接受远端（targeted）Hello（华为 accept target-hello all / peer-group；Cisco mpls ldp discovery targeted-hello accept；all 或过滤列表名）, en: Accept targeted hello}
+  mpls.ldp.send_all_loopback:
+    parent: mpls.ldp
+    type: boolean
+    semantic: {zh-CN: 通告所有 Loopback 地址（华为 send-message address all-loopback）, en: Advertise all loopback addresses}
+  mpls.ldp.mldp_p2mp:
+    parent: mpls.ldp
+    type: boolean
+    semantic: {zh-CN: 使能 mLDP P2MP（华为 mldp p2mp）, en: mLDP P2MP}
+  mpls.ldp.igp_sync_delay:
+    parent: mpls.ldp
+    type: integer
+    semantic: {zh-CN: LDP 会话建立后等待 LSP 建立的时间（秒，华为 igp-sync-delay timer）, en: IGP sync delay (s)}
+  mpls.ldp.igp_sync_holddown:
+    parent: mpls.ldp
+    type: integer
+    semantic: {zh-CN: IGP 等待 LDP 同步的最长时间（毫秒，Cisco mpls ldp igp sync holddown）, en: IGP sync holddown (ms)}
+  mpls.ldp.holdtime:
+    parent: mpls.ldp
+    type: integer
+    semantic: {zh-CN: LDP 会话保持时间（秒，Cisco mpls ldp holdtime）, en: Session hold time (s)}
+  mpls.ldp.log_neighbor_changes:
+    parent: mpls.ldp
+    type: boolean
+    semantic: {zh-CN: 记录 LDP 邻居变化（Cisco mpls ldp logging neighbor-changes）, en: Log neighbor changes}
+  mpls.ldp.auth:
+    parent: mpls.ldp
+    type: object
+    key: [peer]
+    semantic: {zh-CN: LDP 会话 MD5 认证（按对端 LSR ID；华为 md5-password；Cisco mpls ldp neighbor <地址> password）, en: LDP MD5 authentication}
+  mpls.ldp.auth.password:
+    parent: mpls.ldp.auth
+    type: string
+    semantic: {zh-CN: 认证密码（脱敏后的值）, en: Password}
+  mpls.ldp.remote_peer:
+    parent: mpls.ldp
+    type: object
+    key: [name]
+    semantic: {zh-CN: 远端 LDP 对等体（华为 mpls ldp remote-peer <名称> + remote-ip；Cisco mpls ldp neighbor <地址> targeted，名称即地址）, en: Remote (targeted) LDP peer}
+  mpls.ldp.remote_peer.remote_ip:
+    parent: mpls.ldp.remote_peer
+    type: ipv4
+    semantic: {zh-CN: 对端地址（通常是对端 LSR ID）, en: Remote address}
+  mpls.ldp.remote_peer.description:
+    parent: mpls.ldp.remote_peer
+    type: text
+    semantic: {zh-CN: 描述, en: Description}
+  interface.mpls:
+    parent: interface
+    type: object
+    key: [id]
+    semantic: {zh-CN: 接口 MPLS（华为接口 mpls；Cisco 接口 mpls ip 同时使能 MPLS 与 LDP；编号固定为 "_"）, en: Interface MPLS}
+  interface.mpls.ldp:
+    parent: interface.mpls
+    type: boolean
+    semantic: {zh-CN: 接口使能 LDP（华为 mpls ldp；Cisco mpls ip）, en: LDP enabled on the interface}
+  interface.mpls.mtu:
+    parent: interface.mpls
+    type: integer
+    semantic: {zh-CN: MPLS MTU（华为 / Cisco mpls mtu）, en: MPLS MTU}
+  interface.mpls.label_protocol:
+    parent: interface.mpls
+    type: enum
+    choices: [ldp, tdp, both]
+    semantic: {zh-CN: 接口标签分发协议（Cisco mpls label protocol）, en: Interface label protocol}
+  interface.mpls.ldp_transport_address:
+    parent: interface.mpls
+    type: string
+    semantic: {zh-CN: LDP 传输地址（interface 表示用本接口地址，或接口名 / 地址；华为 mpls ldp transport-address；Cisco mpls ldp discovery transport-address）, en: LDP transport address}
+  interface.mpls.ldp_local_lsr_id:
+    parent: interface.mpls
+    type: string
+    semantic: {zh-CN: 接口的本地 LSR ID（华为 mpls ldp local-lsr-id；interface 表示用本接口地址）, en: Local LSR ID}
+  interface.mpls.ldp_igp_sync_delay:
+    parent: interface.mpls
+    type: integer
+    semantic: {zh-CN: 接口 LDP 与 IGP 同步的等待时间（秒，华为 mpls ldp timer igp-sync-delay；Cisco mpls ldp igp sync delay）, en: LDP-IGP sync delay (s)}
+  interface.mpls.ldp_igp_sync:
+    parent: interface.mpls
+    type: boolean
+    semantic: {zh-CN: 接口参与 LDP 与 IGP 同步（Cisco mpls ldp igp sync，IGP 下开启同步后缺省为是）, en: LDP-IGP sync on the interface}
+deps:
+  # 华为必须先配 LSR ID、再全局使能 MPLS，再使能 LDP；Cisco 全局 MPLS 缺省开启，不检查
+  - {kind: prerequisite, from: mpls.global, to: mpls.global.lsr_id, note: 华为先配置 mpls lsr-id 再使能 MPLS, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}
+  - {kind: prerequisite, from: mpls.ldp, to: mpls.global, note: 华为先全局使能 MPLS 再使能 LDP, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}
+  - {kind: prerequisite, from: interface.mpls, to: mpls.global, note: 华为接口使能 MPLS 前要先全局使能 MPLS, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}
+  - {kind: cross_device, from: mpls.ldp.remote_peer.remote_ip, to: mpls.global.lsr_id, note: 远端对等体地址应是对端设备的 LSR ID}

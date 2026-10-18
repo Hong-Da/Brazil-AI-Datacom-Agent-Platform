@@ -321,3 +321,64 @@ cards:
     status: draft
     maps:
       vrf.instance.af: kw:ipv4|ipv6
+  - id: cisco-iosxe.maximum-routes@vrf-af
+    syntax: maximum routes <limit> { warning-only | <warn-threshold> [ reinstall <reinstall-threshold> ] }
+    view: vrf-af
+    undo: no maximum routes
+    params: &id005
+      limit:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      warn-threshold:
+        type: word
+      reinstall-threshold:
+        type: word
+    default: No limit is set on the maximum number of routes allowed.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/maximum routes.md
+      title: maximum routes
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.prefix_limit: $limit
+      vrf.instance.af{afi=ipv4}.prefix_limit_threshold: $warn-threshold
+      vrf.instance.af{afi=ipv4}.prefix_limit_warn_only: if:warning-only:true
+  - id: cisco-iosxe.maximum-routes@vrf
+    syntax: maximum routes <limit> { warning-only | <warn-threshold> [ reinstall <reinstall-threshold> ] }
+    view: vrf
+    undo: no maximum routes
+    params: *id005
+    default: No limit is set on the maximum number of routes allowed.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/maximum routes.md
+      title: maximum routes
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.prefix_limit: $limit
+      vrf.instance.af{afi=ipv4}.prefix_limit_threshold: $warn-threshold
+      vrf.instance.af{afi=ipv4}.prefix_limit_warn_only: if:warning-only:true
+  - id: cisco-iosxe.mpls-label-mode
+    syntax: mpls label mode { vrf <vrf-name> | all-vrfs } protocol bgp-vpnv4 { per-prefix | per-vrf | per-ce | vrf-conn-aggr }
+    view: system
+    undo: no mpls label mode { vrf <vrf-name> | all-vrfs } protocol bgp-vpnv4 { per-prefix | per-vrf | per-ce | vrf-conn-aggr }
+    params:
+      vrf-name:
+        type: word
+    default: Per-vrf label mode is the default for connected routes and BGP aggregate routes on the Cisco 6500 routers. Per-prefix label mode is the default for all other local routes.
+    source:
+      doc: cisco-iosxe-md
+      file: vrf/mpls label mode.md
+      title: mpls label mode
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      vrf.instance: $vrf-name
+      vrf.instance.af{afi=ipv4}.label_mode: if:$vrf-name:kw:per-prefix=per-route|per-vrf=per-instance|per-ce=per-nexthop|vrf-conn-aggr

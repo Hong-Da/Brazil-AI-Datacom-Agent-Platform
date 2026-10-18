@@ -1,0 +1,55 @@
+# 配置模板示例：华为 ATN 二层接入——每个业务一个桥域、一个 Vbdif 三层口（绑定 VPN 实例）、业务口下一个二层子接口。
+# 与现网接入站点（knowledge/samples/huawei-atn-v800r023/atn-access-01.cfg）的写法一致；格式说明见 docs/project-spec.md。
+id: huawei-atn-l2-bd-vbdif
+version: 1
+title:
+  zh-CN: ATN 二层接入：桥域 + Vbdif + 二层子接口
+  en: "ATN L2 access: bridge domain + Vbdif + L2 sub-interface"
+  pt-BR: "Acesso L2 ATN: bridge domain + Vbdif + subinterface L2"
+description:
+  zh-CN: 每个业务的 VLAN 号同时是桥域号与 Vbdif 号；网关取业务网段的最后一个可用地址。
+  en: "Each service VLAN is also the bridge-domain and Vbdif number; the gateway is the last usable address of the service subnet."
+  pt-BR: "A VLAN de cada serviço também é o número do bridge domain e da Vbdif; o gateway é o último endereço utilizável da sub-rede."
+profile: huawei-atn-v800r023
+profiles: [huawei-atn-v800r023, huawei-atn-v800r025]
+match:
+  extra: allow
+  extra_scope: matched
+vars:
+  port: {type: interface, example: GigabitEthernet0/2/0, title: {zh-CN: 业务口, en: Service port, pt-BR: Porta de serviço}}
+blocks:
+  svc:
+    title: {zh-CN: 业务, en: Service, pt-BR: Serviço}
+    repeat: {min: 1, max: 128}
+    vars:
+      bd: {type: vlan, unique: true, example: 1584, title: {zh-CN: VLAN / 桥域号, en: VLAN / bridge-domain ID, pt-BR: VLAN / ID do bridge domain}}
+      bd_desc: {type: text, example: DESC-27D9BA, title: {zh-CN: 桥域描述, en: Bridge-domain description, pt-BR: Descrição do bridge domain}}
+      desc: {type: text, example: DESC-D03874, title: {zh-CN: 业务描述（Vbdif 与子接口）, en: Service description (Vbdif and sub-interface), pt-BR: Descrição do serviço (Vbdif e subinterface)}}
+      vrf: {type: word, example: GERENCIA, title: {zh-CN: VPN 实例, en: VPN instance, pt-BR: Instância VPN}}
+      lan: {type: prefix, length: [24, 30], network: true, example: 10.0.182.128/29, title: {zh-CN: 业务网段, en: Service subnet, pt-BR: Sub-rede do serviço}}
+      gw: {expr: "lan|host(-1)", title: {zh-CN: 网关（最后一个可用地址）, en: Gateway (last usable address), pt-BR: Gateway (último endereço utilizável)}}
+body: |
+  {% repeat svc %}
+  bridge-domain {{svc.bd}}
+   description {{svc.bd_desc}}
+  #
+  {% end %}
+  {% repeat svc %}
+  interface Vbdif{{svc.bd}}
+   description {{svc.desc}}
+   set flow-stat interval 30
+   ip binding vpn-instance {{svc.vrf}}
+   ip address {{svc.gw}} {{svc.lan|mask}}
+  #
+  {% end %}
+  {% repeat svc %}
+  interface {{port}}.{{svc.bd}} mode l2
+   description {{svc.desc}}
+   set flow-stat interval 30
+   statistic enable mode single
+   encapsulation dot1q vid {{svc.bd}}
+   rewrite pop single
+   bridge-domain {{svc.bd}}
+  #
+  {% end %}
+  return

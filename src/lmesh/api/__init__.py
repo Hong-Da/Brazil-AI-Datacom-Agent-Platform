@@ -21,6 +21,8 @@ from lmesh.api.routes_report import router as report_router
 from lmesh.api.routes_rules import router as rules_router
 from lmesh.api.routes_system import router as system_router
 from lmesh.api.routes_tasks_ai import router as tasks_ai_router
+from lmesh.api.routes_template import router as template_router
+from lmesh.api.routes_translate import router as translate_router
 from lmesh.api.routes_workbench import router as workbench_router
 from lmesh.core import config
 
@@ -74,6 +76,8 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     app.include_router(rules_router, prefix=API_PREFIX, tags=["check"])
     app.include_router(report_router, prefix=API_PREFIX, tags=["report"])
     app.include_router(workbench_router, prefix=API_PREFIX, tags=["workbench"])
+    app.include_router(template_router, prefix=API_PREFIX, tags=["template"])
+    app.include_router(translate_router, prefix=API_PREFIX, tags=["translate"])
     _mount_web(app)
     return app
 

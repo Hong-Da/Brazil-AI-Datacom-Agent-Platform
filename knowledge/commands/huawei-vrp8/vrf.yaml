@@ -175,6 +175,8 @@ cards:
       line: 1488
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.export_policy: $policy-name
   - id: huawei-vrp8.export-route-policy~2
     syntax: export route-policy <policy-name> [ add-ert-first ]
     view: vpn-instance
@@ -190,6 +192,8 @@ cards:
       line: 1600
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.export_policy: $policy-name
   - id: huawei-vrp8.import-route-filter
     syntax: import route-filter <route-filter-name>
     view: vpn-instance-af-ipv4
@@ -235,6 +239,8 @@ cards:
       line: 1850
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.import_policy: $policy-name
   - id: huawei-vrp8.import-route-policy~2
     syntax: import route-policy <policy-name>
     view: vpn-instance
@@ -250,6 +256,8 @@ cards:
       line: 1924
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.import_policy: $policy-name
   - id: huawei-vrp8.import-rib-protocol-direct
     syntax: import-rib { vpn-instance <vpn-instance-name> | public } protocol direct [ route-policy <route-policy-name> | route-filter <route-filter-name> ]
     view: vpn-instance-af-ipv4
@@ -624,6 +632,10 @@ cards:
       line: 3602
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.prefix_limit: $number
+      vrf.instance.af{afi=ipv4}.prefix_limit_threshold: $alert-percent
+      vrf.instance.af{afi=ipv4}.prefix_limit_warn_only: if:simply-alert:true
   - id: huawei-vrp8.prefix-limit~2
     syntax: prefix limit <number> { <alert-percent> [ route-unchanged ] | simply-alert }
     view: vpn-instance
@@ -647,6 +659,10 @@ cards:
       line: 3671
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.prefix_limit: $number
+      vrf.instance.af{afi=ipv4}.prefix_limit_threshold: $alert-percent
+      vrf.instance.af{afi=ipv4}.prefix_limit_warn_only: if:simply-alert:true
   - id: huawei-vrp8.route-distinguisher
     syntax: route-distinguisher <route-distinguisher>
     view: vpn-instance-af-ipv4
@@ -712,6 +728,8 @@ cards:
       line: 3980
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.tunnel_policy: $policy-name
   - id: huawei-vrp8.tnl-policy~2
     syntax: tnl-policy <policy-name>
     view: vpn-instance
@@ -727,6 +745,8 @@ cards:
       line: 4053
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.tunnel_policy: $policy-name
   - id: huawei-vrp8.traffic-statistics-enable
     syntax: traffic-statistics enable
     view: vpn-instance
@@ -775,6 +795,8 @@ cards:
       line: 4236
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.vpn_frr: flag
   - id: huawei-vrp8.vpn-frr~2
     syntax: vpn frr
     view: vpn-instance
@@ -787,6 +809,8 @@ cards:
       line: 4299
       version: V800R025C00SPC500
     status: draft
+    maps:
+      vrf.instance.af{afi=ipv4}.vpn_frr: flag
   - id: huawei-vrp8.vpn-orf-disable
     syntax: vpn-orf disable
     view: bgp-af-vpnv4
@@ -851,3 +875,475 @@ cards:
       line: 4500
       version: V800R025C00SPC500
     status: draft
+  - id: huawei-vrp8.default-color
+    syntax: default-color <color-value>
+    view: vpn-instance-af-ipv4
+    undo: undo default-color <color-value>
+    params:
+      color-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, the default-color function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: default-color (VPN instance IPv4 address family view/VPN instance IPv6 address family view)
+      line: 157
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.description~13
+    syntax: description <description-text>
+    view: tunnel-policy
+    undo: undo description
+    params:
+      description-text:
+        type: text
+    default: By default, no description is configured for the tunnel policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: description (tunnel policy view)
+      line: 235
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      tunnel_policy.description: $description-text
+  - id: huawei-vrp8.tunnel-binding.1
+    syntax: tunnel binding destination <dest-ip-address> te { <tunnel-name> | <tunnel-type> <tunnel-number> } &<1-32> [ ignore-destination-check ] [ down-switch | include-ldp ]
+    view: tunnel-policy
+    undo: undo tunnel binding destination <dest-ip-address>
+    params:
+      dest-ip-address: &id004
+        type: ipv4
+      tunnel-name:
+        type: word
+      tunnel-type:
+        type: word
+      tunnel-number:
+        type: word
+    default: By default, a tunnel is not bound to any IP address.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel binding
+      line: 1137
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-binding.2
+    syntax: tunnel binding destination <dest-ip-address> auto-tunnel { <auto-tunnel-name> } &<1-32> [ ignore-destination-check ] [ down-switch ]
+    view: tunnel-policy
+    undo: undo tunnel binding destination <dest-ip-address>
+    params:
+      dest-ip-address: *id004
+      auto-tunnel-name:
+        type: word
+    default: By default, a tunnel is not bound to any IP address.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel binding
+      line: 1137
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-binding.3
+    syntax: tunnel binding destination <dest-ip-address> sr-te-policy group { <sr-te-policy-group-id> } [ ignore-destination-check ] [ down-switch ]
+    view: tunnel-policy
+    undo: undo tunnel binding destination <dest-ip-address>
+    params:
+      dest-ip-address: *id004
+      sr-te-policy-group-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, a tunnel is not bound to any IP address.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel binding
+      line: 1137
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-binding-ipv6
+    syntax: tunnel binding ipv6 destination <dest-ipv6-address> srv6-te-flow-group <srv6-te-flow-group-name> [ ignore-destination-check ]
+    view: tunnel-policy
+    undo: undo tunnel binding ipv6 destination <dest-ipv6-address>
+    params:
+      dest-ipv6-address:
+        type: word
+      srv6-te-flow-group-name:
+        type: word
+    default: By default, no IPv6 address is bound to a tunnel.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel binding ipv6
+      line: 1285
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-policy-binding-default-down-switch-enable
+    syntax: tunnel policy binding-default down-switch enable
+    view: system
+    undo: undo tunnel policy binding-default down-switch enable
+    default: By default, a tunnel policy uses only LSPs for recursion when destination addresses are not bound to a tunnel.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel policy binding-default down-switch enable
+      line: 1365
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-select-seq.1
+    syntax: tunnel select-seq { gre | lsp | cr-lsp | sr-te-policy | flex-algo-lsp } &<1-9> load-balance-number <load-balance-number> [ unmix ]
+    view: tunnel-policy
+    undo: undo tunnel select-seq
+    params:
+      load-balance-number: &id005
+        type: integer
+        range:
+          - 1
+          - 8
+    default: By default, LSPs are applied, and multiple LDP LSPs can implement load balancing.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel select-seq
+      line: 1416
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      tunnel_policy.select_seq: tail:select-seq:load-balance-number
+      tunnel_policy.load_balance: $load-balance-number
+  - id: huawei-vrp8.tunnel-select-seq.2
+    syntax: tunnel select-seq { gre | ldp | bgp | cr-lsp | sr-lsp | sr-te-policy | flex-algo-lsp } &<1-9> load-balance-number <load-balance-number> [ unmix ]
+    view: tunnel-policy
+    undo: undo tunnel select-seq
+    params:
+      load-balance-number: *id005
+    default: By default, LSPs are applied, and multiple LDP LSPs can implement load balancing.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel select-seq
+      line: 1416
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      tunnel_policy.select_seq: tail:select-seq:load-balance-number
+      tunnel_policy.load_balance: $load-balance-number
+  - id: huawei-vrp8.tunnel-select-seq.3
+    syntax: tunnel select-seq { gre | lsp | te | sr-te | sr-te-policy | flex-algo-lsp | colored-sr-te } &<1-9> load-balance-number <load-balance-number> [ unmix ]
+    view: tunnel-policy
+    undo: undo tunnel select-seq
+    params:
+      load-balance-number: *id005
+    default: By default, LSPs are applied, and multiple LDP LSPs can implement load balancing.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel select-seq
+      line: 1416
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      tunnel_policy.select_seq: tail:select-seq:load-balance-number
+      tunnel_policy.load_balance: $load-balance-number
+  - id: huawei-vrp8.tunnel-select-seq.4
+    syntax: tunnel select-seq { gre | ldp | bgp | te | sr-te | sr-lsp | sr-te-policy | flex-algo-lsp | colored-sr-te } &<1-9> load-balance-number <load-balance-number> [ unmix ]
+    view: tunnel-policy
+    undo: undo tunnel select-seq
+    params:
+      load-balance-number: *id005
+    default: By default, LSPs are applied, and multiple LDP LSPs can implement load balancing.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel select-seq
+      line: 1416
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      tunnel_policy.select_seq: tail:select-seq:load-balance-number
+      tunnel_policy.load_balance: $load-balance-number
+  - id: huawei-vrp8.tunnel-select-seq.5
+    syntax: tunnel select-seq { lsp | cr-lsp | flex-algo-lsp } &<1-9> load-balance-number <load-balance-number> [ unmix ]
+    view: tunnel-policy
+    undo: undo tunnel select-seq
+    params:
+      load-balance-number: *id005
+    default: By default, LSPs are applied, and multiple LDP LSPs can implement load balancing.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel select-seq
+      line: 1416
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      tunnel_policy.select_seq: tail:select-seq:load-balance-number
+      tunnel_policy.load_balance: $load-balance-number
+  - id: huawei-vrp8.tunnel-select-seq.6
+    syntax: tunnel select-seq { ldp | bgp | cr-lsp | sr-lsp | flex-algo-lsp } &<1-9> load-balance-number <load-balance-number> [ unmix ]
+    view: tunnel-policy
+    undo: undo tunnel select-seq
+    params:
+      load-balance-number: *id005
+    default: By default, LSPs are applied, and multiple LDP LSPs can implement load balancing.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel select-seq
+      line: 1416
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      tunnel_policy.select_seq: tail:select-seq:load-balance-number
+      tunnel_policy.load_balance: $load-balance-number
+  - id: huawei-vrp8.tunnel-select-seq.7
+    syntax: tunnel select-seq { lsp | te | sr-te | flex-algo-lsp | colored-sr-te } &<1-9> load-balance-number <load-balance-number> [ unmix ]
+    view: tunnel-policy
+    undo: undo tunnel select-seq
+    params:
+      load-balance-number: *id005
+    default: By default, LSPs are applied, and multiple LDP LSPs can implement load balancing.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel select-seq
+      line: 1416
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      tunnel_policy.select_seq: tail:select-seq:load-balance-number
+      tunnel_policy.load_balance: $load-balance-number
+  - id: huawei-vrp8.tunnel-select-seq.8
+    syntax: tunnel select-seq { ldp | bgp | te | sr-te | sr-lsp | flex-algo-lsp | colored-sr-te } &<1-9> load-balance-number <load-balance-number> [ unmix ]
+    view: tunnel-policy
+    undo: undo tunnel select-seq
+    params:
+      load-balance-number: *id005
+    default: By default, LSPs are applied, and multiple LDP LSPs can implement load balancing.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel select-seq
+      line: 1416
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      tunnel_policy.select_seq: tail:select-seq:load-balance-number
+      tunnel_policy.load_balance: $load-balance-number
+  - id: huawei-vrp8.tunnel-select-seq-ipv6.1
+    syntax: tunnel select-seq ipv6 { srv6-te-policy | srv6-te-flow-group | gre6 } load-balance-number <loadBalanceNumber>
+    view: tunnel-policy
+    undo: undo tunnel select-seq ipv6
+    params:
+      loadBalanceNumber: &id006
+        type: integer
+        range:
+          - 1
+          - 8
+    default: By default, no IPv6 tunnel type is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel select-seq ipv6
+      line: 1559
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-select-seq-ipv6.2
+    syntax: tunnel select-seq ipv6 srv6-te-policy srv6-te-flow-group load-balance-number <loadBalanceNumber> unmix
+    view: tunnel-policy
+    undo: undo tunnel select-seq ipv6
+    params:
+      loadBalanceNumber: *id006
+    default: By default, no IPv6 tunnel type is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel select-seq ipv6
+      line: 1559
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-select-seq-ipv6.3
+    syntax: tunnel select-seq ipv6 srv6-te-flow-group srv6-te-policy load-balance-number <loadBalanceNumber> unmix
+    view: tunnel-policy
+    undo: undo tunnel select-seq ipv6
+    params:
+      loadBalanceNumber: *id006
+    default: By default, no IPv6 tunnel type is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel select-seq ipv6
+      line: 1559
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-select-seq-ipv6.4
+    syntax: tunnel select-seq ipv6 srv6-te-policy load-balance-number <loadBalanceNumber>
+    view: tunnel-policy
+    undo: undo tunnel select-seq ipv6
+    params:
+      loadBalanceNumber: *id006
+    default: By default, no IPv6 tunnel type is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel select-seq ipv6
+      line: 1559
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-policy
+    syntax: tunnel-policy <policy-name>
+    view: system
+    enters_view: tunnel-policy
+    undo: undo tunnel-policy <policy-name>
+    params:
+      policy-name:
+        type: word
+    default: By default, no tunnel policy is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel-policy
+      line: 1651
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      tunnel_policy: $policy-name
+  - id: huawei-vrp8.tunnel-policy-nonexistent-config-check.1
+    syntax: tunnel-policy nonexistent-config-check disable
+    view: system
+    undo: undo tunnel-policy nonexistent-config-check disable
+    default: By default, the system does not allow a nonexistent tunnel policy to be specified in a command.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel-policy nonexistent-config-check
+      line: 1727
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-policy-nonexistent-config-check.2
+    syntax: tunnel-policy nonexistent-config-check enable
+    view: system
+    undo: undo tunnel-policy nonexistent-config-check disable
+    default: By default, the system does not allow a nonexistent tunnel policy to be specified in a command.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel-policy nonexistent-config-check
+      line: 1727
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-selector
+    syntax: tunnel-selector <name> <matchMode> node <node>
+    view: system
+    undo: undo tunnel-selector <name> [ node <node> ]
+    params:
+      name:
+        type: word
+      matchMode:
+        type: enum
+        choices:
+          - permit
+          - deny
+      node:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, no tunnel selector is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel-selector
+      line: 1904
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-selector.1@bgp-af-ipv4
+    syntax: tunnel-selector <tunnel-selector-name> all
+    view: bgp-af-ipv4
+    undo: undo tunnel-selector
+    params: &id007
+      tunnel-selector-name: &id008
+        type: word
+    default: By default, no tunnel selector is applied to BGP-VPNv4, BGP-VPNv6 or labeled BGP routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel-selector (BGP-IPv4 unicast address family view/BGP view)
+      line: 2043
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-selector.1@bgp
+    syntax: tunnel-selector <tunnel-selector-name> all
+    view: bgp
+    undo: undo tunnel-selector
+    params: *id007
+    default: By default, no tunnel selector is applied to BGP-VPNv4, BGP-VPNv6 or labeled BGP routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel-selector (BGP-IPv4 unicast address family view/BGP view)
+      line: 2043
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-selector.2@bgp-af-ipv4
+    syntax: tunnel-selector <tunnel-selector-name>
+    view: bgp-af-ipv4
+    undo: undo tunnel-selector
+    params: &id009
+      tunnel-selector-name: *id008
+    default: By default, no tunnel selector is applied to BGP-VPNv4, BGP-VPNv6 or labeled BGP routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel-selector (BGP-IPv4 unicast address family view/BGP view)
+      line: 2043
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-selector.2@bgp
+    syntax: tunnel-selector <tunnel-selector-name>
+    view: bgp
+    undo: undo tunnel-selector
+    params: *id009
+    default: By default, no tunnel selector is applied to BGP-VPNv4, BGP-VPNv6 or labeled BGP routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel-selector (BGP-IPv4 unicast address family view/BGP view)
+      line: 2043
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-selector~2
+    syntax: tunnel-selector <tunnel-selector-name>
+    view: bgp-af-vpnv4
+    undo: undo tunnel-selector
+    params:
+      tunnel-selector-name:
+        type: word
+    default: By default, no tunnel selector is applied to BGP-VPNv4, BGP-VPNv6 or labeled BGP routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/05_VPN Tunnel Management Configuration Commands.md
+      title: tunnel-selector (BGP-VPNv4 address family view)
+      line: 2191
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-family
+    syntax: ipv6-family [ unicast ]
+    view: vpn-instance
+    enters_view: vpn-instance-af-ipv6
+    undo: undo ipv6-family [ unicast ]
+    default: By default, the IPv6 address family is disabled for a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/04_BGP_MPLS IPv6 VPN Configuration Commands.md
+      title: ipv6-family (VPN instance view)
+      line: 985
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      vrf.instance.af: ipv6

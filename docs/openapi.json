@@ -982,13 +982,13 @@
         "tags": [
           "graph"
         ],
-        "summary": "解析建图后渲染回配置文本（往返模式）",
+        "summary": "解析建图后渲染回配置文本（往返模式；canonical 规范模式，with_defaults 含默认值）",
         "operationId": "render_api_v1_render_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TextBody"
+                "$ref": "#/components/schemas/RenderBody"
               }
             }
           },
@@ -2574,6 +2574,340 @@
           }
         }
       }
+    },
+    "/api/v1/templates": {
+      "get": {
+        "tags": [
+          "template"
+        ],
+        "summary": "模板列表（运行时知识库 templates/；有问题的模板附问题清单）",
+        "operationId": "list_templates_api_v1_templates_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Templates Api V1 Templates Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/templates/{template_id}": {
+      "get": {
+        "tags": [
+          "template"
+        ],
+        "summary": "一个模板：元数据、变量、块、正文与模板文件原文",
+        "operationId": "get_template_api_v1_templates__template_id__get",
+        "parameters": [
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Template Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Template Api V1 Templates  Template Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "template"
+        ],
+        "summary": "新建或修改模板：校验（含正文解析）后写入运行时知识库并提交",
+        "operationId": "put_template_api_v1_templates__template_id__put",
+        "parameters": [
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Template Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Template Api V1 Templates  Template Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/templates/check": {
+      "post": {
+        "tags": [
+          "template"
+        ],
+        "summary": "按模板校验配置：符合 / 逐项原因（缺少、取值不符、违反约束、模板外的配置）与变量",
+        "operationId": "check_api_v1_templates_check_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Check Api V1 Templates Check Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/templates/extract": {
+      "post": {
+        "tags": [
+          "template"
+        ],
+        "summary": "按模板提取变量：变量表、块实例、可直接用于生成的一行参数",
+        "operationId": "extract_api_v1_templates_extract_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Extract Api V1 Templates Extract Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/templates/draft": {
+      "post": {
+        "tags": [
+          "template"
+        ],
+        "summary": "从一份或几份同角色设备的配置生成模板草稿（候选变量、类型、参数表、自检）",
+        "operationId": "draft_api_v1_templates_draft_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DraftBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Draft Api V1 Templates Draft Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/templates/generate": {
+      "post": {
+        "tags": [
+          "template"
+        ],
+        "summary": "模板 + 参数表批量生成配置；每行解析、往返并按模板校验，失败的行给出原因",
+        "operationId": "generate_api_v1_templates_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Generate Api V1 Templates Generate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/translate": {
+      "post": {
+        "tags": [
+          "translate"
+        ],
+        "summary": "配置翻译：按有效值翻译到另一个 Profile，返回译文、告警、不支持的项、省略的默认值与校验结果",
+        "operationId": "run_translate_api_v1_translate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslateBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Run Translate Api V1 Translate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2965,6 +3299,73 @@
         ],
         "title": "DecideBody"
       },
+      "DraftBody": {
+        "properties": {
+          "configs": {
+            "items": {
+              "$ref": "#/components/schemas/DraftConfig"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Configs"
+          },
+          "template_id": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Template Id",
+            "default": "draft"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          }
+        },
+        "type": "object",
+        "required": [
+          "configs"
+        ],
+        "title": "DraftBody"
+      },
+      "DraftConfig": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Label"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 20971520,
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label",
+          "text"
+        ],
+        "title": "DraftConfig"
+      },
       "EntryBody": {
         "properties": {
           "supported": {
@@ -3028,6 +3429,98 @@
         },
         "type": "object",
         "title": "EntryBody"
+      },
+      "GenerateBody": {
+        "properties": {
+          "template_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          },
+          "template": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 524288
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template",
+            "description": "模板文件内容（YAML），不保存"
+          },
+          "rows": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array",
+                "maxItems": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows",
+            "description": "参数行（JSON）"
+          },
+          "csv": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Csv",
+            "description": "参数表（CSV 文本）"
+          },
+          "engine": {
+            "type": "string",
+            "enum": [
+              "text",
+              "canon"
+            ],
+            "title": "Engine",
+            "default": "text"
+          },
+          "target_profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Profile"
+          },
+          "verify": {
+            "type": "boolean",
+            "title": "Verify",
+            "default": true
+          },
+          "include_text": {
+            "type": "boolean",
+            "title": "Include Text",
+            "description": "结果中带生成的配置文本",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "GenerateBody"
       },
       "HTTPValidationError": {
         "properties": {
@@ -3328,6 +3821,43 @@
         "type": "object",
         "title": "ReleaseBody"
       },
+      "RenderBody": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 20971520,
+            "title": "Text"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "canonical": {
+            "type": "boolean",
+            "title": "Canonical",
+            "description": "规范模式：按图重新生成命令（按视图分块、被引用的先出现）",
+            "default": false
+          },
+          "with_defaults": {
+            "type": "boolean",
+            "title": "With Defaults",
+            "description": "含默认值的完整配置（规范模式；默认值行前有 “! default” 注释）",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "RenderBody"
+      },
       "ReportBody": {
         "properties": {
           "kind": {
@@ -3508,6 +4038,21 @@
         ],
         "title": "SanitizeBody"
       },
+      "SaveBody": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "maxLength": 524288,
+            "title": "Source",
+            "description": "模板文件内容（YAML），id 必须与路径中的编号一致"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "SaveBody"
+      },
       "SetupBody": {
         "properties": {
           "language": {
@@ -3582,6 +4127,129 @@
         "title": "SideBody",
         "description": "对比的一边：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
       },
+      "TargetBody": {
+        "properties": {
+          "template_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          },
+          "template": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 524288
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template",
+            "description": "模板文件内容（YAML），不保存"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label",
+            "description": "结果中的设备名（配置文本时使用）"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "allow",
+                  "deny"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extra",
+            "description": "覆盖模板的 match.extra"
+          },
+          "extra_scope": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "matched",
+                  "domains"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extra Scope",
+            "description": "覆盖模板的 match.extra_scope"
+          }
+        },
+        "type": "object",
+        "title": "TargetBody",
+        "description": "配置来源：text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
+      },
       "TextBody": {
         "properties": {
           "text": {
@@ -3606,6 +4274,88 @@
           "text"
         ],
         "title": "TextBody"
+      },
+      "TranslateBody": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile",
+            "description": "源配置的 Profile（不给时自动识别）"
+          },
+          "to": {
+            "type": "string",
+            "title": "To",
+            "description": "目标 Profile，例如 cisco-iosxe-asr920-17.15"
+          },
+          "interface_map": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interface Map",
+            "description": "接口映射表 {源接口: 目标接口}，子接口按父接口映射"
+          },
+          "verify": {
+            "type": "boolean",
+            "title": "Verify",
+            "description": "译文再解析建图，与源图按有效值对比",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "to"
+        ],
+        "title": "TranslateBody",
+        "description": "源配置：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
       },
       "ValidationError": {
         "properties": {

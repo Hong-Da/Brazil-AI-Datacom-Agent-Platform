@@ -13,6 +13,135 @@ match:
 implicit: [bridge_domain]
 # entries 由命令卡汇总生成（lmesh kb map）；人工补充的条目标 manual: true，汇总时保留
 entries:
+  acl.instance:
+    supported: true
+    cards:
+      - cisco-iosxe.access-list-remark
+      - cisco-iosxe.access-list-standard
+      - cisco-iosxe.access-list.1
+      - cisco-iosxe.access-list.4
+      - cisco-iosxe.access-list.5
+      - cisco-iosxe.ip-access-list
+  acl.instance.rule:
+    supported: true
+    cards:
+      - cisco-iosxe.access-list-standard
+      - cisco-iosxe.access-list.1
+      - cisco-iosxe.access-list.4
+      - cisco-iosxe.access-list.5
+      - cisco-iosxe.deny.1
+      - cisco-iosxe.deny.4
+      - cisco-iosxe.deny.5
+      - cisco-iosxe.permit.1
+      - cisco-iosxe.permit.4
+      - cisco-iosxe.permit.5
+      - cisco-iosxe.remark
+  acl.instance.rule.action:
+    supported: true
+    cards:
+      - cisco-iosxe.access-list-standard
+      - cisco-iosxe.access-list.1
+      - cisco-iosxe.access-list.4
+      - cisco-iosxe.access-list.5
+      - cisco-iosxe.deny.1
+      - cisco-iosxe.deny.4
+      - cisco-iosxe.deny.5
+      - cisco-iosxe.permit.1
+      - cisco-iosxe.permit.4
+      - cisco-iosxe.permit.5
+  acl.instance.rule.description:
+    supported: true
+    cards:
+      - cisco-iosxe.remark
+  acl.instance.rule.destination_ip:
+    supported: true
+    cards:
+      - cisco-iosxe.access-list.1
+      - cisco-iosxe.access-list.4
+      - cisco-iosxe.access-list.5
+      - cisco-iosxe.deny.4
+      - cisco-iosxe.deny.5
+      - cisco-iosxe.permit.4
+      - cisco-iosxe.permit.5
+  acl.instance.rule.destination_port:
+    supported: true
+    cards:
+      - cisco-iosxe.access-list.4
+      - cisco-iosxe.deny.5
+      - cisco-iosxe.permit.5
+  acl.instance.rule.destination_wildcard:
+    supported: true
+    cards:
+      - cisco-iosxe.access-list.1
+      - cisco-iosxe.access-list.4
+      - cisco-iosxe.access-list.5
+      - cisco-iosxe.deny.4
+      - cisco-iosxe.deny.5
+      - cisco-iosxe.permit.4
+      - cisco-iosxe.permit.5
+  acl.instance.rule.log:
+    supported: true
+    cards:
+      - cisco-iosxe.access-list-standard
+      - cisco-iosxe.access-list.1
+      - cisco-iosxe.access-list.4
+      - cisco-iosxe.access-list.5
+      - cisco-iosxe.deny.1
+      - cisco-iosxe.deny.4
+      - cisco-iosxe.deny.5
+      - cisco-iosxe.permit.1
+      - cisco-iosxe.permit.4
+      - cisco-iosxe.permit.5
+  acl.instance.rule.protocol:
+    supported: true
+    cards:
+      - cisco-iosxe.access-list.1
+      - cisco-iosxe.access-list.4
+      - cisco-iosxe.access-list.5
+      - cisco-iosxe.deny.4
+      - cisco-iosxe.deny.5
+      - cisco-iosxe.permit.4
+      - cisco-iosxe.permit.5
+  acl.instance.rule.source_ip:
+    supported: true
+    cards:
+      - cisco-iosxe.access-list-standard
+      - cisco-iosxe.access-list.1
+      - cisco-iosxe.access-list.4
+      - cisco-iosxe.access-list.5
+      - cisco-iosxe.deny.1
+      - cisco-iosxe.deny.4
+      - cisco-iosxe.deny.5
+      - cisco-iosxe.permit.1
+      - cisco-iosxe.permit.4
+      - cisco-iosxe.permit.5
+  acl.instance.rule.source_port:
+    supported: true
+    cards:
+      - cisco-iosxe.access-list.4
+      - cisco-iosxe.deny.5
+      - cisco-iosxe.permit.5
+  acl.instance.rule.source_wildcard:
+    supported: true
+    cards:
+      - cisco-iosxe.access-list-standard
+      - cisco-iosxe.access-list.1
+      - cisco-iosxe.access-list.4
+      - cisco-iosxe.access-list.5
+      - cisco-iosxe.deny.1
+      - cisco-iosxe.deny.4
+      - cisco-iosxe.deny.5
+      - cisco-iosxe.permit.1
+      - cisco-iosxe.permit.4
+      - cisco-iosxe.permit.5
+  acl.instance.type:
+    supported: true
+    cards:
+      - cisco-iosxe.access-list-standard
+      - cisco-iosxe.access-list.1
+      - cisco-iosxe.access-list.4
+      - cisco-iosxe.access-list.5
+      - cisco-iosxe.ip-access-list
   bfd.session.multiplier:
     manual: true
     supported: true
@@ -178,6 +307,18 @@ entries:
     cards:
       - cisco-iosxe.neighbor-update-source.1
       - cisco-iosxe.neighbor-update-source.1@router-bgp
+  bridge_domain:
+    supported: true
+    cards:
+      - cisco-iosxe.bridge-domain
+  bridge_domain.member:
+    supported: true
+    cards:
+      - cisco-iosxe.member
+  bridge_domain.vsi:
+    supported: true
+    cards:
+      - cisco-iosxe.bridge-domain-member-vfi
   interface:
     supported: true
     cards:
@@ -185,8 +326,13 @@ entries:
   interface.access:
     supported: true
     cards:
+      - cisco-iosxe.backup-peer@interface
+      - cisco-iosxe.backup-peer@xconnect
       - cisco-iosxe.service-instance-ethernet.1
       - cisco-iosxe.service-instance-ethernet.3
+      - cisco-iosxe.service-instance-xconnect
+      - cisco-iosxe.xconnect.1
+      - cisco-iosxe.xconnect.2
   interface.access.bridge_domain:
     supported: true
     cards:
@@ -203,6 +349,43 @@ entries:
       - cisco-iosxe.encapsulation.2
       - cisco-iosxe.encapsulation.3
       - cisco-iosxe.encapsulation.7
+  interface.access.pw:
+    supported: true
+    cards:
+      - cisco-iosxe.backup-peer@interface
+      - cisco-iosxe.backup-peer@xconnect
+      - cisco-iosxe.service-instance-xconnect
+      - cisco-iosxe.xconnect.1
+      - cisco-iosxe.xconnect.2
+  interface.access.pw.encapsulation:
+    supported: true
+    cards:
+      - cisco-iosxe.service-instance-xconnect
+      - cisco-iosxe.xconnect.1
+      - cisco-iosxe.xconnect.2
+  interface.access.pw.peer:
+    supported: true
+    cards:
+      - cisco-iosxe.backup-peer@interface
+      - cisco-iosxe.backup-peer@xconnect
+      - cisco-iosxe.service-instance-xconnect
+      - cisco-iosxe.xconnect.1
+      - cisco-iosxe.xconnect.2
+  interface.access.pw.pw_class:
+    supported: true
+    cards:
+      - cisco-iosxe.backup-peer@interface
+      - cisco-iosxe.backup-peer@xconnect
+      - cisco-iosxe.service-instance-xconnect
+      - cisco-iosxe.xconnect.1
+  interface.access.pw.vc_id:
+    supported: true
+    cards:
+      - cisco-iosxe.backup-peer@interface
+      - cisco-iosxe.backup-peer@xconnect
+      - cisco-iosxe.service-instance-xconnect
+      - cisco-iosxe.xconnect.1
+      - cisco-iosxe.xconnect.2
   interface.access.rewrite:
     supported: true
     cards:
@@ -212,6 +395,14 @@ entries:
     cards:
       - cisco-iosxe.encapsulation.2
       - cisco-iosxe.encapsulation.3
+  interface.acl_in:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-access-group
+  interface.acl_out:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-access-group
   interface.bfd:
     supported: true
     cards:
@@ -308,6 +499,38 @@ entries:
       - cisco-iosxe.channel-group.3
       - cisco-iosxe.channel-group.5
       - cisco-iosxe.channel-group.7
+  interface.mpls:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ip~2
+      - cisco-iosxe.mpls-label-protocol~2
+      - cisco-iosxe.mpls-ldp-discovery-transport-address
+      - cisco-iosxe.mpls-ldp-igp-sync
+      - cisco-iosxe.mpls-mtu.1
+  interface.mpls.label_protocol:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-label-protocol~2
+  interface.mpls.ldp:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ip~2
+  interface.mpls.ldp_igp_sync:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-igp-sync
+  interface.mpls.ldp_igp_sync_delay:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-igp-sync
+  interface.mpls.ldp_transport_address:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-discovery-transport-address
+  interface.mpls.mtu:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-mtu.1
   interface.mtu:
     manual: true
     supported: true
@@ -473,6 +696,79 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.net
+  l2vpn.global:
+    supported: true
+    cards:
+      - cisco-iosxe.l2vpn
+  l2vpn.pw_class:
+    supported: true
+    cards:
+      - cisco-iosxe.pseudowire-class
+  l2vpn.pw_class.control_word:
+    supported: true
+    cards:
+      - cisco-iosxe.control-word.1
+  l2vpn.pw_class.encapsulation:
+    supported: true
+    cards:
+      - cisco-iosxe.encapsulation
+  l2vpn.pw_class.preferred_path:
+    supported: true
+    cards:
+      - cisco-iosxe.preferred-path
+  l2vpn.vsi:
+    supported: true
+    cards:
+      - cisco-iosxe.l2-vfi-manual
+      - cisco-iosxe.l2vpn-vfi-context
+  l2vpn.vsi.description:
+    supported: true
+    cards:
+      - cisco-iosxe.description~2
+  l2vpn.vsi.mode:
+    supported: true
+    cards:
+      - cisco-iosxe.l2-vfi-manual
+  l2vpn.vsi.peer:
+    supported: true
+    cards:
+      - cisco-iosxe.member~2
+      - cisco-iosxe.neighbor
+  l2vpn.vsi.peer.encapsulation:
+    supported: true
+    cards:
+      - cisco-iosxe.member~2
+      - cisco-iosxe.neighbor
+  l2vpn.vsi.peer.pw_class:
+    supported: true
+    cards:
+      - cisco-iosxe.member~2
+      - cisco-iosxe.neighbor
+  l2vpn.vsi.peer.vc_id:
+    supported: true
+    cards:
+      - cisco-iosxe.member~2
+      - cisco-iosxe.neighbor
+  l2vpn.vsi.vsi_id:
+    supported: true
+    cards:
+      - cisco-iosxe.vpn-id
+  l2vpn.xconnect:
+    supported: true
+    cards:
+      - cisco-iosxe.l2vpn-xconnect-context
+  l2vpn.xconnect.ac:
+    supported: true
+    cards:
+      - cisco-iosxe.member.3
+  l2vpn.xconnect.pw:
+    supported: true
+    cards:
+      - cisco-iosxe.member.1
+  l2vpn.xconnect.pw.pw_class:
+    supported: true
+    cards:
+      - cisco-iosxe.member.1
   mgmt.aaa:
     supported: true
     cards:
@@ -680,6 +976,91 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.address-ipv6
+  mpls.global:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ip
+      - cisco-iosxe.mpls-label-protocol
+  mpls.global.label_protocol:
+    manual: true
+    supported: true
+    default: ldp
+    source: 命令参考 mpls label protocol：LDP is the default label distribution protocol.
+    verified: doc
+    cards:
+      - cisco-iosxe.mpls-label-protocol
+  mpls.ldp:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-discovery
+      - cisco-iosxe.mpls-ldp-graceful-restart
+      - cisco-iosxe.mpls-ldp-holdtime
+      - cisco-iosxe.mpls-ldp-igp-sync-holddown
+      - cisco-iosxe.mpls-ldp-logging-neighbor-changes
+      - cisco-iosxe.mpls-ldp-neighbor-password
+      - cisco-iosxe.mpls-ldp-neighbor-targeted
+      - cisco-iosxe.mpls-ldp-router-id.1
+      - cisco-iosxe.mpls-ldp-session-protection
+  mpls.ldp.accept_target_hello:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-discovery
+  mpls.ldp.auth:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-neighbor-password
+  mpls.ldp.auth.password:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-neighbor-password
+  mpls.ldp.graceful_restart:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 mpls ldp graceful-restart：LDP Graceful Restart is not enabled.
+    verified: doc
+    cards:
+      - cisco-iosxe.mpls-ldp-graceful-restart
+  mpls.ldp.holdtime:
+    manual: true
+    supported: true
+    default: 180
+    source: 命令参考 mpls ldp holdtime：The default value for the seconds argument is 180.
+    verified: doc
+    cards:
+      - cisco-iosxe.mpls-ldp-holdtime
+  mpls.ldp.igp_sync_holddown:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-igp-sync-holddown
+  mpls.ldp.log_neighbor_changes:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-logging-neighbor-changes
+  mpls.ldp.remote_peer:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-neighbor-targeted
+  mpls.ldp.remote_peer.remote_ip:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-neighbor-targeted
+  mpls.ldp.router_id_force:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-router-id.1
+  mpls.ldp.router_id_interface:
+    supported: true
+    cards:
+      - cisco-iosxe.mpls-ldp-router-id.1
+  mpls.ldp.session_protection:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 mpls ldp session protection：缺省不使能
+    verified: doc
+    cards:
+      - cisco-iosxe.mpls-ldp-session-protection
   ospf.process:
     supported: true
     cards:
@@ -804,6 +1185,10 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.route-map
+  rp.policy.node.match_acl:
+    supported: true
+    cards:
+      - cisco-iosxe.match-ip-address
   rp.policy.node.match_community:
     supported: true
     cards:
@@ -890,10 +1275,14 @@ entries:
   vrf.instance:
     supported: true
     cards:
+      - cisco-iosxe.mpls-label-mode
       - cisco-iosxe.vrf-definition
   vrf.instance.af:
     supported: true
     cards:
+      - cisco-iosxe.maximum-routes@vrf
+      - cisco-iosxe.maximum-routes@vrf-af
+      - cisco-iosxe.mpls-label-mode
       - cisco-iosxe.rd
       - cisco-iosxe.vrf-address-family-ipv4
   vrf.instance.af.export_policy:
@@ -904,6 +1293,29 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.import-map@vrf-af
+  vrf.instance.af.label_mode:
+    manual: true
+    supported: true
+    default: per-route
+    source: 命令参考 mpls label mode：Per-prefix label mode is the default（per-prefix 对应华为 per-route）
+    verified: doc
+    cards:
+      - cisco-iosxe.mpls-label-mode
+  vrf.instance.af.prefix_limit:
+    supported: true
+    cards:
+      - cisco-iosxe.maximum-routes@vrf
+      - cisco-iosxe.maximum-routes@vrf-af
+  vrf.instance.af.prefix_limit_threshold:
+    supported: true
+    cards:
+      - cisco-iosxe.maximum-routes@vrf
+      - cisco-iosxe.maximum-routes@vrf-af
+  vrf.instance.af.prefix_limit_warn_only:
+    supported: true
+    cards:
+      - cisco-iosxe.maximum-routes@vrf
+      - cisco-iosxe.maximum-routes@vrf-af
   vrf.instance.af.rd:
     supported: true
     cards:

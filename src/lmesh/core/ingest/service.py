@@ -127,6 +127,44 @@ def _avoid_foreign_ids(
         items[:] = keep
 
 
+def _family_ids(kb_root: Path, family: str) -> set[str]:
+    """平台族下全部功能域文件里已有的卡片编号（改号时避开，编号在整个平台族内唯一）。"""
+    fam_dir = kb_root / "commands" / family
+    out: set[str] = set()
+    for f in sorted(fam_dir.glob("*.yaml")) if fam_dir.exists() else []:
+        if f.name != "views.yaml":
+            out |= {str(c.get("id")) for c in (kbfiles.load_rt(f) or {}).get("cards") or []}
+    return out
+
+
+def _resolve_ids(
+    items: list[dict[str, Any]], by_content: dict[tuple[str, str], str], existing: set[str], stats: Counter[str]
+) -> None:
+    """合并前确定每张新卡的编号：先按内容（语法 + 视图）对上已有的卡；编号被别的卡按内容认领、
+    而本卡内容又不同的（例如新增视图后同名命令多了一个变体，抽取编号整体后移），改用下一个空闲的 ~N 编号，
+    不覆盖那张已有的卡。没有被认领的同号卡仍按“文档有变化”处理。"""
+    matched: dict[int, str] = {}
+    for i, card in enumerate(items):
+        same = by_content.get((str(card["syntax"]), str(card["view"])))
+        if same:
+            matched[i] = same
+    claimed = set(matched.values())
+    taken = existing | {str(c["id"]) for c in items} | claimed
+    for i, card in enumerate(items):
+        if i in matched:
+            if matched[i] != card["id"]:
+                card["id"] = matched[i]
+                stats["matched_by_content"] += 1
+        elif card["id"] in claimed:
+            base = str(card["id"]).split("~", 1)[0]
+            n = 2
+            while f"{base}~{n}" in taken:
+                n += 1
+            card["id"] = f"{base}~{n}"
+            taken.add(card["id"])
+            stats["renumbered"] += 1
+
+
 def ingest(
     doc_dir: Path,
     rules_name: str,
@@ -162,6 +200,7 @@ def ingest(
     for c in cards:
         by_domain.setdefault(c.pop("domain"), []).append(c)
     _avoid_foreign_ids(kb_root, rules.family, by_domain, stats)
+    family_ids = _family_ids(kb_root, rules.family)
     reviews: list[tuple[str, str, str, dict[str, Any], dict[str, Any]]] = []
     for domain, items in by_domain.items():
         path = kbfiles.card_file(kb_root, rules.family, domain)
@@ -169,11 +208,8 @@ def ingest(
         index = {str(c.get("id")): i for i, c in enumerate(doc["cards"])}
         # 先按内容（语法 + 视图）对上已有的卡：编号与抽取时一起处理的功能域有关，内容才是稳定的
         by_content = {(str(c.get("syntax")), str(c.get("view"))): str(c.get("id")) for c in doc["cards"]}
+        _resolve_ids(items, by_content, set(index) | family_ids, stats)
         for card in items:
-            same = by_content.get((str(card["syntax"]), str(card["view"])))
-            if same and same != card["id"]:
-                card["id"] = same
-                stats["matched_by_content"] += 1
             cid = card["id"]
             if cid not in index:
                 doc["cards"].append(kbfiles.to_card_map(card))

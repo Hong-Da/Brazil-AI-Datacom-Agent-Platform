@@ -11,5 +11,7 @@
 | `configs/check/huawei-issues.cfg` | 华为配置，故意包含各类检查问题：悬空引用、孤儿与级联孤儿、名称只出现在未映射行中的策略、互斥（二层口配地址）、违反规则（对等体缺对端 AS、VRF 有 RD 无 RT / 有 RT 无 RD、绑定 VRF 无地址、聚合成员口有地址），以及不应误报的对象（只在 BGP 地址族中使用的 VRF、有 Vbdif 的桥域） | 单元测试 `test_checks.py`；CLI 用例 `check-*`、`cleanup-script` |
 | `configs/check/cisco-issues.cfg` | Cisco 配置，同类问题的 Cisco 写法；route-map 的删除命令走兜底；被引用的前缀列表只有未映射的 description 行 | 单元测试 `test_checks.py`；CLI 用例 `check-filter`、`cleanup-out-file`；API 测试 `test_check_api.py` |
 | `rules/bad/bad.yaml` | 故意写错的检查规则文件（路径不存在、级别不合法） | CLI 用例 `check-bad-rules`；API 测试 `test_check_api.py` |
-| `compare/hw-pe.cfg`、`compare/cs-pe.cfg` | 内容相同的华为与 Cisco 小配置（VRF + RT、接口、环回口、VRF 静态路由），跨厂商对比时只有接口名不同 | CLI 用例 `compare-cross-vendor`、`compare-profile-override` 等 |
+| `compare/hw-pe.cfg`、`compare/cs-pe.cfg` | 内容相同的华为与 Cisco 小配置（VRF + RT、接口、环回口、VRF 静态路由），跨厂商对比时只有接口名不同；Cisco 侧显式写 `mpls label mode … per-vrf`，与华为缺省的 per-instance 标签分配一致（0.3.0 起两侧 Profile 都有这个缺省值，Cisco 缺省 per-prefix） | CLI 用例 `compare-cross-vendor`、`compare-profile-override` 等 |
 | `compare/ifmap.txt` | 跨厂商对比的接口映射表（两列文本：华为接口 → Cisco 接口） | CLI 用例 `compare-cross-vendor` |
+| `translate/cs-small.cfg` | Cisco 小配置（物理口 `mtu 1500` 等于华为缺省值、Port-channel 聚合口、缺省路由、`hostname` 原文行），配置翻译与含默认值渲染用 | 单元测试 `test_translate.py`；CLI 用例 `translate-*`、`render-with-defaults` |
+| `translate/ifmap.yaml` | `cs-small.cfg` 翻译到华为的接口映射表（Port-channel1 → Eth-Trunk1） | CLI 用例 `translate-file` |

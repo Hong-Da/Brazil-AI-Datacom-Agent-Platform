@@ -56,7 +56,8 @@
 | `GET /ai/calls?limit=100` | 是 | AI 调用记录 |
 | `POST /review/{id}` | 是 | `{"action": "approve" \| "reject", "note": "", "edited": {…}}` |
 | `POST /parse` | 是 | 解析配置文本：`{"text": "…", "profile": null}`；返回 Profile、各类行数、覆盖率与每一行的结果 |
-| `POST /render` | 是 | 解析建图后渲染回文本：`{"text": "…", "profile": null}` |
+| `POST /render` | 是 | 解析建图后渲染回文本：`{"text": "…", "profile": null, "canonical": false, "with_defaults": false}`；默认往返模式（`mode: roundtrip`）；`canonical: true` 规范模式，`with_defaults: true` 含默认值的完整配置（默认值行前有 `! default` 注释），返回 `text`、`lines`（`no`、`text`、`kind`、`origin` explicit / default、`nodes`、`card`）、`default_lines`、`uncovered`、`skipped_extras` |
+| `POST /translate` | 是 | 配置翻译：`{"text": "…" 或 "version_id": 1 或 "device_id": 1, "profile": null, "to": "<目标 Profile>", "interface_map": {"Port-channel1": "Eth-Trunk1"}, "verify": true}`；返回 `text` 译文、`lines`（同 `/render`）、`warnings`（`default_differs` / `default_unknown` / `inferred_value` / `implicit_object` / `interface_type` / `verify_diff` / `verify_unknown`）、`unsupported`（`kind` node / ext / raw / unknown / negated，`params.reason` 为 `profile_unsupported` / `no_render` / `secret` / `not_translated`）、`defaults`（`explicit_equals_default` 省略的默认值）、`stats` 与 `verify`（`checked`、`equal`、`diffs`、`unexplained`）；每一项都有 `kind`、`key`（文案键）、`params`（文案参数）、`node`（源图中的节点）、`schema`、`lines`（原文行号）；目标 Profile 不存在或没有给出源配置时 422，设备或版本不存在时 404 |
 | `POST /roundtrip` | 是 | 往返测试：给出 `text` 时同步返回差异；`{"samples": true}` 时作为后台任务跑全部样本，返回 `task_id` |
 | `GET /devices/{id}/graph?domain=D&raw=false&version_id=V` | 是 | 设备最新配置版本（给出 `version_id` 时为该版本，不属于该设备时 404）的配置图：节点、边、悬空引用、统计；`raw=true` 时包含功能域外的原文节点与原始配置文本 |
 | `POST /compare` | 是 | 配置对比：`{"a": {"text": "…" \| "version_id": 1 \| "device_id": 1, "profile": null}, "b": {…}, "domain": null, "include_raw": false, "interface_map": {"GE0/2/1": "Gi0/0/1"}, "rename_threshold": 1.0, "hide_identity": false}`（每边给 `text`、`version_id`、`device_id`（最新版本）之一；同时给 `device_id` 与 `version_id` 时检查版本属于该设备）；返回 `diffs`（`kind` added / removed / changed / renamed、`node_kind` object / attr / ext / raw、`node` 规范编号、`schema`、`domain`、`a` / `b` 各自的 `node` 原始编号、`value` 有效值、`origin`、`lines`，改名的 `from` / `to` / `similarity`，删除或新增对象的 `count`，`related` 关联差异）、`renames`、`summary`（`total`、`by_kind`、`by_domain`、`by_object`、`unknown`、`default_only`）、`unknown`（两边的未识别行）、`default_only`（只有一侧 Profile 有默认值、不可比的属性）、`a` / `b`（来源、设备、Profile、版本）与 `options`；`hide_identity: true` 时隐藏设备身份差异（Router ID、接口 IPv4 地址、BGP 对等体地址、IS-IS NET、主机名等，清单见 `options.hidden_identity`），被隐藏的差异放在 `hidden_diffs`，个数为 `summary.hidden_identity`；设备或版本不存在时 404 |
@@ -70,6 +71,13 @@
 | `GET /check/ignores?device_id=1` | 是 | 忽略的检查发现：`ignores`（`id`、`device_id`、`rule`、`node`、`reason`、`created_at`）；设备不存在时 404 |
 | `POST /check/ignores` | 是 | 忽略一条检查发现：`{"device_id": 1, "rule": "ref.orphan", "node": "rp.policy[X]", "reason": "…"}`，按（设备、规则、节点）唯一，重复提交时更新原因（`created: false`）；`reason` 为空时 422，设备或规则不存在时 404 |
 | `DELETE /check/ignores/{id}` | 是 | 取消忽略；记录不存在时 404 |
+| `GET /templates` | 是 | 参数化模板列表：`id`、`version`、`title`、`description`、`profile`、`profiles`、`family`、`file`、`vars`（变量个数）、`blocks`、`valid`；有问题的模板 `valid: false` 并附 `issues` |
+| `GET /templates/{id}` | 是 | 一个模板：元数据、`match`、`vars`（`name`、`type`、`block`、`derived`、`expr`、约束）、`blocks`（`kind` repeat / optional、`min`、`max`）、`body` 正文与 `source` 模板文件原文、`digest`；不存在时 404 |
+| `PUT /templates/{id}` | 是 | 新建或修改模板：`{"source": "<模板 YAML>"}`；校验格式、变量、占位符并解析建图正文后写入运行时知识库并提交；有问题时 409，`data.issues` 为问题清单（`where`、`key`、`args`）；路径中的编号与内容不一致时 422 |
+| `POST /templates/check` | 是 | 按模板校验配置：`{"template_id": "…" 或 "template": "<YAML>", "text": "…" 或 "version_id": 1 或 "device_id": 1, "profile": null, "label": null, "extra": null, "extra_scope": null}`；返回 `compliant`、`variables`、`blocks`（重复块为实例列表，含 `_node`、`_lines`）、`row`、`unresolved`、`findings`（`kind`、`severity`、`block`、`instance`、`node` 模板中的模式、`actual_node`、`expected`、`actual`、`actual_origin`、`var`、`problem`、`count`、`parent`、`lines`、`template_lines`）、`notes`、`warnings`、`summary`；模板有问题时 409 |
+| `POST /templates/extract` | 是 | 按模板提取变量（参数同上）：`variables`、`blocks`、`row`（可直接作为生成参数的一行）、`compliant`、`summary` 与 error 级发现 |
+| `POST /templates/draft` | 是 | 模板制作辅助：`{"configs": [{"label": "R1", "text": "…"}, …], "template_id": "draft", "title": null, "profile": null}`（最多 20 份，第一份为基准，平台族必须相同）；返回 `source`（模板草稿 YAML）、`vars`（`name`、`type`、`values` 各设备的取值、`reason`、`positions`）、`params`（每份配置一行）、`optional_candidates`、`repeat_candidates`、`notes`、`verify`（每份源配置按草稿校验的结果）、`valid` / `issues` |
+| `POST /templates/generate` | 是 | 批量生成：`{"template_id" 或 "template", "rows": [{…}] 或 "csv": "…", "engine": "text" \| "canon", "target_profile": null, "verify": true, "include_text": true}`；返回每行的 `device`、`file`、`ok`、`text`、`params`（规范化后的参数）、`errors`（`stage` params / render / parse / roundtrip / template，`problem` 文案键与参数）、`checks`（`parse` 未识别行、`roundtrip`、`template` 校验与 `mismatched`、`canon` 渲染器写不出的节点）与 `summary`（`total`、`ok`、`failed`）；没有参数行时 422 |
 | `POST /reports` | 是 | 导出报告，直接返回文件（`Content-Disposition: attachment`）：`{"kind": "compare" \| "check", "lang": "zh-CN" \| "en", "format": "html" \| "md", "compare": <与 POST /compare 相同>, "check": <与 POST /check 相同>}`；HTML 是自包含单文件（内联样式、明亮配色、可打印），Markdown 适合贴进工单；文件名 `compare-<A>-<B>.<lang>.<ext>`、`check-<设备>.<lang>.<ext>`；报告头写设备、配置版本、软件版本、Profile、知识库版本、生成时间与选项；对比报告按功能域分表（两侧有效值、来源、原文行号），并单列改名、不可比（default_only）、未识别行；检查报告按严重度分组，被忽略的单列，有孤儿时附清理脚本；参数错误 422，设备不存在 404 |
 | `GET /unknown-lines?limit=50` | 是 | 已导入配置中的未识别行汇总 |
 | `GET /unknown-lines/states` | 是 | 各未识别行模式的送审状态（pending / approved / rejected） |
@@ -1094,6 +1102,206 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.skipped.0.reason` = `"not_orphan"`
 - `data.verify.ok` = `true`
 
+### 模板列表
+
+`GET /api/v1/templates`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/templates' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/templates' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/templates', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.templates.0.id` = `"cisco-asr920-efp-bdi-vrf"`
+- `data.templates.0.valid` = `true`
+
+### 一个模板：变量、块、正文
+
+`GET /api/v1/templates/huawei-atn-l2-bd-vbdif`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9000/api/v1/templates/huawei-atn-l2-bd-vbdif' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9000/api/v1/templates/huawei-atn-l2-bd-vbdif' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9000/api/v1/templates/huawei-atn-l2-bd-vbdif', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.id` = `"huawei-atn-l2-bd-vbdif"`
+- `data.vars.0.name` = `"port"`
+- `data.blocks.0.kind` = `"repeat"`
+- `data.match.extra` = `"allow"`
+
+### 按模板校验配置文本：符合与变量
+
+`POST /api/v1/templates/check`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/templates/check' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"template_id": "cisco-asr920-efp-bdi-vrf", "text": "hostname PE-ASR920-11\n!\nvrf definition RAN-2G\n rd 64512:101\n !\n address-family ipv4\n  route-target export 64512:101\n  route-target import 64512:101\n exit-address-family\n!\nvrf definition MGMT\n rd 64512:10\n !\n address-family ipv4\n  route-target export 64512:10\n  route-target import 64512:10\n exit-address-family\n!\ninterface Loopback0\n ip address 10.255.0.31 255.255.255.255\n!\ninterface GigabitEthernet0/0/0\n mtu 9216\n ip address 10.1.0.22 255.255.255.252\n mpls ip\n!\ninterface GigabitEthernet0/0/1\n description RAN-SITE-011\n no ip address\n service instance 101 ethernet\n  encapsulation dot1q 101\n  rewrite ingress tag pop 1 symmetric\n  bridge-domain 101\n !\n service instance 102 ethernet\n  encapsulation dot1q 102\n  rewrite ingress tag pop 1 symmetric\n  bridge-domain 102\n !\n!\ninterface BDI101\n description RAN-2G-SITE-011\n vrf forwarding RAN-2G\n ip address 172.16.11.1 255.255.255.0\n!\ninterface BDI102\n description MGMT-SITE-011\n vrf forwarding MGMT\n ip address 172.17.11.1 255.255.255.240\n!\nrouter bgp 64512\n bgp router-id 10.255.0.31\n bgp log-neighbor-changes\n neighbor RR peer-group\n neighbor RR remote-as 64512\n neighbor RR update-source Loopback0\n neighbor 10.255.0.1 peer-group RR\n neighbor 10.255.0.2 peer-group RR\n !\n address-family vpnv4\n  neighbor RR send-community extended\n  neighbor 10.255.0.1 activate\n  neighbor 10.255.0.2 activate\n exit-address-family\n !\n address-family ipv4 vrf RAN-2G\n  redistribute connected\n exit-address-family\n !\n address-family ipv4 vrf MGMT\n  redistribute connected\n exit-address-family\n!\nend\n", "label": "PE-ASR920-11"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/templates/check' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"template_id": "cisco-asr920-efp-bdi-vrf", "text": "hostname PE-ASR920-11\n!\nvrf definition RAN-2G\n rd 64512:101\n !\n address-family ipv4\n  route-target export 64512:101\n  route-target import 64512:101\n exit-address-family\n!\nvrf definition MGMT\n rd 64512:10\n !\n address-family ipv4\n  route-target export 64512:10\n  route-target import 64512:10\n exit-address-family\n!\ninterface Loopback0\n ip address 10.255.0.31 255.255.255.255\n!\ninterface GigabitEthernet0/0/0\n mtu 9216\n ip address 10.1.0.22 255.255.255.252\n mpls ip\n!\ninterface GigabitEthernet0/0/1\n description RAN-SITE-011\n no ip address\n service instance 101 ethernet\n  encapsulation dot1q 101\n  rewrite ingress tag pop 1 symmetric\n  bridge-domain 101\n !\n service instance 102 ethernet\n  encapsulation dot1q 102\n  rewrite ingress tag pop 1 symmetric\n  bridge-domain 102\n !\n!\ninterface BDI101\n description RAN-2G-SITE-011\n vrf forwarding RAN-2G\n ip address 172.16.11.1 255.255.255.0\n!\ninterface BDI102\n description MGMT-SITE-011\n vrf forwarding MGMT\n ip address 172.17.11.1 255.255.255.240\n!\nrouter bgp 64512\n bgp router-id 10.255.0.31\n bgp log-neighbor-changes\n neighbor RR peer-group\n neighbor RR remote-as 64512\n neighbor RR update-source Loopback0\n neighbor 10.255.0.1 peer-group RR\n neighbor 10.255.0.2 peer-group RR\n !\n address-family vpnv4\n  neighbor RR send-community extended\n  neighbor 10.255.0.1 activate\n  neighbor 10.255.0.2 activate\n exit-address-family\n !\n address-family ipv4 vrf RAN-2G\n  redistribute connected\n exit-address-family\n !\n address-family ipv4 vrf MGMT\n  redistribute connected\n exit-address-family\n!\nend\n", "label": "PE-ASR920-11"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/templates/check', headers={'Authorization': 'Bearer <令牌>'}, json={'template_id': 'cisco-asr920-efp-bdi-vrf', 'text': 'hostname PE-ASR920-11\n!\nvrf definition RAN-2G\n rd 64512:101\n !\n address-family ipv4\n  route-target export 64512:101\n  route-target import 64512:101\n exit-address-family\n!\nvrf definition MGMT\n rd 64512:10\n !\n address-family ipv4\n  route-target export 64512:10\n  route-target import 64512:10\n exit-address-family\n!\ninterface Loopback0\n ip address 10.255.0.31 255.255.255.255\n!\ninterface GigabitEthernet0/0/0\n mtu 9216\n ip address 10.1.0.22 255.255.255.252\n mpls ip\n!\ninterface GigabitEthernet0/0/1\n description RAN-SITE-011\n no ip address\n service instance 101 ethernet\n  encapsulation dot1q 101\n  rewrite ingress tag pop 1 symmetric\n  bridge-domain 101\n !\n service instance 102 ethernet\n  encapsulation dot1q 102\n  rewrite ingress tag pop 1 symmetric\n  bridge-domain 102\n !\n!\ninterface BDI101\n description RAN-2G-SITE-011\n vrf forwarding RAN-2G\n ip address 172.16.11.1 255.255.255.0\n!\ninterface BDI102\n description MGMT-SITE-011\n vrf forwarding MGMT\n ip address 172.17.11.1 255.255.255.240\n!\nrouter bgp 64512\n bgp router-id 10.255.0.31\n bgp log-neighbor-changes\n neighbor RR peer-group\n neighbor RR remote-as 64512\n neighbor RR update-source Loopback0\n neighbor 10.255.0.1 peer-group RR\n neighbor 10.255.0.2 peer-group RR\n !\n address-family vpnv4\n  neighbor RR send-community extended\n  neighbor 10.255.0.1 activate\n  neighbor 10.255.0.2 activate\n exit-address-family\n !\n address-family ipv4 vrf RAN-2G\n  redistribute connected\n exit-address-family\n !\n address-family ipv4 vrf MGMT\n  redistribute connected\n exit-address-family\n!\nend\n', 'label': 'PE-ASR920-11'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.compliant` = `true`
+- `data.device` = `"PE-ASR920-11"`
+- `data.variables.uplink_ip` = `"10.1.0.22"`
+- `data.blocks.svc.0.vlan` = `101`
+- `data.summary.instances.svc` = `2`
+
+### 提取变量：可直接作为生成参数的一行
+
+`POST /api/v1/templates/extract`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/templates/extract' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"template": "# 测试用模板：可选块（关闭端口）与派生变量\nid: optional-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: \"net|host(1)\"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n", "text": "hostname R1\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.1 255.255.255.252\n shutdown\n!\nend\n", "label": "R1"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/templates/extract' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"template": "# 测试用模板：可选块（关闭端口）与派生变量\nid: optional-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: \"net|host(1)\"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n", "text": "hostname R1\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.1 255.255.255.252\n shutdown\n!\nend\n", "label": "R1"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/templates/extract', headers={'Authorization': 'Bearer <令牌>'}, json={'template': '# 测试用模板：可选块（关闭端口）与派生变量\nid: optional-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: "net|host(1)"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n', 'text': 'hostname R1\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.1 255.255.255.252\n shutdown\n!\nend\n', 'label': 'R1'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.row.device` = `"R1"`
+- `data.row.net` = `"10.9.0.0/30"`
+- `data.row.shut` = `true`
+- `data.variables.ip` = `"10.9.0.1"`
+
+### 从两台设备的配置生成模板草稿
+
+`POST /api/v1/templates/draft`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/templates/draft' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"template_id": "demo-draft", "configs": [{"label": "R1", "text": "hostname R1\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.1 255.255.255.252\n shutdown\n!\nend\n"}, {"label": "R2", "text": "hostname R2\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.5 255.255.255.252\n shutdown\n!\nend\n"}]}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/templates/draft' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"template_id": "demo-draft", "configs": [{"label": "R1", "text": "hostname R1\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.1 255.255.255.252\n shutdown\n!\nend\n"}, {"label": "R2", "text": "hostname R2\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.5 255.255.255.252\n shutdown\n!\nend\n"}]}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/templates/draft', headers={'Authorization': 'Bearer <令牌>'}, json={'template_id': 'demo-draft', 'configs': [{'label': 'R1', 'text': 'hostname R1\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.1 255.255.255.252\n shutdown\n!\nend\n'}, {'label': 'R2', 'text': 'hostname R2\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.5 255.255.255.252\n shutdown\n!\nend\n'}]})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.valid` = `true`
+- `data.vars.0.name` = `"hostname"`
+- `data.vars.1.type` = `"ipv4"`
+- `data.params.1.hostname` = `"R2"`
+- `data.verify.1.compliant` = `true`
+
+### 批量生成（JSON 参数行）：每行的配置文本与验证结果
+
+`POST /api/v1/templates/generate`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/templates/generate' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"template": "# 测试用模板：可选块（关闭端口）与派生变量\nid: optional-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: \"net|host(1)\"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n", "rows": [{"device": "R1", "hostname": "R1", "port": "GigabitEthernet0/0/5", "net": "10.9.0.0/30", "shut": true}, {"device": "R2", "hostname": "R2", "port": "GigabitEthernet0/0/6", "net": "10.9.0.5/30"}]}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/templates/generate' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"template": "# 测试用模板：可选块（关闭端口）与派生变量\nid: optional-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: \"net|host(1)\"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n", "rows": [{"device": "R1", "hostname": "R1", "port": "GigabitEthernet0/0/5", "net": "10.9.0.0/30", "shut": true}, {"device": "R2", "hostname": "R2", "port": "GigabitEthernet0/0/6", "net": "10.9.0.5/30"}]}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/templates/generate', headers={'Authorization': 'Bearer <令牌>'}, json={'template': '# 测试用模板：可选块（关闭端口）与派生变量\nid: optional-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: "net|host(1)"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n', 'rows': [{'device': 'R1', 'hostname': 'R1', 'port': 'GigabitEthernet0/0/5', 'net': '10.9.0.0/30', 'shut': True}, {'device': 'R2', 'hostname': 'R2', 'port': 'GigabitEthernet0/0/6', 'net': '10.9.0.5/30'}]})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.summary.ok` = `1`
+- `data.summary.failed` = `1`
+- `data.rows.0.text` = `"hostname R1\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.1 255.255.255.252\n shutdown\n!\nend\n"`
+- `data.rows.0.checks.roundtrip` = `true`
+- `data.rows.1.errors.0.var` = `"net"`
+- `data.rows.1.errors.0.problem` = `"template.value.not_network"`
+
+### 新建模板：校验后写入运行时知识库并提交
+
+`PUT /api/v1/templates/api-demo`（需要令牌）
+
+```bash
+curl -X PUT 'http://127.0.0.1:9000/api/v1/templates/api-demo' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"source": "# 测试用模板：可选块（关闭端口）与派生变量\nid: api-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: \"net|host(1)\"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n"}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9000/api/v1/templates/api-demo' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"source": "# 测试用模板：可选块（关闭端口）与派生变量\nid: api-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: \"net|host(1)\"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n"}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9000/api/v1/templates/api-demo', headers={'Authorization': 'Bearer <令牌>'}, json={'source': '# 测试用模板：可选块（关闭端口）与派生变量\nid: api-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: "net|host(1)"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.id` = `"api-demo"`
+- `data.file` = `"api-demo.yaml"`
+- `data.blocks.0.name` = `"shut"`
+
 ### 显示风格的术语表（华为 / Cisco）
 
 `GET /api/v1/kb/terms`（需要令牌）
@@ -1119,5 +1327,97 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.default` = `"huawei"`
 - `data.objects.vrf.instance.huawei.label.0` = `"ip vpn-instance {name}"`
 - `data.objects.vrf.instance.cisco.label.0` = `"vrf definition {name}"`
+
+### 翻译一段 Cisco 配置到华为（接口映射表）
+
+`POST /api/v1/translate`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/translate' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "hostname R1\n!\ninterface GigabitEthernet0/0/1\n description UPLINK\n mtu 1500\n ip address 10.0.0.1 255.255.255.252\n!\ninterface Port-channel1\n ip address 10.0.1.1 255.255.255.252\n!\nip route 0.0.0.0 0.0.0.0 10.0.0.2\n!\nend", "to": "huawei-atn-v800r025", "interface_map": {"Port-channel1": "Eth-Trunk1"}}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/translate' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "hostname R1\n!\ninterface GigabitEthernet0/0/1\n description UPLINK\n mtu 1500\n ip address 10.0.0.1 255.255.255.252\n!\ninterface Port-channel1\n ip address 10.0.1.1 255.255.255.252\n!\nip route 0.0.0.0 0.0.0.0 10.0.0.2\n!\nend", "to": "huawei-atn-v800r025", "interface_map": {"Port-channel1": "Eth-Trunk1"}}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/translate', headers={'Authorization': 'Bearer <令牌>'}, json={'text': 'hostname R1\n!\ninterface GigabitEthernet0/0/1\n description UPLINK\n mtu 1500\n ip address 10.0.0.1 255.255.255.252\n!\ninterface Port-channel1\n ip address 10.0.1.1 255.255.255.252\n!\nip route 0.0.0.0 0.0.0.0 10.0.0.2\n!\nend', 'to': 'huawei-atn-v800r025', 'interface_map': {'Port-channel1': 'Eth-Trunk1'}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.source.profile` = `"cisco-iosxe-asr920-17.15"`
+- `data.target.family` = `"huawei-vrp8"`
+- `data.verify.checked` = `true`
+- `data.verify.unexplained` = `0`
+- `data.defaults.0.kind` = `"explicit_equals_default"`
+- `data.defaults.0.lines` = `[5]`
+- `data.unsupported.0.kind` = `"raw"`
+- `data.unsupported.0.lines` = `[1]`
+- `data.lines.5.text` = `"interface Eth-Trunk1"`
+
+### 没有给出源配置
+
+`POST /api/v1/translate`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/translate' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"to": "huawei-atn-v800r025"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/translate' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"to": "huawei-atn-v800r025"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/translate', headers={'Authorization': 'Bearer <令牌>'}, json={'to': 'huawei-atn-v800r025'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`422`；返回中的关键字段：
+
+- `code` = `1001`
+
+### 规范模式渲染（含默认值）
+
+`POST /api/v1/render`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9000/api/v1/render' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "hostname R1\n!\ninterface GigabitEthernet0/0/1\n ip address 10.0.0.1 255.255.255.252\n!\nend", "canonical": true, "with_defaults": true}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9000/api/v1/render' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "hostname R1\n!\ninterface GigabitEthernet0/0/1\n ip address 10.0.0.1 255.255.255.252\n!\nend", "canonical": true, "with_defaults": true}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9000/api/v1/render', headers={'Authorization': 'Bearer <令牌>'}, json={'text': 'hostname R1\n!\ninterface GigabitEthernet0/0/1\n ip address 10.0.0.1 255.255.255.252\n!\nend', 'canonical': True, 'with_defaults': True})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.mode` = `"canonical"`
+- `data.with_defaults` = `true`
+- `data.profile` = `"cisco-iosxe-asr920-17.15"`
+- `data.lines.1.text` = `"hostname R1"`
+- `data.lines.3.text` = `"interface GigabitEthernet0/0/1"`
+- `data.lines.5.text` = `" ! default"`
+- `data.lines.5.kind` = `"comment"`
+- `data.lines.6.origin` = `"default"`
 
 <!-- examples:end -->

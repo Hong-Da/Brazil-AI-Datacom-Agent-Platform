@@ -1,0 +1,2686 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: mpls
+cards:
+  - id: huawei-vrp8.accept-target-hello.1
+    syntax: accept target-hello peer-group ip-prefix <ip-prefix-name>
+    view: mpls-ldp
+    undo: undo accept target-hello
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, a local device is disabled from automatically establishing a remote LDP session with a remote LDP peer after the local device receives a Targeted Hello message sent by the remote LDP peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: accept target-hello
+      line: 28551
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp.accept_target_hello: $ip-prefix-name
+  - id: huawei-vrp8.accept-target-hello.2
+    syntax: accept target-hello all
+    view: mpls-ldp
+    undo: undo accept target-hello
+    default: By default, a local device is disabled from automatically establishing a remote LDP session with a remote LDP peer after the local device receives a Targeted Hello message sent by the remote LDP peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: accept target-hello
+      line: 28551
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp.accept_target_hello: all
+  - id: huawei-vrp8.authentication-exclude
+    syntax: authentication exclude peer <peer-id>
+    view: mpls-ldp
+    undo: undo authentication exclude peer <peer-id>
+    params:
+      peer-id:
+        type: ipv4
+    default: By default, a local device is enabled to authenticate all LDP peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: authentication exclude
+      line: 28620
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.authentication-key-chain
+    syntax: authentication key-chain peer <peer-id> name <keychain-name>
+    view: mpls-ldp
+    undo: undo authentication key-chain peer <peer-id>
+    params:
+      peer-id:
+        type: ipv4
+      keychain-name:
+        type: word
+    default: By default, LDP keychain authentication is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: authentication key-chain
+      line: 28684
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.authentication-key-chain~2
+    syntax: authentication key-chain { all | peer-group <ip-prefix-name> } name <keychain-name>
+    view: mpls-ldp
+    undo: undo authentication key-chain { all | peer-group }
+    params:
+      ip-prefix-name:
+        type: word
+      keychain-name:
+        type: word
+    default: By default, LDP keychain authentication is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: authentication key-chain (MPLS-LDP view)
+      line: 28762
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.authentication-tcp-ao
+    syntax: authentication tcp-ao peer <peer-id> name <tcpao-name>
+    view: mpls-ldp
+    undo: undo authentication tcp-ao peer <peer-id>
+    params:
+      peer-id:
+        type: ipv4
+      tcpao-name:
+        type: word
+    default: By default, LDP TCP-AO authentication is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: authentication tcp-ao
+      line: 28869
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.authentication-udp-remote-key-chain
+    syntax: authentication udp-remote key-chain peer <peer-id> name <keychain-name>
+    view: mpls-ldp
+    undo: undo authentication udp-remote key-chain peer <peer-id> [ name <keychain-name> ]
+    params:
+      peer-id:
+        type: ipv4
+      keychain-name:
+        type: word
+    default: By default, keychain authentication is not performed for LDP Targeted Hello messages.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: authentication udp-remote key-chain
+      line: 28954
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.auto-frr-lsp-trigger
+    syntax: auto-frr lsp-trigger { none | host | all | ip-prefix <ip-prefix-name> }
+    view: mpls-ldp
+    undo: undo auto-frr lsp-trigger
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, LDP uses backup routes with 32-bit addresses to establish backup LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: auto-frr lsp-trigger (MPLS-LDP view)
+      line: 29035
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.auto-frr-lsp-trigger~2
+    syntax: auto-frr lsp-trigger { none | host | all | ip-prefix <ip-prefix-name> }
+    view: mpls-ldp-ipv4
+    undo: undo auto-frr lsp-trigger
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, LDP uses backup routes with 32-bit addresses to establish backup LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: auto-frr lsp-trigger (MPLS-LDP-IPv4 view)
+      line: 29104
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.backoff-timer
+    syntax: backoff timer <init> <max>
+    view: mpls-ldp
+    undo: undo backoff timer
+    params:
+      init:
+        type: integer
+        range:
+          - 5
+          - 2147483
+      max:
+        type: integer
+        range:
+          - 5
+          - 2147483
+    default: By default, the initial value is 15s, and the maximum value is 120s.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: backoff timer
+      line: 29174
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-bind-ldp-lsp
+    syntax: bfd <session-name> bind ldp-lsp peer-ip <ip-address> nexthop <ip-address> [ interface { <interface-name> | <interface-type> <interface-number> } ]
+    view: system
+    enters_view: bfd-session
+    params:
+      session-name:
+        type: word
+      ip-address:
+        type: ipv4
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, no BFD session is created to detect faults in an LDP LSP.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: bfd bind ldp-lsp
+      line: 29239
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bit-error-detection~2
+    syntax: bit-error-detection level <level-number>
+    view: mpls-ldp
+    undo: undo bit-error-detection
+    params:
+      level-number:
+        type: integer
+        range:
+          - 1
+          - 3
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: bit-error-detection (MPLS-LDP view)
+      line: 29303
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bit-error-detection-level-threshold
+    syntax: bit-error-detection level <level-number> threshold switch <switch-coe> <switch-pow> resume <resume-coe> <resume-pow>
+    view: system
+    undo: undo bit-error-detection level <level-number>
+    params:
+      level-number:
+        type: integer
+        range:
+          - 1
+          - 3
+      switch-coe:
+        type: integer
+        range:
+          - 1
+          - 9
+      switch-pow:
+        type: integer
+        range:
+          - 1
+          - 7
+      resume-coe:
+        type: integer
+        range:
+          - 1
+          - 9
+      resume-pow:
+        type: integer
+        range:
+          - 1
+          - 7
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: bit-error-detection level threshold
+      line: 29369
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.capability-announcement
+    syntax: capability-announcement
+    view: mpls-ldp
+    undo: undo capability-announcement
+    default: By default, the LDP dynamic capability announcement function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: capability-announcement
+      line: 29430
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.description~6
+    syntax: description <description-value>
+    view: mpls-ldp-remote-peer
+    undo: undo description [ <description-value> ]
+    params:
+      description-value:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: description (Remote MPLS LDP peer view)
+      line: 29569
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp.remote_peer.description: $description-value
+  - id: huawei-vrp8.ecmp-frr-coexist-enable
+    syntax: ecmp-frr-coexist enable
+    view: mpls-ldp
+    undo: undo ecmp-frr-coexist enable
+    default: By default, the coexistence of ECMP and FRR is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: ecmp-frr-coexist enable
+      line: 34540
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.entropy-label-enable
+    syntax: entropy-label enable
+    view: mpls-ldp
+    undo: undo entropy-label enable
+    default: By default, no LDP entropy label is configured on the ingress of an LSP.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: entropy-label enable
+      line: 34593
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.entropy-label-negotiate-primary-lsp-only.1
+    syntax: entropy-label negotiate primary-lsp-only
+    view: mpls-ldp-ipv4
+    undo: undo entropy-label negotiate primary-lsp-only [ ip-prefix <ip-prefix-name> ]
+    default: By default, LDP negotiates the entropy label capability based on the primary and backup LSPs of a tunnel.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: entropy-label negotiate primary-lsp-only
+      line: 34651
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.entropy-label-negotiate-primary-lsp-only.2
+    syntax: entropy-label negotiate primary-lsp-only ip-prefix <ip-prefix-name>
+    view: mpls-ldp-ipv4
+    undo: undo entropy-label negotiate primary-lsp-only [ ip-prefix <ip-prefix-name> ]
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, LDP negotiates the entropy label capability based on the primary and backup LSPs of a tunnel.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: entropy-label negotiate primary-lsp-only
+      line: 34651
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.fec-list
+    syntax: fec-list <list-name>
+    view: system
+    undo: undo fec-list <list-name>
+    params:
+      list-name:
+        type: word
+    default: By default, no FEC list is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: fec-list
+      line: 34719
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ftn-delay
+    syntax: ftn delay <ftn-delay-time>
+    view: mpls
+    undo: undo ftn delay [ <ftn-delay-time> ]
+    params:
+      ftn-delay-time:
+        type: integer
+        range:
+          - 0
+          - 120
+    default: By default, the FEC-NHLFE mapping is immediately delivered to the forwarding plane without any delay.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: ftn delay
+      line: 34849
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.graceful-delete
+    syntax: graceful-delete
+    view: mpls-ldp
+    undo: undo graceful-delete
+    default: By default, graceful LDP deletion is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: graceful-delete
+      line: 34903
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.graceful-delete-timer
+    syntax: graceful-delete timer <timer>
+    view: mpls-ldp
+    undo: undo graceful-delete timer
+    params:
+      timer:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: graceful-delete timer
+      line: 35031
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.graceful-restart~2
+    syntax: graceful-restart
+    view: mpls-ldp
+    undo: undo graceful-restart
+    default: By default, LDP GR is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: graceful-restart (MPLS-LDP view)
+      line: 35165
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp.graceful_restart: flag
+  - id: huawei-vrp8.graceful-restart-timer-neighbor-liveness
+    syntax: graceful-restart timer neighbor-liveness <time>
+    view: mpls-ldp
+    undo: undo graceful-restart timer neighbor-liveness
+    params:
+      time:
+        type: integer
+        range:
+          - 3
+          - 259200
+    default: The default value of the neighbor-liveness timer is 600s.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: graceful-restart timer neighbor-liveness
+      line: 35241
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.graceful-restart-timer-reconnect
+    syntax: graceful-restart timer reconnect <time>
+    view: mpls-ldp
+    undo: undo graceful-restart timer reconnect
+    params:
+      time:
+        type: integer
+        range:
+          - 3
+          - 259200
+    default: The default value of the Reconnect timer of an LDP session is 300s.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: graceful-restart timer reconnect
+      line: 35325
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.graceful-restart-timer-recovery
+    syntax: graceful-restart timer recovery <time>
+    view: mpls-ldp
+    undo: undo graceful-restart timer recovery
+    params:
+      time:
+        type: integer
+        range:
+          - 3
+          - 259200
+    default: The default value of the LSP Recovery timer is 300s.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: graceful-restart timer recovery
+      line: 35400
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.gtsm-peer-valid-ttl-hops
+    syntax: gtsm peer <ip-address> valid-ttl-hops <hops>
+    view: mpls-ldp
+    undo: undo gtsm { all | peer <ip-address> }
+    params:
+      ip-address:
+        type: ipv4
+      hops:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, GTSM is not configured on any LDP peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: gtsm peer valid-ttl-hops
+      line: 35483
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.igp-sync-delay-timer
+    syntax: igp-sync-delay timer <value>
+    view: mpls-ldp
+    undo: undo igp-sync-delay timer
+    params:
+      value:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, the value of the igp-sync-delay timer is 10s.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: igp-sync-delay timer
+      line: 35551
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp.igp_sync_delay: $value
+  - id: huawei-vrp8.inbound-peer-fec
+    syntax: inbound peer { <peer-id> | peer-group <peer-group-name> | all } fec { none | host | ip-prefix <prefix-name> }
+    view: mpls-ldp-ipv4
+    undo: undo inbound peer { <peer-id> | peer-group <peer-group-name> | all } fec
+    params:
+      peer-id:
+        type: ipv4
+      peer-group-name:
+        type: word
+      prefix-name:
+        type: word
+    default: By default, no inbound policy is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: inbound peer fec (MPLS-LDP-IPv4 view)
+      line: 35667
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.interface-mtu-check-mode
+    syntax: interface-mtu check-mode { ip | label-contained-length }
+    view: system
+    default: By default, the device compares the interface MTU with a packet's length.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: interface-mtu check-mode
+      line: 35739
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv4-family~2
+    syntax: ipv4-family
+    view: mpls-ldp
+    enters_view: mpls-ldp-ipv4
+    default: By default, the MPLS LDP IPv4 view is not displayed.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: ipv4-family (MPLS-LDP view)
+      line: 35801
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.label-advertise
+    syntax: label advertise { explicit-null | implicit-null | non-null }
+    view: mpls
+    undo: undo label advertise
+    default: By default, the egress node assigns non-null labels to the penultimate hop.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: label advertise
+      line: 35919
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.label-distribution-control-mode
+    syntax: label distribution control-mode { ordered | independent }
+    view: mpls-ldp
+    undo: undo label distribution control-mode
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: label distribution control-mode
+      line: 35991
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lmp
+    syntax: lmp
+    view: system
+    undo: undo lmp
+    default: By default, LMP is disabled globally.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: lmp
+      line: 36284
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lmp-interface-enable
+    syntax: lmp interface enable
+    view: interface
+    undo: undo lmp interface enable
+    default: By default, in-band LMP interfaces do not exist in the system.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: lmp interface enable
+      line: 36351
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.load-balance
+    syntax: load-balance { flow | packet }
+    view: system
+    undo: undo load-balance { flow | packet }
+    default: By default, the per-flow load balancing mode is used for packet forwarding.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: load-balance (System view)
+      line: 36475
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.longest-match
+    syntax: longest-match
+    view: mpls-ldp
+    undo: undo longest-match
+    default: By default, LDP searches for routes for establishing LSPs based on the exact matching rule.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: longest-match
+      line: 36548
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.loop-detect
+    syntax: loop-detect
+    view: mpls-ldp
+    undo: undo loop-detect
+    default: By default, a device is disabled from advertising the capability of loop detection during the initialization of an LDP session.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: loop-detect
+      line: 36612
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsp-trigger.1
+    syntax: lsp-trigger { all | host | none }
+    view: mpls
+    undo: undo lsp-trigger
+    default: By default, LDP uses IP routes with 32-bit addresses to establish LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: lsp-trigger (MPLS view)
+      line: 36724
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsp-trigger.2
+    syntax: lsp-trigger ip-prefix <ip-prefix-name>
+    view: mpls
+    undo: undo lsp-trigger
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, LDP uses IP routes with 32-bit addresses to establish LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: lsp-trigger (MPLS view)
+      line: 36724
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsp-trigger.1~2
+    syntax: lsp-trigger { all | host | none }
+    view: mpls-ldp-ipv4
+    undo: undo lsp-trigger
+    default: By default, LDP uses IP routes with 32-bit addresses to establish LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: lsp-trigger (MPLS-LDP-IPv4 view)
+      line: 36798
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsp-trigger.2~2
+    syntax: lsp-trigger ip-prefix <ip-prefix-name>
+    view: mpls-ldp-ipv4
+    undo: undo lsp-trigger
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, LDP uses IP routes with 32-bit addresses to establish LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: lsp-trigger (MPLS-LDP-IPv4 view)
+      line: 36798
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsp-trigger-bgp-label-route.1
+    syntax: lsp-trigger bgp-label-route [ ip-prefix <ip-prefix-name> ]
+    view: mpls
+    undo: undo lsp-trigger bgp-label-route
+    params:
+      ip-prefix-name: &id001
+        type: word
+    default: By default, LDP does not allocate labels for labeled BGP public network routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: lsp-trigger bgp-label-route
+      line: 36870
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsp-trigger-bgp-label-route.2
+    syntax: lsp-trigger bgp-label-route [ ip-prefix <ip-prefix-name> ] not-only-host
+    view: mpls
+    undo: undo lsp-trigger bgp-label-route
+    params:
+      ip-prefix-name: *id001
+    default: By default, LDP does not allocate labels for labeled BGP public network routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: lsp-trigger bgp-label-route
+      line: 36870
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.lsr-id
+    syntax: lsr-id <lsr-id>
+    view: mpls-ldp
+    undo: undo lsr-id
+    params:
+      lsr-id:
+        type: ipv4
+    default: By default, the LSR ID of an LDP instance is the same as the MPLS LSR ID configured using the mpls lsr-id command.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: lsr-id
+      line: 36941
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp.lsr_id: $lsr-id
+  - id: huawei-vrp8.md5-password.1
+    syntax: md5-password plain <peer-lsr-id> <password-plain>
+    view: mpls-ldp
+    undo: undo md5-password <peer-lsr-id>
+    params:
+      peer-lsr-id: &id002
+        type: ipv4
+      password-plain:
+        type: word
+    default: By default, MD5 authentication is not performed during the establishment of an LDP session.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: md5-password
+      line: 37085
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp.auth: $peer-lsr-id
+      mpls.ldp.auth.password: $password-plain||$password-cipher
+  - id: huawei-vrp8.md5-password.2
+    syntax: md5-password cipher <peer-lsr-id> <password-cipher>
+    view: mpls-ldp
+    undo: undo md5-password <peer-lsr-id>
+    params:
+      peer-lsr-id: *id002
+      password-cipher:
+        type: word
+    default: By default, MD5 authentication is not performed during the establishment of an LDP session.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: md5-password
+      line: 37085
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp.auth: $peer-lsr-id
+      mpls.ldp.auth.password: $password-plain||$password-cipher
+  - id: huawei-vrp8.md5-password-all.1
+    syntax: md5-password plain all <password-plain>
+    view: mpls-ldp
+    undo: undo md5-password all
+    params:
+      password-plain:
+        type: word
+    default: By default, MD5 authentication in a batch is disabled for all LDP peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: md5-password all
+      line: 37161
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.md5-password-all.2
+    syntax: md5-password cipher all <password-cipher>
+    view: mpls-ldp
+    undo: undo md5-password all
+    params:
+      password-cipher:
+        type: word
+    default: By default, MD5 authentication in a batch is disabled for all LDP peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: md5-password all
+      line: 37161
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.md5-password-peer-group.1
+    syntax: md5-password plain peer-group <ip-prefix-name> <password-plain>
+    view: mpls-ldp
+    undo: undo md5-password peer-group
+    params:
+      ip-prefix-name: &id003
+        type: word
+      password-plain:
+        type: word
+    default: By default, MD5 authentication in a batch is disabled for all peer groups.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: md5-password peer-group
+      line: 37237
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.md5-password-peer-group.2
+    syntax: md5-password cipher peer-group <ip-prefix-name> <password-cipher>
+    view: mpls-ldp
+    undo: undo md5-password peer-group
+    params:
+      ip-prefix-name: *id003
+      password-cipher:
+        type: word
+    default: By default, MD5 authentication in a batch is disabled for all peer groups.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: md5-password peer-group
+      line: 37237
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.micro-isolation-protocol-car
+    syntax: micro-isolation protocol-car { ldp-tcp | ldp-udp-local } { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9>
+    view: system
+    undo: undo micro-isolation protocol-car { ldp-tcp | ldp-udp-local } [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9> ]
+    params:
+      cir-value:
+        type: word
+      cbs-value:
+        type: word
+      pir-value:
+        type: word
+      pbs-value:
+        type: word
+    default: the default settings of LDP micro-isolation CAR parameters.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: micro-isolation protocol-car
+      line: 37319
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.micro-isolation-protocol-car-ldp-disable
+    syntax: micro-isolation protocol-car ldp disable
+    view: system
+    undo: undo micro-isolation protocol-car ldp disable
+    default: By default, the LDP micro-isolation CAR function is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: micro-isolation protocol-car ldp disable
+      line: 37391
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-bgp-native-ip
+    syntax: mldp bgp native-ip
+    view: mpls-ldp
+    undo: undo mldp bgp native-ip
+    default: By default, LDP cannot establish mLDP P2MP tunnels in BGP native IP scenarios.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp bgp native-ip
+      line: 37446
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-default-route-match-ignore
+    syntax: mldp default-route-match ignore
+    view: mpls-ldp
+    undo: undo mldp default-route-match ignore
+    default: By default, an mLDP P2MP tunnel can be established using the default route 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp default-route-match ignore
+      line: 37513
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-label-withdraw-delay
+    syntax: mldp label-withdraw-delay <delay-time-value>
+    view: mpls-ldp
+    undo: undo mldp label-withdraw-delay [ <delay-time-value> ]
+    params:
+      delay-time-value:
+        type: integer
+        range:
+          - 2
+          - 60
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp label-withdraw-delay
+      line: 37582
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-make-before-break
+    syntax: mldp make-before-break
+    view: mpls-ldp
+    undo: undo mldp make-before-break
+    default: By default, the mLDP MBB capability is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp make-before-break
+      line: 37649
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-make-before-break-p2mp-traffic-detect
+    syntax: mldp make-before-break p2mp traffic-detect
+    view: mpls-ldp
+    undo: undo mldp make-before-break p2mp traffic-detect
+    default: By default, a device does not monitor traffic with new mLDP MBB incoming labels.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp make-before-break p2mp traffic-detect
+      line: 37712
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-make-before-break-timer-switch-delay
+    syntax: mldp make-before-break timer switch-delay <switch-delay-time-value>
+    view: mpls-ldp
+    undo: undo mldp make-before-break timer switch-delay [ <switch-delay-time-value> ]
+    params:
+      switch-delay-time-value:
+        type: integer
+        range:
+          - 100
+          - 600000
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp make-before-break timer switch-delay
+      line: 37777
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-make-before-break-timer-wait-ack
+    syntax: mldp make-before-break timer wait-ack <wait-ack-time-value>
+    view: mpls-ldp
+    undo: undo mldp make-before-break timer wait-ack [ <wait-ack-time-value> ]
+    params:
+      wait-ack-time-value:
+        type: integer
+        range:
+          - 1
+          - 600
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp make-before-break timer wait-ack
+      line: 37847
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-nexthop-select-route
+    syntax: mldp nexthop-select route
+    view: mpls-ldp
+    undo: undo mldp nexthop-select route
+    default: By default, mLDP is disabled from selecting downstream outbound interfaces based on routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp nexthop-select route
+      line: 37917
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-p2mp
+    syntax: mldp p2mp
+    view: mpls-ldp
+    undo: undo mldp p2mp
+    default: By default, the mLDP P2MP capability is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp p2mp (MPLS-LDP view)
+      line: 38045
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp.mldp_p2mp: flag
+  - id: huawei-vrp8.mldp-p2mp-best-effort
+    syntax: mldp p2mp best-effort
+    view: mpls-ldp
+    undo: undo mldp p2mp best-effort
+    default: By default, the capability of establishing a best-effort path for an mLDP P2MP tunnel is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp p2mp best-effort
+      line: 38115
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-p2mp-frr-link-protection
+    syntax: mldp p2mp frr link-protection
+    view: mpls-ldp
+    undo: undo mldp p2mp frr link-protection
+    default: By default, mLDP P2MP FRR link protection is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp p2mp frr link-protection
+      line: 38178
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-p2mp-topo
+    syntax: mldp p2mp topo <topology-name>
+    view: mpls-ldp-ipv4
+    undo: undo mldp p2mp topo <topology-name>
+    params:
+      topology-name:
+        type: word
+    default: By default, no primary mLDP P2MP LSP is created in the class-specific topology.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp p2mp topo
+      line: 38241
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-p2mp-lsp
+    syntax: mldp p2mp-lsp name <p2mp-lsp-name> root-ip <root-ip-address> lsp-id <lsp-id>
+    view: mpls-ldp
+    undo: undo mldp p2mp-lsp name <p2mp-lsp-name>
+    params:
+      p2mp-lsp-name:
+        type: word
+      root-ip-address:
+        type: ipv4
+      lsp-id:
+        type: integer
+        range:
+          - 1
+          - 8192
+    default: By default, a leaf node does not establish mLDP P2MP LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp p2mp-lsp
+      line: 38317
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-p2mp-lsp~2
+    syntax: mldp p2mp-lsp name <p2mp-lsp-name> root-ip <root-ip-address> lsp-id <lsp-id>
+    view: mpls-ldp-ipv4
+    undo: undo mldp p2mp-lsp name <p2mp-lsp-name>
+    params:
+      p2mp-lsp-name:
+        type: word
+      root-ip-address:
+        type: ipv4
+      lsp-id:
+        type: integer
+        range:
+          - 1
+          - 8192
+    default: By default, a leaf node does not establish mLDP P2MP LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp p2mp-lsp (MPLS-LDP-IPv4 view)
+      line: 38387
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-recursive-fec.1
+    syntax: mldp recursive-fec
+    view: mpls-ldp
+    undo: undo mldp recursive-fec
+    default: By default, an mLDP P2MP service is not enabled to span IGP area or BGP AS domains.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp recursive-fec
+      line: 38455
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-recursive-fec.2
+    syntax: mldp recursive-fec basic-opaque-value
+    view: mpls-ldp
+    undo: undo mldp recursive-fec basic-opaque-value
+    default: By default, an mLDP P2MP service is not enabled to span IGP area or BGP AS domains.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp recursive-fec
+      line: 38455
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-reoptimize-timer
+    syntax: mldp reoptimize timer <reoptimize-time-value>
+    view: mpls-ldp
+    undo: undo mldp reoptimize timer [ <reoptimize-time-value> ]
+    params:
+      reoptimize-time-value:
+        type: integer
+        range:
+          - 1
+          - 1440
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp reoptimize timer
+      line: 38532
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-route-select-optimize
+    syntax: mldp route-select optimize
+    view: mpls-ldp
+    undo: undo mldp route-select optimize
+    default: By default, mLDP route selection rule optimization is disabled in inter-AS mLDP establishment scenarios.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp route-select optimize
+      line: 38596
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-upstream-lsr-select-highest
+    syntax: mldp upstream-lsr-select highest ip-prefix <ip-prefix-name>
+    view: mpls-ldp
+    undo: undo mldp upstream-lsr-select highest [ ip-prefix <ip-prefix-name> ]
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, a tunnel establishment policy that allows mLDP to select an upstream node with the largest peer ID is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp upstream-lsr-select highest
+      line: 38667
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-upstream-lsr-select-lowest
+    syntax: mldp upstream-lsr-select lowest ip-prefix <ip-prefix-name>
+    view: mpls-ldp
+    undo: undo mldp upstream-lsr-select lowest [ ip-prefix <ip-prefix-name> ]
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, the smallest peer ID-based route selection policy is not configured for mLDP.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp upstream-lsr-select lowest
+      line: 38738
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mldp-p2mp-tunnel
+    syntax: mldp-p2mp-tunnel <tunnel-name>
+    view: system
+    undo: undo mldp-p2mp-tunnel <tunnel-name>
+    params:
+      tunnel-name:
+        type: word
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mldp-p2mp-tunnel
+      line: 38809
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls
+    syntax: mpls
+    view: system
+    enters_view: mpls
+    undo: undo mpls
+    default: By default, MPLS is not enabled on a node.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls
+      line: 38875
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.global: _
+  - id: huawei-vrp8.mpls~2
+    syntax: mpls
+    view: interface
+    undo: undo mpls
+    default: By default, MPLS is not enabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls (Interface view)
+      line: 38953
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.mpls: _
+  - id: huawei-vrp8.mpls-bfd
+    syntax: mpls bfd { min-tx-interval <min-tx-interval-value> | min-rx-interval <min-rx-interval-value> | detect-multiplier <detect-multiplier-value> } &<1-9>
+    view: mpls
+    undo: undo mpls bfd { min-tx-interval | min-rx-interval | detect-multiplier } &<1-9>
+    params:
+      min-tx-interval-value:
+        type: word
+      min-rx-interval-value:
+        type: word
+      detect-multiplier-value:
+        type: integer
+        range:
+          - 3
+          - 50
+    default: By default, BFD sessions use default parameter values.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls bfd
+      line: 39021
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-bfd-enable
+    syntax: mpls bfd enable
+    view: mpls
+    undo: undo mpls bfd enable
+    default: By default, an ingress cannot dynamically create BFD sessions for monitoring LDP LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls bfd enable
+      line: 39090
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-bfd-option-tlv-ip-prefix
+    syntax: mpls bfd-option-tlv ip-prefix <ip-prefix-name>
+    view: mpls
+    undo: undo mpls bfd-option-tlv
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, no IP prefix list is configured to trigger the establishment of LDP BFD sessions working in compatible mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls bfd-option-tlv ip-prefix
+      line: 39153
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-bfd-trigger
+    syntax: mpls bfd-trigger { host [ nexthop <next-hop-address> | outgoing-interface { <interface-name> | <interface-type> <interface-number> } ] &<1-9> | fec-list <list-name> } [ option-tlv ]
+    view: mpls
+    undo: undo mpls bfd-trigger
+    params:
+      next-hop-address:
+        type: ipv4
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      list-name:
+        type: word
+    default: By default, no policy for establishing a BFD session and binding the BFD session to an LSP is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls bfd-trigger
+      line: 39222
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-bfd-trigger-tunnel
+    syntax: mpls bfd-trigger-tunnel { host | ip-prefix <ip-prefix-name> | fec-list <list-name> }
+    view: mpls
+    undo: undo mpls bfd-trigger-tunnel
+    params:
+      ip-prefix-name:
+        type: word
+      list-name:
+        type: word
+    default: By default, no trigger policy is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls bfd-trigger-tunnel
+      line: 39295
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-bfd-tunnel
+    syntax: mpls bfd-tunnel { min-tx-interval <min-tx-interval-value> | min-rx-interval <min-rx-interval-value> | detect-multiplier <detect-multiplier-value> } &<1-9>
+    view: mpls
+    undo: undo mpls bfd-tunnel { min-tx-interval | min-rx-interval | detect-multiplier } &<1-9>
+    params:
+      min-tx-interval-value:
+        type: integer
+        range:
+          - 3
+          - 20000
+      min-rx-interval-value:
+        type: integer
+        range:
+          - 3
+          - 20000
+      detect-multiplier-value:
+        type: integer
+        range:
+          - 3
+          - 50
+    default: By default, the minimum interval at which BFD packets are sent is 10 ms, the minimum interval at which BFD packets are received is 10 ms, the local BFD detection multiplier is 3.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls bfd-tunnel
+      line: 39369
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-dynamic-label-number-threshold-alarm
+    syntax: mpls dynamic-label-number threshold-alarm upper-limit <upper-limit-value> lower-limit <lower-limit-value>
+    view: mpls
+    undo: undo mpls dynamic-label-number threshold-alarm
+    params:
+      upper-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      lower-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, the upper limit is 80%, and the lower limit is 70%.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls dynamic-label-number threshold-alarm
+      line: 39439
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-label-static-only
+    syntax: mpls label static-only max-label <max-label-value>
+    view: system
+    undo: undo mpls label static-only max-label <max-label-value>
+    params:
+      max-label-value:
+        type: integer
+        range:
+          - 2048
+          - 15999
+    default: By default, the static label exclusive range of the device is 16 to 2047.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls label static-only
+      line: 39500
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp
+    syntax: mpls ldp
+    view: system
+    enters_view: mpls-ldp
+    undo: undo mpls ldp
+    default: By default, LDP is not enabled on a node.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp
+      line: 39562
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp: _
+  - id: huawei-vrp8.mpls-ldp~2
+    syntax: mpls ldp
+    view: interface
+    undo: undo mpls ldp
+    default: By default, LDP is not enabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp (Interface view)
+      line: 39632
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.mpls{id=_}.ldp: flag
+  - id: huawei-vrp8.mpls-ldp-advertisement
+    syntax: mpls ldp advertisement { du | dod }
+    view: mpls-ldp-remote-peer
+    undo: undo mpls ldp advertisement
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp advertisement
+      line: 39721
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-advertisement~2
+    syntax: mpls ldp advertisement { du | dod }
+    view: interface
+    undo: undo mpls ldp advertisement
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp advertisement (Interface view)
+      line: 39789
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-local-lsr-id.1
+    syntax: mpls ldp local-lsr-id { <interface-type> <interface-number> | <interface-name> }
+    view: interface
+    undo: undo mpls ldp local-lsr-id
+    params:
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      interface-name:
+        type: word
+    default: By default, the current LDP session uses the LSR ID of an LDP instance as a local LSR ID.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp local-lsr-id (Interface view)
+      line: 39859
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.mpls{id=_}.ldp_local_lsr_id: $interface-name||fmt:{interface-type}{interface-number}
+  - id: huawei-vrp8.mpls-ldp-local-lsr-id.2
+    syntax: mpls ldp local-lsr-id interface
+    view: interface
+    undo: undo mpls ldp local-lsr-id
+    default: By default, the current LDP session uses the LSR ID of an LDP instance as a local LSR ID.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp local-lsr-id (Interface view)
+      line: 39859
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.mpls{id=_}.ldp_local_lsr_id: interface
+  - id: huawei-vrp8.mpls-ldp-local-lsr-id
+    syntax: mpls ldp local-lsr-id { <interface-type> <interface-number> | <interface-name> }
+    view: mpls-ldp-remote-peer
+    undo: undo mpls ldp local-lsr-id
+    params:
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      interface-name:
+        type: word
+    default: By default, the current LDP session uses the LSR ID of an LDP instance as a local LSR ID.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp local-lsr-id (Remote MPLS LDP peer view)
+      line: 39941
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-remote-peer
+    syntax: mpls ldp remote-peer <remote-peer-name>
+    view: system
+    enters_view: mpls-ldp-remote-peer
+    undo: undo mpls ldp remote-peer <remote-peer-name>
+    params:
+      remote-peer-name:
+        type: word
+    default: By default, no remote peer is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp remote-peer
+      line: 40019
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp{id=_}.remote_peer: $remote-peer-name
+  - id: huawei-vrp8.mpls-ldp-timer-hello-hold
+    syntax: mpls ldp timer hello-hold <interval>
+    view: mpls-ldp-remote-peer
+    undo: undo mpls ldp timer hello-hold
+    params:
+      interval:
+        type: integer
+        range:
+          - 3
+          - 65535
+    default: By default, the link-Hello hold timer value is 15s, and the target-Hello hold timer value is 45s.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp timer hello-hold
+      line: 40097
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-timer-hello-hold~2
+    syntax: mpls ldp timer hello-hold <interval>
+    view: interface
+    undo: undo mpls ldp timer hello-hold
+    params:
+      interval:
+        type: integer
+        range:
+          - 3
+          - 65535
+    default: By default, the link-Hello hold timer value is 15s, and the target-Hello hold timer value is 45s.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp timer hello-hold (Interface view)
+      line: 40184
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-timer-hello-send
+    syntax: mpls ldp timer hello-send <interval>
+    view: mpls-ldp-remote-peer
+    undo: undo mpls ldp timer hello-send
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, the value of the Hello send timer is one third of the value of the Hello hold timer.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp timer hello-send
+      line: 40260
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-timer-hello-send~2
+    syntax: mpls ldp timer hello-send <interval>
+    view: interface
+    undo: undo mpls ldp timer hello-send
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, the value of the Hello send timer is one third of the value of the Hello hold timer.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp timer hello-send (Interface view)
+      line: 40336
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-timer-igp-sync-delay
+    syntax: mpls ldp timer igp-sync-delay <value>
+    view: mpls-ldp-remote-peer
+    undo: undo mpls ldp timer igp-sync-delay
+    params:
+      value:
+        type: integer
+        range:
+          - 0
+          - 65535
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp timer igp-sync-delay
+      line: 40408
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-timer-igp-sync-delay~2
+    syntax: mpls ldp timer igp-sync-delay <value>
+    view: interface
+    undo: undo mpls ldp timer igp-sync-delay
+    params:
+      value:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: the default value, the default value configured in the interface view is also changed to the updated value in the MPLS-LDP view.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp timer igp-sync-delay (Interface view)
+      line: 40473
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.mpls{id=_}.ldp_igp_sync_delay: $value
+  - id: huawei-vrp8.mpls-ldp-timer-keepalive-hold
+    syntax: mpls ldp timer keepalive-hold <interval>
+    view: mpls-ldp-remote-peer
+    undo: undo mpls ldp timer keepalive-hold
+    params:
+      interval:
+        type: integer
+        range:
+          - 30
+          - 65535
+    default: By default, the value of the Keepalive hold timer is 45s.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp timer keepalive-hold
+      line: 40538
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-timer-keepalive-hold~2
+    syntax: mpls ldp timer keepalive-hold <interval>
+    view: interface
+    undo: undo mpls ldp timer keepalive-hold
+    params:
+      interval:
+        type: integer
+        range:
+          - 30
+          - 65535
+    default: By default, the value of the Keepalive hold timer is 45s.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp timer keepalive-hold (Interface view)
+      line: 40624
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-timer-keepalive-send
+    syntax: mpls ldp timer keepalive-send <interval>
+    view: mpls-ldp-remote-peer
+    undo: undo mpls ldp timer keepalive-send
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, the value of the Keepalive send timer is one third of the Keepalive hold timer value.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp timer keepalive-send
+      line: 40712
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-timer-keepalive-send~2
+    syntax: mpls ldp timer keepalive-send <interval>
+    view: interface
+    undo: undo mpls ldp timer keepalive-send
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, the value of the Keepalive send timer is one third of the Keepalive hold timer value.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp timer keepalive-send (Interface view)
+      line: 40786
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-transport-address.1
+    syntax: mpls ldp transport-address { <interface-type> <interface-number> | <interface-name> }
+    view: interface
+    undo: undo mpls ldp transport-address
+    params:
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      interface-name:
+        type: word
+    default: By default, the LDP transport address is the LSR ID of the local LSR.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp transport-address
+      line: 40862
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.mpls{id=_}.ldp_transport_address: $interface-name||fmt:{interface-type}{interface-number}
+  - id: huawei-vrp8.mpls-ldp-transport-address.2
+    syntax: mpls ldp transport-address interface
+    view: interface
+    undo: undo mpls ldp transport-address
+    default: By default, the LDP transport address is the LSR ID of the local LSR.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp transport-address
+      line: 40862
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.mpls{id=_}.ldp_transport_address: interface
+  - id: huawei-vrp8.mpls-ldp-ttl-mode
+    syntax: mpls ldp ttl-mode { pipe | uniform }
+    view: mpls
+    undo: undo mpls ldp ttl-mode
+    default: By default, MPLS LDP processes TTLs in packets in uniform mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp ttl-mode
+      line: 40952
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-vpn-instance
+    syntax: mpls ldp vpn-instance <vpn-instance-name>
+    view: system
+    undo: undo mpls ldp vpn-instance <vpn-instance-name>
+    params:
+      vpn-instance-name:
+        type: word
+    default: By default, there is not a VPN instance is enabled with LDP globally.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp vpn-instance
+      line: 41022
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-lsp-number-threshold-alarm
+    syntax: mpls ldp-lsp-number threshold-alarm upper-limit <upper-limit-value> lower-limit <lower-limit-value>
+    view: mpls
+    undo: undo mpls ldp-lsp-number threshold-alarm
+    params:
+      upper-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      lower-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp-lsp-number threshold-alarm
+      line: 41089
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ldp-srbe-convergence-enhance
+    syntax: mpls ldp-srbe convergence enhance
+    view: system
+    undo: undo mpls ldp-srbe convergence enhance
+    default: By default, LDP and SR-MPLS BE are not decoupled from service next hops.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ldp-srbe convergence enhance
+      line: 41152
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-lsp-exp-mode
+    syntax: mpls lsp exp-mode { pipe | uniform }
+    view: mpls
+    undo: undo mpls lsp exp-mode
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls lsp exp-mode
+      line: 41222
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-lsr-id
+    syntax: mpls lsr-id <lsr-id>
+    view: system
+    undo: undo mpls lsr-id
+    params:
+      lsr-id:
+        type: ipv4
+    default: By default, no ID is configured for an LSR.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls lsr-id
+      line: 41287
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.global{id=_}.lsr_id: $lsr-id
+  - id: huawei-vrp8.mpls-mldp-bfd-enable
+    syntax: mpls mldp bfd enable
+    view: mpls
+    undo: undo mpls mldp bfd enable
+    default: By default, this function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls mldp bfd enable
+      line: 41360
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-mldp-p2mp-bfd-trigger-tunnel-all
+    syntax: mpls mldp p2mp bfd-trigger-tunnel all
+    view: mpls
+    undo: undo mpls mldp p2mp bfd-trigger-tunnel all
+    default: By default, no trigger policy is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls mldp p2mp bfd-trigger-tunnel all
+      line: 41422
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-mldp-p2mp-bfd-tunnel
+    syntax: mpls mldp p2mp bfd-tunnel { min-tx-interval <tx-interval> | detect-multiplier <multiplier> } &<1-9>
+    view: mpls
+    undo: undo mpls mldp p2mp bfd-tunnel { min-tx-interval | detect-multiplier } &<1-9>
+    params:
+      tx-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      multiplier:
+        type: integer
+        range:
+          - 3
+          - 50
+    default: By default, BFD sessions use default parameter values.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls mldp p2mp bfd-tunnel
+      line: 41487
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-mldp-p2mp-disable
+    syntax: mpls mldp p2mp disable
+    view: interface
+    undo: undo mpls mldp p2mp disable
+    default: By default, the mLDP P2MP capability on a specific interface of a node is the same as that configured globally on the node.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls mldp p2mp disable
+      line: 41548
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-mldp-branch-number-threshold-alarm
+    syntax: mpls mldp-branch-number threshold-alarm upper-limit <upper-limit-value> lower-limit <lower-limit-value>
+    view: mpls
+    undo: undo mpls mldp-branch-number threshold-alarm
+    params:
+      upper-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      lower-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, the upper alarm threshold is 80%, and the lower alarm threshold is 75%.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls mldp-branch-number threshold-alarm
+      line: 41617
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-mldp-tree-number-threshold-alarm
+    syntax: mpls mldp-tree-number threshold-alarm upper-limit <upper-limit-value> lower-limit <lower-limit-value>
+    view: mpls
+    undo: undo mpls mldp-tree-number threshold-alarm
+    params:
+      upper-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      lower-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, the upper alarm threshold is 80%, and the lower alarm threshold is 75%.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls mldp-tree-number threshold-alarm
+      line: 41684
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-mtu
+    syntax: mpls mtu <mtu>
+    view: interface
+    undo: undo mpls mtu
+    params:
+      mtu:
+        type: word
+    default: By default, the MPLS MTU is equal to the interface MTU.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls mtu
+      line: 41751
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.mpls{id=_}.mtu: $mtu
+  - id: huawei-vrp8.mpls-multistep-separate-enable
+    syntax: mpls multistep separate enable
+    view: system
+    undo: undo mpls multistep separate enable
+    default: By default, this function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls multistep separate enable
+      line: 41826
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-outsegment-number-threshold-alarm
+    syntax: mpls outsegment-number threshold-alarm upper-limit <upper-limit-value> lower-limit <lower-limit-value>
+    view: mpls
+    undo: undo mpls outsegment-number threshold-alarm
+    params:
+      upper-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      lower-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls outsegment-number threshold-alarm
+      line: 41889
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-path-mtu-independent
+    syntax: mpls path-mtu independent
+    view: mpls
+    undo: undo mpls path-mtu independent
+    default: By default, this function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls path-mtu independent
+      line: 41952
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-ping-interval
+    syntax: mpls ping interval <interval>
+    view: bfd
+    undo: undo mpls ping interval
+    params:
+      interval:
+        type: integer
+        range:
+          - 30
+          - 600
+    default: By default, the interval at which LSP ping packets are sent in a dynamic BFD session is 60 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls ping interval
+      line: 42015
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-poison-reverse-enable
+    syntax: mpls poison-reverse enable
+    view: interface
+    undo: undo mpls poison-reverse enable
+    default: By default, this function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls poison-reverse enable
+      line: 42077
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-remote-adjacency-number-threshold-alarm
+    syntax: mpls remote-adjacency-number threshold-alarm upper-limit <upper-limit-value> lower-limit <lower-limit-value>
+    view: mpls
+    undo: undo mpls remote-adjacency-number threshold-alarm
+    params:
+      upper-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      lower-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, the upper alarm threshold is 80%, and the lower alarm threshold is 75%.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls remote-adjacency-number threshold-alarm
+      line: 42154
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-traffic-statistics
+    syntax: mpls traffic-statistics
+    view: system
+    undo: undo mpls traffic-statistics
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls traffic-statistics
+      line: 42217
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-passive
+    syntax: mpls-passive
+    view: bfd
+    undo: undo mpls-passive
+    default: By default, the egress of an LSP cannot passively create a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mpls-passive
+      line: 42276
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mtu-signalling.1
+    syntax: mtu-signalling
+    view: mpls-ldp
+    undo: undo mtu-signalling
+    default: By default, the router with MPLS LDP globally enabled sends Label Mapping messages carrying the MTU TLV, in compliance with draft-ietf-mpls-ldp-mtu-extensions.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mtu-signalling
+      line: 42340
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mtu-signalling.2
+    syntax: mtu-signalling apply-tlv
+    view: mpls-ldp
+    undo: undo mtu-signalling apply-tlv
+    default: By default, the router with MPLS LDP globally enabled sends Label Mapping messages carrying the MTU TLV, in compliance with draft-ietf-mpls-ldp-mtu-extensions.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: mtu-signalling
+      line: 42340
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.no-renegotiate-session-parameter-change-graceful-restart
+    syntax: no-renegotiate session-parameter-change graceful-restart
+    view: mpls-ldp
+    undo: undo no-renegotiate session-parameter-change graceful-restart
+    default: By default, a device re-establishes LDP sessions when LDP GR status or a GR parameter is changed.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: no-renegotiate session-parameter-change graceful-restart
+      line: 42406
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.outbound-peer-all-split-horizon
+    syntax: outbound peer all split-horizon
+    view: mpls-ldp
+    undo: undo outbound peer all split-horizon
+    default: By default, LDP split horizon is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: outbound peer all split-horizon
+      line: 42535
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.outbound-peer-fec.1
+    syntax: outbound peer { <peer-id> | peer-group <peer-group-name> | all } fec { none | host | ip-prefix <prefix-name> }
+    view: mpls-ldp-ipv4
+    undo: undo outbound peer { <peer-id> | peer-group <peer-group-name> | all } fec
+    params:
+      peer-id: &id004
+        type: ipv4
+      peer-group-name: &id005
+        type: word
+      prefix-name: &id006
+        type: word
+    default: By default, no outbound policy is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: outbound peer fec (MPLS-LDP-IPv4 view)
+      line: 42604
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.outbound-peer-fec.2
+    syntax: outbound peer { <peer-id> | peer-group <peer-group-name> | all } bgp-label-route { none | ip-prefix <prefix-name> }
+    view: mpls-ldp-ipv4
+    undo: undo outbound peer { <peer-id> | peer-group <peer-group-name> | all } bgp-label-route
+    params:
+      peer-id: *id004
+      peer-group-name: *id005
+      prefix-name: *id006
+    default: By default, no outbound policy is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: outbound peer fec (MPLS-LDP-IPv4 view)
+      line: 42604
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.outbound-peer-split-horizon
+    syntax: outbound peer <peer-id> split-horizon
+    view: mpls-ldp
+    undo: undo outbound peer <peer-id> split-horizon
+    params:
+      peer-id:
+        type: ipv4
+    default: By default, LDP split horizon is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: outbound peer split-horizon
+      line: 42704
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.propagate-mapping-for-ip-prefix
+    syntax: propagate mapping for ip-prefix <ip-prefix-name>
+    view: mpls-ldp
+    undo: undo propagate mapping
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, the received routes are not filtered before being used by LDP to set up transit LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: propagate mapping for ip-prefix
+      line: 42913
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.propagate-mapping-for-ip-prefix~2
+    syntax: propagate mapping for ip-prefix <ip-prefix-name>
+    view: mpls-ldp-ipv4
+    undo: undo propagate mapping
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, the received routes are not filtered before being used by LDP to set up transit LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: propagate mapping for ip-prefix (MPLS-LDP-IPv4 view)
+      line: 42976
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.propagate-mapping-unknown-tlv-disable
+    syntax: propagate mapping unknown-tlv disable
+    view: mpls-ldp
+    undo: undo propagate mapping unknown-tlv disable
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: propagate mapping unknown-tlv disable
+      line: 43040
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.protocol-packets-suppress-disable
+    syntax: protocol-packets suppress disable
+    view: mpls-ldp
+    undo: undo protocol-packets suppress disable
+    default: By default, this function is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: protocol-packets suppress disable
+      line: 43094
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.proxy-egress-disable
+    syntax: proxy-egress disable
+    view: mpls
+    undo: undo proxy-egress disable
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: proxy-egress disable
+      line: 43147
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remote-ip.1
+    syntax: remote-ip <ip-address>
+    view: mpls-ldp-remote-peer
+    undo: undo remote-ip
+    params:
+      ip-address:
+        type: ipv4
+    default: By default, no IP address is assigned to a remote LDP peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: remote-ip
+      line: 43204
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp.remote_peer.remote_ip: $ip-address
+  - id: huawei-vrp8.remote-ip.2
+    syntax: clear remote-ip pwe3
+    view: mpls-ldp-remote-peer
+    default: By default, no IP address is assigned to a remote LDP peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: remote-ip
+      line: 43204
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remote-ip-auto-dod-request
+    syntax: remote-ip auto-dod-request
+    view: mpls-ldp-remote-peer
+    undo: undo remote-ip auto-dod-request
+    default: By default, the function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: remote-ip auto-dod-request
+      line: 43291
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remote-ip-auto-dod-request-block
+    syntax: remote-ip auto-dod-request block
+    view: mpls-ldp-remote-peer
+    undo: undo remote-ip auto-dod-request block
+    default: By default, the function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: remote-ip auto-dod-request block
+      line: 43353
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remote-ip-pwe3
+    syntax: remote-ip <ip-address> pwe3
+    view: mpls-ldp-remote-peer
+    undo: undo remote-ip pwe3
+    params:
+      ip-address:
+        type: ipv4
+    default: By default, allows the device to assign labels for a specified remote peer for LDP services.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: remote-ip pwe3 (Remote MPLS LDP peer view)
+      line: 43409
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remote-peer-auto-dod-request
+    syntax: remote-peer auto-dod-request
+    view: mpls-ldp
+    undo: undo remote-peer auto-dod-request
+    default: By default, this function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: remote-peer auto-dod-request
+      line: 43477
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remote-peer-pwe3
+    syntax: remote-peer pwe3
+    view: mpls-ldp
+    undo: undo remote-peer pwe3
+    default: By default, an LSR is permitted to distribute labels to all remote peers for LDP services.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: remote-peer pwe3
+      line: 43541
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.send-message-address-all-loopback
+    syntax: send-message address all-loopback
+    view: mpls-ldp
+    undo: undo send-message address all-loopback
+    default: By default, a local device only advertises its LSR ID that is set to a local loopback interface to LDP peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: send-message address all-loopback
+      line: 44074
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp.send_all_loopback: flag
+  - id: huawei-vrp8.session-protection
+    syntax: session protection [ peer-group <peer-group-name> ] [ duration { infinite | <time-value> } ]
+    view: mpls-ldp
+    undo: undo session protection [ peer-group <peer-group-name> ] [ duration { infinite | <time-value> } ]
+    params:
+      peer-group-name:
+        type: word
+      time-value:
+        type: integer
+        range:
+          - 30
+          - 2147483
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: session protection
+      line: 44128
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      mpls.ldp.session_protection: flag
+  - id: huawei-vrp8.session-suppress-disable
+    syntax: session suppress disable
+    view: mpls-ldp
+    undo: undo session suppress disable
+    default: By default, this function is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: session suppress disable
+      line: 44199
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.session-state-trap.1
+    syntax: session-state-trap public-only
+    view: mpls-ldp
+    undo: undo session-state-trap public-only
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: session-state-trap
+      line: 44252
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.session-state-trap.2
+    syntax: session-state-trap remote-lfa-disable
+    view: mpls-ldp
+    undo: undo session-state-trap remote-lfa-disable
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: session-state-trap
+      line: 44252
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.static-lsp-egress
+    syntax: static-lsp egress <lsp-name> [ incoming-interface { <in-interface-name> | { <in-interface-type> <in-interface-number> } } ] in-label <in-label>
+    view: system
+    undo: undo static-lsp egress <lsp-name>
+    params:
+      lsp-name:
+        type: word
+      in-interface-name:
+        type: word
+      in-interface-type:
+        type: word
+      in-interface-number:
+        type: word
+      in-label:
+        type: integer
+        range:
+          - 16
+          - 2047
+    default: By default, no egress of a static CR-LSP is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: static-lsp egress
+      line: 44324
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.static-lsp-ingress.1
+    syntax: static-lsp ingress <lsp-name> destination <ip-address> { <mask> | <mask-length> } { { outgoing-interface { <out-interface-name> | { <out-interface-type> <out-interface-number> } } } { nexthop <next-hop-address> } } out-label <out-label>
+    view: system
+    undo: undo static-lsp ingress <lsp-name>
+    params:
+      lsp-name: &id007
+        type: word
+      ip-address: &id008
+        type: ipv4
+      mask: &id009
+        type: mask
+      mask-length: &id010
+        type: mask-length
+      out-interface-name: &id012
+        type: word
+      out-interface-type: &id013
+        type: word
+      out-interface-number: &id014
+        type: word
+      next-hop-address: &id011
+        type: ipv4
+      out-label: &id015
+        type: integer
+        range:
+          - 16
+          - 1048575
+    default: By default, no ingress of a static CR-LSP is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: static-lsp ingress
+      line: 44385
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.static-lsp-ingress.2
+    syntax: static-lsp ingress <lsp-name> destination <ip-address> { <mask> | <mask-length> } { { nexthop <next-hop-address> } { outgoing-interface { <out-interface-name> | { <out-interface-type> <out-interface-number> } } } } out-label <out-label>
+    view: system
+    undo: undo static-lsp ingress <lsp-name>
+    params:
+      lsp-name: *id007
+      ip-address: *id008
+      mask: *id009
+      mask-length: *id010
+      next-hop-address: *id011
+      out-interface-name: *id012
+      out-interface-type: *id013
+      out-interface-number: *id014
+      out-label: *id015
+    default: By default, no ingress of a static CR-LSP is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: static-lsp ingress
+      line: 44385
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.static-lsp-ingress.3
+    syntax: static-lsp ingress <lsp-name> destination <ip-address> { <mask> | <mask-length> } { outgoing-interface { <out-interface-name> | { <out-interface-type> <out-interface-number> } } } out-label <out-label>
+    view: system
+    undo: undo static-lsp ingress <lsp-name>
+    params:
+      lsp-name: *id007
+      ip-address: *id008
+      mask: *id009
+      mask-length: *id010
+      out-interface-name: *id012
+      out-interface-type: *id013
+      out-interface-number: *id014
+      out-label: *id015
+    default: By default, no ingress of a static CR-LSP is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: static-lsp ingress
+      line: 44385
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.static-lsp-ingress.4
+    syntax: static-lsp ingress <lsp-name> destination <ip-address> { <mask> | <mask-length> } nexthop <next-hop-address> out-label <out-label>
+    view: system
+    undo: undo static-lsp ingress <lsp-name>
+    params:
+      lsp-name: *id007
+      ip-address: *id008
+      mask: *id009
+      mask-length: *id010
+      next-hop-address: *id011
+      out-label: *id015
+    default: By default, no ingress of a static CR-LSP is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: static-lsp ingress
+      line: 44385
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.static-lsp-transit.1
+    syntax: static-lsp transit <lsp-name> [ incoming-interface { <in-interface-name> | { <in-interface-type> <in-interface-number> } } ] in-label <in-label> { outgoing-interface { <out-interface-name> | { <out-interface-type> <out-interface-number> } } nexthop <next-hop-address> } out-label <out-label>
+    view: system
+    undo: undo static-lsp transit <lsp-name>
+    params:
+      lsp-name: &id016
+        type: word
+      in-interface-name: &id017
+        type: word
+      in-interface-type: &id018
+        type: word
+      in-interface-number: &id019
+        type: word
+      in-label: &id020
+        type: integer
+        range:
+          - 16
+          - 2047
+      out-interface-name: &id022
+        type: word
+      out-interface-type: &id023
+        type: word
+      out-interface-number: &id024
+        type: word
+      next-hop-address: &id021
+        type: ipv4
+      out-label: &id025
+        type: integer
+        range:
+          - 16
+          - 1048575
+    default: By default, no transit node of a static CR-LSP is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: static-lsp transit
+      line: 44465
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.static-lsp-transit.2
+    syntax: static-lsp transit <lsp-name> [ incoming-interface { <in-interface-name> | { <in-interface-type> <in-interface-number> } } ] in-label <in-label> { nexthop <next-hop-address> outgoing-interface { <out-interface-name> | { <out-interface-type> <out-interface-number> } } } out-label <out-label>
+    view: system
+    undo: undo static-lsp transit <lsp-name>
+    params:
+      lsp-name: *id016
+      in-interface-name: *id017
+      in-interface-type: *id018
+      in-interface-number: *id019
+      in-label: *id020
+      next-hop-address: *id021
+      out-interface-name: *id022
+      out-interface-type: *id023
+      out-interface-number: *id024
+      out-label: *id025
+    default: By default, no transit node of a static CR-LSP is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: static-lsp transit
+      line: 44465
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.static-lsp-transit.3
+    syntax: static-lsp transit <lsp-name> [ incoming-interface { <in-interface-name> | { <in-interface-type> <in-interface-number> } } ] in-label <in-label> outgoing-interface { <out-interface-name> | { <out-interface-type> <out-interface-number> } } out-label <out-label>
+    view: system
+    undo: undo static-lsp transit <lsp-name>
+    params:
+      lsp-name: *id016
+      in-interface-name: *id017
+      in-interface-type: *id018
+      in-interface-number: *id019
+      in-label: *id020
+      out-interface-name: *id022
+      out-interface-type: *id023
+      out-interface-number: *id024
+      out-label: *id025
+    default: By default, no transit node of a static CR-LSP is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: static-lsp transit
+      line: 44465
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.static-lsp-transit.4
+    syntax: static-lsp transit <lsp-name> [ incoming-interface { <in-interface-name> | { <in-interface-type> <in-interface-number> } } ] in-label <in-label> nexthop <next-hop-address> out-label <out-label>
+    view: system
+    undo: undo static-lsp transit <lsp-name>
+    params:
+      lsp-name: *id016
+      in-interface-name: *id017
+      in-interface-type: *id018
+      in-interface-number: *id019
+      in-label: *id020
+      next-hop-address: *id021
+      out-label: *id025
+    default: By default, no transit node of a static CR-LSP is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: static-lsp transit
+      line: 44465
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.suppress-flapping-interface-disable
+    syntax: suppress-flapping interface disable
+    view: mpls-ldp
+    undo: undo suppress-flapping interface disable
+    default: By default, LDP interface flapping suppression is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: suppress-flapping interface disable
+      line: 44539
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ti-lfa-remote-peer-disable
+    syntax: ti-lfa remote-peer disable
+    view: mpls-ldp
+    undo: undo ti-lfa remote-peer disable
+    default: By default, a remote LDP session is automatically established in the TI-LFA scenario where PQ nodes overlap.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: ti-lfa remote-peer disable
+      line: 44652
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-auto-remote-keepalive-hold
+    syntax: timer auto-remote keepalive-hold <interval>
+    view: mpls-ldp
+    undo: undo timer auto-remote keepalive-hold
+    params:
+      interval:
+        type: integer
+        range:
+          - 30
+          - 65535
+    default: By default, the value of the global Keepalive hold timer is 45s.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: timer auto-remote keepalive-hold
+      line: 44709
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ttl-expiration-pop
+    syntax: ttl expiration pop
+    view: mpls
+    undo: undo ttl expiration pop
+    default: By default, if a device receives a packet with a single label and an expired MPLS TTL, the device replies to the transmit end with an ICMP reply message over an IP route.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: ttl expiration pop
+      line: 44787
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ttl-mode@vpn-instance-af-ipv4
+    syntax: ttl-mode { pipe | uniform }
+    view: vpn-instance-af-ipv4
+    undo: undo ttl-mode
+    default: By default, the TTL processing mode of MPLS is pipe.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: ttl-mode
+      line: 44849
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ttl-mode@vpn-instance
+    syntax: ttl-mode { pipe | uniform }
+    view: vpn-instance
+    undo: undo ttl-mode
+    default: By default, the TTL processing mode of MPLS is pipe.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: ttl-mode
+      line: 44849
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.whitelist-session-car
+    syntax: whitelist session-car { ldp-tcp | ldp-udp-local | ldp-udp-remote } { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9>
+    view: system
+    undo: undo whitelist session-car { ldp-tcp | ldp-udp-local | ldp-udp-remote } [ { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> } &<1-9> ]
+    params:
+      cir-value:
+        type: word
+      cbs-value:
+        type: word
+      pir-value:
+        type: word
+      pbs-value:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: whitelist session-car (LDP)
+      line: 44915
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.whitelist-session-car-ldp-disable
+    syntax: whitelist session-car ldp disable
+    view: system
+    undo: undo whitelist session-car ldp disable
+    default: By default, the LDP whitelist session CAR function is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 11_MPLS Commands.md
+      title: whitelist session-car ldp disable
+      line: 44994
+      version: V800R025C00SPC500
+    status: draft

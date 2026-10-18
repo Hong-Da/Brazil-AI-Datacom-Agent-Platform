@@ -45,7 +45,8 @@ nodes:
     semantic: {zh-CN: NTP 访问控制（peer / server / query / synchronization）, en: NTP access control}
   mgmt.ntp.access.acl:
     parent: mgmt.ntp.access
-    type: string
+    type: ref
+    ref: acl.instance
     semantic: {zh-CN: 引用的 ACL, en: ACL}
   mgmt.ntp.source_interface:
     parent: mgmt.ntp
@@ -73,7 +74,8 @@ nodes:
     semantic: {zh-CN: 读写权限（Cisco RO 记为 read、RW 记为 write）, en: Access}
   mgmt.snmp.community.acl:
     parent: mgmt.snmp.community
-    type: string
+    type: ref
+    ref: acl.instance
     semantic: {zh-CN: 限制访问的 ACL, en: ACL}
   mgmt.snmp.location:
     parent: mgmt.snmp
@@ -298,7 +300,8 @@ nodes:
     semantic: {zh-CN: 登录线路（type：vty / console；range 如 "0 20"）, en: Login line}
   mgmt.line.acl_in:
     parent: mgmt.line
-    type: string
+    type: ref
+    ref: acl.instance
     semantic: {zh-CN: 入方向访问控制（华为 acl … inbound / Cisco access-class … in）, en: Inbound ACL}
   mgmt.line.auth:
     parent: mgmt.line

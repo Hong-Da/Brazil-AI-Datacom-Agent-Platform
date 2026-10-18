@@ -1,0 +1,111 @@
+# ACL 功能域（0.3.0，M3-2）：基本 / 高级 ACL（华为 acl number / acl name；Cisco ip access-list standard|extended、编号 access-list）与规则。
+# 引用 ACL 的地方（接口 ip access-group、VTY acl / access-class、SNMP 团体字、NTP 访问控制）都是引用依赖，
+# 配置检查据此发现悬空引用（引用了不存在的 ACL）和孤儿 ACL（没有被任何地方引用）。
+# 规则的源 / 目的统一写成“地址 + 反掩码”：Cisco host X 记为 X 0.0.0.0，华为 X 0 记为 X 0.0.0.0；any 或不写记为 any。
+domain: acl
+nodes:
+  acl.instance:
+    type: object
+    key: [name]
+    semantic: {zh-CN: ACL（按编号或名称；华为 acl number / acl name；Cisco ip access-list / access-list 编号）, en: Access control list}
+    status: reviewed
+  acl.instance.type:
+    parent: acl.instance
+    type: enum
+    choices: [basic, advanced, interface, link, mpls]
+    semantic: {zh-CN: 类型（华为 basic / advance，编号 2000–2999 为基本、3000–3999 为高级；Cisco standard 记为 basic、extended 记为 advanced）, en: ACL type}
+  acl.instance.number:
+    parent: acl.instance
+    type: integer
+    semantic: {zh-CN: 命名 ACL 同时指定的编号（华为 acl name … number）, en: ACL number}
+  acl.instance.match_order:
+    parent: acl.instance
+    type: enum
+    choices: [config, auto]
+    semantic: {zh-CN: 规则匹配顺序（华为 match-order；Cisco 固定按序号）, en: Match order}
+  acl.instance.description:
+    parent: acl.instance
+    type: text
+    semantic: {zh-CN: ACL 描述（华为 description）, en: Description}
+  acl.instance.step:
+    parent: acl.instance
+    type: integer
+    semantic: {zh-CN: 规则编号步长（华为 step）, en: Rule number step}
+  acl.instance.rule:
+    parent: acl.instance
+    type: object
+    key: [id]
+    semantic: {zh-CN: 规则（华为 rule <编号>；Cisco 序号，编号 ACL 没有序号时按出现顺序记为 10、20…）, en: ACL rule}
+  acl.instance.rule.action:
+    parent: acl.instance.rule
+    type: enum
+    choices: [permit, deny]
+    semantic: {zh-CN: 动作, en: Action}
+  acl.instance.rule.protocol:
+    parent: acl.instance.rule
+    type: string
+    semantic: {zh-CN: 协议（高级 ACL：ip / tcp / udp / icmp / 协议号）, en: Protocol}
+  acl.instance.rule.source_ip:
+    parent: acl.instance.rule
+    type: string
+    semantic: {zh-CN: 源地址（any 表示任意）, en: Source address}
+  acl.instance.rule.source_wildcard:
+    parent: acl.instance.rule
+    type: string
+    semantic: {zh-CN: 源反掩码（华为 0、Cisco host 统一为 0.0.0.0）, en: Source wildcard}
+  acl.instance.rule.destination_ip:
+    parent: acl.instance.rule
+    type: string
+    semantic: {zh-CN: 目的地址（any 表示任意）, en: Destination address}
+  acl.instance.rule.destination_wildcard:
+    parent: acl.instance.rule
+    type: string
+    semantic: {zh-CN: 目的反掩码, en: Destination wildcard}
+  acl.instance.rule.source_port:
+    parent: acl.instance.rule
+    type: string
+    semantic: {zh-CN: 源端口条件（如 eq 22、range 1000 2000）, en: Source port}
+  acl.instance.rule.destination_port:
+    parent: acl.instance.rule
+    type: string
+    semantic: {zh-CN: 目的端口条件, en: Destination port}
+  acl.instance.rule.vrf:
+    parent: acl.instance.rule
+    type: ref
+    ref: vrf.instance
+    semantic: {zh-CN: 只匹配该 VPN 实例的报文（华为 vpn-instance）, en: VPN instance}
+  acl.instance.rule.name:
+    parent: acl.instance.rule
+    type: text
+    semantic: {zh-CN: 规则名称（华为 rule … name）, en: Rule name}
+  acl.instance.rule.description:
+    parent: acl.instance.rule
+    type: text
+    semantic: {zh-CN: 规则描述（华为 rule <编号> description；Cisco 带序号的 remark）, en: Rule description}
+  acl.instance.rule.log:
+    parent: acl.instance.rule
+    type: boolean
+    semantic: {zh-CN: 命中时记录日志（Cisco log）, en: Log}
+  interface.acl_in:
+    parent: interface
+    type: ref
+    ref: acl.instance
+    semantic: {zh-CN: 接口入方向过滤（Cisco ip access-group … in）, en: Inbound ACL}
+  interface.acl_out:
+    parent: interface
+    type: ref
+    ref: acl.instance
+    semantic: {zh-CN: 接口出方向过滤（Cisco ip access-group … out）, en: Outbound ACL}
+  rp.policy.node.match_acl:
+    parent: rp.policy.node
+    type: ref
+    ref: acl.instance
+    semantic: {zh-CN: 路由策略节点匹配的 ACL（华为 if-match acl；Cisco match ip address 编号或名称）, en: Match ACL}
+deps:
+  - {kind: reference, from: interface.acl_in, to: acl.instance, note: 接口引用 ACL}
+  - {kind: reference, from: interface.acl_out, to: acl.instance, note: 接口引用 ACL}
+  - {kind: reference, from: mgmt.line.acl_in, to: acl.instance, note: 登录线路引用 ACL}
+  - {kind: reference, from: mgmt.snmp.community.acl, to: acl.instance, note: SNMP 团体字引用 ACL}
+  - {kind: reference, from: mgmt.ntp.access.acl, to: acl.instance, note: NTP 访问控制引用 ACL}
+  - {kind: reference, from: acl.instance.rule.vrf, to: vrf.instance, note: 规则引用 VPN 实例}
+  - {kind: reference, from: rp.policy.node.match_acl, to: acl.instance, note: 路由策略引用 ACL}

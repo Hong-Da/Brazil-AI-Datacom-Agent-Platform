@@ -82,7 +82,8 @@
 | `lmesh parse <文件> [--profile P] [--lines/--summary]` | 解析配置：每行的视图、命令卡、参数、类别（command / raw 功能域外 / unknown 未识别 / separator / comment / blank / end）；不填 `--profile` 时按厂商与版本自动选择，识别不了时退出码 2 |
 | `lmesh unknown list [--limit N]` | 已导入配置中的未识别行，按归一化后的模式与出现次数汇总（用来补命令卡） |
 | `lmesh graph show <文件\|设备名> [--domain D] [--profile P]` | 显示配置图：语义节点（含 Profile 补出的隐藏默认节点）、依赖边（contains / reference / prerequisite / side_effect / mutex）、悬空引用 |
-| `lmesh render <文件\|设备名> [--profile P]` | 解析建图后按图渲染回配置文本（往返模式：保留原有顺序、缩进与写法） |
+| `lmesh render <文件\|设备名> [--profile P] [--canonical] [--with-defaults]` | 解析建图后按图渲染回配置文本。默认往返模式：保留原有顺序、缩进与写法；`--canonical` 规范模式：只看图中的语义节点，按平台族写法重新生成命令（按视图分块、被引用的先出现，华为 `#` 分隔、`return` 结尾，Cisco `!` 与 `end`），未映射命令与功能域外原文按原文写回原位置；`--with-defaults` 含默认值的完整配置（规范模式，Profile 默认值也写成命令，集中放在所在块的显式行之后，前面一行注释 `! default`）。`--output json` 时 `lines` 给出每一行的来源节点、`origin`（explicit / default）、`kind`（command / original 按原文写回的命令 / extra 原文行 / separator / comment / exit / end），`default_lines` 为默认值行的行号，`uncovered` 为没能写成命令的节点（在 stderr 提示个数） |
+| `lmesh translate <文件\|设备名> --to <Profile> [--interface-map 文件] [-o 文件] [--profile P] [--no-verify]` | 配置翻译：按有效值把配置翻译到目标 Profile（另一个平台族），接口名按映射表改写（子接口按父接口映射，没给映射表时同名）。默认值差异：源设备依赖默认值而目标默认值不同时显式写出并告警（`default_differs`），目标没有登记默认值时只提示（`default_unknown`），两边相同时不写；源设备显式值等于目标默认值时省略（`defaults`）。目标 Profile 不支持或写不出命令的节点、跨平台族的密码类取值（需重新设置）、未映射命令、功能域外原文、未识别行列在 `unsupported`（附原文行号），人工处理；目标写法必须给出、源配置没有的取值按推导规则写出并告警（`inferred_value`）；接口类型不属于目标平台族时告警（`interface_type`）。译文再解析建图后与源图按有效值对比（`verify`），列出项之外的差异记为 `verify_diff`。不给 `-o` 时译文写到 stdout、摘要与告警写到 stderr；**校验发现没有解释的差异时退出码 1** |
 | `lmesh roundtrip [<文件>] [--samples] [--profile P]` | 往返测试：配置 → 图 → 配置逐字比较；`--samples` 跑 `knowledge/samples/manifest.yaml` 中的全部样本，门槛样本还要求功能域内没有未识别行；不一致时退出码 1 |
 | `lmesh compare <A> <B> [--domain D] [--raw] [--interface-map 文件] [--profile-a P] [--profile-b P] [--rename-threshold 0–1] [--hide-identity]` | 配置对比（同厂商或跨厂商都按 Schema 节点比较）：A、B 是配置文件或已导入的设备名（`设备名@版本编号` 取指定配置版本，版本编号见 `GET /devices/{id}/versions` 的 `id`，省略时取最新版本）。比较有效值（显式值，否则 Profile 默认值或派生值，显式写出默认值与不写结果相同）；值按节点类型规范化后比较（掩码与长度、接口名缩写与大小写、RD / RT 写法、RT 的 `both` 等于 import + export）；可被引用的对象（路由策略、前缀列表、VRF 等）内容相同只是名字不同时判为改名，引用随之对应；`--interface-map` 为跨厂商的接口对照（JSON / YAML 的 `{A: B}`，或每行两列的文本）；`--raw` 同时按所属对象比较功能域外的原文行；未识别行单独列出；只有一侧 Profile 有默认值的属性不可比，不算差异（`default_only`）。文本输出按功能域分组（`+` 新增、`-` 删除、`~` 修改、`»` 改名），`--output json` 输出完整结果；`--hide-identity` 隐藏设备身份差异（Router ID、接口 IPv4 地址、BGP 对等体地址、IS-IS NET、主机名等），被隐藏的个数见 `summary.hidden_identity`；**有差异时退出码仍为 0**，差异数见 `summary.total` |
 | `lmesh check <文件\|设备名> [--rules 目录] [--severity error\|warning\|info] [--domain D] [--profile P]` | 配置检查：悬空引用、孤儿对象（含级联孤儿）、互斥冲突，以及知识库 `rules/` 中的规则约束；每条发现带规则编号、级别、规范编号、行号、说明与修复建议，并按级别、规则、功能域汇总；目标是已导入的设备时合并该设备的忽略记录（被忽略的发现标注原因，不计入级别统计与退出码）；内置检查的开关与级别按 `rules/builtin.yaml`；`--severity` 是最低级别，`--domain` 只看一个功能域；**筛选后仍有 error 级发现时退出码 1**（便于脚本判断），规则文件写错时退出码 3 并列出文件、规则与出错位置，`--rules` 目录不存在时退出码 4 |
@@ -91,6 +92,12 @@
 | `lmesh report check <文件\|设备名> [--lang zh-CN\|en] [--format html\|md] [-o 文件] [--severity S] [--domain D] [--rules 目录] [--profile P]` | 导出配置检查报告：按严重度分组列出发现（规则、功能域、节点、行号、说明、建议），被忽略的发现单列并写明原因，有孤儿时附清理脚本与验证结论；文件名建议 `check-<设备>.<lang>.<ext>`；报告只是导出，不因 error 级发现返回非零退出码 |
 | `lmesh rules list` / `lmesh rules set <规则> [--enable\|--disable] [--severity S]` | 检查规则的开关、级别与来源（`builtin` 或规则文件名）；`set` 修改运行时知识库：知识库规则写回所在的规则文件（保留注释与顺序），内置检查写入覆盖文件 `rules/builtin.yaml`，并提交一次；规则不存在退出码 4，什么都没给退出码 2 |
 | `lmesh ignore list [--device 设备名]` / `ignore add <设备名> <规则> <节点> --reason 原因` / `ignore remove <编号>` | 忽略的检查发现：按（设备、规则、节点）唯一，原因必填（空时退出码 2），重复添加时更新原因；设备、规则或记录不存在时退出码 4 |
+| `lmesh template list` / `template show <模板>` | 参数化模板（运行时知识库 `templates/`）：编号、名称、Profile、变量与块的个数；`show` 列出变量（类型、派生表达式）与正文；`<模板>` 是模板编号或模板文件路径；模板有问题时退出码 3 并列出位置与原因，不存在时退出码 4 |
+| `lmesh template check <模板> <文件\|设备名> [--profile P] [--extra allow\|deny] [--extra-scope none\|matched\|domains]` | 按模板校验配置（在图上按有效值比较）：符合与否、提取的变量与块实例，逐项原因（`missing` 缺少、`value` 取值不符、`inconsistent` 前后不一致、`constraint` 违反约束、`count` 实例个数、`extra` 模板外的配置），附配置与模板正文的行号；`--extra` / `--extra-scope` 覆盖模板的 `match` 设置；**不符合时退出码 1** |
+| `lmesh template extract <模板> <文件\|设备名>… [--format json\|csv] [-o 文件]` | 按模板提取变量，每份配置一行，格式与 `generate` 的参数表相同（CSV 中块变量写成 `块名.变量`、重复块的取值用分号连接）；不符合模板时仍输出提取结果，退出码 0 |
+| `lmesh template draft <文件>… [--id 编号] [-o 模板文件] [--params-out 参数表] [--profile P]` | 模板制作辅助：从一份或几份同角色设备的配置生成模板草稿（第一份为基准）；在图上对齐各设备的节点，取值不同的词作为候选变量（名字建议、类型推断），只有一份时以设备身份与描述为候选；列出可选块与重复块候选，并用草稿校验每份源配置（自检） |
+| `lmesh template generate <模板> <参数表> [--format csv\|json] [--out-dir 目录] [--engine text\|canon] [--target-profile P] [--no-verify]` | 批量生成：参数表每行生成一份配置；生成后解析（未识别行为 0）、往返（逐字一致）并按模板校验（符合且提取出的变量与输入一致），失败的行给出原因；`--engine canon` 用规范渲染器输出，可配合 `--target-profile` 生成另一平台族的配置；`--out-dir` 只写成功的行（`<设备名>.cfg`）；**有失败的行时退出码 1** |
+| `lmesh template save <模板文件>` | 校验（含正文解析建图）后把模板写入运行时知识库的 `templates/<编号>.yaml` 并提交 |
 | `lmesh ai test` / `lmesh ai calls` | 测试 AI 接口 / 最近的 AI 调用记录（任务、模型、token 用量、成功与否） |
 
 知识库命令操作的是运行时知识库（默认 `data/knowledge/`，首次使用时从程序自带的 `knowledge/` 复制，并作为独立的 Git 仓库管理）。
@@ -343,7 +350,7 @@ JSON 输出中的关键字段：
 
 - `data.profile` = `"huawei-atn-v800r023"`
 - `data.coverage` = `1.0`
-- `data.counts.command` = `904`
+- `data.counts.command` = `1151`
 
 ### 单个配置的往返测试
 
@@ -369,7 +376,7 @@ lmesh --output json roundtrip --samples
 JSON 输出中的关键字段：
 
 - `data.failed` = `0`
-- `data.samples` = `15`
+- `data.samples` = `17`
 
 ### 查看配置图的 VRF 部分
 
@@ -627,6 +634,90 @@ JSON 输出中的关键字段：
 - `data.commands.0.fallback` = `false`
 - `data.verify.ok` = `true`
 
+### 列出模板
+
+```bash
+lmesh --output json template list
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.templates.0.id` = `"cisco-asr920-efp-bdi-vrf"`
+- `data.templates.0.valid` = `true`
+- `data.templates.0.blocks` = `1`
+
+### 按模板校验配置：符合，并提取变量
+
+```bash
+lmesh --output json template check cisco-asr920-efp-bdi-vrf tests/inputs/templates/pe-asr920-11.cfg
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.compliant` = `true`
+- `data.variables.loopback` = `"10.255.0.31"`
+- `data.variables.uplink_net` = `"10.1.0.20/30"`
+- `data.blocks.svc.1.vrf` = `"MGMT"`
+- `data.summary.instances.svc` = `2`
+
+### 不符合模板：逐项原因与行号，退出码 1
+
+```bash
+lmesh --lang zh-CN template check cisco-asr920-efp-bdi-vrf tests/inputs/templates/pe-asr920-11-bad.cfg
+```
+
+退出码：`1`
+
+输出包含：`不符合模板：2 处错误`、`interface[{uplink}]/mtu: 取值不符：模板 9216，实际 9000`、`svc.vlan 前后不一致：应为 102，实际 103`、`配置第 36 行`
+
+### 提取变量为参数表（CSV，可直接用于生成）
+
+```bash
+lmesh template extract cisco-asr920-efp-bdi-vrf tests/inputs/templates/pe-asr920-11.cfg --format csv
+```
+
+退出码：`0`
+
+输出包含：`device,hostname,asn,loopback`、`101;102,RAN-2G;MGMT,101;10`
+
+### 模板 + 参数表批量生成：每行解析、往返并按模板校验
+
+```bash
+lmesh --output json template generate huawei-atn-l3vpn-subif tests/inputs/templates/atn-l3-sites.json --out-dir out/gen
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.summary.total` = `2`
+- `data.summary.failed` = `0`
+- `data.rows.0.file` = `"ATN-SITE-21.cfg"`
+- `data.rows.0.checks.roundtrip` = `true`
+- `data.rows.0.checks.template.compliant` = `true`
+
+### 从同角色设备的配置生成模板草稿
+
+```bash
+lmesh --output json template draft tests/inputs/templates/pe-asr920-11.cfg tests/inputs/templates/pe-asr920-12.cfg --id asr-draft -o out/asr-draft.yaml --params-out out/asr-draft.csv
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.valid` = `true`
+- `data.template_id` = `"asr-draft"`
+- `data.vars.0.name` = `"hostname"`
+- `data.vars.0.values` = `["PE-ASR920-11", "PE-ASR920-12"]`
+- `data.verify.0.compliant` = `true`
+- `data.verify.1.compliant` = `true`
+
 ### Cisco 配置的对比报告按华为风格显示节点
 
 ```bash
@@ -636,5 +727,66 @@ lmesh report compare knowledge/samples/cisco-iosxe-asr920-synthetic/pe-asr920-01
 退出码：`0`
 
 输出包含：`ip vpn-instance RAN-2G`、`vpn-target 64512:1 import-extcommunity`
+
+### Cisco 配置翻译到华为（接口映射表；显式值等于目标默认值时省略）
+
+```bash
+lmesh --output json translate tests/inputs/translate/cs-small.cfg --to huawei-atn-v800r025 --interface-map tests/inputs/translate/ifmap.yaml
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.source.profile` = `"cisco-iosxe-asr920-17.15"`
+- `data.target.profile` = `"huawei-atn-v800r025"`
+- `data.verify.unexplained` = `0`
+- `data.stats.defaults_omitted` = `1`
+- `data.defaults.0.kind` = `"explicit_equals_default"`
+- `data.defaults.0.node` = `"interface[GigabitEthernet0/0/1]/mtu"`
+- `data.unsupported.0.kind` = `"raw"`
+- `data.unsupported.0.params.text` = `"hostname R1"`
+- `data.lines.5.text` = `"interface Eth-Trunk1"`
+
+### 译文写到标准输出，摘要与告警写到标准错误
+
+```bash
+lmesh --lang zh-CN translate tests/inputs/translate/cs-small.cfg --to huawei-atn-v800r025
+```
+
+退出码：`0`
+
+输出包含：`interface Port-channel1`、`ip route-static 0.0.0.0 0.0.0.0 10.0.0.2`、`return`
+
+错误提示（stderr）包含：`校验通过`、`Port-channel 不是 huawei-vrp8 的接口类型`、`已省略`
+
+### 规范模式渲染（按视图分块，Cisco 写 exit-address-family）
+
+```bash
+lmesh --output json render knowledge/samples/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg --canonical
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.mode` = `"canonical"`
+- `data.with_defaults` = `false`
+- `data.profile` = `"cisco-iosxe-asr920-17.15"`
+- `data.uncovered` = `[]`
+- `data.default_lines` = `[]`
+- `data.lines.0.text` = `"!"`
+
+### 含默认值的完整配置（默认值行前有 ! default 注释）
+
+```bash
+lmesh render tests/inputs/translate/cs-small.cfg --with-defaults
+```
+
+退出码：`0`
+
+输出包含：`! default`、` no shutdown`、`end`
 
 <!-- examples:end -->

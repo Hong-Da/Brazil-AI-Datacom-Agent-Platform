@@ -369,6 +369,8 @@ class _Schema:
             return child.type, child.ref if child.type == "ref" else None
         if len(sn.key) <= 1 and sn.id in NODE_TYPES:  # 对象本身就是一种取值类型（接口名）
             return sn.id, None
+        if f == "interface":  # 键字段就叫 interface（OSPF 被动接口、业务实例所在接口）：按接口名规范化与映射
+            return "interface", None
         ref = self.ref_by_name.get(f)
         return ("ref", ref) if ref else ("string", None)
 

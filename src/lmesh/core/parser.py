@@ -105,7 +105,10 @@ class CardIndex:
                 continue
             if lead:
                 self.by_key[(c.view, lead[0])].append(c)
-                self.prefixes[c.view].add(tuple(lead[:2]))
+                # 整条语法只有一个关键字的卡（华为接口下的 mpls、shutdown）只说明这一个词：
+                # 不把“以它开头的其他命令”（mpls te、mpls rsvp-te，属于范围外的功能）算作知识库缺口
+                if len(lead) > 1 or len(c.parsed.nodes) > 1:
+                    self.prefixes[c.view].add(tuple(lead[:2]))
             else:
                 self.loose[c.view].append(c)
             if c.undo:
@@ -253,8 +256,10 @@ def parse(text: str, kb: KnowledgeBase, family: str) -> Parsed:
         # 异常缩进：比上一行深很多，而上一行没有进入子视图 → 视作与上一行同级；
         # 如果在上一行的视图里匹配不到，再逐级往外层视图找（分页痕迹可能出现在一个子视图块的第一行，
         # 例如 OSPF 的 frr 块之后的 “                 area 0.0.0.8”），匹配到哪一层就按那一层的缩进算
-        if indent > prev_indent + 1 and not prev_entered:
-            indent = prev_indent
+        # 上一行刚进入子视图时，异常缩进的行先当作子视图的第一行；子视图里匹配不到、外层视图匹配得到时按外层算
+        # （例如 VPN 实例的 ipv4-family 之后分页痕迹缩进的 “                 ipv6-family”）
+        if indent > prev_indent + 1:
+            indent = prev_indent + 1 if prev_entered else prev_indent
             depth = _abnormal_depth(stack, indent, index, stripped)
             if depth is not None:
                 del stack[depth:]

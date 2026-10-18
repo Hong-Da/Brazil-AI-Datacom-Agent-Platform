@@ -194,6 +194,66 @@ objects:
   mgmt.line:
     huawei: {name: {zh-CN: 用户界面, en: User interface, pt-BR: Interface de usuário}, label: ["user-interface {type} {range}"], values: {type: {con: con, console: con}}}
     cisco: {name: {zh-CN: 登录线路, en: Line, pt-BR: Linha}, label: ["line {type} {range}"]}
+  # ---------- MPLS / LDP（0.3.0） ----------
+  mpls.global:
+    huawei: {name: {zh-CN: MPLS 全局, en: MPLS global, pt-BR: MPLS global}, label: ["mpls"]}
+    cisco: {name: {zh-CN: MPLS 全局, en: MPLS global, pt-BR: MPLS global}, label: ["mpls ip"]}
+  mpls.ldp:
+    huawei: {name: {zh-CN: LDP 全局, en: LDP global, pt-BR: LDP global}, label: ["mpls ldp"]}
+    cisco: {name: {zh-CN: LDP 全局, en: LDP global, pt-BR: LDP global}, label: ["mpls ldp"]}
+  mpls.ldp.auth:
+    huawei: {name: {zh-CN: LDP MD5 认证, en: LDP MD5 authentication, pt-BR: Autenticação MD5 do LDP}, label: ["md5-password {peer}"]}
+    cisco: {name: {zh-CN: LDP 邻居密码, en: LDP neighbor password, pt-BR: Senha do vizinho LDP}, label: ["mpls ldp neighbor {peer} password"]}
+  mpls.ldp.remote_peer:
+    huawei: {name: {zh-CN: 远端 LDP 对等体, en: Remote LDP peer, pt-BR: Par LDP remoto}, label: ["mpls ldp remote-peer {name}"]}
+    cisco: {name: {zh-CN: Targeted LDP 邻居, en: Targeted LDP neighbor, pt-BR: Vizinho LDP direcionado}, label: ["mpls ldp neighbor {name} targeted"]}
+  interface.mpls:
+    huawei: {name: {zh-CN: 接口 MPLS, en: Interface MPLS, pt-BR: MPLS da interface}, label: ["mpls"]}
+    cisco: {name: {zh-CN: 接口 MPLS, en: Interface MPLS, pt-BR: MPLS da interface}, label: ["mpls ip"]}
+  # ---------- L2VPN（0.3.0） ----------
+  l2vpn.global:
+    huawei: {name: {zh-CN: L2VPN 全局, en: L2VPN global, pt-BR: L2VPN global}, label: ["mpls l2vpn"]}
+    cisco: {name: {zh-CN: L2VPN 全局, en: L2VPN global, pt-BR: L2VPN global}, label: ["l2vpn"]}
+  l2vpn.pw_class:
+    huawei: {name: {zh-CN: PW 模板, en: PW template, pt-BR: Modelo de PW}, label: ["pw-template {name}"]}
+    cisco: {name: {zh-CN: 伪线类, en: Pseudowire class, pt-BR: Classe de pseudowire}, label: ["pseudowire-class {name}"]}
+  interface.access.pw:
+    huawei:
+      name: {zh-CN: VPWS 伪线, en: VPWS pseudowire, pt-BR: Pseudowire VPWS}
+      label: ["mpls l2vc {role}"]
+      values: {role: {primary: "", backup: secondary, bypass: bypass}}
+    cisco:
+      name: {zh-CN: Xconnect 伪线, en: Xconnect pseudowire, pt-BR: Pseudowire xconnect}
+      label: ["{role}"]
+      values: {role: {primary: xconnect, backup: backup peer, bypass: backup peer}}
+  l2vpn.xconnect:
+    huawei: {name: {zh-CN: 命名的 VPWS 连接（华为无对应写法）, en: Named xconnect (no Huawei equivalent), pt-BR: Xconnect nomeado (sem equivalente Huawei)}, label: ["l2vpn xconnect context {name}"]}
+    cisco: {name: {zh-CN: L2VPN Xconnect 上下文, en: L2VPN xconnect context, pt-BR: Contexto xconnect L2VPN}, label: ["l2vpn xconnect context {name}"]}
+  l2vpn.xconnect.ac:
+    huawei: {name: {zh-CN: 接入电路成员, en: Attachment circuit member, pt-BR: Membro de circuito de acesso}, label: ["member {interface} service-instance {instance} ? instance", "member {interface}"]}
+    cisco: {name: {zh-CN: 接入电路成员, en: Attachment circuit member, pt-BR: Membro de circuito de acesso}, label: ["member {interface} service-instance {instance} ? instance", "member {interface}"]}
+  l2vpn.xconnect.pw:
+    huawei: {name: {zh-CN: 伪线成员, en: Pseudowire member, pt-BR: Membro pseudowire}, label: ["member {peer} {vc_id}"]}
+    cisco: {name: {zh-CN: 伪线成员, en: Pseudowire member, pt-BR: Membro pseudowire}, label: ["member {peer} {vc_id}"]}
+  l2vpn.vsi:
+    huawei: {name: {zh-CN: VSI（VPLS 实例）, en: VSI (VPLS instance), pt-BR: VSI (instância VPLS)}, label: ["vsi {name}"]}
+    cisco: {name: {zh-CN: VFI（VPLS 实例）, en: VFI (VPLS instance), pt-BR: VFI (instância VPLS)}, label: ["l2vpn vfi context {name}"]}
+  l2vpn.vsi.peer:
+    huawei: {name: {zh-CN: VSI 对等体, en: VSI peer, pt-BR: Par VSI}, label: ["peer {address}"]}
+    cisco: {name: {zh-CN: VFI 成员, en: VFI member, pt-BR: Membro VFI}, label: ["member {address}"]}
+  bridge_domain.member:
+    huawei: {name: {zh-CN: 桥域成员（华为写在子接口上）, en: Bridge domain member (on the sub-interface in Huawei), pt-BR: Membro do domínio de bridge (na subinterface, Huawei)}, label: ["interface {interface} bridge-domain"]}
+    cisco: {name: {zh-CN: 桥域成员, en: Bridge domain member, pt-BR: Membro do domínio de bridge}, label: ["member {interface} service-instance {instance}"]}
+  tunnel_policy:
+    huawei: {name: {zh-CN: 隧道策略, en: Tunnel policy, pt-BR: Política de túnel}, label: ["tunnel-policy {name}"]}
+    cisco: {name: {zh-CN: 隧道策略（Cisco 无对应对象）, en: Tunnel policy (no Cisco equivalent), pt-BR: Política de túnel (sem equivalente Cisco)}, label: ["tunnel-policy {name}"]}
+  # ---------- ACL（0.3.0） ----------
+  acl.instance:
+    huawei: {name: {zh-CN: ACL, en: ACL, pt-BR: ACL}, label: ["acl {name}"]}
+    cisco: {name: {zh-CN: 访问列表, en: Access list, pt-BR: Lista de acesso}, label: ["ip access-list {name}"]}
+  acl.instance.rule:
+    huawei: {name: {zh-CN: ACL 规则, en: ACL rule, pt-BR: Regra de ACL}, label: ["rule {id}"]}
+    cisco: {name: {zh-CN: 访问列表条目, en: Access list entry, pt-BR: Entrada da lista de acesso}, label: ["{id}"]}
 
 attrs:
   interface.vrf: {huawei: ip binding vpn-instance, cisco: vrf forwarding}
@@ -236,3 +296,27 @@ attrs:
   mgmt.line.acl_in: {huawei: acl … inbound, cisco: access-class … in}
   mgmt.line.idle_timeout: {huawei: idle-timeout, cisco: exec-timeout}
   mgmt.line.protocols: {huawei: protocol inbound, cisco: transport input}
+  # 0.3.0：MPLS / L2VPN / ACL
+  mpls.global.lsr_id: {huawei: mpls lsr-id, cisco: mpls ldp router-id（接口地址）}
+  mpls.ldp.router_id_interface: {huawei: lsr-id, cisco: mpls ldp router-id}
+  mpls.ldp.accept_target_hello: {huawei: accept target-hello, cisco: mpls ldp discovery targeted-hello accept}
+  mpls.ldp.igp_sync_delay: {huawei: igp-sync-delay timer, cisco: mpls ldp igp sync holddown}
+  interface.mpls.ldp: {huawei: mpls ldp, cisco: mpls ip}
+  interface.mpls.ldp_transport_address: {huawei: mpls ldp transport-address, cisco: mpls ldp discovery transport-address}
+  interface.mpls.ldp_igp_sync_delay: {huawei: mpls ldp timer igp-sync-delay, cisco: mpls ldp igp sync delay}
+  vrf.instance.af.label_mode: {huawei: apply-label, cisco: mpls label mode}
+  vrf.instance.af.tunnel_policy: {huawei: tnl-policy, cisco: （无对应命令）}
+  vrf.instance.af.prefix_limit: {huawei: prefix limit, cisco: maximum routes}
+  interface.access.pw.vc_id: {huawei: mpls l2vc … <vc-id>, cisco: xconnect … <vc-id>}
+  interface.access.pw.pw_class: {huawei: pw-template, cisco: pw-class}
+  l2vpn.vsi.vsi_id: {huawei: vsi-id, cisco: vpn id}
+  l2vpn.vsi.signaling: {huawei: pwsignal, cisco: （VFI 固定 LDP）}
+  interface.vsi: {huawei: l2 binding vsi, cisco: xconnect vfi}
+  bridge_domain.vsi: {huawei: l2 binding vsi, cisco: member vfi}
+  acl.instance.type: {huawei: basic / advance, cisco: standard / extended}
+  acl.instance.rule.vrf: {huawei: vpn-instance, cisco: （无对应写法）}
+  interface.acl_in: {huawei: traffic-filter inbound acl, cisco: ip access-group … in}
+  interface.acl_out: {huawei: traffic-filter outbound acl, cisco: ip access-group … out}
+  mgmt.snmp.community.acl: {huawei: snmp-agent community … acl, cisco: snmp-server community … <acl>}
+  mgmt.ntp.access.acl: {huawei: ntp-service access … acl, cisco: ntp access-group … <acl>}
+  rp.policy.node.match_acl: {huawei: if-match acl, cisco: match ip address <acl>}

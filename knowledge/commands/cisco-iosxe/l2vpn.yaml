@@ -1,0 +1,518 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: l2vpn
+cards:
+  - id: cisco-iosxe.encapsulation
+    syntax: encapsulation { mpls | udp | l2tpv2 | l2tpv3 }
+    view: pseudowire-class
+    undo: no encapsulation
+    default: Encapsulation type for tunneling Layer 2 traffic is not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/encapsulation (pseudowire).md
+      title: encapsulation (pseudowire)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.pw_class.encapsulation: kw:mpls|udp|l2tpv2|l2tpv3
+  - id: cisco-iosxe.preferred-path
+    syntax: preferred-path { [ interface ] tunnel <tunnel-number> | peer <host-ip-address> } [ disable-fallback ]
+    view: pseudowire-class
+    undo: no preferred-path { interface tunnel <tunnel-number> | peer <host-ip-address> } [ disable-fallback ]
+    params:
+      tunnel-number:
+        type: word
+      host-ip-address:
+        type: ipv4
+    default: Path selection is not specified.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/preferred-path.md
+      title: preferred-path
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.pw_class.preferred_path: tail:preferred-path
+  - id: cisco-iosxe.backup-peer@interface
+    syntax: backup peer <peer-router-ip-addr> <vcid> [ pw-class <pw-class-name> ] [ priority <value> ]
+    view: interface
+    undo: no backup peer <peer-router-ip-addr> <vcid>
+    params: &id001
+      peer-router-ip-addr:
+        type: word
+      vcid:
+        type: word
+      pw-class-name:
+        type: word
+      value:
+        type: word
+    default: No redundant peer is established.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/backup peer.md
+      title: backup peer
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.access{id=_}.pw: backup
+      interface.access{id=_}.pw.peer: $peer-router-ip-addr
+      interface.access{id=_}.pw.vc_id: $vcid
+      interface.access{id=_}.pw.pw_class: $pw-class-name
+  - id: cisco-iosxe.backup-peer@xconnect
+    syntax: backup peer <peer-router-ip-addr> <vcid> [ pw-class <pw-class-name> ] [ priority <value> ]
+    view: xconnect
+    undo: no backup peer <peer-router-ip-addr> <vcid>
+    params: *id001
+    default: No redundant peer is established.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/backup peer.md
+      title: backup peer
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.access{id=_}.pw: backup
+      interface.access{id=_}.pw.peer: $peer-router-ip-addr
+      interface.access{id=_}.pw.vc_id: $vcid
+      interface.access{id=_}.pw.pw_class: $pw-class-name
+  - id: cisco-iosxe.control-word.1
+    syntax: control-word
+    view: pseudowire-class
+    undo: no control-word
+    default: The control word is set to autosense mode.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/control-word.md
+      title: control-word
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.pw_class.control_word: flag
+  - id: cisco-iosxe.control-word.2
+    syntax: default control-word
+    view: pseudowire-class
+    default: The control word is set to autosense mode.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/control-word.md
+      title: control-word
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.description~2
+    syntax: description <string>
+    view: vfi
+    undo: no description <string>
+    params:
+      string:
+        type: text
+    default: The switching PE router does not have a description.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/description (l2 vfi).md
+      title: description (l2 vfi)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.vsi.description: $string
+  - id: cisco-iosxe.l2-vfi-manual
+    syntax: l2 vfi <name> manual
+    view: system
+    enters_view: vfi
+    undo: no l2 vfi <name> manual
+    params:
+      name:
+        type: word
+    default: The Layer 2 VFI is not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/l2 vfi manual.md
+      title: l2 vfi manual
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.vsi: $name
+      l2vpn.vsi.mode: static
+  - id: cisco-iosxe.l2vpn-vfi-context
+    syntax: l2vpn vfi context <name>
+    view: system
+    enters_view: vfi
+    undo: no l2vpn vfi context <name>
+    params:
+      name:
+        type: word
+    default: L2VPN VFIs are not established.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/l2vpn vfi context.md
+      title: l2vpn vfi context
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.vsi: $name
+  - id: cisco-iosxe.l2vpn-xconnect-context
+    syntax: l2vpn xconnect context <context-name>
+    view: system
+    enters_view: l2vpn-xconnect
+    undo: no l2vpn xconnect context <context-name>
+    params:
+      context-name:
+        type: word
+    default: L2VPN cross connections are not created.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/l2vpn xconnect context.md
+      title: l2vpn xconnect context
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.xconnect: $context-name
+  - id: cisco-iosxe.l2vpn
+    syntax: l2vpn
+    view: system
+    enters_view: l2vpn
+    undo: no l2vpn
+    default: No global L2VPN commands are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/l2vpn.md
+      title: l2vpn
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.global: _
+  - id: cisco-iosxe.member
+    syntax: member <interface-type-number> service-instance <service-id> [ split-horizon group <group-id> ]
+    view: bridge-domain
+    undo: no member <interface-type-number> service-instance <service-id> [ split-horizon group <group-id> ]
+    params:
+      interface-type-number:
+        type: interface
+      service-id:
+        type: integer
+        range:
+          - 1
+          - 8000
+      group-id:
+        type: integer
+    default: Service instances are not bound to a bridge domain instance.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/member (bridge-domain).md
+      title: member (bridge-domain)
+      line: 5
+      version: '17.15'
+      patched: 接口名参数按名称推断成了普通词；接口名是一个词（GigabitEthernet0/0/1）
+    status: draft
+    maps:
+      bridge_domain.member:
+        interface: $interface-type-number
+        instance: $service-id
+  - id: cisco-iosxe.member~2
+    syntax: member { <ip-address> [ <vc-id> ] { encapsulation mpls | template <name> } | pseudowire <pw-int-number> [ <ip-address> [ <vc-id> ] { encapsulation mpls | template <name> } ] }
+    view: vfi
+    undo: no member { <ip-address> [ <vc-id> ] { encapsulation mpls | template <name> } | pseudowire <pw-int-number> [ <ip-address> [ <vc-id> ] { encapsulation mpls | template <name> } ] }
+    params:
+      ip-address:
+        type: ipv4
+      vc-id:
+        type: word
+      name:
+        type: word
+      pw-int-number:
+        type: word
+    default: Devices that form a point-to-point L2VPN VFI connection are not specified.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/member (l2vpn vfi).md
+      title: member (l2vpn vfi)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.vsi.peer: $ip-address
+      l2vpn.vsi.peer.vc_id: $vc-id
+      l2vpn.vsi.peer.pw_class: $name
+      l2vpn.vsi.peer.encapsulation: if:encapsulation:mpls
+  - id: cisco-iosxe.member.1
+    syntax: member <ip-address> <vc-id> { encapsulation mpls | template <template-name> } [ group <group-name> [ priority <number> ] ]
+    view: l2vpn-xconnect
+    params:
+      ip-address: &id002
+        type: ipv4
+      vc-id:
+        type: word
+      template-name: &id003
+        type: word
+      group-name: &id004
+        type: word
+      number: &id005
+        type: word
+    default: Devices that form an L2VPN cross connect are not specified.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/member (xconnect).md
+      title: member (xconnect)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.xconnect.pw:
+        peer: $ip-address
+        vc_id: $vc-id
+      l2vpn.xconnect.pw.pw_class: $template-name
+  - id: cisco-iosxe.member.2
+    syntax: member pseudowire <interface-number> [ <ip-address> <vc-id> { encapsulation mpls | template <template-name> } ] [ group <group-name> [ priority <number> ] ]
+    view: l2vpn-xconnect
+    params:
+      interface-number: &id006
+        type: word
+      ip-address: *id002
+      vc-id:
+        type: word
+      template-name: *id003
+      group-name: *id004
+      number: *id005
+    default: Devices that form an L2VPN cross connect are not specified.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/member (xconnect).md
+      title: member (xconnect)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.member.3
+    syntax: member <interface> [ service-instance <id> ] [ group <group-name> [ priority <number> ] ]
+    view: l2vpn-xconnect
+    undo: no member <interface> [ service-instance <id> ]
+    params:
+      interface:
+        type: interface
+      id:
+        type: integer
+        range:
+          - 1
+          - 8000
+      group-name:
+        type: word
+      number:
+        type: integer
+    default: Devices that form an L2VPN cross connect are not specified.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/member (xconnect).md
+      title: member (xconnect)
+      line: 5
+      version: '17.15'
+      patched: 原文把接口类型写成关键字、编号另起；运行配置中接口名是一个词（member GigabitEthernet0/0/1 service-instance 100）
+    status: draft
+    maps:
+      l2vpn.xconnect.ac:
+        interface: $interface
+        instance: $id
+  - id: cisco-iosxe.member.4
+    syntax: member atm <interface-number> [ pvc { <vpi-value> | <vpi-value> / <vci-value> } | pvp <vpi-value> ] [ group <group-name> [ priority <number> ] ]
+    view: l2vpn-xconnect
+    params:
+      interface-number: *id006
+      vpi-value:
+        type: word
+      vci-value:
+        type: word
+      group-name: *id004
+      number: *id005
+    default: Devices that form an L2VPN cross connect are not specified.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/member (xconnect).md
+      title: member (xconnect)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.member.5
+    syntax: member { pos <interface-number> | cem <interface-number> <circuit-id> } [ group <group-name> [ priority <number> ] ]
+    view: l2vpn-xconnect
+    params:
+      interface-number: *id006
+      circuit-id:
+        type: word
+      group-name: *id004
+      number: *id005
+    default: Devices that form an L2VPN cross connect are not specified.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/member (xconnect).md
+      title: member (xconnect)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.neighbor
+    syntax: neighbor <remote-router-id> <vc-id> { encapsulation <encapsulation-type> | pw-class <pw-name> } [ no-split-horizon ]
+    view: vfi
+    undo: no neighbor <remote-router-id> [ vc-id ] &<1-9>
+    params:
+      remote-router-id:
+        type: ipv4
+      vc-id:
+        type: word
+      encapsulation-type:
+        type: word
+      pw-name:
+        type: word
+    default: Split horizon is enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/neighbor (VPLS).md
+      title: neighbor (VPLS)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.vsi.peer: $remote-router-id
+      l2vpn.vsi.peer.vc_id: $vc-id
+      l2vpn.vsi.peer.pw_class: $pw-name
+      l2vpn.vsi.peer.encapsulation: $encapsulation-type
+  - id: cisco-iosxe.pseudowire-class
+    syntax: pseudowire-class <pw-class-name>
+    view: system
+    enters_view: pseudowire-class
+    undo: no pseudowire-class <pw-class-name>
+    params:
+      pw-class-name:
+        type: word
+    default: No pseudowire classes are defined.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/pseudowire-class.md
+      title: pseudowire-class
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.pw_class: $pw-class-name
+  - id: cisco-iosxe.vpn-id
+    syntax: vpn id <vpn-id>
+    view: vfi
+    params:
+      vpn-id:
+        type: word
+    default: The VPN ID is not set.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/vpn id (mpls).md
+      title: vpn id (mpls)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      l2vpn.vsi.vsi_id: $vpn-id
+  - id: cisco-iosxe.xconnect.1
+    syntax: xconnect <peer-ip-address> <vc-id> { encapsulation { l2tpv3 [ manual ] | mpls [ manual ] } | pw-class <pw-class-name> } [ pw-class <pw-class-name> ] [ sequencing { transmit | receive | both } ]
+    view: interface
+    enters_view: xconnect
+    undo: no xconnect <peer-ip-address> <vc-id> encapsulation mpls [ pw-type ] &<1-9>
+    params:
+      peer-ip-address:
+        type: ipv4
+      vc-id:
+        type: word
+      pw-class-name:
+        type: word
+    default: The attachment circuit is not bound to the pseudowire.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/xconnect.md
+      title: xconnect
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.access{id=_}.pw: primary
+      interface.access{id=_}.pw.peer: $peer-ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-class-name
+      interface.access{id=_}.pw.encapsulation: kw:mpls|l2tpv3
+  - id: cisco-iosxe.xconnect.2
+    syntax: xconnect <peer-ip-address> <vc-id> encapsulation mpls [ <pw-type> ]
+    view: interface
+    enters_view: xconnect
+    undo: no xconnect <peer-ip-address> <vc-id> encapsulation mpls [ pw-type ] &<1-9>
+    params:
+      peer-ip-address:
+        type: ipv4
+      vc-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      pw-type:
+        type: integer
+    default: The attachment circuit is not bound to the pseudowire.
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/xconnect.md
+      title: xconnect
+      line: 5
+      version: '17.15'
+      patched: 原文把可选的 pw-type 写成 “*[pw-type]*”，转换后成了重复组
+    status: draft
+    maps:
+      interface.access{id=_}.pw: primary
+      interface.access{id=_}.pw.peer: $peer-ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.encapsulation: kw:mpls|l2tpv3
+  - id: cisco-iosxe.service-instance-xconnect
+    syntax: xconnect <peer-ip-address> <vc-id> { encapsulation mpls [ manual ] | pw-class <pw-class-name> } [ pw-class <pw-class-name> ]
+    view: service-instance
+    enters_view: xconnect
+    undo: no xconnect
+    params:
+      peer-ip-address:
+        type: ipv4
+      vc-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      pw-class-name:
+        type: word
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/xconnect.md
+      title: xconnect
+      version: '17.15'
+      patched: xconnect 页的 Command Modes 没有列出业务实例模式；ASR 920 的 EVC 配置指南中伪线接在 service instance 下（xconnect 对端 VC 编号 encapsulation mpls）
+      added_by_patch: true
+    status: draft
+    maps:
+      interface.access{id=_}.pw: primary
+      interface.access{id=_}.pw.peer: $peer-ip-address
+      interface.access{id=_}.pw.vc_id: $vc-id
+      interface.access{id=_}.pw.pw_class: $pw-class-name
+      interface.access{id=_}.pw.encapsulation: kw:mpls|l2tpv3
+  - id: cisco-iosxe.bridge-domain-member-vfi
+    syntax: member vfi <vfi-name>
+    view: bridge-domain
+    undo: no member vfi <vfi-name>
+    params:
+      vfi-name:
+        type: word
+    source:
+      doc: cisco-iosxe-md
+      file: l2vpn/member (bridge-domain).md
+      title: member (bridge-domain)
+      version: '17.15'
+      patched: member (bridge-domain) 页只有业务实例成员；VPLS 的 VFI 成员 member vfi <名称> 按 ASR 920 配置指南（VPLS）补充
+      added_by_patch: true
+    status: draft
+    maps:
+      bridge_domain.vsi: $vfi-name

@@ -1,0 +1,388 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: mpls
+cards:
+  - id: cisco-iosxe.mpls-ip
+    syntax: mpls ip
+    view: system
+    undo: no mpls ip
+    default: Label switching of IPv4 packets along normally routed paths is enabled for the platform.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ip (global configuration).md
+      title: mpls ip (global configuration)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mpls.global: _
+  - id: cisco-iosxe.mpls-ip~2
+    syntax: mpls ip
+    view: interface
+    undo: no mpls ip
+    default: MPLS forwarding of IPv4 packets along normally routed paths for the interface is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ip (interface configuration).md
+      title: mpls ip (interface configuration)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.mpls: _
+      interface.mpls.ldp: flag
+  - id: cisco-iosxe.mpls-ip-propagate-ttl
+    syntax: mpls ip propagate-ttl
+    view: system
+    undo: no mpls ip propagate-ttl [ forwarded | local ]
+    default: This command is enabled. The TTL field is copied from the IP header. A traceroute command shows all of the hops in the network.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ip propagate-ttl.md
+      title: mpls ip propagate-ttl
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.mpls-label-protocol
+    syntax: mpls label protocol { ldp | tdp }
+    view: system
+    undo: no mpls label protocol
+    default: LDP is the default label distribution protocol.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls label protocol (global configuration).md
+      title: mpls label protocol (global configuration)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mpls.global{id=_}.label_protocol: kw:ldp|tdp
+  - id: cisco-iosxe.mpls-label-protocol~2
+    syntax: mpls label protocol { ldp | tdp | both }
+    view: interface
+    undo: no mpls label protocol
+    default: If no protocol is explicitly configured for an interface, the label distribution protocol that was configured for the platform is used. To set the platform label distribution protocol, use the global mpls label protocol command.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls label protocol (interface configuration).md
+      title: mpls label protocol (interface configuration)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.mpls{id=_}.label_protocol: kw:ldp|tdp|both
+  - id: cisco-iosxe.mpls-label-range
+    syntax: mpls label range <minimum-value> <maximum-value> [ static <minimum-static-value> <maximum-static-value> ]
+    view: system
+    undo: no mpls label range
+    params:
+      minimum-value:
+        type: word
+      maximum-value:
+        type: word
+      minimum-static-value:
+        type: word
+      maximum-static-value:
+        type: word
+    default: The platform’s default values are used.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls label range.md
+      title: mpls label range
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.mpls-ldp-advertise-labels
+    syntax: mpls ldp advertise-labels [ vrf <vpn-name> ] [ interface <interface> | for <prefix-access-list> [ to <peer-access-list> ] ]
+    view: system
+    undo: no mpls ldp advertise-labels [ vrf <vpn-name> ] [ interface <interface> | for <prefix-access-list> [ to <peer-access-list> ] ]
+    params:
+      vpn-name:
+        type: word
+      interface:
+        type: word
+      prefix-access-list:
+        type: word
+      peer-access-list:
+        type: word
+    default: The labels of all destinations are advertised to all LDP neighbors. If the vrf keyword is not specified, this command applies to the default routing domain. If the interface keyword is not specified, no label is advertised for the interface address.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp advertise-labels.md
+      title: mpls ldp advertise-labels
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.mpls-ldp-discovery-transport-address
+    syntax: mpls ldp discovery transport-address { interface | <IP-address> }
+    view: interface
+    undo: no mpls ldp discovery transport-address
+    params:
+      IP-address:
+        type: ipv4
+    default: The default behavior when this command has not been issued for an interface depends on the interface type. Unless the interface is a label-controlled ATM (LC-ATM) interface, LDP advertises its LDP router ID as the transport address in LDP discovery hello messages sent from the interface. If the interface is an LC-ATM interface, no transport address is explicitly advertised in LDP discovery hello messages sent from the interface.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp discovery transport-address.md
+      title: mpls ldp discovery transport-address
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.mpls{id=_}.ldp_transport_address: $IP-address||interface
+  - id: cisco-iosxe.mpls-ldp-discovery
+    syntax: mpls ldp discovery { hello { holdtime | interval } <seconds> | targeted-hello { { holdtime | interval } <seconds> | accept [ from <acl> ] } }
+    view: system
+    undo: no mpls ldp discovery { hello { holdtime | interval } | targeted-hello { holdtime | interval | accept } }
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 65535
+      acl:
+        type: word
+    default: None
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp discovery.md
+      title: mpls ldp discovery
+      line: 5
+      version: '17.15'
+      patched: 原文把 accept 写成与 hello / targeted-hello 并列；运行配置中是 mpls ldp discovery targeted-hello accept [ from <acl> ]
+    status: draft
+    maps:
+      mpls.ldp{id=_}.accept_target_hello: if:accept:$acl||if:accept:all
+  - id: cisco-iosxe.mpls-ldp-explicit-null
+    syntax: mpls ldp explicit-null [ for <prefix-acl> | to <peer-acl> | for <prefix-acl> to <peer-acl> ]
+    view: system
+    undo: no mpls ldp explicit-null
+    params:
+      prefix-acl:
+        type: word
+      peer-acl:
+        type: word
+    default: Implicit Null is advertised for directly connected routes unless the command mpls ldp explicit-null has been executed.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp explicit-null.md
+      title: mpls ldp explicit-null
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.mpls-ldp-graceful-restart
+    syntax: mpls ldp graceful-restart
+    view: system
+    undo: no mpls ldp graceful-restart
+    default: LDP Graceful Restart is not enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp graceful-restart.md
+      title: mpls ldp graceful-restart
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mpls.ldp{id=_}.graceful_restart: flag
+  - id: cisco-iosxe.mpls-ldp-holdtime
+    syntax: mpls ldp holdtime <seconds>
+    view: system
+    undo: no mpls ldp holdtime <seconds>
+    params:
+      seconds:
+        type: word
+    default: The default value for the seconds argument is 180.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp holdtime.md
+      title: mpls ldp holdtime
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mpls.ldp{id=_}.holdtime: $seconds
+  - id: cisco-iosxe.mpls-ldp-igp-sync-holddown
+    syntax: mpls ldp igp sync holddown <milliseconds>
+    view: system
+    undo: no mpls ldp igp sync holddown
+    params:
+      milliseconds:
+        type: integer
+        range:
+          - 1
+          - 2147483647
+    default: An IGP will wait indefinitely for LDP synchronization to be achieved.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp igp sync holddown.md
+      title: mpls ldp igp sync holddown
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mpls.ldp{id=_}.igp_sync_holddown: $milliseconds
+  - id: cisco-iosxe.mpls-ldp-igp-sync
+    syntax: mpls ldp igp sync [ delay <seconds> ]
+    view: interface
+    undo: no mpls ldp igp sync [ delay ]
+    params:
+      seconds:
+        type: integer
+        range:
+          - 5
+          - 60
+    default: If MPLS LDP-IGP synchronization is enabled on an OSPF process, MPLS LDP-IGP synchronization is enabled by default on all interfaces configured for the process. A delay timer is not set.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp igp sync.md
+      title: mpls ldp igp sync
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.mpls{id=_}.ldp_igp_sync: flag
+      interface.mpls{id=_}.ldp_igp_sync_delay: $seconds
+  - id: cisco-iosxe.mpls-ldp-logging-neighbor-changes
+    syntax: mpls ldp logging neighbor-changes
+    view: system
+    undo: no mpls ldp logging neighbor-changes
+    default: Logging is enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp logging neighbor-changes.md
+      title: mpls ldp logging neighbor-changes
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mpls.ldp{id=_}.log_neighbor_changes: flag
+  - id: cisco-iosxe.mpls-ldp-neighbor-password
+    syntax: mpls ldp neighbor [ vrf <vpn-name> ] <ip-address> password <password>
+    view: system
+    undo: no mpls ldp neighbor [ vrf <vpn-name> ] <ip-address> [ password <password> ]
+    params:
+      vpn-name:
+        type: word
+      ip-address:
+        type: ipv4
+      password:
+        type: word
+    default: Unless the TCP MD5 Signature Option is explicitly configured with the password for session TCP connections, the option is not used. When the vrf name is not specified in this command, the Label Distribution Protocol (LDP) neighbor is configured in the default routing domain. For the no form of the command, if the password is not specified, all configuration information for the specified neighbor reverts to the defaults and the neighbor record is deleted.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp neighbor password.md
+      title: mpls ldp neighbor password
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mpls.ldp{id=_}.auth: $ip-address
+      mpls.ldp{id=_}.auth.password: $password
+  - id: cisco-iosxe.mpls-ldp-neighbor-targeted
+    syntax: mpls ldp neighbor [ vrf <vpn-name> ] <ip-addr> targeted [ ldp | tdp ]
+    view: system
+    undo: no mpls ldp neighbor [ vrf <vpn-name> ] <ip-addr> [ targeted [ ldp | tdp ] ]
+    params:
+      vpn-name:
+        type: word
+      ip-addr:
+        type: word
+    default: When the targeted keyword is not specified, a targeted session is not set up with the neighbor. For the no form of the command, if the targeted keyword is not specified, all configuration information for the specified neighbor reverts to the defaults and the neighbor record is deleted.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp neighbor targeted.md
+      title: mpls ldp neighbor targeted
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mpls.ldp{id=_}.remote_peer: $ip-addr
+      mpls.ldp{id=_}.remote_peer.remote_ip: $ip-addr
+  - id: cisco-iosxe.mpls-ldp-router-id.1
+    syntax: mpls ldp router-id [ vrf <vrf-name> ] <interface> [ force ]
+    view: system
+    undo: no mpls ldp router-id [ vrf <vrf-name> ] [ <interface> [ force ] ]
+    params:
+      vrf-name:
+        type: word
+      interface:
+        type: word
+    default: 'If the mpls ldp router-id command is not executed, the router determines the LDP router ID as follows: 1. The router examines the IP addresses of all operational interfaces. 2. If these IP addresses include loopback interface addresses, the router selects the largest loopback address as the LDP router ID. 3. Otherwise, the router selects the largest IP address pertaining to an operational interface as the LDP router ID.'
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp router-id.md
+      title: mpls ldp router-id
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mpls.ldp{id=_}.router_id_interface: $interface
+      mpls.ldp{id=_}.router_id_force: if:force:true
+  - id: cisco-iosxe.mpls-ldp-router-id.2
+    syntax: mpls ldp router-id gigabitethernet <slot> / <subslot> / <port> [ force ]
+    view: system
+    undo: no mpls ldp router-id gigabitethernet <slot> / <subslot> / <port> [ force ]
+    params:
+      slot:
+        type: word
+      subslot:
+        type: word
+      port:
+        type: word
+    default: 'If the mpls ldp router-id command is not executed, the router determines the LDP router ID as follows: 1. The router examines the IP addresses of all operational interfaces. 2. If these IP addresses include loopback interface addresses, the router selects the largest loopback address as the LDP router ID. 3. Otherwise, the router selects the largest IP address pertaining to an operational interface as the LDP router ID.'
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp router-id.md
+      title: mpls ldp router-id
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.mpls-ldp-session-protection
+    syntax: mpls ldp session protection [ vrf <vpn-name> ] [ for <acl> ] [ duration { infinite | <seconds> } ]
+    view: system
+    undo: no mpls ldp session protection [ vrf <vpn-name> ] [ for <acl> ] [ duration { infinite | <seconds> } ]
+    params:
+      vpn-name:
+        type: word
+      acl:
+        type: word
+      seconds:
+        type: word
+    default: LDP sessions are not established.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls ldp session protection.md
+      title: mpls ldp session protection
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      mpls.ldp{id=_}.session_protection: flag
+  - id: cisco-iosxe.mpls-mtu.1
+    syntax: mpls mtu [ override ] <bytes>
+    view: interface
+    undo: no mpls mtu
+    params:
+      bytes:
+        type: word
+    default: The default MPLS MTU is the MTU that is configured for the interface.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls mtu.md
+      title: mpls mtu
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.mpls{id=_}.mtu: $bytes
+  - id: cisco-iosxe.mpls-mtu.2
+    syntax: mpls mtu max
+    view: interface
+    undo: no mpls mtu max
+    default: The default MPLS MTU is the MTU that is configured for the interface.
+    source:
+      doc: cisco-iosxe-md
+      file: mpls/mpls mtu.md
+      title: mpls mtu
+      line: 5
+      version: '17.15'
+    status: draft

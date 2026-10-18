@@ -857,6 +857,7 @@ cards:
   - id: cisco-iosxe.bridge-domain
     syntax: bridge-domain { <bridge-id> [ c-mac ] | c-mac aging-time <minutes> }
     view: system
+    enters_view: bridge-domain
     undo: no bridge-domain { <bridge-id> [ c-mac ] | c-mac aging-time }
     params:
       bridge-id:
@@ -871,6 +872,8 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      bridge_domain: $bridge-id
   - id: cisco-iosxe.bridge-domain~2
     syntax: bridge-domain <vlan-id> { dot1q | dot1q-tunnel } [ bpdu { drop | transparent } ] [ split-horizon ]
     view: interface
@@ -1198,9 +1201,9 @@ cards:
           - 16000
       group-id:
         type: integer
+    maps:
+      interface.access.bridge_domain: $bridge-id
     source:
       patched: Command Modes 写成 config-if-svc 的旧写法之外，ASR 920 运行配置中 bridge-domain 只带编号
       added_by_patch: true
     status: draft
-    maps:
-      interface.access.bridge_domain: $bridge-id

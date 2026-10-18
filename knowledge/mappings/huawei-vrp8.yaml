@@ -772,3 +772,253 @@ rules:
   - view: ^bgp-af-
     syntax: '^nexthop recursive-lookup route-policy <route-policy-name>'
     maps: {bgp.af.nexthop_policy: $route-policy-name}
+
+  # ==================== 0.3.0（M3-2）：MPLS LDP、L3VPN 完善、L2VPN、ACL ====================
+  # ---------- MPLS 全局与 LDP ----------
+  - view: ^system$
+    syntax: '^mpls lsr-id <lsr-id>$'
+    maps: {"mpls.global{id=_}.lsr_id": $lsr-id}
+  - view: ^system$
+    syntax: '^mpls$'
+    maps: {mpls.global: "_"}
+  - view: ^system$
+    syntax: '^mpls ldp$'
+    maps: {mpls.ldp: "_"}
+  - view: ^mpls-ldp$
+    syntax: '^lsr-id <lsr-id>$'
+    maps: {mpls.ldp.lsr_id: $lsr-id}
+  - view: ^mpls-ldp$
+    syntax: '^graceful-restart$'
+    maps: {mpls.ldp.graceful_restart: flag}
+  - view: ^mpls-ldp$
+    syntax: '^session protection'
+    maps: {mpls.ldp.session_protection: flag}
+  - view: ^mpls-ldp$
+    syntax: '^accept target-hello all'
+    maps: {mpls.ldp.accept_target_hello: all}
+  - view: ^mpls-ldp$
+    syntax: '^accept target-hello peer-group'
+    maps: {mpls.ldp.accept_target_hello: $ip-prefix-name}
+  - view: ^mpls-ldp$
+    syntax: '^send-message address all-loopback$'
+    maps: {mpls.ldp.send_all_loopback: flag}
+  - view: ^mpls-ldp$
+    syntax: '^mldp p2mp$'
+    maps: {mpls.ldp.mldp_p2mp: flag}
+  - view: ^mpls-ldp$
+    syntax: '^igp-sync-delay timer <value>$'
+    maps: {mpls.ldp.igp_sync_delay: $value}
+  - view: ^mpls-ldp$
+    syntax: '^md5-password (plain|cipher) <peer-lsr-id>'
+    maps:
+      mpls.ldp.auth: $peer-lsr-id
+      mpls.ldp.auth.password: "$password-plain||$password-cipher"
+  - view: ^system$
+    syntax: '^mpls ldp remote-peer <remote-peer-name>$'
+    maps: {"mpls.ldp{id=_}.remote_peer": $remote-peer-name}
+  - view: ^mpls-ldp-remote-peer$
+    syntax: '^remote-ip <ip-address>$'
+    maps: {mpls.ldp.remote_peer.remote_ip: $ip-address}
+  - view: ^mpls-ldp-remote-peer$
+    syntax: '^description <description-value>$'
+    maps: {mpls.ldp.remote_peer.description: $description-value}
+  # 接口：mpls → mpls ldp → LDP 参数，都写到接口 MPLS 对象（编号 "_"）
+  - view: ^interface$
+    syntax: '^mpls$'
+    maps: {interface.mpls: "_"}
+  - view: ^interface$
+    syntax: '^mpls ldp$'
+    maps: {"interface.mpls{id=_}.ldp": flag}
+  - view: ^interface$
+    syntax: '^mpls mtu <mtu>$'
+    maps: {"interface.mpls{id=_}.mtu": $mtu}
+  - view: ^interface$
+    syntax: '^mpls ldp transport-address interface$'
+    maps: {"interface.mpls{id=_}.ldp_transport_address": interface}
+  - view: ^interface$
+    syntax: '^mpls ldp transport-address \{'
+    maps: {"interface.mpls{id=_}.ldp_transport_address": "$interface-name||fmt:{interface-type}{interface-number}"}
+  - view: ^interface$
+    syntax: '^mpls ldp local-lsr-id interface$'
+    maps: {"interface.mpls{id=_}.ldp_local_lsr_id": interface}
+  - view: ^interface$
+    syntax: '^mpls ldp local-lsr-id \{'
+    maps: {"interface.mpls{id=_}.ldp_local_lsr_id": "$interface-name||fmt:{interface-type}{interface-number}"}
+  - view: ^interface$
+    syntax: '^mpls ldp timer igp-sync-delay <value>$'
+    maps: {"interface.mpls{id=_}.ldp_igp_sync_delay": $value}
+
+  # ---------- L3VPN 完善：VPN 实例的路由策略、隧道策略、路由数量限制、VPN FRR、IPv6 地址族 ----------
+  - view: ^vpn-instance$
+    syntax: '^ipv6-family'
+    maps: {vrf.instance.af: ipv6}
+  - view: ^vpn-instance(-af-ipv4)?$
+    syntax: '^import route-policy <policy-name>$'
+    maps: {"vrf.instance.af{afi=ipv4}.import_policy": $policy-name}
+  - view: ^vpn-instance(-af-ipv4)?$
+    syntax: '^export route-policy <policy-name>'
+    maps: {"vrf.instance.af{afi=ipv4}.export_policy": $policy-name}
+  - view: ^vpn-instance(-af-ipv4)?$
+    syntax: '^tnl-policy <policy-name>$'
+    maps: {"vrf.instance.af{afi=ipv4}.tunnel_policy": $policy-name}
+  - view: ^vpn-instance(-af-ipv4)?$
+    syntax: '^prefix limit <number>'
+    maps:
+      "vrf.instance.af{afi=ipv4}.prefix_limit": $number
+      "vrf.instance.af{afi=ipv4}.prefix_limit_threshold": $alert-percent
+      "vrf.instance.af{afi=ipv4}.prefix_limit_warn_only": "if:simply-alert:true"
+  - view: ^vpn-instance(-af-ipv4)?$
+    syntax: '^vpn frr$'
+    maps: {"vrf.instance.af{afi=ipv4}.vpn_frr": flag}
+  - view: ^system$
+    syntax: '^tunnel-policy <policy-name>$'
+    maps: {tunnel_policy: $policy-name}
+  - view: ^tunnel-policy$
+    syntax: '^description <description-text>$'
+    maps: {tunnel_policy.description: $description-text}
+  - view: ^tunnel-policy$
+    syntax: '^tunnel select-seq \{'
+    maps:
+      tunnel_policy.select_seq: "tail:select-seq:load-balance-number"
+      tunnel_policy.load_balance: $load-balance-number
+
+  # ---------- L2VPN：VPWS ----------
+  - view: ^system$
+    syntax: '^mpls l2vpn$'
+    maps: {l2vpn.global: "_"}
+  - view: ^system$
+    syntax: '^pw-template <pwname>$'
+    maps: {l2vpn.pw_class: $pwname}
+  - view: ^pw-template$
+    syntax: '^control-word$'
+    maps: {l2vpn.pw_class.control_word: flag}
+  - view: ^pw-template$
+    syntax: '^peer-address <ip-address>$'
+    maps: {l2vpn.pw_class.peer: $ip-address}
+  - view: ^pw-template$
+    syntax: '^tnl-policy <tnlPolicyName>$'
+    maps: {l2vpn.pw_class.tunnel_policy: $tnlPolicyName}
+  - view: ^pw-template$
+    syntax: '^mtu <mtu>$'
+    maps: {l2vpn.pw_class.mtu: $mtu}
+  # 接口（子接口即接入点 "_"）上的 LDP 伪线：主用 / secondary 备用 / bypass
+  - view: ^interface$
+    syntax: '^mpls l2vc (instance-name <instance-name> )?\{ <ip-address> \| pw-template <[\w-]+> \} &<1-9> <vc-id>'
+    maps:
+      "interface.access{id=_}.pw": "kw:secondary=backup|bypass=bypass:primary"
+      "interface.access{id=_}.pw.peer": $ip-address
+      "interface.access{id=_}.pw.vc_id": $vc-id
+      "interface.access{id=_}.pw.pw_class": "$pw-template-name||$template-name"
+      "interface.access{id=_}.pw.tunnel_policy": "$policy-name||$tnl-policy-name"
+      "interface.access{id=_}.pw.control_word": "kw:control-word=true|no-control-word=false"
+      "interface.access{id=_}.pw.encapsulation": "kw:raw|tagged|ip-interworking|ip-layer2"
+  # ---------- L2VPN：VPLS ----------
+  - view: ^system$
+    syntax: '^vsi <vsi-name>'
+    maps:
+      l2vpn.vsi: $vsi-name
+      l2vpn.vsi.mode: "kw:static|auto"
+      l2vpn.vsi.bd_mode: "if:bd-mode:true"
+  - view: ^vsi$
+    syntax: '^description <description>$'
+    maps: {l2vpn.vsi.description: $description}
+  - view: ^vsi$
+    syntax: '^mtu <mtu>$'
+    maps: {l2vpn.vsi.mtu: $mtu}
+  - view: ^vsi$
+    syntax: '^encapsulation (vlan|ethernet)$'
+    maps: {l2vpn.vsi.encapsulation: "kw:vlan|ethernet"}
+  - view: ^vsi$
+    syntax: '^tnl-policy <policy-name>$'
+    maps: {l2vpn.vsi.tunnel_policy: $policy-name}
+  - view: ^vsi$
+    syntax: '^pwsignal (ldp|bgp)$'
+    maps: {l2vpn.vsi.signaling: "kw:ldp|bgp"}
+  - view: ^vsi-ldp$
+    syntax: '^vsi-id <vsi-id>$'
+    maps: {l2vpn.vsi.vsi_id: $vsi-id}
+  - view: ^vsi-ldp$
+    syntax: '^peer <peer-address> \[ negotiation-vc-id'
+    maps:
+      l2vpn.vsi.peer: $peer-address
+      l2vpn.vsi.peer.vc_id: "$vc-id||$pwIdValue"
+      l2vpn.vsi.peer.tunnel_policy: $policy-name
+      l2vpn.vsi.peer.encapsulation: "kw:vlan|ethernet"
+  - view: ^interface$
+    syntax: '^l2 binding vsi <vsi-name>'
+    maps: {interface.vsi: $vsi-name}
+  - view: ^bridge-domain$
+    syntax: '^l2 binding vsi <vsi-name>'
+    maps: {bridge_domain.vsi: $vsi-name}
+  - view: ^bridge-domain$
+    syntax: '^description <description>$'
+    maps: {bridge_domain.description: $description}
+
+  # ---------- ACL ----------
+  # 编号 ACL：编号范围决定类型（2000–2999 基本、3000–3999 高级……），命中的是参数范围对应的那张卡
+  - view: ^system$
+    syntax: '^acl \[ number \] <basic-acl-number>'
+    maps: {acl.instance: $basic-acl-number, acl.instance.type: basic, acl.instance.match_order: "kw:config|auto"}
+  - view: ^system$
+    syntax: '^acl \[ number \] <advance-acl-number>'
+    maps: {acl.instance: $advance-acl-number, acl.instance.type: advanced, acl.instance.match_order: "kw:config|auto"}
+  - view: ^system$
+    syntax: '^acl \[ number \] <interface-based-acl-number>'
+    maps: {acl.instance: $interface-based-acl-number, acl.instance.type: interface, acl.instance.match_order: "kw:config|auto"}
+  - view: ^system$
+    syntax: '^acl \[ number \] <link-acl-number>'
+    maps: {acl.instance: $link-acl-number, acl.instance.type: link, acl.instance.match_order: "kw:config|auto"}
+  - view: ^system$
+    syntax: '^acl \[ number \] <mpls-acl-number>'
+    maps: {acl.instance: $mpls-acl-number, acl.instance.type: mpls}
+  # 命名 ACL：acl name 名称 basic|advance [ number 编号 ]；只写名称时是高级 ACL
+  - view: ^system$
+    syntax: '^acl name <basic-acl-name>'
+    maps: {acl.instance: $basic-acl-name, acl.instance.type: basic, acl.instance.number: $basic-acl-number, acl.instance.match_order: "kw:config|auto"}
+  - view: ^system$
+    syntax: '^acl name <advance-acl-name>'
+    maps: {acl.instance: $advance-acl-name, acl.instance.type: advanced, acl.instance.number: $advance-acl-number, acl.instance.match_order: "kw:config|auto"}
+  - view: ^system$
+    syntax: '^acl name <interface-based-acl-name>'
+    maps: {acl.instance: $interface-based-acl-name, acl.instance.type: interface, acl.instance.number: $interface-based-acl-number, acl.instance.match_order: "kw:config|auto"}
+  - view: ^system$
+    syntax: '^acl name <link-acl-name>'
+    maps: {acl.instance: $link-acl-name, acl.instance.type: link, acl.instance.number: $link-acl-number, acl.instance.match_order: "kw:config|auto"}
+  - view: ^system$
+    syntax: '^acl name <mpls-acl-name>'
+    maps: {acl.instance: $mpls-acl-name, acl.instance.type: mpls, acl.instance.number: $mpls-acl-number}
+  - view: ^acl$
+    syntax: '^description <text>$'
+    maps: {acl.instance.description: $text}
+  - view: ^acl$
+    syntax: '^step <step-value>$'
+    maps: {acl.instance.step: $step-value}
+  - view: ^acl$
+    syntax: '^rule <rule-id> description <destext>$'
+    maps: {acl.instance.rule: $rule-id, acl.instance.rule.description: $destext}
+  # 基本 ACL 规则：源地址 + 反掩码（0 记为 0.0.0.0；不写源地址即 any）
+  - view: ^acl$
+    syntax: '^rule \[ <rule-id> \] \[ name <rule-name> \] \{ permit \| deny \} \[ \[ fragment-type'
+    maps:
+      acl.instance.rule: $rule-id
+      acl.instance.rule.action: "kw:permit|deny"
+      acl.instance.rule.name: $rule-name
+      acl.instance.rule.source_ip: "$source-ip-address||any"
+      acl.instance.rule.source_wildcard: "$source-wildcard||$src-netmask||if:$source-ip-address:0.0.0.0"
+      acl.instance.rule.vrf: $vpn-instance-name
+  # 高级 ACL 规则（IP / ICMP / TCP / UDP 各一张卡）：协议、源、目的；端口条件与源端口同名参数，暂不映射（原文保留）
+  - view: ^acl$
+    syntax: '^rule \[ <rule-id> \] \[ name <rule-name> \] \{ permit \| deny \} \{ '
+    maps:
+      acl.instance.rule: $rule-id
+      acl.instance.rule.action: "kw:permit|deny"
+      acl.instance.rule.name: $rule-name
+      acl.instance.rule.protocol: "kw:zero|gre|igmp|ip|ipinip|ospf|icmp|tcp|udp||$protocol||$7-16||$18-255||$1||$6||$17"
+      acl.instance.rule.source_ip: "$source-ip-address||any"
+      acl.instance.rule.source_wildcard: "$source-wildcard||$src-netmask||if:$source-ip-address:0.0.0.0"
+      acl.instance.rule.destination_ip: "$destination-ip-address||any"
+      acl.instance.rule.destination_wildcard: "$destination-wildcard||$des-netmask||if:$destination-ip-address:0.0.0.0"
+      acl.instance.rule.vrf: $vpn-instance-name
+  - view: ^route-policy$
+    syntax: '^if-match acl \{ <acl-number> \| <acl-name> \}$'
+    maps: {rp.policy.node.match_acl: "$acl-number||$acl-name"}

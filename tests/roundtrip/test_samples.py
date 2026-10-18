@@ -37,6 +37,6 @@ def test_manifest_covers_all_samples() -> None:
         if p.is_file()
         and p.suffix in (".cfg", ".txt")
         and not p.name.startswith(("LICENSE", "README"))
-        and "compare" not in p.relative_to(KB_ROOT / "samples").parts[:1]  # 对比基准有自己的清单
+        and p.relative_to(KB_ROOT / "samples").parts[0] not in ("compare", "translate")  # 对比与翻译基准有自己的清单
     }
     assert files == listed, f"样本清单与实际文件不一致：{files ^ listed}"

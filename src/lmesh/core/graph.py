@@ -202,11 +202,17 @@ class Builder:
             if schema is None:
                 continue
             key = (schema.id, str(len(self.auto)))
-            if expr == "auto":
+            value: Any = None
+            if isinstance(expr, str) and expr.endswith("||auto") and expr != "auto":
+                # $序号||auto：行里有序号就用序号，没有时按出现顺序编号（Cisco 编号 ACL 的规则）
+                value = mapping.evaluate(expr[: -len("||auto")], values, tokens, ln.negated)
+            if value not in (None, ""):
+                pass
+            elif expr == "auto" or (isinstance(expr, str) and expr.endswith("||auto")):
                 parent_scope = self._nearest(scope)
                 self.auto[(schema.id, parent_scope)] += 1
                 key = (schema.id, parent_scope)
-                value: Any = str(self.auto[key] * 10)
+                value = str(self.auto[key] * 10)
             else:
                 value = mapping.evaluate(expr, values, tokens, ln.negated)
             if value is None or value == "" and schema.type != "object":

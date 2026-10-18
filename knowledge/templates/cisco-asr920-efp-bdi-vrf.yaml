@@ -1,0 +1,99 @@
+# 配置模板示例：Cisco ASR 920 接入 PE——上联三层口、接入口下的业务实例（EFP）+ BDI + VRF、到 RR 的 VPNv4。
+# 格式说明见 docs/project-spec.md“参数化模板与批量生成（M3-4 / M3-5 结果）”。
+id: cisco-asr920-efp-bdi-vrf
+version: 1
+title:
+  zh-CN: ASR 920 接入 PE：EFP + BDI + VRF
+  en: "ASR 920 access PE: EFP + BDI + VRF"
+  pt-BR: "PE de acesso ASR 920: EFP + BDI + VRF"
+description:
+  zh-CN: 每个业务一个 VLAN：接入口下一个业务实例、一个 BDI 三层口、一个 VRF 与 BGP 地址族；上联口和 Loopback 地址按站点规划。
+  en: "One VLAN per service: a service instance on the access port, a BDI, a VRF and a BGP address family; uplink and loopback addresses follow the site plan."
+  pt-BR: "Uma VLAN por serviço: uma instância de serviço na porta de acesso, uma BDI, uma VRF e uma família de endereços BGP; endereços de uplink e loopback seguem o plano do site."
+profile: cisco-iosxe-asr920-17.15
+match:
+  extra: allow          # allow：模板外的配置只列出；deny：模板外的配置算不符合
+  extra_scope: matched  # none / matched（模板对上的对象下面）/ domains（另含模板涉及功能域中的顶层对象）
+vars:
+  hostname: {type: word, pattern: "[A-Z0-9-]{3,40}", example: PE-ASR920-01, title: {zh-CN: 主机名, en: Hostname, pt-BR: Nome do host}}
+  asn: {type: asn, example: 64512, title: {zh-CN: AS 号, en: AS number, pt-BR: Número AS}}
+  loopback: {type: ipv4, within: [10.255.0.0/16], example: 10.255.0.21, title: {zh-CN: Loopback0 地址, en: Loopback0 address, pt-BR: Endereço Loopback0}}
+  uplink: {type: interface, example: GigabitEthernet0/0/0, title: {zh-CN: 上联口, en: Uplink port, pt-BR: Porta de uplink}}
+  uplink_net: {type: prefix, length: [30, 31], network: true, example: 10.1.0.0/30, title: {zh-CN: 上联网段, en: Uplink subnet, pt-BR: Sub-rede de uplink}}
+  uplink_ip: {expr: "uplink_net|host(2)", title: {zh-CN: 上联口地址（网段第 2 个地址）, en: Uplink address (2nd address), pt-BR: Endereço de uplink (2º endereço)}}
+  access: {type: interface, example: GigabitEthernet0/0/1, title: {zh-CN: 接入口, en: Access port, pt-BR: Porta de acesso}}
+  access_desc: {type: text, example: RAN-SITE-001, title: {zh-CN: 接入口描述, en: Access port description, pt-BR: Descrição da porta de acesso}}
+  rr1: {type: ipv4, example: 10.255.0.1, title: {zh-CN: 路由反射器 1, en: Route reflector 1, pt-BR: Refletor de rotas 1}}
+  rr2: {type: ipv4, example: 10.255.0.2, title: {zh-CN: 路由反射器 2, en: Route reflector 2, pt-BR: Refletor de rotas 2}}
+blocks:
+  svc:
+    title: {zh-CN: 业务, en: Service, pt-BR: Serviço}
+    repeat: {min: 1, max: 64}
+    vars:
+      vlan: {type: vlan, unique: true, example: 101, title: {zh-CN: 业务 VLAN（同时是业务实例号与 BDI 号）, en: Service VLAN (also EFP and BDI number), pt-BR: VLAN do serviço (também EFP e BDI)}}
+      vrf: {type: word, pattern: "[A-Z0-9_-]{1,32}", example: RAN-2G, title: {zh-CN: VRF 名称, en: VRF name, pt-BR: Nome da VRF}}
+      rt: {type: integer, min: 1, max: 65535, example: 101, title: {zh-CN: RD / RT 编号, en: RD / RT number, pt-BR: Número RD / RT}}
+      desc: {type: text, example: RAN-2G-SITE-001, title: {zh-CN: BDI 描述, en: BDI description, pt-BR: Descrição da BDI}}
+      lan: {type: prefix, length: [24, 30], network: true, example: 172.16.101.0/24, title: {zh-CN: 业务网段, en: Service subnet, pt-BR: Sub-rede do serviço}}
+      gw: {expr: "lan|host(1)", title: {zh-CN: 网关（网段第 1 个地址）, en: Gateway (1st address), pt-BR: Gateway (1º endereço)}}
+body: |
+  hostname {{hostname}}
+  !
+  {% repeat svc %}
+  vrf definition {{svc.vrf}}
+   rd {{asn}}:{{svc.rt}}
+   !
+   address-family ipv4
+    route-target export {{asn}}:{{svc.rt}}
+    route-target import {{asn}}:{{svc.rt}}
+   exit-address-family
+  !
+  {% end %}
+  interface Loopback0
+   ip address {{loopback}} 255.255.255.255
+  !
+  interface {{uplink}}
+   mtu 9216
+   ip address {{uplink_ip}} {{uplink_net|mask}}
+   mpls ip
+  !
+  interface {{access}}
+   description {{access_desc}}
+   no ip address
+  {% repeat svc %}
+   service instance {{svc.vlan}} ethernet
+    encapsulation dot1q {{svc.vlan}}
+    rewrite ingress tag pop 1 symmetric
+    bridge-domain {{svc.vlan}}
+   !
+  {% end %}
+  !
+  {% repeat svc %}
+  interface BDI{{svc.vlan}}
+   description {{svc.desc}}
+   vrf forwarding {{svc.vrf}}
+   ip address {{svc.gw}} {{svc.lan|mask}}
+  !
+  {% end %}
+  router bgp {{asn}}
+   bgp router-id {{loopback}}
+   bgp log-neighbor-changes
+   neighbor RR peer-group
+   neighbor RR remote-as {{asn}}
+   neighbor RR update-source Loopback0
+   neighbor {{rr1}} peer-group RR
+   neighbor {{rr2}} peer-group RR
+   !
+   address-family vpnv4
+    neighbor RR send-community extended
+    neighbor {{rr1}} activate
+    neighbor {{rr2}} activate
+   exit-address-family
+  {% repeat svc %}
+   !
+   address-family ipv4 vrf {{svc.vrf}}
+    redistribute connected
+   exit-address-family
+  {% end %}
+  !
+  end

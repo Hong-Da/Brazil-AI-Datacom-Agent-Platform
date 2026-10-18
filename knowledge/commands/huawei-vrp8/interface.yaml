@@ -4890,6 +4890,7 @@ cards:
   - id: huawei-vrp8.bridge-domain
     syntax: bridge-domain <bd-id>
     view: system
+    enters_view: bridge-domain
     undo: undo bridge-domain <bd-id>
     params:
       bd-id:
@@ -4898,6 +4899,8 @@ cards:
           - 1
           - 16777215
     default: By default, no bridge domain is created.
+    maps:
+      bridge_domain: $bd-id
     source:
       doc: huawei-vrp8-md
       file: 06_LAN Access and MAN Access Commands.md
@@ -4905,8 +4908,6 @@ cards:
       line: 17350
       version: V800R025C00SPC500
     status: draft
-    maps:
-      bridge_domain: $bd-id
   - id: huawei-vrp8.bridge-domain~2
     syntax: bridge-domain <bd-id>
     view: interface
@@ -5892,3 +5893,80 @@ cards:
     status: draft
     maps:
       interface.dot1q_termination: $vlan-id
+  - id: huawei-vrp8.description~11
+    syntax: description <description>
+    view: bridge-domain
+    undo: undo description
+    params:
+      description:
+        type: text
+    default: By default, no bridge domain description is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 06_LAN Access and MAN Access Commands.md
+      title: description (Bridge domain view)
+      line: 17503
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bridge_domain.description: $description
+  - id: huawei-vrp8.mac-learn-style-qualify
+    syntax: mac-learn-style qualify
+    view: bridge-domain
+    undo: undo mac-learn-style qualify
+    default: By default, the MAC address learning mode is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 06_LAN Access and MAN Access Commands.md
+      title: mac-learn-style qualify
+      line: 18587
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.shutdown~9
+    syntax: shutdown
+    view: bridge-domain
+    undo: undo shutdown
+    default: By default, a BD is in the Up state.
+    source:
+      doc: huawei-vrp8-md
+      file: 06_LAN Access and MAN Access Commands.md
+      title: shutdown (Bridge domain view)
+      line: 19207
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.split-horizon-enable
+    syntax: split-horizon enable
+    view: bridge-domain
+    undo: undo split-horizon enable
+    default: By default, split horizon is disabled in a bridge domain.
+    source:
+      doc: huawei-vrp8-md
+      file: 06_LAN Access and MAN Access Commands.md
+      title: split-horizon enable
+      line: 19343
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.statistic-enable~2
+    syntax: statistic enable
+    view: bridge-domain
+    undo: undo statistic enable
+    default: By default, traffic statistics collection is disabled in BDs.
+    source:
+      doc: huawei-vrp8-md
+      file: 06_LAN Access and MAN Access Commands.md
+      title: statistic enable (Bridge domain view)
+      line: 19403
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.broadcast-discard
+    syntax: broadcast discard
+    view: bridge-domain
+    undo: undo broadcast discard
+    default: By default, an EVC Layer 2 sub-interface can forward broadcast packets to other EVC Layer 2 sub-interfaces in the same bridge domain.
+    source:
+      doc: huawei-vrp8-md
+      file: 06_LAN Access and MAN Access Commands.md
+      title: broadcast discard (Bridge domain view)
+      line: 32601
+      version: V800R025C00SPC500
+    status: draft

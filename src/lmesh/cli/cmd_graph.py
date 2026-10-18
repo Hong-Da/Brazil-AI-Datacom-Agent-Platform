@@ -80,16 +80,35 @@ def register(app: typer.Typer) -> None:
             lines.append("  ! " + c.t("graph.dangling", node=d["node"], value=d["value"]))
         emit(c, data, "\n".join(lines))
 
-    @app.command("render", help="把配置图渲染回配置文本（往返模式）/ render the graph back to text")
+    @app.command(
+        "render", help="把配置图渲染回配置文本（往返模式；--canonical 规范模式）/ render the graph back to text"
+    )
     def cmd_render(
         ctx: typer.Context,
         target: Annotated[str, typer.Argument(help="配置文件，或已导入的设备名")],
         profile: Annotated[str | None, typer.Option()] = None,
+        canonical: Annotated[
+            bool, typer.Option("--canonical", help="规范模式：按图重新生成命令（按视图分块、被引用的先出现）")
+        ] = False,
+        with_defaults: Annotated[
+            bool, typer.Option("--with-defaults", help="含默认值的完整配置（规范模式；默认值行前有 “! default” 注释）")
+        ] = False,
     ) -> None:
         c = output.get(ctx)
         g, kb = _graph_for(c, target, profile)
-        text = render_roundtrip(g, kb)
-        emit(c, {"text": text, "profile": g.graph.get("profile")}, text)
+        if not (canonical or with_defaults):
+            text = render_roundtrip(g, kb)
+            emit(c, {"text": text, "profile": g.graph.get("profile"), "mode": "roundtrip"}, text)
+            return
+        from lmesh.core import canon
+
+        r = canon.render_full(g, kb, str(g.graph.get("profile")), include_defaults=with_defaults)
+        data = canon.result_dict(r, with_defaults)
+        emit(c, data, r.text)
+        if r.uncovered and c.output == "text" and not c.quiet:
+            import sys
+
+            sys.stderr.write(c.t("render.uncovered", n=len(r.uncovered)) + "\n")
 
     @app.command("roundtrip", help="往返测试：配置 → 图 → 配置逐字比较；--samples 跑全部样本 / round-trip test")
     def cmd_roundtrip(

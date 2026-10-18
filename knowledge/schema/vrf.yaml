@@ -49,6 +49,46 @@ nodes:
     type: ref
     ref: rp.policy
     semantic: {zh-CN: 发布路由时应用的路由策略, en: Export route policy}
+  # ---------- 0.3.0 L3VPN 完善：隧道策略、路由数量限制、VPN FRR ----------
+  vrf.instance.af.tunnel_policy:
+    parent: vrf.instance.af
+    type: ref
+    ref: tunnel_policy
+    semantic: {zh-CN: VPN 路由迭代隧道时使用的隧道策略（华为 tnl-policy；Cisco 没有对应命令，缺省用 LDP LSP）, en: Tunnel policy}
+  vrf.instance.af.prefix_limit:
+    parent: vrf.instance.af
+    type: integer
+    semantic: {zh-CN: VRF 路由数量上限（华为 prefix limit；Cisco maximum routes）, en: Maximum routes}
+  vrf.instance.af.prefix_limit_threshold:
+    parent: vrf.instance.af
+    type: integer
+    semantic: {zh-CN: 告警阈值（百分比；华为 alert-percent；Cisco warn-threshold）, en: Warning threshold (%)}
+  vrf.instance.af.prefix_limit_warn_only:
+    parent: vrf.instance.af
+    type: boolean
+    semantic: {zh-CN: 超过上限只告警、不丢弃（华为 simply-alert；Cisco warning-only）, en: Warning only}
+  vrf.instance.af.vpn_frr:
+    parent: vrf.instance.af
+    type: boolean
+    semantic: {zh-CN: VPN FRR（华为 vpn frr）, en: VPN FRR}
+  tunnel_policy:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 隧道策略（华为 tunnel-policy；L3VPN / VPWS / VPLS 按它选择隧道；Cisco 没有对应对象）, en: Tunnel policy}
+    status: reviewed
+  tunnel_policy.description:
+    parent: tunnel_policy
+    type: text
+    semantic: {zh-CN: 描述, en: Description}
+  tunnel_policy.select_seq:
+    parent: tunnel_policy
+    type: string
+    semantic: {zh-CN: 隧道选择顺序（华为 tunnel select-seq 后的隧道类型，按出现顺序，如 "lsp" "cr-lsp lsp"）, en: Tunnel selection sequence}
+  tunnel_policy.load_balance:
+    parent: tunnel_policy
+    type: integer
+    semantic: {zh-CN: 参与负载分担的隧道数（load-balance-number）, en: Load-balance number}
 deps:
   - {kind: reference, from: vrf.instance.af.import_policy, to: rp.policy}
   - {kind: reference, from: vrf.instance.af.export_policy, to: rp.policy}
+  - {kind: reference, from: vrf.instance.af.tunnel_policy, to: tunnel_policy, note: VPN 实例引用隧道策略}

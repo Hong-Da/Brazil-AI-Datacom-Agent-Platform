@@ -136,10 +136,14 @@ def test_implicit_object_not_dangling(kb: KnowledgeBase, rules: list[rulesmod.Ru
 def test_sample_baseline_atn(kb: KnowledgeBase, rules: list[rulesmod.Rule]) -> None:
     res = checks.check(_graph(kb, SAMPLES / "huawei-atn-v800r023" / "atn-access-01.cfg"), kb, rules)
     # 桥域 1500：两个 .1500 二层子接口都没有加入它；VERIFICA-NEXTHOP 被 nexthop recursive-lookup 引用（已映射），不是孤儿
-    assert _pairs(res) == [("ref.orphan", "bridge_domain[1500]")]
+    # ACL_MCAST_SSM（0.3.0 起 ACL 是功能域）只被范围外的 pim ssm-policy 使用：降级为 unsure，不进清理脚本
+    assert sorted(_pairs(res)) == [
+        ("ref.orphan", "bridge_domain[1500]"),
+        ("ref.orphan_unsure", "acl.instance[ACL_MCAST_SSM]"),
+    ]
     clean = cleanup.cleanup(_graph(kb, SAMPLES / "huawei-atn-v800r023" / "atn-access-01.cfg"), kb)
     assert [c["text"] for c in clean["commands"]] == ["undo bridge-domain 1500"] and clean["verify"]["ok"]
-    assert clean["skipped"] == []
+    assert [s["node"] for s in clean["skipped"]] == ["acl.instance[ACL_MCAST_SSM]"]  # maybe_referenced
 
 
 def test_sample_baseline_asr920(kb: KnowledgeBase, rules: list[rulesmod.Rule]) -> None:

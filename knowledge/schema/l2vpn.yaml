@@ -1,0 +1,194 @@
+# L2VPN 功能域（0.3.0，M3-2）：VPWS（华为 mpls l2vc / PW 模板；Cisco xconnect / pseudowire-class / l2vpn xconnect context）
+# 与 VPLS（华为 vsi / 桥域 l2 binding vsi；Cisco l2vpn vfi context、l2 vfi manual / bridge-domain member vfi）。
+# 以华为为基准：伪线挂在接入电路（二层接入点 interface.access）下——华为子接口就是接入点，Cisco 是业务实例；
+# Cisco 的 l2vpn xconnect context 是命名的连接，华为没有对应写法，单独建 l2vpn.xconnect。
+domain: l2vpn
+nodes:
+  l2vpn.global:
+    type: object
+    key: [id]
+    semantic: {zh-CN: L2VPN 全局使能（华为 mpls l2vpn；Cisco l2vpn 全局模式，缺省已可用；编号固定为 "_"）, en: L2VPN global}
+    status: reviewed
+  # ---------- PW 模板 / 伪线类 ----------
+  l2vpn.pw_class:
+    type: object
+    key: [name]
+    semantic: {zh-CN: PW 模板（华为 pw-template；Cisco pseudowire-class）, en: Pseudowire class / PW template}
+    status: reviewed
+  l2vpn.pw_class.control_word:
+    parent: l2vpn.pw_class
+    type: boolean
+    semantic: {zh-CN: 控制字（华为 / Cisco control-word）, en: Control word}
+  l2vpn.pw_class.peer:
+    parent: l2vpn.pw_class
+    type: ipv4
+    semantic: {zh-CN: 对端地址（华为 peer-address）, en: Peer address}
+  l2vpn.pw_class.tunnel_policy:
+    parent: l2vpn.pw_class
+    type: ref
+    ref: tunnel_policy
+    semantic: {zh-CN: 隧道策略（华为 tnl-policy）, en: Tunnel policy}
+  l2vpn.pw_class.mtu:
+    parent: l2vpn.pw_class
+    type: integer
+    semantic: {zh-CN: 伪线 MTU（华为 mtu）, en: PW MTU}
+  l2vpn.pw_class.encapsulation:
+    parent: l2vpn.pw_class
+    type: enum
+    choices: [mpls, udp, l2tpv2, l2tpv3]
+    semantic: {zh-CN: 伪线封装（Cisco encapsulation mpls；华为 LDP 伪线固定为 MPLS）, en: PW encapsulation}
+  l2vpn.pw_class.preferred_path:
+    parent: l2vpn.pw_class
+    type: string
+    semantic: {zh-CN: 首选路径（Cisco preferred-path interface tunnel / peer）, en: Preferred path}
+  # ---------- VPWS：接入电路上的伪线 ----------
+  interface.access.pw:
+    parent: interface.access
+    type: object
+    key: [role]
+    semantic: {zh-CN: VPWS 伪线（role：primary / backup / bypass；华为 mpls l2vc，带 secondary 为备用；Cisco xconnect / backup peer）, en: VPWS pseudowire}
+  interface.access.pw.peer:
+    parent: interface.access.pw
+    type: ipv4
+    semantic: {zh-CN: 对端地址（通常是对端 LSR ID）, en: Peer address}
+  interface.access.pw.vc_id:
+    parent: interface.access.pw
+    type: integer
+    semantic: {zh-CN: VC ID, en: VC ID}
+  interface.access.pw.pw_class:
+    parent: interface.access.pw
+    type: ref
+    ref: l2vpn.pw_class
+    semantic: {zh-CN: 使用的 PW 模板 / 伪线类, en: PW class}
+  interface.access.pw.tunnel_policy:
+    parent: interface.access.pw
+    type: ref
+    ref: tunnel_policy
+    semantic: {zh-CN: 隧道策略（华为 tunnel-policy）, en: Tunnel policy}
+  interface.access.pw.control_word:
+    parent: interface.access.pw
+    type: boolean
+    semantic: {zh-CN: 控制字（华为 control-word / no-control-word）, en: Control word}
+  interface.access.pw.encapsulation:
+    parent: interface.access.pw
+    type: string
+    semantic: {zh-CN: 伪线封装（Cisco encapsulation mpls；华为 raw / tagged 写在这里）, en: PW encapsulation}
+  # ---------- Cisco 命名的点到点连接 ----------
+  l2vpn.xconnect:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 命名的 VPWS 连接（Cisco l2vpn xconnect context；华为没有对应写法，用接口下的 mpls l2vc）, en: Named xconnect}
+  l2vpn.xconnect.ac:
+    parent: l2vpn.xconnect
+    type: object
+    key: [interface, instance]
+    semantic: {zh-CN: 接入电路成员（member <接口> service-instance <编号>，业务实例可省）, en: Attachment circuit member}
+  l2vpn.xconnect.pw:
+    parent: l2vpn.xconnect
+    type: object
+    key: [peer, vc_id]
+    semantic: {zh-CN: 伪线成员（member <对端> <VC ID> encapsulation mpls / template）, en: Pseudowire member}
+  l2vpn.xconnect.pw.pw_class:
+    parent: l2vpn.xconnect.pw
+    type: ref
+    ref: l2vpn.pw_class
+    semantic: {zh-CN: 使用的伪线模板, en: PW class}
+  # ---------- VPLS ----------
+  l2vpn.vsi:
+    type: object
+    key: [name]
+    semantic: {zh-CN: VPLS 实例（华为 vsi；Cisco l2vpn vfi context / l2 vfi manual）, en: VPLS instance (VSI / VFI)}
+    status: reviewed
+  l2vpn.vsi.description:
+    parent: l2vpn.vsi
+    type: text
+    semantic: {zh-CN: 描述, en: Description}
+  l2vpn.vsi.vsi_id:
+    parent: l2vpn.vsi
+    type: integer
+    semantic: {zh-CN: VPLS 标识（华为 vsi-id；Cisco vpn id）, en: VPN ID}
+  l2vpn.vsi.signaling:
+    parent: l2vpn.vsi
+    type: enum
+    choices: [ldp, bgp, static]
+    semantic: {zh-CN: 信令方式（华为 pwsignal ldp / bgp；Cisco 手工 VFI 为 LDP）, en: Signaling}
+  l2vpn.vsi.mode:
+    parent: l2vpn.vsi
+    type: enum
+    choices: [static, auto]
+    semantic: {zh-CN: 成员发现方式（华为 vsi … static / auto；Cisco l2 vfi … manual 记为 static）, en: Discovery mode}
+  l2vpn.vsi.bd_mode:
+    parent: l2vpn.vsi
+    type: boolean
+    semantic: {zh-CN: 桥域模式（华为 vsi … bd-mode，VSI 通过桥域接入）, en: BD mode}
+  l2vpn.vsi.mtu:
+    parent: l2vpn.vsi
+    type: integer
+    semantic: {zh-CN: VSI MTU, en: MTU}
+  l2vpn.vsi.encapsulation:
+    parent: l2vpn.vsi
+    type: enum
+    choices: [ethernet, vlan]
+    semantic: {zh-CN: 封装（华为 encapsulation ethernet / vlan）, en: Encapsulation}
+  l2vpn.vsi.tunnel_policy:
+    parent: l2vpn.vsi
+    type: ref
+    ref: tunnel_policy
+    semantic: {zh-CN: 隧道策略（华为 tnl-policy）, en: Tunnel policy}
+  l2vpn.vsi.peer:
+    parent: l2vpn.vsi
+    type: object
+    key: [address]
+    semantic: {zh-CN: VPLS 对等体（华为 VSI-LDP 视图 peer；Cisco member <地址> / neighbor <地址>）, en: VPLS peer}
+  l2vpn.vsi.peer.vc_id:
+    parent: l2vpn.vsi.peer
+    type: integer
+    semantic: {zh-CN: 协商的 VC ID（华为 negotiation-vc-id；Cisco member / neighbor 的 VC ID）, en: VC ID}
+  l2vpn.vsi.peer.tunnel_policy:
+    parent: l2vpn.vsi.peer
+    type: ref
+    ref: tunnel_policy
+    semantic: {zh-CN: 隧道策略（华为 peer … tnl-policy）, en: Tunnel policy}
+  l2vpn.vsi.peer.pw_class:
+    parent: l2vpn.vsi.peer
+    type: ref
+    ref: l2vpn.pw_class
+    semantic: {zh-CN: 伪线模板（Cisco template / pw-class）, en: PW class}
+  l2vpn.vsi.peer.encapsulation:
+    parent: l2vpn.vsi.peer
+    type: string
+    semantic: {zh-CN: 伪线封装（华为 encapsulation vlan / ethernet；Cisco encapsulation mpls）, en: Encapsulation}
+  interface.vsi:
+    parent: interface
+    type: ref
+    ref: l2vpn.vsi
+    semantic: {zh-CN: 接口绑定的 VSI（华为 l2 binding vsi）, en: Bound VSI}
+  bridge_domain.vsi:
+    parent: bridge_domain
+    type: ref
+    ref: l2vpn.vsi
+    semantic: {zh-CN: 桥域绑定的 VSI（华为桥域 l2 binding vsi；Cisco bridge-domain 下 member vfi）, en: VSI bound to the bridge domain}
+  bridge_domain.description:
+    parent: bridge_domain
+    type: text
+    semantic: {zh-CN: 桥域描述（华为 bridge-domain 视图 description）, en: Bridge domain description}
+  bridge_domain.member:
+    parent: bridge_domain
+    type: object
+    key: [interface, instance]
+    semantic: {zh-CN: 桥域成员（Cisco bridge-domain 下 member <接口> service-instance <编号>；华为写在子接口上 bridge-domain <编号>）, en: Bridge domain member}
+deps:
+  - {kind: reference, from: interface.access.pw.pw_class, to: l2vpn.pw_class, note: 伪线引用 PW 模板}
+  - {kind: reference, from: interface.access.pw.tunnel_policy, to: tunnel_policy, note: 伪线引用隧道策略}
+  - {kind: reference, from: l2vpn.pw_class.tunnel_policy, to: tunnel_policy, note: PW 模板引用隧道策略}
+  - {kind: reference, from: l2vpn.xconnect.pw.pw_class, to: l2vpn.pw_class, note: 伪线成员引用伪线模板}
+  - {kind: reference, from: l2vpn.vsi.tunnel_policy, to: tunnel_policy, note: VSI 引用隧道策略}
+  - {kind: reference, from: l2vpn.vsi.peer.tunnel_policy, to: tunnel_policy, note: VSI 对等体引用隧道策略}
+  - {kind: reference, from: l2vpn.vsi.peer.pw_class, to: l2vpn.pw_class, note: VFI 成员引用伪线模板}
+  - {kind: reference, from: interface.vsi, to: l2vpn.vsi, note: 接口绑定 VSI}
+  - {kind: reference, from: bridge_domain.vsi, to: l2vpn.vsi, note: 桥域绑定 VSI / VFI}
+  # 华为要先在系统视图执行 mpls l2vpn（之前还要 mpls）；Cisco 不需要
+  - {kind: prerequisite, from: interface.access.pw, to: l2vpn.global, note: 华为配置 VPWS 前先执行 mpls l2vpn, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}
+  - {kind: prerequisite, from: l2vpn.vsi, to: l2vpn.global, note: 华为配置 VSI 前先执行 mpls l2vpn, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}
+  - {kind: prerequisite, from: l2vpn.global, to: mpls.global, note: 华为执行 mpls l2vpn 前先全局使能 MPLS, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}
+  - {kind: cross_device, from: interface.access.pw.peer, to: mpls.global.lsr_id, note: 伪线对端地址应是对端设备的 LSR ID}

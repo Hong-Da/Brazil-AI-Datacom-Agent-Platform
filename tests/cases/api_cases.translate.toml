@@ -1,0 +1,58 @@
+# 配置翻译与规范渲染接口的 API 用例（加载器与主文件 api_cases.toml 合并）。
+
+[[case]]
+id = "translate-text"
+title = { zh-CN = "翻译一段 Cisco 配置到华为（接口映射表）", en = "Translate a Cisco configuration text to Huawei", pt-BR = "Traduzir um texto de configuração Cisco para Huawei" }
+method = "POST"
+path = "/api/v1/translate"
+setup = "configured-fullkb"
+auth = true
+body = { text = "hostname R1\n!\ninterface GigabitEthernet0/0/1\n description UPLINK\n mtu 1500\n ip address 10.0.0.1 255.255.255.252\n!\ninterface Port-channel1\n ip address 10.0.1.1 255.255.255.252\n!\nip route 0.0.0.0 0.0.0.0 10.0.0.2\n!\nend", to = "huawei-atn-v800r025", interface_map = { "Port-channel1" = "Eth-Trunk1" } }
+expect_status = 200
+expect_json = { "code" = 0, "data.source.profile" = "cisco-iosxe-asr920-17.15", "data.target.family" = "huawei-vrp8", "data.verify.checked" = true, "data.verify.unexplained" = 0, "data.defaults.0.kind" = "explicit_equals_default", "data.defaults.0.lines" = [5], "data.unsupported.0.kind" = "raw", "data.unsupported.0.lines" = [1], "data.lines.5.text" = "interface Eth-Trunk1" }
+in_docs = true
+
+[[case]]
+id = "translate-no-source"
+title = { zh-CN = "没有给出源配置", en = "No source", pt-BR = "Sem origem" }
+method = "POST"
+path = "/api/v1/translate"
+setup = "configured"
+auth = true
+body = { to = "huawei-atn-v800r025" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+in_docs = true
+
+[[case]]
+id = "translate-bad-profile"
+title = { zh-CN = "目标 Profile 不存在", en = "Unknown target profile", pt-BR = "Profile de destino inexistente" }
+method = "POST"
+path = "/api/v1/translate"
+setup = "configured-fullkb"
+auth = true
+body = { text = "hostname R1\n!\nend", to = "nope" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "translate-no-token"
+title = { zh-CN = "没有令牌", en = "No token", pt-BR = "Sem token" }
+method = "POST"
+path = "/api/v1/translate"
+setup = "configured"
+auth = false
+body = { text = "hostname R1", to = "huawei-atn-v800r025" }
+expect_status = 401
+
+[[case]]
+id = "render-canonical"
+title = { zh-CN = "规范模式渲染（含默认值）", en = "Canonical rendering with defaults", pt-BR = "Renderização canônica com padrões" }
+method = "POST"
+path = "/api/v1/render"
+setup = "configured-fullkb"
+auth = true
+body = { text = "hostname R1\n!\ninterface GigabitEthernet0/0/1\n ip address 10.0.0.1 255.255.255.252\n!\nend", canonical = true, with_defaults = true }
+expect_status = 200
+expect_json = { "code" = 0, "data.mode" = "canonical", "data.with_defaults" = true, "data.profile" = "cisco-iosxe-asr920-17.15", "data.lines.1.text" = "hostname R1", "data.lines.3.text" = "interface GigabitEthernet0/0/1", "data.lines.5.text" = " ! default", "data.lines.5.kind" = "comment", "data.lines.6.origin" = "default" }
+in_docs = true

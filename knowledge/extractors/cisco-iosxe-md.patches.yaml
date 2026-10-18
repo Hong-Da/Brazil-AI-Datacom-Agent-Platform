@@ -266,3 +266,120 @@ patches:
     reason: 团体字参数名为 string，按参数名推断成了吃掉行尾的 text 类型
     set:
       params: {string: {type: word}, view-name: {type: word}, access-list-number: {type: word}, access-list-name: {type: word}}
+  # ---------- 0.3.0：MPLS LDP、L2VPN、ACL ----------
+  - id: cisco-iosxe.mpls-ldp-discovery
+    reason: 原文把 accept 写成与 hello / targeted-hello 并列；运行配置中是 mpls ldp discovery targeted-hello accept [ from <acl> ]
+    set:
+      syntax: mpls ldp discovery { hello { holdtime | interval } <seconds> | targeted-hello { { holdtime | interval } <seconds> | accept [ from <acl> ] } }
+      undo: no mpls ldp discovery { hello { holdtime | interval } | targeted-hello { holdtime | interval | accept } }
+      params: {seconds: {type: integer, range: [1, 65535]}, acl: {type: word}}
+  - id: cisco-iosxe.xconnect.2
+    reason: 原文把可选的 pw-type 写成 “*[pw-type]*”，转换后成了重复组
+    set:
+      syntax: xconnect <peer-ip-address> <vc-id> encapsulation mpls [ <pw-type> ]
+      params: {peer-ip-address: {type: ipv4}, vc-id: {type: integer, range: [1, 4294967295]}, pw-type: {type: integer}}
+  - reason: xconnect 页的 Command Modes 没有列出业务实例模式；ASR 920 的 EVC 配置指南中伪线接在 service instance 下（xconnect 对端 VC 编号 encapsulation mpls）
+    add:
+      id: cisco-iosxe.service-instance-xconnect
+      domain: l2vpn
+      view: service-instance
+      syntax: xconnect <peer-ip-address> <vc-id> { encapsulation mpls [ manual ] | pw-class <pw-class-name> } [ pw-class <pw-class-name> ]
+      undo: no xconnect
+      enters_view: xconnect
+      params: {peer-ip-address: {type: ipv4}, vc-id: {type: integer, range: [1, 4294967295]}, pw-class-name: {type: word}}
+      source: {doc: cisco-iosxe-md, file: l2vpn/xconnect.md, title: xconnect, version: '17.15'}
+  - reason: member (bridge-domain) 页只有业务实例成员；VPLS 的 VFI 成员 member vfi <名称> 按 ASR 920 配置指南（VPLS）补充
+    add:
+      id: cisco-iosxe.bridge-domain-member-vfi
+      domain: l2vpn
+      view: bridge-domain
+      syntax: member vfi <vfi-name>
+      undo: no member vfi <vfi-name>
+      params: {vfi-name: {type: word}}
+      source: {doc: cisco-iosxe-md, file: l2vpn/member (bridge-domain).md, title: member (bridge-domain), version: '17.15'}
+  - id: cisco-iosxe.member
+    reason: 接口名参数按名称推断成了普通词；接口名是一个词（GigabitEthernet0/0/1）
+    set:
+      params: {interface-type-number: {type: interface}, service-id: {type: integer, range: [1, 8000]}, group-id: {type: integer}}
+  # ACL：原文的序号写成 “*[sequence-number]*”，标准与扩展格式混在一页，any / host 只写在参数说明里；按运行配置整理成一条标准、
+  # 一条通用扩展、一条 TCP / UDP 端口格式（端口操作符作为参数，便于区分源端口与目的端口）
+  - id: cisco-iosxe.permit.1
+    reason: 原文序号写成 *[sequence-number]*、any / host 只写在参数说明里；标准 ACL 条目按运行配置整理
+    set:
+      syntax: '[ <sequence-number> ] permit { <source> [ <source-wildcard> ] | host <source-host> | any } [ log ]'
+      undo: no permit { <source> [ <source-wildcard> ] | host <source-host> | any }
+      params: &std_params {sequence-number: {type: integer, range: [1, 2147483647]}, source: {type: ipv4}, source-wildcard: {type: wildcard}, source-host: {type: ipv4}}
+  - id: cisco-iosxe.deny.1
+    reason: 同 permit.1
+    set:
+      syntax: '[ <sequence-number> ] deny { <source> [ <source-wildcard> ] | host <source-host> | any } [ log ]'
+      undo: no deny { <source> [ <source-wildcard> ] | host <source-host> | any }
+      params: *std_params
+  - id: cisco-iosxe.permit.4
+    reason: 原文通用扩展格式（第 2 条语法）有多余的括号、转换失败，这张卡原为 IGMP 格式；按运行配置整理为通用扩展格式（协议为名称或编号）
+    set:
+      syntax: '[ <sequence-number> ] permit <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } [ fragments ] [ log ]'
+      undo: no permit <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any }
+      params: &ext_params {sequence-number: {type: integer, range: [1, 2147483647]}, protocol: {type: word}, source: {type: ipv4}, source-wildcard: {type: wildcard}, source-host: {type: ipv4}, destination: {type: ipv4}, destination-wildcard: {type: wildcard}, destination-host: {type: ipv4}}
+  - id: cisco-iosxe.deny.4
+    reason: 同 permit.4
+    set:
+      syntax: '[ <sequence-number> ] deny <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } [ fragments ] [ log ]'
+      undo: no deny <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any }
+      params: *ext_params
+  - id: cisco-iosxe.permit.5
+    reason: 原文 TCP 格式的端口参数写成 *[port]*；按运行配置整理为 TCP / UDP 端口格式
+    set:
+      syntax: '[ <sequence-number> ] permit { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ] [ established ] [ log ]'
+      undo: no permit { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ]
+      params: &port_params {sequence-number: {type: integer, range: [1, 2147483647]}, source: {type: ipv4}, source-wildcard: {type: wildcard}, source-host: {type: ipv4}, destination: {type: ipv4}, destination-wildcard: {type: wildcard}, destination-host: {type: ipv4}, source-port-op: {type: enum, choices: [eq, gt, lt, neq, range]}, source-port: {type: word}, source-port-end: {type: word}, destination-port-op: {type: enum, choices: [eq, gt, lt, neq, range]}, destination-port: {type: word}, destination-port-end: {type: word}}
+  - id: cisco-iosxe.deny.5
+    reason: 同 permit.5
+    set:
+      syntax: '[ <sequence-number> ] deny { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ] [ established ] [ log ]'
+      undo: no deny { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ]
+      params: *port_params
+  - id: cisco-iosxe.remark
+    reason: 命名 ACL 中的说明行在 IOS XE 运行配置里可以带序号；说明文字可含空格
+    set:
+      syntax: '[ <sequence-number> ] remark <remark>'
+      params: {sequence-number: {type: integer, range: [1, 2147483647]}, remark: {type: text}}
+  - id: cisco-iosxe.access-list.1
+    reason: 原文 dynamic / log 部分有多余的括号；按运行配置整理编号扩展 ACL 的通用格式（any / host 只写在参数说明里）
+    set:
+      syntax: access-list <access-list-number> { deny | permit } <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } [ fragments ] [ log ]
+      undo: no access-list <access-list-number>
+      params: {access-list-number: {type: integer}, protocol: {type: word}, source: {type: ipv4}, source-wildcard: {type: wildcard}, source-host: {type: ipv4}, destination: {type: ipv4}, destination-wildcard: {type: wildcard}, destination-host: {type: ipv4}}
+  - id: cisco-iosxe.access-list.4
+    reason: 原文 TCP 格式的端口参数写成 *[port]*；按运行配置整理为编号扩展 ACL 的 TCP / UDP 端口格式
+    set:
+      syntax: access-list <access-list-number> { deny | permit } { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ] [ established ] [ log ]
+      undo: no access-list <access-list-number>
+      params: {access-list-number: {type: integer}, source: {type: ipv4}, source-wildcard: {type: wildcard}, source-host: {type: ipv4}, destination: {type: ipv4}, destination-wildcard: {type: wildcard}, destination-host: {type: ipv4}, source-port-op: {type: enum, choices: [eq, gt, lt, neq, range]}, source-port: {type: word}, source-port-end: {type: word}, destination-port-op: {type: enum, choices: [eq, gt, lt, neq, range]}, destination-port: {type: word}, destination-port-end: {type: word}}
+  - id: cisco-iosxe.access-list.5
+    reason: 原文 UDP 格式已并入 access-list.4；这一张整理为 ICMP 格式（原文 ICMP 语法括号多余、转换失败）
+    set:
+      syntax: access-list <access-list-number> { deny | permit } icmp { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } [ <icmp-type> [ <icmp-code> ] ] [ log ]
+      undo: no access-list <access-list-number>
+      params: {access-list-number: {type: integer}, source: {type: ipv4}, source-wildcard: {type: wildcard}, source-host: {type: ipv4}, destination: {type: ipv4}, destination-wildcard: {type: wildcard}, destination-host: {type: ipv4}, icmp-type: {type: word}, icmp-code: {type: integer, range: [0, 255]}}
+  - reason: access-list (IP standard) 页的语法行把可选的 source-wildcard 写在斜体里，转换失败；按运行配置补充编号标准 ACL
+    add:
+      id: cisco-iosxe.access-list-standard
+      domain: acl
+      view: system
+      syntax: access-list <access-list-number> { deny | permit } { <source> [ <source-wildcard> ] | host <source-host> | any } [ log ]
+      undo: no access-list <access-list-number>
+      params: {access-list-number: {type: integer}, source: {type: ipv4}, source-wildcard: {type: wildcard}, source-host: {type: ipv4}}
+      source: {doc: cisco-iosxe-md, file: acl/access-list (IP standard).md, title: access-list (IP standard), version: '17.15'}
+  - id: cisco-iosxe.access-list-remark
+    reason: 原文写成 *[line]*；说明文字可含空格
+    set:
+      syntax: access-list <access-list-number> remark <line>
+      undo: no access-list <access-list-number> remark <line>
+      params: {access-list-number: {type: integer}, line: {type: text}}
+  - id: cisco-iosxe.member.3
+    reason: 原文把接口类型写成关键字、编号另起；运行配置中接口名是一个词（member GigabitEthernet0/0/1 service-instance 100）
+    set:
+      syntax: member <interface> [ service-instance <id> ] [ group <group-name> [ priority <number> ] ]
+      undo: no member <interface> [ service-instance <id> ]
+      params: {interface: {type: interface}, id: {type: integer, range: [1, 8000]}, group-name: {type: word}, number: {type: integer}}

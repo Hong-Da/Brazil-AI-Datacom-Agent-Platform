@@ -14,6 +14,167 @@ side_effects:
   - {from: interface.vrf, to: interface.ipv4, note: 华为接口绑定 vpn-instance 会删除接口 IP，需在绑定后补发}
 # entries 由命令卡汇总生成（lmesh kb map）；人工补充的条目标 manual: true，汇总时保留
 entries:
+  acl.instance:
+    supported: true
+    cards:
+      - huawei-vrp8.acl-name
+      - huawei-vrp8.acl-name.1
+      - huawei-vrp8.acl-name.1~2
+      - huawei-vrp8.acl-name.1~3
+      - huawei-vrp8.acl-name.1~4
+      - huawei-vrp8.acl-name.1~5
+      - huawei-vrp8.acl-name.2
+      - huawei-vrp8.acl-name.2~2
+      - huawei-vrp8.acl-name.2~3
+      - huawei-vrp8.acl-name.2~4
+      - huawei-vrp8.acl-name.2~5
+      - huawei-vrp8.acl-number.1
+      - huawei-vrp8.acl-number.2
+      - huawei-vrp8.acl-number.3
+      - huawei-vrp8.acl-number.4
+      - huawei-vrp8.acl-number.5
+  acl.instance.description:
+    supported: true
+    cards:
+      - huawei-vrp8.description~10
+  acl.instance.match_order:
+    manual: true
+    supported: true
+    default: config
+    source: 命令参考 acl number / acl name：match-order 缺省为 config（按配置顺序）
+    verified: doc
+    cards:
+      - huawei-vrp8.acl-name
+      - huawei-vrp8.acl-name.1
+      - huawei-vrp8.acl-name.1~2
+      - huawei-vrp8.acl-name.1~3
+      - huawei-vrp8.acl-name.1~4
+      - huawei-vrp8.acl-name.2
+      - huawei-vrp8.acl-name.2~2
+      - huawei-vrp8.acl-name.2~3
+      - huawei-vrp8.acl-name.2~4
+      - huawei-vrp8.acl-number.1
+      - huawei-vrp8.acl-number.2
+      - huawei-vrp8.acl-number.3
+      - huawei-vrp8.acl-number.4
+  acl.instance.number:
+    supported: true
+    cards:
+      - huawei-vrp8.acl-name.2
+      - huawei-vrp8.acl-name.2~2
+      - huawei-vrp8.acl-name.2~3
+      - huawei-vrp8.acl-name.2~4
+      - huawei-vrp8.acl-name.2~5
+  acl.instance.rule:
+    supported: true
+    cards:
+      - huawei-vrp8.rule
+      - huawei-vrp8.rule-description
+      - huawei-vrp8.rule.1
+      - huawei-vrp8.rule.2
+      - huawei-vrp8.rule~2
+      - huawei-vrp8.rule~3
+      - huawei-vrp8.rule~4
+  acl.instance.rule.action:
+    supported: true
+    cards:
+      - huawei-vrp8.rule
+      - huawei-vrp8.rule.1
+      - huawei-vrp8.rule.2
+      - huawei-vrp8.rule~2
+      - huawei-vrp8.rule~3
+      - huawei-vrp8.rule~4
+  acl.instance.rule.description:
+    supported: true
+    cards:
+      - huawei-vrp8.rule-description
+  acl.instance.rule.destination_ip:
+    supported: true
+    cards:
+      - huawei-vrp8.rule
+      - huawei-vrp8.rule.1
+      - huawei-vrp8.rule.2
+      - huawei-vrp8.rule~2
+      - huawei-vrp8.rule~3
+  acl.instance.rule.destination_wildcard:
+    supported: true
+    cards:
+      - huawei-vrp8.rule
+      - huawei-vrp8.rule.1
+      - huawei-vrp8.rule.2
+      - huawei-vrp8.rule~2
+      - huawei-vrp8.rule~3
+  acl.instance.rule.name:
+    supported: true
+    cards:
+      - huawei-vrp8.rule
+      - huawei-vrp8.rule.1
+      - huawei-vrp8.rule.2
+      - huawei-vrp8.rule~2
+      - huawei-vrp8.rule~3
+      - huawei-vrp8.rule~4
+  acl.instance.rule.protocol:
+    supported: true
+    cards:
+      - huawei-vrp8.rule
+      - huawei-vrp8.rule.1
+      - huawei-vrp8.rule.2
+      - huawei-vrp8.rule~2
+      - huawei-vrp8.rule~3
+  acl.instance.rule.source_ip:
+    supported: true
+    cards:
+      - huawei-vrp8.rule
+      - huawei-vrp8.rule.1
+      - huawei-vrp8.rule.2
+      - huawei-vrp8.rule~2
+      - huawei-vrp8.rule~3
+      - huawei-vrp8.rule~4
+  acl.instance.rule.source_wildcard:
+    supported: true
+    cards:
+      - huawei-vrp8.rule
+      - huawei-vrp8.rule.1
+      - huawei-vrp8.rule.2
+      - huawei-vrp8.rule~2
+      - huawei-vrp8.rule~3
+      - huawei-vrp8.rule~4
+  acl.instance.rule.vrf:
+    supported: true
+    cards:
+      - huawei-vrp8.rule
+      - huawei-vrp8.rule.1
+      - huawei-vrp8.rule.2
+      - huawei-vrp8.rule~2
+      - huawei-vrp8.rule~3
+      - huawei-vrp8.rule~4
+  acl.instance.step:
+    manual: true
+    supported: true
+    default: 5
+    source: 命令参考 step：By default, the increment of an ACL rule group is 5.
+    verified: doc
+    cards:
+      - huawei-vrp8.step
+  acl.instance.type:
+    supported: true
+    cards:
+      - huawei-vrp8.acl-name
+      - huawei-vrp8.acl-name.1
+      - huawei-vrp8.acl-name.1~2
+      - huawei-vrp8.acl-name.1~3
+      - huawei-vrp8.acl-name.1~4
+      - huawei-vrp8.acl-name.1~5
+      - huawei-vrp8.acl-name.2
+      - huawei-vrp8.acl-name.2~2
+      - huawei-vrp8.acl-name.2~3
+      - huawei-vrp8.acl-name.2~4
+      - huawei-vrp8.acl-name.2~5
+      - huawei-vrp8.acl-number.1
+      - huawei-vrp8.acl-number.2
+      - huawei-vrp8.acl-number.3
+      - huawei-vrp8.acl-number.4
+      - huawei-vrp8.acl-number.5
   bfd.global:
     supported: true
     cards:
@@ -400,6 +561,14 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.bridge-domain
+  bridge_domain.description:
+    supported: true
+    cards:
+      - huawei-vrp8.description~11
+  bridge_domain.vsi:
+    supported: true
+    cards:
+      - huawei-vrp8.l2-binding
   interface:
     supported: true
     cards:
@@ -412,6 +581,17 @@ entries:
       - huawei-vrp8.encapsulation-dot1q
       - huawei-vrp8.encapsulation-dot1q-vid-8021p
       - huawei-vrp8.encapsulation-untag
+      - huawei-vrp8.mpls-l2vc
+      - huawei-vrp8.mpls-l2vc.1
+      - huawei-vrp8.mpls-l2vc.1~2
+      - huawei-vrp8.mpls-l2vc.1~3
+      - huawei-vrp8.mpls-l2vc.2
+      - huawei-vrp8.mpls-l2vc.2~2
+      - huawei-vrp8.mpls-l2vc.2~3
+      - huawei-vrp8.mpls-l2vc.3
+      - huawei-vrp8.mpls-l2vc.3~2
+      - huawei-vrp8.mpls-l2vc.4
+      - huawei-vrp8.mpls-l2vc.4~2
       - huawei-vrp8.rewrite.1
   interface.access.bridge_domain:
     supported: true
@@ -423,6 +603,104 @@ entries:
       - huawei-vrp8.encapsulation-dot1q
       - huawei-vrp8.encapsulation-dot1q-vid-8021p
       - huawei-vrp8.encapsulation-untag
+  interface.access.pw:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-l2vc
+      - huawei-vrp8.mpls-l2vc.1
+      - huawei-vrp8.mpls-l2vc.1~2
+      - huawei-vrp8.mpls-l2vc.1~3
+      - huawei-vrp8.mpls-l2vc.2
+      - huawei-vrp8.mpls-l2vc.2~2
+      - huawei-vrp8.mpls-l2vc.2~3
+      - huawei-vrp8.mpls-l2vc.3
+      - huawei-vrp8.mpls-l2vc.3~2
+      - huawei-vrp8.mpls-l2vc.4
+      - huawei-vrp8.mpls-l2vc.4~2
+  interface.access.pw.control_word:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-l2vc
+      - huawei-vrp8.mpls-l2vc.1
+      - huawei-vrp8.mpls-l2vc.1~2
+      - huawei-vrp8.mpls-l2vc.1~3
+      - huawei-vrp8.mpls-l2vc.2
+      - huawei-vrp8.mpls-l2vc.2~2
+      - huawei-vrp8.mpls-l2vc.2~3
+      - huawei-vrp8.mpls-l2vc.3
+      - huawei-vrp8.mpls-l2vc.3~2
+      - huawei-vrp8.mpls-l2vc.4
+      - huawei-vrp8.mpls-l2vc.4~2
+  interface.access.pw.encapsulation:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-l2vc
+      - huawei-vrp8.mpls-l2vc.1
+      - huawei-vrp8.mpls-l2vc.1~2
+      - huawei-vrp8.mpls-l2vc.1~3
+      - huawei-vrp8.mpls-l2vc.2
+      - huawei-vrp8.mpls-l2vc.2~2
+      - huawei-vrp8.mpls-l2vc.2~3
+      - huawei-vrp8.mpls-l2vc.3
+      - huawei-vrp8.mpls-l2vc.3~2
+      - huawei-vrp8.mpls-l2vc.4
+      - huawei-vrp8.mpls-l2vc.4~2
+  interface.access.pw.peer:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-l2vc
+      - huawei-vrp8.mpls-l2vc.1
+      - huawei-vrp8.mpls-l2vc.1~2
+      - huawei-vrp8.mpls-l2vc.1~3
+      - huawei-vrp8.mpls-l2vc.2
+      - huawei-vrp8.mpls-l2vc.2~2
+      - huawei-vrp8.mpls-l2vc.2~3
+      - huawei-vrp8.mpls-l2vc.3
+      - huawei-vrp8.mpls-l2vc.3~2
+      - huawei-vrp8.mpls-l2vc.4
+      - huawei-vrp8.mpls-l2vc.4~2
+  interface.access.pw.pw_class:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-l2vc
+      - huawei-vrp8.mpls-l2vc.1
+      - huawei-vrp8.mpls-l2vc.1~2
+      - huawei-vrp8.mpls-l2vc.1~3
+      - huawei-vrp8.mpls-l2vc.2
+      - huawei-vrp8.mpls-l2vc.2~2
+      - huawei-vrp8.mpls-l2vc.2~3
+      - huawei-vrp8.mpls-l2vc.3
+      - huawei-vrp8.mpls-l2vc.3~2
+      - huawei-vrp8.mpls-l2vc.4
+      - huawei-vrp8.mpls-l2vc.4~2
+  interface.access.pw.tunnel_policy:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-l2vc
+      - huawei-vrp8.mpls-l2vc.1
+      - huawei-vrp8.mpls-l2vc.1~2
+      - huawei-vrp8.mpls-l2vc.1~3
+      - huawei-vrp8.mpls-l2vc.2
+      - huawei-vrp8.mpls-l2vc.2~2
+      - huawei-vrp8.mpls-l2vc.2~3
+      - huawei-vrp8.mpls-l2vc.3
+      - huawei-vrp8.mpls-l2vc.3~2
+      - huawei-vrp8.mpls-l2vc.4
+      - huawei-vrp8.mpls-l2vc.4~2
+  interface.access.pw.vc_id:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-l2vc
+      - huawei-vrp8.mpls-l2vc.1
+      - huawei-vrp8.mpls-l2vc.1~2
+      - huawei-vrp8.mpls-l2vc.1~3
+      - huawei-vrp8.mpls-l2vc.2
+      - huawei-vrp8.mpls-l2vc.2~2
+      - huawei-vrp8.mpls-l2vc.2~3
+      - huawei-vrp8.mpls-l2vc.3
+      - huawei-vrp8.mpls-l2vc.3~2
+      - huawei-vrp8.mpls-l2vc.4
+      - huawei-vrp8.mpls-l2vc.4~2
   interface.access.rewrite:
     supported: true
     cards:
@@ -525,6 +803,43 @@ entries:
     cards:
       - huawei-vrp8.eth-trunk
       - huawei-vrp8.mode
+  interface.mpls:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-ldp-local-lsr-id.1
+      - huawei-vrp8.mpls-ldp-local-lsr-id.2
+      - huawei-vrp8.mpls-ldp-timer-igp-sync-delay~2
+      - huawei-vrp8.mpls-ldp-transport-address.1
+      - huawei-vrp8.mpls-ldp-transport-address.2
+      - huawei-vrp8.mpls-ldp~2
+      - huawei-vrp8.mpls-mtu
+      - huawei-vrp8.mpls~2
+  interface.mpls.ldp:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 mpls ldp（接口视图）：By default, LDP is not enabled on an interface.
+    verified: doc
+    cards:
+      - huawei-vrp8.mpls-ldp~2
+  interface.mpls.ldp_igp_sync_delay:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-ldp-timer-igp-sync-delay~2
+  interface.mpls.ldp_local_lsr_id:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-ldp-local-lsr-id.1
+      - huawei-vrp8.mpls-ldp-local-lsr-id.2
+  interface.mpls.ldp_transport_address:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-ldp-transport-address.1
+      - huawei-vrp8.mpls-ldp-transport-address.2
+  interface.mpls.mtu:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-mtu
   interface.mtu:
     manual: true
     supported: true
@@ -656,6 +971,11 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.ip-binding-vpn-instance
+  interface.vsi:
+    supported: true
+    cards:
+      - huawei-vrp8.l2-binding-vsi
+      - huawei-vrp8.l2-binding-vsi-access-port
   isis.process:
     supported: true
     cards:
@@ -702,6 +1022,122 @@ entries:
     cards:
       - huawei-vrp8.isis.1
       - huawei-vrp8.isis.2
+  l2vpn.global:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-l2vpn
+  l2vpn.pw_class:
+    supported: true
+    cards:
+      - huawei-vrp8.pw-template
+  l2vpn.pw_class.control_word:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 control-word（PW 模板视图）：By default, the control word function is not enabled for a PW template.
+    verified: doc
+    cards:
+      - huawei-vrp8.control-word
+  l2vpn.pw_class.mtu:
+    supported: true
+    cards:
+      - huawei-vrp8.mtu~3
+  l2vpn.pw_class.peer:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-address
+  l2vpn.pw_class.tunnel_policy:
+    supported: true
+    cards:
+      - huawei-vrp8.tnl-policy~3
+  l2vpn.vsi:
+    supported: true
+    cards:
+      - huawei-vrp8.vsi.1
+      - huawei-vrp8.vsi.2
+  l2vpn.vsi.bd_mode:
+    supported: true
+    cards:
+      - huawei-vrp8.vsi.1
+      - huawei-vrp8.vsi.2
+  l2vpn.vsi.description:
+    supported: true
+    cards:
+      - huawei-vrp8.description~9
+  l2vpn.vsi.encapsulation:
+    manual: true
+    supported: true
+    default: vlan
+    source: 命令参考 encapsulation（VSI 视图）：By default, the encapsulation type of a VSI is VLAN.
+    verified: doc
+    cards:
+      - huawei-vrp8.encapsulation.1~2
+      - huawei-vrp8.encapsulation.2~2
+  l2vpn.vsi.mode:
+    supported: true
+    cards:
+      - huawei-vrp8.vsi.1
+      - huawei-vrp8.vsi.2
+  l2vpn.vsi.mtu:
+    manual: true
+    supported: true
+    default: 1500
+    source: 命令参考 mtu（VSI 视图）：By default, the MTU of a VSI is 1500 bytes.
+    verified: doc
+    cards:
+      - huawei-vrp8.mtu~2
+  l2vpn.vsi.peer:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-track-admin-vrrp-vrid
+      - huawei-vrp8.peer.1
+      - huawei-vrp8.peer.1~2
+      - huawei-vrp8.peer.2
+      - huawei-vrp8.peer.2~2
+      - huawei-vrp8.peer.3
+      - huawei-vrp8.peer.4
+  l2vpn.vsi.peer.encapsulation:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-track-admin-vrrp-vrid
+      - huawei-vrp8.peer.1
+      - huawei-vrp8.peer.1~2
+      - huawei-vrp8.peer.2
+      - huawei-vrp8.peer.2~2
+      - huawei-vrp8.peer.3
+      - huawei-vrp8.peer.4
+  l2vpn.vsi.peer.tunnel_policy:
+    supported: true
+    cards:
+      - huawei-vrp8.peer.1
+      - huawei-vrp8.peer.1~2
+      - huawei-vrp8.peer.2
+      - huawei-vrp8.peer.2~2
+      - huawei-vrp8.peer.3
+      - huawei-vrp8.peer.4
+  l2vpn.vsi.peer.vc_id:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-track-admin-vrrp-vrid
+      - huawei-vrp8.peer.1
+      - huawei-vrp8.peer.1~2
+      - huawei-vrp8.peer.2
+      - huawei-vrp8.peer.2~2
+      - huawei-vrp8.peer.3
+      - huawei-vrp8.peer.4
+  l2vpn.vsi.signaling:
+    supported: true
+    cards:
+      - huawei-vrp8.pwsignal-bgp
+      - huawei-vrp8.pwsignal-ldp
+  l2vpn.vsi.tunnel_policy:
+    supported: true
+    cards:
+      - huawei-vrp8.tnl-policy~4
+  l2vpn.vsi.vsi_id:
+    supported: true
+    cards:
+      - huawei-vrp8.vsi-id
   mgmt.aaa:
     supported: true
     cards:
@@ -1041,6 +1477,91 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.telnet-server-source.2
+  mpls.global:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls
+      - huawei-vrp8.mpls-lsr-id
+  mpls.global.lsr_id:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-lsr-id
+  mpls.ldp:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-ldp
+      - huawei-vrp8.mpls-ldp-remote-peer
+  mpls.ldp.accept_target_hello:
+    supported: true
+    cards:
+      - huawei-vrp8.accept-target-hello.1
+      - huawei-vrp8.accept-target-hello.2
+  mpls.ldp.auth:
+    supported: true
+    cards:
+      - huawei-vrp8.md5-password.1
+      - huawei-vrp8.md5-password.2
+  mpls.ldp.auth.password:
+    supported: true
+    cards:
+      - huawei-vrp8.md5-password.1
+      - huawei-vrp8.md5-password.2
+  mpls.ldp.graceful_restart:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 graceful-restart（MPLS-LDP 视图）：By default, LDP GR is not enabled.
+    verified: doc
+    cards:
+      - huawei-vrp8.graceful-restart~2
+  mpls.ldp.igp_sync_delay:
+    manual: true
+    supported: true
+    default: 10
+    source: 命令参考 igp-sync-delay timer：By default, the value of the igp-sync-delay timer is 10s.
+    verified: doc
+    cards:
+      - huawei-vrp8.igp-sync-delay-timer
+  mpls.ldp.lsr_id:
+    supported: true
+    cards:
+      - huawei-vrp8.lsr-id
+  mpls.ldp.mldp_p2mp:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 mldp p2mp：By default, the mLDP P2MP capability is disabled.
+    verified: doc
+    cards:
+      - huawei-vrp8.mldp-p2mp
+  mpls.ldp.remote_peer:
+    supported: true
+    cards:
+      - huawei-vrp8.mpls-ldp-remote-peer
+  mpls.ldp.remote_peer.description:
+    supported: true
+    cards:
+      - huawei-vrp8.description~6
+  mpls.ldp.remote_peer.remote_ip:
+    supported: true
+    cards:
+      - huawei-vrp8.remote-ip.1
+  mpls.ldp.send_all_loopback:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 send-message address all-loopback：缺省只通告作为 LSR ID 的 Loopback 地址
+    verified: doc
+    cards:
+      - huawei-vrp8.send-message-address-all-loopback
+  mpls.ldp.session_protection:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 session protection：缺省不使能 LDP 会话保护
+    verified: doc
+    cards:
+      - huawei-vrp8.session-protection
   ospf.process:
     supported: true
     cards:
@@ -1179,6 +1700,10 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.route-policy
+  rp.policy.node.match_acl:
+    supported: true
+    cards:
+      - huawei-vrp8.if-match-acl
   rp.policy.node.match_community:
     supported: true
     cards:
@@ -1379,6 +1904,36 @@ entries:
       - huawei-vrp8.ip-route-static-vpn-instance.5
       - huawei-vrp8.ip-route-static-vpn-instance.6
       - huawei-vrp8.ip-route-static-vpn-instance.7
+  tunnel_policy:
+    supported: true
+    cards:
+      - huawei-vrp8.tunnel-policy
+  tunnel_policy.description:
+    supported: true
+    cards:
+      - huawei-vrp8.description~13
+  tunnel_policy.load_balance:
+    supported: true
+    cards:
+      - huawei-vrp8.tunnel-select-seq.1
+      - huawei-vrp8.tunnel-select-seq.2
+      - huawei-vrp8.tunnel-select-seq.3
+      - huawei-vrp8.tunnel-select-seq.4
+      - huawei-vrp8.tunnel-select-seq.5
+      - huawei-vrp8.tunnel-select-seq.6
+      - huawei-vrp8.tunnel-select-seq.7
+      - huawei-vrp8.tunnel-select-seq.8
+  tunnel_policy.select_seq:
+    supported: true
+    cards:
+      - huawei-vrp8.tunnel-select-seq.1
+      - huawei-vrp8.tunnel-select-seq.2
+      - huawei-vrp8.tunnel-select-seq.3
+      - huawei-vrp8.tunnel-select-seq.4
+      - huawei-vrp8.tunnel-select-seq.5
+      - huawei-vrp8.tunnel-select-seq.6
+      - huawei-vrp8.tunnel-select-seq.7
+      - huawei-vrp8.tunnel-select-seq.8
   vrf.instance:
     supported: true
     cards:
@@ -1386,9 +1941,30 @@ entries:
   vrf.instance.af:
     supported: true
     cards:
+      - huawei-vrp8.export-route-policy
+      - huawei-vrp8.export-route-policy~2
+      - huawei-vrp8.import-route-policy
+      - huawei-vrp8.import-route-policy~2
       - huawei-vrp8.ipv4-family
+      - huawei-vrp8.ipv6-family
+      - huawei-vrp8.prefix-limit
+      - huawei-vrp8.prefix-limit~2
+      - huawei-vrp8.tnl-policy
+      - huawei-vrp8.tnl-policy~2
+      - huawei-vrp8.vpn-frr
+      - huawei-vrp8.vpn-frr~2
       - huawei-vrp8.vpn-target
       - huawei-vrp8.vpn-target~2
+  vrf.instance.af.export_policy:
+    supported: true
+    cards:
+      - huawei-vrp8.export-route-policy
+      - huawei-vrp8.export-route-policy~2
+  vrf.instance.af.import_policy:
+    supported: true
+    cards:
+      - huawei-vrp8.import-route-policy
+      - huawei-vrp8.import-route-policy~2
   vrf.instance.af.label_mode:
     manual: true
     supported: true
@@ -1399,6 +1975,21 @@ entries:
       - huawei-vrp8.apply-label-per-instance-static~2
       - huawei-vrp8.apply-label-pop-go~2
       - huawei-vrp8.apply-label~2
+  vrf.instance.af.prefix_limit:
+    supported: true
+    cards:
+      - huawei-vrp8.prefix-limit
+      - huawei-vrp8.prefix-limit~2
+  vrf.instance.af.prefix_limit_threshold:
+    supported: true
+    cards:
+      - huawei-vrp8.prefix-limit
+      - huawei-vrp8.prefix-limit~2
+  vrf.instance.af.prefix_limit_warn_only:
+    supported: true
+    cards:
+      - huawei-vrp8.prefix-limit
+      - huawei-vrp8.prefix-limit~2
   vrf.instance.af.rd:
     supported: true
     cards:
@@ -1418,6 +2009,20 @@ entries:
     cards:
       - huawei-vrp8.vpn-target
       - huawei-vrp8.vpn-target~2
+  vrf.instance.af.tunnel_policy:
+    supported: true
+    cards:
+      - huawei-vrp8.tnl-policy
+      - huawei-vrp8.tnl-policy~2
+  vrf.instance.af.vpn_frr:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 vpn frr：By default, VPN FRR is disabled.
+    verified: doc
+    cards:
+      - huawei-vrp8.vpn-frr
+      - huawei-vrp8.vpn-frr~2
   vrf.instance.description:
     supported: true
     cards:

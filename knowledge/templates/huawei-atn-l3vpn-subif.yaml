@@ -1,0 +1,82 @@
+# 配置模板示例：华为 ATN 三层接入——上联口下每个业务一个 dot1q 子接口，绑定 VPN 实例；VPN 实例与 BGP 的 VPN 地址族按业务展开。
+# 格式说明见 docs/project-spec.md“参数化模板与批量生成（M3-4 / M3-5 结果）”。
+id: huawei-atn-l3vpn-subif
+version: 1
+title:
+  zh-CN: ATN 三层接入：业务子接口 + VPN 实例
+  en: "ATN L3 access: service sub-interfaces + VPN instances"
+  pt-BR: "Acesso L3 ATN: subinterfaces de serviço + instâncias VPN"
+description:
+  zh-CN: 站点规划给出 Loopback、AS 号、RR 与业务列表；每个业务一个 VPN 实例（RD 与 RT 相同）、一个子接口和一个 BGP VPN 地址族。
+  en: "The site plan gives the loopback, AS number, RR and service list; each service has a VPN instance (RD equals RT), a sub-interface and a BGP VPN address family."
+  pt-BR: "O plano do site define loopback, número AS, RR e lista de serviços; cada serviço tem uma instância VPN (RD igual ao RT), uma subinterface e uma família BGP VPN."
+profile: huawei-atn-v800r025
+profiles: [huawei-atn-v800r023, huawei-atn-v800r025]
+match:
+  extra: allow
+  extra_scope: matched
+vars:
+  hostname: {type: word, example: ATN-SITE-01, title: {zh-CN: 设备名, en: Device name, pt-BR: Nome do equipamento}}
+  asn: {type: asn, example: 65082, title: {zh-CN: AS 号, en: AS number, pt-BR: Número AS}}
+  loopback: {type: ipv4, example: 10.0.148.254, title: {zh-CN: LoopBack0 地址, en: LoopBack0 address, pt-BR: Endereço LoopBack0}}
+  rr: {type: ipv4, example: 10.0.179.30, title: {zh-CN: 路由反射器, en: Route reflector, pt-BR: Refletor de rotas}}
+  uplink: {type: interface, example: GigabitEthernet0/2/4, title: {zh-CN: 上联口, en: Uplink port, pt-BR: Porta de uplink}}
+  uplink_desc: {type: text, example: TO-AGG-01, title: {zh-CN: 上联口描述, en: Uplink description, pt-BR: Descrição do uplink}}
+blocks:
+  svc:
+    title: {zh-CN: 业务, en: Service, pt-BR: Serviço}
+    repeat: {min: 1, max: 32}
+    anchor: interface
+    vars:
+      vlan: {type: vlan, unique: true, example: 2401, title: {zh-CN: 业务 VLAN, en: Service VLAN, pt-BR: VLAN do serviço}}
+      vrf: {type: word, example: GERENCIA, title: {zh-CN: VPN 实例, en: VPN instance, pt-BR: Instância VPN}}
+      rt: {type: integer, min: 1, max: 65535, example: 61, title: {zh-CN: RD / RT 编号, en: RD / RT number, pt-BR: Número RD / RT}}
+      desc: {type: text, example: GERENCIA-MOVEL, title: {zh-CN: 子接口描述, en: Sub-interface description, pt-BR: Descrição da subinterface}}
+      net: {type: prefix, length: [29, 31], network: true, example: 10.0.101.240/30, title: {zh-CN: 互联网段, en: Link subnet, pt-BR: Sub-rede do enlace}}
+body: |
+  sysname {{hostname}}
+  #
+  {% repeat svc %}
+  ip vpn-instance {{svc.vrf}}
+   ipv4-family
+    route-distinguisher {{asn}}:{{svc.rt}}
+    apply-label per-instance
+    vpn-target {{asn}}:{{svc.rt}} export-extcommunity
+    vpn-target {{asn}}:{{svc.rt}} import-extcommunity
+  #
+  {% end %}
+  interface {{uplink}}
+   description {{uplink_desc}}
+   undo shutdown
+  #
+  {% repeat svc %}
+  interface {{uplink}}.{{svc.vlan}}
+   vlan-type dot1q {{svc.vlan}}
+   description {{svc.desc}}
+   ip binding vpn-instance {{svc.vrf}}
+   ip address {{svc.net|host(1)}} {{svc.net|mask}}
+   statistic enable
+  #
+  {% end %}
+  interface LoopBack0
+   ip address {{loopback}} 255.255.255.255
+  #
+  bgp {{asn}}
+   router-id {{loopback}}
+   peer {{rr}} as-number {{asn}}
+   peer {{rr}} connect-interface LoopBack0
+   #
+   ipv4-family unicast
+    undo synchronization
+    peer {{rr}} enable
+   #
+   ipv4-family vpnv4
+    policy vpn-target
+    peer {{rr}} enable
+  {% repeat svc %}
+   #
+   ipv4-family vpn-instance {{svc.vrf}}
+    import-route direct
+  {% end %}
+  #
+  return

@@ -9,9 +9,10 @@
            $a||$b||文字     取第一个有值的；最后可以是文字
            fmt:{a}/{b|c}    拼接，{b|c} 取第一个有值的参数
            kw:a|b|c[:默认]  行里出现了哪个关键字；kw:single=pop 1|double=pop 2 把关键字翻译成值
-           if:关键字:表达式  行里有这个关键字时才设置
+           if:关键字:表达式  行里有这个关键字时才设置；if:$参数:表达式 该参数有值时才设置
+           tail:关键字[:截止词]  关键字之后的全部词（到截止词为止）
            flag             开关：true；undo / no 形式时为 false
-           auto             按出现顺序自动编号（没有序号的列表项）
+           auto             按出现顺序自动编号（没有序号的列表项）；$序号||auto 有序号用序号，否则自动编号
            其他             文字常量
     对象节点的表达式给出对象的键：单键直接写；复合键写成 {字段: 表达式}。
 
@@ -99,12 +100,17 @@ def evaluate(expr: Any, values: dict[str, Any], tokens: list[str], negated: bool
         return str(auto)
     if e.startswith("if:"):
         _, kw, rest = e.split(":", 2)
+        if kw.startswith("$"):  # if:$参数:表达式——该参数有值时才取（Cisco host X 记反掩码 0.0.0.0）
+            return evaluate(rest, values, tokens, negated, auto) if values.get(kw[1:]) not in (None, "", []) else None
         return evaluate(rest, values, tokens, negated, auto) if kw.lower() in low else None
     if e.startswith("tail:"):
         # 关键字之后的全部词（多个关键字选项重复出现时，例如 service-type ftp terminal telnet）
-        kw = e[5:].lower()
+        # tail:关键字:截止词——只取到截止词之前（tunnel select-seq lsp cr-lsp load-balance-number 1 → "lsp cr-lsp"）
+        kw, _, stop = e[5:].lower().partition(":")
         if kw in low:
             after = tokens[low.index(kw) + 1 :]
+            if stop and stop in [t.lower() for t in after]:
+                after = after[: [t.lower() for t in after].index(stop)]
             return " ".join(after) if after else None
         return None
     if e.startswith("kw:"):

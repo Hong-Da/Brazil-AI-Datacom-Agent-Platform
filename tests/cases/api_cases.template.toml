@@ -1,0 +1,159 @@
+# 参数化模板接口的 API 用例（加载器与主文件 api_cases.toml 合并）。
+
+[[case]]
+id = "templates-list"
+title = { zh-CN = "模板列表", en = "List templates", pt-BR = "Listar modelos" }
+method = "GET"
+path = "/api/v1/templates"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.templates.0.id" = "cisco-asr920-efp-bdi-vrf", "data.templates.0.valid" = true }
+in_docs = true
+
+[[case]]
+id = "template-get"
+title = { zh-CN = "一个模板：变量、块、正文", en = "Get a template", pt-BR = "Obter um modelo" }
+method = "GET"
+path = "/api/v1/templates/huawei-atn-l2-bd-vbdif"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.id" = "huawei-atn-l2-bd-vbdif", "data.vars.0.name" = "port", "data.blocks.0.kind" = "repeat", "data.match.extra" = "allow" }
+in_docs = true
+
+[[case]]
+id = "template-get-missing"
+title = { zh-CN = "模板不存在", en = "Template not found", pt-BR = "Modelo não encontrado" }
+method = "GET"
+path = "/api/v1/templates/nope"
+setup = "configured"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "template-check"
+title = { zh-CN = "按模板校验配置文本：符合与变量", en = "Check a configuration text against a template", pt-BR = "Verificar um texto de configuração contra um modelo" }
+method = "POST"
+path = "/api/v1/templates/check"
+setup = "configured-fullkb"
+auth = true
+body = { template_id = "cisco-asr920-efp-bdi-vrf", text = "hostname PE-ASR920-11\n!\nvrf definition RAN-2G\n rd 64512:101\n !\n address-family ipv4\n  route-target export 64512:101\n  route-target import 64512:101\n exit-address-family\n!\nvrf definition MGMT\n rd 64512:10\n !\n address-family ipv4\n  route-target export 64512:10\n  route-target import 64512:10\n exit-address-family\n!\ninterface Loopback0\n ip address 10.255.0.31 255.255.255.255\n!\ninterface GigabitEthernet0/0/0\n mtu 9216\n ip address 10.1.0.22 255.255.255.252\n mpls ip\n!\ninterface GigabitEthernet0/0/1\n description RAN-SITE-011\n no ip address\n service instance 101 ethernet\n  encapsulation dot1q 101\n  rewrite ingress tag pop 1 symmetric\n  bridge-domain 101\n !\n service instance 102 ethernet\n  encapsulation dot1q 102\n  rewrite ingress tag pop 1 symmetric\n  bridge-domain 102\n !\n!\ninterface BDI101\n description RAN-2G-SITE-011\n vrf forwarding RAN-2G\n ip address 172.16.11.1 255.255.255.0\n!\ninterface BDI102\n description MGMT-SITE-011\n vrf forwarding MGMT\n ip address 172.17.11.1 255.255.255.240\n!\nrouter bgp 64512\n bgp router-id 10.255.0.31\n bgp log-neighbor-changes\n neighbor RR peer-group\n neighbor RR remote-as 64512\n neighbor RR update-source Loopback0\n neighbor 10.255.0.1 peer-group RR\n neighbor 10.255.0.2 peer-group RR\n !\n address-family vpnv4\n  neighbor RR send-community extended\n  neighbor 10.255.0.1 activate\n  neighbor 10.255.0.2 activate\n exit-address-family\n !\n address-family ipv4 vrf RAN-2G\n  redistribute connected\n exit-address-family\n !\n address-family ipv4 vrf MGMT\n  redistribute connected\n exit-address-family\n!\nend\n", label = "PE-ASR920-11" }
+expect_status = 200
+expect_json = { "code" = 0, "data.compliant" = true, "data.device" = "PE-ASR920-11", "data.variables.uplink_ip" = "10.1.0.22", "data.blocks.svc.0.vlan" = 101, "data.summary.instances.svc" = 2 }
+in_docs = true
+
+[[case]]
+id = "template-check-inline"
+title = { zh-CN = "用请求中给出的模板校验（不保存），模板外的配置算不符合", en = "Check with an inline template (extra: deny)", pt-BR = "Verificar com um modelo enviado na requisição (extra: deny)" }
+method = "POST"
+path = "/api/v1/templates/check"
+setup = "configured-fullkb"
+auth = true
+body = { template = "# 测试用模板：可选块（关闭端口）与派生变量\nid: optional-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: \"net|host(1)\"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n", text = "hostname R2\n!\ninterface GigabitEthernet0/0/6\n mtu 9000\n ip address 10.9.0.5 255.255.255.252\n!\nend\n" }
+expect_status = 200
+expect_json = { "code" = 0, "data.compliant" = false, "data.blocks.shut" = false, "data.findings.0.kind" = "extra", "data.findings.0.actual_node" = "interface[GigabitEthernet0/0/6]/mtu", "data.findings.0.severity" = "error" }
+
+[[case]]
+id = "template-extract"
+title = { zh-CN = "提取变量：可直接作为生成参数的一行", en = "Extract variables as a parameter row", pt-BR = "Extrair variáveis como uma linha de parâmetros" }
+method = "POST"
+path = "/api/v1/templates/extract"
+setup = "configured-fullkb"
+auth = true
+body = { template = "# 测试用模板：可选块（关闭端口）与派生变量\nid: optional-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: \"net|host(1)\"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n", text = "hostname R1\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.1 255.255.255.252\n shutdown\n!\nend\n", label = "R1" }
+expect_status = 200
+expect_json = { "code" = 0, "data.row.device" = "R1", "data.row.net" = "10.9.0.0/30", "data.row.shut" = true, "data.variables.ip" = "10.9.0.1" }
+in_docs = true
+
+[[case]]
+id = "template-check-need-source"
+title = { zh-CN = "没有给出配置来源", en = "No configuration source", pt-BR = "Sem origem de configuração" }
+method = "POST"
+path = "/api/v1/templates/check"
+setup = "configured"
+auth = true
+body = { template_id = "cisco-asr920-efp-bdi-vrf" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "template-draft"
+title = { zh-CN = "从两台设备的配置生成模板草稿", en = "Draft a template from two configurations", pt-BR = "Rascunho de modelo a partir de duas configurações" }
+method = "POST"
+path = "/api/v1/templates/draft"
+setup = "configured-fullkb"
+auth = true
+body = { template_id = "demo-draft", configs = [ { label = "R1", text = "hostname R1\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.1 255.255.255.252\n shutdown\n!\nend\n" }, { label = "R2", text = "hostname R2\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.5 255.255.255.252\n shutdown\n!\nend\n" } ] }
+expect_status = 200
+expect_json = { "code" = 0, "data.valid" = true, "data.vars.0.name" = "hostname", "data.vars.1.type" = "ipv4", "data.params.1.hostname" = "R2", "data.verify.1.compliant" = true }
+in_docs = true
+
+[[case]]
+id = "template-generate-rows"
+title = { zh-CN = "批量生成（JSON 参数行）：每行的配置文本与验证结果", en = "Generate from JSON rows", pt-BR = "Gerar a partir de linhas JSON" }
+method = "POST"
+path = "/api/v1/templates/generate"
+setup = "configured-fullkb"
+auth = true
+body = { template = "# 测试用模板：可选块（关闭端口）与派生变量\nid: optional-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: \"net|host(1)\"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n", rows = [ { device = "R1", hostname = "R1", port = "GigabitEthernet0/0/5", net = "10.9.0.0/30", shut = true }, { device = "R2", hostname = "R2", port = "GigabitEthernet0/0/6", net = "10.9.0.5/30" } ] }
+expect_status = 200
+expect_json = { "code" = 0, "data.summary.ok" = 1, "data.summary.failed" = 1, "data.rows.0.text" = "hostname R1\n!\ninterface GigabitEthernet0/0/5\n ip address 10.9.0.1 255.255.255.252\n shutdown\n!\nend\n", "data.rows.0.checks.roundtrip" = true, "data.rows.1.errors.0.var" = "net", "data.rows.1.errors.0.problem" = "template.value.not_network" }
+in_docs = true
+
+[[case]]
+id = "template-generate-csv"
+title = { zh-CN = "批量生成（CSV 参数表）", en = "Generate from a CSV table", pt-BR = "Gerar a partir de uma tabela CSV" }
+method = "POST"
+path = "/api/v1/templates/generate"
+setup = "configured-fullkb"
+auth = true
+body = { template_id = "cisco-asr920-efp-bdi-vrf", csv = "device,hostname,asn,loopback,uplink,uplink_net,access,access_desc,rr1,rr2,svc.vlan,svc.vrf,svc.rt,svc.desc,svc.lan\nPE-ASR920-11,PE-ASR920-11,64512,10.255.0.31,GigabitEthernet0/0/0,10.1.0.20/30,GigabitEthernet0/0/1,RAN-SITE-011,10.255.0.1,10.255.0.2,101;102,RAN-2G;MGMT,101;10,RAN-2G-SITE-011;MGMT-SITE-011,172.16.11.0/24;172.17.11.0/28\nPE-ASR920-12,PE-ASR920-12,64512,10.255.0.32,GigabitEthernet0/0/0,10.1.0.24/30,GigabitEthernet0/0/1,RAN-SITE-012,10.255.0.1,10.255.0.2,101,RAN-2G,101,RAN-2G-SITE-012,172.16.12.0/24\n", include_text = false }
+expect_status = 200
+expect_json = { "code" = 0, "data.summary.total" = 2, "data.summary.failed" = 0, "data.rows.1.file" = "PE-ASR920-12.cfg", "data.rows.1.checks.template.compliant" = true }
+
+[[case]]
+id = "template-generate-empty"
+title = { zh-CN = "没有参数行", en = "No parameter rows", pt-BR = "Sem linhas de parâmetros" }
+method = "POST"
+path = "/api/v1/templates/generate"
+setup = "configured"
+auth = true
+body = { template_id = "cisco-asr920-efp-bdi-vrf", rows = [] }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "template-put"
+title = { zh-CN = "新建模板：校验后写入运行时知识库并提交", en = "Create a template", pt-BR = "Criar um modelo" }
+method = "PUT"
+path = "/api/v1/templates/api-demo"
+setup = "configured-fullkb"
+auth = true
+body = { source = "# 测试用模板：可选块（关闭端口）与派生变量\nid: api-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: \"net|host(1)\"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n" }
+expect_status = 200
+expect_json = { "code" = 0, "data.id" = "api-demo", "data.file" = "api-demo.yaml", "data.blocks.0.name" = "shut" }
+in_docs = true
+
+[[case]]
+id = "template-put-invalid"
+title = { zh-CN = "模板有问题：409 与问题清单", en = "Invalid template: 409 with issues", pt-BR = "Modelo inválido: 409 com problemas" }
+method = "PUT"
+path = "/api/v1/templates/bad-template"
+setup = "configured"
+auth = true
+body = { source = "# 有问题的模板（测试用）：未定义的变量、不认识的类型、块没有结束\nid: bad-template\nprofile: cisco-iosxe-asr920-17.15\nvars:\n  hostname: {type: hostname}\nblocks:\n  svc: {repeat: {min: 1}}\nbody: |\n  hostname {{hostname}}\n  {% repeat svc %}\n  interface {{port}}\n" }
+expect_status = 409
+expect_json = { "code" = 1003, "data.issues.0.where" = "vars.hostname", "data.issues.0.key" = "template.issue.bad_type" }
+
+[[case]]
+id = "template-put-id-mismatch"
+title = { zh-CN = "路径中的编号与模板内容不一致", en = "Id in the path differs from the template", pt-BR = "Id do caminho difere do modelo" }
+method = "PUT"
+path = "/api/v1/templates/other"
+setup = "configured"
+auth = true
+body = { source = "# 测试用模板：可选块（关闭端口）与派生变量\nid: api-demo\ntitle: {zh-CN: 可选块示例, en: Optional block demo, pt-BR: Exemplo de bloco opcional}\nprofile: cisco-iosxe-asr920-17.15\nmatch: {extra: deny, extra_scope: matched}\nvars:\n  hostname: {type: word}\n  port: {type: interface, example: GigabitEthernet0/0/5}\n  net: {type: prefix, length: 30, network: true}\n  ip: {expr: \"net|host(1)\"}\nblocks:\n  shut: {optional: true}\nbody: |\n  hostname {{hostname}}\n  !\n  interface {{port}}\n   ip address {{ip}} {{net|mask}}\n  {% optional shut %}\n   shutdown\n  {% end %}\n  !\n  end\n" }
+expect_status = 422
+expect_json = { "code" = 1001 }

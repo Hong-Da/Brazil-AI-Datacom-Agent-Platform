@@ -207,7 +207,7 @@ rules:
       rp.policy.node.action: "kw:permit|deny:permit"
   - view: ^route-map$
     syntax: '^match ip address \{ prefix-list'
-    maps: {rp.policy.node.match_prefix_list: $prefix-list-name}
+    maps: {rp.policy.node.match_prefix_list: $prefix-list-name, rp.policy.node.match_acl: $access-list}
   - view: ^route-map$
     syntax: '^match community '
     maps: {rp.policy.node.match_community: "$community-list-name||$standard-list-number||$expanded-list-number"}
@@ -532,3 +532,269 @@ rules:
   - view: ^line$
     syntax: '^transport input '
     maps: {mgmt.line.protocols: "tail:input"}
+
+  # ==================== 0.3.0（M3-2）：MPLS LDP、L3VPN 完善、L2VPN、ACL ====================
+  # ---------- MPLS 全局与 LDP（Cisco 全局 MPLS 缺省开启；LDP 参数是全局 mpls ldp … 命令） ----------
+  - view: ^system$
+    syntax: '^mpls ip$'
+    maps: {mpls.global: "_"}
+  - view: ^system$
+    syntax: '^mpls label protocol \{ ldp \| tdp \}$'
+    maps: {"mpls.global{id=_}.label_protocol": "kw:ldp|tdp"}
+  - view: ^system$
+    syntax: '^mpls ldp router-id \[ vrf'
+    maps:
+      "mpls.ldp{id=_}.router_id_interface": $interface
+      "mpls.ldp{id=_}.router_id_force": "if:force:true"
+  - view: ^system$
+    syntax: '^mpls ldp graceful-restart$'
+    maps: {"mpls.ldp{id=_}.graceful_restart": flag}
+  - view: ^system$
+    syntax: '^mpls ldp session protection'
+    maps: {"mpls.ldp{id=_}.session_protection": flag}
+  - view: ^system$
+    syntax: '^mpls ldp discovery \{'
+    maps: {"mpls.ldp{id=_}.accept_target_hello": "if:accept:$acl||if:accept:all"}
+  - view: ^system$
+    syntax: '^mpls ldp igp sync holddown <milliseconds>$'
+    maps: {"mpls.ldp{id=_}.igp_sync_holddown": $milliseconds}
+  - view: ^system$
+    syntax: '^mpls ldp holdtime <seconds>$'
+    maps: {"mpls.ldp{id=_}.holdtime": $seconds}
+  - view: ^system$
+    syntax: '^mpls ldp logging neighbor-changes$'
+    maps: {"mpls.ldp{id=_}.log_neighbor_changes": flag}
+  - view: ^system$
+    syntax: '^mpls ldp neighbor \[ vrf <vpn-name> \] <ip-address> password'
+    maps:
+      "mpls.ldp{id=_}.auth": $ip-address
+      "mpls.ldp{id=_}.auth.password": $password
+  - view: ^system$
+    syntax: '^mpls ldp neighbor \[ vrf <vpn-name> \] <ip-addr> targeted'
+    maps:
+      "mpls.ldp{id=_}.remote_peer": $ip-addr
+      "mpls.ldp{id=_}.remote_peer.remote_ip": $ip-addr
+  # 接口 mpls ip = 华为接口 mpls + mpls ldp
+  - view: ^interface$
+    syntax: '^mpls ip$'
+    maps:
+      interface.mpls: "_"
+      interface.mpls.ldp: flag
+  - view: ^interface$
+    syntax: '^mpls mtu \[ override \] <bytes>$'
+    maps: {"interface.mpls{id=_}.mtu": $bytes}
+  - view: ^interface$
+    syntax: '^mpls label protocol \{ ldp \| tdp \| both \}$'
+    maps: {"interface.mpls{id=_}.label_protocol": "kw:ldp|tdp|both"}
+  - view: ^interface$
+    syntax: '^mpls ldp discovery transport-address'
+    maps: {"interface.mpls{id=_}.ldp_transport_address": "$IP-address||interface"}
+  - view: ^interface$
+    syntax: '^mpls ldp igp sync'
+    maps:
+      "interface.mpls{id=_}.ldp_igp_sync": flag
+      "interface.mpls{id=_}.ldp_igp_sync_delay": $seconds
+
+  # ---------- L3VPN 完善：标签分配方式、路由数量限制 ----------
+  # mpls label mode vrf X protocol bgp-vpnv4 per-vrf：per-prefix 对应华为 per-route，per-vrf 对应 per-instance，per-ce 对应 per-nexthop
+  - view: ^system$
+    syntax: '^mpls label mode \{ vrf <vrf-name>'
+    maps:
+      vrf.instance: $vrf-name
+      "vrf.instance.af{afi=ipv4}.label_mode": "if:$vrf-name:kw:per-prefix=per-route|per-vrf=per-instance|per-ce=per-nexthop|vrf-conn-aggr"
+  - view: ^vrf(-af)?$
+    syntax: '^maximum routes <limit>'
+    maps:
+      "vrf.instance.af{afi=ipv4}.prefix_limit": $limit
+      "vrf.instance.af{afi=ipv4}.prefix_limit_threshold": $warn-threshold
+      "vrf.instance.af{afi=ipv4}.prefix_limit_warn_only": "if:warning-only:true"
+
+  # ---------- L2VPN：伪线类与 VPWS ----------
+  - view: ^system$
+    syntax: '^l2vpn$'
+    maps: {l2vpn.global: "_"}
+  - view: ^system$
+    syntax: '^pseudowire-class <pw-class-name>$'
+    maps: {l2vpn.pw_class: $pw-class-name}
+  - view: ^pseudowire-class$
+    syntax: '^encapsulation \{ mpls'
+    maps: {l2vpn.pw_class.encapsulation: "kw:mpls|udp|l2tpv2|l2tpv3"}
+  - view: ^pseudowire-class$
+    syntax: '^control-word$'
+    maps: {l2vpn.pw_class.control_word: flag}
+  - view: ^pseudowire-class$
+    syntax: '^preferred-path '
+    maps: {l2vpn.pw_class.preferred_path: "tail:preferred-path"}
+  # 接口（端口模式）或业务实例下的 xconnect：伪线挂在接入点下（端口模式的接入点编号为 "_"）
+  - view: ^(interface|service-instance)$
+    syntax: '^xconnect <peer-ip-address> <vc-id>'
+    maps:
+      "interface.access{id=_}.pw": primary
+      "interface.access{id=_}.pw.peer": $peer-ip-address
+      "interface.access{id=_}.pw.vc_id": $vc-id
+      "interface.access{id=_}.pw.pw_class": $pw-class-name
+      "interface.access{id=_}.pw.encapsulation": "kw:mpls|l2tpv3"
+  - view: ^(interface|xconnect)$
+    syntax: '^backup peer <peer-router-ip-addr> <vcid>'
+    maps:
+      "interface.access{id=_}.pw": backup
+      "interface.access{id=_}.pw.peer": $peer-router-ip-addr
+      "interface.access{id=_}.pw.vc_id": $vcid
+      "interface.access{id=_}.pw.pw_class": $pw-class-name
+  - view: ^system$
+    syntax: '^l2vpn xconnect context <context-name>$'
+    maps: {l2vpn.xconnect: $context-name}
+  - view: ^l2vpn-xconnect$
+    syntax: '^member <ip-address> <vc-id>'
+    maps:
+      l2vpn.xconnect.pw: {peer: $ip-address, vc_id: $vc-id}
+      l2vpn.xconnect.pw.pw_class: $template-name
+  - view: ^l2vpn-xconnect$
+    syntax: '^member <interface>'
+    maps:
+      l2vpn.xconnect.ac: {interface: $interface, instance: $id}
+
+  # ---------- L2VPN：VPLS（VFI 与桥域） ----------
+  - view: ^system$
+    syntax: '^l2vpn vfi context <name>$'
+    maps: {l2vpn.vsi: $name}
+  - view: ^system$
+    syntax: '^l2 vfi <name> manual$'
+    maps:
+      l2vpn.vsi: $name
+      l2vpn.vsi.mode: static
+  - view: ^vfi$
+    syntax: '^vpn id <vpn-id>$'
+    maps: {l2vpn.vsi.vsi_id: $vpn-id}
+  - view: ^vfi$
+    syntax: '^description <string>$'
+    maps: {l2vpn.vsi.description: $string}
+  - view: ^vfi$
+    syntax: '^member \{ <ip-address>'
+    maps:
+      l2vpn.vsi.peer: $ip-address
+      l2vpn.vsi.peer.vc_id: $vc-id
+      l2vpn.vsi.peer.pw_class: $name
+      l2vpn.vsi.peer.encapsulation: "if:encapsulation:mpls"
+  - view: ^vfi$
+    syntax: '^neighbor <remote-router-id> <vc-id>'
+    maps:
+      l2vpn.vsi.peer: $remote-router-id
+      l2vpn.vsi.peer.vc_id: $vc-id
+      l2vpn.vsi.peer.pw_class: $pw-name
+      l2vpn.vsi.peer.encapsulation: $encapsulation-type
+  - view: ^system$
+    syntax: '^bridge-domain \{ <bridge-id>'
+    maps: {bridge_domain: $bridge-id}
+  - view: ^bridge-domain$
+    syntax: '^member vfi <vfi-name>$'
+    maps: {bridge_domain.vsi: $vfi-name}
+  - view: ^bridge-domain$
+    syntax: '^member <interface-type-number> service-instance <service-id>'
+    maps:
+      bridge_domain.member: {interface: $interface-type-number, instance: $service-id}
+
+  # ---------- ACL ----------
+  - view: ^system$
+    syntax: '^ip access-list \{'
+    maps:
+      acl.instance: "$access-list-name||$access-list-number"
+      acl.instance.type: "kw:standard=basic|extended=advanced"
+  - view: ^interface$
+    syntax: '^ip access-group \{'
+    maps:
+      interface.acl_in: "if:in:$access-list-name||if:in:$access-list-number"
+      interface.acl_out: "if:out:$access-list-name||if:out:$access-list-number"
+  # 编号 ACL（全局 access-list 编号 …）：规则没有序号，按出现顺序编为 10、20…
+  - view: ^system$
+    syntax: '^access-list <access-list-number> remark'
+    maps: {acl.instance: $access-list-number}
+  - view: ^system$
+    syntax: '^access-list <access-list-number> \{ deny \| permit \} \{ <source>'
+    maps:
+      acl.instance: $access-list-number
+      acl.instance.type: basic
+      acl.instance.rule: auto
+      acl.instance.rule.action: "kw:permit|deny"
+      acl.instance.rule.source_ip: "$source||$source-host||any"
+      acl.instance.rule.source_wildcard: "$source-wildcard||if:$source-host:0.0.0.0||if:$source:0.0.0.0"
+      acl.instance.rule.log: "if:log:true"
+  - view: ^system$
+    syntax: '^access-list <access-list-number> \{ deny \| permit \} <protocol> '
+    maps:
+      acl.instance: $access-list-number
+      acl.instance.type: advanced
+      acl.instance.rule: auto
+      acl.instance.rule.action: "kw:permit|deny"
+      acl.instance.rule.protocol: $protocol
+      acl.instance.rule.source_ip: "$source||$source-host||any"
+      acl.instance.rule.source_wildcard: "$source-wildcard||if:$source-host:0.0.0.0"
+      acl.instance.rule.destination_ip: "$destination||$destination-host||any"
+      acl.instance.rule.destination_wildcard: "$destination-wildcard||if:$destination-host:0.0.0.0"
+      acl.instance.rule.log: "if:log:true"
+  - view: ^system$
+    syntax: '^access-list <access-list-number> \{ deny \| permit \} \{ tcp \| udp \} '
+    maps:
+      acl.instance: $access-list-number
+      acl.instance.type: advanced
+      acl.instance.rule: auto
+      acl.instance.rule.action: "kw:permit|deny"
+      acl.instance.rule.protocol: "kw:tcp|udp"
+      acl.instance.rule.source_ip: "$source||$source-host||any"
+      acl.instance.rule.source_wildcard: "$source-wildcard||if:$source-host:0.0.0.0"
+      acl.instance.rule.destination_ip: "$destination||$destination-host||any"
+      acl.instance.rule.destination_wildcard: "$destination-wildcard||if:$destination-host:0.0.0.0"
+      acl.instance.rule.source_port: "fmt:{source-port-op} {source-port} {source-port-end}"
+      acl.instance.rule.destination_port: "fmt:{destination-port-op} {destination-port} {destination-port-end}"
+      acl.instance.rule.log: "if:log:true"
+  - view: ^system$
+    syntax: '^access-list <access-list-number> \{ deny \| permit \} icmp '
+    maps:
+      acl.instance: $access-list-number
+      acl.instance.type: advanced
+      acl.instance.rule: auto
+      acl.instance.rule.action: "kw:permit|deny"
+      acl.instance.rule.protocol: icmp
+      acl.instance.rule.source_ip: "$source||$source-host||any"
+      acl.instance.rule.source_wildcard: "$source-wildcard||if:$source-host:0.0.0.0"
+      acl.instance.rule.destination_ip: "$destination||$destination-host||any"
+      acl.instance.rule.destination_wildcard: "$destination-wildcard||if:$destination-host:0.0.0.0"
+      acl.instance.rule.log: "if:log:true"
+  # 命名 ACL 的条目：有序号用序号，没有时按出现顺序编号
+  - view: ^acl$
+    syntax: '^\[ <sequence-number> \] (permit|deny) \{ <source> \['
+    maps:
+      acl.instance.rule: "$sequence-number||auto"
+      acl.instance.rule.action: "kw:permit|deny"
+      acl.instance.rule.source_ip: "$source||$source-host||any"
+      acl.instance.rule.source_wildcard: "$source-wildcard||if:$source-host:0.0.0.0||if:$source:0.0.0.0"
+      acl.instance.rule.log: "if:log:true"
+  - view: ^acl$
+    syntax: '^\[ <sequence-number> \] (permit|deny) <protocol> '
+    maps:
+      acl.instance.rule: "$sequence-number||auto"
+      acl.instance.rule.action: "kw:permit|deny"
+      acl.instance.rule.protocol: $protocol
+      acl.instance.rule.source_ip: "$source||$source-host||any"
+      acl.instance.rule.source_wildcard: "$source-wildcard||if:$source-host:0.0.0.0"
+      acl.instance.rule.destination_ip: "$destination||$destination-host||any"
+      acl.instance.rule.destination_wildcard: "$destination-wildcard||if:$destination-host:0.0.0.0"
+      acl.instance.rule.log: "if:log:true"
+  - view: ^acl$
+    syntax: '^\[ <sequence-number> \] (permit|deny) \{ tcp \| udp \} '
+    maps:
+      acl.instance.rule: "$sequence-number||auto"
+      acl.instance.rule.action: "kw:permit|deny"
+      acl.instance.rule.protocol: "kw:tcp|udp"
+      acl.instance.rule.source_ip: "$source||$source-host||any"
+      acl.instance.rule.source_wildcard: "$source-wildcard||if:$source-host:0.0.0.0"
+      acl.instance.rule.destination_ip: "$destination||$destination-host||any"
+      acl.instance.rule.destination_wildcard: "$destination-wildcard||if:$destination-host:0.0.0.0"
+      acl.instance.rule.source_port: "fmt:{source-port-op} {source-port} {source-port-end}"
+      acl.instance.rule.destination_port: "fmt:{destination-port-op} {destination-port} {destination-port-end}"
+      acl.instance.rule.log: "if:log:true"
+  - view: ^acl$
+    syntax: '^\[ <sequence-number> \] remark <remark>$'
+    maps:
+      acl.instance.rule: $sequence-number
+      acl.instance.rule.description: $remark
