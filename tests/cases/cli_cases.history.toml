@@ -1,0 +1,92 @@
+# 版本历史 lmesh history 的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-fullkb-history：设备 ATN-CHANGE-01 导入三次——基准、内容相同的重复导入（不存新快照）、改了描述与 MTU 的版本。
+
+[[case]]
+id = "history-list"
+title = { zh-CN = "快照时间线：重复导入只记导入记录，相对上一快照的变化计数", en = "Snapshot timeline: duplicate imports only add an import record", pt-BR = "Linha do tempo: importações duplicadas só geram registro" }
+args = ["--output", "json", "history", "list", "ATN-CHANGE-01"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_json = { "ok" = true, "data.device.name" = "ATN-CHANGE-01", "data.count" = 2, "data.imports" = 3, "data.keep" = 50, "data.snapshots.0.seq" = 1, "data.snapshots.0.import_count" = 2, "data.snapshots.0.imports.1.duplicate" = true, "data.snapshots.0.imports.0.actor" = "tester", "data.snapshots.1.vs_previous.modified" = 1, "data.snapshots.1.latest" = true, "data.snapshots.1.graph_stored" = true }
+in_docs = true
+
+[[case]]
+id = "history-list-text"
+title = { zh-CN = "快照时间线的文字输出（葡语）", en = "Timeline text output (Portuguese)", pt-BR = "Saída de texto da linha do tempo (português)" }
+args = ["--lang", "pt-BR", "history", "list", "ATN-CHANGE-01"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_stdout = ["2 instantâneo(s), 3 importação(ões)", "Impressão digital", "#2", "+0 ~1 -0", "×2"]
+
+[[case]]
+id = "history-diff"
+title = { zh-CN = "两个快照的差异：按对象归并（接口描述与 MTU 的修改）", en = "Diff between two snapshots, grouped by object", pt-BR = "Diferença entre dois instantâneos, agrupada por objeto" }
+args = ["--output", "json", "history", "diff", "ATN-CHANGE-01", "--from", "1", "--to", "2", "--no-text"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_json = { "ok" = true, "data.a.seq" = 1, "data.b.seq" = 2, "data.equal" = false, "data.summary.modified" = 1, "data.summary.added" = 0, "data.summary.noneff" = 0, "data.items.0.object" = "interface[GigabitEthernet0/2/0]", "data.items.0.kind" = "modified", "data.items.0.changes.0.field" = "description", "data.items.0.changes.0.b.value" = "UPLINK-TO-AGG-01", "data.kb.differs" = false }
+in_docs = true
+
+[[case]]
+id = "history-diff-text-report"
+title = { zh-CN = "差异的文字输出，同时导出中文 Markdown 报告", en = "Diff text output plus a Chinese Markdown report", pt-BR = "Saída de texto da diferença e relatório Markdown em chinês" }
+args = ["--lang", "zh-CN", "history", "diff", "ATN-CHANGE-01", "--report", "{out}/history.zh-CN.md"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_stdout = ["快照 #1 → #2", "新增 0，修改 1，删除 0，改名 0", "~ interface[GigabitEthernet0/2/0]", "mtu: 9000 → 9216", "报告已写入"]
+
+[[case]]
+id = "history-object"
+title = { zh-CN = "对象历史：接口在每个快照中的取值", en = "Object history: an interface across snapshots", pt-BR = "Histórico do objeto: uma interface nos instantâneos" }
+args = ["--output", "json", "history", "object", "ATN-CHANGE-01", "interface[GigabitEthernet0/2/0]"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_json = { "ok" = true, "data.schema" = "interface", "data.changes" = 1, "data.snapshots.1.changed" = ["description", "mtu"], "data.snapshots.1.values.mtu.value" = 9216, "data.snapshots.0.values.mtu.value" = 9000 }
+in_docs = true
+
+[[case]]
+id = "history-tag"
+title = { zh-CN = "给第一个快照贴标签（永久保留）", en = "Tag the first snapshot (kept forever)", pt-BR = "Etiquetar o primeiro instantâneo (mantido para sempre)" }
+args = ["--output", "json", "history", "tag", "ATN-CHANGE-01", "1", "割接前基线"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_json = { "ok" = true, "data.tag" = "割接前基线", "data.id" = 1 }
+in_docs = true
+
+[[case]]
+id = "history-tag-missing-text"
+title = { zh-CN = "贴标签时没有给标签文字", en = "Tag without text", pt-BR = "Etiqueta sem texto" }
+args = ["history", "tag", "ATN-CHANGE-01", "1"]
+setup = "configured-fullkb-history"
+expect_exit = 2
+
+[[case]]
+id = "history-restore"
+title = { zh-CN = "回到第一个快照：生成增量变更脚本（不带说明行）", en = "Back to the first snapshot: change script (plain)", pt-BR = "Voltar ao primeiro instantâneo: script de mudança (simples)" }
+args = ["--lang", "en", "history", "restore", "ATN-CHANGE-01", "--to", "1", "--plain"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_stdout = ["system-view", "interface GigabitEthernet0/2/0", " description UPLINK-TO-AGG", " mtu 9000", "commit", "From snapshot #2 back to #1: 2 command(s)"]
+in_docs = true
+
+[[case]]
+id = "history-device-not-found"
+title = { zh-CN = "设备不存在", en = "Device not found", pt-BR = "Dispositivo não encontrado" }
+args = ["history", "list", "NOPE"]
+setup = "configured-fullkb-history"
+expect_exit = 4
+in_docs = true
+
+[[case]]
+id = "history-snapshot-not-found"
+title = { zh-CN = "快照不存在", en = "Snapshot not found", pt-BR = "Instantâneo não encontrado" }
+args = ["history", "diff", "ATN-CHANGE-01", "--from", "9"]
+setup = "configured-fullkb-history"
+expect_exit = 4
+
+[[case]]
+id = "history-not-configured"
+title = { zh-CN = "未完成首次配置", en = "Not configured yet", pt-BR = "Ainda não configurado" }
+args = ["history", "list", "ATN-CHANGE-01"]
+setup = "fresh"
+expect_exit = 3

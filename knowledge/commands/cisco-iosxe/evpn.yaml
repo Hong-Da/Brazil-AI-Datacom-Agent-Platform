@@ -1,0 +1,172 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: evpn
+cards:
+  - id: cisco-iosxe.address-family-l2vpn@router-bgp
+    syntax: address-family l2vpn [ evpn | vpls ]
+    view: router-bgp
+    enters_view: bgp-af
+    undo: no address-family l2vpn [ evpn | vpls ]
+    default: No L2VPN endpoint provisioning support is enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: evpn/address-family l2vpn.md
+      title: address-family l2vpn
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      bgp.af:
+        afi: kw:evpn|vpls
+        vrf: ''
+  - id: cisco-iosxe.address-family-l2vpn@bgp-af
+    syntax: address-family l2vpn [ evpn | vpls ]
+    view: bgp-af
+    undo: no address-family l2vpn [ evpn | vpls ]
+    default: No L2VPN endpoint provisioning support is enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: evpn/address-family l2vpn.md
+      title: address-family l2vpn
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.l2vpn-evpn
+    syntax: l2vpn evpn
+    view: system
+    enters_view: l2vpn-evpn
+    undo: no l2vpn evpn
+    source:
+      patched: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      evpn.global: _
+  - id: cisco-iosxe.evpn-replication-type
+    syntax: replication-type { ingress | static }
+    view: l2vpn-evpn
+    undo: no replication-type
+    source:
+      patched: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      evpn.global.replication_type: kw:ingress|static
+  - id: cisco-iosxe.evpn-router-id
+    syntax: router-id <interface>
+    view: l2vpn-evpn
+    undo: no router-id
+    params:
+      interface:
+        type: interface
+    source:
+      patched: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      evpn.global.router_id: $interface
+  - id: cisco-iosxe.evpn-mpls-label-mode
+    syntax: mpls label mode { per-ce | per-evi }
+    view: l2vpn-evpn
+    undo: no mpls label mode
+    source:
+      patched: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+  - id: cisco-iosxe.l2vpn-evpn-instance
+    syntax: l2vpn evpn instance <evi> { vlan-based | vlan-bundle | vlan-aware | point-to-point }
+    view: system
+    enters_view: evpn-instance
+    undo: no l2vpn evpn instance <evi>
+    params:
+      evi:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      patched: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      evpn.instance: $evi
+      evpn.instance.evi: $evi
+      evpn.instance.mode: kw:vlan-based=bd-mode|point-to-point=vpws|vlan-bundle|vlan-aware
+  - id: cisco-iosxe.evpn-instance-rd
+    syntax: '{ rd | route-distinguisher } <route-distinguisher>'
+    view: evpn-instance
+    undo: no { rd | route-distinguisher } <route-distinguisher>
+    params:
+      route-distinguisher:
+        type: rd
+    source:
+      patched: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      evpn.instance.rd: $route-distinguisher
+  - id: cisco-iosxe.evpn-instance-route-target
+    syntax: route-target [ { import | export | both } ] <rt-value>
+    view: evpn-instance
+    undo: no route-target [ { import | export | both } ] <rt-value>
+    params:
+      rt-value:
+        type: rd
+    source:
+      patched: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      evpn.instance.rt:
+        value: $rt-value
+        direction: kw:import|export|both:both
+      evpn.instance.rt.value: $rt-value
+      evpn.instance.rt.direction: kw:import|export|both:both
+  - id: cisco-iosxe.evpn-instance-auto-route-target
+    syntax: auto-route-target
+    view: evpn-instance
+    undo: no auto-route-target
+    source:
+      patched: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      evpn.instance.auto_rt: flag
+  - id: cisco-iosxe.evpn-instance-description
+    syntax: description <text>
+    view: evpn-instance
+    undo: no description
+    params:
+      text:
+        type: text
+    source:
+      patched: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      evpn.instance.description: $text
+  - id: cisco-iosxe.evpn-instance-replication-type
+    syntax: replication-type { ingress | static }
+    view: evpn-instance
+    undo: no replication-type
+    source:
+      patched: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+  - id: cisco-iosxe.bridge-domain-member-evpn-instance
+    syntax: member evpn-instance <evi> [ ethernet-tag <ethernet-tag> ]
+    view: bridge-domain
+    undo: no member evpn-instance <evi>
+    params:
+      evi:
+        type: integer
+        range:
+          - 1
+          - 65535
+      ethernet-tag:
+        type: integer
+    source:
+      patched: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      bridge_domain.evpn_instance: $evi

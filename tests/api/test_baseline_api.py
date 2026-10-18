@@ -20,7 +20,7 @@ def test_baseline_devices_and_report(tmp_root: Path, request: pytest.FixtureRequ
     r = client.post("/api/v1/baseline", headers=H, json={"baseline": "strict", "device_ids": [atn["id"]]})
     assert r.status_code == 200, r.text
     data = r.json()["data"]
-    assert data["devices"][0]["score"] == 84 and data["summary"]["devices"] == 1
+    assert data["devices"][0]["score"] == 81 and data["summary"]["devices"] == 1
 
     r = client.post("/api/v1/baseline", headers=H, json={"all": True})
     data = r.json()["data"]

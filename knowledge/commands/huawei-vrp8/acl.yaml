@@ -397,7 +397,7 @@ cards:
   - id: huawei-vrp8.rule
     syntax: rule [ <rule-id> ] [ name <rule-name> ] { permit | deny } { zero | <protocol> | gre | igmp | ip | ipinip | ospf | <7-16> | <18-255> } [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ tos { <value> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } | precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9>
     view: acl
-    undo: undo rule [ name <rule-name> ] { permit | deny } { zero | <protocol> | gre | igmp | ip | ipinip | ospf | <7-16> | <18-255> } [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ tos { <value> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } | precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9>
+    undo: undo rule { <rule-id> [ to <end-rule-id> ] | [ name <rule-name> ] { permit | deny } { zero | <protocol> | gre | igmp | ip | ipinip | ospf | <7-16> | <18-255> } [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ tos { <value> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } | precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9> }
     params:
       rule-id:
         type: integer
@@ -474,14 +474,12 @@ cards:
         range:
           - 1
           - 255
+      end-rule-id:
+        type: integer
+        range:
+          - 0
+          - 4294967294
     default: By default, no advanced ACL rule is created.
-    source:
-      doc: huawei-vrp8-md
-      file: 08_IP Services Commands/17_ACL Configuration Commands.md
-      title: rule (Advanced ACL view) (gre-igmp-ip-ipinip-ospf)
-      line: 1252
-      version: V800R025C00SPC500
-    status: draft
     maps:
       acl.instance.rule: $rule-id
       acl.instance.rule.action: kw:permit|deny
@@ -492,10 +490,18 @@ cards:
       acl.instance.rule.destination_ip: $destination-ip-address||any
       acl.instance.rule.destination_wildcard: $destination-wildcard||$des-netmask||if:$destination-ip-address:0.0.0.0
       acl.instance.rule.vrf: $vpn-instance-name
+    source:
+      doc: huawei-vrp8-md
+      file: 08_IP Services Commands/17_ACL Configuration Commands.md
+      title: rule (Advanced ACL view) (gre-igmp-ip-ipinip-ospf)
+      line: 1252
+      version: V800R025C00SPC500
+      patched: 取消写法缺少文档另列的按编号删除 undo rule <rule-id> [ to <end-rule-id> ]，与按内容删除的写法合并
+    status: draft
   - id: huawei-vrp8.rule~2
     syntax: rule [ <rule-id> ] [ name <rule-name> ] { permit | deny } { icmp | <1> } [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ tos { <tos> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } | precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | icmp-type { <icmp-name> | <icmp-type> [ to <icmp-type-end> ] [ <icmp-code> ] } | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9>
     view: acl
-    undo: undo rule [ name <rule-name> ] { permit | deny } { icmp | <1> } [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ tos { <tos> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } | precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | icmp-type { <icmp-name> | <icmp-type> [ to <icmp-type-end> ] [ <icmp-code> ] } | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9>
+    undo: undo rule { <rule-id> [ to <end-rule-id> ] | [ name <rule-name> ] { permit | deny } { icmp | <1> } [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ tos { <tos> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } | precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | icmp-type { <icmp-name> | <icmp-type> [ to <icmp-type-end> ] [ <icmp-code> ] } | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9> }
     params:
       rule-id:
         type: integer
@@ -579,14 +585,12 @@ cards:
         range:
           - 1
           - 255
+      end-rule-id:
+        type: integer
+        range:
+          - 0
+          - 4294967294
     default: By default, no advanced ACL rule is created.
-    source:
-      doc: huawei-vrp8-md
-      file: 08_IP Services Commands/17_ACL Configuration Commands.md
-      title: rule (Advanced ACL view) (ICMP)
-      line: 1412
-      version: V800R025C00SPC500
-    status: draft
     maps:
       acl.instance.rule: $rule-id
       acl.instance.rule.action: kw:permit|deny
@@ -597,10 +601,18 @@ cards:
       acl.instance.rule.destination_ip: $destination-ip-address||any
       acl.instance.rule.destination_wildcard: $destination-wildcard||$des-netmask||if:$destination-ip-address:0.0.0.0
       acl.instance.rule.vrf: $vpn-instance-name
+    source:
+      doc: huawei-vrp8-md
+      file: 08_IP Services Commands/17_ACL Configuration Commands.md
+      title: rule (Advanced ACL view) (ICMP)
+      line: 1412
+      version: V800R025C00SPC500
+      patched: 取消写法缺少文档另列的按编号删除 undo rule <rule-id> [ to <end-rule-id> ]，与按内容删除的写法合并
+    status: draft
   - id: huawei-vrp8.rule~3
     syntax: rule [ <rule-id> ] [ name <rule-name> ] { permit | deny } { tcp | <6> } [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } | tos { <tos> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | { destination-port { range <dst-port-begin> <dst-port-end> | <dst-port-op> <dst-port> } | destination-port-pool <destination-port-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | { source-port { range <src-port-begin> <src-port-end> | <src-port-op> <src-port> } | source-port-pool <source-port-pool-name> } | { syn-flag | tcp-flag } { <tcp-flag> [ mask <mask-value> ] | established | { ack [ fin | psh | rst | syn | urg ] &<1-9> } | { fin [ ack | psh | rst | syn | urg ] &<1-9> } | { psh [ fin | ack | rst | syn | urg ] &<1-9> } | { rst [ fin | psh | ack | syn | urg ] &<1-9> } | { syn [ fin | psh | rst | ack | urg ] &<1-9> } | { urg [ fin | psh | rst | syn | ack ] &<1-9> } } | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | time-range <time-name> | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9>
     view: acl
-    undo: undo rule [ name <rule-name> ] { permit | deny } { tcp | <6> } [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } | tos { <tos> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | { destination-port { range <dst-port-begin> <dst-port-end> | <dst-port-op> <dst-port> } | destination-port-pool <destination-port-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | { source-port { range <src-port-begin> <src-port-end> | <src-port-op> <src-port> } | source-port-pool <source-port-pool-name> } | tcp-flag { <tcp-flag> [ mask <mask-value> ] | established | { ack [ fin | psh | rst | syn | urg ] &<1-9> } | { fin [ ack | psh | rst | syn | urg ] &<1-9> } | { psh [ fin | ack | rst | syn | urg ] &<1-9> } | { rst [ fin | psh | ack | syn | urg ] &<1-9> } | { syn [ fin | psh | rst | ack | urg ] &<1-9> } | { urg [ fin | psh | rst | syn | ack ] &<1-9> } } | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | time-range <time-name> | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9>
+    undo: undo rule { <rule-id> [ to <end-rule-id> ] | [ name <rule-name> ] { permit | deny } { tcp | <6> } [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } | tos { <tos> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | { destination-port { range <dst-port-begin> <dst-port-end> | <dst-port-op> <dst-port> } | destination-port-pool <destination-port-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | { source-port { range <src-port-begin> <src-port-end> | <src-port-op> <src-port> } | source-port-pool <source-port-pool-name> } | tcp-flag { <tcp-flag> [ mask <mask-value> ] | established | { ack [ fin | psh | rst | syn | urg ] &<1-9> } | { fin [ ack | psh | rst | syn | urg ] &<1-9> } | { psh [ fin | ack | rst | syn | urg ] &<1-9> } | { rst [ fin | psh | ack | syn | urg ] &<1-9> } | { syn [ fin | psh | rst | ack | urg ] &<1-9> } | { urg [ fin | psh | rst | syn | ack ] &<1-9> } } | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | time-range <time-name> | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9> }
     params:
       rule-id:
         type: integer
@@ -707,6 +719,11 @@ cards:
         type: word
       dst-port-end:
         type: word
+      end-rule-id:
+        type: integer
+        range:
+          - 0
+          - 4294967294
     default: By default, no advanced ACL rule is created.
     maps:
       acl.instance.rule: $rule-id
@@ -726,12 +743,12 @@ cards:
       title: rule (Advanced ACL view) (TCP)
       line: 1567
       version: V800R025C00SPC500
-      patched: 原文的源端口与目的端口条件用了同名参数 port-number（端口名还是关键字），映射分不开源 / 目的端口；改成各自的运算符与端口参数（端口取值可以是数字或端口名）
+      patched: 原文的源端口与目的端口条件用了同名参数 port-number（端口名还是关键字），映射分不开源 / 目的端口；改成各自的运算符与端口参数（端口取值可以是数字或端口名）。取消写法并入文档另列的 undo rule <rule-id> [ to <end-rule-id> ]（M4-2，变更脚本按编号删除规则）
     status: draft
   - id: huawei-vrp8.rule.1
     syntax: rule [ <rule-id> ] [ name <rule-name> ] { permit | deny } { udp | <17> } [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ tos { <tos> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } | precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | { destination-port { range <dst-port-begin> <dst-port-end> | <dst-port-op> <dst-port> } | destination-port-pool <destination-port-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | { source-port { range <src-port-begin> <src-port-end> | <src-port-op> <src-port> } | source-port-pool <source-port-pool-name> } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9>
     view: acl
-    undo: undo rule [ name <rule-name> ] { permit | deny } { udp | <17> } [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ tos { <tos> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } | precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | { destination-port { range <dst-port-begin> <dst-port-end> | <dst-port-op> <dst-port> } | destination-port-pool <destination-port-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | { source-port { range <src-port-begin> <src-port-end> | <src-port-op> <src-port> } | source-port-pool <source-port-pool-name> } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9>
+    undo: undo rule { <rule-id> [ to <end-rule-id> ] | [ name <rule-name> ] { permit | deny } { udp | <17> } [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ tos { <tos> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } | precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | { destination-port { range <dst-port-begin> <dst-port-end> | <dst-port-op> <dst-port> } | destination-port-pool <destination-port-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | { source-port { range <src-port-begin> <src-port-end> | <src-port-op> <src-port> } | source-port-pool <source-port-pool-name> } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9> }
     params:
       rule-id:
         type: integer
@@ -828,6 +845,11 @@ cards:
         type: word
       dst-port-end:
         type: word
+      end-rule-id:
+        type: integer
+        range:
+          - 0
+          - 4294967294
     default: By default, no advanced ACL rule is created.
     maps:
       acl.instance.rule: $rule-id
@@ -847,12 +869,12 @@ cards:
       title: rule (Advanced ACL view) (UDP)
       line: 1762
       version: V800R025C00SPC500
-      patched: 原文的源端口与目的端口条件用了同名参数 port-number（端口名还是关键字），映射分不开源 / 目的端口；改成各自的运算符与端口参数（端口取值可以是数字或端口名）
+      patched: 原文的源端口与目的端口条件用了同名参数 port-number（端口名还是关键字），映射分不开源 / 目的端口；改成各自的运算符与端口参数（端口取值可以是数字或端口名）。取消写法并入文档另列的 undo rule <rule-id> [ to <end-rule-id> ]（M4-2，变更脚本按编号删除规则）
     status: draft
   - id: huawei-vrp8.rule.2
     syntax: rule [ <rule-id> ] [ name <rule-name> ] { permit | deny } { udp | <17> } vxlan vni <vni> [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ tos { <tos> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } | precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | { source-port { range { <port-number> | biff | bootpc | bootps | dns | discard | dnsix | echo | mobilip-ag | mobilip-mn | nameserver | netbios-dgm | netbios-ns | netbios-ssn | ntp | rip | snmp | snmptrap | sunrpc | syslog | tacacs-ds | talk | tftp | time | who | xdmcp } { <port-number> | biff | bootpc | bootps | dns | discard | dnsix | echo | mobilip-ag | mobilip-mn | nameserver | netbios-dgm | netbios-ns | netbios-ssn | ntp | rip | snmp | snmptrap | sunrpc | syslog | tacacs-ds | talk | tftp | time | who | xdmcp } | { gt | lt | eq | neq } { <port-number> | biff | bootpc | bootps | dns | discard | dnsix | echo | mobilip-ag | mobilip-mn | nameserver | netbios-dgm | netbios-ns | netbios-ssn | ntp | rip | snmp | snmptrap | sunrpc | syslog | tacacs-ds | talk | tftp | time | who | xdmcp } } | source-port-pool <source-port-pool-name> } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9>
     view: acl
-    undo: undo rule [ name <rule-name> ] { permit | deny } { udp | <17> } vxlan vni <vni> [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ tos { <tos> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } | precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | { source-port { range { <port-number> | biff | bootpc | bootps | dns | discard | dnsix | echo | mobilip-ag | mobilip-mn | nameserver | netbios-dgm | netbios-ns | netbios-ssn | ntp | rip | snmp | snmptrap | sunrpc | syslog | tacacs-ds | talk | tftp | time | who | xdmcp } { <port-number> | biff | bootpc | bootps | dns | discard | dnsix | echo | mobilip-ag | mobilip-mn | nameserver | netbios-dgm | netbios-ns | netbios-ssn | ntp | rip | snmp | snmptrap | sunrpc | syslog | tacacs-ds | talk | tftp | time | who | xdmcp } | { gt | lt | eq | neq } { <port-number> | biff | bootpc | bootps | dns | discard | dnsix | echo | mobilip-ag | mobilip-mn | nameserver | netbios-dgm | netbios-ns | netbios-ssn | ntp | rip | snmp | snmptrap | sunrpc | syslog | tacacs-ds | talk | tftp | time | who | xdmcp } } | source-port-pool <source-port-pool-name> } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9>
+    undo: undo rule { <rule-id> [ to <end-rule-id> ] | [ name <rule-name> ] { permit | deny } { udp | <17> } vxlan vni <vni> [ [ dscp { <dscp> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef } | [ tos { <tos> | max-reliability | max-throughput | min-delay | min-monetary-cost | normal } | precedence { <precedence> | critical | flash | flash-override | immediate | internet | network | priority | routine } ] &<1-9> ] | { destination { <destination-ip-address> { <destination-wildcard> | 0 | <des-netmask> } | any } | destination-pool <destination-pool-name> } | [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | { source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | source-pool <source-pool-name> } | { source-port { range { <port-number> | biff | bootpc | bootps | dns | discard | dnsix | echo | mobilip-ag | mobilip-mn | nameserver | netbios-dgm | netbios-ns | netbios-ssn | ntp | rip | snmp | snmptrap | sunrpc | syslog | tacacs-ds | talk | tftp | time | who | xdmcp } { <port-number> | biff | bootpc | bootps | dns | discard | dnsix | echo | mobilip-ag | mobilip-mn | nameserver | netbios-dgm | netbios-ns | netbios-ssn | ntp | rip | snmp | snmptrap | sunrpc | syslog | tacacs-ds | talk | tftp | time | who | xdmcp } | { gt | lt | eq | neq } { <port-number> | biff | bootpc | bootps | dns | discard | dnsix | echo | mobilip-ag | mobilip-mn | nameserver | netbios-dgm | netbios-ns | netbios-ssn | ntp | rip | snmp | snmptrap | sunrpc | syslog | tacacs-ds | talk | tftp | time | who | xdmcp } } | source-port-pool <source-port-pool-name> } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] | packet-length { { gt | lt | eq | neq } <begin-pktlen> | range <begin-pktlen> <end-pktlen> } | ttl { { gt | lt | eq | neq } <ttl-value> | range <ttl-value> <ttl-value> } ] &<1-9> }
     params:
       rule-id:
         type: integer
@@ -931,14 +953,12 @@ cards:
         range:
           - 1
           - 255
+      end-rule-id:
+        type: integer
+        range:
+          - 0
+          - 4294967294
     default: By default, no advanced ACL rule is created.
-    source:
-      doc: huawei-vrp8-md
-      file: 08_IP Services Commands/17_ACL Configuration Commands.md
-      title: rule (Advanced ACL view) (UDP)
-      line: 1762
-      version: V800R025C00SPC500
-    status: draft
     maps:
       acl.instance.rule: $rule-id
       acl.instance.rule.action: kw:permit|deny
@@ -949,10 +969,18 @@ cards:
       acl.instance.rule.destination_ip: $destination-ip-address||any
       acl.instance.rule.destination_wildcard: $destination-wildcard||$des-netmask||if:$destination-ip-address:0.0.0.0
       acl.instance.rule.vrf: $vpn-instance-name
+    source:
+      doc: huawei-vrp8-md
+      file: 08_IP Services Commands/17_ACL Configuration Commands.md
+      title: rule (Advanced ACL view) (UDP)
+      line: 1762
+      version: V800R025C00SPC500
+      patched: 取消写法缺少文档另列的按编号删除 undo rule <rule-id> [ to <end-rule-id> ]，与按内容删除的写法合并
+    status: draft
   - id: huawei-vrp8.rule~4
     syntax: rule [ <rule-id> ] [ name <rule-name> ] { permit | deny } [ [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] ] &<1-9>
     view: acl
-    undo: undo rule [ name <rule-name> ] { permit | deny } [ [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] ] &<1-9>
+    undo: undo rule { <rule-id> [ to <end-rule-id> ] | [ name <rule-name> ] { permit | deny } [ [ fragment-type { fragment | fragment-subseq | non-fragment | non-subseq | fragment-spe-first } ] | source { <source-ip-address> { <source-wildcard> | 0 | <src-netmask> } | any } | time-range <time-name> | [ vpn-instance <vpn-instance-name> | vpn-instance-any ] ] &<1-9> }
     params:
       rule-id:
         type: integer
@@ -974,14 +1002,12 @@ cards:
         type: word
       vpn-instance-name:
         type: word
+      end-rule-id:
+        type: integer
+        range:
+          - 0
+          - 4294967294
     default: By default, no basic ACL rule is created.
-    source:
-      doc: huawei-vrp8-md
-      file: 08_IP Services Commands/17_ACL Configuration Commands.md
-      title: rule (basic ACL view)
-      line: 1948
-      version: V800R025C00SPC500
-    status: draft
     maps:
       acl.instance.rule: $rule-id
       acl.instance.rule.action: kw:permit|deny
@@ -989,6 +1015,14 @@ cards:
       acl.instance.rule.source_ip: $source-ip-address||any
       acl.instance.rule.source_wildcard: $source-wildcard||$src-netmask||if:$source-ip-address:0.0.0.0
       acl.instance.rule.vrf: $vpn-instance-name
+    source:
+      doc: huawei-vrp8-md
+      file: 08_IP Services Commands/17_ACL Configuration Commands.md
+      title: rule (basic ACL view)
+      line: 1948
+      version: V800R025C00SPC500
+      patched: 取消写法缺少文档另列的按编号删除 undo rule <rule-id> [ to <end-rule-id> ]，与按内容删除的写法合并
+    status: draft
   - id: huawei-vrp8.rule-description
     syntax: rule <rule-id> description <destext>
     view: acl

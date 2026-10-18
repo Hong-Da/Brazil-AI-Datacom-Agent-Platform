@@ -45,6 +45,8 @@ export interface TranslateResult {
   defaults: TrItem[]
   stats: TranslateStats
   verify: VerifyInfo
+  /** 选用了翻译规则集时（REQ-032）：改名清单、端口映射、冲突、命名规范告警 */
+  naming?: import('@/views/translate-rules/logic').NamingReport
 }
 
 export interface RenderResult {

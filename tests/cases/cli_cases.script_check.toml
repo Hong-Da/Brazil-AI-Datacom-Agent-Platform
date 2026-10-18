@@ -1,0 +1,109 @@
+# 配置检查项目（REQ-031）的 CLI 用例：lmesh script-check、lmesh script-diff（加载器与主文件 cli_cases.toml 合并）。
+# 脚本在 tests/inputs/scripts/，基线用变更回归的合成样本 knowledge/samples/change/atn-base.cfg、asr920-base.cfg。
+
+[[case]]
+id = "script-check-order"
+title = { zh-CN = "检查变更脚本（顺序核查开启）：有错误时退出码 1", en = "Check a change script (order check on): exit 1 on errors", pt-BR = "Verificar script de mudança (ordem ativada): saída 1 com erros" }
+args = ["--output", "json", "script-check", "{inputs}/scripts/atn-change-order.txt", "--device", "{samples}/change/atn-base.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "ok" = true, "data.kind" = "change", "data.summary.errors" = 3, "data.order.violations" = 2, "data.issues.1.code" = "side_effect_lost", "data.issues.1.line" = 3, "data.order.reorder.changed" = true, "data.baseline.device" = "atn-base" }
+in_docs = true
+
+[[case]]
+id = "script-check-no-order"
+title = { zh-CN = "关闭顺序核查：只看执行后的结果", en = "Order check off: only the final result", pt-BR = "Ordem desligada: apenas o resultado final" }
+args = ["--output", "json", "script-check", "{inputs}/scripts/atn-change-order.txt", "--device", "{samples}/change/atn-base.cfg", "--no-order"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "ok" = true, "data.summary.errors" = 1, "data.order.enabled" = false, "data.order.violations" = 0, "data.result.side_effect_removed" = 1 }
+
+[[case]]
+id = "script-check-good"
+title = { zh-CN = "没有错误的变更脚本：退出码 0", en = "A change script without errors: exit 0", pt-BR = "Script de mudança sem erros: saída 0" }
+args = ["--output", "json", "script-check", "{inputs}/scripts/atn-change-good.txt", "--device", "{samples}/change/atn-base.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.summary.errors" = 0, "data.summary.warnings" = 0, "data.result.lines_overridden" = 1, "data.issues.0.code" = "override" }
+
+[[case]]
+id = "script-check-device"
+title = { zh-CN = "以已导入设备的最新版本为基线", en = "Use the latest version of an imported device as the baseline", pt-BR = "Usar a versão mais recente de um dispositivo importado como referência" }
+args = ["--output", "json", "script-check", "{inputs}/scripts/atn-change-good.txt", "--device", "ATN-CHANGE-01"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_json = { "ok" = true, "data.baseline.device" = "ATN-CHANGE-01", "data.baseline.version_id" = 2, "data.summary.errors" = 0 }
+
+[[case]]
+id = "script-check-reorder"
+title = { zh-CN = "按依赖重排并写到文件：移动的命令与原因", en = "Reorder by dependency into a file: moved commands and reasons", pt-BR = "Reordenar por dependência em arquivo: comandos movidos e motivos" }
+args = ["--output", "json", "script-check", "{inputs}/scripts/asr-change-order.txt", "--device", "{samples}/change/asr920-base.cfg", "--reorder", "-o", "{out}/reordered.txt"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.changed" = true, "data.before.order_violations" = 1, "data.after.order_violations" = 0, "data.moves.0.reasons.0.dir" = "after" }
+in_docs = true
+
+[[case]]
+id = "script-check-reorder-text"
+title = { zh-CN = "重排的文字输出（英文）", en = "Reorder text output (English)", pt-BR = "Saída de texto da reordenação (inglês)" }
+args = ["--lang", "en", "script-check", "{inputs}/scripts/asr-change-order.txt", "--device", "{samples}/change/asr920-base.cfg", "--reorder"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["Reordered by dependency", "order errors 1 → 0", "vrf definition OAM", " vrf forwarding OAM"]
+
+[[case]]
+id = "script-check-full"
+title = { zh-CN = "检查完整配置：未识别行、与基线的差异摘要", en = "Check a full configuration: unknown lines and a diff with the baseline", pt-BR = "Verificar configuração completa: linhas desconhecidas e diferença com a referência" }
+args = ["--output", "json", "script-check", "{inputs}/scripts/atn-full.cfg", "--device", "{samples}/change/atn-base.cfg", "--kind", "full"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "ok" = true, "data.kind" = "full", "data.result.unknown" = 1, "data.result.compare.equal" = false, "data.order.applicable" = false }
+
+[[case]]
+id = "script-check-text-pt"
+title = { zh-CN = "文字输出（葡语）", en = "Text output (Portuguese)", pt-BR = "Saída de texto (português)" }
+args = ["--lang", "pt-BR", "script-check", "{inputs}/scripts/atn-change-order.txt", "--device", "{samples}/change/atn-base.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_stdout = ["Verificação de script de mudança", "Verificação de ordem: ativada, 2 erros de ordem", "linha 14"]
+
+[[case]]
+id = "script-check-missing"
+title = { zh-CN = "脚本文件不存在：退出码 4", en = "Script file missing: exit 4", pt-BR = "Arquivo de script inexistente: saída 4" }
+args = ["--output", "json", "script-check", "{inputs}/scripts/nope.txt", "--device", "{samples}/change/atn-base.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 4
+expect_json = { "ok" = false, "error.code" = 4 }
+
+[[case]]
+id = "script-check-need-baseline"
+title = { zh-CN = "变更脚本没有基线：退出码 2", en = "Change script without a baseline: exit 2", pt-BR = "Script de mudança sem referência: saída 2" }
+args = ["--output", "json", "script-check", "{inputs}/scripts/atn-change-order.txt"]
+setup = "fresh-fullkb"
+expect_exit = 2
+expect_json = { "ok" = false, "error.code" = 2 }
+
+[[case]]
+id = "script-diff"
+title = { zh-CN = "两份脚本的文本差异：重排造成的位置变化是移动；语义相同", en = "Text diff of two scripts: reordering shows as moves; semantically equal", pt-BR = "Diferença de dois scripts: reordenação aparece como movimentos; semanticamente iguais" }
+args = ["--output", "json", "script-diff", "{inputs}/scripts/atn-change-order.txt", "{inputs}/scripts/atn-change-good.txt", "--kind", "change", "--device", "{samples}/change/atn-base.cfg", "--ignore-order"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.equal" = false, "data.stats.move" = 4, "data.stats.change" = 1, "data.semantic.equal" = true, "data.unordered.only_b" = [] }
+in_docs = true
+
+[[case]]
+id = "script-diff-unified"
+title = { zh-CN = "输出统一 diff 文件", en = "Write a unified diff file", pt-BR = "Gravar arquivo diff unificado" }
+args = ["script-diff", "{inputs}/scripts/atn-change-order.txt", "{inputs}/scripts/atn-change-good.txt", "--format", "unified", "--no-semantic", "-o", "{out}/x.diff"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["x.diff"]
+
+[[case]]
+id = "script-diff-html"
+title = { zh-CN = "输出英文 HTML 报告", en = "Write an English HTML report", pt-BR = "Gravar relatório HTML em inglês" }
+args = ["--output", "json", "script-diff", "{samples}/change/atn-base.cfg", "{inputs}/scripts/atn-full.cfg", "--format", "html", "--report-lang", "en", "-o", "{out}/diff.html"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.stats.change" = 2 }

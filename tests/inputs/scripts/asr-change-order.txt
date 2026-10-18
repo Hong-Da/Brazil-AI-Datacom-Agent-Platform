@@ -1,0 +1,12 @@
+configure terminal
+interface GigabitEthernet0/0/2
+ vrf forwarding OAM
+ ip address 10.3.0.2 255.255.255.252
+exit
+vrf definition OAM
+ rd 64512:300
+ address-family ipv4
+  route-target export 64512:300
+ exit-address-family
+exit
+end

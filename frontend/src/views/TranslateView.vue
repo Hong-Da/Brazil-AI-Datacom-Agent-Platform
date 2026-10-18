@@ -21,6 +21,9 @@ import { ranges, splitLines, type CodeLine } from '@/views/m3/code'
 import IfMapPanel from './translate/IfMapPanel.vue'
 import WarnPanel from './translate/WarnPanel.vue'
 import DownloadDialog from './translate/DownloadDialog.vue'
+import RuleSetPicker from '@/components/rule-set-picker.vue'
+import NamingReportPanel from './translate-rules/NamingReportPanel.vue'
+import { renamedLines } from './translate-rules/logic'
 import {
   appendRaw, buildWarns, groupCounts, interfacesIn, isVerifyItem, linesText, linkFromDst, linkFromSrc, outIndex,
   reportMd, srcIndex, warnCsvRows, warnDst, warnText, type ShownLine,
@@ -59,6 +62,7 @@ const pasteText = ref('')
 const pasteProfile = ref('')
 const target = ref<string>(String(route.query.to ?? ''))
 const appendRawOpt = ref(true)
+const ruleSet = ref<string>(String(route.query.rules ?? '')) // 翻译规则集（REQ-032），空串表示不使用
 
 const device = computed(() => devices.value.find((d) => d.id === deviceId.value) ?? null)
 const srcProfileId = computed(() => (mode.value === 'device' ? device.value?.profile ?? '' : pasteProfile.value))
@@ -125,6 +129,7 @@ async function run(): Promise<void> {
   runError.value = ''
   const t0 = performance.now()
   const body: Record<string, unknown> = { to: target.value, interface_map: Object.keys(ifMap.value).length ? ifMap.value : null }
+  if (ruleSet.value) body.rule_set = ruleSet.value
   if (mode.value === 'device') {
     body.device_id = deviceId.value
     if (versionId.value !== null) body.version_id = versionId.value
@@ -157,6 +162,7 @@ async function run(): Promise<void> {
 
 function syncQuery(): void {
   const q: Record<string, string> = { to: target.value }
+  if (ruleSet.value) q.rules = ruleSet.value
   if (mode.value === 'paste') q.mode = 'paste'
   else if (deviceId.value !== null) {
     q.device = String(deviceId.value)
@@ -224,12 +230,13 @@ const dstCode = computed<CodeLine[]>(() => {
   }
   const linked = new Set(linkDst.value)
   const dflt = t('src.default')
+  const renamed = renamedLines(outLines.value.map((l) => l.text), result.value?.naming)
   return outLines.value.map((l, i) => {
     const ghost = l.origin === 'default'
     return {
       no: l.no, text: l.text, ghost,
       tag: ghost && l.kind === 'command' ? dflt : undefined,
-      cls: [l.warn ? 'w-raw' : cls.get(i) ?? '', linked.has(i) ? 'linked' : '', !ghost && l.kind === 'comment' ? 'c-cmt' : ''].join(' '),
+      cls: [l.warn ? 'w-raw' : cls.get(i) ?? '', linked.has(i) ? 'linked' : '', !ghost && l.kind === 'comment' ? 'c-cmt' : '', renamed.has(i) ? 'w-rename' : ''].join(' '),
     }
   })
 })
@@ -465,6 +472,7 @@ onMounted(async () => {
           <div class="opts">
             <span class="fixed-rule" :title="$t('translate.ruleTip')"><Icon name="lock" small /><span>{{ $t('translate.rule') }}</span></span>
             <label class="check"><input v-model="appendRawOpt" type="checkbox" data-testid="tr-append-raw"><span>{{ $t('translate.appendRaw') }}</span></label>
+            <RuleSetPicker v-model="ruleSet" testid="tr-rules" />
             <span style="flex: 1" />
             <button class="btn btn-primary" type="button" :disabled="!canRun || running" data-testid="tr-run" @click="run"><Icon name="swap" small />{{ running ? $t('translate.running') : $t('translate.run') }}</button>
           </div>
@@ -515,12 +523,14 @@ onMounted(async () => {
           </div>
         </div>
 
+        <NamingReportPanel v-if="result.naming" :report="result.naming" class="mt12" testid="tr-naming" />
+
         <div class="rbar">
           <ShowDefaultToggle v-model="showDefault" testid="tr-show-default" />
           <span v-if="showDefault && renderLoading" class="small faint">{{ $t('c.loading') }}</span>
           <span v-if="showDefault && renderError" class="small" style="color: var(--red-ink)">{{ renderError }}</span>
           <HiddenLegend :derived="false" />
-          <span class="legend-m3"><span class="faint">|</span><span class="wk default">{{ $t('translate.lgDefault') }}</span><span class="wk unsup">{{ $t('translate.lgUnsup') }}</span><span class="wk raw">{{ $t('translate.lgRaw') }}</span><span class="wk infer">{{ $t('translate.lgInfer') }}</span></span>
+          <span class="legend-m3"><span class="faint">|</span><span class="wk default">{{ $t('translate.lgDefault') }}</span><span class="wk unsup">{{ $t('translate.lgUnsup') }}</span><span class="wk raw">{{ $t('translate.lgRaw') }}</span><span class="wk infer">{{ $t('translate.lgInfer') }}</span><span v-if="result.naming?.summary.renamed" class="wk rename" data-testid="tr-rename-legend">{{ $t('translate-rules.report') }}</span></span>
           <span class="ml-auto small faint">{{ $t('translate.linkHint') }}</span>
         </div>
         <div class="tw">
@@ -607,6 +617,10 @@ onMounted(async () => {
 
 .rbar { display: flex; align-items: center; gap: 10px; margin: 12px 0 8px; flex-wrap: wrap; }
 .legend-m3 { display: flex; gap: 6px 10px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--ink-2); }
+.wk.rename { color: var(--teal-ink); background: var(--teal-soft); border-color: var(--teal-line); }
+.wk.rename::before { content: "R"; }
+.pane :deep(.code .l.w-rename .n) { box-shadow: inset 3px 0 0 var(--teal); color: var(--teal-ink); }
+.mt12 { margin-top: 12px; }
 
 .tw { display: grid; grid-template-columns: minmax(0, 1fr) 46px minmax(0, 1fr) 380px; gap: 0 10px; height: min(70vh, 760px); min-height: 460px; }
 .tw .pane { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }

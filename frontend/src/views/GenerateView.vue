@@ -14,6 +14,7 @@ import { saveText, toCsv } from '@/views/profiles/csv'
 import { splitLines, type CodeLine } from '@/views/m3/code'
 import { saveBytes, zipBytes } from '@/views/m3/zip'
 import { paramColumns } from '@/views/templates/logic'
+import RuleSetPicker from '@/components/rule-set-picker.vue'
 import type { TemplateDetail, TemplateInfo } from '@/views/templates/types'
 import { alignCsv, cellErrors, exampleRow, parseCsv, reportMd, resultCsvRows, stages, toCsvText, type GenResult } from './generate/logic'
 
@@ -30,6 +31,7 @@ const loadError = ref('')
 const tplId = ref<string>(String(route.query.template ?? ''))
 const detail = ref<TemplateDetail | null>(null)
 const engine = ref<'text' | 'canon'>('text')
+const ruleSet = ref('') // 翻译规则集（REQ-032，只用于 canon）
 const targetProfile = ref('')
 
 const cols = computed(() => (detail.value ? paramColumns(detail.value.vars, detail.value.blocks) : []))
@@ -86,7 +88,7 @@ async function loadTemplate(id: string): Promise<void> {
   schedule(0)
 }
 watch(tplId, (id) => { void loadTemplate(id) })
-watch([engine, targetProfile], () => schedule(0))
+watch([engine, targetProfile, ruleSet], () => schedule(0))
 
 // ---------------- 生成与验证 ----------------
 const running = ref(false)
@@ -114,6 +116,7 @@ async function run(): Promise<void> {
   runError.value = ''
   const body: Record<string, unknown> = { template_id: detail.value.id, csv: toCsvText(cols.value, rows.value), engine: engine.value, verify: true, include_text: true }
   if (engine.value === 'canon' && targetProfile.value) body.target_profile = targetProfile.value
+  if (engine.value === 'canon' && ruleSet.value) body.rule_set = ruleSet.value
   try {
     const r = await post<GenResult>('/templates/generate', body)
     if (my !== seq) return
@@ -251,6 +254,7 @@ onMounted(async () => {
               <option v-for="p in profiles" :key="p.id" :value="p.id">{{ p.id }}</option>
             </select>
           </div>
+          <div v-if="engine === 'canon'" class="field"><RuleSetPicker v-model="ruleSet" testid="gen-rules" /></div>
           <span style="flex: 1" />
           <div class="row wrap">
             <button class="btn" type="button" :disabled="!detail" data-testid="gen-header" @click="headerCsv"><Icon name="download" small />{{ $t('generate.header') }}</button>

@@ -101,8 +101,11 @@ def test_import_sources(db_url: str) -> None:
     assert res[2].error == "import.unknown_vendor"
     devices = importer.list_devices(db_url)
     assert len(devices) == 2 and all(d["name"].startswith("DEVICE-") for d in devices)
-    # 再导入一次：同名设备追加版本
-    importer.import_sources([("hw.cfg", HW.encode())], db_url, "strict")  # 新的一批：同一设备得到同一个名称
+    # 再导入一次：内容相同的重复导入不存新快照（版本历史 D-0091），内容不同时同名设备追加版本
+    again = importer.import_sources([("hw.cfg", HW.encode())], db_url, "strict")  # 新的一批：同一设备得到同一个名称
+    assert again[0].duplicate and not any(d["versions"] == 2 for d in importer.list_devices(db_url))
+    changed = HW + "\n#\nntp-service unicast-server 10.9.9.9\n"
+    importer.import_sources([("hw.cfg", changed.encode())], db_url, "strict")
     assert any(d["versions"] == 2 for d in importer.list_devices(db_url))
 
 

@@ -506,7 +506,7 @@ def to_json(
     ]
     ids = {n["id"] for n in nodes}
     edges = [
-        {"from": a, "to": b, "kind": d.get("kind"), "note": d.get("note", "")}
+        {"from": a, "to": b, "kind": d.get("kind"), "note": d.get("note") or {}}
         for a, b, d in g.edges(data=True)
         if a in ids and b in ids
     ]

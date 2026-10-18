@@ -235,7 +235,7 @@ BASIC = {
         ["aaa_enabled", "aaa_server", "ntp_server", "ssh_v2", "syslog_server", "vty_auth_aaa"],
     ),
     "huawei-atn-v800r025-synthetic/atn-mpls-l2vpn-acl-01.cfg": (
-        69,
+        66,
         ["aaa_enabled", "aaa_server", "ntp_server", "ssh_enabled", "syslog_server"],
     ),
     "cisco-ios-public/batfish_hybrid-cloud_lhr-border-02.txt": (
@@ -253,14 +253,14 @@ BASIC = {
 }
 STRICT = {
     "huawei-atn-v800r023/atn-access-01.cfg": (
-        84,
-        ["line_idle_timeout", "ntp_server_key", "snmp_v3_only", "syslog_server"],
+        81,
+        ["line_idle_timeout", "ntp_server_key", "snmp_v3_only", "ssh_strong_algorithms", "syslog_server"],
     ),
     "cisco-iosxe-asr920-synthetic/pe-asr920-02-igp-mgmt.cfg": (
         91,
         ["line_idle_timeout", "local_user_top_level", "snmp_v3_only"],
     ),
-    "huawei-atn-v800r025-synthetic/atn-igp-mgmt-01.cfg": (86, ["aaa_server", "ntp_server_key", "vty_acl"]),
+    "huawei-atn-v800r025-synthetic/atn-igp-mgmt-01.cfg": (87, ["aaa_server", "ntp_server_key", "vty_acl"]),
 }
 
 

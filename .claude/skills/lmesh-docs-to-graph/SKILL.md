@@ -84,7 +84,7 @@ draft 卡同样参与解析（状态只表示可信度），所以可以先跑�
 
 ## 5. Schema 与映射（语义归并）
 
-- **Schema** `knowledge/schema/<功能域>.yaml`：厂商无关的节点（`parent`、`type`、`key`、`semantic` 三语描述、`range` / `choices`、`ref` 指向被引用的对象类型）和 `deps` 依赖规则（reference / prerequisite / mutex；副作用写在 Profile）。按语义归并：例如 RD 华为在 ipv4-family 下、Cisco 在 vrf 下，统一挂在 `vrf.instance.af.rd`。改节点后跑 `lmesh kb validate`。删除节点前看使用情况（界面 Schema 管理会检查），用过的节点改为 `deprecated` + `replaced_by`。
+- **Schema** `knowledge/schema/<功能域>.yaml`：厂商无关的节点（`parent`、`type`、`key`、`semantic` 三语描述、`range` / `choices`、`ref` 指向被引用的对象类型）和 `deps` 依赖规则（reference / prerequisite / mutex；副作用写在 Profile）。新增依赖或副作用规则时 `note` 必须写三语：`note: {zh-CN: 接口引用 ACL, en: 'Interface references the ACL', pt-BR: 'A interface referencia a ACL'}`（英文、葡语含逗号时加引号；只写中文时 `kb validate` 警告，`tests/unit/test_kb_note.py` 不通过）。按语义归并：例如 RD 华为在 ipv4-family 下、Cisco 在 vrf 下，统一挂在 `vrf.instance.af.rd`。改节点后跑 `lmesh kb validate`。删除节点前看使用情况（界面 Schema 管理会检查），用过的节点改为 `deprecated` + `replaced_by`。
 - **映射** `knowledge/mappings/<平台族>.yaml`：按 `view` 正则 + 卡的 `syntax` 正则（第一条命中生效）写“Schema 节点: 表达式”：
 
 | 表达式 | 含义 |
@@ -105,6 +105,12 @@ draft 卡同样参与解析（状态只表示可信度），所以可以先跑�
 - M3 收尾补充：`ctx:subif`（上下文中接口的子接口编号，主接口为 `_`；接入点在接口视图里按它编号，与 Cisco service instance 编号对应）。Schema 节点可标 `secret: true`（取值或对象键是密码、密钥、团体字，跨平台族翻译时不写）、`alias: true`（属性取值也是所属对象的别名键，引用按它也能找到，例如 `acl.instance.number`）。两家结构形态不同的对象（接入点）在 `knowledge/render/<平台族>.yaml` 的 `access_form` 说明，翻译时换结构。
 - 原来是字符串的属性实际引用了新功能域的对象时（SNMP / VTY / NTP 引用的 ACL），把 Schema 类型改成 `ref` 并在新功能域的 `deps` 里写 reference 规则，配置检查才能发现悬空 / 孤儿。
 - 新的对象类型要在 `knowledge/terms.yaml` 登记华为与 Cisco 两种显示写法（`core/terms.py` 的 `check()` 与 `tests/unit/test_terms.py` 会检查）。
+- M4-2 补充：`unless:关键字:表达式`（行里没有该关键字时才取值，例如 `timers advertise [ msec ] <间隔>` 的秒与毫秒分开记）。文档在同一页另列的取消写法（`undo rule <rule-id>`、`no <序号>`）用修正文件把它与原 undo 合并成一条多选一语法（`undo rule { <rule-id> | … }`），多出的参数用修正条目的 `add_params` 补（只补、不替换）。
+- 对象的 Schema 编号要以父对象编号为前缀（`sr.global.conn_map`，不是 `sr.conn_map`），否则图里的节点编号会带上完整类型名（`sr.global[_]/sr.conn_map[_]`）。
+- 一家有、另一家没有的开关（Cisco 没有 Telnet / SSH 服务开关）在 Profile 标 `supported: false`：规则用条件 `supported: <节点>` 判断平台能力（不要写 `family`），翻译校验也不把这类差异计为未解释。
+- `lmesh kb map` 只写入命中规则的卡，不清除已不再命中任何规则的旧 maps：删除或改名映射规则后，要手工清掉相关卡上的 maps（否则 Profile 仍有旧节点的条目）。
+- 抽取后检查样本里原来是原文（raw）的行：新功能域的卡可能让范围外的同前缀命令变成未识别（SR 一章 MPLS 视图下的 `mpls te path verification` 让 `mpls te` 变成未识别），在功能域文件条目的 `views_map` 里把该视图映射为 `view: null` 丢弃，并删除已写入的这些卡。
+- `param_types` 按参数名推断时注意后缀撞车（`virtual-router-id` 以 router-id 结尾会被当成 IPv4），把更具体的规则放前面。
 
 然后 `lmesh kb map`：把规则写进命令卡（`maps_manual: true` 的卡不覆盖），并按命令卡汇总各 Profile 的 `entries`。输出里的 `unused_rules` 是没命中任何卡的规则，要查。
 

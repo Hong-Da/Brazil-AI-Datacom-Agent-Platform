@@ -11,7 +11,7 @@ match:
   fallback: "true"   # 识别不出版本的华为配置也用它
 # 副作用：接口绑定 vpn-instance 时，设备会删除接口上已有的 IPv4 地址；变更脚本需要在绑定后补发地址
 side_effects:
-  - {from: interface.vrf, to: interface.ipv4, note: 华为接口绑定 vpn-instance 会删除接口 IP，需在绑定后补发}
+  - {from: interface.vrf, to: interface.ipv4, note: {zh-CN: 华为接口绑定 vpn-instance 会删除接口 IP，需在绑定后补发, en: 'On Huawei, binding an interface to a vpn-instance removes its IP address; reapply the address after binding', pt-BR: 'No Huawei, vincular a interface a uma vpn-instance remove o endereço IP; reaplique o endereço após a vinculação'}}
 # entries 由命令卡汇总生成（lmesh kb map）；人工补充的条目标 manual: true，汇总时保留
 entries:
   acl.instance:
@@ -235,6 +235,7 @@ entries:
       - huawei-vrp8.ipv4-family-vpn-instance
       - huawei-vrp8.ipv4-family-vpnv4.1
       - huawei-vrp8.ipv4-family-vpnv4.2
+      - huawei-vrp8.l2vpn-family-evpn
       - huawei-vrp8.peer-enable
       - huawei-vrp8.peer-enable~2
       - huawei-vrp8.vpn-instance
@@ -268,9 +269,12 @@ entries:
       - huawei-vrp8.nexthop-recursive-lookup-route-policy~2
       - huawei-vrp8.nexthop-recursive-lookup-route-policy~3
       - huawei-vrp8.nexthop-recursive-lookup-route-policy~4
+      - huawei-vrp8.nexthop-recursive-lookup-route-policy~5
   bgp.af.peer:
     supported: true
     cards:
+      - huawei-vrp8.peer-advertise-community.1
+      - huawei-vrp8.peer-advertise-community.2
       - huawei-vrp8.peer-advertise-community@bgp-af-ipv4
       - huawei-vrp8.peer-advertise-community@bgp-af-ipv4~2
       - huawei-vrp8.peer-advertise-community@bgp-af-ipv4~3
@@ -279,6 +283,23 @@ entries:
       - huawei-vrp8.peer-advertise-community@bgp-af-vpnv4
       - huawei-vrp8.peer-advertise-community@bgp-af-vpnv4~2
       - huawei-vrp8.peer-advertise-community@bgp-af-vpnv4~3
+      - huawei-vrp8.peer-advertise-community~3
+      - huawei-vrp8.peer-as-number~4
+      - huawei-vrp8.peer-as-number~5
+      - huawei-vrp8.peer-as-number~6
+      - huawei-vrp8.peer-as-number~7
+      - huawei-vrp8.peer-as-number~8
+      - huawei-vrp8.peer-connect-interface.1~2
+      - huawei-vrp8.peer-connect-interface.2~2
+      - huawei-vrp8.peer-connect-interface~3
+      - huawei-vrp8.peer-connect-interface~4
+      - huawei-vrp8.peer-connect-interface~5
+      - huawei-vrp8.peer-connect-interface~6
+      - huawei-vrp8.peer-description~4
+      - huawei-vrp8.peer-description~5
+      - huawei-vrp8.peer-description~6
+      - huawei-vrp8.peer-description~7
+      - huawei-vrp8.peer-description~8
       - huawei-vrp8.peer-enable
       - huawei-vrp8.peer-enable@bgp-af-ipv4
       - huawei-vrp8.peer-enable@bgp-af-ipv4~2
@@ -289,6 +310,11 @@ entries:
       - huawei-vrp8.peer-enable@bgp-af-vpnv4~2
       - huawei-vrp8.peer-enable@bgp-af-vpnv4~3
       - huawei-vrp8.peer-enable~2
+      - huawei-vrp8.peer-enable~3
+      - huawei-vrp8.peer-enable~4
+      - huawei-vrp8.peer-enable~5
+      - huawei-vrp8.peer-group~10
+      - huawei-vrp8.peer-group~11
       - huawei-vrp8.peer-group~3
       - huawei-vrp8.peer-group~4
       - huawei-vrp8.peer-group~5
@@ -297,6 +323,9 @@ entries:
       - huawei-vrp8.peer-group~8
       - huawei-vrp8.peer-group~9
       - huawei-vrp8.peer-next-hop-local~10
+      - huawei-vrp8.peer-next-hop-local~11
+      - huawei-vrp8.peer-next-hop-local~12
+      - huawei-vrp8.peer-next-hop-local~13
       - huawei-vrp8.peer-next-hop-local~3
       - huawei-vrp8.peer-next-hop-local~4
       - huawei-vrp8.peer-next-hop-local~5
@@ -304,7 +333,15 @@ entries:
       - huawei-vrp8.peer-next-hop-local~7
       - huawei-vrp8.peer-next-hop-local~8
       - huawei-vrp8.peer-next-hop-local~9
+      - huawei-vrp8.peer-password.2~3
+      - huawei-vrp8.peer-password.2~4
+      - huawei-vrp8.peer-password.2~5
+      - huawei-vrp8.peer-password.2~6
+      - huawei-vrp8.peer-password.2~7
       - huawei-vrp8.peer-reflect-client~10
+      - huawei-vrp8.peer-reflect-client~11
+      - huawei-vrp8.peer-reflect-client~12
+      - huawei-vrp8.peer-reflect-client~13
       - huawei-vrp8.peer-reflect-client~3
       - huawei-vrp8.peer-reflect-client~4
       - huawei-vrp8.peer-reflect-client~5
@@ -312,17 +349,31 @@ entries:
       - huawei-vrp8.peer-reflect-client~7
       - huawei-vrp8.peer-reflect-client~8
       - huawei-vrp8.peer-reflect-client~9
+      - huawei-vrp8.peer-route-policy-export~11
+      - huawei-vrp8.peer-route-policy-export~12
+      - huawei-vrp8.peer-route-policy-export~13
       - huawei-vrp8.peer-route-policy-export~3
       - huawei-vrp8.peer-route-policy-export~4
       - huawei-vrp8.peer-route-policy-export~6
       - huawei-vrp8.peer-route-policy-export~7
       - huawei-vrp8.peer-route-policy-import~10
+      - huawei-vrp8.peer-route-policy-import~11
+      - huawei-vrp8.peer-route-policy-import~12
+      - huawei-vrp8.peer-route-policy-import~13
       - huawei-vrp8.peer-route-policy-import~3
       - huawei-vrp8.peer-route-policy-import~5
       - huawei-vrp8.peer-route-policy-import~6
       - huawei-vrp8.peer-route-policy-import~7
       - huawei-vrp8.peer-route-policy-import~8
       - huawei-vrp8.peer-route-policy-import~9
+  bgp.af.peer.description:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-description~4
+      - huawei-vrp8.peer-description~5
+      - huawei-vrp8.peer-description~6
+      - huawei-vrp8.peer-description~7
+      - huawei-vrp8.peer-description~8
   bgp.af.peer.enabled:
     supported: true
     cards:
@@ -336,9 +387,15 @@ entries:
       - huawei-vrp8.peer-enable@bgp-af-vpnv4~2
       - huawei-vrp8.peer-enable@bgp-af-vpnv4~3
       - huawei-vrp8.peer-enable~2
+      - huawei-vrp8.peer-enable~3
+      - huawei-vrp8.peer-enable~4
+      - huawei-vrp8.peer-enable~5
   bgp.af.peer.export_policy:
     supported: true
     cards:
+      - huawei-vrp8.peer-route-policy-export~11
+      - huawei-vrp8.peer-route-policy-export~12
+      - huawei-vrp8.peer-route-policy-export~13
       - huawei-vrp8.peer-route-policy-export~3
       - huawei-vrp8.peer-route-policy-export~4
       - huawei-vrp8.peer-route-policy-export~6
@@ -346,6 +403,8 @@ entries:
   bgp.af.peer.group:
     supported: true
     cards:
+      - huawei-vrp8.peer-group~10
+      - huawei-vrp8.peer-group~11
       - huawei-vrp8.peer-group~3
       - huawei-vrp8.peer-group~4
       - huawei-vrp8.peer-group~5
@@ -357,6 +416,9 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.peer-route-policy-import~10
+      - huawei-vrp8.peer-route-policy-import~11
+      - huawei-vrp8.peer-route-policy-import~12
+      - huawei-vrp8.peer-route-policy-import~13
       - huawei-vrp8.peer-route-policy-import~3
       - huawei-vrp8.peer-route-policy-import~5
       - huawei-vrp8.peer-route-policy-import~6
@@ -367,6 +429,9 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.peer-next-hop-local~10
+      - huawei-vrp8.peer-next-hop-local~11
+      - huawei-vrp8.peer-next-hop-local~12
+      - huawei-vrp8.peer-next-hop-local~13
       - huawei-vrp8.peer-next-hop-local~3
       - huawei-vrp8.peer-next-hop-local~4
       - huawei-vrp8.peer-next-hop-local~5
@@ -374,10 +439,29 @@ entries:
       - huawei-vrp8.peer-next-hop-local~7
       - huawei-vrp8.peer-next-hop-local~8
       - huawei-vrp8.peer-next-hop-local~9
+  bgp.af.peer.password:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-password.2~3
+      - huawei-vrp8.peer-password.2~4
+      - huawei-vrp8.peer-password.2~5
+      - huawei-vrp8.peer-password.2~6
+      - huawei-vrp8.peer-password.2~7
+  bgp.af.peer.remote_as:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-as-number~4
+      - huawei-vrp8.peer-as-number~5
+      - huawei-vrp8.peer-as-number~6
+      - huawei-vrp8.peer-as-number~7
+      - huawei-vrp8.peer-as-number~8
   bgp.af.peer.rr_client:
     supported: true
     cards:
       - huawei-vrp8.peer-reflect-client~10
+      - huawei-vrp8.peer-reflect-client~11
+      - huawei-vrp8.peer-reflect-client~12
+      - huawei-vrp8.peer-reflect-client~13
       - huawei-vrp8.peer-reflect-client~3
       - huawei-vrp8.peer-reflect-client~4
       - huawei-vrp8.peer-reflect-client~5
@@ -388,6 +472,8 @@ entries:
   bgp.af.peer.send_community:
     supported: true
     cards:
+      - huawei-vrp8.peer-advertise-community.1
+      - huawei-vrp8.peer-advertise-community.2
       - huawei-vrp8.peer-advertise-community@bgp-af-ipv4
       - huawei-vrp8.peer-advertise-community@bgp-af-ipv4~2
       - huawei-vrp8.peer-advertise-community@bgp-af-ipv4~3
@@ -396,6 +482,16 @@ entries:
       - huawei-vrp8.peer-advertise-community@bgp-af-vpnv4
       - huawei-vrp8.peer-advertise-community@bgp-af-vpnv4~2
       - huawei-vrp8.peer-advertise-community@bgp-af-vpnv4~3
+      - huawei-vrp8.peer-advertise-community~3
+  bgp.af.peer.update_source:
+    supported: true
+    cards:
+      - huawei-vrp8.peer-connect-interface.1~2
+      - huawei-vrp8.peer-connect-interface.2~2
+      - huawei-vrp8.peer-connect-interface~3
+      - huawei-vrp8.peer-connect-interface~4
+      - huawei-vrp8.peer-connect-interface~5
+      - huawei-vrp8.peer-connect-interface~6
   bgp.af.redistribute:
     supported: true
     cards:
@@ -597,10 +693,237 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.description~11
+  bridge_domain.evpn_instance:
+    supported: true
+    cards:
+      - huawei-vrp8.evpn-binding-vpn-instance.1
+      - huawei-vrp8.evpn-binding-vpn-instance.2
   bridge_domain.vsi:
     supported: true
     cards:
       - huawei-vrp8.l2-binding
+  clock.ptp:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-clock-source-local-clock-accuracy-clock-class-priority1.3
+      - huawei-vrp8.ptp-clock-source-local-time-source-priority2.2
+      - huawei-vrp8.ptp-device-type-t-bc-t-tc.1
+      - huawei-vrp8.ptp-device-type-t-bc-t-tc.2
+      - huawei-vrp8.ptp-device-type.1
+      - huawei-vrp8.ptp-device-type.2
+      - huawei-vrp8.ptp-domain~2
+      - huawei-vrp8.ptp-enable~2
+      - huawei-vrp8.ptp-profile
+  clock.ptp.device_type:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-device-type-t-bc-t-tc.1
+      - huawei-vrp8.ptp-device-type-t-bc-t-tc.2
+      - huawei-vrp8.ptp-device-type.1
+      - huawei-vrp8.ptp-device-type.2
+  clock.ptp.domain:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-domain~2
+  clock.ptp.enabled:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-enable~2
+  clock.ptp.hybrid:
+    manual: true
+    supported: true
+    default: false
+    source: 华为没有混合时钟开关（频率与相位源分别配置）
+    verified: doc
+  clock.ptp.priority1:
+    manual: true
+    supported: true
+    default: 128
+    source: 命令参考 ptp clock-source local priority1：缺省 128
+    verified: doc
+    cards:
+      - huawei-vrp8.ptp-clock-source-local-clock-accuracy-clock-class-priority1.3
+  clock.ptp.priority2:
+    manual: true
+    supported: true
+    default: 128
+    source: 命令参考 ptp clock-source local priority2：缺省 128
+    verified: doc
+    cards:
+      - huawei-vrp8.ptp-clock-source-local-time-source-priority2.2
+  clock.ptp.profile:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-profile
+  clock.ptp_adaptive:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-adaptive-acr-unicast-negotiate-enable.2
+      - huawei-vrp8.ptp-adaptive-device-type
+      - huawei-vrp8.ptp-adaptive-domain
+      - huawei-vrp8.ptp-adaptive-enable
+      - huawei-vrp8.ptp-adaptive-local-ip
+      - huawei-vrp8.ptp-adaptive-remote-server1-ip-remote-server2-ip
+      - huawei-vrp8.ptp-adaptive-request-announce-interval
+      - huawei-vrp8.ptp-adaptive-request-delay-resp-interval
+      - huawei-vrp8.ptp-adaptive-request-sync-interval
+  clock.ptp_adaptive.announce_interval:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-adaptive-request-announce-interval
+  clock.ptp_adaptive.delay_resp_interval:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-adaptive-request-delay-resp-interval
+  clock.ptp_adaptive.device_type:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-adaptive-device-type
+  clock.ptp_adaptive.domain:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-adaptive-domain
+  clock.ptp_adaptive.enabled:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-adaptive-enable
+  clock.ptp_adaptive.local_ip:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-adaptive-local-ip
+  clock.ptp_adaptive.server:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-adaptive-remote-server1-ip-remote-server2-ip
+  clock.ptp_adaptive.server.address:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-adaptive-remote-server1-ip-remote-server2-ip
+  clock.ptp_adaptive.sync_interval:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-adaptive-request-sync-interval
+  clock.ptp_adaptive.unicast_negotiate:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-adaptive-acr-unicast-negotiate-enable.2
+  clock.sync:
+    supported: true
+    cards:
+      - huawei-vrp8.clock-run-mode
+      - huawei-vrp8.clock-source-priority
+      - huawei-vrp8.clock-source-ptp-priority
+      - huawei-vrp8.clock-source-ptp-ssm
+      - huawei-vrp8.clock-source-ptp-synchronization-enable
+      - huawei-vrp8.clock-source-ssm
+      - huawei-vrp8.clock-source-ssm-slot
+      - huawei-vrp8.clock-source-synchronization-enable
+      - huawei-vrp8.clock-ssm-control
+      - huawei-vrp8.clock-wtr
+  clock.sync.run_mode:
+    supported: true
+    cards:
+      - huawei-vrp8.clock-run-mode
+  clock.sync.source:
+    supported: true
+    cards:
+      - huawei-vrp8.clock-source-priority
+      - huawei-vrp8.clock-source-ptp-priority
+      - huawei-vrp8.clock-source-ptp-ssm
+      - huawei-vrp8.clock-source-ptp-synchronization-enable
+      - huawei-vrp8.clock-source-ssm
+      - huawei-vrp8.clock-source-ssm-slot
+      - huawei-vrp8.clock-source-synchronization-enable
+  clock.sync.source.priority:
+    supported: true
+    cards:
+      - huawei-vrp8.clock-source-priority
+      - huawei-vrp8.clock-source-ptp-priority
+  clock.sync.source.ssm:
+    supported: true
+    cards:
+      - huawei-vrp8.clock-source-ptp-ssm
+      - huawei-vrp8.clock-source-ssm
+      - huawei-vrp8.clock-source-ssm-slot
+  clock.sync.source.synchronization:
+    supported: true
+    cards:
+      - huawei-vrp8.clock-source-ptp-synchronization-enable
+      - huawei-vrp8.clock-source-synchronization-enable
+  clock.sync.ssm_control:
+    supported: true
+    cards:
+      - huawei-vrp8.clock-ssm-control
+  clock.sync.wtr:
+    supported: true
+    cards:
+      - huawei-vrp8.clock-wtr
+  evpn.evpl:
+    supported: true
+    cards:
+      - huawei-vrp8.evpl-instance.1
+      - huawei-vrp8.evpl-instance.2
+  evpn.evpl.description:
+    supported: true
+    cards:
+      - huawei-vrp8.description~17
+  evpn.evpl.instance:
+    supported: true
+    cards:
+      - huawei-vrp8.evpn-binding-vpn-instance
+  evpn.evpl.local_service_id:
+    supported: true
+    cards:
+      - huawei-vrp8.local-service-id-remote-service-id
+  evpn.evpl.remote_service_id:
+    supported: true
+    cards:
+      - huawei-vrp8.local-service-id-remote-service-id
+  evpn.global:
+    supported: true
+    cards:
+      - huawei-vrp8.evpn
+      - huawei-vrp8.evpn-source-address
+  evpn.global.source_address:
+    supported: true
+    cards:
+      - huawei-vrp8.evpn-source-address
+  evpn.instance:
+    supported: true
+    cards:
+      - huawei-vrp8.evpn-vpn-instance.1
+      - huawei-vrp8.evpn-vpn-instance.4
+      - huawei-vrp8.evpn-vpn-instance.5
+  evpn.instance.control_word:
+    supported: true
+    cards:
+      - huawei-vrp8.control-word-enable~3
+  evpn.instance.description:
+    supported: true
+    cards:
+      - huawei-vrp8.description~18
+  evpn.instance.mode:
+    supported: true
+    cards:
+      - huawei-vrp8.evpn-vpn-instance.1
+      - huawei-vrp8.evpn-vpn-instance.4
+      - huawei-vrp8.evpn-vpn-instance.5
+  evpn.instance.rd:
+    supported: true
+    cards:
+      - huawei-vrp8.route-distinguisher~3
+  evpn.instance.rt:
+    supported: true
+    cards:
+      - huawei-vrp8.vpn-target~3
+  evpn.instance.rt.direction:
+    supported: true
+    cards:
+      - huawei-vrp8.vpn-target~3
+  evpn.instance.rt.value:
+    supported: true
+    cards:
+      - huawei-vrp8.vpn-target~3
   interface:
     supported: true
     cards:
@@ -747,6 +1070,24 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.encapsulation-dot1q
+  interface.clock:
+    supported: true
+    cards:
+      - huawei-vrp8.clock-priority
+      - huawei-vrp8.clock-ssm
+      - huawei-vrp8.clock-synchronization-enable
+  interface.clock.priority:
+    supported: true
+    cards:
+      - huawei-vrp8.clock-priority
+  interface.clock.ssm:
+    supported: true
+    cards:
+      - huawei-vrp8.clock-ssm
+  interface.clock.synchronization:
+    supported: true
+    cards:
+      - huawei-vrp8.clock-synchronization-enable
   interface.description:
     supported: true
     cards:
@@ -760,6 +1101,14 @@ entries:
     cards:
       - huawei-vrp8.duplex.1
       - huawei-vrp8.duplex.2
+  interface.evpl:
+    supported: true
+    cards:
+      - huawei-vrp8.evpl-instance
+  interface.evpn_instance:
+    supported: true
+    cards:
+      - huawei-vrp8.evpn-binding-vpn-instance~2
   interface.ipv4:
     supported: true
     cards:
@@ -990,6 +1339,122 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.ospf-enable
+  interface.port_queue:
+    supported: true
+    cards:
+      - huawei-vrp8.port-queue-outbound.1
+      - huawei-vrp8.port-queue-outbound.2
+  interface.port_queue.schedule:
+    supported: true
+    cards:
+      - huawei-vrp8.port-queue-outbound.1
+      - huawei-vrp8.port-queue-outbound.2
+  interface.port_queue.shaping:
+    supported: true
+    cards:
+      - huawei-vrp8.port-queue-outbound.1
+      - huawei-vrp8.port-queue-outbound.2
+  interface.port_queue.shaping_pct:
+    supported: true
+    cards:
+      - huawei-vrp8.port-queue-outbound.1
+      - huawei-vrp8.port-queue-outbound.2
+  interface.port_queue.weight:
+    supported: true
+    cards:
+      - huawei-vrp8.port-queue-outbound.1
+      - huawei-vrp8.port-queue-outbound.2
+  interface.port_queue.wred:
+    supported: true
+    cards:
+      - huawei-vrp8.port-queue-outbound.1
+      - huawei-vrp8.port-queue-outbound.2
+  interface.prefix_sid:
+    supported: true
+    cards:
+      - huawei-vrp8.isis-prefix-sid.1
+      - huawei-vrp8.isis-prefix-sid.2
+      - huawei-vrp8.ospf-prefix-sid
+  interface.prefix_sid.absolute:
+    supported: true
+    cards:
+      - huawei-vrp8.isis-prefix-sid.1
+      - huawei-vrp8.isis-prefix-sid.2
+      - huawei-vrp8.ospf-prefix-sid
+  interface.prefix_sid.index:
+    supported: true
+    cards:
+      - huawei-vrp8.isis-prefix-sid.1
+      - huawei-vrp8.isis-prefix-sid.2
+      - huawei-vrp8.ospf-prefix-sid
+  interface.prefix_sid.node_disable:
+    supported: true
+    cards:
+      - huawei-vrp8.isis-prefix-sid.1
+      - huawei-vrp8.isis-prefix-sid.2
+      - huawei-vrp8.ospf-prefix-sid
+  interface.ptp:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-delay-mechanism
+      - huawei-vrp8.ptp-domain
+      - huawei-vrp8.ptp-enable
+      - huawei-vrp8.ptp-local-priority
+      - huawei-vrp8.ptp-port-state
+  interface.ptp.delay_mechanism:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-delay-mechanism
+  interface.ptp.domain:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-domain
+  interface.ptp.enabled:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-enable
+  interface.ptp.local_priority:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-local-priority
+  interface.ptp.port_state:
+    supported: true
+    cards:
+      - huawei-vrp8.ptp-port-state
+  interface.qos_policy:
+    supported: true
+    cards:
+      - huawei-vrp8.traffic-policy.2
+      - huawei-vrp8.traffic-policy.3
+      - huawei-vrp8.traffic-policy.4
+      - huawei-vrp8.traffic-policy.8
+      - huawei-vrp8.traffic-policy.9
+  interface.qos_policy.layer:
+    supported: true
+    cards:
+      - huawei-vrp8.traffic-policy.2
+      - huawei-vrp8.traffic-policy.3
+      - huawei-vrp8.traffic-policy.4
+      - huawei-vrp8.traffic-policy.8
+      - huawei-vrp8.traffic-policy.9
+  interface.qos_policy.policy:
+    supported: true
+    cards:
+      - huawei-vrp8.traffic-policy.2
+      - huawei-vrp8.traffic-policy.3
+      - huawei-vrp8.traffic-policy.4
+      - huawei-vrp8.traffic-policy.8
+      - huawei-vrp8.traffic-policy.9
+  interface.qos_profile:
+    supported: true
+    cards:
+      - huawei-vrp8.qos-profile.1~2
+      - huawei-vrp8.qos-profile.2~2
+  interface.qos_profile.profile:
+    supported: true
+    cards:
+      - huawei-vrp8.qos-profile.1~2
+      - huawei-vrp8.qos-profile.2~2
   interface.shutdown:
     manual: true
     supported: true
@@ -1005,10 +1470,97 @@ entries:
       - huawei-vrp8.speed.2
       - huawei-vrp8.speed.3
       - huawei-vrp8.speed.4
+  interface.trust_upstream:
+    supported: true
+    cards:
+      - huawei-vrp8.trust-upstream-vlan.2
+      - huawei-vrp8.trust-upstream.1@interface
+      - huawei-vrp8.trust-upstream.2@interface
   interface.vrf:
     supported: true
     cards:
       - huawei-vrp8.ip-binding-vpn-instance
+  interface.vrrp:
+    supported: true
+    cards:
+      - huawei-vrp8.vrrp-vrid
+      - huawei-vrp8.vrrp-vrid-authentication-mode
+      - huawei-vrp8.vrrp-vrid-authentication-mode.1
+      - huawei-vrp8.vrrp-vrid-authentication-mode.2
+      - huawei-vrp8.vrrp-vrid-preempt-mode-disable
+      - huawei-vrp8.vrrp-vrid-preempt-mode-timer-delay
+      - huawei-vrp8.vrrp-vrid-priority
+      - huawei-vrp8.vrrp-vrid-timer-advertise
+      - huawei-vrp8.vrrp-vrid-timer-advertise-millisecond
+      - huawei-vrp8.vrrp-vrid-track-bfd-session.1
+      - huawei-vrp8.vrrp-vrid-track-interface
+  interface.vrrp.advertise_interval:
+    manual: true
+    supported: true
+    default: 1
+    source: 命令参考 vrrp vrid timer advertise：缺省 1 秒
+    verified: doc
+    cards:
+      - huawei-vrp8.vrrp-vrid-timer-advertise
+  interface.vrrp.advertise_msec:
+    supported: true
+    cards:
+      - huawei-vrp8.vrrp-vrid-timer-advertise-millisecond
+  interface.vrrp.auth_mode:
+    supported: true
+    cards:
+      - huawei-vrp8.vrrp-vrid-authentication-mode
+      - huawei-vrp8.vrrp-vrid-authentication-mode.1
+      - huawei-vrp8.vrrp-vrid-authentication-mode.2
+  interface.vrrp.preempt:
+    manual: true
+    supported: true
+    default: true
+    source: 命令参考 vrrp vrid preempt-mode：缺省为抢占方式
+    verified: doc
+    cards:
+      - huawei-vrp8.vrrp-vrid-preempt-mode-disable
+  interface.vrrp.preempt_delay:
+    manual: true
+    supported: true
+    default: 0
+    source: 命令参考 vrrp vrid preempt-mode timer delay：缺省 0 秒（立即抢占）
+    verified: doc
+    cards:
+      - huawei-vrp8.vrrp-vrid-preempt-mode-timer-delay
+  interface.vrrp.priority:
+    manual: true
+    supported: true
+    default: 100
+    source: 命令参考 vrrp vrid priority：缺省 100
+    verified: doc
+    cards:
+      - huawei-vrp8.vrrp-vrid-priority
+  interface.vrrp.track:
+    supported: true
+    cards:
+      - huawei-vrp8.vrrp-vrid-track-bfd-session.1
+      - huawei-vrp8.vrrp-vrid-track-interface
+  interface.vrrp.track.increase:
+    supported: true
+    cards:
+      - huawei-vrp8.vrrp-vrid-track-bfd-session.1
+      - huawei-vrp8.vrrp-vrid-track-interface
+  interface.vrrp.track.reduce:
+    supported: true
+    cards:
+      - huawei-vrp8.vrrp-vrid-track-bfd-session.1
+      - huawei-vrp8.vrrp-vrid-track-interface
+  interface.vrrp.virtual_ip:
+    supported: true
+    cards:
+      - huawei-vrp8.vrrp-vrid
+  interface.vrrp.virtual_ip.secondary:
+    manual: true
+    supported: true
+    default: false
+    source: 华为 VRRP 虚拟地址没有主 / 次之分（等同于主地址）
+    verified: doc
   interface.vsi:
     supported: true
     cards:
@@ -1051,10 +1603,30 @@ entries:
     default: narrow
     source: 命令参考 cost-style / metric-style：缺省 narrow
     verified: doc
+  isis.process.microloop_avoidance:
+    supported: true
+    cards:
+      - huawei-vrp8.avoid-microloop-segment-routing
   isis.process.net:
     supported: true
     cards:
       - huawei-vrp8.network-entity
+  isis.process.sr_mpls:
+    supported: true
+    cards:
+      - huawei-vrp8.segment-routing-mpls
+  isis.process.srgb_begin:
+    supported: true
+    cards:
+      - huawei-vrp8.segment-routing-global-block~3
+  isis.process.srgb_end:
+    supported: true
+    cards:
+      - huawei-vrp8.segment-routing-global-block~3
+  isis.process.ti_lfa:
+    supported: true
+    cards:
+      - huawei-vrp8.ti-lfa
   isis.process.vrf:
     supported: true
     cards:
@@ -1202,10 +1774,20 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.authorization-scheme~2
+  mgmt.aaa.domain.radius:
+    supported: true
+    cards:
+      - huawei-vrp8.radius-server-group
   mgmt.aaa.domain.tacacs:
     supported: true
     cards:
       - huawei-vrp8.hwtacacs-server
+  mgmt.aaa.enabled:
+    manual: true
+    supported: true
+    default: true
+    source: 华为 AAA 恒开启（没有关闭 AAA 的命令），对应 Cisco aaa new-model
+    verified: doc
   mgmt.aaa.scheme:
     supported: true
     cards:
@@ -1263,7 +1845,11 @@ entries:
     cards:
       - huawei-vrp8.acl.1
   mgmt.line.auth:
+    manual: true
     supported: true
+    default: none
+    source: 命令参考 authentication-mode（用户界面视图）：缺省不设置认证方式
+    verified: doc
     cards:
       - huawei-vrp8.authentication-mode.1@user-interface-con
       - huawei-vrp8.authentication-mode.1@user-interface-vty
@@ -1290,7 +1876,13 @@ entries:
       - huawei-vrp8.user-privilege-level@user-interface-con
       - huawei-vrp8.user-privilege-level@user-interface-vty
   mgmt.line.protocols:
+    manual: true
     supported: true
+    default: all
+    when:
+      key: ^vty
+    source: 命令参考 protocol inbound：配置文件中没有该命令时 VTY 允许全部协议（SSH 与 Telnet）
+    verified: doc
     cards:
       - huawei-vrp8.protocol-inbound
   mgmt.ntp:
@@ -1340,28 +1932,77 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.ntp-service-server-disable
+  mgmt.radius:
+    supported: true
+    cards:
+      - huawei-vrp8.radius-server-group~2
+  mgmt.radius.key_set:
+    supported: true
+    cards:
+      - huawei-vrp8.radius-server-shared-key
+  mgmt.radius.retransmit:
+    supported: true
+    cards:
+      - huawei-vrp8.radius-server-retransmit-timeout.1
+  mgmt.radius.server:
+    supported: true
+    cards:
+      - huawei-vrp8.radius-server.1
+      - huawei-vrp8.radius-server.2
+      - huawei-vrp8.radius-server.3
+  mgmt.radius.server.port:
+    supported: true
+    cards:
+      - huawei-vrp8.radius-server.1
+      - huawei-vrp8.radius-server.2
+      - huawei-vrp8.radius-server.3
+  mgmt.radius.server.vrf:
+    supported: true
+    cards:
+      - huawei-vrp8.radius-server.1
+      - huawei-vrp8.radius-server.2
+      - huawei-vrp8.radius-server.3
+  mgmt.radius.source:
+    supported: true
+    cards:
+      - huawei-vrp8.radius-server-source-interface
+  mgmt.radius.timeout:
+    supported: true
+    cards:
+      - huawei-vrp8.radius-server-retransmit-timeout.1
   mgmt.snmp:
     supported: true
     cards:
       - huawei-vrp8.snmp-agent
+      - huawei-vrp8.snmp-agent-community.1
       - huawei-vrp8.snmp-agent-community.2
+      - huawei-vrp8.snmp-agent-group
       - huawei-vrp8.snmp-agent-sys-info
       - huawei-vrp8.snmp-agent-sys-info-version
       - huawei-vrp8.snmp-agent-target-host.2
       - huawei-vrp8.snmp-agent-trap-source
       - huawei-vrp8.snmp-agent-trap-source-ipv6
       - huawei-vrp8.snmp-agent-trap.1
+      - huawei-vrp8.snmp-agent-usm-user.1
+      - huawei-vrp8.snmp-agent-usm-user.2
+      - huawei-vrp8.snmp-agent-usm-user.3
+      - huawei-vrp8.snmp-agent-usm-user.4
+      - huawei-vrp8.snmp-agent-usm-user.5
+      - huawei-vrp8.snmp-agent-usm-user.6
   mgmt.snmp.community:
     supported: true
     cards:
+      - huawei-vrp8.snmp-agent-community.1
       - huawei-vrp8.snmp-agent-community.2
   mgmt.snmp.community.access:
     supported: true
     cards:
+      - huawei-vrp8.snmp-agent-community.1
       - huawei-vrp8.snmp-agent-community.2
   mgmt.snmp.community.acl:
     supported: true
     cards:
+      - huawei-vrp8.snmp-agent-community.1
       - huawei-vrp8.snmp-agent-community.2
   mgmt.snmp.contact:
     supported: true
@@ -1371,6 +2012,34 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.snmp-agent
+  mgmt.snmp.group:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-group
+  mgmt.snmp.group.acl:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-group
+  mgmt.snmp.group.notify_view:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-group
+  mgmt.snmp.group.read_view:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-group
+  mgmt.snmp.group.security_level:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-group
+  mgmt.snmp.group.version:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-group
+  mgmt.snmp.group.write_view:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-group
   mgmt.snmp.host:
     supported: true
     cards:
@@ -1399,6 +2068,42 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.snmp-agent-trap-source
+  mgmt.snmp.user:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-usm-user.1
+      - huawei-vrp8.snmp-agent-usm-user.2
+      - huawei-vrp8.snmp-agent-usm-user.3
+      - huawei-vrp8.snmp-agent-usm-user.4
+      - huawei-vrp8.snmp-agent-usm-user.5
+      - huawei-vrp8.snmp-agent-usm-user.6
+  mgmt.snmp.user.acl:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-usm-user.1
+      - huawei-vrp8.snmp-agent-usm-user.4
+  mgmt.snmp.user.auth_protocol:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-usm-user.1
+      - huawei-vrp8.snmp-agent-usm-user.2
+      - huawei-vrp8.snmp-agent-usm-user.5
+  mgmt.snmp.user.group:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-usm-user.1
+      - huawei-vrp8.snmp-agent-usm-user.4
+  mgmt.snmp.user.priv_protocol:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-usm-user.1
+      - huawei-vrp8.snmp-agent-usm-user.3
+      - huawei-vrp8.snmp-agent-usm-user.6
+  mgmt.snmp.user.version:
+    supported: true
+    cards:
+      - huawei-vrp8.snmp-agent-usm-user.1
+      - huawei-vrp8.snmp-agent-usm-user.4
   mgmt.snmp.versions:
     supported: true
     cards:
@@ -1408,6 +2113,10 @@ entries:
     cards:
       - huawei-vrp8.sftp-server-enable
       - huawei-vrp8.ssh-server-authentication-retries
+      - huawei-vrp8.ssh-server-cipher
+      - huawei-vrp8.ssh-server-compatible-ssh1x-enable
+      - huawei-vrp8.ssh-server-hmac
+      - huawei-vrp8.ssh-server-key-exchange
       - huawei-vrp8.ssh-server-source.2
       - huawei-vrp8.ssh-server-timeout
       - huawei-vrp8.ssh-user-service-type
@@ -1415,14 +2124,46 @@ entries:
       - huawei-vrp8.ssh-user.3
       - huawei-vrp8.ssh-user.4
       - huawei-vrp8.stelnet-server-enable
-  mgmt.ssh.enabled:
+  mgmt.ssh.ciphers:
+    manual: true
     supported: true
+    default: aes256_gcm aes128_gcm aes256_ctr aes192_ctr aes128_ctr
+    source: 命令参考 ssh server cipher：缺省 AES256_GCM、AES128_GCM、AES256_CTR、AES192_CTR、AES128_CTR
+    verified: doc
+    cards:
+      - huawei-vrp8.ssh-server-cipher
+  mgmt.ssh.compat_v1:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 ssh server compatible-ssh1x enable：缺省关闭
+    verified: doc
+    cards:
+      - huawei-vrp8.ssh-server-compatible-ssh1x-enable
+  mgmt.ssh.enabled:
+    manual: true
+    supported: true
+    default: true
+    source: 命令参考 stelnet server enable：缺省开启 STelnet 服务（M4-2 按原文更正，原条目误写为关闭）
+    verified: doc
     cards:
       - huawei-vrp8.stelnet-server-enable
+  mgmt.ssh.hmacs:
     manual: true
-    default: false
-    source: 命令参考 stelnet server enable：缺省关闭 STelnet 服务
+    supported: true
+    default: sha2_512_etm sha2_256_etm sha2_512 sha2_256
+    source: 命令参考 ssh server hmac：缺省 SHA2_512_ETM、SHA2_256_ETM、SHA2_512、SHA2_256
     verified: doc
+    cards:
+      - huawei-vrp8.ssh-server-hmac
+  mgmt.ssh.kex:
+    manual: true
+    supported: true
+    default: curve25519_sha256 dh_group_exchange_sha256
+    source: 命令参考 ssh server key-exchange：缺省 curve25519_sha256、dh_group_exchange_sha256
+    verified: doc
+    cards:
+      - huawei-vrp8.ssh-server-key-exchange
   mgmt.ssh.retries:
     supported: true
     cards:
@@ -1459,6 +2200,12 @@ entries:
     cards:
       - huawei-vrp8.ssh-user-service-type
       - huawei-vrp8.ssh-user.4
+  mgmt.ssh.version:
+    manual: true
+    supported: true
+    default: '2'
+    source: 命令参考 ssh server compatible-ssh1x enable：缺省不兼容早期版本，SSH 服务端只用 SSHv2
+    verified: doc
   mgmt.syslog:
     supported: true
     cards:
@@ -1685,6 +2432,10 @@ entries:
     default: false
     source: 命令参考：缺省不使能 OSPF 快速重路由
     verified: doc
+  ospf.process.microloop_avoidance:
+    supported: true
+    cards:
+      - huawei-vrp8.avoid-microloop-segment-routing~2
   ospf.process.passive:
     supported: true
     cards:
@@ -1716,11 +2467,267 @@ entries:
     cards:
       - huawei-vrp8.ospf.1
       - huawei-vrp8.ospf.2
+  ospf.process.sr_mpls:
+    supported: true
+    cards:
+      - huawei-vrp8.segment-routing-mpls~2
+  ospf.process.srgb_begin:
+    supported: true
+    cards:
+      - huawei-vrp8.segment-routing-global-block~2
+  ospf.process.srgb_end:
+    supported: true
+    cards:
+      - huawei-vrp8.segment-routing-global-block~2
+  ospf.process.ti_lfa:
+    supported: true
+    cards:
+      - huawei-vrp8.ti-lfa-enable
   ospf.process.vrf:
     supported: true
     cards:
       - huawei-vrp8.ospf.1
       - huawei-vrp8.ospf.2
+  qos.behavior:
+    supported: true
+    cards:
+      - huawei-vrp8.traffic-behavior
+  qos.behavior.action:
+    supported: true
+    cards:
+      - huawei-vrp8.permit-deny
+  qos.behavior.car_cir:
+    supported: true
+    cards:
+      - huawei-vrp8.car.1
+      - huawei-vrp8.car.2
+      - huawei-vrp8.car.4
+  qos.behavior.car_cir_pct:
+    supported: true
+    cards:
+      - huawei-vrp8.car.3
+      - huawei-vrp8.car.5
+  qos.behavior.car_pir:
+    supported: true
+    cards:
+      - huawei-vrp8.car.1
+      - huawei-vrp8.car.2
+      - huawei-vrp8.car.4
+  qos.behavior.color:
+    supported: true
+    cards:
+      - huawei-vrp8.service-class-track-bfd-session
+      - huawei-vrp8.service-class.1
+      - huawei-vrp8.service-class.2
+  qos.behavior.remark_8021p:
+    supported: true
+    cards:
+      - huawei-vrp8.remark-8021p.1
+  qos.behavior.remark_dscp:
+    supported: true
+    cards:
+      - huawei-vrp8.remark-dscp.2
+  qos.behavior.remark_ip_precedence:
+    supported: true
+    cards:
+      - huawei-vrp8.remark-ip-precedence
+  qos.behavior.remark_mpls_exp:
+    supported: true
+    cards:
+      - huawei-vrp8.remark-mpls-exp
+  qos.behavior.service_class:
+    supported: true
+    cards:
+      - huawei-vrp8.service-class-track-bfd-session
+      - huawei-vrp8.service-class.1
+      - huawei-vrp8.service-class.2
+  qos.classifier:
+    supported: true
+    cards:
+      - huawei-vrp8.traffic-classifier
+  qos.classifier.description:
+    supported: true
+    cards:
+      - huawei-vrp8.description~14
+  qos.classifier.match:
+    supported: true
+    cards:
+      - huawei-vrp8.if-match-8021p
+      - huawei-vrp8.if-match-acl.1
+      - huawei-vrp8.if-match-any.2
+      - huawei-vrp8.if-match-dscp.2
+      - huawei-vrp8.if-match-ip-precedence.1
+      - huawei-vrp8.if-match-mpls-exp
+  qos.classifier.match.acl:
+    supported: true
+    cards:
+      - huawei-vrp8.if-match-acl.1
+  qos.classifier.operator:
+    manual: true
+    supported: true
+    default: or
+    source: 命令参考 traffic classifier：不指定 operator 时规则之间为“或”
+    verified: doc
+    cards:
+      - huawei-vrp8.traffic-classifier
+  qos.flow_queue:
+    supported: true
+    cards:
+      - huawei-vrp8.flow-queue.1
+  qos.flow_queue.queue:
+    supported: true
+    cards:
+      - huawei-vrp8.queue.1
+      - huawei-vrp8.queue.2
+      - huawei-vrp8.queue.3
+  qos.flow_queue.queue.schedule:
+    supported: true
+    cards:
+      - huawei-vrp8.queue.1
+      - huawei-vrp8.queue.2
+      - huawei-vrp8.queue.3
+  qos.flow_queue.queue.shaping:
+    supported: true
+    cards:
+      - huawei-vrp8.queue.1
+      - huawei-vrp8.queue.2
+      - huawei-vrp8.queue.3
+  qos.flow_queue.queue.shaping_pct:
+    supported: true
+    cards:
+      - huawei-vrp8.queue.1
+      - huawei-vrp8.queue.2
+      - huawei-vrp8.queue.3
+  qos.flow_queue.queue.weight:
+    supported: true
+    cards:
+      - huawei-vrp8.queue.1
+      - huawei-vrp8.queue.2
+      - huawei-vrp8.queue.3
+  qos.flow_queue.queue.wred:
+    supported: true
+    cards:
+      - huawei-vrp8.queue.1
+      - huawei-vrp8.queue.2
+      - huawei-vrp8.queue.3
+  qos.flow_wred:
+    supported: true
+    cards:
+      - huawei-vrp8.flow-wred
+  qos.flow_wred.color:
+    supported: true
+    cards:
+      - huawei-vrp8.color-low-limit-high-limit@flow-wred
+  qos.flow_wred.color.discard_pct:
+    supported: true
+    cards:
+      - huawei-vrp8.color-low-limit-high-limit@flow-wred
+  qos.flow_wred.color.high_limit:
+    supported: true
+    cards:
+      - huawei-vrp8.color-low-limit-high-limit@flow-wred
+  qos.flow_wred.color.low_limit:
+    supported: true
+    cards:
+      - huawei-vrp8.color-low-limit-high-limit@flow-wred
+  qos.flow_wred.queue_depth:
+    supported: true
+    cards:
+      - huawei-vrp8.queue-depth
+  qos.policy:
+    supported: true
+    cards:
+      - huawei-vrp8.traffic-policy
+  qos.policy.rule:
+    supported: true
+    cards:
+      - huawei-vrp8.classifier-behavior
+  qos.policy.rule.behavior:
+    supported: true
+    cards:
+      - huawei-vrp8.classifier-behavior
+  qos.policy.rule.classifier:
+    supported: true
+    cards:
+      - huawei-vrp8.classifier-behavior
+  qos.policy.rule.precedence:
+    supported: true
+    cards:
+      - huawei-vrp8.classifier-behavior
+  qos.policy.share_mode:
+    manual: true
+    supported: true
+    default: true
+    source: 命令参考 share-mode：缺省共享策略属性
+    verified: doc
+    cards:
+      - huawei-vrp8.share-mode
+  qos.policy.statistics:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 statistics enable（流策略视图）：缺省不统计
+    verified: doc
+    cards:
+      - huawei-vrp8.statistics-enable
+  qos.port_wred:
+    supported: true
+    cards:
+      - huawei-vrp8.port-wred
+  qos.port_wred.color:
+    supported: true
+    cards:
+      - huawei-vrp8.color-low-limit-high-limit@port-wred
+  qos.port_wred.color.discard_pct:
+    supported: true
+    cards:
+      - huawei-vrp8.color-low-limit-high-limit@port-wred
+  qos.port_wred.color.high_limit:
+    supported: true
+    cards:
+      - huawei-vrp8.color-low-limit-high-limit@port-wred
+  qos.port_wred.color.low_limit:
+    supported: true
+    cards:
+      - huawei-vrp8.color-low-limit-high-limit@port-wred
+  qos.port_wred.queue_depth:
+    supported: true
+    cards:
+      - huawei-vrp8.queue-depth~2
+  qos.profile:
+    supported: true
+    cards:
+      - huawei-vrp8.qos-profile.1
+  qos.profile.user_queue:
+    supported: true
+    cards:
+      - huawei-vrp8.user-queue.1
+      - huawei-vrp8.user-queue.2
+  qos.profile.user_queue.cir:
+    supported: true
+    cards:
+      - huawei-vrp8.user-queue.1
+      - huawei-vrp8.user-queue.2
+  qos.profile.user_queue.cir_pct:
+    supported: true
+    cards:
+      - huawei-vrp8.user-queue.1
+      - huawei-vrp8.user-queue.2
+  qos.profile.user_queue.flow_queue:
+    supported: true
+    cards:
+      - huawei-vrp8.user-queue.1
+      - huawei-vrp8.user-queue.2
+  qos.profile.user_queue.pir:
+    supported: true
+    cards:
+      - huawei-vrp8.user-queue.1
+      - huawei-vrp8.user-queue.2
+  qos.profile.user_queue.pir_pct:
+    supported: true
+    cards:
+      - huawei-vrp8.user-queue.1
+      - huawei-vrp8.user-queue.2
   rp.community_list:
     supported: true
     cards:
@@ -1802,6 +2809,38 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.ip-ip-prefix
+  sr.global:
+    supported: true
+    cards:
+      - huawei-vrp8.segment-routing
+  sr.global.srlb_begin:
+    supported: true
+    cards:
+      - huawei-vrp8.local-block
+  sr.global.srlb_end:
+    supported: true
+    cards:
+      - huawei-vrp8.local-block
+  sr.global.tunnel_prefer:
+    supported: true
+    cards:
+      - huawei-vrp8.tunnel-prefer-segment-routing
+  sr.prefix_sid_map:
+    supported: true
+    cards:
+      - huawei-vrp8.mapping-server-prefix-sid-mapping
+  sr.prefix_sid_map.index:
+    supported: true
+    cards:
+      - huawei-vrp8.mapping-server-prefix-sid-mapping
+  sr.prefix_sid_map.mapping_server:
+    supported: true
+    cards:
+      - huawei-vrp8.mapping-server-prefix-sid-mapping
+  sr.prefix_sid_map.range:
+    supported: true
+    cards:
+      - huawei-vrp8.mapping-server-prefix-sid-mapping
   static.route:
     supported: true
     cards:
@@ -2077,3 +3116,15 @@ entries:
     supported: true
     cards:
       - huawei-vrp8.description~2
+  vrrp.global:
+    supported: true
+    cards:
+      - huawei-vrp8.vrrp-version
+  vrrp.global.version:
+    manual: true
+    supported: true
+    default: v2
+    source: 命令参考 vrrp version：缺省 VRRPv2
+    verified: doc
+    cards:
+      - huawei-vrp8.vrrp-version

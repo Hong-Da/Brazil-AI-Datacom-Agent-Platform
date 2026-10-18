@@ -147,11 +147,66 @@ def full_kb_root(tmp_root: Path) -> Path:
 
 
 def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
-    """用例的准备方式：fresh / configured / fresh-fullkb / configured-fullkb。"""
-    if setup and setup.endswith("fullkb"):
+    """用例的准备方式：fresh / configured / fresh-fullkb / configured-fullkb / configured-fullkb-history / configured-users。"""
+    if setup and "fullkb" in setup:
         request.getfixturevalue("full_kb_root")
     if setup and setup.startswith("configured"):
         request.getfixturevalue("configured_root")
+    if setup and setup.endswith("-history"):
+        request.getfixturevalue("history_root")
+    if setup and setup.endswith("-users"):
+        request.getfixturevalue("users_root")
+    if setup and setup.endswith("-checkproj"):
+        request.getfixturevalue("checkproj_root")
+
+
+HISTORY_DEVICE = "ATN-CHANGE-01"
+
+
+@pytest.fixture
+def history_root(configured_root: Path) -> Path:
+    """版本历史用例：设备 ATN-CHANGE-01 导入三次——基准、内容相同的重复导入（不存新快照）、改了描述与 MTU 的版本。"""
+    from lmesh.core import config, importer, kbservice, store
+
+    settings = config.load()
+    store.upgrade(settings.database_url)
+    base = (SAMPLES / "change" / "atn-base.cfg").read_text(encoding="utf-8")
+    changed = base.replace("UPLINK-TO-AGG", "UPLINK-TO-AGG-01").replace(" mtu 9000", " mtu 9216")
+    kb_root = kbservice.runtime_root(settings)
+    for name, text in (("v1.cfg", base), ("v1-again.cfg", base), ("v2.cfg", changed)):
+        importer.import_sources([(name, text.encode())], settings.database_url, "basic", kb_root, actor="tester")
+    return configured_root
+
+
+@pytest.fixture
+def checkproj_root(history_root: Path) -> Path:
+    """配置检查项目用例（REQ-031）：在版本历史的准备之上建项目 1（基线 ATN-CHANGE-01，跟随最新版本），
+    脚本 1 是有顺序错误的变更脚本、脚本 2 是完整配置（各有一条创建时的修订）。"""
+    from lmesh.core import checkproj, config
+
+    url = config.load().database_url
+    me = checkproj.Actor(None, True, "tester")
+    p = checkproj.create_project(url, me, {"name": "割接前检查", "device_id": 1})
+    scripts = INPUTS / "scripts"
+    for name, kind, f in (("绑定 VPN", "change", "atn-change-order.txt"), ("完整配置", "full", "atn-full.cfg")):
+        content = (scripts / f).read_text(encoding="utf-8")
+        checkproj.create_script(url, me, p["id"], {"name": name, "kind": kind, "content": content})
+    return history_root
+
+
+# 账号用例（REQ-030）：管理员 admin 与普通用户 alice
+TEST_USERS = {"admin": ("Admin-pass-1", "admin"), "alice": ("Alice-pass-1", "user")}
+
+
+@pytest.fixture
+def users_root(configured_root: Path) -> Path:
+    from lmesh.core import config, store, users
+
+    url = config.load().database_url
+    store.upgrade(url)
+    for name, (pw, role) in TEST_USERS.items():
+        users.create_user(url, name, pw, role)
+    return configured_root
 
 
 @pytest.fixture
@@ -159,7 +214,7 @@ def configured_root(tmp_root: Path) -> Path:
     """已完成首次配置的临时项目（SQLite、固定令牌）。"""
     from lmesh.core import setup
 
-    setup.apply({"security.api_token": TEST_TOKEN, "server.port": 9000}, "zh-CN", check_port=False)
+    setup.apply({"security.api_token": TEST_TOKEN, "server.port": 9090}, "zh-CN", check_port=False)
     return tmp_root
 
 

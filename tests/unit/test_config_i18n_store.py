@@ -16,7 +16,7 @@ pytestmark = pytest.mark.unit
 def test_defaults_without_file(tmp_root: Path) -> None:
     s = config.load()
     assert s.get("server.host") == "0.0.0.0"
-    assert s.get("server.port") == 9000
+    assert s.get("server.port") == 9090
     assert s.sources["server.port"] == "default"
     assert s.database_url.endswith("/data/lmesh.db")
 
@@ -33,7 +33,7 @@ def test_priority_env_over_file(tmp_root: Path, monkeypatch: pytest.MonkeyPatch)
 def test_invalid_file_value_falls_back(tmp_root: Path) -> None:
     config.config_path().write_text('[server]\nport = "abc"\n', encoding="utf-8")
     s = config.load()
-    assert s.get("server.port") == 9000 and s.sources["server.port"] == "default(invalid)"
+    assert s.get("server.port") == 9090 and s.sources["server.port"] == "default(invalid)"
 
 
 @pytest.mark.parametrize(
@@ -70,7 +70,7 @@ def test_written_file_has_comments_in_language(tmp_root: Path) -> None:
     config.write({}, lang="pt-BR")
     text = config.config_path().read_text(encoding="utf-8")
     assert "Endereço de escuta" in text and "[server]" in text
-    assert config.load().get("server.port") == 9000
+    assert config.load().get("server.port") == 9090
 
 
 def test_example_is_up_to_date() -> None:

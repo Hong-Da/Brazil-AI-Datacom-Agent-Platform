@@ -1,0 +1,4892 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: evpn
+cards:
+  - id: huawei-vrp8.advertise-suppressed-detail-route
+    syntax: advertise suppressed-detail-route
+    view: evpn-global
+    undo: undo advertise suppressed-detail-route
+    default: By default, a device does not advertise locally suppressed specific routes to BGP EVPN peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: advertise suppressed-detail-route(Global EVPN configuration view)
+      line: 316
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.advertise-vxlan-tunnel-mac
+    syntax: advertise vxlan-tunnel mac
+    view: evpn-global
+    undo: undo advertise vxlan-tunnel mac
+    default: By default, EVPN advertises the MAC routes on the static VXLAN tunnel side to the BGP EVPN peers on the VXLAN EVPN side, instead of the BGP EVPN peers on the MPLS EVPN side.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: advertise vxlan-tunnel mac
+      line: 372
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.advertise-community-gshut.1~5
+    syntax: advertise-community-gshut
+    view: bgp-af-evpn
+    undo: undo advertise-community-gshut
+    default: By default, a device is disabled from advertising the g-shut community attribute.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: advertise-community-gshut(BGP-EVPN address family view)
+      line: 428
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.advertise-community-gshut.2~5
+    syntax: advertise-community-gshut { ibgp | ebgp }
+    view: bgp-af-evpn
+    undo: undo advertise-community-gshut { ibgp | ebgp }
+    default: By default, a device is disabled from advertising the g-shut community attribute.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: advertise-community-gshut(BGP-EVPN address family view)
+      line: 428
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.anycast-gateway-enable
+    syntax: anycast-gateway enable
+    view: interface
+    undo: undo anycast-gateway enable
+    default: By default, the anycast distributed gateway function is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: anycast-gateway enable
+      line: 488
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-label-per-nexthop~2
+    syntax: apply-label per-nexthop
+    view: bgp-af-evpn
+    undo: undo apply-label per-nexthop
+    default: By default, one-label-per-next-hop label distribution is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: apply-label per-nexthop
+      line: 551
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.auto-frr~5
+    syntax: auto-frr
+    view: bgp-af-evpn
+    undo: undo auto-frr
+    default: By default, BGP Auto FRR is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: auto-frr (BGP-EVPN address family view)
+      line: 683
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bestroute-add-path~2
+    syntax: bestroute add-path path-number <path-number>
+    view: bgp-af-evpn
+    undo: undo bestroute add-path [ path-number <path-number> ]
+    params:
+      path-number:
+        type: integer
+        range:
+          - 2
+          - 64
+    default: By default, BGP Add-Path is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: bestroute add-path (BGP-EVPN address family view)
+      line: 751
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bestroute-igp-metric-ignore~5
+    syntax: bestroute igp-metric-ignore
+    view: bgp-af-evpn
+    undo: undo bestroute igp-metric-ignore
+    default: By default, BGP uses the IGP cost as one of route selection rules.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: bestroute igp-metric-ignore (BGP-EVPN address family view)
+      line: 818
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bestroute-nexthop-priority
+    syntax: bestroute nexthop-priority { ipv4 | ipv6 } [ high-level ]
+    view: evpn-instance
+    undo: undo bestroute nexthop-priority { ipv4 | ipv6 } [ high-level ]
+    default: By default, an EVPN instance does not compare next hop types when selecting the optimal route.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: bestroute nexthop-priority (BD-EVPN instance view/VPWS-EVPN instance view)
+      line: 877
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bestroute-nexthop-priority-high-level~2
+    syntax: bestroute nexthop-priority { ipv4 | ipv6 } high-level
+    view: evpn-global
+    undo: undo bestroute nexthop-priority { ipv4 | ipv6 } high-level
+    default: By default, an EVPN instance does not compare next hop types when selecting the optimal route.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: bestroute nexthop-priority high-level (Global EVPN configuration view)
+      line: 951
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bestroute-nexthop-recursive-priority-srv6-te-policy~2
+    syntax: bestroute nexthop-recursive-priority srv6-te-policy
+    view: bgp-af-evpn
+    undo: undo bestroute nexthop-recursive-priority srv6-te-policy
+    default: By default, EVPN does not compare the types of SRv6 tunnels (SRv6 TE Policy, SRv6 BE, and common IPv6 next hop) to which route next hops recurse when selecting the optimal routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: bestroute nexthop-recursive-priority srv6-te-policy (BGP-EVPN address family view)
+      line: 1018
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bestroute-nexthop-resolved~2
+    syntax: bestroute nexthop-resolved { ip | tunnel | none }
+    view: bgp-af-evpn
+    undo: undo bestroute nexthop-resolved [ none ]
+    default: By default, a device allows BGP EVPN routes to participate in route selection only if they recurse to IP addresses.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: bestroute nexthop-resolved (BGP-EVPN address family view)
+      line: 1075
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bestroute-nexthop-resolved-aigp~3
+    syntax: bestroute nexthop-resolved aigp
+    view: bgp-af-evpn
+    undo: undo bestroute nexthop-resolved aigp
+    default: By default, public EVPN routes do not participate in route selection using the AIGP attribute of the BGP LSP through which they are transmitted.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: bestroute nexthop-resolved aigp (BGP-EVPN address family view)
+      line: 1142
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bestroute-nexthop-resolved-aigp~2
+    syntax: bestroute nexthop-resolved aigp
+    view: evpn-instance
+    undo: undo bestroute nexthop-resolved aigp
+    default: By default, EVPN routes do not participate in route selection using the AIGP attribute of the BGP LSP through which they are transmitted.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: bestroute nexthop-resolved aigp(EVPN instance view)
+      line: 1197
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-detect~2
+    syntax: bfd detect [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> [ track-interface ]
+    view: evpl
+    undo: undo bfd detect { [ detect-multiplier | min-rx-interval | min-tx-interval ] &<1-9> | [ detect-multiplier <multiplier> | min-rx-interval <rx-interval> | min-tx-interval <tx-interval> ] &<1-9> } [ track-interface ]
+    params:
+      multiplier:
+        type: integer
+        range:
+          - 3
+          - 50
+      rx-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+      tx-interval:
+        type: integer
+        range:
+          - 3
+          - 1000
+    default: By default, dynamic BFD for EVPN VPWS over SRv6 is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: bfd detect
+      line: 1263
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bypass-vxlan.1
+    syntax: bypass-vxlan enable
+    view: evpn-instance
+    undo: undo bypass-vxlan enable
+    default: By default, if the inter-chassis VXLAN function is enabled both in the global EVPN view and in the EVPN instance view, the configuration in the global EVPN view takes effect.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: bypass-vxlan (BD-EVPN instance view)
+      line: 1579
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bypass-vxlan.2
+    syntax: bypass-vxlan disable
+    view: evpn-instance
+    undo: undo bypass-vxlan disable
+    default: By default, if the inter-chassis VXLAN function is enabled both in the global EVPN view and in the EVPN instance view, the configuration in the global EVPN view takes effect.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: bypass-vxlan (BD-EVPN instance view)
+      line: 1579
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bypass-vxlan-enable
+    syntax: bypass-vxlan enable
+    view: evpn-global
+    undo: undo bypass-vxlan enable
+    default: By default, this function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: bypass-vxlan enable
+      line: 1650
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ccc
+    syntax: ccc interface { <interface-name> | <acIfType> <acIfNum> } out-interface { <out-interface-name> | <outAcIfType> <outAcIfNum> } [ ignore-ac-state ]
+    view: evpl
+    undo: undo ccc interface { <interface-name> | <acIfType> <acIfNum> } out-interface { <out-interface-name> | <outAcIfType> <outAcIfNum> } [ ignore-ac-state ]
+    params:
+      interface-name:
+        type: word
+      acIfType:
+        type: word
+      acIfNum:
+        type: word
+      out-interface-name:
+        type: word
+      outAcIfType:
+        type: word
+      outAcIfNum:
+        type: word
+    default: By default, no local CCC connection is created in an EVPL instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: ccc (EVPL view)
+      line: 1706
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ccc-service-id
+    syntax: ccc service-id <serviceId> out-service-id <outServiceId>
+    view: evpl
+    undo: undo ccc service-id <serviceId> out-service-id <outServiceId>
+    params:
+      serviceId:
+        type: integer
+        range:
+          - 1
+          - 4294967294
+      outServiceId:
+        type: integer
+        range:
+          - 1
+          - 4294967294
+    default: By default, no service ID is specified for protocol packets in CCC EVPN VPWS scenarios.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: ccc service-id
+      line: 1790
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.control-word-enable~3
+    syntax: control-word enable
+    view: evpn-instance
+    undo: undo control-word enable
+    default: By default, EVPN control-word function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: control-word enable
+      line: 1867
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.instance.control_word: flag
+  - id: huawei-vrp8.control-word-enable~2
+    syntax: control-word enable
+    view: evpl
+    undo: undo control-word enable
+    default: By default, control word function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: control-word enable (EVPL view)
+      line: 1919
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening.1~4
+    syntax: dampening [ <half-life-reach> <reuse> <suppress> <ceiling> | [ route-policy <route-policy-name> ] ] &<1-9> [ update-standard ]
+    view: bgp-af-evpn
+    undo: undo dampening
+    params:
+      half-life-reach: &id001
+        type: integer
+        range:
+          - 1
+          - 45
+      reuse: &id002
+        type: integer
+        range:
+          - 1
+          - 20000
+      suppress: &id003
+        type: integer
+        range:
+          - 1
+          - 20000
+      ceiling: &id004
+        type: integer
+        range:
+          - 1001
+          - 20000
+      route-policy-name: &id005
+        type: word
+    default: By default, BGP route flapping suppression is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: dampening (BGP-EVPN address family view)
+      line: 1979
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening.2~4
+    syntax: dampening ibgp [ <half-life-reach> <reuse> <suppress> <ceiling> | [ route-policy <route-policy-name> ] ] &<1-9> [ update-standard ]
+    view: bgp-af-evpn
+    undo: undo dampening ibgp
+    params:
+      half-life-reach: *id001
+      reuse: *id002
+      suppress: *id003
+      ceiling: *id004
+      route-policy-name: *id005
+    default: By default, BGP route flapping suppression is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: dampening (BGP-EVPN address family view)
+      line: 1979
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening.3
+    syntax: dampening [ <half-life-reach> <reuse> <suppress> <ceiling> | [ route-filter <route-filter-name> ] ] &<1-9> [ update-standard ]
+    view: bgp-af-evpn
+    undo: undo dampening
+    params:
+      half-life-reach: *id001
+      reuse: *id002
+      suppress: *id003
+      ceiling: *id004
+      route-filter-name: &id006
+        type: word
+    default: By default, BGP route flapping suppression is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: dampening (BGP-EVPN address family view)
+      line: 1979
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dampening.4
+    syntax: dampening ibgp [ <half-life-reach> <reuse> <suppress> <ceiling> | [ route-filter <route-filter-name> ] ] &<1-9> [ update-standard ]
+    view: bgp-af-evpn
+    undo: undo dampening ibgp
+    params:
+      half-life-reach: *id001
+      reuse: *id002
+      suppress: *id003
+      ceiling: *id004
+      route-filter-name: *id006
+    default: By default, BGP route flapping suppression is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: dampening (BGP-EVPN address family view)
+      line: 1979
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dci-local-route-advertise-to-mpls
+    syntax: dci local-route advertise-to-mpls
+    view: evpn-global
+    undo: undo dci local-route advertise-to-mpls
+    default: By default, local EVPN routes carrying VXLAN attributes are advertised only to peers with VXLAN encapsulation configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: dci local-route advertise-to-mpls(Global EVPN configuration view)
+      line: 2079
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.default-color~2
+    syntax: default-color <color-value>
+    view: evpn-instance
+    undo: undo default-color <color-value>
+    params:
+      color-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, the default-color function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: default-color
+      line: 2141
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.description~17
+    syntax: description <description-information>
+    view: evpl
+    undo: undo description [ <description-information> ]
+    params:
+      description-information:
+        type: word
+    default: By default, no description is configured for an EVPL instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: description (EVPL instance view)
+      line: 2311
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.evpl.description: $description-information
+  - id: huawei-vrp8.description~18
+    syntax: description <description-information>
+    view: evpn-instance
+    undo: undo description
+    params:
+      description-information:
+        type: word
+    default: By default, no description is configured for an EVPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: description (EVPN instance view)
+      line: 2377
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.instance.description: $description-information
+  - id: huawei-vrp8.df-election-ac-influence-enable
+    syntax: df-election ac-influence enable
+    view: evpn-global
+    undo: undo df-election ac-influence enable
+    default: By default, the function that the AC status influences DF election is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: df-election ac-influence enable
+      line: 2574
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.df-election-extcommunity-check-enable
+    syntax: df-election { extcommunity-check | extcommunity-check-multi } enable
+    view: evpn-global
+    undo: undo df-election { extcommunity-check | extcommunity-check-multi } enable
+    default: By default, negotiation for designated forwarder (DF) election is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: df-election extcommunity-check enable
+      line: 2633
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.df-election-type-vlan
+    syntax: df-election type vlan
+    view: evpn-global
+    undo: undo df-election type vlan
+    default: By default, a device performs DF election based on interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: df-election type vlan
+      line: 2810
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.es-track-bfd
+    syntax: es track bfd <bfd-session-name>
+    view: interface
+    undo: undo es track bfd
+    params:
+      bfd-session-name:
+        type: word
+    default: By default, no BFD session is associated with an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: es track bfd
+      line: 7901
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.es-track-bfd~2
+    syntax: es track bfd <bfd-name>
+    view: evpl
+    undo: undo es track bfd
+    params:
+      bfd-name:
+        type: word
+    default: By default, an EVPL instance is not associated with a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: es track bfd (evpl view)
+      line: 7959
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.es-track-evpn-peer
+    syntax: es track evpn-peer <peer-address>
+    view: bridge-domain
+    undo: undo es track evpn-peer <peer-address>
+    params:
+      peer-address:
+        type: ipv4
+    default: By default, the function of monitoring the BGP EVPN peer status is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: es track evpn-peer (Bridge domain view)
+      line: 8030
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.es-track-evpn-peer~2
+    syntax: es track evpn-peer <peer-address>
+    view: interface
+    undo: undo es track evpn-peer <peer-address>
+    params:
+      peer-address:
+        type: ipv4
+    default: By default, the function of monitoring the BGP EVPN peer status is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: es track evpn-peer (Interface view)
+      line: 8104
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.esi
+    syntax: esi <esi>
+    view: bridge-domain
+    undo: undo esi <esi>
+    params:
+      esi:
+        type: integer
+    default: By default, no ESI is configured for BDs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: esi (Bridge domain view)
+      line: 8168
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.esi~2
+    syntax: esi <esi>
+    view: evpl
+    undo: undo esi <esi>
+    params:
+      esi:
+        type: integer
+    default: By default, no Ethernet link network segment ID is configured for an EVPL instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: esi (evpl view)
+      line: 8261
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.esi~3
+    syntax: esi <esi>
+    view: evpn-global
+    undo: undo esi <esi>
+    params:
+      esi:
+        type: integer
+    default: By default, no static ESI instance is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: esi (Global EVPN configuration view)
+      line: 8329
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.esi~4
+    syntax: esi <esi>
+    view: interface
+    undo: undo esi <esi>
+    params:
+      esi:
+        type: integer
+    default: By default, no ESI is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: esi (Interface view)
+      line: 8383
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.esi~5
+    syntax: esi <esi>
+    view: vsi-ldp-pw
+    undo: undo esi <esi>
+    params:
+      esi:
+        type: word
+    default: By default, no ESI is configured in the VSI-LDP-PW view.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: esi (VSI-LDP-PW view)
+      line: 8455
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.esi-dynamic
+    syntax: esi dynamic <esi-name>
+    view: interface
+    undo: undo esi dynamic <esi-name>
+    params:
+      esi-name:
+        type: word
+    default: By default, a dynamic ESI instance is not bound to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: esi dynamic
+      line: 8519
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.esi-dynamic-name
+    syntax: esi dynamic-name <esi-name>
+    view: evpn-global
+    undo: undo esi dynamic-name <esi-name>
+    params:
+      esi-name:
+        type: word
+    default: By default, no dynamic ESI instance is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: esi dynamic-name
+      line: 8582
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.etree-enable
+    syntax: etree enable
+    view: evpn-instance
+    undo: undo etree enable
+    default: By default, EVPN E-Tree is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: etree enable
+      line: 8640
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpl-instance
+    syntax: evpl instance <evpl-id>
+    view: interface
+    undo: undo evpl instance <evpl-id>
+    params:
+      evpl-id:
+        type: word
+    default: By default, no EVPL instance is bound to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpl instance (Interface view)
+      line: 8706
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.evpl: $evpl-id
+  - id: huawei-vrp8.evpl-instance.1
+    syntax: evpl instance <evpl-id>
+    view: system
+    enters_view: evpl
+    undo: undo evpl instance <evpl-id>
+    params:
+      evpl-id: &id007
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no EVPL instance is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpl instance (system view)
+      line: 8763
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.evpl: $evpl-id
+  - id: huawei-vrp8.evpl-instance.2
+    syntax: evpl instance <evpl-id> static-mode
+    view: system
+    enters_view: evpl
+    undo: undo evpl instance <evpl-id> static-mode
+    params:
+      evpl-id: *id007
+    default: By default, no EVPL instance is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpl instance (system view)
+      line: 8763
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.evpl: $evpl-id
+  - id: huawei-vrp8.evpl-instance-upe
+    syntax: evpl instance <instance-id> upe
+    view: bridge-domain
+    undo: undo evpl instance <instance-id> upe
+    params:
+      instance-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, an EVPL instance is not bound to any BD.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpl instance upe
+      line: 8833
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpl-track-bridge-domain
+    syntax: evpl track bridge-domain
+    view: evpl
+    undo: undo evpl track bridge-domain
+    default: By default, an EVPL instance is not associated with a BD.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpl track bridge-domain
+      line: 8912
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn
+    syntax: evpn
+    view: system
+    enters_view: evpn-global
+    undo: undo evpn
+    default: By default, the global EVPN configuration view is not created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn
+      line: 8976
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.global: _
+  - id: huawei-vrp8.evpn-binding-vpn-instance
+    syntax: evpn binding vpn-instance <vpn-instance-name>
+    view: evpl
+    undo: undo evpn binding vpn-instance <vpn-instance-name>
+    params:
+      vpn-instance-name:
+        type: word
+    default: By default, an EVPL instance is not bound to any EVPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn binding vpn-instance
+      line: 9032
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.evpl.instance: $vpn-instance-name
+  - id: huawei-vrp8.evpn-binding-vpn-instance.1
+    syntax: evpn binding vpn-instance <vpn-instance-name>
+    view: bridge-domain
+    undo: undo evpn binding vpn-instance <vpn-instance-name>
+    params:
+      vpn-instance-name: &id008
+        type: word
+    default: By default, an EVPN instance is not bound to any BD.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn binding vpn-instance (Bridge domain view)
+      line: 9094
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bridge_domain.evpn_instance: $vpn-instance-name
+  - id: huawei-vrp8.evpn-binding-vpn-instance.2
+    syntax: evpn binding vpn-instance <vpn-instance-name> bd-tag <bd-tag>
+    view: bridge-domain
+    undo: undo evpn binding vpn-instance <vpn-instance-name> bd-tag <bd-tag>
+    params:
+      vpn-instance-name: *id008
+      bd-tag:
+        type: integer
+        range:
+          - 1
+          - 16384
+    default: By default, an EVPN instance is not bound to any BD.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn binding vpn-instance (Bridge domain view)
+      line: 9094
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bridge_domain.evpn_instance: $vpn-instance-name
+  - id: huawei-vrp8.evpn-binding-vpn-instance~2
+    syntax: evpn binding vpn-instance <vpn-instance-name>
+    view: interface
+    undo: undo evpn binding vpn-instance <vpn-instance-name>
+    params:
+      vpn-instance-name:
+        type: word
+    default: By default, a PE's interface is a public network interface without being bound to any EVPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn binding vpn-instance (Interface view)
+      line: 9194
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.evpn_instance: $vpn-instance-name
+  - id: huawei-vrp8.evpn-df-result-spread-enable
+    syntax: evpn df-result spread enable
+    view: bridge-domain
+    undo: undo evpn df-result spread enable
+    default: By default, DF election result flooding is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn df-result spread enable
+      line: 9272
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-e-tree-leaf
+    syntax: evpn e-tree-leaf
+    view: interface
+    undo: undo evpn e-tree-leaf
+    default: By default, the leaf attribute is not set for an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn e-tree-leaf
+      line: 9348
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-e-tree-leaf~2
+    syntax: evpn e-tree-leaf
+    view: evpl
+    undo: undo evpn e-tree-leaf
+    default: By default, no leaf attribute is configured for an EVPL instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn e-tree-leaf (evpl view)
+      line: 9411
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-e-tree-leaf~3
+    syntax: evpn e-tree-leaf
+    view: vsi-ldp-pw
+    undo: undo evpn e-tree-leaf
+    default: By default, no leaf attributes are configured in the VSI-LDP-PW view.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn e-tree-leaf (VSI-LDP-PW view)
+      line: 9488
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-enhancement-port
+    syntax: evpn enhancement port <port-id>
+    view: system
+    undo: undo evpn enhancement port <port-id>
+    params:
+      port-id:
+        type: integer
+        range:
+          - 1025
+          - 65535
+    default: By default, no UDP port number is set for the PEs in active-active mode to negotiate the EVPN prune status.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn enhancement port
+      line: 9548
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-etree-discard-statistic-enable
+    syntax: evpn etree discard statistic enable
+    view: bridge-domain
+    undo: undo evpn etree discard statistic enable
+    default: By default, BD-based EVPN E-Tree packet drop statistics collection is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn etree discard statistic enable (Bridge domain view)
+      line: 9601
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-port-active
+    syntax: evpn port-active
+    view: interface
+    undo: undo evpn port-active
+    default: By default, port-level load balancing is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn port-active
+      line: 9711
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-qualify-compatible
+    syntax: evpn qualify-compatible
+    view: bridge-domain
+    undo: undo evpn qualify-compatible
+    default: By default, EVPN qualify compatibility is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn qualify-compatible
+      line: 9796
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-redundancy-mode-single-active
+    syntax: evpn redundancy-mode single-active
+    view: system
+    undo: undo evpn redundancy-mode single-active
+    default: By default, a device works in All-Active mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn redundancy-mode single-active
+      line: 9934
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-route-distinguisher-auto
+    syntax: evpn route-distinguisher auto <rd-ip>
+    view: system
+    undo: undo evpn route-distinguisher auto
+    params:
+      rd-ip:
+        type: ipv4
+    default: By default, RDs are not automatically allocated.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn route-distinguisher auto
+      line: 10056
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-source-address
+    syntax: evpn source-address <ip-address>
+    view: system
+    undo: undo evpn source-address <ip-address>
+    params:
+      ip-address:
+        type: ipv4
+    default: By default, no source address used to identify a PE is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn source-address(System view)
+      line: 10111
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.global{id=_}.source_address: $ip-address
+  - id: huawei-vrp8.evpn-srv6-next-header-field.1
+    syntax: evpn srv6 next-header-field 143
+    view: system
+    undo: undo evpn srv6 next-header-field 143
+    default: By default, EVPN Segment Routing IPv6 next header type field is 143.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn srv6 next-header-field
+      line: 10187
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-srv6-next-header-field.2
+    syntax: evpn srv6 next-header-field 59
+    view: system
+    undo: undo evpn srv6 next-header-field 59
+    default: By default, EVPN Segment Routing IPv6 next header type field is 143.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn srv6 next-header-field
+      line: 10187
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-stp-ring-id
+    syntax: evpn stp-ring-id <ring-id>
+    view: interface
+    undo: undo evpn stp-ring-id <ring-id>
+    params:
+      ring-id:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: By default, no ring-id of an interface is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn stp-ring-id
+      line: 10249
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-tunnel-id
+    syntax: evpn tunnel-id <tunnel-id-value>
+    view: evpn-global
+    undo: undo evpn tunnel-id <tunnel-id-value>
+    params:
+      tunnel-id-value:
+        type: word
+    default: By default, the Tunnel ID field in the PMSI attribute of an inclusive multicast route (Type 3 route) sent to an IPv6 peer is the source address of the local device.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn tunnel-id
+      line: 10316
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-umr-ignore-etree-ext
+    syntax: evpn umr-ignore-etree-ext
+    view: evpn-global
+    undo: undo evpn umr-ignore-etree-ext
+    default: By default, the E-Tree extended community attributes of UMR routes are not ignored.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn umr-ignore-etree-ext
+      line: 10370
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-vpn-instance.1
+    syntax: evpn vpn-instance <vpn-instance-name>
+    view: system
+    enters_view: evpn-instance
+    undo: undo evpn vpn-instance <vpn-instance-name> [ i-evpn | b-evpn | bd-mode | vpws ]
+    params:
+      vpn-instance-name: &id009
+        type: word
+    default: By default, no EVPN instance is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn vpn-instance
+      line: 10426
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.instance: $vpn-instance-name
+      evpn.instance.mode: kw:bd-mode|vpws:default
+  - id: huawei-vrp8.evpn-vpn-instance.2
+    syntax: evpn vpn-instance <vpn-instance-name> i-evpn
+    view: system
+    enters_view: evpn-instance
+    undo: undo evpn vpn-instance <vpn-instance-name> [ i-evpn | b-evpn | bd-mode | vpws ]
+    params:
+      vpn-instance-name: *id009
+    default: By default, no EVPN instance is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn vpn-instance
+      line: 10426
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-vpn-instance.3
+    syntax: evpn vpn-instance <vpn-instance-name> b-evpn
+    view: system
+    enters_view: evpn-instance
+    undo: undo evpn vpn-instance <vpn-instance-name> [ i-evpn | b-evpn | bd-mode | vpws ]
+    params:
+      vpn-instance-name: *id009
+    default: By default, no EVPN instance is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn vpn-instance
+      line: 10426
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-vpn-instance.4
+    syntax: evpn vpn-instance <vpn-instance-name> bd-mode
+    view: system
+    enters_view: evpn-instance
+    undo: undo evpn vpn-instance <vpn-instance-name> [ bd-mode | vpws ]
+    params:
+      vpn-instance-name: *id009
+    default: By default, no EVPN instance is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn vpn-instance
+      line: 10426
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.instance: $vpn-instance-name
+      evpn.instance.mode: kw:bd-mode|vpws:default
+  - id: huawei-vrp8.evpn-vpn-instance.5
+    syntax: evpn vpn-instance <vpn-instance-name> vpws
+    view: system
+    enters_view: evpn-instance
+    undo: undo evpn vpn-instance <vpn-instance-name> [ i-evpn | b-evpn | bd-mode | vpws ]
+    params:
+      vpn-instance-name: *id009
+    default: By default, no EVPN instance is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn vpn-instance
+      line: 10426
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.instance: $vpn-instance-name
+      evpn.instance.mode: kw:bd-mode|vpws:default
+  - id: huawei-vrp8.evpn-dci-support-ac-access
+    syntax: evpn-dci support ac-access
+    view: bridge-domain
+    undo: undo evpn-dci support ac-access
+    default: By default, the AC access function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn-dci support ac-access
+      line: 10561
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-route-origin-igp
+    syntax: evpn-route-origin igp
+    view: system
+    undo: undo evpn-route-origin igp
+    default: By default, the origin-igp function is enabled for EVPN routes, and the origin attribute carried by generated EVPN routes is igp.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn-route-origin igp
+      line: 10633
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-static-inclusive
+    syntax: evpn-static-inclusive <evpnSource> peer <peer-address> vpn-sid <sid> color <color-value>
+    view: bridge-domain
+    undo: undo evpn-static-inclusive <evpnSource> peer <peer-address> vpn-sid <sid> color <color-value>
+    params:
+      evpnSource:
+        type: ipv4
+      peer-address:
+        type: ipv4
+      sid:
+        type: word
+      color-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no EVPN static inclusive route is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn-static-inclusive (Bridge domain view)
+      line: 10691
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-static-mac
+    syntax: evpn-static-mac <mac-address> peer <peer-address> vpn-sid <sid> color <color-value>
+    view: bridge-domain
+    undo: undo evpn-static-mac <mac-address> peer <peer-address> vpn-sid <sid> color <color-value>
+    params:
+      mac-address:
+        type: word
+      peer-address:
+        type: ipv4
+      sid:
+        type: word
+      color-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no EVPN static MAC route is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn-static-mac (Bridge domain view)
+      line: 10782
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.evpn-vpws-ignore-ac-state
+    syntax: evpn-vpws ignore-ac-state
+    view: interface
+    undo: undo evpn-vpws ignore-ac-state
+    default: By default, the function to ignore the attachment circuit (AC) status on an interface is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: evpn-vpws ignore-ac-state
+      line: 10876
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.export-route-policy~3
+    syntax: export route-policy <policy-name>
+    view: evpn-instance
+    undo: undo export route-policy
+    params:
+      policy-name:
+        type: word
+    default: By default, an EVPN instance is not associated with any export routing policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: export route-policy (EVPN instance view)
+      line: 11018
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.filter-policy~5
+    syntax: filter-policy { <acl-number> | acl-name <acl-name> } { import | export }
+    view: evpn-instance
+    undo: undo filter-policy [ <acl-number> | acl-name <acl-name> ] { import | export }
+    params:
+      acl-number:
+        type: integer
+        range:
+          - 4000
+          - 4999
+      acl-name:
+        type: word
+    default: By default, an EVPN instance does not filter MAC routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: filter-policy (EVPN instance view)
+      line: 11231
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flow-label-srv6-evpn-hash-fields.1
+    syntax: flow-label srv6-evpn hash-fields l3
+    view: system
+    undo: undo flow-label srv6-evpn hash-fields
+    default: By default, the hash factor used to generate flow labels in SRv6 EVPN scenarios is l2, meaning the source and destination MAC addresses.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: flow-label srv6-evpn hash-fields
+      line: 11308
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flow-label-srv6-evpn-hash-fields.2
+    syntax: flow-label srv6-evpn hash-fields l4
+    view: system
+    undo: undo flow-label srv6-evpn hash-fields
+    default: By default, the hash factor used to generate flow labels in SRv6 EVPN scenarios is l2, meaning the source and destination MAC addresses.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: flow-label srv6-evpn hash-fields
+      line: 11308
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flow-label-static
+    syntax: flow-label static
+    view: evpn-instance
+    undo: undo flow-label static
+    default: By default, static flow label-based load balancing is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: flow-label static (BD-EVPN instance view)
+      line: 11377
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flow-label-static~2
+    syntax: flow-label static
+    view: evpl
+    undo: undo flow-label static
+    default: By default, static flow label-based load balancing is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: flow-label static (EVPL view)
+      line: 11437
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ignore-dynamic-esi
+    syntax: ignore dynamic-esi
+    view: interface
+    undo: undo ignore dynamic-esi
+    default: By default, an interface is not configured to ignore dynamic ESIs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: ignore dynamic-esi(Eth-Trunk interface view)
+      line: 11506
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-route-policy~3
+    syntax: import route-policy <policy-name>
+    view: evpn-instance
+    undo: undo import route-policy
+    params:
+      policy-name:
+        type: word
+    default: By default, an EVPN instance is not associated with any import routing policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: import route-policy (EVPN instance view)
+      line: 11628
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-rib-mpls.1
+    syntax: import-rib { vpnv4 | vpnv6 } mpls [ route-policy <route-policy-name> ]
+    view: bgp-af-evpn
+    undo: undo import-rib { vpnv4 | vpnv6 } mpls [ route-policy <route-policy-name> ]
+    params:
+      route-policy-name:
+        type: word
+    default: By default, the EVPN address family is disabled from importing routes from the VPNv4 or VPNv6 address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: import-rib mpls(BGP-EVPN address family view)
+      line: 11770
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.import-rib-mpls.2
+    syntax: import-rib { vpnv4 | vpnv6 } mpls route-filter <route-filter-name>
+    view: bgp-af-evpn
+    undo: undo import-rib { vpnv4 | vpnv6 } mpls route-filter <route-filter-name>
+    params:
+      route-filter-name:
+        type: word
+    default: By default, the EVPN address family is disabled from importing routes from the VPNv4 or VPNv6 address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: import-rib mpls(BGP-EVPN address family view)
+      line: 11770
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.inclusive-provider-tunnel~2
+    syntax: inclusive-provider-tunnel
+    view: evpn-instance
+    undo: undo inclusive-provider-tunnel
+    default: By default, the EVI I-PMSI view is not created.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: inclusive-provider-tunnel (BD-EVPN instance view)
+      line: 11843
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.inclusive-route-pmsi-compatible
+    syntax: inclusive-route pmsi-compatible
+    view: bgp-af-evpn
+    undo: undo inclusive-route pmsi-compatible
+    default: By default, compatibility with the PMSI attribute of inclusive routes is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: inclusive-route pmsi-compatible
+      line: 11910
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.interworking-srv6-mpls-evpn-ip-prefix
+    syntax: interworking srv6-mpls evpn ip-prefix
+    view: bgp-af-evpn
+    undo: undo interworking srv6-mpls evpn ip-prefix
+    default: By default, interworking between EVPN L3VPN over SRv6 and EVPN L3VPN over MPLS in Option B mode is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: interworking srv6-mpls evpn ip-prefix
+      line: 11963
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.irb-reoriginated-compatible
+    syntax: irb-reoriginated compatible
+    view: evpn-global
+    undo: undo irb-reoriginated compatible
+    default: By default, a device is not enabled to re-encapsulate IRB routes into IP prefix routes or ARP routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: irb-reoriginated compatible(Global EVPN configuration view)
+      line: 12144
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isolate-spoken
+    syntax: isolate spoken
+    view: evpn-instance
+    undo: undo isolate spoken
+    default: By default, forwarding isolation among AC interfaces in an EVPN instance is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: isolate spoken (EVPN instance view)
+      line: 12196
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.l2vpn-family-evpn
+    syntax: l2vpn-family evpn
+    view: bgp
+    enters_view: bgp-af-evpn
+    undo: undo l2vpn-family evpn
+    default: By default, the BGP-EVPN address family is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: l2vpn-family evpn
+      line: 12256
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af:
+        afi: evpn
+        vrf: ''
+  - id: huawei-vrp8.label-free-delay~3
+    syntax: label-free delay <delay-value>
+    view: bgp-af-evpn
+    undo: undo label-free delay <delay-value>
+    params:
+      delay-value:
+        type: integer
+        range:
+          - 0
+          - 180
+    default: By default, the delay in releasing labels is 5 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: label-free delay (BGP-EVPN address family view)
+      line: 12313
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.load-balancing~5
+    syntax: load-balancing { as-path-ignore | as-path-relax }
+    view: bgp-af-evpn
+    undo: undo load-balancing { as-path-ignore | as-path-relax }
+    default: By default, a router compares the AS_Path attributes of the routes to be used for load balancing.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: load-balancing (BGP-EVPN address family view)
+      line: 12432
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.load-balancing-eibgp~2
+    syntax: load-balancing { eibgp | igp-metric-ignore }
+    view: bgp-af-evpn
+    undo: undo load-balancing { eibgp | igp-metric-ignore }
+    default: By default, load balancing can be performed only among IBGP or EBGP routes, and the IGP metrics of the routes to be used for load balancing are compared.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: load-balancing eibgp (BGP-EVPN address family view)
+      line: 12513
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.load-balancing-ignore-esi
+    syntax: load-balancing ignore-esi
+    view: evpl
+    undo: undo load-balancing ignore-esi
+    default: By default, a device checks ESI validity when an EVPL instance load balancing is performed.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: load-balancing ignore-esi
+      line: 12588
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-mac-only-route-no-generate
+    syntax: local mac-only-route no-generate
+    view: evpn-instance
+    undo: undo local mac-only-route no-generate
+    default: By default, EVPN MAC routes are generated when both MAC address entries and ARP/ND entries contain local MAC addresses.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: local mac-only-route no-generate
+      line: 12640
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-remote-frr
+    syntax: local-remote frr { enable | disable }
+    view: evpn-instance
+    undo: undo local-remote frr { enable | disable }
+    default: By default, an EVPN instance inherits the global local-remote FRR configuration.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: local-remote frr (EVPN instance view)
+      line: 12815
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-remote-frr-enable
+    syntax: local-remote frr enable
+    view: evpn-global
+    undo: undo local-remote frr enable
+    default: By default, global local-remote FRR for MAC routes is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: local-remote frr enable (global EVPN configuration view)
+      line: 12881
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-remote-vpws-frr-enable
+    syntax: local-remote vpws-frr enable
+    view: evpn-global
+    undo: undo local-remote vpws-frr enable
+    default: By default, local-remote FRR is not configured for A-D routes in a VPWS EVPN scenario.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: local-remote vpws-frr enable
+      line: 12939
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-service-id-remote-service-id
+    syntax: local-service-id <local-service-id> remote-service-id <remote-service-id>
+    view: evpl
+    undo: undo local-service-id <local-service-id> remote-service-id <remote-service-id>
+    params:
+      local-service-id:
+        type: integer
+        range:
+          - 1
+          - 4294967294
+      remote-service-id:
+        type: integer
+        range:
+          - 1
+          - 4294967294
+    default: By default, local and remote service IDs are not assigned.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: local-service-id remote-service-id
+      line: 12991
+      version: V800R025C00SPC500
+      patched: 原文本端与对端业务 ID 用了同名参数 service-id，映射分不开；改成各自的参数
+    status: draft
+    maps:
+      evpn.evpl.local_service_id: $local-service-id
+      evpn.evpl.remote_service_id: $remote-service-id
+  - id: huawei-vrp8.mac-limit
+    syntax: mac limit <number> [ mac-unchanged | simply-alert ]
+    view: evpn-instance
+    undo: undo mac limit
+    params:
+      number:
+        type: integer
+        range:
+          - 1
+          - 131072
+    default: By default, no MAC address limit is set for an EVPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac limit
+      line: 13053
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-load-balancing
+    syntax: mac load-balancing
+    view: evpn-instance
+    undo: undo mac load-balancing
+    default: By default, MAC-based load balancing is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac load-balancing
+      line: 13125
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-threshold-alarm
+    syntax: mac threshold-alarm upper-limit <upper-limit-value> lower-limit <lower-limit-value>
+    view: evpn-instance
+    undo: undo mac threshold-alarm
+    params:
+      upper-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      lower-limit-value:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, the alarm threshold for MAC addresses is 80%, and the clear alarm threshold for MAC addresses is 70%.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac threshold-alarm
+      line: 13177
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-duplication.1
+    syntax: mac-duplication
+    view: evpn-instance
+    undo: undo mac-duplication disable
+    default: By default, MAC duplication function is enabled, the EVPN-MAC-duplication view is not displayed.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac-duplication
+      line: 13247
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-duplication.2
+    syntax: mac-duplication disable
+    view: evpn-instance
+    undo: undo mac-duplication disable
+    default: By default, MAC duplication function is enabled, the EVPN-MAC-duplication view is not displayed.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac-duplication
+      line: 13247
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-duplication
+    syntax: mac-duplication
+    view: evpn-global
+    undo: undo mac-duplication
+    default: By default, MAC duplication function is enabled, the EVPN-MAC-duplication view is not displayed.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac-duplication (Global EVPN configuration view)
+      line: 13399
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-flapping-alarm-enable
+    syntax: mac-flapping alarm enable
+    view: evpn-global
+    undo: undo mac-flapping alarm enable
+    default: By default, the global MAC address flapping alarm function is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac-flapping alarm enable (Global EVPN configuration view)
+      line: 13451
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-high-priority-trigger-route-policy
+    syntax: mac-high-priority trigger route-policy <policy-name>
+    view: evpn-instance
+    undo: undo mac-high-priority trigger route-policy { <policy-name> }
+    params:
+      policy-name:
+        type: word
+    default: By default, an EVPN is not associated with any route-policy that is used to increase the priority of matching MAC routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac-high-priority trigger route-policy
+      line: 13511
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-ip-route-generate-mac
+    syntax: mac-ip route generate-mac
+    view: evpn-instance
+    undo: undo mac-ip route generate-mac
+    default: By default, the function to generate MAC entries based on MAC/IP routes is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac-ip route generate-mac
+      line: 13586
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-keep-disable
+    syntax: mac-keep disable
+    view: evpn-instance
+    undo: undo mac-keep disable
+    default: By default, MAC addresses are retained when MAC routes are withdrawn.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac-keep disable
+      line: 13642
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-redirect-compatible
+    syntax: mac-redirect-compatible { enable | disable }
+    view: evpn-instance
+    undo: undo mac-redirect-compatible { enable | disable }
+    default: By default, MAC redirection is disabled for an EVPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac-redirect-compatible(BD-EVPN instance view)
+      line: 13698
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-redirect-compatible~2
+    syntax: mac-redirect-compatible enable
+    view: evpn-global
+    undo: undo mac-redirect-compatible enable
+    default: By default, MAC redirection is disabled globally.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac-redirect-compatible(Global EVPN configuration view)
+      line: 13763
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mac-route-no-advertise
+    syntax: mac-route no-advertise
+    view: evpn-instance
+    undo: undo mac-route no-advertise
+    default: By default, local MAC routes can be advertised.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mac-route no-advertise
+      line: 13825
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.maximum-load-balancing-import-rib~2
+    syntax: maximum load-balancing import-rib <number>
+    view: bgp-af-evpn
+    undo: undo maximum load-balancing import-rib [ <number> ]
+    params:
+      number:
+        type: word
+    default: By default, when the optimal route is an imported route, the maximum number of imported routes that can be used for load balancing is 1.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: maximum load-balancing import-rib(BGP-EVPN address family view)
+      line: 13877
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.maximum-load-balancing-interworking-rib-evpn-ip-prefix
+    syntax: maximum load-balancing interworking-rib evpn ip-prefix <number>
+    view: bgp-af-evpn
+    undo: undo maximum load-balancing interworking-rib evpn ip-prefix [ <number> ]
+    params:
+      number:
+        type: word
+    default: By default, load balancing is not performed among optimal routes that are EVPN Option B routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: maximum load-balancing interworking-rib evpn ip-prefix
+      line: 13941
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.migration-rollback-l2vpn
+    syntax: migration rollback l2vpn
+    view: evpl
+    undo: undo migration rollback l2vpn
+    default: By default, forcible rollback from EVPN VPWS to traditional VPWS is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: migration rollback l2vpn
+      line: 14006
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mtu-match-ignore
+    syntax: mtu-match ignore
+    view: evpl
+    undo: undo mtu-match ignore
+    default: By default, an EVPL instance cannot ignore the MTU matching check.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: mtu-match ignore
+      line: 14075
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.nexthop-recursive-lookup-bit-error-detection.1~2
+    syntax: nexthop recursive-lookup bit-error-detection { med + <med-adjust-value> | local-preference - <localpref-adjust-value> } &<1-9> [ route-policy <route-policy-name> ]
+    view: bgp-af-evpn
+    undo: undo nexthop recursive-lookup bit-error-detection
+    params:
+      med-adjust-value: &id010
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      localpref-adjust-value: &id011
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      route-policy-name:
+        type: word
+    default: By default, bit error events are not associated with the adjustment of VPN route local preference or MED values.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: nexthop recursive-lookup bit-error-detection (BGP-EVPN address family view)
+      line: 14280
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.nexthop-recursive-lookup-bit-error-detection.2~2
+    syntax: nexthop recursive-lookup bit-error-detection { med + <med-adjust-value> | local-preference - <localpref-adjust-value> } &<1-9> [ route-filter <route-filter-name> ]
+    view: bgp-af-evpn
+    undo: undo nexthop recursive-lookup bit-error-detection
+    params:
+      med-adjust-value: *id010
+      localpref-adjust-value: *id011
+      route-filter-name:
+        type: word
+    default: By default, bit error events are not associated with the adjustment of VPN route local preference or MED values.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: nexthop recursive-lookup bit-error-detection (BGP-EVPN address family view)
+      line: 14280
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.nexthop-recursive-lookup-default-route~4
+    syntax: nexthop recursive-lookup default-route
+    view: bgp-af-evpn
+    undo: undo nexthop recursive-lookup default-route
+    default: By default, next hop-based recursion to the default route is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: nexthop recursive-lookup default-route (BGP-EVPN address family view)
+      line: 14363
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.nexthop-recursive-lookup-delay.1~5
+    syntax: nexthop recursive-lookup delay [ <delay-time> ]
+    view: bgp-af-evpn
+    undo: undo nexthop recursive-lookup delay
+    params:
+      delay-time:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, the delay in responding to non-critical next hop recursion changes is 10s, and the device does not delay responding to critical next hop recursion changes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: nexthop recursive-lookup delay (BGP-EVPN address family view)
+      line: 14416
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.nexthop-recursive-lookup-delay.2~5
+    syntax: nexthop recursive-lookup non-critical-event delay [ <nonCrit-delay-time> ]
+    view: bgp-af-evpn
+    undo: undo nexthop recursive-lookup non-critical-event delay
+    params:
+      nonCrit-delay-time:
+        type: integer
+        range:
+          - 0
+          - 100
+    default: By default, the delay in responding to non-critical next hop recursion changes is 10s, and the device does not delay responding to critical next hop recursion changes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: nexthop recursive-lookup delay (BGP-EVPN address family view)
+      line: 14416
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.nexthop-recursive-lookup-restrain-disable~5
+    syntax: nexthop recursive-lookup restrain disable
+    view: evpn-instance
+    undo: undo nexthop recursive-lookup restrain disable
+    default: By default, EVPN instance recursion suppression in case of next hop flapping is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: nexthop recursive-lookup restrain disable (EVPN instance view)
+      line: 14505
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.nexthop-recursive-lookup-restrain-disable~6
+    syntax: nexthop recursive-lookup restrain disable
+    view: bgp-af-evpn
+    undo: undo nexthop recursive-lookup restrain disable
+    default: By default, BGP recursion suppression in case of next hop flapping is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: nexthop recursive-lookup restrain disable (BGP-EVPN address family view)
+      line: 14585
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.nexthop-recursive-lookup-restrain-disable~7
+    syntax: nexthop recursive-lookup restrain disable
+    view: evpn-global
+    undo: undo nexthop recursive-lookup restrain disable
+    default: By default, EVPN global recursion suppression in case of next hop flapping is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: nexthop recursive-lookup restrain disable (Global EVPN configuration view)
+      line: 14638
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.nexthop-recursive-lookup-route-filter~5
+    syntax: nexthop recursive-lookup route-filter <route-filter-name> [ include srv6-best-effort ]
+    view: bgp-af-evpn
+    undo: undo nexthop recursive-lookup route-filter <route-filter-name> [ include srv6-best-effort ]
+    params:
+      route-filter-name:
+        type: word
+    default: By default, route-filter-based next hop recursion is not configured for BGP EVPN routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: nexthop recursive-lookup route-filter (BGP-EVPN address family view)
+      line: 14694
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.nexthop-recursive-lookup-route-policy~5
+    syntax: nexthop recursive-lookup route-policy <route-policy-name> [ include srv6-best-effort ]
+    view: bgp-af-evpn
+    undo: undo nexthop recursive-lookup route-policy <route-policy-name> [ include srv6-best-effort ]
+    params:
+      route-policy-name:
+        type: word
+    default: By default, BGP EVPN next hop recursion based on a routing policy is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: nexthop recursive-lookup route-policy (BGP-EVPN address family view)
+      line: 14765
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.nexthop_policy: $route-policy-name
+  - id: huawei-vrp8.path-attribute-treat-auto-process~2
+    syntax: path-attribute-treat { discard | withdraw | treat-as-unknown } auto-process
+    view: bgp-af-evpn
+    undo: undo path-attribute-treat { discard | withdraw | treat-as-unknown } auto-process
+    default: By default, no processing mode is configured for BGP abnormal messages.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: path-attribute-treat auto-process(BGP-EVPN address family view)
+      line: 14894
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise.1
+    syntax: peer <ipv4-address> advertise { irb | arp }
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> advertise { irb | arp }
+    params:
+      ipv4-address: &id012
+        type: ipv4
+    default: By default, a device does not advertise ND, IRBv6, ARP or IRB routes to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise (BGP-EVPN address family view)
+      line: 14958
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise.2
+    syntax: peer <ipv4-address> advertise { irbv6 | nd }
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> advertise { irbv6 | nd }
+    params:
+      ipv4-address: *id012
+    default: By default, a device does not advertise ND, IRBv6, ARP or IRB routes to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise (BGP-EVPN address family view)
+      line: 14958
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise.1~2
+    syntax: peer <group-name> advertise { irb | arp }
+    view: bgp-af-evpn
+    undo: undo peer <group-name> advertise { irb | arp }
+    params:
+      group-name: &id013
+        type: word
+    default: By default, a device does not advertise ND, IRBv6, ARP or IRB routes to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise (BGP-EVPN address family view) (group)
+      line: 15031
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise.2~2
+    syntax: peer <group-name> advertise { irbv6 | nd }
+    view: bgp-af-evpn
+    undo: undo peer <group-name> advertise { irbv6 | nd }
+    params:
+      group-name: *id013
+    default: By default, a device does not advertise ND, IRBv6, ARP or IRB routes to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise (BGP-EVPN address family view) (group)
+      line: 15031
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise.1~3
+    syntax: peer <peerIpv6Addr> advertise { irb | arp }
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> advertise { irb | arp }
+    params:
+      peerIpv6Addr: &id014
+        type: word
+    default: By default, a device does not advertise ND, IRBv6, ARP or IRB routes to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise (BGP-EVPN address family view) (IPv6)
+      line: 15119
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise.2~3
+    syntax: peer <peerIpv6Addr> advertise { irbv6 | nd }
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> advertise { irbv6 | nd }
+    params:
+      peerIpv6Addr: *id014
+    default: By default, a device does not advertise ND, IRBv6, ARP or IRB routes to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise (BGP-EVPN address family view) (IPv6)
+      line: 15119
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-add-path.1
+    syntax: peer <ipv4-address> advertise add-path path-number <path-number>
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> advertise add-path
+    params:
+      ipv4-address:
+        type: ipv4
+      path-number: &id015
+        type: integer
+        range:
+          - 2
+          - 64
+    default: By default, the device sends only the optimal route to a BGP peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise add-path (BGP-EVPN address family view)
+      line: 15192
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-add-path.2
+    syntax: peer <ipv6-address> advertise add-path path-number <path-number>
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> advertise add-path
+    params:
+      ipv6-address:
+        type: word
+      path-number: *id015
+    default: By default, the device sends only the optimal route to a BGP peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise add-path (BGP-EVPN address family view)
+      line: 15192
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-add-path~4
+    syntax: peer <group-name> advertise add-path path-number <path-number>
+    view: bgp-af-evpn
+    undo: undo peer <group-name> advertise add-path
+    params:
+      group-name:
+        type: word
+      path-number:
+        type: integer
+        range:
+          - 2
+          - 64
+    default: By default, the device sends only the optimal route to a BGP peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise add-path (BGP-EVPN address family view) (group)
+      line: 15278
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-encap-type.1
+    syntax: peer <ipv4-address> advertise encap-type vxlan
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> advertise encap-type vxlan
+    params:
+      ipv4-address:
+        type: ipv4
+    default: By default, a device advertises EVPN routes that carry the MPLS encapsulation attribute to its peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise encap-type
+      line: 15354
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-encap-type.2
+    syntax: peer <ipv6-address> advertise encap-type srv6 [ advertise-srv6-locator ]
+    view: bgp-af-evpn
+    undo: undo peer <ipv6-address> advertise encap-type srv6 [ advertise-srv6-locator ]
+    params:
+      ipv6-address:
+        type: word
+    default: By default, a device advertises EVPN routes that carry the MPLS encapsulation attribute to its peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise encap-type
+      line: 15354
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-encap-type.1~2
+    syntax: peer <group-name> advertise encap-type vxlan
+    view: bgp-af-evpn
+    undo: undo peer <group-name> advertise encap-type vxlan
+    params:
+      group-name: &id016
+        type: word
+    default: By default, a device advertises EVPN routes that carry the MPLS encapsulation attribute to the peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise encap-type (group)
+      line: 15442
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-encap-type.2~2
+    syntax: peer <group-name> advertise encap-type srv6 [ advertise-srv6-locator ]
+    view: bgp-af-evpn
+    undo: undo peer <group-name> advertise encap-type srv6 [ advertise-srv6-locator ]
+    params:
+      group-name: *id016
+    default: By default, a device advertises EVPN routes that carry the MPLS encapsulation attribute to the peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise encap-type (group)
+      line: 15442
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-evpn-mac-route-detail-only.1
+    syntax: peer <peerIpv4Addr> advertise evpn mac-route detail-only
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> advertise evpn mac-route detail-only
+    params:
+      peerIpv4Addr: &id017
+        type: ipv4
+    default: By default, specific MAC routes and UMRs are advertised.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise evpn mac-route detail-only(BGP-EVPN address family view)
+      line: 15527
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-evpn-mac-route-detail-only.2
+    syntax: peer <peerIpv4Addr> advertise evpn mac-route detail-only disable
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> advertise evpn mac-route detail-only disable
+    params:
+      peerIpv4Addr: *id017
+    default: By default, specific MAC routes and UMRs are advertised.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise evpn mac-route detail-only(BGP-EVPN address family view)
+      line: 15527
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-evpn-mac-route-detail-only
+    syntax: peer <peerGroupName> advertise evpn mac-route detail-only
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> advertise evpn mac-route detail-only
+    params:
+      peerGroupName:
+        type: word
+    default: By default, specific MAC routes and UMRs are advertised.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise evpn mac-route detail-only(BGP-EVPN address family view)(group)
+      line: 15597
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-evpn-mac-route-detail-only.1~2
+    syntax: peer <peerIpv6Addr> advertise evpn mac-route detail-only
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> advertise evpn mac-route detail-only
+    params:
+      peerIpv6Addr: &id018
+        type: word
+    default: By default, specific MAC routes and UMRs are advertised.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise evpn mac-route detail-only(BGP-EVPN address family view)(ipv6)
+      line: 15662
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-evpn-mac-route-detail-only.2~2
+    syntax: peer <peerIpv6Addr> advertise evpn mac-route detail-only disable
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> advertise evpn mac-route detail-only disable
+    params:
+      peerIpv6Addr: *id018
+    default: By default, specific MAC routes and UMRs are advertised.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise evpn mac-route detail-only(BGP-EVPN address family view)(ipv6)
+      line: 15662
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.1
+    syntax: peer <peerIpv4Addr> advertise route-reoriginated { evpn { mac-ip | mac | ip } | vpnv4 }
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> advertise route-reoriginated { evpn { mac-ip | mac | ip } | vpnv4 }
+    params:
+      peerIpv4Addr: &id019
+        type: ipv4
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view)
+      line: 15732
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.2
+    syntax: peer <peerIpv4Addr> advertise route-reoriginated { evpn { mac-ipv6 | ipv6 } | vpnv6 }
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> advertise route-reoriginated { evpn { mac-ipv6 | ipv6 } | vpnv6 }
+    params:
+      peerIpv4Addr: *id019
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view)
+      line: 15732
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.3
+    syntax: peer <peerIpv4Addr> advertise route-reoriginated { evpn ip | vpnv4 }
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> advertise route-reoriginated { evpn ip | vpnv4 }
+    params:
+      peerIpv4Addr: *id019
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view)
+      line: 15732
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.4
+    syntax: peer <peerIpv4Addr> advertise route-reoriginated { evpn ipv6 | vpnv6 }
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> advertise route-reoriginated { evpn ipv6 | vpnv6 }
+    params:
+      peerIpv4Addr: *id019
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view)
+      line: 15732
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.5
+    syntax: peer <peerIpv6Addr> advertise route-reoriginated vpnv4
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> advertise route-reoriginated vpnv4
+    params:
+      peerIpv6Addr: &id020
+        type: word
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view)
+      line: 15732
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.6
+    syntax: peer <peerIpv6Addr> advertise route-reoriginated vpnv6
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> advertise route-reoriginated vpnv6
+    params:
+      peerIpv6Addr: *id020
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view)
+      line: 15732
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.7
+    syntax: peer <peerIpv6Addr> advertise route-reoriginated evpn ip
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> advertise route-reoriginated { evpn ip | vpnv4 }
+    params:
+      peerIpv6Addr: *id020
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view)
+      line: 15732
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.8
+    syntax: peer <peerIpv6Addr> advertise route-reoriginated evpn ipv6
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> advertise route-reoriginated { evpn ipv6 | vpnv6 }
+    params:
+      peerIpv6Addr: *id020
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view)
+      line: 15732
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.1~2
+    syntax: peer <peerGroupName> advertise route-reoriginated { evpn { mac-ip | mac | ip } | vpnv4 }
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> advertise route-reoriginated { evpn { mac-ip | mac | ip } | vpnv4 }
+    params:
+      peerGroupName: &id021
+        type: word
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view) (group)
+      line: 15907
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.2~2
+    syntax: peer <peerGroupName> advertise route-reoriginated evpn { mac-ipv6 | ipv6 }
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> advertise route-reoriginated evpn { mac-ipv6 | ipv6 }
+    params:
+      peerGroupName: *id021
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view) (group)
+      line: 15907
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.3~2
+    syntax: peer <peerGroupName> advertise route-reoriginated { evpn ip | vpnv4 }
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> advertise route-reoriginated { evpn ip | vpnv4 }
+    params:
+      peerGroupName: *id021
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view) (group)
+      line: 15907
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.4~2
+    syntax: peer <peerGroupName> advertise route-reoriginated evpn ipv6
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> advertise route-reoriginated evpn ipv6
+    params:
+      peerGroupName: *id021
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view) (group)
+      line: 15907
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.5~2
+    syntax: peer <peerGroupName> advertise route-reoriginated vpnv6
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> advertise route-reoriginated vpnv6
+    params:
+      peerGroupName: *id021
+    default: By default, a device does not send the routes that are regenerated in the EVPN or VPNv4/v6 address family to a BGP EVPN peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-EVPN address family view) (group)
+      line: 15907
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.1~3
+    syntax: peer <peerIpv4Addr> advertise route-reoriginated evpn { mac-ip | ip }
+    view: bgp-af-vpnv4
+    undo: undo peer <peerIpv4Addr> advertise route-reoriginated evpn { mac-ip | ip }
+    params:
+      peerIpv4Addr: &id022
+        type: ipv4
+    default: By default, a device does not send the routes that are regenerated in the EVPN address family to a VPNv4 peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-VPNv4 address family view)
+      line: 16018
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.2~3
+    syntax: peer <peerIpv6Addr> advertise route-reoriginated evpn { mac-ip | ip }
+    view: bgp-af-vpnv4
+    undo: undo peer <peerIpv4Addr> advertise route-reoriginated evpn { mac-ip | ip }
+    params:
+      peerIpv6Addr: &id023
+        type: word
+    default: By default, a device does not send the routes that are regenerated in the EVPN address family to a VPNv4 peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-VPNv4 address family view)
+      line: 16018
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.3~3
+    syntax: peer <peerIpv4Addr> advertise route-reoriginated evpn ip
+    view: bgp-af-vpnv4
+    undo: undo peer <peerIpv4Addr> advertise route-reoriginated evpn ip
+    params:
+      peerIpv4Addr: *id022
+    default: By default, a device does not send the routes that are regenerated in the EVPN address family to a VPNv4 peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-VPNv4 address family view)
+      line: 16018
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.4~3
+    syntax: peer <peerIpv6Addr> advertise route-reoriginated evpn ip
+    view: bgp-af-vpnv4
+    undo: undo peer <peerIpv4Addr> advertise route-reoriginated evpn ip
+    params:
+      peerIpv6Addr: *id023
+    default: By default, a device does not send the routes that are regenerated in the EVPN address family to a VPNv4 peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-VPNv4 address family view)
+      line: 16018
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.1~4
+    syntax: peer <peerGroupName> advertise route-reoriginated evpn { mac-ip | ip }
+    view: bgp-af-vpnv4
+    undo: undo peer <peerGroupName> advertise route-reoriginated evpn { mac-ip | ip }
+    params:
+      peerGroupName: &id024
+        type: word
+    default: By default, a device does not send the routes that are regenerated in the EVPN address family to a VPNv4 peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-VPNv4 address family view) (group)
+      line: 16110
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated.2~4
+    syntax: peer <peerGroupName> advertise route-reoriginated evpn ip
+    view: bgp-af-vpnv4
+    undo: undo peer <peerGroupName> advertise route-reoriginated evpn ip
+    params:
+      peerGroupName: *id024
+    default: By default, a device does not send the routes that are regenerated in the EVPN address family to a VPNv4 peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated (BGP-VPNv4 address family view) (group)
+      line: 16110
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-route-reoriginated-vpnv4~3
+    syntax: peer <group-name> advertise route-reoriginated vpnv4
+    view: bgp-af-vpnv4
+    undo: undo peer <group-name> advertise route-reoriginated vpnv4
+    params:
+      group-name:
+        type: word
+    default: By default, the local device does not advertise regenerated routes in the VPNv4 address family to a BGP VPNv4 peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise route-reoriginated vpnv4 (BGP-VPNv4 address family view)
+      line: 16376
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-suppressed-detail-route
+    syntax: peer <peerIpv4Addr> advertise suppressed-detail-route
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> advertise suppressed-detail-route
+    params:
+      peerIpv4Addr:
+        type: ipv4
+    default: By default, the locally suppressed specific routes are not advertised to peers in a specified BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise suppressed-detail-route
+      line: 16439
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-suppressed-detail-route~2
+    syntax: peer <group-name> advertise suppressed-detail-route
+    view: bgp-af-evpn
+    undo: undo peer <group-name> advertise suppressed-detail-route
+    params:
+      group-name:
+        type: word
+    default: By default, the locally suppressed specific routes are not advertised to peers in a specified BGP EVPN peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise suppressed-detail-route (group)
+      line: 16504
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-suppressed-detail-route~3
+    syntax: peer <ipv6-address> advertise suppressed-detail-route
+    view: bgp-af-evpn
+    undo: undo peer <ipv6-address> advertise suppressed-detail-route
+    params:
+      ipv6-address:
+        type: word
+    default: By default, the locally suppressed specific routes are not advertised to peers in a specified BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise suppressed-detail-route (IPv6)
+      line: 16571
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-community.1
+    syntax: peer <peerIpv4Addr> advertise-community
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> advertise-community
+    params:
+      peerIpv4Addr:
+        type: ipv4
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise-community (BGP-EVPN address family view)
+      line: 16636
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.send_community: standard
+  - id: huawei-vrp8.peer-advertise-community.2
+    syntax: peer <peerIpv6Addr> advertise-community
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> advertise-community
+    params:
+      peerIpv6Addr:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise-community (BGP-EVPN address family view)
+      line: 16636
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.send_community: standard
+  - id: huawei-vrp8.peer-advertise-community~3
+    syntax: peer <peerGroupName> advertise-community
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> advertise-community
+    params:
+      peerGroupName:
+        type: word
+    default: By default, a device advertises no community attribute to its peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise-community (BGP-EVPN address family view) (group)
+      line: 16713
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.send_community: standard
+  - id: huawei-vrp8.peer-advertise-large-community~4
+    syntax: peer <peerIpv6Addr> advertise-large-community [ disable ]
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> advertise-large-community [ disable ]
+    params:
+      peerIpv6Addr:
+        type: word
+    default: By default, a device does not advertise the Large-Community attribute to its peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise-large-community
+      line: 16778
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-large-community~5
+    syntax: peer <peerIpv4Addr> advertise-large-community [ disable ]
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> advertise-large-community [ disable ]
+    params:
+      peerIpv4Addr:
+        type: ipv4
+    default: By default, a device does not advertise routes carrying the large-community attribute to a BGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise-large-community (BGP-EVPN address family view)
+      line: 16845
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-advertise-large-community~3
+    syntax: peer <peerGroupName> advertise-large-community
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> advertise-large-community
+    params:
+      peerGroupName:
+        type: word
+    default: By default, a device does not advertise routes carrying the large-community attribute to a BGP EVPN peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer advertise-large-community (BGP-EVPN address family view) (group)
+      line: 16913
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-allow-as-loop~11
+    syntax: peer <peerGroupName> allow-as-loop [ <number> ]
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> allow-as-loop
+    params:
+      peerGroupName:
+        type: word
+      number:
+        type: integer
+        range:
+          - 1
+          - 10
+    default: By default, the local AS number cannot be repeated.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer allow-as-loop (BGP-EVPN address family view) (group)
+      line: 16978
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-allow-as-loop~12
+    syntax: peer <peerIpv6Addr> allow-as-loop [ <num> ]
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> allow-as-loop
+    params:
+      peerIpv6Addr:
+        type: word
+      num:
+        type: integer
+        range:
+          - 1
+          - 10
+    default: By default, the local AS number cannot be repeated.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer allow-as-loop (BGP-EVPN address family view) (IPv6)
+      line: 17053
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-allow-as-loop~13
+    syntax: peer <ipv4-address> allow-as-loop [ <number> ]
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> allow-as-loop
+    params:
+      ipv4-address:
+        type: ipv4
+      number:
+        type: integer
+        range:
+          - 1
+          - 10
+    default: By default, the local AS number cannot be repeated.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer allow-as-loop (BGP-EVPN address family view)(IPv4)
+      line: 17125
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-attribute-id.1~5
+    syntax: peer <peerIpv4Addr> path-attribute-treat attribute-id { <id> [ to <id2> ] } &<1-255> { discard | withdraw | treat-as-unknown }
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> path-attribute-treat attribute-id { <id> [ to <id2> ] } &<1-255> [ discard | withdraw | treat-as-unknown ]
+    params:
+      peerIpv4Addr: &id025
+        type: ipv4
+      id: &id026
+        type: integer
+      id2:
+        type: integer
+    default: By default, BGP path attributes are processed according to a standard protocol.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer attribute-id (BGP-EVPN address family view)
+      line: 17197
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-attribute-id.2~5
+    syntax: peer <peerIpv4Addr> treat-with-error attribute-id <id> accept-zero-value
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> treat-with-error attribute-id <id> [ accept-zero-value ]
+    params:
+      peerIpv4Addr: *id025
+      id: *id026
+    default: By default, BGP path attributes are processed according to a standard protocol.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer attribute-id (BGP-EVPN address family view)
+      line: 17197
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-attribute-id.1~6
+    syntax: peer <peerIpv6Addr> path-attribute-treat attribute-id { <id> [ to <id2> ] } &<1-255> { discard | withdraw | treat-as-unknown }
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> path-attribute-treat attribute-id { <id> [ to <id2> ] } &<1-255> [ discard | withdraw | treat-as-unknown ]
+    params:
+      peerIpv6Addr: &id027
+        type: word
+      id: &id028
+        type: integer
+      id2:
+        type: integer
+    default: By default, BGP path attributes are processed according to a standard protocol.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer attribute-id (BGP-EVPN address family view) (IPv6)
+      line: 17282
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-attribute-id.2~6
+    syntax: peer <peerIpv6Addr> treat-with-error attribute-id <id> accept-zero-value
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> treat-with-error attribute-id <id> [ accept-zero-value ]
+    params:
+      peerIpv6Addr: *id027
+      id: *id028
+    default: By default, BGP path attributes are processed according to a standard protocol.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer attribute-id (BGP-EVPN address family view) (IPv6)
+      line: 17282
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-capability-advertise-add-path.1
+    syntax: peer <ipv4-address> capability-advertise add-path { both | receive | send }
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> capability-advertise add-path { both | receive | send }
+    params:
+      ipv4-address:
+        type: ipv4
+    default: By default, a device is disabled from sending Add-Path routes to or receiving Add-Path routes from a specified peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer capability-advertise add-path (BGP-EVPN address family view)
+      line: 17367
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-capability-advertise-add-path.2
+    syntax: peer <ipv6-address> capability-advertise add-path { both | receive | send }
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> capability-advertise add-path { both | receive | send }
+    params:
+      ipv6-address:
+        type: word
+    default: By default, a device is disabled from sending Add-Path routes to or receiving Add-Path routes from a specified peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer capability-advertise add-path (BGP-EVPN address family view)
+      line: 17367
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-capability-advertise-add-path~5
+    syntax: peer <peerGroupName> capability-advertise add-path { both | receive | send }
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> capability-advertise add-path { both | receive | send }
+    params:
+      peerGroupName:
+        type: word
+    default: By default, a device is disabled from sending Add-Path routes to or receiving Add-Path routes from a BGP EVPN peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer capability-advertise add-path (BGP-EVPN address family view) (group)
+      line: 17455
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-enable~4
+    syntax: peer <group-name> enable
+    view: bgp-af-evpn
+    undo: undo peer <group-name> enable
+    params:
+      group-name:
+        type: word
+    default: By default, only the peer group in the BGP IPv4 unicast address family view is automatically enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer enable (BGP-EVPN address family view) (group)
+      line: 17531
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.enabled: flag
+  - id: huawei-vrp8.peer-enable~5
+    syntax: peer <ipv4-address> enable
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> enable
+    params:
+      ipv4-address:
+        type: ipv4
+    default: By default, only the peer in the BGP IPv4 unicast address family view is automatically enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer enable (BGP-EVPN address family view) (IPv4)
+      line: 17599
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.enabled: flag
+  - id: huawei-vrp8.peer-enable~3
+    syntax: peer <peerIpv6Addr> enable
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> enable
+    params:
+      peerIpv6Addr:
+        type: word
+    default: By default, only the peer in the BGP IPv4 unicast address family view is automatically enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer enable (BGP-EVPN address family view) (IPv6)
+      line: 17667
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.enabled: flag
+  - id: huawei-vrp8.peer-esad-route-compatible
+    syntax: peer <ipv4-address> esad-route-compatible { enable | disable }
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> esad-route-compatible { enable | disable }
+    params:
+      ipv4-address:
+        type: ipv4
+    default: By default, a device sends ES AD routes in a non-standard format.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer esad-route-compatible (BGP-EVPN address family view)
+      line: 17735
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-esad-route-compatible~2
+    syntax: peer <peer-group-name> esad-route-compatible
+    view: bgp-af-evpn
+    undo: undo peer <peer-group-name> esad-route-compatible
+    params:
+      peer-group-name:
+        type: word
+    default: By default, a device sends ES AD routes in a non-standard format.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer esad-route-compatible (BGP-EVPN address family view) (group)
+      line: 17798
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-graceful-restart-static-timer
+    syntax: peer <ipv4-address> graceful-restart static-timer <restart-time>
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> graceful-restart static-timer <restart-time>
+    params:
+      ipv4-address:
+        type: ipv4
+      restart-time:
+        type: integer
+        range:
+          - 3600
+          - 2147483647
+    default: By default, the maximum duration from the time the local device finds that the peer device is restarted to the time a BGP EVPN session is re-established is 150s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer graceful-restart static-timer (BGP-EVPN address family view)
+      line: 17862
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-graceful-restart-static-timer~2
+    syntax: peer <peerIpv6Addr> graceful-restart static-timer <restart-time>
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> graceful-restart static-timer <restart-time>
+    params:
+      peerIpv6Addr:
+        type: word
+      restart-time:
+        type: integer
+        range:
+          - 3600
+          - 2147483647
+    default: By default, the maximum duration from the time the local device finds that the peer device is restarted to the time a BGP EVPN session is re-established is 150s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer graceful-restart static-timer (BGP-EVPN address family view)(IPv6)
+      line: 17931
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-group~10
+    syntax: peer <ipv6-address> group <group-name>
+    view: bgp-af-evpn
+    undo: undo peer <ipv6-address> group <group-name>
+    params:
+      ipv6-address:
+        type: word
+      group-name:
+        type: word
+    default: By default, a peer is not added to any peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer group (BGP-EVPN address family view) (IPv6)
+      line: 18000
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr
+      bgp.af.peer.group: $group-name||$peerGroupName
+  - id: huawei-vrp8.peer-group~11
+    syntax: peer <ipv4-address> group <group-name>
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> group <group-name>
+    params:
+      ipv4-address:
+        type: ipv4
+      group-name:
+        type: word
+    default: By default, a peer is not added to any peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer group (BGP-EVPN address family view)(IPv4)
+      line: 18065
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr
+      bgp.af.peer.group: $group-name||$peerGroupName
+  - id: huawei-vrp8.peer-high-priority~4
+    syntax: peer <peerIpv4Addr> high-priority [ disable ]
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> high-priority [ disable ]
+    params:
+      peerIpv4Addr:
+        type: ipv4
+    default: By default, routes are preferentially selected based on BGP route selection rules in the EVPN address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer high-priority (BGP-EVPN address family view)
+      line: 18130
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-high-priority~2
+    syntax: peer <peerGroupName> high-priority
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> high-priority
+    params:
+      peerGroupName:
+        type: word
+    default: By default, routes are preferentially selected based on BGP route selection rules in the EVPN address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer high-priority (BGP-EVPN address family view) (group)
+      line: 18188
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-high-priority~3
+    syntax: peer <peerIpv6Addr> high-priority [ disable ]
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> high-priority [ disable ]
+    params:
+      peerIpv6Addr:
+        type: word
+    default: By default, routes are preferentially selected based on BGP route selection rules in the EVPN address family.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer high-priority (BGP-EVPN address family view) (ipv6)
+      line: 18247
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-import-reoriginate.1~2
+    syntax: peer <peerIpv4Addr> import reoriginate
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> import reoriginate
+    params:
+      peerIpv4Addr:
+        type: ipv4
+    default: By default, a device does not add a regeneration flag to the routes received from BGP EVPN peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer import reoriginate (BGP-EVPN address family view)
+      line: 18305
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-import-reoriginate.2~2
+    syntax: peer <peerIpv6Addr> import reoriginate
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> import reoriginate
+    params:
+      peerIpv6Addr:
+        type: word
+    default: By default, a device does not add a regeneration flag to the routes received from BGP EVPN peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer import reoriginate (BGP-EVPN address family view)
+      line: 18305
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-import-reoriginate~2
+    syntax: peer <peerGroupName> import reoriginate
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> import reoriginate
+    params:
+      peerGroupName:
+        type: word
+    default: By default, a device does not add a regeneration flag to the routes received from BGP EVPN peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer import reoriginate (BGP-EVPN address family view) (group)
+      line: 18384
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-mac-limit
+    syntax: peer <ipv4-address> mac-limit <number> [ <percentage> ] [ alert-only | idle-forever | idle-timeout <times> ]
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> mac-limit
+    params:
+      ipv4-address:
+        type: ipv4
+      number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      percentage:
+        type: integer
+        range:
+          - 1
+          - 100
+      times:
+        type: integer
+        range:
+          - 1
+          - 1200
+    default: By default, the number of MAC advertisement routes allowed to be received from a peer is not limited.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer mac-limit (BGP-EVPN address family view)
+      line: 18447
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-mac-limit~2
+    syntax: peer <group-name> mac-limit <number> [ <percentage> ] [ alert-only | idle-forever | idle-timeout <times> ]
+    view: bgp-af-evpn
+    undo: undo peer <group-name> mac-limit
+    params:
+      group-name:
+        type: word
+      number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      percentage:
+        type: integer
+        range:
+          - 1
+          - 100
+      times:
+        type: integer
+        range:
+          - 1
+          - 1200
+    default: By default, the number of MAC advertisement routes allowed to be received from a peer group is not limited.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer mac-limit (BGP-EVPN address family view) (group)
+      line: 18523
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-mac-limit~3
+    syntax: peer <peerIpv6Addr> mac-limit <limit> [ <percentage> ] [ alert-only | idle-forever | idle-timeout <times> ]
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> mac-limit
+    params:
+      peerIpv6Addr:
+        type: word
+      limit:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      percentage:
+        type: integer
+        range:
+          - 1
+          - 100
+      times:
+        type: integer
+        range:
+          - 1
+          - 1200
+    default: By default, the number of MAC advertisement routes allowed to be received from a peer is not limited.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer mac-limit (BGP-EVPN address family view) (ipv6)
+      line: 18601
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-next-hop-invariable~5
+    syntax: peer <peerIpv4Addr> next-hop-invariable
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> next-hop-invariable
+    params:
+      peerIpv4Addr:
+        type: ipv4
+    default: By default, the function of keeping the next hops of routes unchanged is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer next-hop-invariable (BGP-EVPN address family view)
+      line: 18677
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-next-hop-invariable~6
+    syntax: peer <peerGroupName> next-hop-invariable
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> next-hop-invariable
+    params:
+      peerGroupName:
+        type: word
+    default: By default, the function of keeping the next hops of routes unchanged is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer next-hop-invariable (BGP-EVPN address family view) (group)
+      line: 18747
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-next-hop-invariable~7
+    syntax: peer <peerIpv6Addr> next-hop-invariable
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> next-hop-invariable
+    params:
+      peerIpv6Addr:
+        type: word
+    default: By default, the function of keeping the next hops of routes unchanged is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer next-hop-invariable (BGP-EVPN address family view) (IPv6)
+      line: 18819
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-next-hop-local~11
+    syntax: peer <peerGroupName> next-hop-local
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> next-hop-local
+    params:
+      peerGroupName:
+        type: word
+    default: 'By default: - When advertising routes to EBGP peers, BGP sets the next hops of the routes to the IP address of its interface connected to the EBGP peers.'
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer next-hop-local (BGP-EVPN address family view) (group)
+      line: 18886
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.next_hop_self: flag
+  - id: huawei-vrp8.peer-next-hop-local~12
+    syntax: peer <peerIpv4Addr> next-hop-local
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> next-hop-local
+    params:
+      peerIpv4Addr:
+        type: ipv4
+    default: 'By default: - When advertising routes to EBGP peers, BGP sets the next hops of the routes to the IP address of its interface connected to the EBGP peers.'
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer next-hop-local (BGP-EVPN address family view)(IPv4)
+      line: 18961
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.next_hop_self: flag
+  - id: huawei-vrp8.peer-next-hop-local~13
+    syntax: peer <peerIpv6Addr> next-hop-local
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> next-hop-local
+    params:
+      peerIpv6Addr:
+        type: word
+    default: 'By default: - When advertising routes to EBGP peers, BGP sets the next hops of the routes to the IP address of its interface connected to the EBGP peers.'
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer next-hop-local(BGP-EVPN address family view)(IPv6)
+      line: 19034
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.next_hop_self: flag
+  - id: huawei-vrp8.peer-peer-as-check.1~7
+    syntax: peer <peerIpv6Addr> peer-as-check
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> peer-as-check
+    params:
+      peerIpv6Addr: &id029
+        type: word
+    default: By default, the routes received from an EBGP peer are broadcast to other EBGP peers in the same AS.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer peer-as-check (BGP-EVPN address family view)(IPv6)
+      line: 19107
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-peer-as-check.2~7
+    syntax: peer <peerIpv6Addr> peer-as-check disable
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> peer-as-check disable
+    params:
+      peerIpv6Addr: *id029
+    default: By default, the routes received from an EBGP peer are broadcast to other EBGP peers in the same AS.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer peer-as-check (BGP-EVPN address family view)(IPv6)
+      line: 19107
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-peer-as-check.1~8
+    syntax: peer <peerIpv4Addr> peer-as-check
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> peer-as-check
+    params:
+      peerIpv4Addr: &id030
+        type: ipv4
+    default: By default, the routes received from an EBGP peer are broadcast to other EBGP peers in the same AS.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer peer-as-check(BGP-EVPN address family view)
+      line: 19177
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-peer-as-check.2~8
+    syntax: peer <peerIpv4Addr> peer-as-check disable
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> peer-as-check disable
+    params:
+      peerIpv4Addr: *id030
+    default: By default, the routes received from an EBGP peer are broadcast to other EBGP peers in the same AS.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer peer-as-check(BGP-EVPN address family view)
+      line: 19177
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-peer-as-check~5
+    syntax: peer <peerGroupName> peer-as-check
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> peer-as-check
+    params:
+      peerGroupName:
+        type: word
+    default: By default, the routes received from an EBGP peer are broadcast to other EBGP peers in the same AS.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer peer-as-check(BGP-EVPN address family view)(group)
+      line: 19247
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-preferred-value~11
+    syntax: peer <peerGroupName> preferred-value <preferredvalue>
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> preferred-value
+    params:
+      peerGroupName:
+        type: word
+      preferredvalue:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, the preferred value of the routes learned from other BGP peer groups is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer preferred-value (BGP-EVPN address family view) (group)
+      line: 19312
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-preferred-value~12
+    syntax: peer <peerIpv4Addr> preferred-value <preferredvalue>
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> preferred-value
+    params:
+      peerIpv4Addr:
+        type: ipv4
+      preferredvalue:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, the preferred value of a route learned from a BGP peer is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer preferred-value (BGP-EVPN address family view)(IPv4)
+      line: 19380
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-reflect-client~11
+    syntax: peer <peerGroupName> reflect-client
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> reflect-client
+    params:
+      peerGroupName:
+        type: word
+    default: By default, the route reflector and its client are not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer reflect-client (BGP-EVPN address family view) (group)
+      line: 19446
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.rr_client: flag
+  - id: huawei-vrp8.peer-reflect-client~12
+    syntax: peer <peerIpv6Addr> reflect-client
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> reflect-client
+    params:
+      peerIpv6Addr:
+        type: word
+    default: By default, the route reflector and its client are not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer reflect-client (BGP-EVPN address family view) (IPv6)
+      line: 19519
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.rr_client: flag
+  - id: huawei-vrp8.peer-reflect-client~13
+    syntax: peer <peerIpv4Addr> reflect-client
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> reflect-client
+    params:
+      peerIpv4Addr:
+        type: ipv4
+    default: By default, the route reflector and its client are not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer reflect-client (BGP-EVPN address family view)(IPv4)
+      line: 19590
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.rr_client: flag
+  - id: huawei-vrp8.peer-route-filter-export~7
+    syntax: peer <peerIpv4Addr> route-filter <route-filter-name> export
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> route-filter <route-filter-name> export
+    params:
+      peerIpv4Addr:
+        type: ipv4
+      route-filter-name:
+        type: word
+    default: By default, no route-filter is specified for a peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-filter export (BGP-EVPN address family view)
+      line: 19661
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-route-filter-export~8
+    syntax: peer <peerGroupName> route-filter <route-filter-name> export
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> route-filter <route-filter-name> export
+    params:
+      peerGroupName:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, no route-filter is specified for a peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-filter export (BGP-EVPN address family view) (group)
+      line: 19729
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-route-filter-export~9
+    syntax: peer <peerIpv6Addr> route-filter <route-filter-name> export
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> route-filter <route-filter-name> export
+    params:
+      peerIpv6Addr:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, no route-filter is specified for a peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-filter export (BGP-EVPN address family view) (IPv6)
+      line: 19801
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-route-filter-import~5
+    syntax: peer <peerGroupName> route-filter <route-filter-name> import
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> route-filter <route-filter-name> import
+    params:
+      peerGroupName:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, no route-filter is specified for a peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-filter import (BGP-EVPN address family view) (group)
+      line: 19869
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-route-filter-import~6
+    syntax: peer <peerIpv6Addr> route-filter <route-filter-name> import
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> route-filter <route-filter-name> import
+    params:
+      peerIpv6Addr:
+        type: word
+      route-filter-name:
+        type: word
+    default: By default, no route-filter is specified for a peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-filter import (BGP-EVPN address family view) (IPv6)
+      line: 19943
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-route-filter-import~7
+    syntax: peer <peerIpv4Addr> route-filter <route-filter-name> import
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> route-filter <route-filter-name> import
+    params:
+      peerIpv4Addr:
+        type: ipv4
+      route-filter-name:
+        type: word
+    default: By default, no route-filter is specified for a peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-filter import (BGP-EVPN address family view)(IPv4)
+      line: 20011
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-route-limit.1
+    syntax: peer <peerIpv4Addr> route-limit <limit> [ <percentage> ] [ alert-only | idle-forever | idle-timeout <times> ]
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> route-limit
+    params:
+      peerIpv4Addr:
+        type: ipv4
+      limit: &id031
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      percentage: &id032
+        type: integer
+        range:
+          - 1
+          - 100
+      times: &id033
+        type: integer
+        range:
+          - 1
+          - 1200
+    default: By default, there is no limit on the number of routes that can be received from a peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-limit (BGP-EVPN address family view)
+      line: 20079
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-route-limit.2
+    syntax: peer <peerIpv6Addr> route-limit <limit> [ <percentage> ] [ alert-only | idle-forever | idle-timeout <times> ]
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> route-limit
+    params:
+      peerIpv6Addr:
+        type: word
+      limit: *id031
+      percentage: *id032
+      times: *id033
+    default: By default, there is no limit on the number of routes that can be received from a peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-limit (BGP-EVPN address family view)
+      line: 20079
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-route-limit~11
+    syntax: peer <peerGroupName> route-limit <limit> [ <percentage> ] [ alert-only | idle-forever | idle-timeout <times> ]
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> route-limit
+    params:
+      peerGroupName:
+        type: word
+      limit:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      percentage:
+        type: integer
+        range:
+          - 1
+          - 100
+      times:
+        type: integer
+        range:
+          - 1
+          - 1200
+    default: By default, there is no limit on the number of routes that can be received from a peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-limit (BGP-EVPN address family view) (group)
+      line: 20167
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-route-policy-export~11
+    syntax: peer <peerIpv4Addr> route-policy <route-policy-name> export
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> route-policy <route-policy-name> export
+    params:
+      peerIpv4Addr:
+        type: ipv4
+      route-policy-name:
+        type: word
+    default: By default, no route-policy is specified for a peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-policy export (BGP-EVPN address family view)
+      line: 20252
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.export_policy: $route-policy-name
+  - id: huawei-vrp8.peer-route-policy-export~12
+    syntax: peer <peerGroupName> route-policy <route-policy-name> export
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> route-policy <route-policy-name> export
+    params:
+      peerGroupName:
+        type: word
+      route-policy-name:
+        type: word
+    default: By default, no route-policy is specified for a peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-policy export (BGP-EVPN address family view) (group)
+      line: 20326
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.export_policy: $route-policy-name
+  - id: huawei-vrp8.peer-route-policy-export~13
+    syntax: peer <peerIpv6Addr> route-policy <route-policy-name> export
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> route-policy <route-policy-name> export
+    params:
+      peerIpv6Addr:
+        type: word
+      route-policy-name:
+        type: word
+    default: By default, no route-policy is specified for a peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-policy export (BGP-EVPN address family view) (IPv6)
+      line: 20455
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.export_policy: $route-policy-name
+  - id: huawei-vrp8.peer-route-policy-import~11
+    syntax: peer <peerGroupName> route-policy <route-policy-name> import
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> route-policy <route-policy-name> import
+    params:
+      peerGroupName:
+        type: word
+      route-policy-name:
+        type: word
+    default: By default, no route-policy is specified for a peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-policy import (BGP-EVPN address family view) (group)
+      line: 20529
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.import_policy: $route-policy-name
+  - id: huawei-vrp8.peer-route-policy-import~12
+    syntax: peer <peerIpv6Addr> route-policy <route-policy-name> import
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> route-policy <route-policy-name> import
+    params:
+      peerIpv6Addr:
+        type: word
+      route-policy-name:
+        type: word
+    default: By default, no route-policy is specified for routes received from a peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-policy import (BGP-EVPN address family view) (IPv6)
+      line: 20607
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.import_policy: $route-policy-name
+  - id: huawei-vrp8.peer-route-policy-import~13
+    syntax: peer <peerIpv4Addr> route-policy <route-policy-name> import
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> route-policy <route-policy-name> import
+    params:
+      peerIpv4Addr:
+        type: ipv4
+      route-policy-name:
+        type: word
+    default: By default, no route-policy is specified for routes received from a peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-policy import (BGP-EVPN address family view)(IPv4)
+      line: 20681
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      bgp.af.peer: $ipv4-address||$ipv6-address||$peerIpv4Addr||$peerIpv6Addr||$group-name||$groupName||$peerGroupName
+      bgp.af.peer.import_policy: $route-policy-name
+  - id: huawei-vrp8.peer-route-update-interval.1
+    syntax: peer <peerIpv4Addr> route-update-interval <interval>
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> route-update-interval
+    params:
+      peerIpv4Addr:
+        type: ipv4
+      interval: &id034
+        type: integer
+        range:
+          - 0
+          - 600
+    default: By default, the interval at which routing updates are sent to IBGP peers is 15s, and the interval at which routing updates are sent to EBGP peers is 30s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-update-interval (BGP-EVPN address family view)
+      line: 20755
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-route-update-interval.2
+    syntax: peer <peerIpv6Addr> route-update-interval <interval>
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> route-update-interval
+    params:
+      peerIpv6Addr:
+        type: word
+      interval: *id034
+    default: By default, the interval at which routing updates are sent to IBGP peers is 15s, and the interval at which routing updates are sent to EBGP peers is 30s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-update-interval (BGP-EVPN address family view)
+      line: 20755
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-route-update-interval~11
+    syntax: peer <peerGroupName> route-update-interval <interval>
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> route-update-interval
+    params:
+      peerGroupName:
+        type: word
+      interval:
+        type: integer
+        range:
+          - 0
+          - 600
+    default: By default, the interval at which routing updates are sent to IBGP peers is 15s, and the interval at which routing updates are sent to EBGP peers is 30s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer route-update-interval (BGP-EVPN address family view) (group)
+      line: 20841
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-split-group
+    syntax: peer <ipv4-address> split-group <split-group-name>
+    view: bgp-af-evpn
+    undo: undo peer <ipv4-address> split-group <split-group-name>
+    params:
+      ipv4-address:
+        type: ipv4
+      split-group-name:
+        type: word
+    default: By default, no SHG is configured for BGP EVPN peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer split-group (BGP-EVPN address family view)
+      line: 20915
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-split-group~2
+    syntax: peer <group-name> split-group <split-group-name>
+    view: bgp-af-evpn
+    undo: undo peer <group-name> split-group <split-group-name>
+    params:
+      group-name:
+        type: word
+      split-group-name:
+        type: word
+    default: By default, no SHG is configured for a BGP EVPN peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer split-group (BGP-EVPN address family view) (group)
+      line: 20981
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-srv6-label-compatible-inclusive-route
+    syntax: peer <peerIpv6Addr> srv6-label-compatible inclusive-route [ disable ]
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> srv6-label-compatible inclusive-route [ disable ]
+    params:
+      peerIpv6Addr:
+        type: word
+    default: By default, the MPLS label value in the PMSI attribute of an inclusive route to be sent to an SRv6 peer is set to 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer srv6-label-compatible inclusive-route(BGP-EVPN address family view)
+      line: 21049
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-srv6-label-compatible-inclusive-route.1
+    syntax: peer <peerGroupName> srv6-label-compatible inclusive-route
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> srv6-label-compatible inclusive-route
+    params:
+      peerGroupName: &id035
+        type: word
+    default: By default, the MPLS label value in the PMSI attribute of an inclusive route to be sent to an SRv6 peer is set to 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer srv6-label-compatible inclusive-route(BGP-EVPN address family view)(group)
+      line: 21115
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-srv6-label-compatible-inclusive-route.2
+    syntax: peer <peerGroupName> srv6-label-compatible inclusive-route disable
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> srv6-label-compatible inclusive-route disable
+    params:
+      peerGroupName: *id035
+    default: By default, the MPLS label value in the PMSI attribute of an inclusive route to be sent to an SRv6 peer is set to 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer srv6-label-compatible inclusive-route(BGP-EVPN address family view)(group)
+      line: 21115
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-srv6-label-compatible
+    syntax: peer <peerIpv6Addr> srv6-label-compatible [ disable ]
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> srv6-label-compatible [ disable ]
+    params:
+      peerIpv6Addr:
+        type: word
+    default: By default, a device sets the MPLS Layer 3 labels of IRB routes and the ESI labels of ES-AD routes to 3 (Implicit NULL) before sending the routes to SRv6 peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer srv6-label-compatible(BGP-EVPN address family view)
+      line: 21183
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-srv6-label-compatible.1
+    syntax: peer <peerGroupName> srv6-label-compatible
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> srv6-label-compatible
+    params:
+      peerGroupName: &id036
+        type: word
+    default: By default, a device sets the MPLS Layer 3 labels of IRB routes and the ESI labels of ES-AD routes to 3 (Implicit NULL) before sending the routes to SRv6 peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer srv6-label-compatible(BGP-EVPN address family view)(group)
+      line: 21247
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-srv6-label-compatible.2
+    syntax: peer <peerGroupName> srv6-label-compatible disable
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> srv6-label-compatible disable
+    params:
+      peerGroupName: *id036
+    default: By default, a device sets the MPLS Layer 3 labels of IRB routes and the ESI labels of ES-AD routes to 3 (Implicit NULL) before sending the routes to SRv6 peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer srv6-label-compatible(BGP-EVPN address family view)(group)
+      line: 21247
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-transit-med-to-ebgp
+    syntax: peer <peerIpv4Addr> transit-med-to-ebgp [ disable ]
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> transit-med-to-ebgp [ disable ]
+    params:
+      peerIpv4Addr:
+        type: ipv4
+    default: By default, a device does not forcibly transmit MED attributes to an EBGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer transit-med-to-ebgp
+      line: 21315
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-transit-med-to-ebgp~2
+    syntax: peer <peerGroupName> transit-med-to-ebgp
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> transit-med-to-ebgp
+    params:
+      peerGroupName:
+        type: word
+    default: By default, a device does not forcibly transmit MED attributes to an EBGP peer group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer transit-med-to-ebgp (group)
+      line: 21380
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-transit-med-to-ebgp~3
+    syntax: peer <peerIpv6Addr> transit-med-to-ebgp [ disable ]
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv6Addr> transit-med-to-ebgp [ disable ]
+    params:
+      peerIpv6Addr:
+        type: word
+    default: By default, the MED attribute is not forcibly advertised to any EBGP EVPN peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer transit-med-to-ebgp(BGP-EVPN address family view) (IPv6)
+      line: 21445
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-upe.1
+    syntax: peer <peerIpv4Addr> upe
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> upe
+    params:
+      peerIpv4Addr:
+        type: ipv4
+    default: By default, no BGP EVPN peer is specified as the UPE.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer upe (BGP-EVPN address family view)
+      line: 21510
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-upe.2
+    syntax: peer <peerIpv6Addr> upe
+    view: bgp-af-evpn
+    undo: undo peer <peerIpv4Addr> upe
+    params:
+      peerIpv6Addr:
+        type: word
+    default: By default, no BGP EVPN peer is specified as the UPE.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer upe (BGP-EVPN address family view)
+      line: 21510
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-upe~4
+    syntax: peer <peerGroupName> upe
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> upe
+    params:
+      peerGroupName:
+        type: word
+    default: By default, no BGP EVPN peer group is specified as the UPE.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer upe (BGP-EVPN address family view) (group)
+      line: 21593
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-vpn-orf-disable
+    syntax: peer { <peerIpv4Addr> | <peerIpv6Addr> } vpn-orf disable
+    view: bgp-af-evpn
+    undo: undo peer { <peerIpv4Addr> | <peerIpv6Addr> } vpn-orf disable
+    params:
+      peerIpv4Addr:
+        type: ipv4
+      peerIpv6Addr:
+        type: word
+    default: By default, a device with EVPN ORF enabled performs EVPN ORF for all its BGP EVPN peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer vpn-orf disable (BGP-EVPN address family view)
+      line: 21662
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-vpn-orf-disable~2
+    syntax: peer <peerGroupName> vpn-orf disable
+    view: bgp-af-evpn
+    undo: undo peer <peerGroupName> vpn-orf disable
+    params:
+      peerGroupName:
+        type: word
+    default: By default, a device with EVPN ORF enabled performs EVPN ORF for all its BGP EVPN peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer vpn-orf disable (BGP-EVPN address family view) (group)
+      line: 21724
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-traffic-statistics-enable
+    syntax: peer-traffic-statistics enable
+    view: evpl
+    undo: undo peer-traffic-statistics enable
+    default: By default, traffic statistics collection is disabled for a peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer-traffic-statistics enable
+      line: 21783
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-traffic-statistics-enable~2
+    syntax: peer-traffic-statistics enable
+    view: evpn-instance
+    undo: undo peer-traffic-statistics enable
+    default: By default, traffic statistics collection is disabled for a peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: peer-traffic-statistics enable (BD-EVPN instance view)
+      line: 21855
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.policy-vpn-target~2
+    syntax: policy vpn-target
+    view: bgp-af-evpn
+    undo: undo policy vpn-target
+    default: By default, VPN target-based filtering is enabled for VPN routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: policy vpn-target (BGP-EVPN address family view)
+      line: 21924
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.pw-extend-private-enable
+    syntax: pw-extend private enable
+    view: evpn-global
+    undo: undo pw-extend private enable
+    default: By default, EVI-AD routes are disabled from carrying the L2VPN PW vendor-specific extended community attribute in EVPN VPWS scenarios.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: pw-extend private enable
+      line: 22056
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.reflect-between-clients~5
+    syntax: reflect between-clients
+    view: bgp-af-evpn
+    undo: undo reflect between-clients
+    default: By default, route reflection among clients through the RR is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: reflect between-clients (BGP-EVPN address family view)
+      line: 22112
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.reflect-change-path-attribute~3
+    syntax: reflect change-path-attribute
+    view: bgp-af-evpn
+    undo: undo reflect change-path-attribute
+    default: By default, an RR is disabled from modifying path attributes of BGP routes through an export policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: reflect change-path-attribute (BGP-EVPN address family view)
+      line: 22176
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.reflect-df-election-extcommunity-compatible
+    syntax: reflect df-election-extcommunity compatible
+    view: bgp-af-evpn
+    undo: undo reflect df-election-extcommunity compatible
+    default: By default, this function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: reflect df-election-extcommunity compatible
+      line: 22248
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.reflector-cluster-id~5
+    syntax: reflector cluster-id { <cluster-id-value> | <cluster-id-ipv4> }
+    view: bgp-af-evpn
+    undo: undo reflector cluster-id
+    params:
+      cluster-id-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      cluster-id-ipv4:
+        type: ipv4
+    default: By default, each RR uses its router ID as the cluster ID.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: reflector cluster-id (BGP-EVPN address family view)
+      line: 22301
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remote-frr
+    syntax: remote frr { enable | disable }
+    view: evpn-instance
+    undo: undo remote frr { enable | disable }
+    default: By default, FRR for MAC routes is not configured at the remote end.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: remote frr
+      line: 22484
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remote-vpws-frr-enable
+    syntax: remote vpws-frr enable
+    view: evpn-global
+    undo: undo remote vpws-frr enable
+    default: By default, remote FRR is not enabled for VPWS EVPN.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: remote vpws-frr enable
+      line: 22557
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.route-distinguisher~3
+    syntax: route-distinguisher <route-distinguisher>
+    view: evpn-instance
+    undo: undo route-distinguisher <route-distinguisher>
+    params:
+      route-distinguisher:
+        type: rd
+    default: By default, no RD is configured for an EVPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: route-distinguisher
+      line: 23508
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.instance.rd: $route-distinguisher
+  - id: huawei-vrp8.route-select-delay~3
+    syntax: route-select delay <delay-value> [ { exclusive-eviad | inclusive-mac } &<1-9> ]
+    view: bgp-af-evpn
+    undo: undo route-select delay <delay-value> [ { exclusive-eviad | inclusive-mac } &<1-9> ]
+    params:
+      delay-value:
+        type: integer
+    default: By default, the delay-value value is 0, indicating that route selection is not delayed.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: route-select delay (BGP-EVPN address family view)
+      line: 23577
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-advertise-no-args
+    syntax: segment-routing ipv6 advertise no-args
+    view: evpn-instance
+    undo: undo segment-routing ipv6 advertise no-args
+    default: By default, the ARG length in EVPN routes to be sent is not set to 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 advertise no-args (BD-EVPN instance view)
+      line: 23644
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-advertise-sbfd-discriminator~2
+    syntax: segment-routing ipv6 advertise sbfd-discriminator
+    view: evpn-instance
+    undo: undo segment-routing ipv6 advertise sbfd-discriminator
+    default: By default, the SBFD descriptor attribute is not advertised to any EVPN SRv6 peer.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 advertise sbfd-discriminator(BD-EVPN instance view/VPWS-EVPN instance view)
+      line: 23777
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-apply-sid-compress~3
+    syntax: segment-routing ipv6 apply-sid compress { coc-next | next }
+    view: evpn-instance
+    undo: undo segment-routing ipv6 apply-sid compress { coc-next | next }
+    default: By default, flavor adjustment for SIDs to be dynamically allocated to EVPN routes is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 apply-sid compress (BD-EVPN instance view)
+      line: 23837
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-apply-sid-compress~2
+    syntax: segment-routing ipv6 apply-sid compress { coc-next | next }
+    view: evpl
+    undo: undo segment-routing ipv6 apply-sid compress { coc-next | next }
+    default: By default, flavor adjustment for SIDs to be dynamically allocated to EVPN routes is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 apply-sid compress(EVPL view)
+      line: 23914
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-apply-sid-evpn-mpls-ip-prefix
+    syntax: segment-routing ipv6 apply-sid { per-route | per-nexthop } evpn mpls ip-prefix
+    view: bgp-af-evpn
+    undo: undo segment-routing ipv6 apply-sid { per-route | per-nexthop } evpn mpls ip-prefix
+    default: By default, no SID application mode is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 apply-sid evpn mpls ip-prefix
+      line: 24150
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-apply-sid-import-rib
+    syntax: segment-routing ipv6 apply-sid { per-route | per-nexthop } import-rib { vpnv4 | vpnv6 }
+    view: bgp-af-evpn
+    undo: undo segment-routing ipv6 apply-sid { per-route | per-nexthop } import-rib { vpnv4 | vpnv6 }
+    default: By default, no SID application mode is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 apply-sid import-rib(BGP-EVPN address family view)
+      line: 24211
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-best-effort
+    syntax: segment-routing ipv6 best-effort
+    view: evpn-instance
+    undo: undo segment-routing ipv6 best-effort
+    default: By default, route recursion over a tunnel based on the SID attribute carried in routes is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 best-effort
+      line: 24276
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-locator.1~3
+    syntax: segment-routing ipv6 locator <locator-name> [ unicast-locator <unicast-locator-name> ] [ compress [ dt2m-extend ] ]
+    view: evpn-instance
+    undo: undo segment-routing ipv6 locator [ [ <locator-name> ] | [ <locator-name> unicast-locator <unicast-locator-name> ] ]
+    params:
+      locator-name: &id037
+        type: word
+      unicast-locator-name: &id038
+        type: word
+    default: By default, the SID attribute is not added to the EVPN routes to be sent.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 locator (BD-EVPN instance view)
+      line: 24538
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-locator.2~3
+    syntax: segment-routing ipv6 locator <locator-name> [ unicast-locator <unicast-locator-name> ]
+    view: evpn-instance
+    undo: undo segment-routing ipv6 locator [ [ <locator-name> ] | [ <locator-name> unicast-locator <unicast-locator-name> ] ]
+    params:
+      locator-name: *id037
+      unicast-locator-name: *id038
+    default: By default, the SID attribute is not added to the EVPN routes to be sent.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 locator (BD-EVPN instance view)
+      line: 24538
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-locator.1~2
+    syntax: segment-routing ipv6 locator <locator-name> [ compress ]
+    view: evpl
+    undo: undo segment-routing ipv6 locator [ <locator-name> [ compress ] ]
+    params:
+      locator-name: &id039
+        type: word
+    default: By default, no SID route segment name is specified for an EVPL instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 locator (EVPL view)
+      line: 24685
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-locator.2~2
+    syntax: segment-routing ipv6 locator <locator-name>
+    view: evpl
+    undo: undo segment-routing ipv6 locator [ <locator-name> [ compress ] ]
+    params:
+      locator-name: *id039
+    default: By default, no SID route segment name is specified for an EVPL instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 locator (EVPL view)
+      line: 24685
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-locator
+    syntax: segment-routing ipv6 locator <locator-name>
+    view: bgp-af-evpn
+    undo: undo segment-routing ipv6 locator [ <locator-name> ]
+    params:
+      locator-name:
+        type: word
+    default: By default, no SRv6 locator is referenced in the EVPN address family view.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 locator(BGP-EVPN address family view)
+      line: 24840
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-ipv6-traffic-engineer
+    syntax: segment-routing ipv6 traffic-engineer [ best-effort ]
+    view: evpn-instance
+    undo: undo segment-routing ipv6 traffic-engineer [ best-effort ]
+    default: By default, EVPN VPWS/VPLS services do not recurse to an SRv6 TE Policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: segment-routing ipv6 traffic-engineer
+      line: 24903
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.slow-peer-absolute-detection.1~2
+    syntax: slow-peer absolute-detection threshold <threshold>
+    view: bgp-af-evpn
+    undo: undo slow-peer absolute-detection threshold <threshold>
+    params:
+      threshold:
+        type: integer
+        range:
+          - 3
+          - 3600
+    default: By default, slow peer detection in absolute mode is enabled, and the threshold for slow peer detection in absolute mode is 9s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: slow-peer absolute-detection (BGP-EVPN address family view)
+      line: 25130
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.slow-peer-absolute-detection.2~2
+    syntax: slow-peer absolute-detection disable
+    view: bgp-af-evpn
+    undo: undo slow-peer absolute-detection disable
+    default: By default, slow peer detection in absolute mode is enabled, and the threshold for slow peer detection in absolute mode is 9s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: slow-peer absolute-detection (BGP-EVPN address family view)
+      line: 25130
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.slow-peer-detection.1~2
+    syntax: slow-peer detection threshold <threshold-value>
+    view: bgp-af-evpn
+    undo: undo slow-peer detection [ threshold <threshold-value> ]
+    params:
+      threshold-value:
+        type: integer
+        range:
+          - 120
+          - 3600
+    default: By default, slow peer detection is enabled, and the slow peer detection threshold is 300s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: slow-peer detection (BGP-EVPN address family view)
+      line: 25195
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.slow-peer-detection.2~2
+    syntax: slow-peer detection disable
+    view: bgp-af-evpn
+    undo: undo slow-peer detection disable
+    default: By default, slow peer detection is enabled, and the slow peer detection threshold is 300s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: slow-peer detection (BGP-EVPN address family view)
+      line: 25195
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.slow-peer-single-group-detection
+    syntax: slow-peer single-group detection threshold <threshold-value>
+    view: bgp-af-evpn
+    undo: undo slow-peer single-group detection threshold <threshold-value>
+    params:
+      threshold-value:
+        type: integer
+        range:
+          - 300
+          - 3600
+    default: By default, the absolute threshold for slower peer detection in a slow update peer-group is 300s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: slow-peer single-group detection(BGP-EVPN address family view)
+      line: 25264
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.slow-peer-single-group-number
+    syntax: slow-peer single-group number <number-value>
+    view: bgp-af-evpn
+    undo: undo slow-peer single-group number <number-value>
+    params:
+      number-value:
+        type: integer
+        range:
+          - 0
+          - 10
+    default: By default, a maximum of five slow BGP peers can be automatically switched to single-peer update peer-groups.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: slow-peer single-group number(BGP-EVPN address family view)
+      line: 25321
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.slow-peer-single-group
+    syntax: slow-peer single-group { auto-process | enable | disable }
+    view: bgp-af-evpn
+    undo: undo slow-peer single-group { auto-process | enable | disable }
+    default: By default, BGP automatically determines whether to enable hierarchical slow-peer switching based on the device memory.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: slow-peer single-group(BGP-EVPN address family view)
+      line: 25378
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.soo-check-enable
+    syntax: soo check enable
+    view: evpn-instance
+    undo: undo soo check enable
+    default: By default, an EVPN instance does not check the SoO attribute.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: soo check enable(BD-EVPN instance view/VPWS-EVPN instance view)
+      line: 25443
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.srv6-local-route-advertise-to-mpls
+    syntax: srv6-local-route advertise-to-mpls { enable | disable }
+    view: evpn-instance
+    undo: undo srv6-local-route advertise-to-mpls { enable | disable }
+    default: By default, an EVPN instance does not advertise locally generated SRv6 routes to its EVPN IPv4 peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: srv6-local-route advertise-to-mpls (BD-EVPN instance view/VPWS-EVPN instance view)
+      line: 25497
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.srv6-local-route-advertise-to-mpls.1
+    syntax: srv6-local-route advertise-to-mpls evpn-vpws
+    view: evpn-global
+    undo: undo srv6-local-route advertise-to-mpls evpn-vpws
+    default: By default, an EVPN instance does not advertise locally generated SRv6 routes to its EVPN IPv4 peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: srv6-local-route advertise-to-mpls(Global EVPN configuration view)
+      line: 25574
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.srv6-local-route-advertise-to-mpls.2
+    syntax: srv6-local-route advertise-to-mpls evpn-vpls
+    view: evpn-global
+    undo: undo srv6-local-route advertise-to-mpls evpn-vpls
+    default: By default, an EVPN instance does not advertise locally generated SRv6 routes to its EVPN IPv4 peers.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: srv6-local-route advertise-to-mpls(Global EVPN configuration view)
+      line: 25574
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-df-delay
+    syntax: timer df-delay <seconds>
+    view: bgp-af-evpn
+    undo: undo timer df-delay <seconds>
+    params:
+      seconds:
+        type: integer
+        range:
+          - 0
+          - 1200
+    default: By default, a DF election is performed after a delay of 60s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: timer df-delay (BGP-EVPN address family view)
+      line: 25652
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-es-recovery
+    syntax: timer es-recovery <seconds>
+    view: bridge-domain
+    undo: undo timer es-recovery [ <seconds> ]
+    params:
+      seconds:
+        type: integer
+        range:
+          - 3
+          - 1200
+    default: By default, the delay after which ES routes are advertised is 0s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: timer es-recovery (Bridge domain view)
+      line: 25711
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-es-recovery~2
+    syntax: timer es-recovery <seconds>
+    view: evpl
+    undo: undo timer es-recovery [ <seconds> ]
+    params:
+      seconds:
+        type: integer
+        range:
+          - 3
+          - 1200
+    default: By default, the delay after which an EVPL instance advertises ES routes is 0 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: timer es-recovery (evpl view)
+      line: 25785
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-es-recovery~3
+    syntax: timer es-recovery <interval>
+    view: interface
+    undo: undo timer es-recovery [ <interval> ]
+    params:
+      interval:
+        type: integer
+        range:
+          - 3
+          - 1200
+    default: By default, the delay after which ES routes are advertised is 0s.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: timer es-recovery (Interface view)
+      line: 25857
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-migrate-delay
+    syntax: timer migrate delay <delay-value>
+    view: evpn-global
+    undo: undo timer migrate delay <delay-value>
+    params:
+      delay-value:
+        type: integer
+        range:
+          - 0
+          - 1800
+    default: By default, the switching delay is 300 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: timer migrate delay
+      line: 25917
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.timer-revert-delay
+    syntax: timer revert delay <delay-value>
+    view: evpn-instance
+    undo: undo timer revert delay <delay-value>
+    params:
+      delay-value:
+        type: integer
+        range:
+          - 0
+          - 3600
+    default: By default, the delay switchback time is 0, indicating that the device performs switchback without a delay.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: timer revert delay (EVPN instance view)
+      line: 25975
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tnl-policy~5
+    syntax: tnl-policy <policy-name>
+    view: evpn-instance
+    undo: undo tnl-policy <policy-name>
+    params:
+      policy-name:
+        type: word
+    default: By default, an EVPN instance is not associated with any tunnel policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: tnl-policy (EVPN instance view)
+      line: 26041
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.track-evpn-df-state
+    syntax: track evpn df-state
+    view: interface
+    undo: undo track evpn df-state
+    default: By default, an L2VE sub-interface is not associated with the DF status.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: track evpn df-state
+      line: 26202
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-statistics-enable~5
+    syntax: traffic-statistics enable
+    view: evpl
+    undo: undo traffic-statistics enable
+    default: By default, traffic statistics collection for an instance is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: traffic-statistics enable
+      line: 26327
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-statistics-enable~6
+    syntax: traffic-statistics enable
+    view: evpn-instance
+    undo: undo traffic-statistics enable
+    default: By default, traffic statistics collection for an instance is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: traffic-statistics enable (BD-EVPN instance view)
+      line: 26398
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-selector~3
+    syntax: tunnel-selector <tunnel-selector-name>
+    view: bgp-af-evpn
+    undo: undo tunnel-selector
+    params:
+      tunnel-selector-name:
+        type: word
+    default: By default, BGP EVPN routes recurse only to LSPs.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: tunnel-selector (BGP-EVPN address family view)
+      line: 26466
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.umr-forward-enable
+    syntax: umr forward enable
+    view: bridge-domain
+    undo: undo umr forward enable
+    default: By default, UMR forwarding does not enable, MAC routes with all-0 address will be considered as MAC detail routes.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: umr forward enable (Bridge domain view)
+      line: 26531
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.umr-originate
+    syntax: umr originate [ detail-suppressed [ evpnmac-high-priority exclude-peer-detail ] ]
+    view: bridge-domain
+    undo: undo umr originate [ detail-suppressed [ evpnmac-high-priority exclude-peer-detail ] ]
+    default: By default, UMR is not originated, UMR routes will not be generated and MAC detail routes will not be suppressed.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: umr originate (Bridge domain view)
+      line: 26603
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vlan-extend-private-enable
+    syntax: vlan-extend private enable
+    view: evpn-global
+    undo: undo vlan-extend private enable
+    default: By default, MAC routes sent by a device do not carry the VLAN private extended community attribute.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: vlan-extend private enable
+      line: 26707
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vlan-extend-redirect-enable
+    syntax: vlan-extend redirect enable
+    view: evpn-global
+    undo: undo vlan-extend redirect enable
+    default: By default, a device does not redirect routes carrying the VLAN private extended community attribute.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: vlan-extend redirect enable
+      line: 26761
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpn-orf-enable
+    syntax: vpn-orf enable
+    view: bgp-af-evpn
+    undo: undo vpn-orf enable
+    default: By default, EVPN ORF is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: vpn-orf enable (BGP-EVPN address family view)
+      line: 26815
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpn-target~3
+    syntax: vpn-target { <vpn-target> } &<1-8> [ <vrfRtType> ]
+    view: evpn-instance
+    undo: undo vpn-target { <vpn-target> } &<1-8> [ <vrfRtType> ]
+    params:
+      vpn-target:
+        type: rd
+      vrfRtType:
+        type: enum
+        choices:
+          - both
+          - export-extcommunity
+          - import-extcommunity
+    default: By default, no VPN targets are configured for an EVPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: vpn-target (EVPN)
+      line: 26877
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      evpn.instance.rt:
+        value: $vpn-target
+        direction: kw:export-extcommunity=export|import-extcommunity=import|both=both:both
+      evpn.instance.rt.value: $vpn-target
+      evpn.instance.rt.direction: kw:export-extcommunity=export|import-extcommunity=import|both=both:both
+  - id: huawei-vrp8.vpws-df-election-type-service-id
+    syntax: vpws-df-election type service-id
+    view: evpn-global
+    undo: undo vpws-df-election type service-id
+    default: By default, service ID-based DF election is not enabled for an EVPN VPWS.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: vpws-df-election type service-id
+      line: 27178
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-id
+    syntax: vrrp-id <vrid> interface { <interface-name> | <interface-type> <interface-number> }
+    view: evpl
+    undo: undo vrrp-id <vrid> [ interface { <interface-name> | <interface-type> <interface-number> } ]
+    params:
+      vrid:
+        type: integer
+        range:
+          - 1
+          - 255
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, no EVPL instance is bound to a VRRP group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: vrrp-id (EVPL view)
+      line: 27242
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp6-id
+    syntax: vrrp6-id <vrid> interface { <interface-name> | <interface-type> <interface-number> }
+    view: evpl
+    undo: undo vrrp6-id <vrid> [ interface { <interface-name> | <interface-type> <interface-number> } ]
+    params:
+      vrid:
+        type: integer
+        range:
+          - 1
+          - 255
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, no EVPL instance is bound to a VRRP6 group.
+    source:
+      doc: huawei-vrp8-md
+      file: 16_VPN Commands/02_EVPN Configuration Commands.md
+      title: vrrp6-id (EVPL view)
+      line: 27323
+      version: V800R025C00SPC500
+    status: draft

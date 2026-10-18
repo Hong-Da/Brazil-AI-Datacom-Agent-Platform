@@ -56,7 +56,7 @@ nodes:
     type: integer
     semantic: {zh-CN: 检测倍数, en: Detect multiplier}
 deps:
-  - {kind: prerequisite, from: bfd.session, to: bfd.global, note: 华为先在系统视图执行 bfd 使能，再创建会话}
+  - {kind: prerequisite, from: bfd.session, to: bfd.global, note: {zh-CN: 华为先在系统视图执行 bfd 使能，再创建会话, en: 'On Huawei, enable BFD with "bfd" in the system view before creating sessions', pt-BR: 'No Huawei, habilite o BFD com "bfd" na visão de sistema antes de criar sessões'}}
   - {kind: prerequisite, from: ospf.process.bfd_all, to: bfd.global}
   - {kind: prerequisite, from: isis.process.bfd_all, to: bfd.global}
-  - {kind: cross_device, from: bfd.session.peer, to: interface.ipv4.address, note: 对端地址应是另一台设备的接口地址}
+  - {kind: cross_device, from: bfd.session.peer, to: interface.ipv4.address, note: {zh-CN: 对端地址应是另一台设备的接口地址, en: 'The peer address should be an interface address on another device', pt-BR: 'O endereço do par deve ser um endereço de interface de outro dispositivo'}}

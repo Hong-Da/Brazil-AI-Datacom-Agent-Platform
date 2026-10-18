@@ -117,7 +117,7 @@ def test_expected_findings(topo: topology.Topology, kb: KnowledgeBase, ruleset: 
     want = sorted((e["rule"], e["link"]) for e in MANIFEST["expect_findings"])
     assert got == want
     assert res["summary"]["has_errors"] and res["summary"]["by_severity"] == {"error": 10, "warning": 3, "info": 0}
-    assert {s["id"] for s in res["rules_skipped"]} == {"xd.vrrp.virtual_ip", "xd.vrrp.one_side"}  # 还没有 VRRP 功能域
+    assert res["rules_skipped"] == []  # M4-2 建好 VRRP 功能域后 VRRP 规则都参与求值（样本里没有 VRRP，所以没有发现）
     # 问题挂在链路上
     lk = next(
         x for x in res["links"] if x["id"] == "ospf:TOPO-ATN-A1:GigabitEthernet0/2/2~TOPO-ATN-A2:GigabitEthernet0/2/2"
@@ -200,14 +200,14 @@ rules:
   - id: x.future
     link: subnet
     pair: vrrp
-    requires: [interface.vrrp]
+    requires: [interface.hsrp]
     compare: {{value: "fact:paired"}}
     op: same_presence
     severity: warning
 {TEXTS}
 """,
     )
-    assert rs.skipped == [{"id": "x.future", "missing": ["interface.vrrp"]}]
+    assert rs.skipped == [{"id": "x.future", "missing": ["interface.hsrp"]}]
     res = consistency.check(topo, kb, rs)
     got = {(f["rule"], f["link"], f["id"].rsplit("[", 1)[-1]) for f in res["findings"]}
     # A1 ospf[_] hello 1 / A2 默认 10；AGG-01 与 A1 都是 1
@@ -221,3 +221,16 @@ def test_ops() -> None:
     assert v("both", True, False) and not v("both", True, True)
     assert v("overlap", ["level-1"], ["level-2"]) and not v("overlap", ["level-1", "level-2"], ["level-2"])
     assert not v("overlap", [], ["level-2"])
+
+
+def test_vrrp_consistency(kb: KnowledgeBase) -> None:
+    """VRRP 功能域（M4-2）：同网段两端按组号配对，虚拟地址、通告间隔不一致与只在一端配置的组都能报出。"""
+    samples = Path(__file__).resolve().parent.parent.parent / "knowledge" / "samples"
+    hw = (samples / "huawei-atn-v800r025-synthetic" / "atn-advanced-01.cfg").read_text(encoding="utf-8")
+    cs = (samples / "cisco-iosxe-asr920-synthetic" / "pe-asr920-04-advanced.cfg").read_text(encoding="utf-8")
+    hw = hw.replace("vrrp vrid 10 virtual-ip 10.20.1.1", "vrrp vrid 10 virtual-ip 10.20.1.100")
+    hw = hw.replace(" vrrp vrid 10 timer advertise 2", " vrrp vrid 30 virtual-ip 10.20.1.30")
+    t = topology.build(topology.from_texts([{"name": "a", "text": hw}, {"name": "b", "text": cs}], kb), kb)
+    res = consistency.check(t, kb, consistency.load(kb, consistency.rules_file(KB_ROOT)))
+    got = {(f["rule"], f["id"].rsplit("[", 1)[-1]) for f in res["findings"] if f["rule"].startswith("xd.vrrp")}
+    assert got == {("xd.vrrp.virtual_ip", "10]"), ("xd.vrrp.advertise", "10]"), ("xd.vrrp.one_side", "30]")}

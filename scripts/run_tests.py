@@ -97,7 +97,7 @@ def main() -> int:
     picked = [c for c in BACKEND if getattr(a, c)]
     if a.live:
         if not a.base_url:
-            print("--live 需要 --base-url，例如 --base-url http://127.0.0.1:9000 --token <令牌>")
+            print("--live 需要 --base-url，例如 --base-url http://127.0.0.1:9090 --token <令牌>")
             return 2
         env = {"LMESH_LIVE_BASE_URL": a.base_url, "LMESH_LIVE_TOKEN": a.token}
         picked = ["live"]

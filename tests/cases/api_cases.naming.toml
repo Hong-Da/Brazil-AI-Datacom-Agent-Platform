@@ -1,0 +1,149 @@
+# 翻译自定义规则（REQ-032）/api/v1/translate-rules 与翻译、迁移接口的规则集参数的 API 用例（加载器与主文件 api_cases.toml 合并）。
+
+[[case]]
+id = "translate-rules-list"
+title = { zh-CN = "规则集列表与可改名的对象类型", en = "List rule sets and renamable object types", pt-BR = "Listar conjuntos e tipos renomeáveis" }
+method = "GET"
+path = "/api/v1/translate-rules"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.items.0.id" = "asr920-to-atn", "data.items.0.builtin" = true, "data.items.0.valid" = true, "data.items.1.id" = "atn-to-asr920", "data.items.1.counts.ports" = 7 }
+in_docs = true
+
+[[case]]
+id = "translate-rules-get"
+title = { zh-CN = "读取规则集：结构化内容与 YAML 原文", en = "Read a rule set", pt-BR = "Ler um conjunto de regras" }
+method = "GET"
+path = "/api/v1/translate-rules/asr920-to-atn"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.id" = "asr920-to-atn", "data.builtin" = true, "data.rules.names.0.match" = "regex", "data.rules.names.0.to" = "RP_{1}", "data.rules.ports.0.from" = "Port-channel", "data.rules.ports.0.to" = "Eth-Trunk" }
+in_docs = true
+
+[[case]]
+id = "translate-rules-get-missing"
+title = { zh-CN = "规则集不存在", en = "Unknown rule set", pt-BR = "Conjunto inexistente" }
+method = "GET"
+path = "/api/v1/translate-rules/nope"
+setup = "configured"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "translate-rules-save"
+title = { zh-CN = "保存我的规则集（结构化内容）", en = "Save my rule set", pt-BR = "Salvar meu conjunto de regras" }
+method = "PUT"
+path = "/api/v1/translate-rules/my-rules"
+setup = "configured"
+auth = true
+body = { rules = { title = { zh-CN = "我的规则", en = "My rules", pt-BR = "Minhas regras" }, names = [{ type = "vrf.instance", match = "wildcard", from = "RAN-*", to = "VRF_{1}" }], ports = [{ match = "type", from = "Eth-Trunk", to = "Port-channel" }] } }
+expect_status = 200
+expect_json = { "code" = 0, "data.id" = "my-rules", "data.builtin" = false, "data.file" = "my-rules.yaml", "data.counts.names" = 1, "data.counts.ports" = 1, "data.rules.names.0.to" = "VRF_{1}" }
+in_docs = true
+
+[[case]]
+id = "translate-rules-save-builtin"
+title = { zh-CN = "内置规则集只读（409）", en = "Built-in rule sets are read-only (409)", pt-BR = "Conjuntos embutidos são somente leitura (409)" }
+method = "PUT"
+path = "/api/v1/translate-rules/atn-to-asr920"
+setup = "configured"
+auth = true
+body = { rules = { names = [] } }
+expect_status = 409
+expect_json = { "code" = 1003 }
+in_docs = true
+
+[[case]]
+id = "translate-rules-save-invalid"
+title = { zh-CN = "规则有误：返回问题清单", en = "Invalid rules: list of problems", pt-BR = "Regras inválidas: lista de problemas" }
+method = "PUT"
+path = "/api/v1/translate-rules/bad"
+setup = "configured"
+auth = true
+body = { rules = { names = [{ match = "regex", from = "(", to = "x" }] } }
+expect_status = 422
+expect_json = { "code" = 1001, "data.issues.0.where" = "names[0].from", "data.issues.0.key" = "naming.issue.regex" }
+in_docs = true
+
+[[case]]
+id = "translate-rules-delete-builtin"
+title = { zh-CN = "删除内置规则集（409）", en = "Delete a built-in rule set (409)", pt-BR = "Excluir conjunto embutido (409)" }
+method = "DELETE"
+path = "/api/v1/translate-rules/atn-to-asr920"
+setup = "configured"
+auth = true
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "translate-rules-import"
+title = { zh-CN = "导入规则集（YAML 原文，可换编号）", en = "Import a rule set", pt-BR = "Importar um conjunto de regras" }
+method = "POST"
+path = "/api/v1/translate-rules/import"
+setup = "configured"
+auth = true
+body = { source = "# 导入的规则\nid: imported\nnames:\n  - {match: exact, from: A, to: B}\n", id = "imported-2" }
+expect_status = 200
+expect_json = { "code" = 0, "data.id" = "imported-2", "data.builtin" = false, "data.counts.names" = 1 }
+in_docs = true
+
+[[case]]
+id = "translate-rules-match"
+title = { zh-CN = "编辑器测试框：一个名称经过名称映射与命名规范", en = "Editor test box: one name", pt-BR = "Caixa de teste: um nome" }
+method = "POST"
+path = "/api/v1/translate-rules/match"
+setup = "configured"
+auth = true
+body = { rules = { names = [{ type = "rp.policy", match = "regex", from = '(\w+)-(IN|OUT)', to = "RP_{1}_{2}", ignore_case = true }], naming = [{ type = "rp.policy", pattern = "RP_[A-Z_]+", fix = true, case = "upper", max_length = 10 }] }, kind = "name", type = "rp.policy", value = "bgp-in" }
+expect_status = 200
+expect_json = { "code" = 0, "data.mapped" = "RP_bgp_in", "data.result" = "RP_BGP_IN", "data.rule" = 0, "data.naming_rule" = 0, "data.fixes" = ["upper"], "data.problems" = [] }
+in_docs = true
+
+[[case]]
+id = "translate-rules-match-port"
+title = { zh-CN = "编辑器测试框：接口名（模式映射，{n} 加偏移）", en = "Editor test box: interface name", pt-BR = "Caixa de teste: nome de interface" }
+method = "POST"
+path = "/api/v1/translate-rules/match"
+setup = "configured"
+auth = true
+body = { rules = { ports = [{ match = "pattern", from = "GigabitEthernet0/2/{n}", to = "GigabitEthernet0/0/{n+1}", range = [0, 7] }] }, kind = "port", value = "GE0/2/3.100" }
+expect_status = 200
+expect_json = { "code" = 0, "data.result" = "GigabitEthernet0/0/4.100", "data.rule" = 0, "data.changed" = true }
+
+[[case]]
+id = "translate-rules-test"
+title = { zh-CN = "试运行：改名清单、引用、冲突与命名规范告警", en = "Dry run on a configuration", pt-BR = "Execução de teste numa configuração" }
+method = "POST"
+path = "/api/v1/translate-rules/test"
+setup = "configured-fullkb"
+auth = true
+body = { text = "#\nip vpn-instance RAN-4G\n ipv4-family\n  route-distinguisher 65000:1\n#\ninterface GigabitEthernet0/2/1.100\n vlan-type dot1q 100\n ip binding vpn-instance RAN-4G\n ip address 10.0.0.1 255.255.255.0\n#\nreturn", profile = "huawei-atn-v800r025", to = "cisco-iosxe-asr920-17.15", rules = { names = [{ type = "vrf.instance", match = "wildcard", from = "RAN-*", to = "VRF_{1}" }], naming = [{ type = "vrf.instance", pattern = "VRF_[A-Z]+" }] } }
+expect_status = 200
+expect_json = { "code" = 0, "data.summary.renamed" = 1, "data.summary.refs" = 1, "data.renames.0.from" = "RAN-4G", "data.renames.0.to" = "VRF_4G", "data.renames.0.ref_nodes.0.schema" = "interface.vrf", "data.naming.0.problem" = "pattern", "data.naming.0.name" = "VRF_4G", "data.source.profile" = "huawei-atn-v800r025" }
+in_docs = true
+
+[[case]]
+id = "translate-with-rule-set"
+title = { zh-CN = "翻译时选用规则集（rule_set），结果另有 naming", en = "Translate with a rule set", pt-BR = "Traduzir com um conjunto de regras" }
+method = "POST"
+path = "/api/v1/translate"
+setup = "configured-fullkb"
+auth = true
+body = { text = "hostname R1\n!\ninterface Port-channel1\n ip address 10.0.1.1 255.255.255.252\n!\nip prefix-list LOOPBACKS seq 10 permit 10.255.0.0/16 ge 32\n!\nroute-map EXPORT-LOOPBACK permit 10\n match ip address prefix-list LOOPBACKS\n!\nend", to = "huawei-atn-v800r025", rule_set = "asr920-to-atn" }
+expect_status = 200
+expect_json = { "code" = 0, "data.verify.unexplained" = 0, "data.interface_map.Port-channel1" = "Eth-Trunk1", "data.naming.summary.renamed" = 1, "data.naming.renames.0.to" = "RP_EXPORT-LOOPBACK" }
+in_docs = true
+
+[[case]]
+id = "migrate-suggest-with-rules"
+title = { zh-CN = "割接迁移的映射建议：端口规则在用户映射之后、自动建议之前", en = "Migration map suggestion with port rules", pt-BR = "Sugestão de mapeamento com regras de porta" }
+method = "POST"
+path = "/api/v1/migrate/suggest-map"
+setup = "configured-fullkb"
+auth = true
+body = { text = "#\nsysname OLD\n#\ninterface GigabitEthernet0/2/1\n ip address 10.0.0.1 255.255.255.252\n#\ninterface GigabitEthernet0/2/2\n description X\n#\nreturn", to = "cisco-iosxe-asr920-17.15", interface_map = { "GigabitEthernet0/2/2" = "GigabitEthernet0/0/7" }, rules = { ports = [{ match = "pattern", from = "GigabitEthernet0/2/{n}", to = "GigabitEthernet0/0/{n+1}" }] } }
+expect_status = 200
+expect_json = { "code" = 0, "data.map.0.source" = "GigabitEthernet0/2/1", "data.map.0.target" = "GigabitEthernet0/0/2", "data.map.1.target" = "GigabitEthernet0/0/7" }

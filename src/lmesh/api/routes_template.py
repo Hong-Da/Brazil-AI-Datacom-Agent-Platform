@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from lmesh.api.common import E_NOT_FOUND, E_PARAM, E_STATE, ApiError, ok, require_token, settings_of
+from lmesh.api.routes_translate_rules import RulesRef, resolve_rules
 from lmesh.core import analysis, graphstore, importer, kbservice, store, template_draft, template_gen, template_match
 from lmesh.core import graph as graphmod
 from lmesh.core import template as tmod
@@ -162,7 +163,9 @@ def draft(request: Request, body: DraftBody) -> dict[str, Any]:
     return ok(request, d)
 
 
-class GenerateBody(TemplateRef):
+class GenerateBody(TemplateRef, RulesRef):
+    """rule_set / rules：翻译自定义规则（REQ-032），只用于 engine=canon。"""
+
     rows: list[dict[str, Any]] | None = Field(None, max_length=2000, description="参数行（JSON）")
     csv: str | None = Field(None, max_length=importer.MAX_BYTES, description="参数表（CSV 文本）")
     engine: Literal["text", "canon"] = "text"
@@ -181,7 +184,8 @@ def generate(request: Request, body: GenerateBody) -> dict[str, Any]:
             rows = template_gen.parse_params(body.csv, "csv")
         else:
             raise tmod.TemplateError("template.params_empty")
-        r = template_gen.generate(t, rows, kb, body.engine, body.target_profile, body.verify)
+        rules = resolve_rules(request, body, kb)
+        r = template_gen.generate(t, rows, kb, body.engine, body.target_profile, body.verify, rules)
     except tmod.TemplateError as e:
         raise _error(e) from e
     if not body.include_text:

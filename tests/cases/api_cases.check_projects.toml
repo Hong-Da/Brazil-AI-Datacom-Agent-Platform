@@ -1,0 +1,269 @@
+# 配置检查项目（REQ-031）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-fullkb-checkproj：设备 ATN-CHANGE-01（编号 1）的版本历史之上建项目 1（基线跟随最新版本），
+# 脚本 1 = tests/inputs/scripts/atn-change-order.txt（变更脚本，先配地址再绑定 VPN、引用后面才创建的 VPN 实例、取消不存在的前缀列表、视图错误），
+# 脚本 2 = tests/inputs/scripts/atn-full.cfg（完整配置，改了接口描述、有一行未识别命令）。
+
+[[case]]
+id = "cp-list"
+title = { zh-CN = "配置检查项目列表", en = "List check projects", pt-BR = "Listar projetos de verificação" }
+method = "GET"
+path = "/api/v1/check-projects"
+setup = "configured-fullkb-checkproj"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.projects.0.id" = 1, "data.projects.0.name" = "割接前检查", "data.projects.0.device.name" = "ATN-CHANGE-01", "data.projects.0.scripts" = 2, "data.projects.0.order_check" = true }
+in_docs = true
+
+[[case]]
+id = "cp-create"
+title = { zh-CN = "新建项目（基线设备，跟随最新版本）", en = "Create a project (baseline device, latest version)", pt-BR = "Criar projeto (dispositivo de referência, versão mais recente)" }
+method = "POST"
+path = "/api/v1/check-projects"
+setup = "configured-fullkb-history"
+auth = true
+body = { name = "割接前检查", description = "OAM 接口迁入 VPN", device_id = 1, order_check = true }
+expect_status = 200
+expect_json = { "code" = 0, "data.id" = 1, "data.device.name" = "ATN-CHANGE-01", "data.default_kind" = "change", "data.ai_check" = false, "data.scripts" = 0 }
+in_docs = true
+
+[[case]]
+id = "cp-create-bad-device"
+title = { zh-CN = "基线设备不存在", en = "Baseline device not found", pt-BR = "Dispositivo de referência inexistente" }
+method = "POST"
+path = "/api/v1/check-projects"
+setup = "configured"
+auth = true
+body = { name = "x", device_id = 9 }
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "cp-get"
+title = { zh-CN = "项目详情（含脚本列表）", en = "Project detail with scripts", pt-BR = "Detalhe do projeto com scripts" }
+method = "GET"
+path = "/api/v1/check-projects/1"
+setup = "configured-fullkb-checkproj"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.script_list.0.name" = "绑定 VPN", "data.script_list.0.kind" = "change", "data.script_list.1.kind" = "full", "data.script_list.0.revisions" = 1 }
+
+[[case]]
+id = "cp-update"
+title = { zh-CN = "修改项目：关闭顺序核查、开启 AI 一起校验并勾选规则", en = "Update a project: order check off, AI review on with rules", pt-BR = "Atualizar projeto: ordem desligada, revisão por IA com regras" }
+method = "PUT"
+path = "/api/v1/check-projects/1"
+setup = "configured-fullkb-checkproj"
+auth = true
+body = { order_check = false, ai_check = true, ai_rules = ["style.interface_description"] }
+expect_status = 200
+expect_json = { "code" = 0, "data.order_check" = false, "data.ai_check" = true, "data.ai_rules" = ["style.interface_description"], "data.name" = "割接前检查" }
+in_docs = true
+
+[[case]]
+id = "cp-ai-rules"
+title = { zh-CN = "可交给 AI 的规则与 AI 是否已配置", en = "Rules that AI may review, and whether AI is configured", pt-BR = "Regras que a IA pode revisar e se a IA está configurada" }
+method = "GET"
+path = "/api/v1/check-projects/ai-rules"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.configured" = false }
+
+[[case]]
+id = "cp-script-create"
+title = { zh-CN = "新建脚本（形成第一条修订）", en = "Create a script (first revision)", pt-BR = "Criar script (primeira revisão)" }
+method = "POST"
+path = "/api/v1/check-projects/1/scripts"
+setup = "configured-fullkb-checkproj"
+auth = true
+body = { name = "删除前缀列表", content = "system-view\nundo ip ip-prefix LOOPBACKS index 10\ncommit\n" }
+expect_status = 200
+expect_json = { "code" = 0, "data.id" = 3, "data.kind" = "change", "data.revisions" = 1, "data.lines" = 3 }
+in_docs = true
+
+[[case]]
+id = "cp-script-get"
+title = { zh-CN = "脚本内容", en = "Script content", pt-BR = "Conteúdo do script" }
+method = "GET"
+path = "/api/v1/check-projects/1/scripts/2"
+setup = "configured-fullkb-checkproj"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.name" = "完整配置", "data.kind" = "full", "data.lines" = 99 }
+
+[[case]]
+id = "cp-check"
+title = { zh-CN = "检查变更脚本（顺序核查开启）：问题按行给出，附重排建议", en = "Check a change script (order check on): per-line issues and a reorder suggestion", pt-BR = "Verificar script de mudança (ordem ativada): problemas por linha e sugestão de reordenação" }
+method = "POST"
+path = "/api/v1/check-projects/1/scripts/1/check"
+setup = "configured-fullkb-checkproj"
+auth = true
+body = { lang = "zh-CN" }
+expect_status = 200
+expect_json = { "code" = 0, "data.kind" = "change", "data.summary.errors" = 3, "data.order.enabled" = true, "data.order.violations" = 2, "data.order.reorder.changed" = true, "data.issues.1.line" = 3, "data.issues.1.code" = "side_effect_lost", "data.issues.1.category" = "order", "data.issues.1.source" = "code", "data.script.saved" = true, "data.ai.enabled" = false, "data.baseline.device" = "ATN-CHANGE-01" }
+in_docs = true
+
+[[case]]
+id = "cp-check-order-off"
+title = { zh-CN = "关闭顺序核查：只看执行后的结果", en = "Order check off: only the final result", pt-BR = "Ordem desligada: apenas o resultado final" }
+method = "POST"
+path = "/api/v1/check-projects/1/scripts/1/check"
+setup = "configured-fullkb-checkproj"
+auth = true
+body = { order = false }
+expect_status = 200
+expect_json = { "code" = 0, "data.summary.errors" = 1, "data.order.enabled" = false, "data.order.violations" = 0, "data.result.side_effect_removed" = 1, "data.summary.by_category.view" = 1 }
+
+[[case]]
+id = "cp-check-content"
+title = { zh-CN = "检查编辑器中未保存的内容（边写边查）", en = "Check unsaved editor content (live check)", pt-BR = "Verificar conteúdo não salvo do editor (verificação ao vivo)" }
+method = "POST"
+path = "/api/v1/check-projects/1/scripts/1/check"
+setup = "configured-fullkb-checkproj"
+auth = true
+body = { content = "system-view\ninterface GigabitEthernet0/2/2\n description OAM-LINK-NEW\nquit\ncommit\n" }
+expect_status = 200
+expect_json = { "code" = 0, "data.summary.errors" = 0, "data.issues.0.code" = "override", "data.issues.0.message.params.base_line" = 40, "data.script.saved" = false, "data.line_kinds.1" = "command" }
+in_docs = true
+
+[[case]]
+id = "cp-check-full"
+title = { zh-CN = "检查完整配置：未识别行、规则、与基线的差异摘要", en = "Check a full configuration: unknown lines, rules, diff with the baseline", pt-BR = "Verificar configuração completa: linhas desconhecidas, regras, diferença com a referência" }
+method = "POST"
+path = "/api/v1/check-projects/1/scripts/2/check"
+setup = "configured-fullkb-checkproj"
+auth = true
+body = {}
+expect_status = 200
+expect_json = { "code" = 0, "data.kind" = "full", "data.order.applicable" = false, "data.result.unknown" = 1, "data.result.compare.equal" = false }
+
+[[case]]
+id = "cp-check-ai-not-configured"
+title = { zh-CN = "未配置 AI 时请求 AI 一起校验：其余检查照常", en = "AI review requested without AI configured: other checks still run", pt-BR = "Revisão por IA sem IA configurada: as demais verificações continuam" }
+method = "POST"
+path = "/api/v1/check-projects/1/scripts/1/check"
+setup = "configured-fullkb-checkproj"
+auth = true
+body = { ai = true, ai_rules = ["style.interface_description"] }
+expect_status = 200
+expect_json = { "code" = 0, "data.ai.status" = "not_configured", "data.ai.configured" = false, "data.summary.errors" = 3 }
+
+[[case]]
+id = "cp-reorder-preview"
+title = { zh-CN = "按依赖重排（预览）：新脚本、每条命令的移动与原因", en = "Reorder by dependency (preview): new script, each move and its reason", pt-BR = "Reordenar por dependência (prévia): novo script, cada movimento e o motivo" }
+method = "POST"
+path = "/api/v1/check-projects/1/scripts/1/reorder"
+setup = "configured-fullkb-checkproj"
+auth = true
+body = { lang = "zh-CN" }
+expect_status = 200
+expect_json = { "code" = 0, "data.changed" = true, "data.applied" = false, "data.before.order_violations" = 2, "data.after.order_violations" = 0, "data.moves.0.reasons.0.dir" = "after" }
+in_docs = true
+
+[[case]]
+id = "cp-reorder-apply"
+title = { zh-CN = "按依赖重排并保存为修订", en = "Reorder and save as a revision", pt-BR = "Reordenar e salvar como revisão" }
+method = "POST"
+path = "/api/v1/check-projects/1/scripts/1/reorder"
+setup = "configured-fullkb-checkproj"
+auth = true
+body = { apply = true }
+expect_status = 200
+expect_json = { "code" = 0, "data.applied" = true, "data.revision.seq" = 2, "data.revision.source" = "reorder" }
+
+[[case]]
+id = "cp-script-save"
+title = { zh-CN = "保存脚本内容（内容变化时形成修订）", en = "Save script content (a revision when it changes)", pt-BR = "Salvar conteúdo do script (revisão quando muda)" }
+method = "PUT"
+path = "/api/v1/check-projects/1/scripts/1"
+setup = "configured-fullkb-checkproj"
+auth = true
+body = { content = "system-view\ninterface GigabitEthernet0/2/2\n description OAM-LINK-NEW\nquit\ncommit\n" }
+expect_status = 200
+expect_json = { "code" = 0, "data.revision.seq" = 2, "data.revision.source" = "manual", "data.revisions" = 2 }
+in_docs = true
+
+[[case]]
+id = "cp-revisions"
+title = { zh-CN = "修订记录", en = "Revisions", pt-BR = "Revisões" }
+method = "GET"
+path = "/api/v1/check-projects/1/scripts/1/revisions"
+setup = "configured-fullkb-checkproj"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.revisions.0.seq" = 1, "data.revisions.0.source" = "create", "data.revisions.0.author" = "tester", "data.revisions.0.lines" = 15 }
+in_docs = true
+
+[[case]]
+id = "cp-revision-get"
+title = { zh-CN = "一条修订（含内容）", en = "One revision with content", pt-BR = "Uma revisão com conteúdo" }
+method = "GET"
+path = "/api/v1/check-projects/1/scripts/1/revisions/1"
+setup = "configured-fullkb-checkproj"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.seq" = 1, "data.source" = "create" }
+
+[[case]]
+id = "cp-restore"
+title = { zh-CN = "恢复到某个修订（形成一条 restore 修订）", en = "Restore a revision (adds a restore revision)", pt-BR = "Restaurar uma revisão (cria uma revisão restore)" }
+method = "POST"
+path = "/api/v1/check-projects/1/scripts/1/revisions/1/restore"
+setup = "configured-fullkb-checkproj"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.revision.seq" = 2, "data.revision.source" = "restore", "data.revision.note.from_seq" = 1 }
+in_docs = true
+
+[[case]]
+id = "cp-diff-baseline"
+title = { zh-CN = "对比：基线设备配置 ↔ 完整配置脚本（文本 + 语义差异）", en = "Diff: baseline configuration vs a full-config script (text and semantic)", pt-BR = "Diferença: configuração de referência vs script completo (texto e semântica)" }
+method = "POST"
+path = "/api/v1/check-projects/diff"
+setup = "configured-fullkb-checkproj"
+auth = true
+body = { a = { type = "baseline", project_id = 1 }, b = { type = "script", script_id = 2 } }
+expect_status = 200
+expect_json = { "code" = 0, "data.a.kind" = "baseline", "data.b.kind" = "full", "data.equal" = false, "data.semantic.equal" = false }
+in_docs = true
+
+[[case]]
+id = "cp-diff-text-moves"
+title = { zh-CN = "对比两段文本：位置变化识别为移动，可忽略顺序", en = "Diff two texts: position changes are moves; ignore order", pt-BR = "Diferença entre dois textos: mudanças de posição são movimentos; ignorar ordem" }
+method = "POST"
+path = "/api/v1/check-projects/diff"
+setup = "configured"
+auth = true
+body = { a = { type = "text", text = "a\nb\nc\n" }, b = { type = "text", text = "c\na\nb\n" }, ignore_order = true, semantic = false }
+expect_status = 200
+expect_json = { "code" = 0, "data.stats.move" = 1, "data.stats.add" = 0, "data.stats.del" = 0, "data.moves.0.from" = 3, "data.moves.0.to" = 1, "data.unordered.equal" = true }
+
+[[case]]
+id = "cp-not-found"
+title = { zh-CN = "项目不存在", en = "Project not found", pt-BR = "Projeto inexistente" }
+method = "GET"
+path = "/api/v1/check-projects/99"
+setup = "configured"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "cp-script-delete"
+title = { zh-CN = "删除脚本", en = "Delete a script", pt-BR = "Excluir script" }
+method = "DELETE"
+path = "/api/v1/check-projects/1/scripts/2"
+setup = "configured-fullkb-checkproj"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.deleted" = 2 }
+
+[[case]]
+id = "cp-delete"
+title = { zh-CN = "删除项目（连同脚本与修订）", en = "Delete a project with its scripts and revisions", pt-BR = "Excluir projeto com scripts e revisões" }
+method = "DELETE"
+path = "/api/v1/check-projects/1"
+setup = "configured-fullkb-checkproj"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.deleted" = 1 }

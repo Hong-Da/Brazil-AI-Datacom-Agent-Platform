@@ -109,7 +109,7 @@ nodes:
     key: [id]
     semantic: {zh-CN: 桥域（华为 bridge-domain，Cisco bridge-domain / BDI 对应的二层广播域）, en: Bridge domain}
 deps:
-  - {kind: reference, from: interface.vrf, to: vrf.instance, note: 接口引用 VRF}
-  - {kind: prerequisite, from: interface.vrf, to: vrf.instance, note: 绑定 VRF 前 VRF 必须存在；删除时先解绑再删 VRF}
-  - {kind: reference, from: interface.access.bridge_domain, to: bridge_domain, note: 接入点引用桥域}
-  - {kind: mutex, from: interface.l2, to: interface.ipv4, note: 二层模式的接口不能配置 IPv4 地址}
+  - {kind: reference, from: interface.vrf, to: vrf.instance, note: {zh-CN: 接口引用 VRF, en: 'Interface references the VRF', pt-BR: 'A interface referencia a VRF'}}
+  - {kind: prerequisite, from: interface.vrf, to: vrf.instance, note: {zh-CN: 绑定 VRF 前 VRF 必须存在；删除时先解绑再删 VRF, en: 'The VRF must exist before binding; when removing, unbind first, then delete the VRF', pt-BR: 'A VRF deve existir antes da vinculação; ao remover, desvincule primeiro e depois exclua a VRF'}}
+  - {kind: reference, from: interface.access.bridge_domain, to: bridge_domain, note: {zh-CN: 接入点引用桥域, en: 'Attachment circuit references the bridge domain', pt-BR: 'O circuito de acesso referencia o bridge domain'}}
+  - {kind: mutex, from: interface.l2, to: interface.ipv4, note: {zh-CN: 二层模式的接口不能配置 IPv4 地址, en: 'An interface in Layer 2 mode cannot have an IPv4 address', pt-BR: 'Uma interface em modo de camada 2 não pode ter endereço IPv4'}}

@@ -1,0 +1,141 @@
+# SR-MPLS 功能域（0.4.0，M4-2）：全局使能与标签块、IGP（IS-IS / OSPF）下的 SR 使能、SRGB、前缀 SID、TI-LFA。
+# 华为：segment-routing 视图 + IGP 视图下 segment-routing mpls / global-block + Loopback 接口 isis / ospf prefix-sid；
+# Cisco：segment-routing mpls 模式（global-block、connected-prefix-sid-map）+ router isis / ospf 下 segment-routing mpls。
+# 前缀 SID 两家写法不同：华为写在 Loopback 接口上（interface.prefix_sid），Cisco 写成 connected-prefix-sid-map（sr.global.conn_map.af.prefix）；
+# 华为 mapping-server prefix-sid-mapping（为其他节点通告 SID）记在 sr.prefix_sid_map。SRv6、SR-TE Policy 不在范围。
+domain: sr
+nodes:
+  sr.global:
+    type: object
+    key: [id]
+    semantic: {zh-CN: Segment Routing 全局使能（华为 segment-routing；Cisco segment-routing mpls；编号固定为 "_"）, en: Segment Routing global}
+  sr.global.srgb_begin:
+    parent: sr.global
+    type: integer
+    semantic: {zh-CN: 全局 SRGB 起始标签（Cisco global-block；华为在 IGP 下配置）, en: SRGB start}
+  sr.global.srgb_end:
+    parent: sr.global
+    type: integer
+    semantic: {zh-CN: 全局 SRGB 结束标签, en: SRGB end}
+  sr.global.srlb_begin:
+    parent: sr.global
+    type: integer
+    semantic: {zh-CN: SRLB（本地标签块）起始标签（华为 local-block / Cisco local-block）, en: SRLB start}
+  sr.global.srlb_end:
+    parent: sr.global
+    type: integer
+    semantic: {zh-CN: SRLB 结束标签, en: SRLB end}
+  sr.global.tunnel_prefer:
+    parent: sr.global
+    type: boolean
+    semantic: {zh-CN: 隧道优选 SR（华为 tunnel-prefer segment-routing）, en: Prefer SR tunnels}
+  sr.prefix_sid_map:
+    type: object
+    key: [prefix]
+    semantic: {zh-CN: 映射服务器的前缀 SID（华为 mapping-server prefix-sid-mapping，为其他节点通告）, en: Mapping-server prefix SID}
+  sr.prefix_sid_map.index:
+    parent: sr.prefix_sid_map
+    type: integer
+    semantic: {zh-CN: SID 索引, en: SID index}
+  sr.prefix_sid_map.absolute:
+    parent: sr.prefix_sid_map
+    type: integer
+    semantic: {zh-CN: SID 绝对标签值, en: Absolute SID}
+  sr.prefix_sid_map.range:
+    parent: sr.prefix_sid_map
+    type: integer
+    semantic: {zh-CN: 连续分配的前缀个数, en: Range}
+  sr.prefix_sid_map.mapping_server:
+    parent: sr.prefix_sid_map
+    type: boolean
+    semantic: {zh-CN: 作为映射服务器为其他节点通告（华为 mapping-server）, en: Mapping server entry}
+  # Cisco connected-prefix-sid-map（本地前缀的 SID）：segment-routing mpls → connected-prefix-sid-map → address-family ipv4 → 前缀
+  sr.global.conn_map:
+    parent: sr.global
+    type: object
+    key: [id]
+    semantic: {zh-CN: 本地前缀 SID 映射（Cisco connected-prefix-sid-map；编号固定为 "_"）, en: Connected prefix SID map}
+  sr.global.conn_map.af:
+    parent: sr.global.conn_map
+    type: object
+    key: [afi]
+    semantic: {zh-CN: 地址族, en: Address family}
+  sr.global.conn_map.af.prefix:
+    parent: sr.global.conn_map.af
+    type: object
+    key: [prefix]
+    semantic: {zh-CN: 前缀与 SID（Cisco <前缀> index <N> range <M>；对应华为 Loopback 接口上的 prefix-sid）, en: Prefix SID entry}
+  sr.global.conn_map.af.prefix.index:
+    parent: sr.global.conn_map.af.prefix
+    type: integer
+    semantic: {zh-CN: SID 索引, en: SID index}
+  sr.global.conn_map.af.prefix.absolute:
+    parent: sr.global.conn_map.af.prefix
+    type: integer
+    semantic: {zh-CN: SID 绝对标签值, en: Absolute SID}
+  sr.global.conn_map.af.prefix.range:
+    parent: sr.global.conn_map.af.prefix
+    type: integer
+    semantic: {zh-CN: 连续分配的前缀个数, en: Range}
+  # IGP 下的 SR
+  isis.process.sr_mpls:
+    parent: isis.process
+    type: boolean
+    semantic: {zh-CN: IS-IS 使能 SR-MPLS（segment-routing mpls）, en: IS-IS SR-MPLS}
+  isis.process.srgb_begin:
+    parent: isis.process
+    type: integer
+    semantic: {zh-CN: IS-IS 的 SRGB 起始标签（华为 segment-routing global-block）, en: SRGB start}
+  isis.process.srgb_end:
+    parent: isis.process
+    type: integer
+    semantic: {zh-CN: IS-IS 的 SRGB 结束标签, en: SRGB end}
+  isis.process.ti_lfa:
+    parent: isis.process
+    type: boolean
+    semantic: {zh-CN: IS-IS TI-LFA（华为 frr 下 ti-lfa；Cisco fast-reroute ti-lfa）, en: IS-IS TI-LFA}
+  isis.process.microloop_avoidance:
+    parent: isis.process
+    type: boolean
+    semantic: {zh-CN: SR 防微环（华为 avoid-microloop segment-routing；Cisco microloop avoidance segment-routing）, en: SR microloop avoidance}
+  ospf.process.sr_mpls:
+    parent: ospf.process
+    type: boolean
+    semantic: {zh-CN: OSPF 使能 SR-MPLS（segment-routing mpls）, en: OSPF SR-MPLS}
+  ospf.process.srgb_begin:
+    parent: ospf.process
+    type: integer
+    semantic: {zh-CN: OSPF 的 SRGB 起始标签, en: SRGB start}
+  ospf.process.srgb_end:
+    parent: ospf.process
+    type: integer
+    semantic: {zh-CN: OSPF 的 SRGB 结束标签, en: SRGB end}
+  ospf.process.ti_lfa:
+    parent: ospf.process
+    type: boolean
+    semantic: {zh-CN: OSPF TI-LFA（华为 frr 下 ti-lfa enable；Cisco fast-reroute per-prefix ti-lfa）, en: OSPF TI-LFA}
+  ospf.process.microloop_avoidance:
+    parent: ospf.process
+    type: boolean
+    semantic: {zh-CN: SR 防微环, en: SR microloop avoidance}
+  # 接口上的前缀 SID（华为 Loopback 接口）
+  interface.prefix_sid:
+    parent: interface
+    type: object
+    key: [protocol]
+    semantic: {zh-CN: 接口上的前缀 SID（protocol：isis / ospf；华为 isis prefix-sid、ospf prefix-sid）, en: Prefix SID on the interface}
+  interface.prefix_sid.index:
+    parent: interface.prefix_sid
+    type: integer
+    semantic: {zh-CN: SID 索引, en: SID index}
+  interface.prefix_sid.absolute:
+    parent: interface.prefix_sid
+    type: integer
+    semantic: {zh-CN: SID 绝对标签值, en: Absolute SID}
+  interface.prefix_sid.node_disable:
+    parent: interface.prefix_sid
+    type: boolean
+    semantic: {zh-CN: 不作为节点 SID（node-disable）, en: Not a node SID}
+deps:
+  - {kind: prerequisite, from: isis.process.sr_mpls, to: sr.global, note: {zh-CN: 先在系统视图使能 segment-routing，再在 IGP 中使能 SR-MPLS, en: 'Enable segment-routing in the system view before enabling SR-MPLS in the IGP', pt-BR: 'Habilite o segment-routing na visão de sistema antes de habilitar o SR-MPLS no IGP'}}
+  - {kind: prerequisite, from: ospf.process.sr_mpls, to: sr.global, note: {zh-CN: 先在系统视图使能 segment-routing，再在 IGP 中使能 SR-MPLS, en: 'Enable segment-routing in the system view before enabling SR-MPLS in the IGP', pt-BR: 'Habilite o segment-routing na visão de sistema antes de habilitar o SR-MPLS no IGP'}}

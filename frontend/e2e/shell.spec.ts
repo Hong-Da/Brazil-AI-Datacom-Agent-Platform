@@ -1,12 +1,13 @@
 import { expect, test } from '@playwright/test'
-import { collectErrors, expectNoRawKeys, login, TOKEN } from './helpers'
+import { ADMIN, collectErrors, expectNoRawKeys, login } from './helpers'
 
-const PAGES = ['dashboard', 'devices', 'device-graph', 'unknown-lines', 'schema-view', 'schema-edit', 'profiles', 'coverage', 'review', 'ingest', 'releases', 'ai-settings']
+const PAGES = ['dashboard', 'devices', 'device-graph', 'unknown-lines', 'schema-view', 'schema-edit', 'profiles', 'coverage', 'review', 'ingest', 'releases', 'ai-settings', 'users']
 
-test('没有令牌时进入令牌页，输入后回到原页面', async ({ page }) => {
+test('没登录时进入登录页，登录后回到原页面', async ({ page }) => {
   await page.goto('/profiles')
   await expect(page).toHaveURL(/\/login/)
-  await page.getByTestId('token').fill(TOKEN)
+  await page.getByTestId('login-username').fill(ADMIN.username)
+  await page.getByTestId('login-password').fill(ADMIN.password)
   await page.getByTestId('login').click()
   await expect(page).toHaveURL(/\/profiles/)
 })

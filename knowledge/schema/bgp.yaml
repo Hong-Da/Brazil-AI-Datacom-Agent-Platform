@@ -98,7 +98,7 @@ nodes:
     parent: bgp.instance
     type: object
     key: [afi, vrf]
-    semantic: {zh-CN: BGP 地址族（afi：ipv4 / vpnv4；VRF 内的 IPv4 地址族带 vrf）, en: BGP address family}
+    semantic: {zh-CN: BGP 地址族（afi：ipv4 / vpnv4 / evpn；VRF 内的 IPv4 地址族带 vrf；evpn 为 M4-2 新增的 l2vpn evpn 地址族）, en: BGP address family}
   bgp.af.network:
     parent: bgp.af
     type: object
@@ -164,6 +164,25 @@ nodes:
     type: ref
     ref: bgp.peer_group
     semantic: {zh-CN: 地址族内重复声明的组成员关系（华为写法）, en: Group membership inside the address family}
+  # M4-2：VPN 实例（VRF）内的对等体（PE–CE）。华为 ipv4-family vpn-instance 下的 peer … as-number、Cisco address-family ipv4 vrf 下的
+  # neighbor … remote-as 只在该地址族中存在，不在全局 bgp.peer 中，属性直接挂在地址族对等体上
+  bgp.af.peer.remote_as:
+    parent: bgp.af.peer
+    type: asn
+    semantic: {zh-CN: 对端 AS（VRF 内的对等体）, en: Remote AS (VRF peer)}
+  bgp.af.peer.description:
+    parent: bgp.af.peer
+    type: text
+    semantic: {zh-CN: 描述（VRF 内的对等体）, en: Description (VRF peer)}
+  bgp.af.peer.password:
+    parent: bgp.af.peer
+    type: string
+    secret: true
+    semantic: {zh-CN: MD5 认证密码（VRF 内的对等体；只记录密文）, en: MD5 password (VRF peer)}
+  bgp.af.peer.update_source:
+    parent: bgp.af.peer
+    type: interface
+    semantic: {zh-CN: 建立会话的源接口（VRF 内的对等体）, en: Update source (VRF peer)}
   bgp.af.nexthop_policy:
     parent: bgp.af
     type: ref
@@ -172,10 +191,10 @@ nodes:
 deps:
   - {kind: reference, from: bgp.af.nexthop_policy, to: rp.policy}
   - {kind: reference, from: bgp.peer.group, to: bgp.peer_group}
-  - {kind: prerequisite, from: bgp.peer.group, to: bgp.peer_group, note: 先创建对等体组再加入}
+  - {kind: prerequisite, from: bgp.peer.group, to: bgp.peer_group, note: {zh-CN: 先创建对等体组再加入, en: 'Create the peer group before adding peers to it', pt-BR: 'Crie o grupo de pares antes de adicionar pares a ele'}}
   - {kind: reference, from: bgp.af.peer.group, to: bgp.peer_group}
-  - {kind: reference, from: bgp.af.peer.import_policy, to: rp.policy, note: 引用的路由策略不存在时为悬空引用}
+  - {kind: reference, from: bgp.af.peer.import_policy, to: rp.policy, note: {zh-CN: 引用的路由策略不存在时为悬空引用, en: 'Dangling reference if the referenced route policy does not exist', pt-BR: 'Referência pendente se a política de roteamento referenciada não existir'}}
   - {kind: reference, from: bgp.af.peer.export_policy, to: rp.policy}
   - {kind: reference, from: bgp.af.network.policy, to: rp.policy}
   - {kind: reference, from: bgp.af.redistribute.policy, to: rp.policy}
-  - {kind: cross_device, from: bgp.peer, to: interface.ipv4.address, note: 对等体地址应是另一台设备的接口地址，且对端 AS 一致}
+  - {kind: cross_device, from: bgp.peer, to: interface.ipv4.address, note: {zh-CN: 对等体地址应是另一台设备的接口地址，且对端 AS 一致, en: 'The peer address should be an interface address on another device, with a matching remote AS', pt-BR: 'O endereço do par deve ser um endereço de interface de outro dispositivo, com o AS remoto correspondente'}}

@@ -5,16 +5,18 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from lmesh.api.common import E_NOT_FOUND, E_PARAM, ApiError, ok, require_token, settings_of
+from lmesh.api.routes_translate_rules import RulesRef, resolve_rules
 from lmesh.core import analysis, compare, importer, kbservice, store, translate
 
 router = APIRouter(dependencies=[Depends(require_token)])
 
 
-class TranslateBody(BaseModel):
-    """源配置：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"""
+class TranslateBody(RulesRef):
+    """源配置：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一；
+    rule_set / rules：翻译自定义规则（REQ-032），结果另有 naming。"""
 
     text: str | None = Field(None, max_length=importer.MAX_BYTES)
     device_id: int | None = None
@@ -36,6 +38,7 @@ def _db(request: Request) -> str:
 )
 def run_translate(request: Request, body: TranslateBody) -> dict[str, Any]:
     kb = analysis.load_kb(kbservice.runtime_root(settings_of(request)))
+    rules = resolve_rules(request, body, kb)
     try:
         if body.text:
             side = compare.side_from_text(body.text, kb, body.profile, "source")
@@ -46,7 +49,13 @@ def run_translate(request: Request, body: TranslateBody) -> dict[str, Any]:
         else:
             raise ApiError(E_PARAM, 422, "translate.need_source")
         result = translate.translate(
-            side.graph, kb, str(side.graph.graph.get("profile")), body.to, body.interface_map, verify=body.verify
+            side.graph,
+            kb,
+            str(side.graph.graph.get("profile")),
+            body.to,
+            body.interface_map,
+            verify=body.verify,
+            rules=rules,
         )
     except compare.CompareError as e:
         if e.kind == "not_found":

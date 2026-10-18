@@ -26,6 +26,16 @@ def require_db(c: Ctx) -> str:
     return url
 
 
+def _actor() -> str:
+    """导入人：操作系统用户名（版本历史的导入记录用）。"""
+    import getpass
+
+    try:
+        return getpass.getuser()
+    except Exception:
+        return ""
+
+
 def _level(c: Ctx, level: str) -> Level:
     if level not in ("basic", "strict"):
         fail(c, output.EXIT_USAGE, c.t("sanitize.bad_level"))
@@ -104,9 +114,19 @@ def register(app: typer.Typer, config_app: typer.Typer) -> None:
         from lmesh.core import kbservice
 
         kb_root = kbservice.runtime_root(config.load())
+        kind = "dir" if source.is_dir() else ("zip" if source.suffix.lower() == ".zip" else "file")
+        settings = config.load()
         results = [
             r.as_dict()
-            for r in importer.import_sources(list(importer.iter_sources(source)), url, _level(c, level), kb_root)
+            for r in importer.import_sources(
+                list(importer.iter_sources(source)),
+                url,
+                _level(c, level),
+                kb_root,
+                source_kind=kind,
+                actor=_actor(),
+                keep=int(settings.get("history.keep")),
+            )
         ]
         for r in results:
             if not r["ok"]:

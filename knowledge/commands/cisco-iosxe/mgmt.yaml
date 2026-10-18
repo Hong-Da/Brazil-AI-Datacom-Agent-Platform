@@ -123,6 +123,7 @@ cards:
     status: draft
     maps:
       mgmt.aaa: _
+      mgmt.aaa.enabled: flag
   - id: cisco-iosxe.aaa-session-id
     syntax: aaa session-id [ common | unique ]
     view: system
@@ -153,23 +154,41 @@ cards:
     maps:
       mgmt.line.acl_in: if:in:$access-list-number
   - id: cisco-iosxe.address-ipv4
-    syntax: address ipv4 { <hostname> | <ipv4address> } [ acct-port <port> | alias { <hostname> | <ipv4address> } | auth-port <port> [ acct-port <port> ] ]
+    syntax: address ipv4 { <hostname> | <ipv4address> } [ auth-port <auth-port> ] [ acct-port <acct-port> ] [ alias { <alias-hostname> | <alias-ipv4address> } ]
     view: radius-server
-    undo: no address ipv4 { <hostname> | <ipv4address> } [ acct-port <port> | alias { <hostname> | <ipv4address> } | auth-port <port> [ acct-port <port> ] ]
+    undo: no address ipv4 { <hostname> | <ipv4address> }
     params:
       hostname:
         type: word
       ipv4address:
         type: ipv4
-      port:
+      auth-port:
+        type: integer
+        range:
+          - 0
+          - 65535
+      acct-port:
+        type: integer
+        range:
+          - 0
+          - 65535
+      alias-hostname:
         type: word
+      alias-ipv4address:
+        type: ipv4
     default: The RADIUS server accounting and authentication parameters are not configured.
+    maps:
+      mgmt.radius.server:
+        role: all
+        address: $ipv4address||$hostname
+      mgmt.radius.server.port: $auth-port
     source:
       doc: cisco-iosxe-md
       file: mgmt/address ipv4 (config-radius-server).md
       title: address ipv4 (config-radius-server)
       line: 5
       version: '17.15'
+      patched: 原文 auth-port 与 acct-port 用了同名参数 port（取不到认证端口），且 acct-port 写在两个分支里；按运行配置写法整理（address ipv4 <地址> auth-port <端口> acct-port <端口>）
     status: draft
   - id: cisco-iosxe.address-ipv6
     syntax: address ipv6 <ipv6-address>
@@ -349,19 +368,22 @@ cards:
       version: '17.15'
     status: draft
   - id: cisco-iosxe.key
-    syntax: key { 0 <string> | 6 <string> | 7 <string> } <string>
+    syntax: key [ 0 | 6 | 7 ] <string>
     view: radius-server
     undo: no key
     params:
       string:
         type: text
     default: The authentication and encryption key is disabled.
+    maps:
+      mgmt.radius.key_set: flag
     source:
       doc: cisco-iosxe-md
       file: mgmt/key (config-radius-server).md
       title: key (config-radius-server)
       line: 5
       version: '17.15'
+      patched: 原文把加密类型与密钥写成了 { 0 <string> | 6 <string> | 7 <string> } <string>（多了一个参数）；运行配置是 key [ 0 | 6 | 7 ] <密钥>
     status: draft
   - id: cisco-iosxe.key~2
     syntax: key [ 0 | 6 | 7 ] <key-string>
@@ -777,50 +799,80 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      mgmt.radius: $name
   - id: cisco-iosxe.radius-server-host.1
-    syntax: radius-server host { <hostname> | <ip-address> } [ alias { <hostname> | <ip-address> } | [ acct-port <port-number> ] [ auth-port <port-number> ] [ non-standard ] [ timeout <seconds> ] [ retransmit <retries> ] [ backoff exponential [ max-delay <minutes> ] [ backoff-retry <number-of-retransmits> ] ] [ key <encryption-key> ] ]
+    syntax: radius-server host { <hostname> | <ip-address> } [ auth-port <auth-port> ] [ acct-port <acct-port> ] [ timeout <seconds> ] [ retransmit <retries> ] [ key [ 0 | 7 ] <encryption-key> ]
     view: system
-    undo: no radius-server host { <hostname> | <ip-address> }
+    undo: no radius-server host { <hostname> | <ip-address> } [ auth-port <auth-port> ] [ acct-port <acct-port> ]
     params:
-      hostname: &id001
+      hostname:
         type: word
-      ip-address: &id002
+      ip-address:
         type: ipv4
-      port-number: &id003
-        type: word
-      seconds: &id004
-        type: word
-      retries: &id005
-        type: word
-      minutes: &id006
-        type: word
-      number-of-retransmits: &id007
-        type: word
-      encryption-key: &id008
-        type: word
+      auth-port:
+        type: integer
+        range:
+          - 0
+          - 65535
+      acct-port:
+        type: integer
+        range:
+          - 0
+          - 65535
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 1000
+      retries:
+        type: integer
+        range:
+          - 0
+          - 100
+      encryption-key:
+        type: text
     default: No RADIUS host is specified and RADIUS server load balancing automated testing is disabled by default.
+    maps:
+      mgmt.radius: _
+      mgmt.radius.server: &id001
+        role: all
+        address: $ip-address||$hostname
+      mgmt.radius.server.port: $auth-port
+      mgmt.radius.key_set: if:key:flag
+      mgmt.radius.timeout: $seconds
+      mgmt.radius.retransmit: $retries
     source:
       doc: cisco-iosxe-md
       file: mgmt/radius-server host.md
       title: radius-server host
       line: 5
       version: '17.15'
+      patched: 原文的可选部分嵌套错乱（alias 与端口写成多选一），key 的加密类型没有列出；按运行配置整理（radius-server host <地址> [ auth-port N ] [ acct-port N ] [ timeout N ] [ retransmit N ] [ key [ 0 | 7 ] <密钥> ]）
     status: draft
   - id: cisco-iosxe.radius-server-host.2
     syntax: radius-server host { <hostname> | <ip-address> } [ alias { <hostname> | <ip-address> } | [ acct-port <port-number> ] [ auth-port <port-number> ] [ non-standard ] [ timeout <seconds> ] [ retransmit <retries> ] [ test username <user-name> [ ignore-acct-port ] [ ignore-auth-port ] [ idle-time <minutes> ] ] [ backoff exponential [ max-delay <minutes> ] [ backoff-retry <number-of-retransmits> ] ] [ key-wrap encryption-key <encryption-key> message-auth-code-key <encryption-key> [ format { ascii | hex } ] | pac ] [ key <encryption-key> ] ]
     view: system
     undo: no radius-server host { <hostname> | <ip-address> }
     params:
-      hostname: *id001
-      ip-address: *id002
-      port-number: *id003
-      seconds: *id004
-      retries: *id005
+      hostname:
+        type: word
+      ip-address:
+        type: ipv4
+      port-number:
+        type: word
+      seconds:
+        type: word
+      retries:
+        type: word
       user-name:
         type: word
-      minutes: *id006
-      number-of-retransmits: *id007
-      encryption-key: *id008
+      minutes:
+        type: word
+      number-of-retransmits:
+        type: word
+      encryption-key:
+        type: word
     default: No RADIUS host is specified and RADIUS server load balancing automated testing is disabled by default.
     source:
       doc: cisco-iosxe-md
@@ -829,6 +881,12 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      mgmt.radius: _
+      mgmt.radius.server: *id001
+      mgmt.radius.key_set: if:key:flag
+      mgmt.radius.timeout: $seconds
+      mgmt.radius.retransmit: $retries
   - id: cisco-iosxe.server
     syntax: server <ip-address>
     view: sg-tacacs
@@ -975,6 +1033,15 @@ cards:
       line: 5
       version: '17.15'
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.group: $group-name
+      mgmt.snmp.group.version: kw:v3|v2c|v1
+      mgmt.snmp.group.security_level: kw:noauth|auth|priv
+      mgmt.snmp.group.read_view: $read-view
+      mgmt.snmp.group.write_view: $write-view
+      mgmt.snmp.group.notify_view: $notify-view
+      mgmt.snmp.group.acl: $acl-number||$acl-name
   - id: cisco-iosxe.snmp-server-host.1
     syntax: snmp-server host { <hostname> | <ip-address> } [ vrf <vrf-name> | informs | traps | version { 1 | 2c | 3 [ auth | noauth | priv ] } ] <community-string> [ udp-port <port> <[notification-type]> <&<1-9>> <|> notification-type ]
     view: system
@@ -982,11 +1049,11 @@ cards:
     params:
       hostname:
         type: word
-      ip-address: &id009
+      ip-address: &id002
         type: ipv4
-      vrf-name: &id011
+      vrf-name: &id004
         type: word
-      community-string: &id010
+      community-string: &id003
         type: text
       port:
         type: word
@@ -1011,9 +1078,9 @@ cards:
     view: system
     undo: no snmp-server host <ip-address> { <community-string> | informs | traps } { <community-string> | version { 1 | 2c | 3 { auth | noauth } } } { <community-string> | vrf <vrf-name> { informs | traps } } [ <notification-type> ]
     params:
-      ip-address: *id009
-      community-string: *id010
-      vrf-name: *id011
+      ip-address: *id002
+      community-string: *id003
+      vrf-name: *id004
       notification-type:
         type: word
     default: This command behavior is disabled by default. A recipient is not specified to receive notifications.
@@ -1029,9 +1096,9 @@ cards:
     view: system
     undo: no snmp-server host <ip-address> { <community-string> | { informs | traps } { <community-string> | version { 1 | 2c | 3 { auth | noauth | priv } } <community-string> | version { 1 | 2c | 3 { auth | noauth | priv } } <community-string> | vrf <vrf-name> { informs | traps } { <community-string> | version { 1 | 2c | 3 { auth | noauth | priv } } <community-string> } } } [ notification-type ] &<1-9>
     params:
-      ip-address: *id009
-      community-string: *id010
-      vrf-name: *id011
+      ip-address: *id002
+      community-string: *id003
+      vrf-name: *id004
     default: This command behavior is disabled by default. A recipient is not specified to receive notifications.
     source:
       doc: cisco-iosxe-md
@@ -1077,9 +1144,9 @@ cards:
       mgmt.snmp: _
       mgmt.snmp.trap_source: $interface
   - id: cisco-iosxe.snmp-server-user
-    syntax: snmp-server user <username> <groupname> [ remote <host> [ udp-port <port> ] [ vrf <vrfname> ] ] { v1 | v2c | v3 [ encrypted ] [ auth { md5 | sha | sha-2 { 256 | 384 | 512 } } <authpassword> ] } [ access [ ipv6 <nacl> ] [ privacy { des | 3des | aes { 128 | 192 | 256 } } <privacypassword> ] { <aclnumber> | <aclname> } ]
+    syntax: snmp-server user <username> <groupname> [ remote <host> [ udp-port <port> ] [ vrf <vrfname> ] ] { v1 | v2c | v3 [ encrypted ] [ auth { md5 | sha | sha-2 { 256 | 384 | 512 } } <authpassword> [ priv { des | 3des | aes { 128 | 192 | 256 } } <privacypassword> ] ] } [ access [ ipv6 <nacl> ] { <aclnumber> | <aclname> } ]
     view: system
-    undo: no snmp-server user <username> <groupname> [ remote <host> [ udp-port <port> ] [ vrf <vrfname> ] ] { v1 | v2c | v3 [ encrypted ] [ auth { md5 | sha | sha-2 { 256 | 384 | 512 } } <authpassword> ] } [ access [ ipv6 <nacl> ] [ privacy { des | 3des | aes { 128 | 192 | 256 } } <privacypassword> ] { <aclnumber> | <aclname> } ]
+    undo: no snmp-server user <username> <groupname> { v1 | v2c | v3 }
     params:
       username:
         type: word
@@ -1111,7 +1178,16 @@ cards:
       title: snmp-server user
       line: 5
       version: '17.15'
+      patched: 原文把 priv 加密参数排进了 access 部分（[ access [ ipv6 nacl ] [ privacy … ] …]）；运行写法是 … v3 auth <算法> <口令> priv <算法> <口令> [ access <ACL> ]
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.user: $username
+      mgmt.snmp.user.group: $groupname
+      mgmt.snmp.user.version: kw:v3|v2c|v1
+      mgmt.snmp.user.auth_protocol: if:auth:kw:md5|sha-2|sha
+      mgmt.snmp.user.priv_protocol: if:priv:kw:3des|des|aes
+      mgmt.snmp.user.acl: $aclnumber||$aclname
   - id: cisco-iosxe.snmp-server-view
     syntax: snmp-server view <view-name> <oid-tree> { included | excluded }
     view: system
@@ -1185,7 +1261,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: &id012
+      name: &id005
         type: word
       aaa-list-name:
         type: word
@@ -1202,7 +1278,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
       access-list-number:
         type: word
     default: No username-based authentication system is established.
@@ -1218,7 +1294,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
       command:
         type: word
     default: No username-based authentication system is established.
@@ -1234,7 +1310,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
       telephone-number:
         type: word
     default: No username-based authentication system is established.
@@ -1250,7 +1326,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
       line-number:
         type: word
       '[ending-line-number]':
@@ -1268,7 +1344,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
       rotary-group-number:
         type: word
     default: No username-based authentication system is established.
@@ -1284,7 +1360,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
     default: No username-based authentication system is established.
     source:
       doc: cisco-iosxe-md
@@ -1298,7 +1374,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
     default: No username-based authentication system is established.
     source:
       doc: cisco-iosxe-md
@@ -1312,7 +1388,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
     default: No username-based authentication system is established.
     source:
       doc: cisco-iosxe-md
@@ -1326,7 +1402,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
     default: No username-based authentication system is established.
     source:
       doc: cisco-iosxe-md
@@ -1340,7 +1416,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
     default: No username-based authentication system is established.
     source:
       doc: cisco-iosxe-md
@@ -1354,8 +1430,8 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
-      password: &id013
+      name: *id005
+      password: &id006
         type: word
       encryption-type:
         type: word
@@ -1374,8 +1450,8 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
-      password: *id013
+      name: *id005
+      password: *id006
     default: No username-based authentication system is established.
     source:
       doc: cisco-iosxe-md
@@ -1389,7 +1465,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
       secret:
         type: word
     default: No username-based authentication system is established.
@@ -1405,7 +1481,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
       level:
         type: word
     default: No username-based authentication system is established.
@@ -1421,8 +1497,8 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
-      password: *id013
+      name: *id005
+      password: *id006
     default: No username-based authentication system is established.
     source:
       doc: cisco-iosxe-md
@@ -1436,7 +1512,7 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
       number:
         type: word
     default: No username-based authentication system is established.
@@ -1452,12 +1528,12 @@ cards:
     view: system
     undo: no username <name>
     params:
-      name: *id012
+      name: *id005
       privilege-level:
         type: word
       view-name:
         type: word
-      password: *id013
+      password: *id006
     default: No username-based authentication system is established.
     source:
       doc: cisco-iosxe-md
@@ -1533,6 +1609,9 @@ cards:
       patched: 公开命令参考的 ip ssh 页没有列出 rsa keypair-name 写法（Batfish 公开样本中出现）
       added_by_patch: true
     status: draft
+    maps:
+      mgmt.ssh: _
+      mgmt.ssh.rsa_keypair: $keypair-name
   - id: cisco-iosxe.logging-host
     syntax: logging host <host> [ vrf <vrf-name> ]
     view: system
@@ -1574,3 +1653,56 @@ cards:
     status: draft
     maps:
       mgmt.line.protocols: tail:input
+  - id: cisco-iosxe.ip-ssh-server-algorithm-encryption
+    syntax: ip ssh server algorithm encryption { <algorithm> } &<1-16>
+    view: system
+    undo: no ip ssh server algorithm encryption
+    params:
+      algorithm:
+        type: word
+    source:
+      patched: 公开命令参考的 ip ssh 页面没有 server algorithm 子命令；按 IOS XE 17 安全配置指南（Secure Shell Algorithms for Common Criteria Certification）的运行配置写法补充（加密算法）
+      added_by_patch: true
+    status: draft
+    maps:
+      mgmt.ssh: _
+      mgmt.ssh.ciphers: tail:encryption
+  - id: cisco-iosxe.ip-ssh-server-algorithm-mac
+    syntax: ip ssh server algorithm mac { <algorithm> } &<1-16>
+    view: system
+    undo: no ip ssh server algorithm mac
+    params:
+      algorithm:
+        type: word
+    source:
+      patched: 同上（HMAC 算法）
+      added_by_patch: true
+    status: draft
+    maps:
+      mgmt.ssh: _
+      mgmt.ssh.hmacs: tail:mac
+  - id: cisco-iosxe.ip-ssh-server-algorithm-kex
+    syntax: ip ssh server algorithm kex { <algorithm> } &<1-16>
+    view: system
+    undo: no ip ssh server algorithm kex
+    params:
+      algorithm:
+        type: word
+    source:
+      patched: 同上（密钥交换算法）
+      added_by_patch: true
+    status: draft
+    maps:
+      mgmt.ssh: _
+      mgmt.ssh.kex: tail:kex
+  - id: cisco-iosxe.ip-ssh-server-algorithm-hostkey
+    syntax: ip ssh server algorithm hostkey { <algorithm> } &<1-16>
+    view: system
+    undo: no ip ssh server algorithm hostkey
+    params:
+      algorithm:
+        type: word
+    source:
+      patched: 同上（主机密钥算法；只收卡、不映射）
+      added_by_patch: true
+    status: draft

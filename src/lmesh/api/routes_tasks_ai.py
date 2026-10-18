@@ -8,7 +8,17 @@ from typing import Any
 from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
-from lmesh.api.common import E_EXTERNAL, E_NOT_FOUND, E_PARAM, E_STATE, ApiError, ok, require_token, settings_of
+from lmesh.api.common import (
+    E_EXTERNAL,
+    E_NOT_FOUND,
+    E_PARAM,
+    E_STATE,
+    ApiError,
+    ok,
+    require_admin,
+    require_token,
+    settings_of,
+)
 from lmesh.core import ai, kbservice, store, tasks
 
 router = APIRouter(dependencies=[Depends(require_token)])
@@ -91,7 +101,7 @@ def ai_status(request: Request) -> dict[str, Any]:
     )
 
 
-@router.post("/ai/test", summary="测试 AI 接口是否可用")
+@router.post("/ai/test", summary="测试 AI 接口是否可用（管理员）", dependencies=[Depends(require_admin)])
 def ai_test(request: Request) -> dict[str, Any]:
     s = settings_of(request)
     if not ai.is_configured(s):

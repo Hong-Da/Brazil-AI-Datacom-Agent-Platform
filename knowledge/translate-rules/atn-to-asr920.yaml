@@ -1,0 +1,38 @@
+# 翻译规则集示例（REQ-032）：华为 ATN（VRP8）→ Cisco ASR 920（IOS-XE）。
+# 内置规则集只读：在“翻译规则”页另存为新编号后修改，或用 lmesh naming import 导入改过的副本。
+# 名称映射与端口映射按顺序匹配，第一条命中生效；没有命中的名称、接口保持原样。
+id: atn-to-asr920
+title:
+  zh-CN: ATN 到 ASR 920 的命名与端口
+  en: ATN to ASR 920 naming and ports
+  pt-BR: Nomes e portas de ATN para ASR 920
+description:
+  zh-CN: 逻辑接口换成 Cisco 写法；VPN 实例去掉前后的下划线；路由策略名统一成大写、连字符换成下划线（示例，按现网习惯修改）。
+  en: Logical interfaces use Cisco names; VPN instance names lose leading and trailing underscores; route-policy names become upper case with underscores (example; adapt to your conventions).
+  pt-BR: Interfaces lógicas com nomes Cisco; instâncias VPN sem sublinhados nas pontas; políticas de rota em maiúsculas com sublinhados (exemplo; adapte às suas convenções).
+from: huawei-vrp8
+to: cisco-iosxe
+names:
+  # __LOCAL_OAM_VPN__ → LOCAL_OAM_VPN：{1} 是第一个捕获组
+  - {type: vrf.instance, match: regex, from: "_+(.*?)_+", to: "{1}"}
+  # 示例：旧站点前缀换成新前缀（默认不启用）
+  - {type: "*", match: wildcard, from: "OLD-*", to: "NEW-{1}", enabled: false}
+naming:
+  # 路由策略：大写、连字符换成下划线；超过目标平台的长度上限时截断
+  - type: rp.policy
+    pattern: "[A-Z0-9_]+"
+    fix: true
+    case: upper
+    replace:
+      - {from: "-", to: "_"}
+  # VPN 实例：Cisco 的 VRF 名不超过 32 个字符
+  - {type: vrf.instance, pattern: "[A-Za-z0-9_-]+", max_length: 32}
+ports:
+  - {match: type, from: Eth-Trunk, to: Port-channel}
+  - {match: type, from: LoopBack, to: Loopback}
+  - {match: type, from: Vbdif, to: BDI}
+  - {match: type, from: "NULL", to: "Null"}  # NULL / Null 要加引号，否则 YAML 读成空值
+  - {match: type, from: 100GE, to: HundredGigE}
+  - {match: exact, from: Ethernet0/0/0, to: GigabitEthernet0}
+  # 示例：子卡 2 的电口整体挪到子卡 0、编号加 1（默认不启用）
+  - {match: pattern, from: "GigabitEthernet0/2/{n}", to: "GigabitEthernet0/0/{n+1}", range: [0, 23], enabled: false}

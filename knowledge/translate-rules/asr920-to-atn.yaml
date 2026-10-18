@@ -1,0 +1,24 @@
+# 翻译规则集示例（REQ-032）：Cisco ASR 920（IOS-XE）→ 华为 ATN（VRP8）。
+# 内置规则集只读：在“翻译规则”页另存为新编号后修改。
+id: asr920-to-atn
+title:
+  zh-CN: ASR 920 到 ATN 的命名与端口
+  en: ASR 920 to ATN naming and ports
+  pt-BR: Nomes e portas de ASR 920 para ATN
+description:
+  zh-CN: 逻辑接口换成华为写法；route-map 名加 RP_ 前缀；VPN 实例名不超过 31 个字符（华为 VPN 实例名 1～31 个字符）。
+  en: Logical interfaces use Huawei names; route-map names get an RP_ prefix; VPN instance names stay within 31 characters (Huawei allows 1-31).
+  pt-BR: Interfaces lógicas com nomes Huawei; route-maps recebem o prefixo RP_; instâncias VPN com até 31 caracteres (Huawei permite 1-31).
+from: cisco-iosxe
+to: huawei-vrp8
+names:
+  - {type: rp.policy, match: regex, from: "(?!RP_)(.+)", to: "RP_{1}"}
+naming:
+  - {type: vrf.instance, pattern: "[A-Za-z0-9_-]+", fix: true, max_length: 31}
+  - {type: rp.policy, max_length: 200}
+  - {type: rp.prefix_list, max_length: 169}
+ports:
+  - {match: type, from: Port-channel, to: Eth-Trunk}
+  - {match: type, from: Loopback, to: LoopBack}
+  - {match: type, from: BDI, to: Vbdif}
+  - {match: type, from: HundredGigE, to: 100GE}

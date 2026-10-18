@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { ApiError, del, errorText, get, put } from '@/api'
 import { pickLang } from '@/i18n'
+import { noteText } from '@/i18n/note'
 import { useStatus } from '@/stores/status'
 import Icon from '@/components/Icon.vue'
 import { allDeps, allNodes, buildTree, depStyle, edgesOf, filterTree, nodeDomain, type SchemaData, type SchemaNode } from './schema/model'
@@ -536,7 +537,7 @@ function semLabel(l: string): string {
                       <td><span class="etype"><i :style="{ background: `var(--e-${depStyle(e.kind)})` }"></i>{{ $t('e.' + e.style) }}</span></td>
                       <td class="small">{{ e.dir === 'in' ? $t('schema-edit.dirIn') : $t('schema-edit.dirOut') }}</td>
                       <td class="mono"><button v-if="byId.has(e.other)" class="link-btn mono" @click="select(e.other)">{{ e.other }}</button><span v-else>{{ e.other }}</span></td>
-                      <td class="small muted">{{ e.note }}</td>
+                      <td class="small muted">{{ noteText(e.note, lang) }}</td>
                     </tr>
                   </tbody>
                 </table>

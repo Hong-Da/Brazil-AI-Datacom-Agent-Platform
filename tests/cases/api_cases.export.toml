@@ -1,0 +1,110 @@
+# 审计表格导出与特性能力查询接口的 API 用例（加载器与主文件 api_cases.toml 合并）。
+
+[[case]]
+id = "export-presets"
+title = { zh-CN = "审计表格的预置模板（Cisco 叫法）", en = "Audit table presets (Cisco terms)", pt-BR = "Modelos de tabela (termos Cisco)" }
+method = "GET"
+path = "/api/v1/export/presets?style=cisco"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.presets.0.id" = "ip-address", "data.presets.0.columns.4.label.en" = "VRF", "data.presets.0.where" = ["has-ip"], "data.presets.4.title.zh-CN" = "VRF 表" }
+in_docs = true
+
+[[case]]
+id = "export-fields"
+title = { zh-CN = "自定义表格：一个对象类型可用的字段", en = "Custom table: fields of an object type", pt-BR = "Tabela personalizada: campos de um tipo de objeto" }
+method = "GET"
+path = "/api/v1/export/fields?object=bgp.peer"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.object" = "bgp.peer", "data.fields.0.path" = "address", "data.fields.0.type" = "key", "data.derives" = ["peer_remote_as", "peer_type", "peer_afs", "peer_import", "peer_export"] }
+
+[[case]]
+id = "export-table-json"
+title = { zh-CN = "IP 地址表（上传的配置，JSON）：每格带来源、节点与行号", en = "IP address table from an uploaded config (JSON)", pt-BR = "Tabela de endereços IP de configuração enviada (JSON)" }
+method = "POST"
+path = "/api/v1/export/table"
+setup = "configured-fullkb"
+auth = true
+body = { preset = "ip", configs = [{ name = "exp-01.cfg", profile = "huawei-atn-v800r025", text = "#\nsysname EXP-01\n#\ninterface GigabitEthernet0/2/0\n description UPLINK\n mtu 9000\n ip address 10.1.0.1 255.255.255.252\n#\ninterface LoopBack0\n ip address 10.255.0.1 255.255.255.255\n#\nreturn" }] }
+expect_status = 200
+expect_json = { "code" = 0, "data.preset" = "ip-address", "data.summary.rows" = 2, "data.rows.0.device" = "EXP-01", "data.rows.0.key" = "GigabitEthernet0/2/0", "data.rows.0.cells.1.value" = "10.1.0.1", "data.rows.0.cells.1.lines" = [7], "data.rows.0.cells.3.value" = "255.255.255.252", "data.rows.0.cells.3.origin" = "derived", "data.rows.0.cells.6.origin" = "default", "data.columns.4.empty.en" = "Global" }
+in_docs = true
+
+[[case]]
+id = "export-table-devices"
+title = { zh-CN = "已导入设备的接口描述表（JSON，接口名统一写成全称）", en = "Interface description table of imported devices", pt-BR = "Tabela de descrições dos dispositivos importados" }
+method = "POST"
+path = "/api/v1/export/table"
+setup = "configured-fullkb-history"
+auth = true
+body = { preset = "desc", devices = "all", canonical_names = true }
+expect_status = 200
+expect_json = { "code" = 0, "data.devices.0.name" = "ATN-CHANGE-01", "data.devices.0.version_id" = 2, "data.rows.0.key" = "GigabitEthernet0/2/0", "data.rows.0.cells.1.value" = "UPLINK-TO-AGG-01" }
+
+[[case]]
+id = "export-need-object"
+title = { zh-CN = "没有给模板也没有给对象类型", en = "Neither preset nor object type", pt-BR = "Sem modelo nem tipo de objeto" }
+method = "POST"
+path = "/api/v1/export/table"
+setup = "configured"
+auth = true
+body = { devices = "all" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+in_docs = true
+
+[[case]]
+id = "export-bad-preset"
+title = { zh-CN = "预置模板不存在", en = "Unknown preset", pt-BR = "Modelo desconhecido" }
+method = "POST"
+path = "/api/v1/export/table"
+setup = "configured-fullkb"
+auth = true
+body = { preset = "nope", configs = [{ name = "x.cfg", profile = "huawei-atn-v800r025", text = "#\nsysname X\n#\nreturn" }] }
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "features-search"
+title = { zh-CN = "特性能力查询：关键词 mtu", en = "Feature lookup: mtu", pt-BR = "Consulta de recursos: mtu" }
+method = "GET"
+path = "/api/v1/features?q=mtu&profile=huawei-atn-v800r025,cisco-iosxe-asr920-17.15"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.items.0.node" = "interface.mtu", "data.items.0.profiles.cisco-iosxe-asr920-17.15.state" = "supported", "data.items.0.profiles.huawei-atn-v800r025.default" = 1500, "data.profiles.0.id" = "huawei-atn-v800r025" }
+in_docs = true
+
+[[case]]
+id = "features-detail"
+title = { zh-CN = "一个特性的完整信息", en = "Full detail of a feature", pt-BR = "Detalhe completo de um recurso" }
+method = "GET"
+path = "/api/v1/features/detail?node=vrf.instance.af.label_mode&profile=cisco-iosxe-asr920-17.15"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.node" = "vrf.instance.af.label_mode", "data.profiles.cisco-iosxe-asr920-17.15.default" = "per-route" }
+
+[[case]]
+id = "features-diff"
+title = { zh-CN = "两个 Profile 对比：默认值不同的排在前面", en = "Profile comparison: different defaults first", pt-BR = "Comparação de Profiles: padrões diferentes primeiro" }
+method = "GET"
+path = "/api/v1/features/diff?a=huawei-atn-v800r025&b=cisco-iosxe-asr920-17.15&domain=vrf"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.rows.0.kind" = "default", "data.rows.0.node" = "vrf.instance.af.label_mode", "data.a.family" = "huawei-vrp8", "data.b.family" = "cisco-iosxe" }
+in_docs = true
+
+[[case]]
+id = "features-bad-profile"
+title = { zh-CN = "Profile 不存在", en = "Unknown Profile", pt-BR = "Profile desconhecido" }
+method = "GET"
+path = "/api/v1/features?q=mtu&profile=nope"
+setup = "configured"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }

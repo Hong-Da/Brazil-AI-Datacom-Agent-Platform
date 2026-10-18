@@ -1,0 +1,107 @@
+# EVPN 功能域（0.4.0，M4-2）：EVPN 实例（MAC-VRF / EVI）、RD / RT、桥域与接口绑定、VPWS-EVPN（EVPL）、全局设置；BGP 的
+# l2vpn evpn 地址族用 bgp.af{afi=evpn}。华为 evpn vpn-instance <名称> [ bd-mode | vpws ]；Cisco l2vpn evpn instance <EVI>
+# { vlan-based | vlan-bundle | vlan-aware | point-to-point }（ASR 920 只支持单归属，ESI / 多归属不在范围）。
+domain: evpn
+nodes:
+  evpn.global:
+    type: object
+    key: [id]
+    semantic: {zh-CN: EVPN 全局设置（华为 evpn source-address / 全局 EVPN 视图；Cisco l2vpn evpn；编号固定为 "_"）, en: EVPN global settings}
+  evpn.global.source_address:
+    parent: evpn.global
+    type: ipv4
+    semantic: {zh-CN: EVPN 源地址（华为 evpn source-address）, en: EVPN source address}
+  evpn.global.router_id:
+    parent: evpn.global
+    type: interface
+    semantic: {zh-CN: EVPN 路由器 ID 接口（Cisco l2vpn evpn 下 router-id）, en: EVPN router-id interface}
+  evpn.global.replication_type:
+    parent: evpn.global
+    type: enum
+    choices: [ingress, static]
+    semantic: {zh-CN: BUM 复制方式（Cisco replication-type）, en: BUM replication type}
+  evpn.instance:
+    type: object
+    key: [name]
+    semantic: {zh-CN: EVPN 实例（华为 evpn vpn-instance 名称；Cisco l2vpn evpn instance 的 EVI 编号）, en: EVPN instance}
+  evpn.instance.mode:
+    parent: evpn.instance
+    type: enum
+    choices: [default, bd-mode, vpws, vlan-based, vlan-bundle, vlan-aware]
+    semantic: {zh-CN: 实例类型（华为不写 / bd-mode / vpws；Cisco vlan-based 记为 bd-mode、point-to-point 记为 vpws，vlan-bundle / vlan-aware 原样）, en: Instance type}
+  evpn.instance.evi:
+    parent: evpn.instance
+    type: integer
+    semantic: {zh-CN: EVI 编号（Cisco 实例本身的编号）, en: EVI}
+  evpn.instance.description:
+    parent: evpn.instance
+    type: text
+    semantic: {zh-CN: 描述, en: Description}
+  evpn.instance.rd:
+    parent: evpn.instance
+    type: rd
+    semantic: {zh-CN: 路由区分符（华为 route-distinguisher；ASR 920 也写 route-distinguisher）, en: Route distinguisher}
+  evpn.instance.rt:
+    parent: evpn.instance
+    type: object
+    key: [value, direction]
+    semantic: {zh-CN: 路由目标 RT（值 + 方向 import / export / both）, en: Route target}
+  evpn.instance.rt.value:
+    parent: evpn.instance.rt
+    type: rd
+    semantic: {zh-CN: RT 值, en: RT value}
+  evpn.instance.rt.direction:
+    parent: evpn.instance.rt
+    type: enum
+    choices: [import, export, both]
+    semantic: {zh-CN: RT 方向（both 表示同时 import 与 export）, en: RT direction}
+  evpn.instance.auto_rt:
+    parent: evpn.instance
+    type: boolean
+    semantic: {zh-CN: 自动生成 RT（Cisco 缺省自动；no auto-route-target 关闭）, en: Auto route target}
+  evpn.instance.control_word:
+    parent: evpn.instance
+    type: boolean
+    semantic: {zh-CN: 控制字（华为 control-word enable）, en: Control word}
+  bridge_domain.evpn_instance:
+    parent: bridge_domain
+    type: ref
+    ref: evpn.instance
+    semantic: {zh-CN: 桥域绑定的 EVPN 实例（华为 evpn binding vpn-instance；Cisco member evpn-instance）, en: Bound EVPN instance}
+  interface.evpn_instance:
+    parent: interface
+    type: ref
+    ref: evpn.instance
+    semantic: {zh-CN: 接口绑定的 EVPN 实例（华为 evpn binding vpn-instance）, en: Bound EVPN instance}
+  # VPWS-EVPN：华为 evpl instance（绑定 EVPN 实例、本端 / 对端业务 ID）
+  evpn.evpl:
+    type: object
+    key: [id]
+    semantic: {zh-CN: EVPL 实例（华为 evpl instance；VPWS-EVPN 的业务连接）, en: EVPL instance}
+  evpn.evpl.instance:
+    parent: evpn.evpl
+    type: ref
+    ref: evpn.instance
+    semantic: {zh-CN: 绑定的 EVPN 实例, en: EVPN instance}
+  evpn.evpl.local_service_id:
+    parent: evpn.evpl
+    type: integer
+    semantic: {zh-CN: 本端业务 ID, en: Local service ID}
+  evpn.evpl.remote_service_id:
+    parent: evpn.evpl
+    type: integer
+    semantic: {zh-CN: 对端业务 ID, en: Remote service ID}
+  evpn.evpl.description:
+    parent: evpn.evpl
+    type: text
+    semantic: {zh-CN: 描述, en: Description}
+  interface.evpl:
+    parent: interface
+    type: ref
+    ref: evpn.evpl
+    semantic: {zh-CN: 接口绑定的 EVPL 实例（华为接口下 evpl instance）, en: Bound EVPL instance}
+deps:
+  - {kind: reference, from: bridge_domain.evpn_instance, to: evpn.instance, note: {zh-CN: 桥域绑定的 EVPN 实例应已创建, en: 'The EVPN instance bound to the bridge domain must already exist', pt-BR: 'A instância EVPN vinculada ao bridge domain já deve existir'}}
+  - {kind: reference, from: interface.evpn_instance, to: evpn.instance, note: {zh-CN: 接口绑定的 EVPN 实例应已创建, en: 'The EVPN instance bound to the interface must already exist', pt-BR: 'A instância EVPN vinculada à interface já deve existir'}}
+  - {kind: reference, from: evpn.evpl.instance, to: evpn.instance, note: {zh-CN: EVPL 绑定的 EVPN 实例应已创建, en: 'The EVPN instance bound to the EVPL must already exist', pt-BR: 'A instância EVPN vinculada ao EVPL já deve existir'}}
+  - {kind: reference, from: interface.evpl, to: evpn.evpl, note: {zh-CN: 接口绑定的 EVPL 实例应已创建, en: 'The EVPL instance bound to the interface must already exist', pt-BR: 'A instância EVPL vinculada à interface já deve existir'}}

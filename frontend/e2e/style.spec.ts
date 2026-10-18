@@ -9,7 +9,8 @@ async function devices(request: APIRequestContext): Promise<{ id: number; name: 
   return (await (await request.get('/api/v1/devices', { headers: H })).json()).data.devices
 }
 async function atn(request: APIRequestContext): Promise<number> {
-  return (await devices(request)).find((d) => d.name !== 'LAB-ATN-09' && !d.name.startsWith('PE-'))!.id
+  // 按设备名找 e2e_server.py 导入的华为 ATN 样本：其他用例（如 req031）会另外导入华为设备，不能按“排除法”取
+  return (await devices(request)).find((d) => d.name === 'ORG-364464')!.id
 }
 async function style(page: Page, s: 'huawei' | 'cisco'): Promise<void> {
   const b = page.getByTestId('style-switch').locator(`[data-style="${s}"]`)

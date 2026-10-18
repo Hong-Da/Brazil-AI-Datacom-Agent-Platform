@@ -66,6 +66,23 @@ views_map:
   - {match: '^(Basic|Advanced) ACL view$', view: acl}
   - {match: '^Tunnel policy view$', view: tunnel-policy}
   - {match: '^Bridge domain view$', view: bridge-domain}
+  # 0.4.0（M4-2）：QoS
+  - {match: '^Traffic classifier view$', view: qos-classifier}
+  - {match: '^Traffic behavior view$', view: qos-behavior}
+  - {match: '^Traffic policy view$', view: qos-policy}
+  - {match: '^DiffServ domain view$', view: diffserv-domain}
+  - {match: '^QoS profile view$', view: qos-profile}
+  - {match: '^Flow queue view$', view: flow-queue}
+  - {match: '^Flow queue WRED view$', view: flow-wred}
+  - {match: '^Port queue WRED view$', view: port-wred}
+  - {match: '^Port queue view$', view: port-queue-template}
+  # 0.4.0（M4-2）：SR-MPLS
+  - {match: '^Segment routing view$', view: segment-routing}
+  # 0.4.0（M4-2）：EVPN
+  - {match: '^(BD-|VPWS-)?EVPN instance view$', view: evpn-instance}
+  - {match: '^Global EVPN configuration view$', view: evpn-global}
+  - {match: '^EVPL view$', view: evpl}
+  - {match: '^BGP-EVPN address family view$', view: bgp-af-evpn}
   # 各类接口视图（GE / 10GE / 50|100GE / Eth-Trunk / Loopback / 子接口 / 二层接口等）都归到通用的接口视图
   - {match: '(?i)^(?!.*(tunnel|mtunnel|cpos|serial|mp-group|global-ve|pw-ve|ve sub)).*(interface|sub-interface|-L2) view$', view: interface}
 
@@ -83,6 +100,8 @@ enters:
   - {view: bgp, syntax: '^ipv4-family vpn-instance\b', enters: bgp-af-vpn-instance-ipv4}
   - {view: bgp, syntax: '^vpn-instance\b', enters: bgp-vpn-instance}
   # 其余 BGP 地址族（MVPN、VPNv6、EVPN 等，不在当前范围）：进入一个没有命令卡的视图，块内按原文保留，不会被算到 IPv4 单播里
+  # 0.4.0（M4-2）：BGP-EVPN 地址族（要排在下面“其余地址族”之前）
+  - {view: bgp, syntax: '^l2vpn-family evpn$', enters: bgp-af-evpn}
   - {view: bgp, syntax: '^(ipv4-family|ipv6-family|l2vpn-ad-family|evpn|link-state-family|rpd-family)\b', enters: bgp-af-unsupported}
   - {view: system, syntax: '^ospf (<|\[)', enters: ospf}
   - {view: ospf, syntax: '^area\b', enters: ospf-area}
@@ -116,6 +135,20 @@ enters:
   - {view: system, syntax: '^acl (\[ number \]|name) ', enters: acl}
   - {view: system, syntax: '^tunnel-policy <', enters: tunnel-policy}
   - {view: system, syntax: '^bridge-domain <', enters: bridge-domain}
+  # 0.4.0（M4-2）：QoS
+  - {view: system, syntax: '^traffic classifier <', enters: qos-classifier}
+  - {view: system, syntax: '^traffic behavior <', enters: qos-behavior}
+  - {view: system, syntax: '^traffic policy <', enters: qos-policy}
+  - {view: system, syntax: '^diffserv domain \{', enters: diffserv-domain}
+  - {view: system, syntax: '^qos-profile <', enters: qos-profile}
+  - {view: system, syntax: '^flow-queue <', enters: flow-queue}
+  - {view: system, syntax: '^flow-wred <', enters: flow-wred}
+  - {view: system, syntax: '^port-wred <', enters: port-wred}
+  - {view: system, syntax: '^port-queue-template <', enters: port-queue-template}
+  - {view: system, syntax: '^segment-routing$', enters: segment-routing}
+  - {view: system, syntax: '^evpn vpn-instance <', enters: evpn-instance}
+  - {view: system, syntax: '^evpn$', enters: evpn-global}
+  - {view: system, syntax: '^evpl instance <', enters: evpl}
 
 # 参数类型推断：先按参数名，再按取值说明；第一条命中生效
 param_types:
@@ -128,6 +161,8 @@ param_types:
   - {name: '(extcommunity|community-number|cmntyValue|community-value)$', type: community}
   - {name: '^(interface-type|interface-name|interface-type interface-number)$', type: word}
   - {name: '^interface-number$', type: word}
+  # M4-2：VRRP 组号（virtual-router-id）以 router-id 结尾，要排在 IPv4 地址规则之前
+  - {name: 'virtual-router-id\d*$', type: integer, range: [1, 255]}
   - {name: '(ipv4-address|ip-address|peer-address|nexthop-address|next-hop|router-id|destination-address|source-address|ipv4)$', type: ipv4}
   - {name: '(description|desc-text|text|alias)$', type: text}
   - {value: 'integer[^.]*?(?:ranging from|ranges from|in the range of|in the range from|from)\s*(\d+)\s*(?:to|-)\s*(\d+)', type: integer, range_groups: [1, 2]}
@@ -179,6 +214,29 @@ domains:
     - {path: '16_VPN Commands/07_VPLS Configuration Commands.md'}
   acl:
     - {path: '08_IP Services Commands/17_ACL Configuration Commands.md'}
+  # 0.4.0（M4-2）：QoS（整章：基于类的 QoS、MPLS DiffServ、HQoS、限速与整形、拥塞避免等；视图映射不上的丢弃）
+  qos:
+    - {path: '17_QoS Commands.md'}
+  # 0.4.0（M4-2）：SR-MPLS（SRv6、SR-MPLS TE Policy 不在范围）
+  sr:
+    - path: '12_Segment Routing Commands.md'
+      sections: [Segment Routing MPLS Configuration Commands, Segment Routing Common Configuration Commands]
+      # MPLS 视图下的 SR 命令（mpls te path verification、mpls sr ttl-mode 等）会让范围外的 mpls te 行变成未识别，丢弃
+      views_map: [{match: '^MPLS view$', view: null}]
+  # 0.4.0（M4-2）：EVPN（MPLS / SR 承载的 EVPN 实例、BD-EVPN、VPWS-EVPN、EVPL、BGP-EVPN 地址族；VPN 实例相关视图已在 vrf 域）
+  evpn:
+    - path: '16_VPN Commands/02_EVPN Configuration Commands.md'
+      views_map:
+        - {match: '^(BGP-)?VPN instance', view: null}
+        - {match: '^(B-|I-)EVPN instance view$', view: null}
+  # 0.4.0（M4-2）：时钟同步（物理层时钟同步 / 同步以太、PTP 1588v2、1588 ACR（ptp-adaptive）；GNSS、CES ACR 不在范围）
+  clock:
+    - path: '03_Clock and Time Synchronization Commands.md'
+      sections: [Physical Layer Clock Synchronization Configuration Commands, 1588 ACR-specific and 1588 ATR-specific Timing Configuration Commands, PTP Configuration Commands]
+  # 0.4.0（M4-2）：VRRP（IPv4；VRRP6 不在范围）
+  vrrp:
+    - path: '04_Network Reliability Commands.md'
+      sections: [VRRP Configuration Commands]
 
 # 枚举类型参数：取值说明里列出的每一项（“- deny: …”）作为可选值
 enum_marker: enumerated type

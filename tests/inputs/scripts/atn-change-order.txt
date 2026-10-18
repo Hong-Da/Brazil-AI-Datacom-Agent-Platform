@@ -1,0 +1,15 @@
+system-view
+interface GigabitEthernet0/2/2
+ ip address 10.3.0.1 255.255.255.252
+ ip binding vpn-instance NEWVPN
+ description OAM-LINK-NEW
+quit
+ip vpn-instance NEWVPN
+ ipv4-family
+  route-distinguisher 65000:300
+  vpn-target 65000:300 export-extcommunity
+  vpn-target 65000:300 import-extcommunity
+quit
+undo ip ip-prefix NOPE index 10
+peer 10.9.9.9 as-number 65001
+commit

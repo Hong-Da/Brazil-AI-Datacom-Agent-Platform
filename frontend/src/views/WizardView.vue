@@ -6,6 +6,8 @@ import { api, ApiError } from '@/api'
 import { LANGS, type Lang } from '@/i18n'
 import { usePrefs } from '@/stores/prefs'
 import { markConfigured } from '@/router'
+import { useAuth } from '@/stores/auth'
+import { passwordProblems, validName } from './account/account'
 import Icon from '@/components/Icon.vue'
 import { LOGO_SVG } from '@/components/icons'
 import BareTopbar from '@/components/wizard-bare-topbar.vue'
@@ -22,9 +24,12 @@ interface SetupResult {
   restart_required: boolean
   changed: string[]
   config_path?: string
+  admin?: { username: string; role: string } | null
+  session_expires_at?: string
 }
 
 const prefs = usePrefs()
+const auth = useAuth()
 const router = useRouter()
 const { t, te } = useI18n()
 
@@ -42,12 +47,16 @@ const result = ref<SetupResult | null>(null)
 const dbPg = ref(false) // 数据库选了 PostgreSQL（地址可能还没填）
 const aiOn = ref(false)
 const copied = ref(false)
+// 第一个管理员（REQ-030）：在确认页之前单独一步
+const admin = reactive({ username: 'admin', password: '', password2: '' })
+const adminProblems = computed(() => passwordProblems(admin.password, admin.password2))
 
 const shown = computed(() => visibleGroups(groups.value))
-const lastStep = computed(() => shown.value.length + 1)
-const current = computed(() => shown.value[step.value - 1])
+const adminStep = computed(() => shown.value.length + 1)
+const lastStep = computed(() => shown.value.length + 2)
+const current = computed(() => (step.value >= 1 && step.value <= shown.value.length ? shown.value[step.value - 1] : undefined))
 const blocks = computed(() => (current.value ? blocksOf(current.value) : []))
-const stepTitles = computed(() => [t('wizard.stepLanguage'), ...shown.value.map((g) => g.title), t('wizard.stepConfirm')])
+const stepTitles = computed(() => [t('wizard.stepLanguage'), ...shown.value.map((g) => g.title), t('wizard.stepAdmin'), t('wizard.stepConfirm')])
 const isAiStep = computed(() => blocks.value.some((b) => b.type === 'ai'))
 const langLabel = computed(() => LANGS.find((l) => l.code === prefs.lang)?.label ?? prefs.lang)
 
@@ -90,7 +99,7 @@ async function validate(keys: string[]): Promise<boolean> {
   for (const k of keys) { delete errors[k]; okKeys.delete(k) }
   let mine: Record<string, string> = {}
   try {
-    await api('/setup', { method: 'POST', body: JSON.stringify({ language: prefs.lang, values, dry_run: true }) })
+    await api('/setup', { method: 'POST', body: JSON.stringify({ language: prefs.lang, values, admin: adminBody(), dry_run: true }) })
   } catch (e) {
     if (e instanceof ApiError && e.data && typeof e.data === 'object' && 'errors' in e.data) {
       mine = pickErrors((e.data as { errors: Record<string, string> }).errors, keys)
@@ -104,7 +113,25 @@ async function validate(keys: string[]): Promise<boolean> {
   return Object.keys(mine).length === 0
 }
 
+function adminBody(): { username: string; password: string } {
+  return { username: admin.username.trim(), password: admin.password }
+}
+
+/** 管理员一步：先在本地检查，再交给服务端校验用户名与密码规则。 */
+async function checkAdmin(): Promise<boolean> {
+  delete errors['admin.username']
+  delete errors['admin.password']
+  if (!validName(admin.username)) errors['admin.username'] = t('account.nameHint')
+  if (adminProblems.value.length) errors['admin.password'] = t(`account.rule.${adminProblems.value[0]}`)
+  if (errors['admin.username'] || errors['admin.password']) return false
+  return validate(['admin.username', 'admin.password'])
+}
+
 async function next(): Promise<void> {
+  if (step.value === adminStep.value) {
+    if (await checkAdmin()) step.value = lastStep.value
+    return
+  }
   const g = current.value
   if (g) {
     if (dbPg.value && g.fields.some((f) => f.kind === 'dburl' && !String(values[f.key] ?? '').trim())) {
@@ -126,15 +153,16 @@ async function submit(): Promise<void> {
   submitting.value = true
   submitError.value = ''
   try {
-    result.value = await api<SetupResult>('/setup', { method: 'POST', body: JSON.stringify({ language: prefs.lang, values }) })
-    prefs.token = result.value.api_token
-    try { localStorage.setItem('lmesh-token', result.value.api_token) } catch { /* 忽略 */ }
+    result.value = await api<SetupResult>('/setup', { method: 'POST', body: JSON.stringify({ language: prefs.lang, values, admin: adminBody() }) })
+    admin.password = admin.password2 = ''
+    if (result.value.admin) auth.set(result.value.admin, result.value.session_expires_at ?? null)
     markConfigured()
   } catch (e) {
     if (e instanceof ApiError && e.data && typeof e.data === 'object' && 'errors' in e.data) {
       // 某一步的取值不合格：回到第一个出错字段所在的步骤
       const errs = (e.data as { errors: Record<string, string> }).errors
       Object.assign(errors, errs)
+      if (Object.keys(errs).some((k) => k.startsWith('admin.'))) { step.value = adminStep.value; return }
       const idx = shown.value.findIndex((g) => g.fields.some((f) => f.key in errs))
       if (idx >= 0) { step.value = idx + 1; return }
     }
@@ -226,6 +254,7 @@ async function copyToken(): Promise<void> {
               <div class="done-art"><Icon name="check" /></div>
               <h3>{{ $t('wizard.doneTitle') }}</h3>
               <p>{{ $t('wizard.doneLead') }}</p>
+              <p v-if="result.admin" class="small" data-testid="wizard-signed-in">{{ $t('wizard.adminSignedIn', { name: result.admin.username }) }}</p>
             </div>
             <dl class="kv done-kv">
               <dt>{{ $t('wizard.doneUrl') }}</dt>
@@ -346,6 +375,34 @@ async function copyToken(): Promise<void> {
                 </div>
               </template>
 
+              <!-- 管理员账号（REQ-030） -->
+              <template v-else-if="step === adminStep">
+                <h2>{{ $t('wizard.adminTitle') }}</h2>
+                <p class="lead">{{ $t('wizard.adminLead') }}</p>
+                <div class="blocks admin-blocks" data-testid="wizard-admin">
+                  <div class="field">
+                    <label for="wz-admin-name">{{ $t('wizard.adminName') }}</label>
+                    <input id="wz-admin-name" v-model="admin.username" :class="['input', { 'is-error': errors['admin.username'] }]" autocomplete="username"
+                      spellcheck="false" data-testid="wizard-admin-name" @input="delete errors['admin.username']" />
+                    <span v-if="errors['admin.username']" class="err"><Icon name="err" small />{{ errors['admin.username'] }}</span>
+                    <span v-else class="hint">{{ $t('account.nameHint') }}</span>
+                  </div>
+                  <div class="field">
+                    <label for="wz-admin-pw">{{ $t('wizard.adminPassword') }}</label>
+                    <input id="wz-admin-pw" v-model="admin.password" type="password" :class="['input', { 'is-error': errors['admin.password'] }]" autocomplete="new-password"
+                      data-testid="wizard-admin-password" @input="delete errors['admin.password']" />
+                    <span v-if="errors['admin.password']" class="err"><Icon name="err" small />{{ errors['admin.password'] }}</span>
+                    <span v-else class="hint">{{ $t('account.rule.short') }}</span>
+                  </div>
+                  <div class="field">
+                    <label for="wz-admin-pw2">{{ $t('account.repeat') }}</label>
+                    <input id="wz-admin-pw2" v-model="admin.password2" type="password" class="input" autocomplete="new-password" data-testid="wizard-admin-password2"
+                      @input="delete errors['admin.password']" />
+                  </div>
+                  <div class="notice info"><Icon name="shield" /><div class="grow small">{{ $t('wizard.adminNote') }}</div></div>
+                </div>
+              </template>
+
               <!-- 确认 -->
               <template v-else>
                 <h2>{{ $t('wizard.confirmTitle') }}</h2>
@@ -374,6 +431,10 @@ async function copyToken(): Promise<void> {
                         </template>
                       </dl>
                     </div>
+                  </section>
+                  <section class="panel" data-testid="wizard-sum-admin">
+                    <div class="panel-h"><h3>{{ $t('wizard.stepAdmin') }}</h3><button type="button" class="btn btn-xs btn-ghost" @click="step = adminStep">{{ $t('c.edit') }}</button></div>
+                    <div class="panel-b"><dl class="kv"><dt>{{ $t('wizard.adminName') }}</dt><dd class="mono">{{ admin.username }}</dd><dt>{{ $t('wizard.adminPassword') }}</dt><dd>••••••••</dd></dl></div>
                   </section>
                 </div>
               </template>
@@ -415,6 +476,7 @@ async function copyToken(): Promise<void> {
 .wz-foot { display: flex; gap: 8px; align-items: center; padding: 12px 24px; border-top: 1px solid var(--line); }
 .wz-foot .grow { flex: 1; }
 .blocks { display: flex; flex-direction: column; gap: 16px; max-width: 640px; }
+.admin-blocks { max-width: 520px; }
 .lang-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .lang-cards .radio-card { flex-direction: column; gap: 6px; padding: 14px; position: relative; }
 .lang-cards .ln { font: 600 16px var(--font-display); }

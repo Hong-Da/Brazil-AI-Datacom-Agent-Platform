@@ -18,8 +18,8 @@ cases:
     src_profile: huawei-atn-v800r023
     dst_profile: cisco-iosxe-asr920-17.15
     interface_map: atn-to-asr920.ifmap.yaml
-    min_rendered: 0.9
-    note: 现网 ATN（严格脱敏）→ ASR 920；二层子接口换成父接口下的业务实例（M3 知识库补缺），未映射命令与功能域外原文列为 unsupported
+    min_rendered: 0.69
+    note: 现网 ATN（严格脱敏）→ ASR 920；二层子接口换成父接口下的业务实例（M3 知识库补缺），未映射命令与功能域外原文列为 unsupported。M4-2 起 QoS / 时钟同步进入功能域，分母从 1889 增到 3035，其中华为特有的流行为、HQoS 流队列 / WRED、端口队列、1588 ACR 约 770 个节点在 Cisco 上没有对应结构（报不支持）；原有功能域写不出的节点约 146 个，与 M3 收尾（142）基本相同，没有退步
   - id: asr920-to-atn
     src: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
     src_profile: cisco-iosxe-asr920-17.15
@@ -65,3 +65,15 @@ cases:
     dst_profile: huawei-atn-v800r025
     min_rendered: 0.9
     note: 公开的 IOS 配置（OSPF、BGP、路由策略）
+  - id: atn-advanced-to-asr920
+    src: ../huawei-atn-v800r025-synthetic/atn-advanced-01.cfg
+    src_profile: huawei-atn-v800r025
+    dst_profile: cisco-iosxe-asr920-17.15
+    min_rendered: 0.5
+    note: VRRP / SR-MPLS / EVPN / QoS / 时钟同步 / 管理面补充（M4-2）；华为流行为、HQoS 队列与 WRED、端口队列、接口 PTP 在 Cisco 上结构不同，报不支持（122 / 222）
+  - id: asr920-advanced-to-atn
+    src: ../cisco-iosxe-asr920-synthetic/pe-asr920-04-advanced.cfg
+    src_profile: cisco-iosxe-asr920-17.15
+    dst_profile: huawei-atn-v800r025
+    min_rendered: 0.6
+    note: VRRP / SR-MPLS / EVPN / QoS / 时钟同步 / 管理面补充（M4-2）；policy-map 下的动作、connected-prefix-sid-map、PTP clock-port 在华为上结构不同，报不支持（107 / 170）

@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DOCS = ROOT / "docs"
 CASES = ROOT / "tests" / "cases"
 BEGIN, END = "<!-- examples:begin -->", "<!-- examples:end -->"
-BASE = "http://127.0.0.1:9000"
+BASE = "http://127.0.0.1:9090"
 
 
 def cases(name: str) -> list[dict[str, Any]]:

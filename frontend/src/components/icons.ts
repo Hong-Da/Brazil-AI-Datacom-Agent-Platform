@@ -67,6 +67,23 @@ export const ICONS: Record<string, string> = {
   map: '<path d="M4 6.5h6M4 12h6M4 17.5h6M14 6.5h6M14 12h6M14 17.5h6"/><path d="m10.5 6.5 3 0M10.5 12l3 5.5M10.5 17.5l3-5.5"/>',
   stencil: '<rect x="3.5" y="3.5" width="17" height="17" rx="2"/><path d="M7.5 8h3M13.5 8h3M7.5 12h9M7.5 16h4" stroke-dasharray="2 1.6"/>',
   rows: '<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9h18M3 14h18M9 9v11"/>',
+  // M4：割接、影响范围、风险、排序、接入
+  swap2: '<path d="M4 7h11l-3-3M20 17H9l3 3"/><rect x="16" y="4" width="5" height="6" rx="1"/><rect x="3" y="14" width="5" height="6" rx="1"/>',
+  ripple: '<circle cx="12" cy="12" r="2"/><circle cx="12" cy="12" r="5.5" stroke-dasharray="2 2"/><circle cx="12" cy="12" r="9" stroke-dasharray="1.5 2.5"/>',
+  bolt: '<path d="M13 3 5 13.5h6L10 21l8-10.5h-6z"/>',
+  order: '<path d="M5 5h6M5 12h9M5 19h12"/><path d="M19 4v7M16.5 8.5 19 11l2.5-2.5"/>',
+  plug: '<path d="M9 3v5M15 3v5M6.5 8h11v3a5.5 5.5 0 0 1-11 0zM12 16.5V21"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 19.5a6.5 6.5 0 0 1 13 0"/><path d="M15.5 4.8a3.5 3.5 0 0 1 0 6.4M18 13.6a6.5 6.5 0 0 1 3.5 5.9"/>',
+  logout: '<path d="M10 4H5.5A1.5 1.5 0 0 0 4 5.5v13A1.5 1.5 0 0 0 5.5 20H10"/><path d="M15 8l4 4-4 4M19 12H9"/>',
+  // M5：表格导出、特性查询、AI 查询
+  table: '<rect x="3" y="4" width="18" height="16" rx="1.5"/><path d="M3 9.5h18M3 15h18M9.5 9.5V20M15 9.5V20"/>',
+  feature: '<path d="M4 5h7v7H4zM13 5h7v7h-7zM4 14h7v6H4z"/><path d="M16.5 14.5v5M14 17h5"/>',
+  chat: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9a1.5 1.5 0 0 1-1.5 1.5H10l-4.5 4v-4h0A1.5 1.5 0 0 1 4 14.5z"/><path d="M8 9h8M8 12h5"/>',
+  send: '<path d="M4 12 20 4l-5 16-3.5-6.5z"/><path d="M11.5 13.5 20 4"/>',
+  // REQ-031：配置检查项目（重排移动、改名）
+  move: '<path d="M7 4v13M3.5 13.5 7 17l3.5-3.5"/><path d="M17 20V7M13.5 10.5 17 7l3.5 3.5"/>',
+  pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
 }
 
 export const LOGO_SVG = '<svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#E3EFF7"/><path d="M106 343 L256 399 L256 417 L106 361 Z" fill="#235C84" stroke="#235C84" stroke-linejoin="round" stroke-width="10"/><path d="M256 399 L406 343 L406 361 L256 417 Z" fill="#1D4D6F" stroke="#1D4D6F" stroke-linejoin="round" stroke-width="10"/><path d="M256 287 L406 343 L256 399 L106 343 Z" fill="#2B6F9E" stroke="#2B6F9E" stroke-linejoin="round" stroke-width="10"/><path d="M106 247 L256 303 L256 321 L106 265 Z" fill="#22867A" stroke="#22867A" stroke-linejoin="round" stroke-width="10"/><path d="M256 303 L406 247 L406 265 L256 321 Z" fill="#1C7166" stroke="#1C7166" stroke-linejoin="round" stroke-width="10"/><path d="M256 191 L406 247 L256 303 L106 247 Z" fill="#2A9D8F" stroke="#2A9D8F" stroke-linejoin="round" stroke-width="10"/><path d="M106 151 L256 207 L256 225 L106 169 Z" fill="#D9962B" stroke="#D9962B" stroke-linejoin="round" stroke-width="10"/><path d="M256 207 L406 151 L406 169 L256 225 Z" fill="#C4831F" stroke="#C4831F" stroke-linejoin="round" stroke-width="10"/><path d="M256 95 L406 151 L256 207 L106 151 Z" fill="#F2B33D" stroke="#F2B33D" stroke-linejoin="round" stroke-width="10"/><path d="M206 159 L256 129 L306 159 Z" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linejoin="round"/><circle cx="206" cy="159" r="17" fill="#FFFFFF"/><circle cx="256" cy="129" r="17" fill="#FFFFFF"/><circle cx="306" cy="159" r="17" fill="#FFFFFF"/></svg>'

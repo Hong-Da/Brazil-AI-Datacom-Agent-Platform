@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "LucidMesh API",
-    "description": "透网 LucidMesh 远程 API。除 /health 与首次运行向导外，所有接口都需要 Authorization: Bearer <令牌>。",
-    "version": "0.2.1"
+    "description": "透网 LucidMesh 远程 API。除 /health、/auth/status、/auth/login 与首次运行向导外，所有接口都需要登录：网页用会话 Cookie，脚本用 Authorization: Bearer <令牌>。",
+    "version": "0.3.0"
   },
   "paths": {
     "/api/v1/health": {
@@ -98,7 +98,7 @@
         "tags": [
           "system"
         ],
-        "summary": "当前生效的配置（敏感值只显示是否已设置）",
+        "summary": "当前生效的配置（敏感值只显示是否已设置；管理员）",
         "operationId": "effective_config_api_v1_config_get",
         "responses": {
           "200": {
@@ -109,6 +109,418 @@
                   "additionalProperties": true,
                   "type": "object",
                   "title": "Response Effective Config Api V1 Config Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/status": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "登录页需要的状态：是否已配置、是否已有账号（不需要认证）",
+        "operationId": "auth_status_api_v1_auth_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Auth Status Api V1 Auth Status Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "用户名 + 密码登录，成功后设置会话 Cookie",
+        "operationId": "auth_login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Auth Login Api V1 Auth Login Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/bootstrap": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "还没有任何账号时：用 API 令牌创建第一个管理员并登录",
+        "operationId": "auth_bootstrap_api_v1_auth_bootstrap_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BootstrapBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Auth Bootstrap Api V1 Auth Bootstrap Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "登出：删除会话并清除 Cookie（没有登录时也返回成功）",
+        "operationId": "auth_logout_api_v1_auth_logout_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Auth Logout Api V1 Auth Logout Post"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "当前调用者：账号、角色、认证方式（session / token）",
+        "operationId": "auth_me_api_v1_auth_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Auth Me Api V1 Auth Me Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "修改自己的密码（其他会话失效，当前会话保留）",
+        "operationId": "auth_password_api_v1_auth_password_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Auth Password Api V1 Auth Password Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "账号列表（管理员）",
+        "operationId": "users_list_api_v1_users_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Users List Api V1 Users Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "新建账号（管理员）",
+        "operationId": "users_create_api_v1_users_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewUserBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Users Create Api V1 Users Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{username}": {
+      "put": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "改角色、停用 / 启用、解除锁定（管理员）",
+        "operationId": "users_update_api_v1_users__username__put",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Users Update Api V1 Users  Username  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "删除账号（管理员；不能删除自己和最后一个启用的管理员）",
+        "operationId": "users_delete_api_v1_users__username__delete",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Users Delete Api V1 Users  Username  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{username}/password": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "重置密码（管理员）：解除锁定，该账号的会话全部失效",
+        "operationId": "users_reset_api_v1_users__username__password_post",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Users Reset Api V1 Users  Username  Password Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -383,7 +795,7 @@
         "tags": [
           "tasks-ai"
         ],
-        "summary": "测试 AI 接口是否可用",
+        "summary": "测试 AI 接口是否可用（管理员）",
         "operationId": "ai_test_api_v1_ai_test_post",
         "responses": {
           "200": {
@@ -564,7 +976,7 @@
         "tags": [
           "knowledge"
         ],
-        "summary": "发布知识库版本：校验 → 回归测试 → 打标签",
+        "summary": "发布知识库版本：校验 → 回归测试 → 打标签（管理员）",
         "operationId": "kb_release_api_v1_kb_releases_post",
         "requestBody": {
           "content": {
@@ -667,7 +1079,7 @@
         "tags": [
           "knowledge"
         ],
-        "summary": "回滚到某个已发布版本（历史保留）",
+        "summary": "回滚到某个已发布版本（历史保留；管理员）",
         "operationId": "kb_rollback_api_v1_kb_rollback_post",
         "requestBody": {
           "content": {
@@ -1350,7 +1762,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CheckBody"
+                "$ref": "#/components/schemas/lmesh__api__routes_check__CheckBody"
               }
             }
           },
@@ -1712,6 +2124,830 @@
                   "type": "object",
                   "additionalProperties": true,
                   "title": "Response Remove Ignore Api V1 Check Ignores  Ignore Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-projects": {
+      "get": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "配置检查项目列表（普通账号只看到自己的）",
+        "operationId": "list_projects_api_v1_check_projects_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Projects Api V1 Check Projects Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "新建配置检查项目",
+        "operationId": "create_project_api_v1_check_projects_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Create Project Api V1 Check Projects Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-projects/ai-rules": {
+      "get": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "可交给 AI 参与校验的规则（规则文件中 ai: true）与 AI 是否已配置",
+        "operationId": "ai_rules_api_v1_check_projects_ai_rules_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Ai Rules Api V1 Check Projects Ai Rules Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-projects/diff": {
+      "post": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "文本差异对比：修订 / 脚本 / 基线配置 / 文本，移动识别、行内字符标记、忽略顺序与语义差异",
+        "operationId": "diff_api_v1_check_projects_diff_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiffBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Diff Api V1 Check Projects Diff Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-projects/diff/report": {
+      "post": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "下载差异：统一 diff（.diff）或中文 / 英文 HTML 报告",
+        "operationId": "diff_report_api_v1_check_projects_diff_report_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiffReportBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-projects/{pid}": {
+      "get": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "项目详情（含脚本列表）",
+        "operationId": "get_project_api_v1_check_projects__pid__get",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Project Api V1 Check Projects  Pid  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "修改项目（名称、基线、顺序核查、AI 一起校验与规则）",
+        "operationId": "update_project_api_v1_check_projects__pid__put",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Project Api V1 Check Projects  Pid  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "删除项目（连同脚本与修订记录）",
+        "operationId": "delete_project_api_v1_check_projects__pid__delete",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Project Api V1 Check Projects  Pid  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-projects/{pid}/scripts": {
+      "post": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "新建脚本（形成第一条修订）",
+        "operationId": "create_script_api_v1_check_projects__pid__scripts_post",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScriptBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Script Api V1 Check Projects  Pid  Scripts Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-projects/{pid}/scripts/{sid}": {
+      "get": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "脚本内容",
+        "operationId": "get_script_api_v1_check_projects__pid__scripts__sid__get",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pid"
+            }
+          },
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Script Api V1 Check Projects  Pid  Scripts  Sid  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "改名 / 改类型 / 保存内容（内容变化时形成修订）",
+        "operationId": "update_script_api_v1_check_projects__pid__scripts__sid__put",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pid"
+            }
+          },
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScriptPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Script Api V1 Check Projects  Pid  Scripts  Sid  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "删除脚本",
+        "operationId": "delete_script_api_v1_check_projects__pid__scripts__sid__delete",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pid"
+            }
+          },
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Script Api V1 Check Projects  Pid  Scripts  Sid  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-projects/{pid}/scripts/{sid}/check": {
+      "post": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "实时检查：按行给出问题（解析、视图、取消、覆盖、副作用、顺序、冲突、规则、AI）与模拟执行后的结果",
+        "operationId": "check_api_v1_check_projects__pid__scripts__sid__check_post",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pid"
+            }
+          },
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/lmesh__api__routes_check_projects__CheckBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Check Api V1 Check Projects  Pid  Scripts  Sid  Check Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-projects/{pid}/scripts/{sid}/reorder": {
+      "post": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "按依赖重排：新脚本、每条命令的移动与原因、重排前后的顺序错误；apply=true 时保存为修订",
+        "operationId": "reorder_api_v1_check_projects__pid__scripts__sid__reorder_post",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pid"
+            }
+          },
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Reorder Api V1 Check Projects  Pid  Scripts  Sid  Reorder Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-projects/{pid}/scripts/{sid}/revisions": {
+      "get": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "修订记录（新的在前，不含内容）",
+        "operationId": "revisions_api_v1_check_projects__pid__scripts__sid__revisions_get",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pid"
+            }
+          },
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Revisions Api V1 Check Projects  Pid  Scripts  Sid  Revisions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-projects/{pid}/scripts/{sid}/revisions/{rid}": {
+      "get": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "一条修订（含内容）",
+        "operationId": "get_revision_api_v1_check_projects__pid__scripts__sid__revisions__rid__get",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pid"
+            }
+          },
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "rid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Rid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Revision Api V1 Check Projects  Pid  Scripts  Sid  Revisions  Rid  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/check-projects/{pid}/scripts/{sid}/revisions/{rid}/restore": {
+      "post": {
+        "tags": [
+          "check-projects"
+        ],
+        "summary": "恢复到某个修订（形成一条 restore 修订）",
+        "operationId": "restore_api_v1_check_projects__pid__scripts__sid__revisions__rid__restore_post",
+        "parameters": [
+          {
+            "name": "pid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pid"
+            }
+          },
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "rid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Rid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Restore Api V1 Check Projects  Pid  Scripts  Sid  Revisions  Rid  Restore Post"
                 }
               }
             }
@@ -2516,7 +3752,7 @@
         "tags": [
           "workbench"
         ],
-        "summary": "AI 接口设置（API Key 只显示是否已设置）",
+        "summary": "AI 接口设置（API Key 只显示是否已设置；管理员）",
         "operationId": "ai_settings_api_v1_ai_settings_get",
         "responses": {
           "200": {
@@ -2537,7 +3773,7 @@
         "tags": [
           "workbench"
         ],
-        "summary": "保存 AI 接口设置（写入配置文件，API Key 加密保存）",
+        "summary": "保存 AI 接口设置（写入配置文件，API Key 加密保存；管理员）",
         "operationId": "ai_settings_put_api_v1_ai_settings_put",
         "requestBody": {
           "content": {
@@ -2663,7 +3899,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SaveBody"
+                "$ref": "#/components/schemas/lmesh__api__routes_template__SaveBody"
               }
             }
           }
@@ -2834,7 +4070,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GenerateBody"
+                "$ref": "#/components/schemas/lmesh__api__routes_template__GenerateBody"
               }
             }
           },
@@ -2892,6 +4128,331 @@
                   "additionalProperties": true,
                   "type": "object",
                   "title": "Response Run Translate Api V1 Translate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/translate-rules": {
+      "get": {
+        "tags": [
+          "translate"
+        ],
+        "summary": "规则集列表（内置与我的）与可改名的对象类型",
+        "operationId": "list_rules_api_v1_translate_rules_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Rules Api V1 Translate Rules Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/translate-rules/{rid}": {
+      "get": {
+        "tags": [
+          "translate"
+        ],
+        "summary": "读取规则集：结构化内容与 YAML 原文",
+        "operationId": "get_rules_api_v1_translate_rules__rid__get",
+        "parameters": [
+          {
+            "name": "rid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Rid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Rules Api V1 Translate Rules  Rid  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "translate"
+        ],
+        "summary": "保存规则集到 data/translate-rules/（内置规则集只读，409）",
+        "operationId": "save_rules_api_v1_translate_rules__rid__put",
+        "parameters": [
+          {
+            "name": "rid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Rid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/lmesh__api__routes_translate_rules__SaveBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Save Rules Api V1 Translate Rules  Rid  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "translate"
+        ],
+        "summary": "删除我的规则集（内置规则集只读，409）",
+        "operationId": "delete_rules_api_v1_translate_rules__rid__delete",
+        "parameters": [
+          {
+            "name": "rid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Rid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Rules Api V1 Translate Rules  Rid  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/translate-rules/{rid}/export": {
+      "get": {
+        "tags": [
+          "translate"
+        ],
+        "summary": "导出规则集（YAML 文件）",
+        "operationId": "export_rules_api_v1_translate_rules__rid__export_get",
+        "parameters": [
+          {
+            "name": "rid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Rid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/translate-rules/import": {
+      "post": {
+        "tags": [
+          "translate"
+        ],
+        "summary": "导入规则集（YAML 原文）；编号已存在时 409，overwrite=true 覆盖",
+        "operationId": "import_rules_api_v1_translate_rules_import_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Import Rules Api V1 Translate Rules Import Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/translate-rules/match": {
+      "post": {
+        "tags": [
+          "translate"
+        ],
+        "summary": "编辑器测试框：一个名称或接口名经过规则后的结果（命中的规则、整理动作、告警）",
+        "operationId": "match_rules_api_v1_translate_rules_match_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatchBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Match Rules Api V1 Translate Rules Match Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/translate-rules/test": {
+      "post": {
+        "tags": [
+          "translate"
+        ],
+        "summary": "试运行：对一份配置按规则集改名，返回改名清单、端口映射、冲突、命名规范告警",
+        "operationId": "test_rules_api_v1_translate_rules_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Test Rules Api V1 Translate Rules Test Post"
                 }
               }
             }
@@ -3377,6 +4938,1104 @@
           }
         }
       }
+    },
+    "/api/v1/devices/{device_id}/history": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "快照时间线：导入记录（重复导入合并）、知识库版本、指纹、标签、相对上一快照的变化",
+        "operationId": "get_history_api_v1_devices__device_id__history_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get History Api V1 Devices  Device Id  History Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/history/diff": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "两个快照之间的变化：按对象归并的图差异、只是写法不同的变化（默认只计数）、配置原文差异（每行带节点）",
+        "operationId": "get_history_diff_api_v1_devices__device_id__history_diff_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "a",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "较早的快照（默认上一个）",
+              "title": "A"
+            },
+            "description": "较早的快照（默认上一个）"
+          },
+          {
+            "name": "b",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "较晚的快照（默认最新）",
+              "title": "B"
+            },
+            "description": "较晚的快照（默认最新）"
+          },
+          {
+            "name": "rebuild",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "两边都按当前知识库重新解析后比较",
+              "default": false,
+              "title": "Rebuild"
+            },
+            "description": "两边都按当前知识库重新解析后比较"
+          },
+          {
+            "name": "show_noneff",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "同时列出只是写法不同、有效值相同的变化",
+              "default": false,
+              "title": "Show Noneff"
+            },
+            "description": "同时列出只是写法不同、有效值相同的变化"
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "只看一个功能域",
+              "title": "Domain"
+            },
+            "description": "只看一个功能域"
+          },
+          {
+            "name": "text",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "附配置原文差异",
+              "default": true,
+              "title": "Text"
+            },
+            "description": "附配置原文差异"
+          },
+          {
+            "name": "context",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "description": "原文差异每块前后保留的相同行数（取大值时返回整份原文）",
+              "default": 3,
+              "title": "Context"
+            },
+            "description": "原文差异每块前后保留的相同行数（取大值时返回整份原文）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get History Diff Api V1 Devices  Device Id  History Diff Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/history/object": {
+      "get": {
+        "tags": [
+          "history"
+        ],
+        "summary": "一个对象（规范编号）在每个快照中的取值与变化",
+        "operationId": "get_object_history_api_v1_devices__device_id__history_object_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "node",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "对象的规范编号，例如 interface[GigabitEthernet0/0/0]",
+              "title": "Node"
+            },
+            "description": "对象的规范编号，例如 interface[GigabitEthernet0/0/0]"
+          },
+          {
+            "name": "rebuild",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Rebuild"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Object History Api V1 Devices  Device Id  History Object Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/history/{version_id}/tag": {
+      "put": {
+        "tags": [
+          "history"
+        ],
+        "summary": "给快照贴标签（永久保留）",
+        "operationId": "put_tag_api_v1_devices__device_id__history__version_id__tag_put",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TagBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Tag Api V1 Devices  Device Id  History  Version Id  Tag Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "history"
+        ],
+        "summary": "去掉快照的标签",
+        "operationId": "delete_tag_api_v1_devices__device_id__history__version_id__tag_delete",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Tag Api V1 Devices  Device Id  History  Version Id  Tag Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/history/restore": {
+      "post": {
+        "tags": [
+          "history"
+        ],
+        "summary": "回到某个快照：当前（默认最新）→ 目标快照的增量变更脚本（按依赖排序），附回滚脚本与模拟验证",
+        "operationId": "post_restore_api_v1_devices__device_id__history_restore_post",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Restore Api V1 Devices  Device Id  History Restore Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/history/report": {
+      "post": {
+        "tags": [
+          "history"
+        ],
+        "summary": "导出版本差异报告（中文 / English，HTML / Markdown），直接返回文件",
+        "operationId": "post_history_report_api_v1_devices__device_id__history_report_post",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HistoryReportBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/export/presets": {
+      "get": {
+        "tags": [
+          "export"
+        ],
+        "summary": "审计表格的预置模板：对象类型、列（三语表头、Schema 路径）、命名筛选条件",
+        "operationId": "get_presets_api_v1_export_presets_get",
+        "parameters": [
+          {
+            "name": "style",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "huawei",
+                "cisco"
+              ],
+              "type": "string",
+              "default": "huawei",
+              "title": "Style"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Presets Api V1 Export Presets Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/export/fields": {
+      "get": {
+        "tags": [
+          "export"
+        ],
+        "summary": "自定义表格：对象类型列表，或一个对象类型可用的字段（键字段、属性、子对象属性）",
+        "operationId": "get_fields_api_v1_export_fields_get",
+        "parameters": [
+          {
+            "name": "object",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "对象类型；不给时列出全部对象类型",
+              "title": "Object"
+            },
+            "description": "对象类型；不给时列出全部对象类型"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Fields Api V1 Export Fields Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/export/table": {
+      "post": {
+        "tags": [
+          "export"
+        ],
+        "summary": "生成审计表格：format=json 返回表格（每格带来源、节点、行号）；csv / xlsx 直接返回文件",
+        "operationId": "post_table_api_v1_export_table_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TableBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/features": {
+      "get": {
+        "tags": [
+          "features"
+        ],
+        "summary": "特性能力查询：按关键词（节点编号、叫法、命令写法）查各 Profile 的支持情况、默认值、命令卡与来源",
+        "operationId": "get_features_api_v1_features_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "description": "关键词；空为浏览全部（各 Profile 完全相同的只计数）",
+              "default": "",
+              "title": "Q"
+            },
+            "description": "关键词；空为浏览全部（各 Profile 完全相同的只计数）"
+          },
+          {
+            "name": "profile",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "逗号分隔的 Profile；不给时为全部",
+              "title": "Profile"
+            },
+            "description": "逗号分隔的 Profile；不给时为全部"
+          },
+          {
+            "name": "family",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "只看一个平台族",
+              "title": "Family"
+            },
+            "description": "只看一个平台族"
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "只看一个功能域",
+              "title": "Domain"
+            },
+            "description": "只看一个功能域"
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "supported / unsupported / unfilled：任一 Profile 符合",
+              "title": "State"
+            },
+            "description": "supported / unsupported / unfilled：任一 Profile 符合"
+          },
+          {
+            "name": "include_same",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "浏览全部时也列出各 Profile 完全相同的特性",
+              "default": false,
+              "title": "Include Same"
+            },
+            "description": "浏览全部时也列出各 Profile 完全相同的特性"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 2000,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Features Api V1 Features Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/features/detail": {
+      "get": {
+        "tags": [
+          "features"
+        ],
+        "summary": "一个特性（Schema 节点）在各 Profile 中的完整信息：命令卡、取消写法、视图、来源、依赖",
+        "operationId": "get_feature_detail_api_v1_features_detail_get",
+        "parameters": [
+          {
+            "name": "node",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Schema 节点编号，例如 interface.mtu",
+              "title": "Node"
+            },
+            "description": "Schema 节点编号，例如 interface.mtu"
+          },
+          {
+            "name": "profile",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "逗号分隔的 Profile；不给时为全部",
+              "title": "Profile"
+            },
+            "description": "逗号分隔的 Profile；不给时为全部"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Feature Detail Api V1 Features Detail Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/features/diff": {
+      "get": {
+        "tags": [
+          "features"
+        ],
+        "summary": "两个 Profile 对比：默认值不同的排在前面，其次支持情况不同、未填写；相同的默认只计数",
+        "operationId": "get_feature_diff_api_v1_features_diff_get",
+        "parameters": [
+          {
+            "name": "a",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Profile A",
+              "title": "A"
+            },
+            "description": "Profile A"
+          },
+          {
+            "name": "b",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Profile B",
+              "title": "B"
+            },
+            "description": "Profile B"
+          },
+          {
+            "name": "domain",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Domain"
+            }
+          },
+          {
+            "name": "include_same",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "同时列出两边相同的特性",
+              "default": false,
+              "title": "Include Same"
+            },
+            "description": "同时列出两边相同的特性"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Feature Diff Api V1 Features Diff Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ask/status": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "AI 查询与生成是否可用（未配置 AI 时界面隐藏入口）；配置护栏与图查询不需要 AI",
+        "operationId": "get_status_api_v1_ask_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Status Api V1 Ask Status Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/query": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "执行图查询（受限的只读查询语言，不需要 AI）：每行带设备、节点与配置行号，每格带来源",
+        "operationId": "post_query_api_v1_query_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Post Query Api V1 Query Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ask": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "AI 自然语言查询：AI 写图查询 → 代码执行 → AI 组织回答 → 代码逐句核对（通过 / 被更正 / 无法校验）；需要配置 AI",
+        "operationId": "post_ask_api_v1_ask_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Post Ask Api V1 Ask Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/guard": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "配置护栏（不需要 AI）：解析、入图（合并到目标设备当前配置）、依赖、模板、冲突检查，逐行标出通过 / 拦截 / 注意与原因",
+        "operationId": "post_guard_api_v1_guard_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuardBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Post Guard Api V1 Guard Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "AI 生成配置：生成后经护栏检查（解析、入图、依赖、模板、冲突），被拦截时交回 AI 修改；需要配置 AI",
+        "operationId": "post_generate_api_v1_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/lmesh__api__routes_ask__GenerateBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Post Generate Api V1 Generate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3479,6 +6138,79 @@
         },
         "type": "object",
         "title": "AISettingsBody"
+      },
+      "AdminBody": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username",
+            "default": ""
+          },
+          "password": {
+            "type": "string",
+            "title": "Password",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "AdminBody"
+      },
+      "AskBody": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "devices": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Devices",
+            "description": "查询范围（设备名或编号）；不给时为全部已导入设备"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "zh-CN",
+                  "en",
+                  "pt-BR"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang",
+            "description": "回答语言；不填时按请求的语言"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "AskBody"
       },
       "BaselineBody": {
         "properties": {
@@ -3685,6 +6417,29 @@
         ],
         "title": "Body_kb_import_api_v1_kb_import_post"
       },
+      "BootstrapBody": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "username",
+          "password"
+        ],
+        "title": "BootstrapBody"
+      },
       "ChangeBody": {
         "properties": {
           "current": {
@@ -3839,71 +6594,6 @@
           "target"
         ],
         "title": "ChangeReportBody"
-      },
-      "CheckBody": {
-        "properties": {
-          "text": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 20971520
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Text",
-            "description": "配置文本（与 device_id 二选一）"
-          },
-          "device_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Device Id",
-            "description": "已导入设备的编号：取最新配置版本"
-          },
-          "profile": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Profile"
-          },
-          "severity": {
-            "type": "string",
-            "enum": [
-              "error",
-              "warning",
-              "info"
-            ],
-            "title": "Severity",
-            "description": "最低级别",
-            "default": "info"
-          },
-          "domain": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Domain",
-            "description": "只保留该功能域的发现"
-          }
-        },
-        "type": "object",
-        "title": "CheckBody"
       },
       "CleanupBody": {
         "properties": {
@@ -4157,6 +6847,200 @@
         ],
         "title": "DecideBody"
       },
+      "DiffBody": {
+        "properties": {
+          "a": {
+            "$ref": "#/components/schemas/DiffSide"
+          },
+          "b": {
+            "$ref": "#/components/schemas/DiffSide"
+          },
+          "ignore_order": {
+            "type": "boolean",
+            "title": "Ignore Order",
+            "description": "忽略顺序：按视图路径 + 行内容的多重集合比较",
+            "default": false
+          },
+          "semantic": {
+            "type": "boolean",
+            "title": "Semantic",
+            "description": "同时给出语义差异（按有效值比较）",
+            "default": true
+          },
+          "style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "huawei",
+                  "cisco"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style"
+          }
+        },
+        "type": "object",
+        "required": [
+          "a",
+          "b"
+        ],
+        "title": "DiffBody"
+      },
+      "DiffReportBody": {
+        "properties": {
+          "a": {
+            "$ref": "#/components/schemas/DiffSide"
+          },
+          "b": {
+            "$ref": "#/components/schemas/DiffSide"
+          },
+          "ignore_order": {
+            "type": "boolean",
+            "title": "Ignore Order",
+            "description": "忽略顺序：按视图路径 + 行内容的多重集合比较",
+            "default": false
+          },
+          "semantic": {
+            "type": "boolean",
+            "title": "Semantic",
+            "description": "同时给出语义差异（按有效值比较）",
+            "default": true
+          },
+          "style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "huawei",
+                  "cisco"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "html",
+              "unified"
+            ],
+            "title": "Format",
+            "default": "html"
+          },
+          "report_lang": {
+            "type": "string",
+            "enum": [
+              "zh-CN",
+              "en"
+            ],
+            "title": "Report Lang",
+            "default": "zh-CN"
+          }
+        },
+        "type": "object",
+        "required": [
+          "a",
+          "b"
+        ],
+        "title": "DiffReportBody"
+      },
+      "DiffSide": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "revision",
+              "script",
+              "baseline",
+              "text"
+            ],
+            "title": "Type"
+          },
+          "revision_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Id"
+          },
+          "script_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Script Id"
+          },
+          "project_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Project Id"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "change",
+                  "full"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "title": "DiffSide",
+        "description": "对比的一侧：revision（revision_id）/ script（script_id，可带 text 表示编辑器里未保存的内容）/\nbaseline（project_id 的基线设备配置）/ text（text，kind 为 change 或 full，project_id 给出基线）。"
+      },
       "DraftBody": {
         "properties": {
           "configs": {
@@ -4288,51 +7172,31 @@
         "type": "object",
         "title": "EntryBody"
       },
-      "GenerateBody": {
+      "GuardBody": {
         "properties": {
-          "template_id": {
+          "text": {
+            "type": "string",
+            "maxLength": 20971520,
+            "minLength": 1,
+            "title": "Text",
+            "description": "要校验的配置片段"
+          },
+          "device": {
             "anyOf": [
               {
-                "type": "string",
-                "maxLength": 80
+                "type": "string"
+              },
+              {
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Template Id"
+            "title": "Device",
+            "description": "目标设备（名称或编号）"
           },
-          "template": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 524288
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Template",
-            "description": "模板文件内容（YAML），不保存"
-          },
-          "rows": {
-            "anyOf": [
-              {
-                "items": {
-                  "additionalProperties": true,
-                  "type": "object"
-                },
-                "type": "array",
-                "maxItems": 2000
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rows",
-            "description": "参数行（JSON）"
-          },
-          "csv": {
+          "base_text": {
             "anyOf": [
               {
                 "type": "string",
@@ -4342,19 +7206,10 @@
                 "type": "null"
               }
             ],
-            "title": "Csv",
-            "description": "参数表（CSV 文本）"
+            "title": "Base Text",
+            "description": "当前配置（不用已导入设备时）"
           },
-          "engine": {
-            "type": "string",
-            "enum": [
-              "text",
-              "canon"
-            ],
-            "title": "Engine",
-            "default": "text"
-          },
-          "target_profile": {
+          "profile": {
             "anyOf": [
               {
                 "type": "string"
@@ -4363,22 +7218,62 @@
                 "type": "null"
               }
             ],
-            "title": "Target Profile"
+            "title": "Profile",
+            "description": "Profile（默认按目标设备）"
           },
-          "verify": {
+          "template": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template",
+            "description": "按这个模板检查约束（模板编号）"
+          },
+          "cross_device": {
             "type": "boolean",
-            "title": "Verify",
+            "title": "Cross Device",
+            "description": "与其他已导入设备查重（地址、RD）",
             "default": true
           },
-          "include_text": {
+          "script": {
             "type": "boolean",
-            "title": "Include Text",
-            "description": "结果中带生成的配置文本",
+            "title": "Script",
+            "description": "通过后附上增量变更脚本",
             "default": true
+          },
+          "merged": {
+            "type": "boolean",
+            "title": "Merged",
+            "description": "同时返回合并后的完整配置 merged_text（界面交给增量变更时用）",
+            "default": false
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "zh-CN",
+                  "en",
+                  "pt-BR"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang"
           }
         },
         "type": "object",
-        "title": "GenerateBody"
+        "required": [
+          "text"
+        ],
+        "title": "GuardBody",
+        "description": "目标：device（已导入设备的名称或编号，取最新快照为当前配置）或 base_text（当前配置）；都不给时按空配置校验，需要 profile。"
       },
       "HTTPValidationError": {
         "properties": {
@@ -4392,6 +7287,86 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "HistoryReportBody": {
+        "properties": {
+          "a": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "A",
+            "description": "较早的快照（默认上一个）"
+          },
+          "b": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "B",
+            "description": "较晚的快照（默认最新）"
+          },
+          "rebuild": {
+            "type": "boolean",
+            "title": "Rebuild",
+            "default": false
+          },
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain"
+          },
+          "lang": {
+            "type": "string",
+            "enum": [
+              "zh-CN",
+              "en"
+            ],
+            "title": "Lang",
+            "description": "报告语言（界面是 pt-BR 时用 en）",
+            "default": "zh-CN"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "html",
+              "md"
+            ],
+            "title": "Format",
+            "default": "html"
+          },
+          "style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "huawei",
+                  "cisco"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style"
+          }
+        },
+        "type": "object",
+        "title": "HistoryReportBody"
       },
       "IgnoreBody": {
         "properties": {
@@ -4500,6 +7475,40 @@
         "title": "ImpactBody",
         "description": "配置：给出 text、version_id 或 device_id 之一；nodes 是起点节点编号（也可以写对象编号中唯一的一段）。"
       },
+      "ImportBody": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "maxLength": 262144,
+            "title": "Source",
+            "description": "规则集文件内容（YAML）"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "保存用的编号（不给时用文件中的 id）"
+          },
+          "overwrite": {
+            "type": "boolean",
+            "title": "Overwrite",
+            "description": "同编号的规则集已存在时覆盖",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "ImportBody"
+      },
       "IngestBody": {
         "properties": {
           "doc_dir": {
@@ -4542,8 +7551,121 @@
         ],
         "title": "IngestBody"
       },
+      "LoginBody": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginBody"
+      },
+      "MatchBody": {
+        "properties": {
+          "rule_set": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Set",
+            "description": "规则集编号（内置或我的）"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules",
+            "description": "规则集内容（与 YAML 文件结构相同），不保存"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "name",
+              "port"
+            ],
+            "title": "Kind",
+            "default": "name"
+          },
+          "type": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Type",
+            "description": "对象类型（kind=name 时）",
+            "default": "*"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Value",
+            "description": "要测试的名称或接口名"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To",
+            "description": "目标 Profile（取名称长度上限；不给时按规则集的 to 平台族）"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "MatchBody"
+      },
       "MigrateBody": {
         "properties": {
+          "rule_set": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Set",
+            "description": "规则集编号（内置或我的）"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules",
+            "description": "规则集内容（与 YAML 文件结构相同），不保存"
+          },
           "text": {
             "anyOf": [
               {
@@ -4653,6 +7775,29 @@
           "to"
         ],
         "title": "MigrateBody"
+      },
+      "NewUserBody": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "title": "Password"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role",
+            "default": "user"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "NewUserBody"
       },
       "NodeBody": {
         "properties": {
@@ -4770,6 +7915,24 @@
         ],
         "title": "NodeBody"
       },
+      "PasswordBody": {
+        "properties": {
+          "old_password": {
+            "type": "string",
+            "title": "Old Password"
+          },
+          "new_password": {
+            "type": "string",
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "old_password",
+          "new_password"
+        ],
+        "title": "PasswordBody"
+      },
       "PatternsBody": {
         "properties": {
           "patterns": {
@@ -4842,6 +8005,258 @@
         ],
         "title": "ProfileBody"
       },
+      "ProjectBody": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id",
+            "description": "基线设备；变更脚本必须有基线"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id",
+            "description": "基线版本；不填时跟随设备最新版本"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile",
+            "description": "没有基线设备时，完整配置用的 Profile（不填自动识别）"
+          },
+          "default_kind": {
+            "type": "string",
+            "enum": [
+              "change",
+              "full"
+            ],
+            "title": "Default Kind",
+            "default": "change"
+          },
+          "order_check": {
+            "type": "boolean",
+            "title": "Order Check",
+            "default": true
+          },
+          "ai_check": {
+            "type": "boolean",
+            "title": "Ai Check",
+            "default": false
+          },
+          "ai_rules": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Ai Rules",
+            "description": "交给 AI 参与的规则编号（规则文件中 ai: true）"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ProjectBody"
+      },
+      "ProjectPatch": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "default_kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "change",
+                  "full"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default Kind"
+          },
+          "order_check": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Check"
+          },
+          "ai_check": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Check"
+          },
+          "ai_rules": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Rules"
+          }
+        },
+        "type": "object",
+        "title": "ProjectPatch"
+      },
+      "QueryBody": {
+        "properties": {
+          "query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              }
+            ],
+            "title": "Query",
+            "description": "查询文本（FIND … ON … WHERE … RETURN …）或等价的 JSON"
+          },
+          "devices": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Devices",
+            "description": "设备名或编号，\"all\" 为全部；configs 为空且不给时取全部"
+          },
+          "configs": {
+            "items": {
+              "$ref": "#/components/schemas/ConfigText"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Configs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "query"
+        ],
+        "title": "QueryBody"
+      },
       "ReleaseBody": {
         "properties": {
           "version": {
@@ -4901,6 +8316,60 @@
         ],
         "title": "RenderBody"
       },
+      "ReorderBody": {
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content"
+          },
+          "apply": {
+            "type": "boolean",
+            "title": "Apply",
+            "description": "true：保存为修订（重排前的内容未保存时先存一条）",
+            "default": false
+          },
+          "style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "huawei",
+                  "cisco"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "zh-CN",
+                  "en",
+                  "pt-BR"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang"
+          }
+        },
+        "type": "object",
+        "title": "ReorderBody"
+      },
       "ReportBody": {
         "properties": {
           "kind": {
@@ -4945,7 +8414,7 @@
           "check": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/CheckBody"
+                "$ref": "#/components/schemas/lmesh__api__routes_check__CheckBody"
               },
               {
                 "type": "null"
@@ -4975,6 +8444,78 @@
           "kind"
         ],
         "title": "ReportBody"
+      },
+      "ResetBody": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "ResetBody"
+      },
+      "RestoreBody": {
+        "properties": {
+          "to": {
+            "type": "string",
+            "title": "To",
+            "description": "要回到的快照（例如上一个 prev、#3、版本编号）"
+          },
+          "from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From",
+            "description": "当前快照（默认最新）"
+          },
+          "style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "huawei",
+                  "cisco"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style",
+            "description": "说明文字中对象的显示风格"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "zh-CN",
+                  "en",
+                  "pt-BR"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang",
+            "description": "脚本说明行的语言；不填时按请求的语言"
+          }
+        },
+        "type": "object",
+        "required": [
+          "to"
+        ],
+        "title": "RestoreBody"
       },
       "RollbackBody": {
         "properties": {
@@ -5081,20 +8622,111 @@
         ],
         "title": "SanitizeBody"
       },
-      "SaveBody": {
+      "ScriptBody": {
         "properties": {
-          "source": {
+          "name": {
             "type": "string",
-            "maxLength": 524288,
-            "title": "Source",
-            "description": "模板文件内容（YAML），id 必须与路径中的编号一致"
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "change",
+                  "full"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind",
+            "description": "不填时用项目的默认类型"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content",
+            "default": ""
           }
         },
         "type": "object",
         "required": [
-          "source"
+          "name"
         ],
-        "title": "SaveBody"
+        "title": "ScriptBody"
+      },
+      "ScriptPatch": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "change",
+                  "full"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content",
+            "description": "保存内容；与最新修订不同时形成一条 manual 修订"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Summary",
+            "description": "保存时的检查摘要（界面传入，记在修订上）"
+          }
+        },
+        "type": "object",
+        "title": "ScriptPatch"
       },
       "SetupBody": {
         "properties": {
@@ -5108,6 +8740,16 @@
             "type": "object",
             "title": "Values",
             "default": {}
+          },
+          "admin": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdminBody"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "dry_run": {
             "type": "boolean",
@@ -5172,6 +8814,32 @@
       },
       "SuggestBody": {
         "properties": {
+          "rule_set": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Set",
+            "description": "规则集编号（内置或我的）"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules",
+            "description": "规则集内容（与 YAML 文件结构相同），不保存"
+          },
           "text": {
             "anyOf": [
               {
@@ -5269,7 +8937,201 @@
           "to"
         ],
         "title": "SuggestBody",
-        "description": "旧设备配置：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
+        "description": "旧设备配置：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一；\nrule_set / rules：翻译自定义规则（REQ-032），端口映射规则在用户映射表之后、自动建议之前。"
+      },
+      "TableBody": {
+        "properties": {
+          "preset": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preset",
+            "description": "预置模板编号或别名：ip-address、bridge-domain、bgp-peer、interface-description、vrf、static-route"
+          },
+          "object": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Object",
+            "description": "对象类型（Schema 编号）"
+          },
+          "columns": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": true,
+                      "type": "object"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Columns",
+            "description": "列：Schema 路径或 derive:名称，也可以是 {field|derive, label}；不给时用模板的列"
+          },
+          "fields": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fields",
+            "description": "columns 的别名（只给路径）"
+          },
+          "where": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Where",
+            "description": "命名筛选条件；不给时用模板自带的"
+          },
+          "filters": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Filters",
+            "description": "临时筛选条件 [{field, op, value}]"
+          },
+          "devices": {
+            "anyOf": [
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                },
+                "type": "array"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Devices",
+            "description": "设备名或编号，\"all\" 为全部；configs 为空且不给时取全部"
+          },
+          "configs": {
+            "items": {
+              "$ref": "#/components/schemas/ConfigText"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "title": "Configs"
+          },
+          "defaults": {
+            "type": "boolean",
+            "title": "Defaults",
+            "description": "填 Profile 默认值（格子来源标为 default）",
+            "default": true
+          },
+          "canonical_names": {
+            "type": "boolean",
+            "title": "Canonical Names",
+            "description": "接口名统一写成全称",
+            "default": false
+          },
+          "style": {
+            "type": "string",
+            "enum": [
+              "huawei",
+              "cisco"
+            ],
+            "title": "Style",
+            "default": "huawei"
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "json",
+              "csv",
+              "xlsx"
+            ],
+            "title": "Format",
+            "default": "json"
+          },
+          "lang": {
+            "type": "string",
+            "enum": [
+              "zh-CN",
+              "en",
+              "pt-BR"
+            ],
+            "title": "Lang",
+            "description": "表头语言（CSV / XLSX）",
+            "default": "zh-CN"
+          },
+          "sheets": {
+            "type": "string",
+            "enum": [
+              "per-device",
+              "single"
+            ],
+            "title": "Sheets",
+            "description": "XLSX：每台设备一个工作表或全部一张表",
+            "default": "per-device"
+          }
+        },
+        "type": "object",
+        "title": "TableBody",
+        "description": "表格：preset（预置模板）或 object（对象类型）至少给一个；设备来自 devices（名称或编号，\"all\" 为全部）与 configs（上传的配置）。"
+      },
+      "TagBody": {
+        "properties": {
+          "tag": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Tag",
+            "description": "标签文字（贴了标签的快照永久保留）"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tag"
+        ],
+        "title": "TagBody"
       },
       "TargetBody": {
         "properties": {
@@ -5394,6 +9256,110 @@
         "title": "TargetBody",
         "description": "配置来源：text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
       },
+      "TestBody": {
+        "properties": {
+          "rule_set": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Set",
+            "description": "规则集编号（内置或我的）"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules",
+            "description": "规则集内容（与 YAML 文件结构相同），不保存"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile",
+            "description": "源配置的 Profile（不给时自动识别）"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To",
+            "description": "目标 Profile（取名称长度上限）"
+          },
+          "target_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Text",
+            "description": "目标设备现有配置（新名与其中已有的名称重名时报冲突）"
+          }
+        },
+        "type": "object",
+        "title": "TestBody",
+        "description": "配置来源：text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
+      },
       "TextBody": {
         "properties": {
           "text": {
@@ -5444,6 +9410,32 @@
       },
       "TranslateBody": {
         "properties": {
+          "rule_set": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Set",
+            "description": "规则集编号（内置或我的）"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules",
+            "description": "规则集内容（与 YAML 文件结构相同），不保存"
+          },
           "text": {
             "anyOf": [
               {
@@ -5522,7 +9514,40 @@
           "to"
         ],
         "title": "TranslateBody",
-        "description": "源配置：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
+        "description": "源配置：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一；\nrule_set / rules：翻译自定义规则（REQ-032），结果另有 naming。"
+      },
+      "UpdateUserBody": {
+        "properties": {
+          "role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role"
+          },
+          "disabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disabled"
+          },
+          "unlock": {
+            "type": "boolean",
+            "title": "Unlock",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "UpdateUserBody"
       },
       "ValidationError": {
         "properties": {
@@ -5563,6 +9588,415 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "lmesh__api__routes_ask__GenerateBody": {
+        "properties": {
+          "request": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Request",
+            "description": "用自然语言描述要做的配置"
+          },
+          "device": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              }
+            ],
+            "title": "Device",
+            "description": "目标设备（名称或编号）"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "template": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template",
+            "description": "按这个模板检查约束（模板编号）"
+          },
+          "rounds": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Rounds",
+            "description": "最多几轮（被拦截时把问题交回 AI 修改）",
+            "default": 2
+          },
+          "merged": {
+            "type": "boolean",
+            "title": "Merged",
+            "description": "最后一轮附上合并后的完整配置 merged_text（界面交给增量变更时用）",
+            "default": false
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "zh-CN",
+                  "en",
+                  "pt-BR"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang"
+          }
+        },
+        "type": "object",
+        "required": [
+          "request",
+          "device"
+        ],
+        "title": "GenerateBody"
+      },
+      "lmesh__api__routes_check__CheckBody": {
+        "properties": {
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text",
+            "description": "配置文本（与 device_id 二选一）"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id",
+            "description": "已导入设备的编号：取最新配置版本"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "error",
+              "warning",
+              "info"
+            ],
+            "title": "Severity",
+            "description": "最低级别",
+            "default": "info"
+          },
+          "domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Domain",
+            "description": "只保留该功能域的发现"
+          }
+        },
+        "type": "object",
+        "title": "CheckBody"
+      },
+      "lmesh__api__routes_check_projects__CheckBody": {
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content",
+            "description": "编辑器中的内容（不保存）；不填时检查保存的内容"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "change",
+                  "full"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "order": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order",
+            "description": "顺序核查；不填时用项目设置"
+          },
+          "ai": {
+            "type": "boolean",
+            "title": "Ai",
+            "description": "AI 一起校验（未配置 AI 时结果中 ai.status 为 not_configured）",
+            "default": false
+          },
+          "ai_rules": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Rules",
+            "description": "交给 AI 的规则；不填时用项目设置"
+          },
+          "style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "huawei",
+                  "cisco"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "zh-CN",
+                  "en",
+                  "pt-BR"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang"
+          }
+        },
+        "type": "object",
+        "title": "CheckBody"
+      },
+      "lmesh__api__routes_template__GenerateBody": {
+        "properties": {
+          "rule_set": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Set",
+            "description": "规则集编号（内置或我的）"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules",
+            "description": "规则集内容（与 YAML 文件结构相同），不保存"
+          },
+          "template_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template Id"
+          },
+          "template": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 524288
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Template",
+            "description": "模板文件内容（YAML），不保存"
+          },
+          "rows": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array",
+                "maxItems": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rows",
+            "description": "参数行（JSON）"
+          },
+          "csv": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Csv",
+            "description": "参数表（CSV 文本）"
+          },
+          "engine": {
+            "type": "string",
+            "enum": [
+              "text",
+              "canon"
+            ],
+            "title": "Engine",
+            "default": "text"
+          },
+          "target_profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Profile"
+          },
+          "verify": {
+            "type": "boolean",
+            "title": "Verify",
+            "default": true
+          },
+          "include_text": {
+            "type": "boolean",
+            "title": "Include Text",
+            "description": "结果中带生成的配置文本",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "GenerateBody",
+        "description": "rule_set / rules：翻译自定义规则（REQ-032），只用于 engine=canon。"
+      },
+      "lmesh__api__routes_template__SaveBody": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "maxLength": 524288,
+            "title": "Source",
+            "description": "模板文件内容（YAML），id 必须与路径中的编号一致"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "SaveBody"
+      },
+      "lmesh__api__routes_translate_rules__SaveBody": {
+        "properties": {
+          "rules": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 262144
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "title": "SaveBody",
+        "description": "rules（结构化，合并进已有文件、保留注释）或 source（YAML 原文，原样写入）二选一。"
       }
     }
   }

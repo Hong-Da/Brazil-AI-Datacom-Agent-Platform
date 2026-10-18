@@ -1,0 +1,352 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: vrrp
+cards:
+  - id: cisco-iosxe.vrrp-description
+    syntax: description <text>
+    view: vrrp
+    undo: no description
+    params:
+      text:
+        type: text
+    default: There is no description of the VRRP group.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/description (VRRPv3).md
+      title: vrrp description
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.vrrp.description: $text
+  - id: cisco-iosxe.fhrp-version-vrrp-v3
+    syntax: fhrp version vrrp v3
+    view: system
+    undo: no fhrp version vrrp v3
+    default: VRRPv3 and VRRS configuration on a device is not enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/fhrp version vrrp v3.md
+      title: fhrp version vrrp v3
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      vrrp.global{id=_}.version: v3
+  - id: cisco-iosxe.vrrp-preempt
+    syntax: preempt [ delay minimum <seconds> ]
+    view: vrrp
+    undo: no preempt
+    params:
+      seconds:
+        type: word
+    default: This command is enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/preempt (VRRPv3).md
+      title: vrrp preempt
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.vrrp.preempt: flag
+      interface.vrrp.preempt_delay: $seconds
+  - id: cisco-iosxe.vrrp-priority
+    syntax: priority <level>
+    view: vrrp
+    undo: no priority <level>
+    params:
+      level:
+        type: word
+    default: The priority level is set to the default value of 100.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/priority (VRRPv3).md
+      title: vrrp priority
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.vrrp.priority: $level
+  - id: cisco-iosxe.vrrp-timers-advertise
+    syntax: timers advertise [ msec ] <interval>
+    view: vrrp
+    undo: no timers advertise [ msec ] <interval>
+    params:
+      interval:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: The default interval of 1 second is configured.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/timers advertise (VRRPv3).md
+      title: vrrp timers advertise
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.vrrp.advertise_interval: unless:msec:$interval
+      interface.vrrp.advertise_msec: if:msec:$interval
+  - id: cisco-iosxe.track
+    syntax: track <object-number> { shutdown | [ decrement <priority> ] }
+    view: vrrp
+    undo: no track <object-number>
+    params:
+      object-number:
+        type: integer
+        range:
+          - 1
+          - 1000
+      priority:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: Tracking an object using aVRRPv3 group is not enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/track (VRRP).md
+      title: track (VRRP)
+      line: 5
+      version: '17.15'
+      patched: 原文语法多了一个竖线（{ shutdown | | [ decrement priority ] }）；按运行配置写法 track <对象编号> [ decrement <优先级> ] | shutdown 整理
+    status: draft
+    maps:
+      interface.vrrp.track: $object-number
+      interface.vrrp.track.reduce: $priority
+  - id: cisco-iosxe.track-interface
+    syntax: track <object-number> interface <interface> { line-protocol | ip routing | ipv6 routing }
+    view: system
+    undo: no track <object-number>
+    params:
+      object-number:
+        type: integer
+        range:
+          - 1
+          - 1000
+      interface:
+        type: interface
+    default: No interface is tracked.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/track interface.md
+      title: track interface
+      line: 5
+      version: '17.15'
+      patched: 原文把接口写成类型与编号两个参数（type number）；运行配置中接口名是一个词（track 1 interface GigabitEthernet0/0/1 line-protocol）。只收卡、不映射（跟踪对象本身不在 Schema 中）
+    status: draft
+  - id: cisco-iosxe.vrrp
+    syntax: vrrp <group-id> address-family { ipv4 | ipv6 }
+    view: interface
+    enters_view: vrrp
+    undo: no vrrp <group-id> address-family { ipv4 | ipv6 }
+    params:
+      group-id:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: None
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/vrrp address-family (VRRPv3).md
+      title: vrrp
+      line: 5
+      version: '17.15'
+      patched: 引用的 Catalyst 9500 页面丢了 { ipv4 | ipv6 } 的花括号与竖线（写成 address-family ipv4 ipv6）；运行配置是 vrrp <组号> address-family ipv4
+    status: draft
+    maps:
+      interface.vrrp: $group-id
+  - id: cisco-iosxe.vrrp-authentication
+    syntax: vrrp <group> authentication { <text-string> | text <text-string> | md5 { key-chain <key-chain> | key-string [ 0 | 7 ] <key-string> [ timeout <seconds> ] } }
+    view: interface
+    undo: no vrrp <group> authentication { <text-string> | text <text-string> | md5 { key-chain <key-chain> | key-string [ 0 | 7 ] <key-string> [ timeout <seconds> ] } }
+    params:
+      group:
+        type: integer
+        range:
+          - 1
+          - 255
+      text-string:
+        type: text
+      key-chain:
+        type: word
+      key-string:
+        type: text
+      seconds:
+        type: word
+    default: VRRP authentication is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/vrrp authentication.md
+      title: vrrp authentication
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.auth_mode: kw:md5|text=simple:simple
+  - id: cisco-iosxe.vrrp-description~2
+    syntax: vrrp <group> description <text>
+    view: interface
+    undo: no vrrp <group> description
+    params:
+      group:
+        type: word
+      text:
+        type: text
+    default: There is no description of the VRRP group.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/vrrp description.md
+      title: vrrp description
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.description: $text
+  - id: cisco-iosxe.vrrp-ip
+    syntax: vrrp <group> ip <ip-address> [ secondary ]
+    view: interface
+    undo: no vrrp <group> ip <ip-address> [ secondary ]
+    params:
+      group:
+        type: word
+      ip-address:
+        type: ipv4
+    default: VRRP is not configured on the interface.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/vrrp ip.md
+      title: vrrp ip
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.virtual_ip: $ip-address
+      interface.vrrp.virtual_ip.secondary: kw:secondary=true:false
+  - id: cisco-iosxe.vrrp-preempt~2
+    syntax: vrrp <group> preempt [ delay minimum <seconds> ]
+    view: interface
+    undo: no vrrp <group> preempt
+    params:
+      group:
+        type: word
+      seconds:
+        type: word
+    default: This command is enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/vrrp preempt.md
+      title: vrrp preempt
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.preempt: flag
+      interface.vrrp.preempt_delay: $seconds
+  - id: cisco-iosxe.vrrp-priority~2
+    syntax: vrrp <group> priority <level>
+    view: interface
+    undo: no vrrp <group> priority <level>
+    params:
+      group:
+        type: word
+      level:
+        type: word
+    default: The priority level is set to the default value of 100.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/vrrp priority.md
+      title: vrrp priority
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.priority: $level
+  - id: cisco-iosxe.vrrp-shutdown
+    syntax: vrrp <group-number> shutdown
+    view: interface
+    params:
+      group-number:
+        type: word
+    default: VRRP groups configured by the vrrp group-number ip command are enabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/vrrp shutdown.md
+      title: vrrp shutdown
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.vrrp: $group-number
+      interface.vrrp.shutdown: flag
+  - id: cisco-iosxe.vrrp-timers-advertise~2
+    syntax: vrrp <group> timers advertise [ msec ] <interval>
+    view: interface
+    undo: no vrrp <group> timers advertise [ msec ] <interval>
+    params:
+      group:
+        type: word
+      interval:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: The default interval of 1 second is configured.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/vrrp timers advertise.md
+      title: vrrp timers advertise
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.advertise_interval: unless:msec:$interval
+      interface.vrrp.advertise_msec: if:msec:$interval
+  - id: cisco-iosxe.vrrp-track
+    syntax: vrrp <group> track <object-number> [ decrement <priority> ]
+    view: interface
+    undo: no vrrp <group> track <object-number> [ decrement <priority> ]
+    params:
+      group:
+        type: word
+      object-number:
+        type: integer
+        range:
+          - 1
+          - 500
+      priority:
+        type: word
+    default: The default decrement value is 10. The range is from 1 and 255.
+    source:
+      doc: cisco-iosxe-md
+      file: vrrp/vrrp track.md
+      title: vrrp track
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.track: $object-number
+      interface.vrrp.track.reduce: $priority
+  - id: cisco-iosxe.vrrp-address
+    syntax: address <ip-address> [ primary | secondary ]
+    view: vrrp
+    undo: no address <ip-address> [ primary | secondary ]
+    params:
+      ip-address:
+        type: ipv4
+    source:
+      patched: VRRPv3 子模式下的 address 没有公开命令参考页（缺口见 Cisco README）；按 ASR 920 / IOS XE 配置指南的运行配置写法补充（address <地址> [ primary | secondary ]）
+      added_by_patch: true
+    status: draft
+    maps:
+      interface.vrrp.virtual_ip: $ip-address
+      interface.vrrp.virtual_ip.secondary: kw:secondary=true:false

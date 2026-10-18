@@ -304,45 +304,46 @@ patches:
   # ACL：原文的序号写成 “*[sequence-number]*”，标准与扩展格式混在一页，any / host 只写在参数说明里；按运行配置整理成一条标准、
   # 一条通用扩展、一条 TCP / UDP 端口格式（端口操作符作为参数，便于区分源端口与目的端口）
   - id: cisco-iosxe.permit.1
-    reason: 原文序号写成 *[sequence-number]*、any / host 只写在参数说明里；标准 ACL 条目按运行配置整理
+    reason: 原文序号写成 *[sequence-number]*、any / host 只写在参数说明里；标准 ACL 条目按运行配置整理。取消写法另有按序号删除（no <序号>，M4-2 补，变更脚本删除单条规则用）
     set:
       syntax: '[ <sequence-number> ] permit { <source> [ <source-wildcard> ] | host <source-host> | any } [ log ]'
-      undo: no permit { <source> [ <source-wildcard> ] | host <source-host> | any }
+      undo: no { <sequence-number> | permit { <source> [ <source-wildcard> ] | host <source-host> | any } }
       params: &std_params {sequence-number: {type: integer, range: [1, 2147483647]}, source: {type: ipv4}, source-wildcard: {type: wildcard}, source-host: {type: ipv4}}
   - id: cisco-iosxe.deny.1
     reason: 同 permit.1
     set:
       syntax: '[ <sequence-number> ] deny { <source> [ <source-wildcard> ] | host <source-host> | any } [ log ]'
-      undo: no deny { <source> [ <source-wildcard> ] | host <source-host> | any }
+      undo: no { <sequence-number> | deny { <source> [ <source-wildcard> ] | host <source-host> | any } }
       params: *std_params
   - id: cisco-iosxe.permit.4
     reason: 原文通用扩展格式（第 2 条语法）有多余的括号、转换失败，这张卡原为 IGMP 格式；按运行配置整理为通用扩展格式（协议为名称或编号）
     set:
       syntax: '[ <sequence-number> ] permit <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } [ fragments ] [ log ]'
-      undo: no permit <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any }
+      undo: no { <sequence-number> | permit <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } }
       params: &ext_params {sequence-number: {type: integer, range: [1, 2147483647]}, protocol: {type: word}, source: {type: ipv4}, source-wildcard: {type: wildcard}, source-host: {type: ipv4}, destination: {type: ipv4}, destination-wildcard: {type: wildcard}, destination-host: {type: ipv4}}
   - id: cisco-iosxe.deny.4
     reason: 同 permit.4
     set:
       syntax: '[ <sequence-number> ] deny <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } [ fragments ] [ log ]'
-      undo: no deny <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any }
+      undo: no { <sequence-number> | deny <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } }
       params: *ext_params
   - id: cisco-iosxe.permit.5
     reason: 原文 TCP 格式的端口参数写成 *[port]*；按运行配置整理为 TCP / UDP 端口格式
     set:
       syntax: '[ <sequence-number> ] permit { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ] [ established ] [ log ]'
-      undo: no permit { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ]
+      undo: no { <sequence-number> | permit { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ] }
       params: &port_params {sequence-number: {type: integer, range: [1, 2147483647]}, source: {type: ipv4}, source-wildcard: {type: wildcard}, source-host: {type: ipv4}, destination: {type: ipv4}, destination-wildcard: {type: wildcard}, destination-host: {type: ipv4}, source-port-op: {type: enum, choices: [eq, gt, lt, neq, range]}, source-port: {type: word}, source-port-end: {type: word}, destination-port-op: {type: enum, choices: [eq, gt, lt, neq, range]}, destination-port: {type: word}, destination-port-end: {type: word}}
   - id: cisco-iosxe.deny.5
     reason: 同 permit.5
     set:
       syntax: '[ <sequence-number> ] deny { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ] [ established ] [ log ]'
-      undo: no deny { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ]
+      undo: no { <sequence-number> | deny { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ] }
       params: *port_params
   - id: cisco-iosxe.remark
     reason: 命名 ACL 中的说明行在 IOS XE 运行配置里可以带序号；说明文字可含空格
     set:
       syntax: '[ <sequence-number> ] remark <remark>'
+      undo: no { <sequence-number> | remark <remark> }
       params: {sequence-number: {type: integer, range: [1, 2147483647]}, remark: {type: text}}
   - id: cisco-iosxe.access-list.1
     reason: 原文 dynamic / log 部分有多余的括号；按运行配置整理编号扩展 ACL 的通用格式（any / host 只写在参数说明里）
@@ -418,3 +419,487 @@ patches:
       enters_view: acl
       undo: no ip access-list <access-list-name>
       params: {access-list-name: {type: word}}
+  # ---------- M4-2：知识库缺口（安全基线、增量变更） ----------
+  - id: cisco-iosxe.interface.19
+    reason: 取消写法照抄了通用的 no interface <type> <number>，与本卡的 <interface> 参数对不上；运行配置写法是 no interface <接口名>（变更脚本删除接口用）
+    set:
+      undo: no interface <interface>
+  - id: cisco-iosxe.neighbor-remote-as
+    reason: 取消写法只有带 remote-as 的完整形式；IOS 用 no neighbor <地址或对等体组> 删除整个邻居（变更脚本删除对等体用，M4-3 暂放在变更知识 undo_extra）
+    set:
+      undo: no neighbor { <ip-address> | <ipv6-address> % | <peer-group-name> } [ remote-as <autonomous-system-number> [ alternate-as <autonomous-system-number> ] ]
+  - id: cisco-iosxe.neighbor-remote-as@router-bgp
+    reason: 同 neighbor-remote-as（BGP 模式下的同一命令）
+    set:
+      undo: no neighbor { <ip-address> | <ipv6-address> % | <peer-group-name> } [ remote-as <autonomous-system-number> [ alternate-as <autonomous-system-number> ] ]
+  - id: cisco-iosxe.neighbor-peer-group
+    reason: 取消写法只有带 peer-group 的形式；no neighbor <地址> 删除整个邻居（变更脚本删除对等体用）
+    set:
+      undo: no neighbor { <ip-address> | <ipv6-address> } [ peer-group <peer-group-name> ]
+  - id: cisco-iosxe.neighbor-peer-group@router-bgp
+    reason: 同 neighbor-peer-group（BGP 模式下的同一命令）
+    set:
+      undo: no neighbor { <ip-address> | <ipv6-address> } [ peer-group <peer-group-name> ]
+  - id: cisco-iosxe.snmp-server-user
+    reason: 原文把 priv 加密参数排进了 access 部分（[ access [ ipv6 nacl ] [ privacy … ] …]）；运行写法是 … v3 auth <算法> <口令> priv <算法> <口令> [ access <ACL> ]
+    set:
+      syntax: snmp-server user <username> <groupname> [ remote <host> [ udp-port <port> ] [ vrf <vrfname> ] ] { v1 | v2c | v3 [ encrypted ] [ auth { md5 | sha | sha-2 { 256 | 384 | 512 } } <authpassword> [ priv { des | 3des | aes { 128 | 192 | 256 } } <privacypassword> ] ] } [ access [ ipv6 <nacl> ] { <aclnumber> | <aclname> } ]
+      undo: no snmp-server user <username> <groupname> { v1 | v2c | v3 }
+  - reason: 公开命令参考的 ip ssh 页面没有 server algorithm 子命令；按 IOS XE 17 安全配置指南（Secure Shell Algorithms for Common Criteria Certification）的运行配置写法补充（加密算法）
+    add:
+      id: cisco-iosxe.ip-ssh-server-algorithm-encryption
+      domain: mgmt
+      view: system
+      syntax: ip ssh server algorithm encryption { <algorithm> } &<1-16>
+      undo: no ip ssh server algorithm encryption
+      params: {algorithm: {type: word}}
+  - reason: 同上（HMAC 算法）
+    add:
+      id: cisco-iosxe.ip-ssh-server-algorithm-mac
+      domain: mgmt
+      view: system
+      syntax: ip ssh server algorithm mac { <algorithm> } &<1-16>
+      undo: no ip ssh server algorithm mac
+      params: {algorithm: {type: word}}
+  - reason: 同上（密钥交换算法）
+    add:
+      id: cisco-iosxe.ip-ssh-server-algorithm-kex
+      domain: mgmt
+      view: system
+      syntax: ip ssh server algorithm kex { <algorithm> } &<1-16>
+      undo: no ip ssh server algorithm kex
+      params: {algorithm: {type: word}}
+  - reason: 同上（主机密钥算法；只收卡、不映射）
+    add:
+      id: cisco-iosxe.ip-ssh-server-algorithm-hostkey
+      domain: mgmt
+      view: system
+      syntax: ip ssh server algorithm hostkey { <algorithm> } &<1-16>
+      undo: no ip ssh server algorithm hostkey
+      params: {algorithm: {type: word}}
+  - id: cisco-iosxe.key
+    reason: 原文把加密类型与密钥写成了 { 0 <string> | 6 <string> | 7 <string> } <string>（多了一个参数）；运行配置是 key [ 0 | 6 | 7 ] <密钥>
+    set:
+      syntax: key [ 0 | 6 | 7 ] <string>
+      params: {string: {type: text}}
+  - id: cisco-iosxe.address-ipv4
+    reason: 原文 auth-port 与 acct-port 用了同名参数 port（取不到认证端口），且 acct-port 写在两个分支里；按运行配置写法整理（address ipv4 <地址> auth-port <端口> acct-port <端口>）
+    set:
+      syntax: address ipv4 { <hostname> | <ipv4address> } [ auth-port <auth-port> ] [ acct-port <acct-port> ] [ alias { <alias-hostname> | <alias-ipv4address> } ]
+      undo: no address ipv4 { <hostname> | <ipv4address> }
+      params: {hostname: {type: word}, ipv4address: {type: ipv4}, auth-port: {type: integer, range: [0, 65535]}, acct-port: {type: integer, range: [0, 65535]}, alias-hostname: {type: word}, alias-ipv4address: {type: ipv4}}
+  - id: cisco-iosxe.radius-server-host.1
+    reason: 原文的可选部分嵌套错乱（alias 与端口写成多选一），key 的加密类型没有列出；按运行配置整理（radius-server host <地址> [ auth-port N ] [ acct-port N ] [ timeout N ] [ retransmit N ] [ key [ 0 | 7 ] <密钥> ]）
+    set:
+      syntax: radius-server host { <hostname> | <ip-address> } [ auth-port <auth-port> ] [ acct-port <acct-port> ] [ timeout <seconds> ] [ retransmit <retries> ] [ key [ 0 | 7 ] <encryption-key> ]
+      undo: no radius-server host { <hostname> | <ip-address> } [ auth-port <auth-port> ] [ acct-port <acct-port> ]
+      params: {hostname: {type: word}, ip-address: {type: ipv4}, auth-port: {type: integer, range: [0, 65535]}, acct-port: {type: integer, range: [0, 65535]}, seconds: {type: integer, range: [1, 1000]}, retries: {type: integer, range: [0, 100]}, encryption-key: {type: text}}
+  - id: cisco-iosxe.bfd
+    reason: 原文最小发送间隔与最小接收间隔用了同名参数 milliseconds（取不到 min_rx），取值类型也没有推断出来；改成各自的整数参数
+    set:
+      syntax: bfd interval <milliseconds> min_rx <min-rx> multiplier <multiplier-value>
+      undo: no bfd interval
+      params: {milliseconds: {type: integer, range: [50, 9999]}, min-rx: {type: integer, range: [50, 9999]}, multiplier-value: {type: integer, range: [3, 50]}}
+  # ---------- M4-2：VRRP ----------
+  - id: cisco-iosxe.vrrp
+    reason: 引用的 Catalyst 9500 页面丢了 { ipv4 | ipv6 } 的花括号与竖线（写成 address-family ipv4 ipv6）；运行配置是 vrrp <组号> address-family ipv4
+    set:
+      syntax: vrrp <group-id> address-family { ipv4 | ipv6 }
+      undo: no vrrp <group-id> address-family { ipv4 | ipv6 }
+      params: {group-id: {type: integer, range: [1, 255]}}
+      enters_view: vrrp
+  - id: cisco-iosxe.track
+    reason: 原文语法多了一个竖线（{ shutdown | | [ decrement priority ] }）；按运行配置写法 track <对象编号> [ decrement <优先级> ] | shutdown 整理
+    set:
+      syntax: track <object-number> { shutdown | [ decrement <priority> ] }
+      undo: no track <object-number>
+      params: {object-number: {type: integer, range: [1, 1000]}, priority: {type: integer, range: [1, 255]}}
+  - reason: VRRPv3 子模式下的 address 没有公开命令参考页（缺口见 Cisco README）；按 ASR 920 / IOS XE 配置指南的运行配置写法补充（address <地址> [ primary | secondary ]）
+    add:
+      id: cisco-iosxe.vrrp-address
+      domain: vrrp
+      view: vrrp
+      syntax: address <ip-address> [ primary | secondary ]
+      undo: no address <ip-address> [ primary | secondary ]
+      params: {ip-address: {type: ipv4}}
+  - id: cisco-iosxe.track-interface
+    reason: 原文把接口写成类型与编号两个参数（type number）；运行配置中接口名是一个词（track 1 interface GigabitEthernet0/0/1 line-protocol）。只收卡、不映射（跟踪对象本身不在 Schema 中）
+    set:
+      syntax: track <object-number> interface <interface> { line-protocol | ip routing | ipv6 routing }
+      undo: no track <object-number>
+      params: {object-number: {type: integer, range: [1, 1000]}, interface: {type: interface}}
+  # ---------- M4-2：QoS（MQC） ----------
+  - id: cisco-iosxe.class-map.1
+    reason: 原文的 type 选项（stack / access-control …）是其他平台的写法；ASR 920 运行配置是 class-map [ match-all | match-any ] <名称>
+    set:
+      syntax: class-map [ match-all | match-any ] <class-map-name>
+      undo: no class-map [ match-all | match-any ] <class-map-name>
+      params: {class-map-name: {type: word}}
+  - id: cisco-iosxe.class
+    reason: fragment / insert-before / service-fragment 是其他平台的选项，且 class-name 在两处重复；运行配置是 class <名称> 或 class class-default
+    set:
+      syntax: class { class-default | <class-name> }
+      undo: no class { class-default | <class-name> }
+      params: {class-name: {type: word}}
+  - id: cisco-iosxe.match-dscp
+    reason: 原文用逐个列出的可选参数表示最多 8 个取值；改成重复写法（match dscp ef cs5）
+    set:
+      syntax: match [ ip ] dscp { <dscp-value> } &<1-8>
+      undo: no match [ ip ] dscp { <dscp-value> } &<1-8>
+      params: {dscp-value: {type: word}}
+  - id: cisco-iosxe.match-cos
+    reason: 原文把参数 cos-value 标成了关键字；改成重复写法
+    set:
+      syntax: match cos { <cos-value> } &<1-4>
+      undo: no match cos { <cos-value> } &<1-4>
+      params: {cos-value: {type: integer, range: [0, 7]}}
+  - id: cisco-iosxe.match-mpls-experimental-topmost
+    reason: 原文把参数 number 标成了关键字；运行配置可以列出多个 EXP 值
+    set:
+      syntax: match mpls experimental topmost { <number> } &<1-8>
+      undo: no match mpls experimental topmost { <number> } &<1-8>
+      params: {number: {type: integer, range: [0, 7]}}
+  - id: cisco-iosxe.match-precedence
+    reason: 原文用四个不同参数名表示重复取值；改成重复写法
+    set:
+      syntax: match [ ip ] precedence { <precedence> } &<1-4>
+      undo: no match [ ip ] precedence { <precedence> } &<1-4>
+      params: {precedence: {type: word}}
+  - id: cisco-iosxe.match-access-group
+    reason: 取消写法少了 access-group 关键字
+    set:
+      undo: no match access-group { <access-group> | name <access-group-name> }
+  - id: cisco-iosxe.police
+    reason: 三个动作用了同名参数 action，且没有 cir percent 写法；按运行配置整理（police cir <速率> | percent <百分比> [ bc … ] [ pir … ] [ be … ] [ conform-action … ] …）
+    set:
+      syntax: police cir { <cir> | percent <cir-percent> } [ bc <conform-burst> ] [ pir <pir> ] [ be <peak-burst> ] [ conform-action <conform-action> [ exceed-action <exceed-action> [ violate-action <violate-action> ] ] ]
+      undo: no police cir
+      params: {cir: {type: integer}, cir-percent: {type: integer, range: [1, 100]}, conform-burst: {type: integer}, pir: {type: integer}, peak-burst: {type: integer}, conform-action: {type: word}, exceed-action: {type: word}, violate-action: {type: word}}
+  - id: cisco-iosxe.police~2
+    reason: 原文把可选突发参数写在斜体里（*[burst-normal]*），转换后语法错乱；按单速写法整理
+    set:
+      syntax: police <bps> [ <burst-normal> [ <burst-max> ] ] conform-action <conform-action> exceed-action <exceed-action> [ violate-action <violate-action> ]
+      undo: no police <bps>
+      params: {bps: {type: integer}, burst-normal: {type: integer}, burst-max: {type: integer}, conform-action: {type: word}, exceed-action: {type: word}, violate-action: {type: word}}
+  - id: cisco-iosxe.priority
+    reason: 原文把可选的 burst 写在斜体里，且没有 ASR 920 常用的 priority level 写法；按运行配置整理（priority [ level N ] [ <kbps> | percent <百分比> ]）
+    set:
+      syntax: priority [ level <level> ] [ <bandwidth-kbps> | percent <percentage> ] [ <burst> ]
+      undo: no priority
+      params: {level: {type: integer, range: [1, 2]}, bandwidth-kbps: {type: integer}, percentage: {type: integer, range: [1, 100]}, burst: {type: integer}}
+  - id: cisco-iosxe.shape.1
+    reason: 原文把 excess-burst-size 写在斜体里（*[excess-burst-size]*）
+    set:
+      syntax: shape { average | peak } { <mean-rate> [ <burst-size> [ <excess-burst-size> ] ] | percent <percentage> [ <burst-size> ms [ <excess-burst-size> ms ] ] }
+      undo: no shape [ average | peak ]
+      params: {mean-rate: {type: integer}, burst-size: {type: integer}, excess-burst-size: {type: integer}, percentage: {type: integer, range: [1, 100]}}
+  - id: cisco-iosxe.shape.3
+    reason: 原文斜体里的可选参数转换后语法错乱（ATM 账户写法，ASR 920 不用）；整理成与 shape.1 一致的整形速率写法
+    set:
+      syntax: shape [ average | peak ] <mean-rate> [ <burst-size> [ <excess-burst-size> ] ] account { qinq | dot1q } aal5 <subscriber-encap>
+      undo: no shape
+      params: {mean-rate: {type: integer}, burst-size: {type: integer}, excess-burst-size: {type: integer}, subscriber-encap: {type: word}}
+  - id: cisco-iosxe.shape.5
+    reason: 同上（ATM 账户写法）
+    set:
+      syntax: shape [ average ] <mean-rate> [ <burst-size> [ <excess-burst-size> ] ] account { qinq | dot1q } { aal5 | aal3 } <subscriber-encapsulation>
+      undo: no shape
+      params: {mean-rate: {type: integer}, burst-size: {type: integer}, excess-burst-size: {type: integer}, subscriber-encapsulation: {type: word}}
+  - reason: policy-map 的 class 下嵌套子策略（HQoS）没有单独的命令参考页；按 ASR 920 QoS 配置指南的运行配置写法补充（service-policy <子策略名>）
+    add:
+      id: cisco-iosxe.service-policy-child
+      domain: qos
+      view: policy-map-class
+      syntax: service-policy <policy-map-name>
+      undo: no service-policy <policy-map-name>
+      params: {policy-map-name: {type: word}}
+  # ---------- M4-2：SR-MPLS（指南写法补卡） ----------
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.sr-segment-routing-mpls
+      domain: sr
+      view: system
+      syntax: 'segment-routing mpls'
+      undo: 'no segment-routing mpls'
+      enters_view: sr-mpls
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.sr-global-block
+      domain: sr
+      view: sr-mpls
+      syntax: 'global-block <begin> <end>'
+      undo: 'no global-block'
+      params: {"begin": {"type": "integer", "range": [16, 1048575]}, "end": {"type": "integer", "range": [16, 1048575]}}
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.sr-local-block
+      domain: sr
+      view: sr-mpls
+      syntax: 'local-block <begin> <end>'
+      undo: 'no local-block'
+      params: {"begin": {"type": "integer", "range": [16, 1048575]}, "end": {"type": "integer", "range": [16, 1048575]}}
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.sr-connected-prefix-sid-map
+      domain: sr
+      view: sr-mpls
+      syntax: 'connected-prefix-sid-map'
+      undo: 'no connected-prefix-sid-map'
+      enters_view: sr-conn
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.sr-conn-address-family
+      domain: sr
+      view: sr-conn
+      syntax: 'address-family ipv4'
+      undo: 'no address-family ipv4'
+      enters_view: sr-conn-af
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.sr-conn-prefix
+      domain: sr
+      view: sr-conn-af
+      syntax: '<prefix> { index <index> | absolute <label> } [ range <range> ] [ attached ]'
+      undo: 'no <prefix>'
+      params: {"prefix": {"type": "prefix"}, "index": {"type": "integer", "range": [0, 1048575]}, "label": {"type": "integer", "range": [16, 1048575]}, "range": {"type": "integer", "range": [1, 65535]}}
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.sr-set-attributes
+      domain: sr
+      view: sr-mpls
+      syntax: 'set-attributes'
+      undo: 'no set-attributes'
+      enters_view: sr-attr
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.sr-attr-address-family
+      domain: sr
+      view: sr-attr
+      syntax: 'address-family ipv4'
+      undo: 'no address-family ipv4'
+      enters_view: sr-attr-af
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.sr-attr-sr-label-preferred
+      domain: sr
+      view: sr-attr-af
+      syntax: 'sr-label-preferred'
+      undo: 'no sr-label-preferred'
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.sr-attr-explicit-null
+      domain: sr
+      view: sr-attr-af
+      syntax: 'explicit-null'
+      undo: 'no explicit-null'
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.isis-segment-routing-mpls
+      domain: sr
+      view: router-isis
+      syntax: 'segment-routing mpls'
+      undo: 'no segment-routing mpls'
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.isis-segment-routing-prefix-sid-map
+      domain: sr
+      view: router-isis
+      syntax: 'segment-routing prefix-sid-map { advertise-local [ domain-wide ] | receive [ disable ] }'
+      undo: 'no segment-routing prefix-sid-map { advertise-local | receive }'
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.isis-fast-reroute-per-prefix
+      domain: sr
+      view: router-isis
+      syntax: 'fast-reroute per-prefix { level-1 | level-2 } { all | route-map <route-map-name> }'
+      undo: 'no fast-reroute per-prefix { level-1 | level-2 }'
+      params: {"route-map-name": {"type": "word"}}
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.isis-fast-reroute-ti-lfa
+      domain: sr
+      view: router-isis
+      syntax: 'fast-reroute ti-lfa { level-1 | level-2 } [ maximum-metric <metric> ]'
+      undo: 'no fast-reroute ti-lfa { level-1 | level-2 }'
+      params: {"metric": {"type": "integer"}}
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.isis-microloop-avoidance-sr
+      domain: sr
+      view: router-isis
+      syntax: 'microloop avoidance segment-routing'
+      undo: 'no microloop avoidance segment-routing'
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.ospf-segment-routing
+      domain: sr
+      view: router-ospf
+      syntax: 'segment-routing [ area <area-id> ] { mpls | disable }'
+      undo: 'no segment-routing [ area <area-id> ] { mpls | disable }'
+      params: {"area-id": {"type": "word"}}
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.ospf-fast-reroute-per-prefix-enable
+      domain: sr
+      view: router-ospf
+      syntax: 'fast-reroute per-prefix enable [ area <area-id> ] prefix-priority { low | high }'
+      undo: 'no fast-reroute per-prefix enable'
+      params: {"area-id": {"type": "word"}}
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.ospf-fast-reroute-ti-lfa
+      domain: sr
+      view: router-ospf
+      syntax: 'fast-reroute per-prefix ti-lfa [ area <area-id> ]'
+      undo: 'no fast-reroute per-prefix ti-lfa [ area <area-id> ]'
+      params: {"area-id": {"type": "word"}}
+  - reason: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.ospf-microloop-avoidance-sr
+      domain: sr
+      view: router-ospf
+      syntax: 'microloop avoidance segment-routing'
+      undo: 'no microloop avoidance segment-routing'
+  # ---------- M4-2：EVPN（指南写法补卡） ----------
+  - reason: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.l2vpn-evpn
+      domain: evpn
+      view: system
+      syntax: 'l2vpn evpn'
+      undo: 'no l2vpn evpn'
+      enters_view: l2vpn-evpn
+  - reason: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.evpn-replication-type
+      domain: evpn
+      view: l2vpn-evpn
+      syntax: 'replication-type { ingress | static }'
+      undo: 'no replication-type'
+  - reason: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.evpn-router-id
+      domain: evpn
+      view: l2vpn-evpn
+      syntax: 'router-id <interface>'
+      undo: 'no router-id'
+      params: {"interface": {"type": "interface"}}
+  - reason: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.evpn-mpls-label-mode
+      domain: evpn
+      view: l2vpn-evpn
+      syntax: 'mpls label mode { per-ce | per-evi }'
+      undo: 'no mpls label mode'
+  - reason: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.l2vpn-evpn-instance
+      domain: evpn
+      view: system
+      syntax: 'l2vpn evpn instance <evi> { vlan-based | vlan-bundle | vlan-aware | point-to-point }'
+      undo: 'no l2vpn evpn instance <evi>'
+      params: {"evi": {"type": "integer", "range": [1, 65535]}}
+      enters_view: evpn-instance
+  - reason: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.evpn-instance-rd
+      domain: evpn
+      view: evpn-instance
+      syntax: '{ rd | route-distinguisher } <route-distinguisher>'
+      undo: 'no { rd | route-distinguisher } <route-distinguisher>'
+      params: {"route-distinguisher": {"type": "rd"}}
+  - reason: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.evpn-instance-route-target
+      domain: evpn
+      view: evpn-instance
+      syntax: 'route-target [ { import | export | both } ] <rt-value>'
+      undo: 'no route-target [ { import | export | both } ] <rt-value>'
+      params: {"rt-value": {"type": "rd"}}
+  - reason: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.evpn-instance-auto-route-target
+      domain: evpn
+      view: evpn-instance
+      syntax: 'auto-route-target'
+      undo: 'no auto-route-target'
+  - reason: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.evpn-instance-description
+      domain: evpn
+      view: evpn-instance
+      syntax: 'description <text>'
+      undo: 'no description'
+      params: {"text": {"type": "text"}}
+  - reason: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.evpn-instance-replication-type
+      domain: evpn
+      view: evpn-instance
+      syntax: 'replication-type { ingress | static }'
+      undo: 'no replication-type'
+  - reason: 公开 IOS XE 命令参考没有 EVPN 书（缺口见 Cisco README 第四批）；按 ASR 920 EVPN 单归属配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.bridge-domain-member-evpn-instance
+      domain: evpn
+      view: bridge-domain
+      syntax: 'member evpn-instance <evi> [ ethernet-tag <ethernet-tag> ]'
+      undo: 'no member evpn-instance <evi>'
+      params: {"evi": {"type": "integer", "range": [1, 65535]}, "ethernet-tag": {"type": "integer"}}
+  # ---------- M4-2：时钟同步 ----------
+  - id: cisco-iosxe.ptp-clock
+    reason: 原文把 boundary 写在花括号外（{ ordinary | transparent } boundary domain），且没有 hybrid 与 e2e-transparent；按 ASR 920 Timing and Synchronization 配置指南（IOS XE 17）的运行配置写法整理
+    set:
+      syntax: ptp clock { ordinary | boundary | e2e-transparent } domain <domain> [ hybrid ]
+      undo: no ptp clock { ordinary | boundary | e2e-transparent } domain <domain>
+      params: {domain: {type: integer, range: [0, 127]}}
+      enters_view: ptp-clock
+  - id: cisco-iosxe.clock-port
+    reason: 原文只有 profile g8265.1，ASR 920 常用 profile g8275.1 / g8275.2 与 local-priority；按 ASR 920 Timing and Synchronization 配置指南（IOS XE 17）的运行配置写法整理
+    set:
+      syntax: clock-port <name> [ { slave | master } ] [ profile { g8265.1 | g8275.1 | g8275.2 } ] [ local-priority <local-priority> ]
+      undo: no clock-port <name>
+      params: {name: {type: word}, local-priority: {type: integer, range: [1, 255]}}
+      enters_view: ptp-port
+  - id: cisco-iosxe.transport-ipv4
+    reason: 原文把接口写成类型与编号两个参数，模式写成了 config-ptp-clk（实际在 clock-port 下）；运行配置是 transport ipv4 unicast interface Loopback0 negotiation
+    set:
+      syntax: transport ipv4 { unicast | multicast | multicast-mix } interface <interface> [ negotiation ] [ single-hop ]
+      undo: no transport ipv4 { unicast | multicast | multicast-mix } interface <interface>
+      params: {interface: {type: interface}}
+      view: ptp-port
+  - id: cisco-iosxe.network-clock-synchronization-mode-ql-enabled
+    reason: 原文关键字写成 QL-enabled（运行配置为小写 ql-enabled）；关键字匹配不区分大小写，补取消写法
+    set:
+      undo: no network-clock synchronization mode ql-enabled
+  - reason: network-clock input-source 页只有 controller t1/e1 写法；按 ASR 920 Timing and Synchronization 配置指南（IOS XE 17）的运行配置写法补充接口与 PTP 作为输入源的写法
+    add:
+      id: cisco-iosxe.network-clock-input-source-interface
+      domain: clock
+      view: system
+      syntax: network-clock input-source <priority> { interface <interface> | ptp domain <domain> | external <slot-port> [ 2m | 10m ] }
+      undo: no network-clock input-source <priority>
+      params: {priority: {type: integer, range: [1, 250]}, interface: {type: interface}, domain: {type: integer, range: [0, 127]}, slot-port: {type: word}}
+  - reason: network-clock wait-to-restore 没有命令参考页；按 ASR 920 Timing and Synchronization 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.network-clock-wait-to-restore
+      domain: clock
+      view: system
+      syntax: network-clock wait-to-restore <seconds> [ global ]
+      undo: no network-clock wait-to-restore
+      params: {seconds: {type: integer, range: [0, 86400]}}
+  - reason: 接口下的 synchronous mode 没有命令参考页；按 ASR 920 Timing and Synchronization 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.synchronous-mode
+      domain: clock
+      view: interface
+      syntax: synchronous mode
+      undo: no synchronous mode
+  - reason: clock-port 下的 clock destination（主时钟端口指定从时钟地址）没有命令参考页；按 ASR 920 Timing and Synchronization 配置指南（IOS XE 17）的运行配置写法补充
+    add:
+      id: cisco-iosxe.ptp-clock-destination
+      domain: clock
+      view: ptp-port
+      syntax: clock destination <destination-address>
+      undo: no clock destination <destination-address>
+      params: {destination-address: {type: ipv4}}

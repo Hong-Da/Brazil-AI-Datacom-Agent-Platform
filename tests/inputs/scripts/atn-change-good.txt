@@ -1,0 +1,14 @@
+system-view
+ip vpn-instance NEWVPN
+ ipv4-family
+  route-distinguisher 65000:300
+  vpn-target 65000:300 export-extcommunity
+  vpn-target 65000:300 import-extcommunity
+ quit
+quit
+interface GigabitEthernet0/2/2
+ description OAM-LINK-NEW
+ ip binding vpn-instance NEWVPN
+ ip address 10.3.0.1 255.255.255.252
+quit
+commit

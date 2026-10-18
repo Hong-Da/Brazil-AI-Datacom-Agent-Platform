@@ -36,8 +36,13 @@
                                      实例的键（给出 path 时为路径上节点的键）在列表中 / 能被正则搜索到
     family: [平台族…]                设备的平台族在列表中（例如 huawei-vrp8）。只用于 Profile 还缺少缺省值、
                                      不得不按平台区分“没有配置时的实际行为”的情况，知识库补齐缺省值后应去掉
+    supported: Schema 节点            设备的 Profile 支持该节点（有条目且没有标 supported: false）。用于平台能力
+                                     不同的情况（M4-2）：例如 Cisco 没有 Telnet 服务开关（mgmt.telnet.enabled 不支持），
+                                     Telnet 是否可用只由登录线路决定——按 Profile 判断，不写死平台族
     $名称                            条件里的取值（value、values、min、max、pattern）可以引用文件级 vars 里的变量，
                                      基线（kind: baseline）的 profiles 可以覆盖变量，例如弱团体字清单、超时阈值
+    ai: true                         REQ-031：可交给 AI 参与校验的规则（配置检查项目中可勾选），AI 的发现先经代码校验再显示；
+                                     ai 规则可以不写 assert（代码不求值，只由 AI 判断）
     规则可选字段：tags（分类标签）、profiles（所属基线，见 core/baseline.py）、
                   remedy（修复参考命令：{huawei: [命令…], cisco: [命令…]}，风格名与 knowledge/terms.yaml 一致，
                   命令里可用 {node}、{key}）
@@ -64,7 +69,7 @@ _PATH_TOKEN = re.compile(r"->|/|\^|[A-Za-z0-9_.]+")
 _PLACEHOLDER = re.compile(r"\{([^{}]*)\}")
 PLACEHOLDERS = ("node", "key")
 TEXT_FIELDS = ("title", "message", "suggestion")
-OPS = ("exists", "count", "equals", "in", "match", "range", "key", "family", "all", "any", "not")
+OPS = ("exists", "count", "equals", "in", "match", "range", "key", "family", "supported", "all", "any", "not")
 DEVICE_TARGET = "device"  # 设备级规则的 target
 DEVICE_NODE = "device"  # 图的设备根节点编号（与 graph.DEVICE 一致）
 KINDS = ("check", "baseline")
@@ -103,11 +108,13 @@ class Rule:
     domain: str = ""
     enabled: bool = True
     paths: dict[str, list[Step]] = field(default_factory=dict)  # 条件里出现的路径 → 编译结果
+    support: dict[str, set[str]] = field(default_factory=dict)  # supported 条件：Schema 节点 → 支持它的 Profile
     tags: list[str] = field(default_factory=list)
     profiles: list[str] = field(default_factory=list)  # 所属基线（kind=baseline 的文件）
     remedy: dict[str, list[str]] = field(default_factory=dict)  # 显示风格 → 修复参考命令
     kind: str = "check"
     vars: dict[str, Any] = field(default_factory=dict)  # 文件级变量（条件中的 $名称）
+    ai: bool = False  # REQ-031：可交给 AI 参与校验（AI 的发现先经代码校验）；ai 规则可以没有 assert（只由 AI 判断）
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -127,6 +134,7 @@ class Rule:
             "tags": self.tags,
             "profiles": self.profiles,
             "remedy": self.remedy,
+            "ai": self.ai,
         }
 
 
@@ -281,6 +289,16 @@ def _check_cond(
             if x not in families:
                 bad("rules.err.unknown_family", value=x, allowed=", ".join(families))
         return
+    if op == "supported":
+        if not isinstance(arg, str) or arg not in kb.nodes:
+            bad("rules.err.cond_args", op=op, need="<schema node>")
+            return
+        rule.support[arg] = set()
+        for pid in kb.profiles:
+            e = kb.resolve_profile(pid).entries.get(arg)
+            if e is not None and e.supported:
+                rule.support[arg].add(pid)
+        return
 
     def val(k: str) -> Any:
         """条件参数的取值；$名称 必须在文件级 vars 中声明。"""
@@ -417,7 +435,7 @@ def parse_rules(kb: KnowledgeBase, docs: list[tuple[str, Any]]) -> list[Rule]:
                 issues.append({"file": rule.file, "rule": rule.id, "field": field_, "code": code, "params": params})
 
             known = {"id", "target", "when", "assert", "severity", "title", "message", "suggestion", "enabled"}
-            known |= {"tags", "profiles", "remedy"}
+            known |= {"tags", "profiles", "remedy", "ai"}
             for k in sorted(set(map(str, raw)) - known):
                 bad(k, "rules.err.unknown_field", name=k)
             if not isinstance(rid, str) or not _ID.match(rid):
@@ -451,10 +469,14 @@ def parse_rules(kb: KnowledgeBase, docs: list[tuple[str, Any]]) -> list[Rule]:
             if not isinstance(enabled, bool):
                 bad("enabled", "rules.err.bad_bool")
             rule.enabled = bool(enabled)
+            ai_flag = raw.get("ai", False)
+            if not isinstance(ai_flag, bool):
+                bad("ai", "rules.err.bad_bool")
+            rule.ai = ai_flag is True
             rule.title = _texts(raw.get("title"), "title", rule, issues)
             rule.message = _texts(raw.get("message"), "message", rule, issues)
             rule.suggestion = _texts(raw.get("suggestion"), "suggestion", rule, issues)
-            if "assert" not in raw:
+            if "assert" not in raw and not rule.ai:
                 bad("assert", "rules.err.missing_field", name="assert")
             if rule.target:
                 if "when" in raw and raw["when"] is not None:
@@ -666,6 +688,8 @@ class Evaluator:
             return not self.test(rule, node, arg, not neg)
         if op == "family":
             return str(self.g.graph.get("family") or "") in arg
+        if op == "supported":
+            return str(self.g.graph.get("profile") or "") in rule.support.get(str(arg), set())
         variables = {**rule.vars, **{k: v for k, v in self.variables.items() if k in rule.vars}}
 
         def val(k: str, default: Any = None) -> Any:
@@ -760,7 +784,7 @@ def evaluate(g: nx.MultiDiGraph, rules: list[Rule]) -> list[tuple[Rule, str]]:
     by_schema = instances(g)
     out: list[tuple[Rule, str]] = []
     for r in rules:
-        if not r.enabled:
+        if not r.enabled or r.assert_ is None:  # 只由 AI 判断的规则（ai: true 且没有 assert）代码不求值
             continue
         for n in by_schema.get(r.target, []):
             if r.when is not None and not ev.test(r, n, r.when):

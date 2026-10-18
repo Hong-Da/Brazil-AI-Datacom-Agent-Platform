@@ -10,6 +10,7 @@
            fmt:{a}/{b|c}    拼接，{b|c} 取第一个有值的参数
            kw:a|b|c[:默认]  行里出现了哪个关键字；kw:single=pop 1|double=pop 2 把关键字翻译成值
            if:关键字:表达式  行里有这个关键字时才设置；if:$参数:表达式 该参数有值时才设置
+           unless:关键字:表达式  行里没有这个关键字时才设置（M4-2：timers advertise [ msec ] <间隔> 的秒 / 毫秒分开记）
            tail:关键字[:截止词]  关键字之后的全部词（到截止词为止）
            flag             开关：true；undo / no 形式时为 false
            auto             按出现顺序自动编号（没有序号的列表项）；$序号||auto 有序号用序号，否则自动编号
@@ -125,6 +126,9 @@ def evaluate(
                 evaluate(rest, values, tokens, negated, auto, ctx) if values.get(kw[1:]) not in (None, "", []) else None
             )
         return evaluate(rest, values, tokens, negated, auto, ctx) if kw.lower() in low else None
+    if e.startswith("unless:"):
+        _, kw, rest = e.split(":", 2)
+        return None if kw.lower() in low else evaluate(rest, values, tokens, negated, auto, ctx)
     if e.startswith("tail:"):
         # 关键字之后的全部词（多个关键字选项重复出现时，例如 service-type ftp terminal telnet）
         # tail:关键字:截止词——只取到截止词之前（tunnel select-seq lsp cr-lsp load-balance-number 1 → "lsp cr-lsp"）
@@ -167,7 +171,7 @@ def evaluate(
             v = values.get(alt[1:])
             if v not in (None, "", []):
                 return v
-        elif alt.startswith(("fmt:", "kw:", "tail:", "if:", "ctx:")):
+        elif alt.startswith(("fmt:", "kw:", "tail:", "if:", "unless:", "ctx:")):
             v = evaluate(alt, values, tokens, negated, auto, ctx)
             if v not in (None, "", []):
                 return v

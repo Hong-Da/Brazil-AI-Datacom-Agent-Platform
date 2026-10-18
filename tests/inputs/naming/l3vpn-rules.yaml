@@ -1,0 +1,12 @@
+# 测试用规则集（REQ-032）：配合 knowledge/samples/translate/atn-l3vpn-synth.cfg
+id: l3vpn-rules
+title: {zh-CN: L3VPN 改名测试, en: L3VPN rename test, pt-BR: Teste de renomeação L3VPN}
+from: huawei-vrp8
+to: cisco-iosxe
+names:
+  - {type: vrf.instance, match: wildcard, from: "RA*", to: "VRF_RA{1}"}
+  - {type: rp.policy, match: regex, from: '(\w+)-(\w+)', to: "RP_{1}_{2}"}
+naming:
+  - {type: rp.policy, pattern: "RP_[A-Z_]+", max_length: 40}
+ports:
+  - {match: pattern, from: "GE0/2/{n}", to: "GigabitEthernet0/0/{n+1}", range: [0, 1]}

@@ -282,14 +282,20 @@ def register(app: typer.Typer) -> None:
             str | None, typer.Option("--target-profile", help="生成到另一个 Profile（需要 --engine canon）")
         ] = None,
         verify: Annotated[bool, typer.Option("--verify/--no-verify", help="生成后解析、往返、按模板校验")] = True,
+        rules: Annotated[
+            str | None, typer.Option("--rules", help="翻译规则集（编号或 YAML 文件），需要 --engine canon")
+        ] = None,
     ) -> None:
+        from lmesh.cli.cmd_naming import load_rules
+
         c = output.get(ctx)
         t, kb, _ = _load(c, template)
+        rs = load_rules(c, rules, kb)
         if not params.is_file():
             fail(c, output.EXIT_NOT_FOUND, c.t("common.not_found", path=params))
         try:
             rows = template_gen.parse_params(importer.decode(params.read_bytes()), fmt)
-            r = template_gen.generate(t, rows, kb, engine, target_profile, verify)
+            r = template_gen.generate(t, rows, kb, engine, target_profile, verify, rs)
         except tmod.TemplateError as e:
             template_fail(c, e)
         if out_dir:

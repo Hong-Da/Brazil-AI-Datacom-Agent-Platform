@@ -1,0 +1,102 @@
+# 翻译自定义规则（REQ-032）lmesh naming / translate --rules / migrate --rules 的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+
+[[case]]
+id = "naming-list"
+title = { zh-CN = "规则集列表（内置示例）", en = "List rule sets", pt-BR = "Listar conjuntos de regras" }
+args = ["--output", "json", "naming", "list"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "ok" = true, "data.0.id" = "asr920-to-atn", "data.0.builtin" = true, "data.1.id" = "atn-to-asr920" }
+in_docs = true
+
+[[case]]
+id = "naming-show"
+title = { zh-CN = "显示规则集的 YAML 原文", en = "Show a rule set", pt-BR = "Mostrar um conjunto de regras" }
+args = ["naming", "show", "atn-to-asr920"]
+setup = "fresh"
+expect_exit = 0
+expect_stdout = ["id: atn-to-asr920", "names:", "ports:"]
+
+[[case]]
+id = "naming-test"
+title = { zh-CN = "试运行：改名清单、同步改的引用与端口映射", en = "Dry run: renames, references and port mapping", pt-BR = "Execução de teste: renomeações, referências e portas" }
+args = ["--output", "json", "naming", "test", "{inputs}/naming/l3vpn-rules.yaml", "{samples}/translate/atn-l3vpn-synth.cfg", "--to", "cisco-iosxe-asr920-17.15"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.summary.renamed" = 3, "data.summary.ports" = 2, "data.summary.conflicts" = 0, "data.renames.0.type" = "rp.policy", "data.renames.0.from" = "EXPORT-LOOPBACK", "data.renames.0.to" = "RP_EXPORT_LOOPBACK", "data.renames.0.rule.index" = 1, "data.renames.0.refs" = 1, "data.ports.1.from" = "GigabitEthernet0/2/1", "data.ports.1.to" = "GigabitEthernet0/0/2", "data.ports.1.subinterfaces" = 1 }
+in_docs = true
+
+[[case]]
+id = "naming-test-text"
+title = { zh-CN = "试运行的文字输出", en = "Dry run as text", pt-BR = "Execução de teste em texto" }
+args = ["--lang", "zh-CN", "naming", "test", "{inputs}/naming/l3vpn-rules.yaml", "{samples}/translate/atn-l3vpn-synth.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["改名 3 个对象", "RAN → VRF_RAN", "名称映射第 1 条", "GigabitEthernet0/2/1 → GigabitEthernet0/0/2"]
+
+[[case]]
+id = "naming-test-conflict"
+title = { zh-CN = "多个源名映射到同一个新名：报冲突、不改名，退出码 1", en = "Many names map to one: conflict, exit code 1", pt-BR = "Vários nomes para um: conflito, código 1" }
+args = ["--output", "json", "naming", "test", "{inputs}/naming/conflict-rules.yaml", "{samples}/translate/atn-l3vpn-synth.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "ok" = true, "data.conflicts.0.kind" = "many_to_one", "data.conflicts.0.to" = "SAME", "data.conflicts.0.from" = ["OAM", "RAN"], "data.summary.renamed" = 0 }
+in_docs = true
+
+[[case]]
+id = "naming-match"
+title = { zh-CN = "测试一个名称：命中的规则与整理结果", en = "Test one name", pt-BR = "Testar um nome" }
+args = ["--output", "json", "naming", "match", "{inputs}/naming/l3vpn-rules.yaml", "BGP-IN", "--type", "rp.policy"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "ok" = true, "data.result" = "RP_BGP_IN", "data.rule" = 1, "data.problems" = [] }
+in_docs = true
+
+[[case]]
+id = "naming-match-port"
+title = { zh-CN = "测试一个接口名（子接口随主接口）", en = "Test one interface name", pt-BR = "Testar um nome de interface" }
+args = ["--output", "json", "naming", "match", "{inputs}/naming/l3vpn-rules.yaml", "GE0/2/1.101", "--port"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "ok" = true, "data.result" = "GigabitEthernet0/0/2.101", "data.rule" = 0 }
+
+[[case]]
+id = "naming-import"
+title = { zh-CN = "导入规则集到 data/translate-rules/", en = "Import a rule set", pt-BR = "Importar um conjunto de regras" }
+args = ["--output", "json", "naming", "import", "{inputs}/naming/l3vpn-rules.yaml"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "ok" = true, "data.id" = "l3vpn-rules", "data.builtin" = false, "data.counts.names" = 2 }
+in_docs = true
+
+[[case]]
+id = "naming-delete-builtin"
+title = { zh-CN = "内置规则集只读，删除失败（退出码 1）", en = "Built-in rule sets are read-only", pt-BR = "Conjuntos embutidos são somente leitura" }
+args = ["naming", "delete", "atn-to-asr920"]
+setup = "fresh"
+expect_exit = 1
+
+[[case]]
+id = "naming-unknown"
+title = { zh-CN = "规则集不存在（退出码 4）", en = "Unknown rule set", pt-BR = "Conjunto inexistente" }
+args = ["naming", "show", "nope"]
+setup = "fresh"
+expect_exit = 4
+
+[[case]]
+id = "translate-rules"
+title = { zh-CN = "翻译时按规则集改名（对象与引用一起改，端口按规则映射）", en = "Translate with a rule set", pt-BR = "Traduzir com um conjunto de regras" }
+args = ["--output", "json", "translate", "{samples}/translate/atn-l3vpn-synth.cfg", "--to", "cisco-iosxe-asr920-17.15", "--interface-map", "{inputs}/naming/loopback.yaml", "--rules", "{inputs}/naming/l3vpn-rules.yaml"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.verify.unexplained" = 0, "data.naming.summary.renamed" = 3, "data.naming.renames.2.to" = "VRF_RAN", "data.interface_map.GigabitEthernet0/2/1" = "GigabitEthernet0/0/2" }
+in_docs = true
+
+[[case]]
+id = "translate-rules-builtin"
+title = { zh-CN = "用内置规则集翻译（编号）", en = "Translate with a built-in rule set", pt-BR = "Traduzir com um conjunto embutido" }
+args = ["--lang", "en", "translate", "{samples}/cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg", "--to", "huawei-atn-v800r025", "--rules", "asr920-to-atn"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["interface Eth-Trunk1", "route-policy RP_EXPORT-LOOPBACK"]
+expect_stderr = ["Renamed 1 object(s)"]

@@ -18,7 +18,7 @@ from typing import Any
 
 from ruamel.yaml import YAML
 
-from lmesh.core.kb.model import Card, DepRule, Family, Issue, Profile, ProfileEntry, SchemaNode, View
+from lmesh.core.kb.model import Card, DepRule, Family, Issue, Note, Profile, ProfileEntry, SchemaNode, View
 
 # ruamel 的 YAML 实例不是线程安全的（Web 服务多个请求线程同时读知识库），每个线程用自己的实例
 _local = threading.local()
@@ -252,7 +252,7 @@ def _load_schema(kb: KnowledgeBase, f: Path, issues: list[Issue]) -> None:
                     kind=str(raw["kind"]),
                     src=str(raw["from"]),
                     dst=str(raw["to"]),
-                    note=str(raw.get("note", "")),
+                    note=Note.of(raw.get("note")),
                     profiles=list(raw.get("profiles") or []),
                     domain=domain,
                 )
@@ -301,7 +301,7 @@ def _load_profile(kb: KnowledgeBase, f: Path, issues: list[Issue]) -> None:
                     kind="side_effect",
                     src=str(raw["from"]),
                     dst=str(raw["to"]),
-                    note=str(raw.get("note", "")),
+                    note=Note.of(raw.get("note")),
                     profiles=[p.id],
                 )
             )

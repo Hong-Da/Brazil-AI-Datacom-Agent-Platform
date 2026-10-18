@@ -36,6 +36,7 @@ class ImportResult:
     unknown: int = 0
     coverage: float | None = None
     error: str = ""  # 文案键
+    duplicate: bool = False  # 内容与该设备最新的快照相同：没有存新快照，只记了一条导入记录（版本历史）
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -119,9 +120,21 @@ def sanitize_one(name: str, raw: bytes, sanitizer: Sanitizer, kb: Any = None) ->
 
 
 def import_sources(
-    sources: list[tuple[str, bytes]], db_url: str, level: Level = "basic", kb_root: Path | None = None
+    sources: list[tuple[str, bytes]],
+    db_url: str,
+    level: Level = "basic",
+    kb_root: Path | None = None,
+    source_kind: str = "file",
+    actor: str = "",
+    keep: int | None = None,
 ) -> list[ImportResult]:
-    """一批文件共用一个脱敏器：同一原值在不同设备上替换成同一个值，跨设备的引用关系保持。"""
+    """一批文件共用一个脱敏器：同一原值在不同设备上替换成同一个值，跨设备的引用关系保持。
+
+    版本历史（M5-2）：每个配置版本是一个快照（原文 + 当时的图 + 知识库版本 + 内容指纹）；内容与该设备最新快照相同的
+    重复导入不存新快照，只记导入记录（source_kind：file / dir / zip / api，actor：导入人或令牌说明）。
+    导入后按 keep（配置项 history.keep，None 时读取配置）清理旧快照，贴了标签的永久保留。"""
+    from lmesh.core import history
+
     sanitizer = Sanitizer(level, local_key())
     kb = None
     if kb_root is not None and (kb_root / "kb.yaml").exists():
@@ -130,6 +143,7 @@ def import_sources(
         kb = load_kb(kb_root)
     results: list[ImportResult] = []
     graphs: list[tuple[int, Any]] = []
+    new_versions: list[int] = []
     with store.session(db_url) as s:
         for name, raw in sources:
             res, text = sanitize_one(name, raw, sanitizer, kb)
@@ -141,12 +155,23 @@ def import_sources(
                     s.flush()
                 else:
                     dev.vendor, dev.sw_version, dev.profile = res.vendor, res.version, res.profile
+                digest = history.content_hash(text)
+                same = history.find_duplicate(s, dev.id, digest)
+                if same is not None:
+                    history.add_import(s, dev.id, same.id, name, source_kind, actor, duplicate=True)
+                    res.version_id, res.duplicate = same.id, True
+                    if same.structured:
+                        res.unknown = sum(1 for ln in same.structured.get("lines", []) if ln.get("kind") == "unknown")
+                        res.coverage = same.structured.get("coverage", res.coverage)
+                    results.append(res)
+                    continue
                 ver = ConfigVersion(
                     device_id=dev.id,
                     source_name=name,
                     raw_text=text,
                     sanitized=True,
                     kb_version=kb.version if kb is not None else "",
+                    content_hash=digest,
                 )
                 if kb is not None and res.profile in kb.profiles:
                     from lmesh.core import graph as graphmod
@@ -159,11 +184,14 @@ def import_sources(
                     st["roundtrip"] = render_roundtrip(g, kb) == text
                     st["graph"] = graphmod.summary(g)
                     ver.structured = st
+                    ver.graph_gz = history.dump_graph(g)
                     res.unknown = len(parsed.unknown())
                     res.coverage = round(parsed.coverage(), 4)
                 s.add(ver)
                 s.flush()
                 res.version_id = ver.id
+                history.add_import(s, dev.id, ver.id, name, source_kind, actor, duplicate=False)
+                new_versions.append(ver.id)
                 if kb is not None and ver.structured and res.profile in kb.profiles:
                     graphs.append((ver.id, g))
                 if kb is not None and ver.structured:
@@ -184,6 +212,11 @@ def import_sources(
 
     for vid, g in graphs:
         graphstore.save(db_url, vid, g)
+    if keep is None:
+        from lmesh.core import config
+
+        keep = int(config.load().get("history.keep"))
+    history.after_import(db_url, new_versions, kb, keep)
     return results
 
 

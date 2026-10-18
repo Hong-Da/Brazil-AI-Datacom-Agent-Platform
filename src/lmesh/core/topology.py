@@ -33,6 +33,7 @@ from typing import Any
 import networkx as nx
 
 from lmesh.core.kb import KnowledgeBase
+from lmesh.core.kb.model import Note
 
 LINK_TYPES = ("subnet", "ospf", "isis", "ldp", "ldp_remote", "bgp", "pw", "bfd")
 CONFIDENCE = ("high", "medium", "low")
@@ -356,9 +357,24 @@ class DevFacts:
             "levels": levels,
             "areas": areas,
             "p2p": ix.val(n, "interface.isis.p2p") is True,
-            "passive": ix.val(n, "interface.isis.passive") is True,
+            "passive": ix.val(n, "interface.isis.passive") is True or self._isis_proc_passive(proc, itf),
             "_node": n,
         }
+
+    def _isis_proc_passive(self, proc: str | None, itf: Iface) -> bool:
+        """进程下的被动设置（Cisco passive-interface 写在 router isis 下）：接口例外优先，其次进程缺省。"""
+        if proc is None:
+            return False
+        ix = self.ix
+        explicit = next(
+            (
+                ix.val(s, "isis.process.passive.enabled")
+                for s in ix.kids(proc, "isis.process.passive")
+                if ix.key(s).lower() == itf.name.lower()
+            ),
+            None,
+        )
+        return bool(explicit if explicit is not None else ix.val(proc, "isis.process.passive_default"))
 
     # ----- LDP -----
 
@@ -428,8 +444,38 @@ class DevFacts:
                         "local_address": local,
                         "auth": auth,
                         "afs": sorted(enabled),
+                        "vrf": "",
                     }
                 )
+            # VPN 实例（VRF）内的对等体（PE–CE，M4-2 起知识库有 bgp.af.peer.remote_as）：只在该 VRF 的地址族中存在
+            for af, key in afs:
+                vrf = str(key.get("vrf") or "")
+                if not vrf:
+                    continue
+                for ap in ix.kids(af, "bgp.af.peer"):
+                    addr = ix.key(ap)
+                    remote_as = ix.val(ap, "bgp.af.peer.remote_as")
+                    if _ipv4(addr) is None or remote_as in (None, ""):
+                        continue
+                    upd = ix.val(ap, "bgp.af.peer.update_source")
+                    local = self.iface_addr(str(upd)) if upd else None
+                    if local is None:
+                        c = self.connected(addr, vrf)
+                        local = str(c.primary.ip) if c and c.primary else None
+                    enabled_vrf = [] if ix.val(ap, "bgp.af.peer.enabled") is False else [str(key.get("afi") or "")]
+                    out.append(
+                        {
+                            "node": ap,
+                            "address": addr,
+                            "local_as": asn,
+                            "remote_as": str(remote_as),
+                            "update_source": str(upd) if upd else None,
+                            "local_address": local,
+                            "auth": ix.val(ap, "bgp.af.peer.password") not in (None, ""),
+                            "afs": enabled_vrf,
+                            "vrf": vrf,
+                        }
+                    )
         return out
 
     # ----- 伪线 -----
@@ -760,34 +806,39 @@ def _on_subnet(topo: Topology, lk: dict[str, Any]) -> list[dict[str, Any]]:
 
 def _bgp_links(topo: Topology, res: _Resolver) -> list[dict[str, Any]]:
     peers = {name: f.bgp_peers() for name, f in topo.facts.items()}
-    sessions: dict[tuple[tuple[str, str], tuple[str, str]], dict[str, Any]] = {}
+    sessions: dict[tuple[str, tuple[tuple[str, str], tuple[str, str]]], dict[str, Any]] = {}
     for dname, plist in peers.items():
         for p in plist:
-            hit = res.owner(p["address"], "", exclude=dname)
+            vrf = p.get("vrf") or ""
+            hit = res.owner(p["address"], vrf, exclude=dname)
             if hit is None:
-                topo.unresolved.append({"type": "bgp", "device": dname, "node": p["node"], "address": p["address"]})
+                topo.unresolved.append(
+                    {"type": "bgp", "device": dname, "node": p["node"], "address": p["address"], "vrf": vrf}
+                )
                 continue
             ename, eitf = hit
-            mine = topo.facts[dname].addresses()
+            mine = topo.facts[dname].addresses(vrf)
             back = [
                 q
                 for q in peers.get(ename, [])
-                if q["address"] in mine and (p["local_address"] is None or q["address"] == p["local_address"])
+                if (q.get("vrf") or "") == vrf
+                and q["address"] in mine
+                and (p["local_address"] is None or q["address"] == p["local_address"])
             ]
             q = back[0] if back else None
             addr_d = q["address"] if q else (p["local_address"] or "?")
             key = tuple(sorted([(dname, addr_d), (ename, p["address"])]))
-            s = sessions.setdefault(key, {"ends": {}})  # type: ignore[arg-type]
+            s = sessions.setdefault((vrf, key), {"ends": {}, "vrf": vrf})  # type: ignore[arg-type]
             s["ends"][(dname, addr_d)] = p
             s["ends"].setdefault((ename, p["address"]), q)
             s.setdefault("iface", {})[(ename, p["address"])] = eitf.name if eitf else None
     out = []
-    for key, s in sorted(sessions.items()):
+    for (vrf, key), s in sorted(sessions.items()):
         ends = []
         for dev, addr in key:
             p = s["ends"].get((dev, addr))
             f = topo.facts[dev]
-            itf = f.iface_of(addr) if addr != "?" else None
+            itf = f.iface_of(addr, vrf) if addr != "?" else None
             facts = {
                 "configured": p is not None,
                 "local_address": addr if addr != "?" else None,
@@ -807,7 +858,7 @@ def _bgp_links(topo: Topology, res: _Resolver) -> list[dict[str, Any]]:
                 "type": "bgp",
                 "a": ea,
                 "b": eb,
-                "vrf": "",
+                "vrf": vrf,
                 "segment": None,
                 "ibgp": ea["facts"]["local_as"] == eb["facts"]["local_as"],
                 "confidence": "high" if both else "medium",
@@ -1035,7 +1086,7 @@ def _cross_edges(topo: Topology, kb: KnowledgeBase) -> list[dict[str, Any]]:
             p = f.ix.profile
             return not r.profiles or p in r.profiles or bool(set(r.profiles) & set(f.ix.kb.lineage(p)))
 
-        def add(sd: str, sn: str, dd: str, dn: str, value: str, rule: str = rule, note: str = r.note) -> None:
+        def add(sd: str, sn: str, dd: str, dn: str, value: str, rule: str = rule, note: Note = r.note) -> None:
             k = (rule, sd, sn, dd, dn)
             if k not in seen:
                 seen.add(k)

@@ -1,5 +1,6 @@
 /** 配置检查页的纯逻辑：文案渲染、筛选、计数、级联分组、原文窗口、涉及节点。 */
 import { pickLang } from '@/i18n'
+import { localizeParams } from '@/i18n/note'
 import type { Finding, LangMap, Rule, Severity, TextRef } from './types'
 import { SEVERITIES } from './types'
 
@@ -24,7 +25,7 @@ export function renderText(ref: TextRef, lang: string, texts: Record<string, Lan
     m = r ? r[hit![2] as 'message' | 'suggestion' | 'title'] : undefined
   }
   const tpl = pickLang(m, lang)
-  return tpl ? format(tpl, ref.params ?? {}) : ref.key
+  return tpl ? format(tpl, localizeParams(ref.params, lang)) : ref.key
 }
 
 export function ruleTitle(rule: string, lang: string, rules: Map<string, Rule>): string {

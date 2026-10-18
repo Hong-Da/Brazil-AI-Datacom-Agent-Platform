@@ -1,0 +1,867 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: qos
+cards:
+  - id: cisco-iosxe.bandwidth.1
+    syntax: bandwidth { <kbps> | [ remaining ] percent <percentage> } [ account { qinq | dot1q } aal5 <subscriber-encapsulation> ]
+    view: policy-map-class
+    undo: no bandwidth
+    params:
+      kbps: &id001
+        type: word
+      percentage: &id002
+        type: integer
+        range:
+          - 1
+          - 100
+      subscriber-encapsulation: &id003
+        type: word
+    default: No bandwidth is specified. ATM overhead accounting is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/bandwidth (policy-map class).md
+      title: bandwidth (policy-map class)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy.rule.bandwidth_pct: unless:remaining:$percentage
+      qos.policy.rule.bandwidth_remaining_pct: if:remaining:$percentage
+  - id: cisco-iosxe.bandwidth.2
+    syntax: bandwidth { <kbps> | [ remaining ] percent <percentage> } account { qinq | dot1q } { aal5 | aal3 } <subscriber-encapsulation> user-defined <offset> [ atm ]
+    view: policy-map-class
+    undo: no bandwidth
+    params:
+      kbps: *id001
+      percentage: *id002
+      subscriber-encapsulation: *id003
+      offset:
+        type: word
+    default: No bandwidth is specified. ATM overhead accounting is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/bandwidth (policy-map class).md
+      title: bandwidth (policy-map class)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bandwidth-remaining-ratio.1
+    syntax: bandwidth remaining ratio <ratio>
+    view: policy-map-class
+    undo: no bandwidth remaining ratio <ratio>
+    params:
+      ratio: &id004
+        type: word
+    default: For most platforms, the default bandwidth ratio is 1. When you use default bandwidth-remaining ratios at the subinterface level, the Cisco 10000 series router distinguishes between interface types. At the subinterface level, the default bandwidth-remaining ratio is 1 for VLAN subinterfaces and Frame Relay Data Link Connection Identifiers (DLCI). For ATM subinterfaces, the router computes the default bandwidth-remaining ratio based on the subinterface speed. When you use default bandwidth-remaining ratios at the class level, the Cisco 10000 series router makes no distinction between interface types. At the class level, the default bandwidth-remaining ratio is 1.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/bandwidth remaining ratio.md
+      title: bandwidth remaining ratio
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.bandwidth-remaining-ratio.2
+    syntax: bandwidth remaining ratio <ratio> [ account { qinq | dot1q } [ aal5 ] { <subscriber-encapsulation> | user-defined <offset> } ]
+    view: policy-map-class
+    undo: no bandwidth remaining ratio <ratio> [ account { qinq | dot1q } [ aal5 ] { <subscriber-encapsulation> | user-defined <offset> } ]
+    params:
+      ratio: *id004
+      subscriber-encapsulation:
+        type: word
+      offset:
+        type: word
+    default: For most platforms, the default bandwidth ratio is 1. When you use default bandwidth-remaining ratios at the subinterface level, the Cisco 10000 series router distinguishes between interface types. At the subinterface level, the default bandwidth-remaining ratio is 1 for VLAN subinterfaces and Frame Relay Data Link Connection Identifiers (DLCI). For ATM subinterfaces, the router computes the default bandwidth-remaining ratio based on the subinterface speed. When you use default bandwidth-remaining ratios at the class level, the Cisco 10000 series router makes no distinction between interface types. At the class level, the default bandwidth-remaining ratio is 1.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/bandwidth remaining ratio.md
+      title: bandwidth remaining ratio
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.class
+    syntax: class { class-default | <class-name> }
+    view: policy-map
+    enters_view: policy-map-class
+    undo: no class { class-default | <class-name> }
+    params:
+      class-name:
+        type: word
+    default: No class is specified.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/class (policy-map).md
+      title: class (policy-map)
+      line: 5
+      version: '17.15'
+      patched: fragment / insert-before / service-fragment 是其他平台的选项，且 class-name 在两处重复；运行配置是 class <名称> 或 class class-default
+    status: draft
+    maps:
+      qos.policy.rule: $class-name||kw:class-default
+      qos.policy.rule.classifier: $class-name
+  - id: cisco-iosxe.class-map.1
+    syntax: class-map [ match-all | match-any ] <class-map-name>
+    view: system
+    enters_view: class-map
+    undo: no class-map [ match-all | match-any ] <class-map-name>
+    params:
+      class-map-name:
+        type: word
+    default: A class map is not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/class-map.md
+      title: class-map
+      line: 5
+      version: '17.15'
+      patched: 原文的 type 选项（stack / access-control …）是其他平台的写法；ASR 920 运行配置是 class-map [ match-all | match-any ] <名称>
+    status: draft
+    maps:
+      qos.classifier: $class-map-name
+      qos.classifier.operator: kw:match-all=and|match-any=or
+  - id: cisco-iosxe.class-map.2
+    syntax: class-map <class-map-name> [ match-all | match-any ]
+    view: system
+    enters_view: class-map
+    undo: no class-map <class-map-name> [ match-all | match-any ]
+    params:
+      class-map-name: &id005
+        type: word
+    default: A class map is not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/class-map.md
+      title: class-map
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.class-map.3
+    syntax: class-map <class-map-name>
+    view: system
+    enters_view: class-map
+    undo: no class-map [ type { stack | access-control | port-filter | queue-threshold | logging <log-class> } ] [ match-all | match-any ] <class-map-name>
+    params:
+      class-map-name: *id005
+    default: A class map is not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/class-map.md
+      title: class-map
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.match-access-group
+    syntax: match access-group { <access-group> | name <access-group-name> }
+    view: class-map
+    undo: no match access-group { <access-group> | name <access-group-name> }
+    params:
+      access-group:
+        type: word
+      access-group-name:
+        type: word
+    default: No match criteria are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/match access-group.md
+      title: match access-group
+      line: 5
+      version: '17.15'
+      patched: 取消写法少了 access-group 关键字
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: acl
+        value: $access-group||$access-group-name
+      qos.classifier.match.acl: $access-group||$access-group-name
+  - id: cisco-iosxe.match-any
+    syntax: match any
+    view: class-map
+    undo: no match any
+    default: No match criteria are specified.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/match any.md
+      title: match any
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: any
+        value: ''
+  - id: cisco-iosxe.match-cos
+    syntax: match cos { <cos-value> } &<1-4>
+    view: class-map
+    undo: no match cos { <cos-value> } &<1-4>
+    params:
+      cos-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: Packets are not matched on the basis of a Layer 2 CoS/ISL marking.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/match cos.md
+      title: match cos
+      line: 5
+      version: '17.15'
+      patched: 原文把参数 cos-value 标成了关键字；改成重复写法
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: 8021p
+        value: $cos-value
+  - id: cisco-iosxe.match-dscp
+    syntax: match [ ip ] dscp { <dscp-value> } &<1-8>
+    view: class-map
+    undo: no match [ ip ] dscp { <dscp-value> } &<1-8>
+    params:
+      dscp-value:
+        type: word
+    default: No match criteria are configured.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/match dscp.md
+      title: match dscp
+      line: 5
+      version: '17.15'
+      patched: 原文用逐个列出的可选参数表示最多 8 个取值；改成重复写法（match dscp ef cs5）
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: dscp
+        value: $dscp-value
+  - id: cisco-iosxe.match-mpls-experimental-topmost
+    syntax: match mpls experimental topmost { <number> } &<1-8>
+    view: class-map
+    undo: no match mpls experimental topmost { <number> } &<1-8>
+    params:
+      number:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: No EXP match criterion is configured for the topmost label header.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/match mpls experimental topmost.md
+      title: match mpls experimental topmost
+      line: 5
+      version: '17.15'
+      patched: 原文把参数 number 标成了关键字；运行配置可以列出多个 EXP 值
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: mpls-exp
+        value: $number
+  - id: cisco-iosxe.match-precedence
+    syntax: match [ ip ] precedence { <precedence> } &<1-4>
+    view: class-map
+    undo: no match [ ip ] precedence { <precedence> } &<1-4>
+    params:
+      precedence:
+        type: word
+    default: No match criterion is configured.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/match precedence.md
+      title: match precedence
+      line: 5
+      version: '17.15'
+      patched: 原文用四个不同参数名表示重复取值；改成重复写法
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: ip-precedence
+        value: $precedence
+  - id: cisco-iosxe.match-qos-group
+    syntax: match qos-group <qos-group-value>
+    view: class-map
+    undo: no match qos-group <qos-group-value>
+    params:
+      qos-group-value:
+        type: word
+    default: No match criterion is specified.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/match qos-group.md
+      title: match qos-group
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: qos-group
+        value: $qos-group-value
+  - id: cisco-iosxe.police
+    syntax: police cir { <cir> | percent <cir-percent> } [ bc <conform-burst> ] [ pir <pir> ] [ be <peak-burst> ] [ conform-action <conform-action> [ exceed-action <exceed-action> [ violate-action <violate-action> ] ] ]
+    view: policy-map-class
+    undo: no police cir
+    params:
+      cir:
+        type: integer
+      cir-percent:
+        type: integer
+        range:
+          - 1
+          - 100
+      conform-burst:
+        type: integer
+      pir:
+        type: integer
+      peak-burst:
+        type: integer
+      conform-action:
+        type: word
+      exceed-action:
+        type: word
+      violate-action:
+        type: word
+    default: Traffic policing using two rates is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/police (two rates).md
+      title: police (two rates)
+      line: 5
+      version: '17.15'
+      patched: 三个动作用了同名参数 action，且没有 cir percent 写法；按运行配置整理（police cir <速率> | percent <百分比> [ bc … ] [ pir … ] [ be … ] [ conform-action … ] …）
+    status: draft
+    maps:
+      qos.policy.rule.police_cir: $cir
+      qos.policy.rule.police_pir: $pir
+  - id: cisco-iosxe.police~2
+    syntax: police <bps> [ <burst-normal> [ <burst-max> ] ] conform-action <conform-action> exceed-action <exceed-action> [ violate-action <violate-action> ]
+    view: policy-map-class
+    undo: no police <bps>
+    params:
+      bps:
+        type: integer
+      burst-normal:
+        type: integer
+      burst-max:
+        type: integer
+      conform-action:
+        type: word
+      exceed-action:
+        type: word
+      violate-action:
+        type: word
+    default: Traffic policing is not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/police.md
+      title: police
+      line: 5
+      version: '17.15'
+      patched: 原文把可选突发参数写在斜体里（*[burst-normal]*），转换后语法错乱；按单速写法整理
+    status: draft
+    maps:
+      qos.policy.rule.police_cir: $bps
+  - id: cisco-iosxe.policy-map.1
+    syntax: policy-map [ type { stack | access-control | port-filter | queue-threshold | logging <log-policy> } ] <policy-map-name>
+    view: system
+    enters_view: policy-map
+    undo: no policy-map [ type { stack | access-control | port-filter | queue-threshold | logging <log-policy> } ] <policy-map-name>
+    params:
+      log-policy:
+        type: word
+      policy-map-name: &id006
+        type: word
+    default: The policy map is not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/policy-map.md
+      title: policy-map
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy: $policy-map-name
+  - id: cisco-iosxe.policy-map.2
+    syntax: policy-map [ type { control | service } ] <policy-map-name>
+    view: system
+    enters_view: policy-map
+    undo: no policy-map [ type { control | service } ] <policy-map-name>
+    params:
+      policy-map-name: *id006
+    default: The policy map is not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/policy-map.md
+      title: policy-map
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy: $policy-map-name
+  - id: cisco-iosxe.policy-map.3
+    syntax: policy-map [ type { class-routing ipv4 unicast <unicast-name> | control <control-name> | service <service-name> } ] <policy-map-name>
+    view: system
+    enters_view: policy-map
+    undo: no policy-map [ type { class-routing ipv4 unicast <unicast-name> | control <control-name> | service <service-name> } ] <policy-map-name>
+    params:
+      unicast-name:
+        type: word
+      control-name:
+        type: word
+      service-name:
+        type: word
+      policy-map-name: *id006
+    default: The policy map is not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/policy-map.md
+      title: policy-map
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy: $policy-map-name
+  - id: cisco-iosxe.priority
+    syntax: priority [ level <level> ] [ <bandwidth-kbps> | percent <percentage> ] [ <burst> ]
+    view: policy-map-class
+    undo: no priority
+    params:
+      level:
+        type: integer
+        range:
+          - 1
+          - 2
+      bandwidth-kbps:
+        type: integer
+      percentage:
+        type: integer
+        range:
+          - 1
+          - 100
+      burst:
+        type: integer
+    default: No priority is set.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/priority.md
+      title: priority
+      line: 5
+      version: '17.15'
+      patched: 原文把可选的 burst 写在斜体里，且没有 ASR 920 常用的 priority level 写法；按运行配置整理（priority [ level N ] [ <kbps> | percent <百分比> ]）
+    status: draft
+    maps:
+      qos.policy.rule.priority: flag
+      qos.policy.rule.priority_level: $level
+  - id: cisco-iosxe.queue-limit.1
+    syntax: queue-limit <queue-limit-size> [ bytes | ms | us | packets ]
+    view: policy-map-class
+    undo: no queue-limit
+    params:
+      queue-limit-size: &id007
+        type: word
+    default: 'The default behavior of the queue-limit command for class queues with and without Weighted Random Early Detection (WRED) is as follows: - Class queues with WRED—The device uses the default queue limit of two times the largest WRED maximum threshold value, rounded to the nearest power of 2. Note ; For Cisco IOS Release 12.2(16)BX, the device does not round the value to the nearest power of 2. - Priority queues and class queues without WRED—The device has buffers for up to 50 ms of 256-byte packets at line rate, but not fewer than 32 packets.'
+    source:
+      doc: cisco-iosxe-md
+      file: qos/queue-limit.md
+      title: queue-limit
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy.rule.queue_limit: tail:queue-limit
+  - id: cisco-iosxe.queue-limit.2
+    syntax: queue-limit <queue-limit-size> [ bytes | packets ]
+    view: policy-map-class
+    undo: no queue-limit
+    params:
+      queue-limit-size: *id007
+    default: 'The default behavior of the queue-limit command for class queues with and without Weighted Random Early Detection (WRED) is as follows: - Class queues with WRED—The device uses the default queue limit of two times the largest WRED maximum threshold value, rounded to the nearest power of 2. Note ; For Cisco IOS Release 12.2(16)BX, the device does not round the value to the nearest power of 2. - Priority queues and class queues without WRED—The device has buffers for up to 50 ms of 256-byte packets at line rate, but not fewer than 32 packets.'
+    source:
+      doc: cisco-iosxe-md
+      file: qos/queue-limit.md
+      title: queue-limit
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.queue-limit.3
+    syntax: queue-limit <queue-limit-size> [ packets ]
+    view: policy-map-class
+    undo: no queue-limit
+    params:
+      queue-limit-size: *id007
+    default: 'The default behavior of the queue-limit command for class queues with and without Weighted Random Early Detection (WRED) is as follows: - Class queues with WRED—The device uses the default queue limit of two times the largest WRED maximum threshold value, rounded to the nearest power of 2. Note ; For Cisco IOS Release 12.2(16)BX, the device does not round the value to the nearest power of 2. - Priority queues and class queues without WRED—The device has buffers for up to 50 ms of 256-byte packets at line rate, but not fewer than 32 packets.'
+    source:
+      doc: cisco-iosxe-md
+      file: qos/queue-limit.md
+      title: queue-limit
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.random-detect@interface
+    syntax: random-detect [ dscp-based | prec-based ]
+    view: interface
+    undo: no random-detect
+    default: WRED and dWRED are disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/random-detect.md
+      title: random-detect
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.random-detect@policy-map-class
+    syntax: random-detect [ dscp-based | prec-based ]
+    view: policy-map-class
+    undo: no random-detect
+    default: WRED and dWRED are disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/random-detect.md
+      title: random-detect
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy.rule.wred: flag
+  - id: cisco-iosxe.service-policy.1@system
+    syntax: service-policy [ type access-control ] { input | output } <policy-map-name>
+    view: system
+    undo: no service-policy [ type access-control ] { input | output } <policy-map-name>
+    params: &id008
+      policy-map-name: &id009
+        type: word
+    default: No service policy is specified. A control policy is not applied to a context. No policy map is attached.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/service-policy.md
+      title: service-policy
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.service-policy.1@interface
+    syntax: service-policy [ type access-control ] { input | output } <policy-map-name>
+    view: interface
+    undo: no service-policy [ type access-control ] { input | output } <policy-map-name>
+    params: *id008
+    default: No service policy is specified. A control policy is not applied to a context. No policy map is attached.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/service-policy.md
+      title: service-policy
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      interface.qos_policy: kw:input=inbound|output=outbound
+      interface.qos_policy.policy: $policy-map-name
+  - id: cisco-iosxe.service-policy.2@system
+    syntax: service-policy [ history | { input | output } <policy-map-name> | type control <control-policy-name> ]
+    view: system
+    undo: no service-policy [ history | { input | output } <policy-map-name> | type control <control-policy-name> ]
+    params: &id010
+      policy-map-name: *id009
+      control-policy-name:
+        type: word
+    default: No service policy is specified. A control policy is not applied to a context. No policy map is attached.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/service-policy.md
+      title: service-policy
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.service-policy.2@interface
+    syntax: service-policy [ history | { input | output } <policy-map-name> | type control <control-policy-name> ]
+    view: interface
+    undo: no service-policy [ history | { input | output } <policy-map-name> | type control <control-policy-name> ]
+    params: *id010
+    default: No service policy is specified. A control policy is not applied to a context. No policy map is attached.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/service-policy.md
+      title: service-policy
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.service-policy.3@system
+    syntax: service-policy [ access-control ] { input | output | type control subcriber } <policy-map-name>
+    view: system
+    undo: no service-policy [ access-control ] { input | output | type control subcriber } <policy-map-name>
+    params: &id011
+      policy-map-name: *id009
+    default: No service policy is specified. A control policy is not applied to a context. No policy map is attached.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/service-policy.md
+      title: service-policy
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.service-policy.3@interface
+    syntax: service-policy [ access-control ] { input | output | type control subcriber } <policy-map-name>
+    view: interface
+    undo: no service-policy [ access-control ] { input | output | type control subcriber } <policy-map-name>
+    params: *id011
+    default: No service policy is specified. A control policy is not applied to a context. No policy map is attached.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/service-policy.md
+      title: service-policy
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.set-cos.1
+    syntax: set cos { <cos-value> | <from-field> [ table <table-map-name> ] }
+    view: policy-map-class
+    undo: no set cos { <cos-value> | <from-field> [ table <table-map-name> ] }
+    params:
+      cos-value: &id012
+        type: word
+      from-field:
+        type: word
+      table-map-name:
+        type: word
+    default: No CoS value is set for the outgoing packet.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/set cos.md
+      title: set cos
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy.rule.remark_8021p: $cos-value
+  - id: cisco-iosxe.set-cos.2
+    syntax: set cos <cos-value>
+    view: policy-map-class
+    undo: no set cos { <cos-value> | <from-field> [ table <table-map-name> ] }
+    params:
+      cos-value: *id012
+    default: No CoS value is set for the outgoing packet.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/set cos.md
+      title: set cos
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy.rule.remark_8021p: $cos-value
+  - id: cisco-iosxe.set-dscp
+    syntax: set dscp { <dscp-value> | <from-field> [ table <table-map-name> ] }
+    view: policy-map-class
+    undo: no set dscp { <dscp-value> | <from-field> [ table <table-map-name> ] }
+    params:
+      dscp-value:
+        type: word
+      from-field:
+        type: word
+      table-map-name:
+        type: word
+    default: The DSCP value in the ToS byte is not set.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/set dscp.md
+      title: set dscp
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy.rule.remark_dscp: $dscp-value
+  - id: cisco-iosxe.set-mpls-experimental-imposition.1
+    syntax: set mpls experimental imposition { <mpls-exp-value> | <from-field> [ table <table-map-name> ] }
+    view: policy-map-class
+    undo: no set mpls experimental imposition { <mpls-exp-value> | <from-field> [ table <table-map-name> ] }
+    params:
+      mpls-exp-value: &id013
+        type: word
+      from-field:
+        type: word
+      table-map-name:
+        type: word
+    default: No MPLS EXP value is set.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/set mpls experimental imposition.md
+      title: set mpls experimental imposition
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy.rule.remark_mpls_exp: $mpls-exp-value
+  - id: cisco-iosxe.set-mpls-experimental-imposition.2
+    syntax: set mpls experimental imposition <mpls-exp-value>
+    view: policy-map-class
+    undo: no set mpls experimental imposition { <mpls-exp-value> | <from-field> [ table <table-map-name> ] }
+    params:
+      mpls-exp-value: *id013
+    default: No MPLS EXP value is set.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/set mpls experimental imposition.md
+      title: set mpls experimental imposition
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy.rule.remark_mpls_exp: $mpls-exp-value
+  - id: cisco-iosxe.set-mpls-experimental-topmost
+    syntax: set mpls experimental topmost { <mpls-exp-value> | qos-group [ table <table-map-name> ] }
+    view: policy-map-class
+    undo: no set mpls experimental topmost { <mpls-exp-value> | qos-group [ table <table-map-name> ] }
+    params:
+      mpls-exp-value:
+        type: word
+      table-map-name:
+        type: word
+    default: No MPLS EXP value is set.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/set mpls experimental topmost.md
+      title: set mpls experimental topmost
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy.rule.remark_mpls_exp: $mpls-exp-value
+  - id: cisco-iosxe.set-qos-group.1
+    syntax: set qos-group { <group-id> | <from-field> [ table <table-map-name> ] }
+    view: policy-map-class
+    undo: no set qos-group { <group-id> | <from-field> [ table <table-map-name> ] }
+    params:
+      group-id: &id014
+        type: integer
+        range:
+          - 0
+          - 99
+      from-field:
+        type: word
+      table-map-name:
+        type: word
+    default: No group ID is specified.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/set qos-group.md
+      title: set qos-group
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy.rule.qos_group: $group-id
+  - id: cisco-iosxe.set-qos-group.2
+    syntax: set qos-group <group-id>
+    view: policy-map-class
+    undo: no set qos-group { <group-id> | <from-field> [ table <table-map-name> ] }
+    params:
+      group-id: *id014
+    default: No group ID is specified.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/set qos-group.md
+      title: set qos-group
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      qos.policy.rule.qos_group: $group-id
+  - id: cisco-iosxe.shape.1
+    syntax: shape { average | peak } { <mean-rate> [ <burst-size> [ <excess-burst-size> ] ] | percent <percentage> [ <burst-size> ms [ <excess-burst-size> ms ] ] }
+    view: policy-map-class
+    undo: no shape [ average | peak ]
+    params:
+      mean-rate:
+        type: integer
+      burst-size:
+        type: integer
+      excess-burst-size:
+        type: integer
+      percentage:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: When the excess burst size (Be) is not configured, the default Be value is equal to the committed burst size (Bc). For more information about burst size defaults, see the “Usage Guidelines” section. Traffic shaping overhead accounting for ATM is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/shape (policy-map class).md
+      title: shape (policy-map class)
+      line: 5
+      version: '17.15'
+      patched: 原文把 excess-burst-size 写在斜体里（*[excess-burst-size]*）
+    status: draft
+    maps:
+      qos.policy.rule.shape_rate: $mean-rate
+      qos.policy.rule.shape_pct: $percentage
+  - id: cisco-iosxe.shape.3
+    syntax: shape [ average | peak ] <mean-rate> [ <burst-size> [ <excess-burst-size> ] ] account { qinq | dot1q } aal5 <subscriber-encap>
+    view: policy-map-class
+    undo: no shape
+    params:
+      mean-rate:
+        type: integer
+      burst-size:
+        type: integer
+      excess-burst-size:
+        type: integer
+      subscriber-encap:
+        type: word
+    default: When the excess burst size (Be) is not configured, the default Be value is equal to the committed burst size (Bc). For more information about burst size defaults, see the “Usage Guidelines” section. Traffic shaping overhead accounting for ATM is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/shape (policy-map class).md
+      title: shape (policy-map class)
+      line: 5
+      version: '17.15'
+      patched: 原文斜体里的可选参数转换后语法错乱（ATM 账户写法，ASR 920 不用）；整理成与 shape.1 一致的整形速率写法
+    status: draft
+  - id: cisco-iosxe.shape.5
+    syntax: shape [ average ] <mean-rate> [ <burst-size> [ <excess-burst-size> ] ] account { qinq | dot1q } { aal5 | aal3 } <subscriber-encapsulation>
+    view: policy-map-class
+    undo: no shape
+    params:
+      mean-rate:
+        type: integer
+      burst-size:
+        type: integer
+      excess-burst-size:
+        type: integer
+      subscriber-encapsulation:
+        type: word
+    default: When the excess burst size (Be) is not configured, the default Be value is equal to the committed burst size (Bc). For more information about burst size defaults, see the “Usage Guidelines” section. Traffic shaping overhead accounting for ATM is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/shape (policy-map class).md
+      title: shape (policy-map class)
+      line: 5
+      version: '17.15'
+      patched: 同上（ATM 账户写法）
+    status: draft
+  - id: cisco-iosxe.table-map
+    syntax: table-map <table-map-name> map from <from-value> to <to-value> [ default <default-value-or-action> ]
+    view: system
+    undo: no table-map <table-map-name> map from <from-value> to <to-value> [ default <default-value-or-action> ]
+    params:
+      table-map-name:
+        type: word
+      from-value:
+        type: word
+      to-value:
+        type: word
+      default-value-or-action:
+        type: word
+    default: The default keyword and default-value-or-action argument sets the default value (or action) to be used if a value if not explicitly designated. If you configure a table map but you do not specify a default-value-or-action argument for the default keyword, the default action is “copy”.
+    source:
+      doc: cisco-iosxe-md
+      file: qos/table-map (value mapping).md
+      title: table-map (value mapping)
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.service-policy-child
+    syntax: service-policy <policy-map-name>
+    view: policy-map-class
+    undo: no service-policy <policy-map-name>
+    params:
+      policy-map-name:
+        type: word
+    source:
+      patched: policy-map 的 class 下嵌套子策略（HQoS）没有单独的命令参考页；按 ASR 920 QoS 配置指南的运行配置写法补充（service-policy <子策略名>）
+      added_by_patch: true
+    status: draft
+    maps:
+      qos.policy.rule.child_policy: $policy-map-name

@@ -1,3 +1,5 @@
+import type { Note } from '@/i18n/note'
+
 /** GET /devices/{id}/graph 返回的数据（见 src/lmesh/core/graph.py 的 to_json）。 */
 export interface ApiNode {
   id: string
@@ -17,7 +19,7 @@ export interface ApiEdge {
   from: string
   to: string
   kind: string // contains / reference / prerequisite / side_effect / mutex
-  note: string
+  note: Note // 三语说明 {zh-CN, en, pt-BR}，用 noteText 取值
 }
 
 export interface GraphSummary {

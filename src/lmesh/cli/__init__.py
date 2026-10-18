@@ -271,6 +271,25 @@ from lmesh.cli import cmd_change  # noqa: E402
 
 cmd_change.register(app)
 
+from lmesh.cli import cmd_ask, cmd_export, cmd_feature, cmd_history  # noqa: E402
+
+cmd_history.register(app)
+cmd_export.register(app)
+cmd_feature.register(app)
+cmd_ask.register(app)
+
+from lmesh.cli import cmd_user  # noqa: E402
+
+cmd_user.register(app)
+
+from lmesh.cli import cmd_script_check  # noqa: E402
+
+cmd_script_check.register(app)
+
+from lmesh.cli import cmd_naming  # noqa: E402
+
+cmd_naming.register(app)
+
 
 def main() -> None:
     if os.name == "nt":  # Windows 控制台输出中文与葡语

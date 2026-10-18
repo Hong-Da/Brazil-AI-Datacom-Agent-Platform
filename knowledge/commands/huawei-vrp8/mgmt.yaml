@@ -891,6 +891,11 @@ cards:
       line: 2049
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.community: $community-name
+      mgmt.snmp.community.access: kw:read|write
+      mgmt.snmp.community.acl: $acl-number||$acl-name
   - id: huawei-vrp8.snmp-agent-community.2
     syntax: snmp-agent community { read | write } cipher <host-string> [ mib-view <security-string-cipher> | acl { <acl-number> | <acl-name> } | alias <alias-name> ] &<1-9>
     view: system
@@ -967,6 +972,15 @@ cards:
       line: 2238
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.group: $group-name
+      mgmt.snmp.group.version: v3
+      mgmt.snmp.group.security_level: kw:noauthentication=noauth|authentication=auth|privacy=priv
+      mgmt.snmp.group.read_view: $read-view
+      mgmt.snmp.group.write_view: $write-view
+      mgmt.snmp.group.notify_view: $notify-view
+      mgmt.snmp.group.acl: $acl-number||$acl-name
   - id: huawei-vrp8.snmp-agent-inform
     syntax: snmp-agent inform { timeout <seconds> | resend-times <times> } &<1-9> { host-name <target-host-name> | { address udp-domain <ip-address> | ipv6 address udp-domain <ipv6-address> } [ vpn-instance <vpn-instance-name> ] params securityname { <security-name> | cipher <security-name-cipher> } }
     view: system
@@ -2035,6 +2049,14 @@ cards:
       line: 4923
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.user: $user-name
+      mgmt.snmp.user.version: v3
+      mgmt.snmp.user.group: $group-name
+      mgmt.snmp.user.auth_protocol: $authen-protocol
+      mgmt.snmp.user.priv_protocol: $privacy-protocol
+      mgmt.snmp.user.acl: $acl-number||$aclName
   - id: huawei-vrp8.snmp-agent-usm-user.2
     syntax: snmp-agent [ remote-engineid <engine-Id> ] usm-user v3 <user-name> authentication-mode <authen-protocol>
     view: system
@@ -2051,6 +2073,10 @@ cards:
       line: 4923
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.user: $user-name
+      mgmt.snmp.user.auth_protocol: $authen-protocol
   - id: huawei-vrp8.snmp-agent-usm-user.3
     syntax: snmp-agent [ remote-engineid <engine-Id> ] usm-user v3 <user-name> privacy-mode <privacy-protocol>
     view: system
@@ -2067,6 +2093,10 @@ cards:
       line: 4923
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.user: $user-name
+      mgmt.snmp.user.priv_protocol: $privacy-protocol
   - id: huawei-vrp8.snmp-agent-usm-user.4
     syntax: snmp-agent [ remote-engineid <engine-Id> ] usm-user v3 <user-name> [ group <group-name> | acl { <acl-number> | <aclName> } ] &<1-9>
     view: system
@@ -2085,6 +2115,12 @@ cards:
       line: 4923
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.user: $user-name
+      mgmt.snmp.user.version: v3
+      mgmt.snmp.user.group: $group-name
+      mgmt.snmp.user.acl: $acl-number||$aclName
   - id: huawei-vrp8.snmp-agent-usm-user.5
     syntax: snmp-agent [ remote-engineid <engine-Id> ] usm-user v3 <user-name> authentication-mode <authen-protocol> [ localized-configuration ] cipher <authKey>
     view: system
@@ -2102,6 +2138,10 @@ cards:
       line: 4923
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.user: $user-name
+      mgmt.snmp.user.auth_protocol: $authen-protocol
   - id: huawei-vrp8.snmp-agent-usm-user.6
     syntax: snmp-agent [ remote-engineid <engine-Id> ] usm-user v3 <user-name> privacy-mode <privacy-protocol> [ localized-configuration ] cipher <privKey>
     view: system
@@ -2119,6 +2159,10 @@ cards:
       line: 4923
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.user: $user-name
+      mgmt.snmp.user.priv_protocol: $privacy-protocol
   - id: huawei-vrp8.event
     syntax: event
     view: system
@@ -4565,6 +4609,9 @@ cards:
       line: 6512
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.ssh: _
+      mgmt.ssh.ciphers: tail:cipher
   - id: huawei-vrp8.ssh-server-compatible-ssh1x-enable
     syntax: ssh server compatible-ssh1x enable
     view: system
@@ -4577,6 +4624,9 @@ cards:
       line: 6587
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.ssh: _
+      mgmt.ssh.compat_v1: flag
   - id: huawei-vrp8.ssh-server-dh-exchange-min-len
     syntax: ssh server dh-exchange min-len <min-len>
     view: system
@@ -4622,6 +4672,9 @@ cards:
       line: 6774
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.ssh: _
+      mgmt.ssh.hmacs: tail:hmac
   - id: huawei-vrp8.ssh-server-ip-block-disable
     syntax: ssh server ip-block disable
     view: system
@@ -4676,6 +4729,9 @@ cards:
       line: 7007
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.ssh: _
+      mgmt.ssh.kex: tail:key-exchange
   - id: huawei-vrp8.ssh-server-login-failed-threshold-alarm
     syntax: ssh server login-failed threshold-alarm upper-limit <report-times> lower-limit <resume-times> period <period-time>
     view: system
@@ -8660,6 +8716,8 @@ cards:
       line: 12960
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.aaa.domain.radius: $group-name
   - id: huawei-vrp8.radius-server-group~2
     syntax: radius-server group <group-name>
     view: system
@@ -8676,6 +8734,8 @@ cards:
       line: 13021
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.radius: $group-name
   - id: huawei-vrp8.radius-server-nas-ip-address
     syntax: radius-server nas-ip-address <ip-address>
     view: radius
@@ -8839,6 +8899,9 @@ cards:
       line: 13621
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.radius.retransmit: $retry-times
+      mgmt.radius.timeout: $second
   - id: huawei-vrp8.radius-server-retransmit-timeout.2
     syntax: radius-server { authentication | accounting } retransmit <retry-times> timeout <second>
     view: radius
@@ -8887,6 +8950,8 @@ cards:
       line: 13690
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.radius.key_set: flag
   - id: huawei-vrp8.radius-server-source-interface
     syntax: radius-server source interface { <interface-name> | <interface-type> <interface-number> }
     view: radius
@@ -8906,6 +8971,8 @@ cards:
       line: 13775
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.radius.source: $interface-name||fmt:{interface-type}{interface-number}
   - id: huawei-vrp8.radius-server-state-recovery-detect
     syntax: radius-server state-recovery-detect { authentication | accounting } username <username> [ detect-interval <detect-interval> ] [ detect-threshold <detect-threshold> ]
     view: system
@@ -8972,7 +9039,7 @@ cards:
     view: radius
     undo: undo radius-server { accounting | authentication } <ipv6-address> [ vpn-instance <instance-name> ] [ <port> ]
     params:
-      ip-address: &id236
+      ip-address: &id237
         type: ipv4
       port: &id234
         type: integer
@@ -9006,6 +9073,12 @@ cards:
       line: 14187
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.radius.server: &id236
+        role: kw:accounting|authentication
+        address: $ip-address||$ipv6-address
+      mgmt.radius.server.port: $port
+      mgmt.radius.server.vrf: $instance-name
   - id: huawei-vrp8.radius-server.2
     syntax: radius-server { accounting | authentication } <ipv6-address> [ vpn-instance <instance-name> | source { <interface-name> | <interface-type> <interface-num> } | { shared-key <key-string> | shared-key-cipher <cipher-string> | dtls-policy <dtls-policy-name> } ] &<1-9> <port> [ weight <weight-value> ]
     view: radius
@@ -9030,12 +9103,16 @@ cards:
       line: 14187
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.radius.server: *id236
+      mgmt.radius.server.port: $port
+      mgmt.radius.server.vrf: $instance-name
   - id: huawei-vrp8.radius-server.3
     syntax: radius-server { accounting | authentication } <ip-address> [ vpn-instance <instance-name> | source { { <interface-name> | <interface-type> <interface-num> } | ip-address <source-ip-address> } | { shared-key <key-string> | shared-key-cipher <cipher-string> | dtls-policy <dtls-policy-name> } ] &<1-9> <port> [ weight <weight-value> ]
     view: radius
     undo: undo radius-server { accounting | authentication } <ipv6-address> [ vpn-instance <instance-name> ] [ <port> ]
     params:
-      ip-address: *id236
+      ip-address: *id237
       instance-name: *id227
       interface-name: *id228
       interface-type: *id229
@@ -9055,6 +9132,10 @@ cards:
       line: 14187
       version: V800R025C00SPC500
     status: draft
+    maps:
+      mgmt.radius.server: *id236
+      mgmt.radius.server.port: $port
+      mgmt.radius.server.vrf: $instance-name
   - id: huawei-vrp8.radius-server
     syntax: radius-server { dead-count <count> [ fail-rate <fail-rate> ] | dead-time <dead-time> [ recover-count invalid ] | dead-interval <interval> } &<1-9>
     view: system
@@ -9315,7 +9396,7 @@ cards:
     view: local-aaa-server
     undo: undo user <user-name> [ authentication-type | ftp-directory | level | user-group ]
     params:
-      user-name: &id237
+      user-name: &id238
         type: word
       cipher-password:
         type: word
@@ -9354,7 +9435,7 @@ cards:
     view: local-aaa-server
     undo: undo user <user-name> [ authentication-type | ftp-directory | level | user-group ]
     params:
-      user-name: *id237
+      user-name: *id238
     source:
       doc: huawei-vrp8-md
       file: 18_Security Commands/11_AAA and User Management Configuration Commands (Administrative User).md
@@ -9367,7 +9448,7 @@ cards:
     view: local-aaa-server
     undo: undo user <user-name> expire [ <expiretime> ]
     params:
-      user-name: *id237
+      user-name: *id238
       expiretime:
         type: integer
         range:
@@ -10040,13 +10121,13 @@ cards:
     view: system
     undo: undo ftp server-source { -a { <ip-address> } | -i { <interface-type> <interface-number> | <interface-name> } }
     params:
-      ip-address: &id242
+      ip-address: &id243
         type: ipv4
-      interface-type: &id238
+      interface-type: &id239
         type: word
-      interface-number: &id239
+      interface-number: &id240
         type: word
-      interface-name: &id240
+      interface-name: &id241
         type: word
     default: By default, no source interface is specified for the FTP server.
     source:
@@ -10061,7 +10142,7 @@ cards:
     view: system
     undo: undo ftp ipv6 server-source -a <ipv6-address> [ -vpn-instance <vpn-instance-name> ]
     params:
-      ipv6-address: &id241
+      ipv6-address: &id242
         type: word
       vpn-instance-name:
         type: word
@@ -10105,10 +10186,10 @@ cards:
     view: system
     undo: undo ftp ipv6 server-source physic-isolate -i { <interface-type> <interface-number> | <interface-name> } -a { <ipv6-address> }
     params:
-      interface-type: *id238
-      interface-number: *id239
-      interface-name: *id240
-      ipv6-address: *id241
+      interface-type: *id239
+      interface-number: *id240
+      interface-name: *id241
+      ipv6-address: *id242
     default: By default, no source interface is specified for the FTP server.
     source:
       doc: huawei-vrp8-md
@@ -10122,10 +10203,10 @@ cards:
     view: system
     undo: undo ftp server-source physic-isolate -i { <interface-type> <interface-number> | <interface-name> } -a { <ip-address> }
     params:
-      interface-type: *id238
-      interface-number: *id239
-      interface-name: *id240
-      ip-address: *id242
+      interface-type: *id239
+      interface-number: *id240
+      interface-name: *id241
+      ip-address: *id243
     default: By default, no source interface is specified for the FTP server.
     source:
       doc: huawei-vrp8-md
@@ -10199,7 +10280,7 @@ cards:
     view: system
     undo: undo telnet ipv6 server-source -a <ipv6-address> [ -vpn-instance <vpn-instance-name> ]
     params:
-      ipv6-address: &id243
+      ipv6-address: &id244
         type: word
       vpn-instance-name:
         type: word
@@ -10234,7 +10315,7 @@ cards:
         type: word
       interface-name:
         type: word
-      ipv6-address: *id243
+      ipv6-address: *id244
     default: By default, no IPv6 source address is specified for a Telnet server.
     source:
       doc: huawei-vrp8-md
@@ -10387,11 +10468,11 @@ cards:
     view: system
     undo: undo telnet server-source -i { <interface-type> <interface-number> | <interface-name> }
     params:
-      interface-type: &id244
+      interface-type: &id245
         type: word
-      interface-number: &id245
+      interface-number: &id246
         type: word
-      interface-name: &id246
+      interface-name: &id247
         type: word
     default: 'By default: - The source interface of the Telnet server is not specified when the device starts with factory settings.'
     source:
@@ -10421,9 +10502,9 @@ cards:
     view: system
     undo: undo telnet server-source physic-isolate -i { <interface-type> <interface-number> | <interface-name> } -a <ip-address>
     params:
-      interface-type: *id244
-      interface-number: *id245
-      interface-name: *id246
+      interface-type: *id245
+      interface-number: *id246
+      interface-name: *id247
       ip-address:
         type: ipv4
     default: 'By default: - The source interface of the Telnet server is not specified when the device starts with factory settings.'
@@ -10576,7 +10657,7 @@ cards:
     syntax: databits <databitvalue>
     view: user-interface-con
     undo: undo databits
-    params: &id247
+    params: &id248
       databitvalue:
         type: word
     default: By default, the default number of data bits of a user interface is 8.
@@ -10591,7 +10672,7 @@ cards:
     syntax: databits <databitvalue>
     view: user-interface-vty
     undo: undo databits
-    params: *id247
+    params: *id248
     default: By default, the default number of data bits of a user interface is 8.
     source:
       doc: huawei-vrp8-md
@@ -10604,7 +10685,7 @@ cards:
     syntax: flow-control <flowtype>
     view: user-interface-con
     undo: undo flow-control
-    params: &id248
+    params: &id249
       flowtype:
         type: enum
         choices:
@@ -10623,7 +10704,7 @@ cards:
     syntax: flow-control <flowtype>
     view: user-interface-vty
     undo: undo flow-control
-    params: *id248
+    params: *id249
     default: By default, the flow control mode is set to none, indicating that traffic is not controlled.
     source:
       doc: huawei-vrp8-md
@@ -10636,7 +10717,7 @@ cards:
     syntax: history-command max-size <size-value>
     view: user-interface-con
     undo: undo history-command max-size
-    params: &id249
+    params: &id250
       size-value:
         type: integer
         range:
@@ -10654,7 +10735,7 @@ cards:
     syntax: history-command max-size <size-value>
     view: user-interface-vty
     undo: undo history-command max-size
-    params: *id249
+    params: *id250
     default: By default, you can store 10 history commands.
     source:
       doc: huawei-vrp8-md
@@ -10667,7 +10748,7 @@ cards:
     syntax: idle-timeout <minutes> [ <seconds> ]
     view: user-interface-con
     undo: undo idle-timeout
-    params: &id250
+    params: &id251
       minutes:
         type: integer
         range:
@@ -10692,7 +10773,7 @@ cards:
     syntax: idle-timeout <minutes> [ <seconds> ]
     view: user-interface-vty
     undo: undo idle-timeout
-    params: *id250
+    params: *id251
     default: By default, the timeout period of the console user interface is 5 minutes and the timeout period of the VTY user interface is 10 minutes.
     source:
       doc: huawei-vrp8-md
@@ -10707,7 +10788,7 @@ cards:
     syntax: parity <paritytype>
     view: user-interface-con
     undo: undo parity
-    params: &id251
+    params: &id252
       paritytype:
         type: enum
         choices:
@@ -10728,7 +10809,7 @@ cards:
     syntax: parity <paritytype>
     view: user-interface-vty
     undo: undo parity
-    params: *id251
+    params: *id252
     default: By default, no check is performed.
     source:
       doc: huawei-vrp8-md
@@ -10755,7 +10836,7 @@ cards:
     syntax: screen-length <screen-length>
     view: user-interface-con
     undo: undo screen-length
-    params: &id252
+    params: &id253
       screen-length:
         type: integer
         range:
@@ -10773,7 +10854,7 @@ cards:
     syntax: screen-length <screen-length>
     view: user-interface-vty
     undo: undo screen-length
-    params: *id252
+    params: *id253
     default: By default, the number of lines to be displayed on a terminal screen is 24.
     source:
       doc: huawei-vrp8-md
@@ -10786,7 +10867,7 @@ cards:
     syntax: screen-length <screen-length> temporary
     view: user-interface-con
     undo: undo screen-length temporary
-    params: &id253
+    params: &id254
       screen-length:
         type: integer
     default: By default, the number of rows in one screen is 24.
@@ -10801,7 +10882,7 @@ cards:
     syntax: screen-length <screen-length> temporary
     view: user-interface-vty
     undo: undo screen-length temporary
-    params: *id253
+    params: *id254
     default: By default, the number of rows in one screen is 24.
     source:
       doc: huawei-vrp8-md
@@ -10838,7 +10919,7 @@ cards:
     syntax: set authentication password cipher <password>
     view: user-interface-con
     undo: undo set authentication password
-    params: &id254
+    params: &id255
       password:
         type: word
     default: 'By default: - After a user logs in to a device for the first time, the device displays a message indicating that an authentication password has been set for the user.'
@@ -10853,7 +10934,7 @@ cards:
     syntax: set authentication password cipher <password>
     view: user-interface-vty
     undo: undo set authentication password
-    params: *id254
+    params: *id255
     default: 'By default: - After a user logs in to a device for the first time, the device displays a message indicating that an authentication password has been set for the user.'
     source:
       doc: huawei-vrp8-md
@@ -10922,7 +11003,7 @@ cards:
     syntax: speed <speed-value>
     view: user-interface-con
     undo: undo speed
-    params: &id255
+    params: &id256
       speed-value:
         type: word
     default: By default, the transmission rate is 9600 bit/s.
@@ -10937,7 +11018,7 @@ cards:
     syntax: speed <speed-value>
     view: user-interface-vty
     undo: undo speed
-    params: *id255
+    params: *id256
     default: By default, the transmission rate is 9600 bit/s.
     source:
       doc: huawei-vrp8-md
@@ -10950,7 +11031,7 @@ cards:
     syntax: stopbits <stopbitvalue>
     view: user-interface-con
     undo: undo stopbits
-    params: &id256
+    params: &id257
       stopbitvalue:
         type: word
     default: By default, the stop bit is 1 bit.
@@ -10965,7 +11046,7 @@ cards:
     syntax: stopbits <stopbitvalue>
     view: user-interface-vty
     undo: undo stopbits
-    params: *id256
+    params: *id257
     default: By default, the stop bit is 1 bit.
     source:
       doc: huawei-vrp8-md
@@ -10978,7 +11059,7 @@ cards:
     syntax: user privilege level <level>
     view: user-interface-con
     undo: undo user privilege level
-    params: &id257
+    params: &id258
       level:
         type: word
     default: By default, users logging in from a VTY user interface can use commands at Level 0.
@@ -10995,7 +11076,7 @@ cards:
     syntax: user privilege level <level>
     view: user-interface-vty
     undo: undo user privilege level
-    params: *id257
+    params: *id258
     default: By default, users logging in from a VTY user interface can use commands at Level 0.
     source:
       doc: huawei-vrp8-md

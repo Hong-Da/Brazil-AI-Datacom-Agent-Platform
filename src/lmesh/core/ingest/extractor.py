@@ -15,7 +15,8 @@
     domains           功能域 → 文件列表 {path（相对文档根的 glob）, sections（只取这些章节，可选）}
     syntax_rewrites   对所有语法统一改写：{pattern（正则）, replace, params（新参数的类型）}，例如把
                       <interface-type> <interface-number> 合成一个 <interface>（配置里接口名是一个词）
-同目录的 <名称>.patches.yaml 记录逐条的文档错误修正：{id, reason, set: {syntax / params / undo …}}，每次抽取都会应用，
+同目录的 <名称>.patches.yaml 记录逐条的文档错误修正：{id, reason, set: {syntax / params / undo …}, add_params: {…}}（add_params
+只补充参数、不替换），每次抽取都会应用，
 被修正的卡在来源中注明 patched。
 """
 
@@ -87,6 +88,8 @@ def apply_patches(cards: list[dict[str, Any]], rules: Rules) -> int:
             continue
         for k, v in (p.get("set") or {}).items():
             c[k] = v
+        if p.get("add_params"):  # 只补充参数（例如合并进来的取消写法多出的参数），不替换原有的
+            c["params"] = {**dict(c.get("params") or {}), **dict(p["add_params"])}
         c.setdefault("source", {})["patched"] = str(p.get("reason", ""))
         n += 1
     return n

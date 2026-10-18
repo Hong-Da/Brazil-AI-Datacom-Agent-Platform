@@ -9,7 +9,7 @@ import html
 from datetime import datetime
 from typing import Any
 
-from lmesh.core import report
+from lmesh.core import i18n, report
 from lmesh.core.report import Namer, Report, _Doc
 
 TEXTS: dict[str, dict[str, str]] = {
@@ -129,7 +129,7 @@ _DEP = {
 class _ChangeDoc(_Doc):
     def t(self, key: str, **kw: Any) -> str:
         text = TEXTS[self.lang].get(key) or report.TEXTS[self.lang].get(key, key)
-        return text.format(**kw) if kw else text
+        return text.format(**i18n.localize(kw, self.lang)) if kw else text
 
 
 def _ops_table(doc: _Doc, items: list[dict[str, Any]], fmt: str) -> None:

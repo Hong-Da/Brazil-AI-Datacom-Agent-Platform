@@ -2,8 +2,10 @@
 /** 节点详情：取值与来源、Schema 与命令卡、所在行、依赖。 */
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import Icon from '@/components/Icon.vue'
 import { pickLang } from '@/i18n'
+import { noteText } from '@/i18n/note'
 import { EDGE_SHORT, ancestors, lineRanges, nodeDeps, type Model } from './model'
 import type { SchemaNodeInfo } from './types'
 
@@ -15,6 +17,14 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ (e: 'pick', id: string): void; (e: 'line', n: number): void }>()
 const { t, locale } = useI18n()
+const route = useRoute()
+/** 影响分析的入口（M4-8）：对象与属性节点，设备编号取自路由 */
+const impactTo = computed(() => {
+  const n = node.value
+  const dev = String(route.params.id ?? '')
+  if (!n || !dev || (n.kind !== 'object' && n.kind !== 'attr') || n.origin !== 'explicit') return null
+  return { name: 'impact', query: { device: dev, node: n.id } }
+})
 
 const node = computed(() => (props.id ? props.model.nodes.get(props.id) ?? null : null))
 const path = computed(() => {
@@ -90,6 +100,7 @@ function edgeName(kind: string): string {
           </div>
           <div class="d-name mt8" :title="node.id" data-testid="detail-name">{{ node.kind === 'raw' ? node.value.trim() : node.label }}</div>
           <div v-if="path" class="small faint mono path">{{ path }}</div>
+          <router-link v-if="impactTo" class="btn btn-xs mt8" :to="impactTo" data-testid="goto-impact"><Icon name="target" small />{{ $t('device-graph.impact') }}</router-link>
 
           <div v-if="node.kind === 'attr' || node.kind === 'ext'" class="d-val" :class="{ dashed: node.origin !== 'explicit', 'hid-default': node.origin === 'default', 'hid-derived': node.origin === 'derived' }">
             <div class="lbl">{{ $t('device-graph.value') }}</div>
@@ -151,11 +162,11 @@ function edgeName(kind: string): string {
             <div v-else class="deps" data-testid="node-deps">
               <button v-for="(e, i) in deps.out" :key="`o${i}`" class="dep" type="button" @click="emit('pick', e.to)">
                 <svg viewBox="0 0 26 10" width="26" height="10" :class="`ek ${EDGE_SHORT[e.kind]}`"><path class="ln" d="M1 5H22" /><path v-if="e.kind === 'mutex'" class="tee" d="M2 1v8M24 1v8" /><path v-else class="hd" d="M19 1.5L25 5l-6 3.5z" /></svg>
-                <span><span class="dn">{{ nameOf(e.to) }}</span><span class="dt">{{ edgeName(e.kind) }}<template v-if="e.note"> · {{ e.note }}</template></span></span>
+                <span><span class="dn">{{ nameOf(e.to) }}</span><span class="dt">{{ edgeName(e.kind) }}<template v-if="noteText(e.note, locale)"> · {{ noteText(e.note, locale) }}</template></span></span>
               </button>
               <button v-for="(e, i) in deps.in" :key="`i${i}`" class="dep" type="button" @click="emit('pick', e.from)">
                 <svg viewBox="0 0 26 10" width="26" height="10" :class="`ek ${EDGE_SHORT[e.kind]}`"><path class="ln" d="M1 5H22" /><path v-if="e.kind === 'mutex'" class="tee" d="M2 1v8M24 1v8" /><path v-else class="hd" d="M19 1.5L25 5l-6 3.5z" /></svg>
-                <span><span class="dn">← {{ nameOf(e.from) }}</span><span class="dt">{{ edgeName(e.kind) }}<template v-if="e.note"> · {{ e.note }}</template></span></span>
+                <span><span class="dn">← {{ nameOf(e.from) }}</span><span class="dt">{{ edgeName(e.kind) }}<template v-if="noteText(e.note, locale)"> · {{ noteText(e.note, locale) }}</template></span></span>
               </button>
             </div>
           </template>

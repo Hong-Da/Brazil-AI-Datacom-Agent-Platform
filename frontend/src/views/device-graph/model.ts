@@ -4,6 +4,7 @@
  * 计算收起 / 展开后的可见部分、依赖边聚合到可见祖先、配置行与节点的对应关系。
  * 纯函数，不依赖 DOM，便于测试；大图（约 2500 节点）只渲染可见部分。
  */
+import type { Note } from '@/i18n/note'
 import type { ApiEdge, ApiNode, GraphData } from './types'
 
 export type TKind = 'device' | 'domain' | 'object' | 'attr' | 'raw' | 'unknown' | 'ext' | 'rawgroup'
@@ -419,7 +420,8 @@ export interface AggEdge {
   source: string
   target: string
   count: number
-  notes: string[]
+  /** 去重后的依赖说明（三语字典或字符串，显示时用 noteText 取值） */
+  notes: Note[]
   /** 原始边里有一端是 focus 节点 */
   hot: boolean
 }
@@ -439,7 +441,8 @@ export function aggregateEdges(m: Model, visible: Set<string>, kinds: Set<string
       agg.set(key, g)
     }
     g.count++
-    if (e.note && !g.notes.includes(e.note)) g.notes.push(e.note)
+    const nk = JSON.stringify(e.note ?? '')
+    if (e.note && nk !== '{}' && !g.notes.some((x) => JSON.stringify(x) === nk)) g.notes.push(e.note)
     if (focus && (e.from === focus || e.to === focus)) g.hot = true
   }
   return [...agg.values()]

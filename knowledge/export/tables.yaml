@@ -1,0 +1,174 @@
+# 审计表格导出（M5-3）的预置模板。
+#
+# 一张表 = 一类对象（Schema 对象节点，例如 interface）的全部实例，每行一个实例，每列一个字段：
+#   field   相对对象的 Schema 路径（description、ipv4.address、af.rd）或对象的键字段（name）
+#   derive  由代码在图上计算的列（名称见 core/export_tables.py 的 DERIVES：mask、peer_type、peer_afs …）
+#   label   表头，中文 / English / Português 三种；不同显示风格叫法不同时写成 {huawei: {…}, cisco: {…}}
+#   empty   没有取值时显示的文字（例如没有绑定 VPN 实例时写“公网”）；不写时留空
+#   off     true 表示默认不选（敏感字段等）
+# filters：按对象类型定义的命名筛选条件（op 与图查询相同：exists、not_exists、=、!=、~、!~、>、<、in），模板的 where 引用它们。
+# 表格只含配置，不含运行状态；敏感字段（Schema 标了 secret）只导出“已配置 / 未配置”。
+version: 1
+
+labels:
+  global: {zh-CN: 公网, en: Global, pt-BR: Global}
+
+filters:
+  interface:
+    has-ip:
+      field: ipv4.address
+      op: exists
+      label: {zh-CN: 只要有 IPv4 地址的接口, en: Only interfaces with an IPv4 address, pt-BR: Só interfaces com IPv4}
+    no-shutdown:
+      field: shutdown
+      op: "!="
+      value: "true"
+      label: {zh-CN: 排除管理关闭的接口, en: Exclude shut-down interfaces, pt-BR: Excluir interfaces desligadas}
+    no-loopback:
+      field: name
+      op: "!~"
+      value: "^loop"
+      label: {zh-CN: 排除 Loopback, en: Exclude loopbacks, pt-BR: Excluir loopbacks}
+    has-description:
+      field: description
+      op: exists
+      label: {zh-CN: 只要有描述的接口, en: Only interfaces with a description, pt-BR: Só interfaces com descrição}
+    in-vrf:
+      field: vrf
+      op: exists
+      label:
+        huawei: {zh-CN: 只要绑定了 VPN 实例的接口, en: Only interfaces in a VPN instance, pt-BR: Só interfaces em instância VPN}
+        cisco: {zh-CN: 只要在 VRF 里的接口, en: Only interfaces in a VRF, pt-BR: Só interfaces em VRF}
+  bgp.peer:
+    in-group:
+      field: group
+      op: exists
+      label: {zh-CN: 只看属于对等体组的, en: Only peers in a group, pt-BR: Só pares em grupo}
+  vrf.instance:
+    has-rd:
+      field: af.rd
+      op: exists
+      label: {zh-CN: 只要有 RD 的, en: Only with an RD, pt-BR: Só com RD}
+  static.route:
+    in-vrf:
+      field: vrf
+      op: exists
+      label:
+        huawei: {zh-CN: 只看 VPN 实例内的, en: Only in VPN instances, pt-BR: Só em instâncias VPN}
+        cisco: {zh-CN: 只看 VRF 内的, en: Only in VRFs, pt-BR: Só em VRF}
+
+presets:
+  ip-address:
+    aliases: [ip]
+    object: interface
+    title: {zh-CN: IP 地址表, en: IP address table, pt-BR: Tabela de endereços IP}
+    description: {zh-CN: 接口、IP、掩码、VPN 实例、描述, en: "Interface, IP, mask, VPN instance, description", pt-BR: "Interface, IP, máscara, VPN, descrição"}
+    where: [has-ip]
+    columns:
+      - {field: name, label: {zh-CN: 接口, en: Interface, pt-BR: Interface}}
+      - {field: ipv4.address, label: {zh-CN: IPv4 地址, en: IPv4 address, pt-BR: Endereço IPv4}}
+      - {field: ipv4.prefix_length, label: {zh-CN: 前缀长度, en: Prefix length, pt-BR: Comprimento do prefixo}}
+      - {derive: mask, label: {zh-CN: 掩码, en: Mask, pt-BR: Máscara}}
+      - field: vrf
+        empty: global
+        label:
+          huawei: {zh-CN: VPN 实例, en: VPN instance, pt-BR: Instância VPN}
+          cisco: {zh-CN: VRF, en: VRF, pt-BR: VRF}
+      - {field: description, label: {zh-CN: 描述, en: Description, pt-BR: Descrição}}
+      - {field: shutdown, label: {zh-CN: 管理关闭, en: Shutdown, pt-BR: Desligada}}
+
+  bridge-domain:
+    aliases: [vlan, bd]
+    object: bridge_domain
+    title: {zh-CN: VLAN / 桥域表, en: VLAN / bridge-domain table, pt-BR: Tabela VLAN / bridge-domain}
+    description: {zh-CN: 桥域、成员接口、VLAN 封装、三层接口, en: "BD, member interfaces, VLAN tags, L3 interface", pt-BR: "BD, membros, tags VLAN, interface L3"}
+    columns:
+      - {field: id, label: {zh-CN: 桥域 ID, en: BD ID, pt-BR: ID do BD}}
+      - {field: description, label: {zh-CN: 描述, en: Description, pt-BR: Descrição}}
+      - {derive: bd_members, label: {zh-CN: 成员（VLAN 封装）, en: Members (VLAN encapsulation), pt-BR: Membros (encapsulamento VLAN)}}
+      - derive: bd_l3_interface
+        label:
+          huawei: {zh-CN: 三层接口（VBDIF）, en: L3 interface (VBDIF), pt-BR: Interface L3 (VBDIF)}
+          cisco: {zh-CN: 三层接口（BDI）, en: L3 interface (BDI), pt-BR: Interface L3 (BDI)}
+      - {field: vsi, label: {zh-CN: 绑定的 VSI, en: Bound VSI, pt-BR: VSI vinculada}}
+
+  bgp-peer:
+    aliases: [bgp]
+    object: bgp.peer
+    title: {zh-CN: BGP 邻居表, en: BGP neighbor table, pt-BR: Tabela de vizinhos BGP}
+    description: {zh-CN: 对等体、对端 AS、地址族、对等体组、策略、认证, en: "Peer, remote AS, family, group, policies, auth", pt-BR: "Par, AS remoto, família, grupo, políticas, autenticação"}
+    columns:
+      - {field: address, label: {zh-CN: 对等体地址, en: Peer address, pt-BR: Endereço do par}}
+      - {derive: peer_remote_as, label: {zh-CN: 对端 AS, en: Remote AS, pt-BR: AS remoto}}
+      - {derive: peer_type, label: {zh-CN: 类型, en: Type, pt-BR: Tipo}}
+      - {derive: peer_afs, label: {zh-CN: 地址族, en: Address families, pt-BR: Famílias de endereço}}
+      - field: group
+        label:
+          huawei: {zh-CN: 对等体组, en: Peer group, pt-BR: Grupo de pares}
+          cisco: {zh-CN: peer-group, en: peer-group, pt-BR: peer-group}
+      - {field: description, label: {zh-CN: 描述, en: Description, pt-BR: Descrição}}
+      - field: update_source
+        label:
+          huawei: {zh-CN: 连接接口, en: Connect interface, pt-BR: Interface de conexão}
+          cisco: {zh-CN: 源接口, en: Update source, pt-BR: Interface de origem}
+      - derive: peer_import
+        label:
+          huawei: {zh-CN: 入方向策略, en: Import policy, pt-BR: Política de entrada}
+          cisco: {zh-CN: 入方向 route-map, en: Inbound route-map, pt-BR: route-map de entrada}
+      - derive: peer_export
+        label:
+          huawei: {zh-CN: 出方向策略, en: Export policy, pt-BR: Política de saída}
+          cisco: {zh-CN: 出方向 route-map, en: Outbound route-map, pt-BR: route-map de saída}
+      - {field: password, label: {zh-CN: 认证密码, en: Password, pt-BR: Senha}}
+
+  interface-description:
+    aliases: [desc, description]
+    object: interface
+    title: {zh-CN: 接口描述表, en: Interface description table, pt-BR: Tabela de descrições de interface}
+    description: {zh-CN: 接口、描述、状态、MTU, en: "Interface, description, state, MTU", pt-BR: "Interface, descrição, estado, MTU"}
+    columns:
+      - {field: name, label: {zh-CN: 接口, en: Interface, pt-BR: Interface}}
+      - {field: description, label: {zh-CN: 描述, en: Description, pt-BR: Descrição}}
+      - {field: shutdown, label: {zh-CN: 管理关闭, en: Shutdown, pt-BR: Desligada}}
+      - {field: mtu, label: {zh-CN: MTU, en: MTU, pt-BR: MTU}}
+      - field: mpls.ldp
+        label:
+          huawei: {zh-CN: MPLS LDP, en: MPLS LDP, pt-BR: MPLS LDP}
+          cisco: {zh-CN: mpls ip, en: mpls ip, pt-BR: mpls ip}
+      - {field: isis.process, label: {zh-CN: IS-IS 进程, en: IS-IS process, pt-BR: Processo IS-IS}}
+
+  vrf:
+    aliases: [vpn-instance, vrf-instance]
+    object: vrf.instance
+    title:
+      huawei: {zh-CN: VPN 实例表, en: VPN instance table, pt-BR: Tabela de instâncias VPN}
+      cisco: {zh-CN: VRF 表, en: VRF table, pt-BR: Tabela de VRF}
+    description: {zh-CN: RD、RT、标签分配方式、绑定接口数, en: "RD, RT, label mode, bound interfaces", pt-BR: "RD, RT, modo de rótulo, interfaces"}
+    columns:
+      - {field: name, label: {zh-CN: 名称, en: Name, pt-BR: Nome}}
+      - {field: af.rd, label: {zh-CN: RD, en: RD, pt-BR: RD}}
+      - {derive: vrf_rt_import, label: {zh-CN: RT 导入, en: RT import, pt-BR: RT import}}
+      - {derive: vrf_rt_export, label: {zh-CN: RT 导出, en: RT export, pt-BR: RT export}}
+      - {field: af.label_mode, label: {zh-CN: 标签分配方式, en: Label mode, pt-BR: Modo de rótulo}}
+      - {derive: vrf_interfaces, label: {zh-CN: 绑定接口数, en: Bound interfaces, pt-BR: Interfaces associadas}}
+
+  static-route:
+    aliases: [static, route]
+    object: static.route
+    title: {zh-CN: 静态路由表, en: Static route table, pt-BR: Tabela de rotas estáticas}
+    description: {zh-CN: 目的网段、下一跳、VPN 实例、优先级, en: "Prefix, next hop, VRF, preference", pt-BR: "Prefixo, próximo salto, VRF, preferência"}
+    columns:
+      - {field: prefix, label: {zh-CN: 目的网段, en: Prefix, pt-BR: Prefixo}}
+      - {field: nexthop, label: {zh-CN: 下一跳, en: Next hop, pt-BR: Próximo salto}}
+      - {field: interface, label: {zh-CN: 出接口, en: Exit interface, pt-BR: Interface de saída}}
+      - field: vrf
+        empty: global
+        label:
+          huawei: {zh-CN: VPN 实例, en: VPN instance, pt-BR: Instância VPN}
+          cisco: {zh-CN: VRF, en: VRF, pt-BR: VRF}
+      - field: preference
+        label:
+          huawei: {zh-CN: 优先级, en: Preference, pt-BR: Preferência}
+          cisco: {zh-CN: 管理距离, en: Distance, pt-BR: Distância}
+      - {field: tag, label: {zh-CN: 标记, en: Tag, pt-BR: Tag}}
+      - {field: description, label: {zh-CN: 描述, en: Description, pt-BR: Descrição}}

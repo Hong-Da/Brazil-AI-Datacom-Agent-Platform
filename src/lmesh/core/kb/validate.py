@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+
 from lmesh.core.kb import KnowledgeBase, mapping
 from lmesh.core.kb import syntax as syn
 from lmesh.core.kb.model import DEP_KINDS, NODE_TYPES, SHOW_RULES, STATUSES, Issue
@@ -46,6 +48,12 @@ def validate(kb: KnowledgeBase) -> list[Issue]:
         for end in (d.src, d.dst):
             if end not in kb.nodes:
                 err("dep.node_missing", f"依赖规则引用的节点 {end} 不存在")
+        if d.note.missing():
+            warn(
+                "dep.note_lang",
+                f"依赖规则 {d.src} → {d.dst} 的说明缺少语言：{', '.join(d.note.missing())}（界面回退显示）",
+                f"schema/{d.domain}.yaml" if d.domain else "",
+            )
 
     # 平台族与视图
     for fam in kb.families.values():
@@ -70,6 +78,9 @@ def validate(kb: KnowledgeBase) -> list[Issue]:
             err("card.view_missing", f"{c.id} 所在视图 {c.view} 没有在 {c.family}/views.yaml 中定义", c.file)
         if cfam and c.enters_view and c.enters_view not in cfam.views:
             err("card.enters_missing", f"{c.id} 进入的视图 {c.enters_view} 没有定义", c.file)
+        if c.undo:  # 取消语法里另有的参数（例如并入的 undo rule <rule-id> [ to <end-rule-id> ]）也算用到
+            with contextlib.suppress(syn.SyntaxErrorKB):
+                params |= set(syn.parse(c.undo).params())
         for pname in c.params:
             if pname not in params:
                 warn("card.param_unused", f"{c.id} 定义了参数 {pname}，但语法中没有", c.file)
@@ -119,6 +130,12 @@ def validate(kb: KnowledgeBase) -> list[Issue]:
             for end in (d.src, d.dst):
                 if end not in kb.nodes:
                     err("profile.side_effect_node", f"{p.id} 的副作用规则引用的节点 {end} 不存在", p.file)
+            if d.note.missing():
+                warn(
+                    "profile.side_effect_note_lang",
+                    f"{p.id} 的副作用规则 {d.src} → {d.dst} 的说明缺少语言：{', '.join(d.note.missing())}",
+                    p.file,
+                )
     return issues
 
 

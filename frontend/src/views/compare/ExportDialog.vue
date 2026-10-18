@@ -21,10 +21,6 @@ const FMTS: [Fmt, string][] = [['html', 'HTML'], ['md', 'Markdown']]
 const name = (lang: Lang, fmt: Fmt) => reportName(props.aName, props.bName, lang, fmt)
 const previewLang = computed<Lang>(() => (locale.value === 'zh-CN' ? 'zh-CN' : 'en'))
 
-function token(): string {
-  try { return localStorage.getItem('lmesh-token') ?? '' } catch { return '' }
-}
-
 /** POST 版的下载（api.ts 的 download 只支持 GET）。 */
 async function fetchReport(lang: Lang, fmt: Fmt): Promise<{ blob: Blob; filename: string }> {
   const res = await fetch('/api/v1/reports', {
@@ -32,7 +28,6 @@ async function fetchReport(lang: Lang, fmt: Fmt): Promise<{ blob: Blob; filename
     headers: {
       'Content-Type': 'application/json',
       'Accept-Language': String(i18n.global.locale.value),
-      Authorization: `Bearer ${token()}`,
     },
     body: JSON.stringify({ kind: 'compare', lang, format: fmt, style: terms.style, compare: props.body }),
   })

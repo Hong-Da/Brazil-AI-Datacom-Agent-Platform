@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { ApiError, get, post, download, errorText } from '@/api'
 import Icon from '@/components/Icon.vue'
 import { useStatus } from '@/stores/status'
+import { useAuth } from '@/stores/auth'
 import RegressionPanel from './releases/RegressionPanel.vue'
 import DiffTables from './releases/DiffTables.vue'
 import {
@@ -17,6 +18,7 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const status = useStatus()
+const auth = useAuth() // 发布、回滚只有管理员可以做（REQ-030）
 
 const tab = ref<Tab>((['draft', 'diff', 'log'] as const).find((x) => x === route.query.tab) ?? 'draft')
 const rel = ref<ReleasesData | null>(null)
@@ -242,7 +244,7 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); clearTimeo
                 <div class="panel-h">
                   <h2>{{ $t('releases.draftTitle') }}</h2>
                   <span class="meta">{{ draft.base ? $t('releases.draftMeta', { v: draft.base }) : $t('releases.draftMetaFirst') }}</span>
-                  <button v-if="draft.base && counts.total" class="btn btn-sm btn-ghost" type="button" data-testid="draft-discard" @click="rbVer = draft.base; rbError = ''">
+                  <button v-if="draft.base && counts.total && auth.isAdmin" class="btn btn-sm btn-ghost" type="button" data-testid="draft-discard" @click="rbVer = draft.base; rbError = ''">
                     <Icon name="trash" small />{{ $t('releases.discardAll') }}
                   </button>
                 </div>
@@ -296,10 +298,11 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); clearTimeo
                     <textarea v-model="message" class="textarea" rows="3" :placeholder="$t('releases.notesPh')" data-testid="publish-message" />
                   </div>
                   <div class="mt12">
-                    <button class="btn btn-primary" style="width: 100%" type="button" :disabled="publishing || regRunning || !hasChanges || versionInvalid" data-testid="publish-btn" @click="publish">
+                    <button class="btn btn-primary" style="width: 100%" type="button" :disabled="publishing || regRunning || !hasChanges || versionInvalid || !auth.isAdmin" data-testid="publish-btn" @click="publish">
                       <Icon name="upload" small />{{ publishing ? $t('releases.publishing') : $t('releases.publishBtn', { v: version.trim() || suggested }) }}
                     </button>
-                    <p v-if="publishing" class="small faint mt8">{{ $t('releases.publishingHint') }}</p>
+                    <p v-if="!auth.isAdmin" class="small faint mt8" data-testid="publish-admin-only">{{ $t('releases.adminOnly') }}</p>
+                    <p v-else-if="publishing" class="small faint mt8">{{ $t('releases.publishingHint') }}</p>
                     <p v-else-if="!hasChanges" class="small faint mt8">{{ $t('releases.noChanges') }}</p>
                     <p v-else-if="regRunning" class="small faint mt8">{{ $t('releases.regBusy') }}</p>
                     <p v-else-if="reg?.failed" class="small faint mt8">{{ $t('releases.lastFailedHint') }}</p>
@@ -341,7 +344,7 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); clearTimeo
                     <div><div class="v">{{ v.version }}</div><div class="d">{{ fmtTime(v.time).slice(0, 10) }}</div></div>
                     <div class="s" :title="v.message">{{ v.message || '—' }}</div>
                     <span v-if="i === 0" class="tag t-teal">{{ $t('releases.latest') }}</span>
-                    <button v-else class="btn btn-xs" type="button" :data-testid="`rollback-${v.version}`" @click="rbVer = v.version; rbError = ''">
+                    <button v-else-if="auth.isAdmin" class="btn btn-xs" type="button" :data-testid="`rollback-${v.version}`" @click="rbVer = v.version; rbError = ''">
                       <Icon name="rollback" small />{{ $t('releases.rollback') }}
                     </button>
                   </div>

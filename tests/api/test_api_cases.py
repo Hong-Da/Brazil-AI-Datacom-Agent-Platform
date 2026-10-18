@@ -16,6 +16,10 @@ CASES = load_cases("api_cases.toml")
 
 def _request(client: Any, case: dict[str, Any], token: str) -> Any:
     headers = dict(case.get("headers", {}))
+    if case.get("login"):  # 先用账号登录（会话 Cookie 留在客户端里），login = ["用户名", "密码"]
+        name, password = case["login"]
+        r = client.post("/api/v1/auth/login", json={"username": name, "password": password})
+        assert r.status_code == 200, r.text
     if case.get("auth"):
         headers["Authorization"] = f"Bearer {token}"
     if case.get("files"):

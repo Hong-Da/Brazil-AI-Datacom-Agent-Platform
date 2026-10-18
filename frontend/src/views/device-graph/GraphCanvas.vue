@@ -4,10 +4,12 @@
  * 结构（可见节点 / 边）变化时重新布局并尽量保持锚点节点在屏幕上的位置；只有选中 / 筛选变化时只改样式类。
  */
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import cytoscape, { type Core, type ElementDefinition } from 'cytoscape'
 import elk from 'cytoscape-elk'
 import { EDGE_SHORT, type AggEdge, type Model, type VisNode } from './model'
 import { canvasLabel, graphStyle, readPalette, textWidth, truncate } from './style'
+import { noteText } from '@/i18n/note'
 
 cytoscape.use(elk)
 
@@ -28,6 +30,7 @@ const props = defineProps<{
   edgeName: (kind: string) => string
 }>()
 const emit = defineEmits<{ (e: 'tap', id: string): void; (e: 'more', parent: string): void; (e: 'background'): void }>()
+const { locale } = useI18n()
 
 const box = ref<HTMLDivElement>()
 const tip = ref<{ x: number; y: number; text: string } | null>(null)
@@ -217,7 +220,7 @@ onMounted(() => {
     } else if (!el.hasClass('contains')) {
       const e = props.edges.find((x) => x.id === el.id())
       if (!e) return
-      text = `${props.edgeName(e.kind)}${e.count > 1 ? ` ×${e.count}` : ''}${e.notes.length ? ` — ${e.notes.join(' / ')}` : ''}`
+      text = `${props.edgeName(e.kind)}${e.count > 1 ? ` ×${e.count}` : ''}${e.notes.length ? ` — ${e.notes.map((x) => noteText(x, String(locale.value))).filter(Boolean).join(' / ')}` : ''}`
     }
     if (!text) return
     const p = ev.renderedPosition ?? el.renderedPosition()

@@ -14,6 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 TOKEN = "e2e-token"
+ACCOUNTS = {"e2e-admin": ("E2e-admin-pass", "admin"), "e2e-user": ("E2e-user-pass", "user")}
 SAMPLES = [
     "huawei-atn-v800r023/atn-access-01.cfg",
     "cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg",
@@ -44,6 +45,11 @@ def prepare(root: Path) -> None:
     # 同一台设备的第二个版本（变更后的配置），供“同一设备两个版本”的对比使用
     v2 = (ROOT / "knowledge" / "samples" / "compare" / "asr920-modified.cfg").read_bytes()
     importer.import_sources([("pe-asr920-01-v2.cfg", v2)], settings.database_url, "basic", kb_root)
+    # 登录账号（REQ-030）：e2e/helpers.ts 的 ADMIN 与 USER
+    from lmesh.core import users
+
+    for name, (password, role) in ACCOUNTS.items():
+        users.create_user(settings.database_url, name, password, role)
 
 
 def main() -> int:

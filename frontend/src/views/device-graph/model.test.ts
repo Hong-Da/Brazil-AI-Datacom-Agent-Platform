@@ -163,6 +163,22 @@ describe('可见部分', () => {
     expect(aggregateEdges(m, vis, new Set(['mutex']), null)).toHaveLength(0)
     expect(nodeDeps(m, 'vrf.instance[A]').in).toHaveLength(1)
   })
+  it('三语说明聚合时去重，空说明不计入', () => {
+    const g = sample()
+    const N = { 'zh-CN': '接口引用 VRF', en: 'Interface references the VRF', 'pt-BR': 'A interface referencia a VRF' }
+    const I = 'interface[GE0/2/1]'
+    g.edges = g.edges.filter((e) => e.kind === 'contains')
+    g.edges.push(
+      { from: `${I}/vrf`, to: 'vrf.instance[A]', kind: 'reference', note: N },
+      { from: `${I}/description`, to: 'vrf.instance[A]', kind: 'reference', note: { ...N } },
+      { from: `${I}/mtu`, to: 'vrf.instance[A]', kind: 'reference', note: {} },
+    )
+    const m = buildModel(g, domainOf, { domainOrder: ORDER })
+    const vis = new Set(visibleTree(m, { ...base, showDefault: true, expanded: new Set(['device']) }).map((v) => v.id))
+    const agg = aggregateEdges(m, vis, new Set(['reference']), null)
+    expect(agg).toHaveLength(1)
+    expect(agg[0].notes).toEqual([N])
+  })
   it('搜索名字、取值和 id', () => {
     const m = buildModel(sample(), domainOf, { domainOrder: ORDER })
     expect(searchNodes(m, 'notanumber')).toEqual(['unknown[4]'])

@@ -65,6 +65,12 @@ enters:
   - {view: system, syntax: '^bridge-domain \{ <bridge-id>', enters: bridge-domain}
   - {view: system, syntax: '^l2vpn$', enters: l2vpn}
   - {view: system, syntax: '^ip access-list \{', enters: acl}
+  - {view: interface, syntax: '^vrrp <[^>]+> address-family', enters: vrrp}
+  - {view: system, syntax: '^class-map\b', enters: class-map}
+  - {view: system, syntax: '^policy-map\b', enters: policy-map}
+  - {view: policy-map, syntax: '^class\b', enters: policy-map-class}
+  - {view: system, syntax: '^ptp clock\b', enters: ptp-clock}
+  - {view: ptp-clock, syntax: '^clock-port\b', enters: ptp-port}
 
 param_types:
   - {name: '(mask-length|prefix-length|length)$', type: mask-length}
@@ -139,6 +145,31 @@ domains:
   acl:
     - path: 'acl/*.md'
       views_map: [{match: 'access.list configuration|\(config-(std|ext)-nacl\)', view: acl}]
+  # 0.4.0（M4-2）：QoS（MQC：class-map / policy-map / class / 动作，接口与 class 下的 service-policy）
+  qos:
+    - path: 'qos/*.md'
+      views_map:
+        - {match: '\(config-cmap\)|^(QoS )?[Cc]lass-map configuration', view: class-map}
+        - {match: '\(config-pmap-c\)|^(QoS )?[Pp]olicy-map class( configuration)?$|^QoS p ?olicy-map class', view: policy-map-class}
+        - {match: '\(config-pmap\)|^Policy-map configuration', view: policy-map}
+        - {match: '\(config-pmap-c-police\)|\(config-if-spolicy-inline\)|[Pp]olicy inline|ATM|config-if-srv|Ethernet service', view: null}
+  # 0.4.0（M4-2）：SR-MPLS（公开命令参考只有 IS-IS 书的 microloop avoidance；其余命令按 ASR 920 SR 配置指南由修正文件补充）
+  sr:
+    - {path: 'segment-routing/*.md', views_map: [{match: '\(router-config\)|\(config[- ]router\)|^Router configuration', view: router-isis}]}
+  # 0.4.0（M4-2）：EVPN（公开命令参考只有 BGP 书的 address-family l2vpn；其余按 ASR 920 EVPN 配置指南由修正文件补充）
+  evpn:
+    - path: 'evpn/*.md'
+      views_map: [{match: '\(config-router\)|^Router configuration', view: router-bgp}]
+  # 0.4.0（M4-2）：时钟同步（PTP、同步以太 network-clock / ESMC）
+  clock:
+    - path: 'timing/*.md'
+      views_map:
+        - {match: '\(config-ptp-port\)|PTP (clock[- ])?port configuration', view: ptp-port}
+        - {match: '\(config-ptp-clk\)|PTP clock configuration', view: ptp-clock}
+  # 0.4.0（M4-2）：VRRP（VRRPv2 接口模式写法与 VRRPv3 的 vrrp <组> address-family 子模式）
+  vrrp:
+    - path: 'vrrp/*.md'
+      views_map: [{match: '\(config-if-vrrp\)|^VRRP configuration', view: vrrp}]
 
 # 统一改写：运行配置中接口名、前缀都是一个词，文档把它们拆成了两个参数
 syntax_rewrites:

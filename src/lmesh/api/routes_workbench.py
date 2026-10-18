@@ -7,7 +7,17 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 
-from lmesh.api.common import E_NOT_FOUND, E_PARAM, E_STATE, ApiError, lang_of, ok, require_token, settings_of
+from lmesh.api.common import (
+    E_NOT_FOUND,
+    E_PARAM,
+    E_STATE,
+    ApiError,
+    lang_of,
+    ok,
+    require_admin,
+    require_token,
+    settings_of,
+)
 from lmesh.core import analysis, config, kbservice, store, tasks, workbench
 from lmesh.core.kb import edit, read_yaml, repo
 
@@ -265,7 +275,9 @@ def unknown_review(request: Request, body: PatternsBody) -> dict[str, Any]:
 # ---------- AI 设置 ----------
 
 
-@router.get("/ai/settings", summary="AI 接口设置（API Key 只显示是否已设置）")
+@router.get(
+    "/ai/settings", summary="AI 接口设置（API Key 只显示是否已设置；管理员）", dependencies=[Depends(require_admin)]
+)
 def ai_settings(request: Request) -> dict[str, Any]:
     return ok(request, workbench.ai_settings(settings_of(request)))
 
@@ -282,7 +294,11 @@ class AISettingsBody(BaseModel):
     max_tokens: int | None = None
 
 
-@router.put("/ai/settings", summary="保存 AI 接口设置（写入配置文件，API Key 加密保存）")
+@router.put(
+    "/ai/settings",
+    summary="保存 AI 接口设置（写入配置文件，API Key 加密保存；管理员）",
+    dependencies=[Depends(require_admin)],
+)
 def ai_settings_put(request: Request, body: AISettingsBody) -> dict[str, Any]:
     try:
         new = workbench.save_ai_settings(body.model_dump(), lang_of(request))

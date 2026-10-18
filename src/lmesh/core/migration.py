@@ -1111,10 +1111,25 @@ def migrate(
     model: str | None = None,
     on_conflict: str = "migrate",
     verify: bool = True,
+    rules: Any = None,
 ) -> dict[str, Any]:
     """割接迁移：返回 {text, delta, interface_map[], unmapped[], warnings[], unsupported[], defaults[], merge, verify,
-    script, steps[], stats, source, target, inventory}。"""
-    return _Migrator(g_old, kb, src_profile, dst_profile, interface_map, target_graph, model, on_conflict).run(verify)
+    script, steps[], stats, source, target, inventory}。
+
+    rules（naming.RuleSet，REQ-032）：先按规则集在旧图副本上改名（新名与新设备现有配置重名时报冲突），端口映射并入
+    映射表（用户给出的映射 > 规则集 > 自动建议），结果另有 naming；不给时结果与原来完全一致。"""
+    report = None
+    if rules is not None:
+        from lmesh.core import naming
+
+        if dst_profile not in kb.profiles:
+            raise MigrateError("parse.profile_unknown", profile=dst_profile)
+        g_old, ports, report = naming.run(g_old, kb, rules, dst_profile, target_graph)
+        interface_map = {**ports, **(interface_map or {})}
+    result = _Migrator(g_old, kb, src_profile, dst_profile, interface_map, target_graph, model, on_conflict).run(verify)
+    if report is not None:
+        result["naming"] = report
+    return result
 
 
 def target_graph_from_text(text: str, kb: KnowledgeBase, dst_profile: str) -> nx.MultiDiGraph:

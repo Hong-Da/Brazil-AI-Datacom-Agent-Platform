@@ -406,20 +406,21 @@ cards:
     syntax: interface <interface>
     view: system
     enters_view: interface
-    undo: no interface <type> <number>
+    undo: no interface <interface>
     params:
       interface:
         type: interface
     default: No interface types are configured.
+    maps:
+      interface: $interface
     source:
       doc: cisco-iosxe-md
       file: interface/interface.md
       title: interface
       line: 5
       version: '17.15'
+      patched: 取消写法照抄了通用的 no interface <type> <number>，与本卡的 <interface> 参数对不上；运行配置写法是 no interface <接口名>（变更脚本删除接口用）
     status: draft
-    maps:
-      interface: $interface
   - id: cisco-iosxe.interface.20
     syntax: Cisco 7100 Series
     view: system

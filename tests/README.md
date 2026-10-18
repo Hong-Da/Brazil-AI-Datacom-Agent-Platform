@@ -66,6 +66,6 @@ tests/
 - 机器：`root@linux-test-host`，SSH 端口 22，本项目专用密钥 `~/.ssh/lmesh_dev_ed25519`；工作目录 `~/lmesh/`。密码不记录在任何文件中。
 - 这台机器必须是可以随意改动的测试机或虚拟机，不能是生产服务器。所有操作限定在工作目录内；需要 sudo、安装系统软件、开放端口时先说明并征得同意。
 - 开发方式：本机编写，同步到 Linux 运行。同步时排除 `.venv/`、`.toolchain/`、`frontend/node_modules/`、`data/`、`logs/`、`dist/`、`tests/output/`、`config/config.toml`、`DevelopDocs/`；Linux 上的 `config/`、`data/` 不被覆盖。
-- 端口：Linux 上 9000 已被其他 Docker 服务占用，在 Linux 上运行时临时用 9001（不改默认值）。
-- 查看 Web 界面：SSH 端口转发 `ssh -i ~/.ssh/lmesh_dev_ed25519 -N -L 9001:127.0.0.1:9001 root@linux-test-host`，本机打开 `http://127.0.0.1:9001`。
+- 端口：默认 9090；Linux 测试机上 9090 已被其他 Docker 服务占用，在 Linux 上运行时临时用 9091（不改默认值）。
+- 查看 Web 界面：SSH 端口转发 `ssh -i ~/.ssh/lmesh_dev_ed25519 -N -L 9091:127.0.0.1:9091 root@linux-test-host`，本机打开 `http://127.0.0.1:9091`。
 - 测试时机：每个里程碑结束、阶段三全量测试、用户要求时。步骤：同步代码 → `./start.sh --check` → `./test.sh` → 启动服务跑 `--live` → 取回 `tests/output/` 报告；与 Windows 结果不一致的用例单独列出。

@@ -137,12 +137,22 @@ def test_sample_baseline_atn(kb: KnowledgeBase, rules: list[rulesmod.Rule]) -> N
     res = checks.check(_graph(kb, SAMPLES / "huawei-atn-v800r023" / "atn-access-01.cfg"), kb, rules)
     # 桥域 1500：两个 .1500 二层子接口都没有加入它；VERIFICA-NEXTHOP 被 nexthop recursive-lookup 引用（已映射），不是孤儿
     # ACL_MCAST_SSM（0.3.0 起 ACL 是功能域）只被范围外的 pim ssm-policy 使用：降级为 unsure，不进清理脚本
-    assert sorted(_pairs(res)) == [
+    # M4-2 起 QoS 进入功能域：7 个流策略、7 个 QoS 模板没有接口应用（已在原文中逐个核对），它们独占的流分类 / 流行为 /
+    # 流队列按级联孤儿报出
+    pairs = sorted(_pairs(res))
+    assert [x for x in pairs if not x[1].startswith("qos.")] == [
         ("ref.orphan", "bridge_domain[1500]"),
         ("ref.orphan_unsure", "acl.instance[ACL_MCAST_SSM]"),
     ]
+    qos = [x for x in pairs if x[1].startswith("qos.")]
+    assert sum(1 for r, n in qos if r == "ref.orphan" and n.startswith("qos.policy[")) == 7
+    assert sum(1 for r, n in qos if r == "ref.orphan" and n.startswith("qos.profile[")) == 7
+    assert ("ref.orphan", "qos.policy[TC20_VOIP_IN]") in qos
     clean = cleanup.cleanup(_graph(kb, SAMPLES / "huawei-atn-v800r023" / "atn-access-01.cfg"), kb)
-    assert [c["text"] for c in clean["commands"]] == ["undo bridge-domain 1500"] and clean["verify"]["ok"]
+    texts = [c["text"] for c in clean["commands"]]
+    assert "undo bridge-domain 1500" in texts and clean["verify"]["ok"]
+    # 先删流策略，再删它独占的流分类 / 流行为
+    assert texts.index("undo traffic policy TC20_VOIP_IN") < texts.index("undo traffic classifier VOIP_RT")
     assert [s["node"] for s in clean["skipped"]] == ["acl.instance[ACL_MCAST_SSM]"]  # maybe_referenced
 
 

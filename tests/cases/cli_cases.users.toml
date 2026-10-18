@@ -1,0 +1,139 @@
+# 账号命令 lmesh user 的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-users：管理员 admin、普通用户 alice。stdin 字段作为标准输入（--password-stdin 读第一行）。
+
+[[case]]
+id = "user-list"
+title = { zh-CN = "账号列表", en = "List accounts", pt-BR = "Listar contas" }
+args = ["--output", "json", "user", "list"]
+setup = "configured-users"
+expect_exit = 0
+expect_json = { "ok" = true, "data.count" = 2, "data.users.0.username" = "admin", "data.users.0.role" = "admin", "data.users.1.username" = "alice", "data.users.1.role" = "user" }
+in_docs = true
+
+[[case]]
+id = "user-list-text"
+title = { zh-CN = "账号列表的文字输出（英文）", en = "Account list text output (English)", pt-BR = "Saída de texto da lista de contas (inglês)" }
+args = ["--lang", "en", "user", "list"]
+setup = "configured-users"
+expect_exit = 0
+expect_stdout = ["User name", "admin", "alice", "enabled", "2 account(s)"]
+
+[[case]]
+id = "user-list-empty"
+title = { zh-CN = "还没有账号时提示创建管理员", en = "No accounts: hint to create an admin", pt-BR = "Sem contas: dica para criar um administrador" }
+args = ["user", "list"]
+setup = "configured"
+expect_exit = 0
+expect_stdout = ["lmesh user add"]
+
+[[case]]
+id = "user-add"
+title = { zh-CN = "新建管理员，密码从标准输入读取", en = "Add an admin, password from stdin", pt-BR = "Criar administrador com senha pela entrada padrão" }
+args = ["--output", "json", "user", "add", "ops", "--role", "admin", "--password-stdin"]
+stdin = "Ops-pass-1234\n"
+setup = "configured-users"
+expect_exit = 0
+expect_json = { "ok" = true, "data.user.username" = "ops", "data.user.role" = "admin", "data.user.disabled" = false }
+in_docs = true
+
+[[case]]
+id = "user-add-no-tty"
+title = { zh-CN = "没有终端又没给 --password-stdin：退出码 2", en = "No terminal and no --password-stdin: exit 2", pt-BR = "Sem terminal e sem --password-stdin: saída 2" }
+args = ["user", "add", "ops"]
+stdin = ""
+setup = "configured-users"
+expect_exit = 2
+expect_stderr = ["--password-stdin"]
+
+[[case]]
+id = "user-add-short"
+title = { zh-CN = "密码太短：退出码 2", en = "Password too short: exit 2", pt-BR = "Senha curta: saída 2" }
+args = ["user", "add", "ops", "--password-stdin"]
+stdin = "short\n"
+setup = "configured-users"
+expect_exit = 2
+expect_stderr = ["密码至少 8 个字符"]
+
+[[case]]
+id = "user-add-exists"
+title = { zh-CN = "用户名已存在：退出码 1", en = "User name taken: exit 1", pt-BR = "Usuário já existe: saída 1" }
+args = ["user", "add", "alice", "--password-stdin"]
+stdin = "Alice-pass-9\n"
+setup = "configured-users"
+expect_exit = 1
+expect_stderr = ["账号 alice 已存在"]
+
+[[case]]
+id = "user-disable"
+title = { zh-CN = "停用账号", en = "Disable an account", pt-BR = "Desativar conta" }
+args = ["user", "disable", "alice"]
+setup = "configured-users"
+expect_exit = 0
+expect_stdout = ["已停用账号 alice"]
+in_docs = true
+
+[[case]]
+id = "user-disable-last-admin"
+title = { zh-CN = "最后一个启用的管理员不能停用：退出码 1", en = "The last enabled admin cannot be disabled: exit 1", pt-BR = "O último administrador ativo não pode ser desativado: saída 1" }
+args = ["--output", "json", "user", "disable", "admin"]
+setup = "configured-users"
+expect_exit = 1
+expect_json = { "ok" = false, "error.code" = 1 }
+
+[[case]]
+id = "user-enable"
+title = { zh-CN = "启用账号（同时解除锁定）", en = "Enable an account (also unlocks)", pt-BR = "Ativar conta (também desbloqueia)" }
+args = ["--output", "json", "user", "enable", "alice"]
+setup = "configured-users"
+expect_exit = 0
+expect_json = { "ok" = true, "data.user.disabled" = false, "data.user.locked" = false }
+
+[[case]]
+id = "user-reset-password"
+title = { zh-CN = "重置密码（会话失效、锁定解除）", en = "Reset a password (ends sessions, clears lock)", pt-BR = "Redefinir senha (encerra sessões, remove bloqueio)" }
+args = ["--output", "json", "user", "reset-password", "alice", "--password-stdin"]
+stdin = "Alice-new-pass\n"
+setup = "configured-users"
+expect_exit = 0
+expect_json = { "ok" = true, "data.user.username" = "alice", "data.sessions_closed" = 0 }
+in_docs = true
+
+[[case]]
+id = "user-set-role"
+title = { zh-CN = "改角色", en = "Change role", pt-BR = "Mudar papel" }
+args = ["user", "set-role", "alice", "admin"]
+setup = "configured-users"
+expect_exit = 0
+expect_stdout = ["alice 的角色已改为 管理员"]
+in_docs = true
+
+[[case]]
+id = "user-set-role-invalid"
+title = { zh-CN = "角色不对：退出码 2", en = "Invalid role: exit 2", pt-BR = "Papel inválido: saída 2" }
+args = ["user", "set-role", "alice", "root"]
+setup = "configured-users"
+expect_exit = 2
+expect_stderr = ["admin 或 user"]
+
+[[case]]
+id = "user-delete"
+title = { zh-CN = "删除账号（--yes 跳过确认）", en = "Delete an account (--yes skips the prompt)", pt-BR = "Excluir conta (--yes pula a confirmação)" }
+args = ["--yes", "--output", "json", "user", "delete", "alice"]
+setup = "configured-users"
+expect_exit = 0
+expect_json = { "ok" = true, "data.deleted" = "alice" }
+in_docs = true
+
+[[case]]
+id = "user-delete-missing"
+title = { zh-CN = "账号不存在：退出码 4", en = "Unknown account: exit 4", pt-BR = "Conta inexistente: saída 4" }
+args = ["--yes", "user", "delete", "nobody"]
+setup = "configured-users"
+expect_exit = 4
+expect_stderr = ["账号 nobody 不存在"]
+
+[[case]]
+id = "user-not-configured"
+title = { zh-CN = "未完成首次配置：退出码 3", en = "Not configured yet: exit 3", pt-BR = "Ainda não configurado: saída 3" }
+args = ["user", "list"]
+expect_exit = 3

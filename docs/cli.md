@@ -60,6 +60,12 @@
 | `lmesh status` | 运行状态：版本、是否已配置、数据库、知识库、AI 接口 |
 | `lmesh serve [--host] [--port]` | 启动 Web 界面与远程 API；`--host`、`--port` 只临时覆盖，不改配置文件 |
 | `lmesh setup [--defaults] [--force]` | 命令行版首次运行向导；`--defaults` 不提问，采用默认值与环境变量（Docker、自动化部署用） |
+| `lmesh user list` | 网页登录账号列表：用户名、角色、状态（启用 / 锁定至 / 已停用）、最后登录（REQ-030） |
+| `lmesh user add <名称> [--role admin\|user] [--password-stdin]` | 新建账号（默认普通用户）；密码从提示读取（不回显、输入两次），或用 `--password-stdin` 从标准输入读第一行，不接受命令行明文；没有终端又没给 `--password-stdin` 时退出码 2；用户名已存在退出码 1 |
+| `lmesh user disable <名称>` / `lmesh user enable <名称>` | 停用（该账号的会话立即失效）/ 启用（同时解除锁定）；最后一个启用的管理员不能停用（退出码 1） |
+| `lmesh user reset-password <名称> [--password-stdin]` | 重置密码：同时解除锁定，该账号的会话全部失效 |
+| `lmesh user set-role <名称> admin\|user` | 改角色；最后一个启用的管理员不能改成普通用户 |
+| `lmesh user delete <名称>` | 删除账号（需要确认，`--yes` 跳过）；账号不存在退出码 4 |
 | `lmesh config show` | 当前生效的配置及来源（default / file / env），敏感值只显示是否已设置 |
 | `lmesh config example [--check]` | 生成 `config/config.example.toml` |
 | `lmesh db upgrade` | 把数据库升级到最新结构 |
@@ -83,8 +89,14 @@
 | `lmesh unknown list [--limit N]` | 已导入配置中的未识别行，按归一化后的模式与出现次数汇总（用来补命令卡） |
 | `lmesh graph show <文件\|设备名> [--domain D] [--profile P]` | 显示配置图：语义节点（含 Profile 补出的隐藏默认节点）、依赖边（contains / reference / prerequisite / side_effect / mutex）、悬空引用 |
 | `lmesh render <文件\|设备名> [--profile P] [--canonical] [--with-defaults]` | 解析建图后按图渲染回配置文本。默认往返模式：保留原有顺序、缩进与写法；`--canonical` 规范模式：只看图中的语义节点，按平台族写法重新生成命令（按视图分块、被引用的先出现，华为 `#` 分隔、`return` 结尾，Cisco `!` 与 `end`），未映射命令与功能域外原文按原文写回原位置；`--with-defaults` 含默认值的完整配置（规范模式，Profile 默认值也写成命令，集中放在所在块的显式行之后，前面一行注释 `! default`）。`--output json` 时 `lines` 给出每一行的来源节点、`origin`（explicit / default）、`kind`（command / original 按原文写回的命令 / extra 原文行 / separator / comment / exit / end），`default_lines` 为默认值行的行号，`uncovered` 为没能写成命令的节点（在 stderr 提示个数） |
-| `lmesh translate <文件\|设备名> --to <Profile> [--interface-map 文件] [-o 文件] [--profile P] [--no-verify]` | 配置翻译：按有效值把配置翻译到目标 Profile（另一个平台族），接口名按映射表改写（子接口按父接口映射，没给映射表时同名）。默认值差异：源设备依赖默认值而目标默认值不同时显式写出并告警（`default_differs`），目标没有登记默认值时只提示（`default_unknown`），两边相同时不写；源设备显式值等于目标默认值时省略（`defaults`）。目标 Profile 不支持或写不出命令的节点、跨平台族的密码类取值（需重新设置）、未映射命令、功能域外原文、未识别行列在 `unsupported`（附原文行号），人工处理；目标写法必须给出、源配置没有的取值按推导规则写出并告警（`inferred_value`）；接口类型不属于目标平台族时告警（`interface_type`）。译文再解析建图后与源图按有效值对比（`verify`），列出项之外的差异记为 `verify_diff`。不给 `-o` 时译文写到 stdout、摘要与告警写到 stderr；**校验发现没有解释的差异时退出码 1** |
-| `lmesh migrate <文件\|设备名> --to <Profile> [--interface-map 文件] [--target-config 文件] [--model 型号] [--on-conflict migrate\|keep] [-o 目录] [--suggest-only] [--profile P] [--no-verify]` | 割接迁移：翻译 + 接口映射，一次完成整机迁移。接口映射表可以只给部分（CSV / JSON / YAML / 两列文本，新接口写 `-` 表示不迁移），其余自动建议：逻辑接口（聚合口、环回口、桥域三层口等）编号不变换类型写法，物理口按同名 → 同速率同端口号 → 同速率依次 → 更高速率在端口清单中分配，每条附依据（`basis`）与置信度（`confidence`）；端口清单依次取 `--model` 指定型号的知识库清单（`knowledge/migration/ports/`）、`--target-config` 中的接口、知识库默认型号（提示 `port_inventory_assumed`）。管理口不迁移；没有映射的接口连同子接口、引用它们的配置不迁移；子接口跟随主接口；聚合口编号变化时成员口跟着改。给出新设备现有配置时在其上合并，只生成需要新增 / 修改的部分（`delta.cfg`），冲突按 `--on-conflict` 处理并告警。新配置再解析与旧设备按有效值对比（`verify`）。`-o` 目录里写 `new-config.cfg`、`delta.cfg`（有现有配置时）、`interface-map.csv`（可修改后用 `--interface-map` 传回）、`warnings.csv`、`steps.txt`（割接步骤：文字 + 命令，含回退）、`migration.json`，复用增量变更模块生成的下发与回滚脚本 `script.txt`、`rollback.txt`；`--suggest-only` 只给映射建议。不给 `-o` 时新配置写到 stdout、摘要与步骤写到 stderr；**校验发现没有解释的差异时退出码 1**，型号不存在等参数错误 2，文件不存在 4 |
+| `lmesh translate <文件\|设备名> --to <Profile> [--interface-map 文件] [-o 文件] [--profile P] [--no-verify] [--rules 规则集]` | 配置翻译：按有效值把配置翻译到目标 Profile（另一个平台族），接口名按映射表改写（子接口按父接口映射，没给映射表时同名）。默认值差异：源设备依赖默认值而目标默认值不同时显式写出并告警（`default_differs`），目标没有登记默认值时只提示（`default_unknown`），两边相同时不写；源设备显式值等于目标默认值时省略（`defaults`）。目标 Profile 不支持或写不出命令的节点、跨平台族的密码类取值（需重新设置）、未映射命令、功能域外原文、未识别行列在 `unsupported`（附原文行号），人工处理；目标写法必须给出、源配置没有的取值按推导规则写出并告警（`inferred_value`）；接口类型不属于目标平台族时告警（`interface_type`）。译文再解析建图后与源图按有效值对比（`verify`），列出项之外的差异记为 `verify_diff`。不给 `-o` 时译文写到 stdout、摘要与告警写到 stderr；**校验发现没有解释的差异时退出码 1**；`--rules <规则集编号或文件>` 先按翻译规则集改名（REQ-032，对象与引用一起改、端口按规则映射，显式映射表优先），结果另有 `naming` |
+| `lmesh migrate <文件\|设备名> --to <Profile> [--interface-map 文件] [--target-config 文件] [--model 型号] [--on-conflict migrate\|keep] [-o 目录] [--suggest-only] [--profile P] [--no-verify] [--rules 规则集]` | 割接迁移：翻译 + 接口映射，一次完成整机迁移。接口映射表可以只给部分（CSV / JSON / YAML / 两列文本，新接口写 `-` 表示不迁移），其余自动建议：逻辑接口（聚合口、环回口、桥域三层口等）编号不变换类型写法，物理口按同名 → 同速率同端口号 → 同速率依次 → 更高速率在端口清单中分配，每条附依据（`basis`）与置信度（`confidence`）；端口清单依次取 `--model` 指定型号的知识库清单（`knowledge/migration/ports/`）、`--target-config` 中的接口、知识库默认型号（提示 `port_inventory_assumed`）。管理口不迁移；没有映射的接口连同子接口、引用它们的配置不迁移；子接口跟随主接口；聚合口编号变化时成员口跟着改。给出新设备现有配置时在其上合并，只生成需要新增 / 修改的部分（`delta.cfg`），冲突按 `--on-conflict` 处理并告警。新配置再解析与旧设备按有效值对比（`verify`）。`-o` 目录里写 `new-config.cfg`、`delta.cfg`（有现有配置时）、`interface-map.csv`（可修改后用 `--interface-map` 传回）、`warnings.csv`、`steps.txt`（割接步骤：文字 + 命令，含回退）、`migration.json`，复用增量变更模块生成的下发与回滚脚本 `script.txt`、`rollback.txt`；`--suggest-only` 只给映射建议。不给 `-o` 时新配置写到 stdout、摘要与步骤写到 stderr；**校验发现没有解释的差异时退出码 1**，型号不存在等参数错误 2，文件不存在 4；`--rules` 按翻译规则集改名并把端口映射规则并入映射表（用户映射表 > 规则集 > 自动建议，REQ-032） |
+| `lmesh naming list` | 翻译规则集（REQ-032）列表：内置示例（`knowledge/translate-rules/`，只读）与我的（`data/translate-rules/`），三类规则的条数；规则集有问题时列出问题数 |
+| `lmesh naming show <规则集>` | 显示规则集的 YAML 原文（编号或文件）；规则集不存在退出码 4 |
+| `lmesh naming test <规则集> <文件\|设备名> [--to Profile] [--target-config 文件] [--profile P]` | 试运行：按规则集在图上改名，列出改名清单（原名 → 新名、命中的规则、整理动作、同步改的引用）、端口映射（子接口随主接口）、冲突（多对一、与未改名的同类对象重名、与目标设备已有名称重名：都不执行）、命名规范告警、原文行中的旧名、知识缺口（目标平台没有登记名称长度上限）；**有冲突时退出码 1** |
+| `lmesh naming match <规则集> <名称> [--type 对象类型] [--port] [--to Profile]` | 测试一个名称（或 `--port` 接口名）经过规则后的结果：命中的规则、映射后、整理后的名称与告警 |
+| `lmesh naming import <文件> [--id 编号] [--overwrite]` | 导入规则集到 `data/translate-rules/`；规则有误退出码 3（列出问题），编号已存在（不加 `--overwrite`）或与内置规则集同编号退出码 1 |
+| `lmesh naming delete <编号>` | 删除我的规则集；内置规则集只读（退出码 1），不存在退出码 4 |
 | `lmesh roundtrip [<文件>] [--samples] [--profile P]` | 往返测试：配置 → 图 → 配置逐字比较；`--samples` 跑 `knowledge/samples/manifest.yaml` 中的全部样本，门槛样本还要求功能域内没有未识别行；不一致时退出码 1 |
 | `lmesh compare <A> <B> [--domain D] [--raw] [--interface-map 文件] [--profile-a P] [--profile-b P] [--rename-threshold 0–1] [--hide-identity]` | 配置对比（同厂商或跨厂商都按 Schema 节点比较）：A、B 是配置文件或已导入的设备名（`设备名@版本编号` 取指定配置版本，版本编号见 `GET /devices/{id}/versions` 的 `id`，省略时取最新版本）。比较有效值（显式值，否则 Profile 默认值或派生值，显式写出默认值与不写结果相同）；值按节点类型规范化后比较（掩码与长度、接口名缩写与大小写、RD / RT 写法、RT 的 `both` 等于 import + export）；可被引用的对象（路由策略、前缀列表、VRF 等）内容相同只是名字不同时判为改名，引用随之对应；`--interface-map` 为跨厂商的接口对照（JSON / YAML 的 `{A: B}`，或每行两列的文本）；`--raw` 同时按所属对象比较功能域外的原文行；未识别行单独列出；只有一侧 Profile 有默认值的属性不可比，不算差异（`default_only`）。文本输出按功能域分组（`+` 新增、`-` 删除、`~` 修改、`»` 改名），`--output json` 输出完整结果；`--hide-identity` 隐藏设备身份差异（Router ID、接口 IPv4 地址、BGP 对等体地址、IS-IS NET、主机名等），被隐藏的个数见 `summary.hidden_identity`；**有差异时退出码仍为 0**，差异数见 `summary.total` |
 | `lmesh check <文件\|设备名> [--rules 目录] [--severity error\|warning\|info] [--domain D] [--profile P]` | 配置检查：悬空引用、孤儿对象（含级联孤儿）、互斥冲突，以及知识库 `rules/` 中的规则约束；每条发现带规则编号、级别、规范编号、行号、说明与修复建议，并按级别、规则、功能域汇总；目标是已导入的设备时合并该设备的忽略记录（被忽略的发现标注原因，不计入级别统计与退出码）；内置检查的开关与级别按 `rules/builtin.yaml`；`--severity` 是最低级别，`--domain` 只看一个功能域；**筛选后仍有 error 级发现时退出码 1**（便于脚本判断），规则文件写错时退出码 3 并列出文件、规则与出错位置，`--rules` 目录不存在时退出码 4 |
@@ -100,9 +112,24 @@
 | `lmesh template check <模板> <文件\|设备名> [--profile P] [--extra allow\|deny] [--extra-scope none\|matched\|domains]` | 按模板校验配置（在图上按有效值比较）：符合与否、提取的变量与块实例，逐项原因（`missing` 缺少、`value` 取值不符、`inconsistent` 前后不一致、`constraint` 违反约束、`count` 实例个数、`extra` 模板外的配置），附配置与模板正文的行号；`--extra` / `--extra-scope` 覆盖模板的 `match` 设置；**不符合时退出码 1** |
 | `lmesh template extract <模板> <文件\|设备名>… [--format json\|csv] [-o 文件]` | 按模板提取变量，每份配置一行，格式与 `generate` 的参数表相同（CSV 中块变量写成 `块名.变量`、重复块的取值用分号连接）；不符合模板时仍输出提取结果，退出码 0 |
 | `lmesh template draft <文件>… [--id 编号] [-o 模板文件] [--params-out 参数表] [--profile P]` | 模板制作辅助：从一份或几份同角色设备的配置生成模板草稿（第一份为基准）；在图上对齐各设备的节点，取值不同的词作为候选变量（名字建议、类型推断），只有一份时以设备身份与描述为候选；列出可选块与重复块候选，并用草稿校验每份源配置（自检） |
-| `lmesh template generate <模板> <参数表> [--format csv\|json] [--out-dir 目录] [--engine text\|canon] [--target-profile P] [--no-verify]` | 批量生成：参数表每行生成一份配置；生成后解析（未识别行为 0）、往返（逐字一致）并按模板校验（符合且提取出的变量与输入一致），失败的行给出原因；`--engine canon` 用规范渲染器输出，可配合 `--target-profile` 生成另一平台族的配置；`--out-dir` 只写成功的行（`<设备名>.cfg`）；**有失败的行时退出码 1** |
+| `lmesh template generate <模板> <参数表> [--format csv\|json] [--out-dir 目录] [--engine text\|canon] [--target-profile P] [--no-verify] [--rules 规则集]` | 批量生成：参数表每行生成一份配置；生成后解析（未识别行为 0）、往返（逐字一致）并按模板校验（符合且提取出的变量与输入一致），失败的行给出原因；`--engine canon` 用规范渲染器输出，可配合 `--target-profile` 生成另一平台族的配置；`--out-dir` 只写成功的行（`<设备名>.cfg`）；**有失败的行时退出码 1**；`--rules` 只能与 `--engine canon` 一起用：生成的图按规则集改名后再渲染（改过名的行不按模板校验） |
 | `lmesh template save <模板文件>` | 校验（含正文解析建图）后把模板写入运行时知识库的 `templates/<编号>.yaml` 并提交 |
 | `lmesh ai test` / `lmesh ai calls` | 测试 AI 接口 / 最近的 AI 调用记录（任务、模型、token 用量、成功与否） |
+| `lmesh history list <设备>` | 版本历史时间线：每个快照的导入记录（内容相同的重复导入不存新快照，只记导入记录，显示 ×N）、行数、节点数、解析用的知识库版本、内容指纹、标签、相对上一快照的变化（+新增 ~修改 -删除）；保留最近 `history.keep` 个（默认 50），贴标签的永久保留 |
+| `lmesh history diff <设备> [--from 快照] [--to 快照] [--rebuild] [--show-noneff] [--domain D] [--no-text] [--report 文件.html\|.md] [--report-lang zh-CN\|en]` | 两个快照之间的变化（默认上一个 → 最新）：按对象归并的图差异、只是写法不同的变化（默认只计数）、配置原文差异；默认用快照当时保存的图，`--rebuild` 两侧都按当前知识库重新解析。快照写法：数字是序号（同 `#3`），`v<编号>` 是配置版本编号，另有 `latest`、`prev`、`tag:<标签>` |
+| `lmesh history object <设备> <对象规范编号> [--rebuild]` | 一个对象在每个快照中的取值与变化 |
+| `lmesh history tag <设备> <快照> <标签>` / `--remove` | 给快照贴标签（永久保留）或去掉标签 |
+| `lmesh history restore <设备> --to <快照> [--from 快照] [-o 脚本] [--rollback 文件] [--plain] [--report 文件]` | 回到某个快照：当前（默认最新）→ 目标快照的增量变更脚本，附回滚脚本与模拟验证（复用 `lmesh change`） |
+| `lmesh export presets [--style huawei\|cisco]` | 审计表格的预置模板（`knowledge/export/tables.yaml`）：IP 地址表、VLAN / 桥域表、BGP 邻居表、接口描述表、VPN 实例表、静态路由表 |
+| `lmesh export table [文件\|目录\|设备名…] [--all] --preset P \| --object O [--fields 路径,…] [--where 筛选,…] [--filter '字段 运算符 取值']… [--no-defaults] [--canonical-names] [--format csv\|xlsx\|json] [--sheets per-device\|single] [--table-lang zh-CN\|en\|pt-BR] [--style] [-o 文件]` | 导出审计表格：每行一个对象、每格可追溯到图节点与配置行；CSV 为 UTF-8 带 BOM，另有“来源”列标出来自默认值的格子；XLSX 有“说明”工作表，默认值格子加批注；表头三语；敏感字段只写“已配置 / 未配置” |
+| `lmesh feature [关键词] [--profile P]… [--family F] [--domain D] [--state supported\|unsupported\|unfilled] [--include-same] [--detail 节点]` | 特性能力查询（由知识库计算）：各 Profile 是否支持、默认值（↑ 表示继承）、命令写法、命令卡、来源；不带关键词浏览全部时各 Profile 完全相同的只计数 |
+| `lmesh feature-diff <Profile A> <Profile B> [--domain D] [--include-same]` | 两个 Profile 对比：默认值不同的排在前面，其次只有一边支持、一边未填写；相同的默认只计数 |
+| `lmesh query "<查询>" [文件\|目录\|设备名…]` | 执行图查询（受限的只读查询语言，不需要 AI）：`FIND <对象> [ON <设备>,…\|*] [WHERE <字段> <运算符> <取值> [AND …]] [RETURN <字段>,…] [WITH DEFAULTS] [LIMIT n]`；运算符 `=` `!=` `~`（正则）`!~` `>` `<` `>=` `<=` `IN (…)` `EXISTS` `NOT EXISTS`；不给目标时查全部已导入设备 |
+| `lmesh ask "<问题>" [设备名…] [--show-sent]` | AI 自然语言查询（需要配置 AI，未配置时退出码 3）：AI 写图查询 → 代码校验并执行 → AI 只根据结果回答 → 代码逐句核对（通过 / 已按图更正 / 无法校验）；发给 AI 的内容先脱敏，`--show-sent` 打印实际发送的内容；AI 写不出合法查询时退出码 1 |
+| `lmesh guard <配置片段> [--device 设备名\|当前配置文件] [--profile P] [--template T] [--no-cross-device] [--no-script]` | 配置护栏（不需要 AI）：片段合并到目标设备当前配置后解析、入图、依赖（悬空引用、互斥、前置、副作用顺序）、模板约束、冲突（地址、RD 跨设备查重，dot1q 重复）检查，逐行标出通过 / 拦截 / 注意；被拦截时退出码 1，通过时附增量变更脚本 |
+| `lmesh generate "<需求>" --device <设备> [--profile P] [--template T] [--rounds 2] [-o 文件]` | AI 生成配置（需要配置 AI）：生成后经护栏检查，被拦截时把问题交回 AI 修改，最多 `--rounds` 轮；最终仍被拦截时退出码 1 |
+| `lmesh script-check <脚本> [--device 设备名[@版本]\|配置文件] [--version N] [--kind change\|full] [--order/--no-order] [--reorder [-o 文件]] [--rules 目录] [--profile P]` | 检查变更脚本 / 完整配置（REQ-031）：变更脚本逐行跟踪视图、在基线上模拟执行（取消匹配、覆盖、副作用），执行后的配置跑配置检查规则并查地址 / RD 冲突；顺序核查开启时报出“引用了后面才创建的对象”“删除时引用方在后面才处理”“先配的值被后面命令的副作用删除”，并附按依赖重排的建议；`--no-order` 只看按依赖顺序执行后的结果；完整配置检查未识别行、规则并与基线按有效值对比；`--reorder` 输出重排后的脚本与每条命令移动的原因；有 error 时退出码 1，变更脚本没有基线退出码 2 |
+| `lmesh script-diff <a> <b> [--ignore-order] [--kind full\|change] [--device 基线] [--format text\|unified\|html] [--report-lang zh-CN\|en] [--no-semantic] [-o 文件]` | 脚本 / 配置的文本差异：逐行对比、行内字符级标记，位置变化识别为移动（第几行 → 第几行），`--ignore-order` 按视图路径 + 内容只看内容差异；同时给出语义差异（按有效值比较；`--kind change` 时比较两份脚本在基线上执行后的结果）；可输出统一 diff 或中 / 英 HTML 报告 |
 
 知识库命令操作的是运行时知识库（默认 `data/knowledge/`，首次使用时从程序自带的 `knowledge/` 复制，并作为独立的 Git 仓库管理）。
 
@@ -354,7 +381,7 @@ JSON 输出中的关键字段：
 
 - `data.profile` = `"huawei-atn-v800r023"`
 - `data.coverage` = `1.0`
-- `data.counts.command` = `1151`
+- `data.counts.command` = `1745`
 
 ### 单个配置的往返测试
 
@@ -380,7 +407,7 @@ lmesh --output json roundtrip --samples
 JSON 输出中的关键字段：
 
 - `data.failed` = `0`
-- `data.samples` = `17`
+- `data.samples` = `19`
 
 ### 查看配置图的 VRF 部分
 
@@ -417,6 +444,86 @@ JSON 输出中的关键字段：
 
 - `data.patterns` = `[]`
 
+### 图查询（不需要 AI）：绑定了 VPN 实例的接口及其地址与 MTU（含默认值）
+
+```bash
+lmesh --output json query 'FIND interface WHERE vrf EXISTS RETURN name, vrf, ipv4.address, mtu WITH DEFAULTS' knowledge/samples/change/atn-base.cfg
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.count` = `1`
+- `data.object` = `"interface"`
+- `data.rows.0.node` = `"interface[GigabitEthernet0/2/1.101]"`
+- `data.rows.0.cells.vrf.value` = `"RAN"`
+- `data.rows.0.cells.vrf.lines` = `[36]`
+- `data.rows.0.cells.mtu.value` = `1500`
+- `data.rows.0.cells.mtu.origin` = `"default"`
+
+### 查询写法不对
+
+```bash
+lmesh query 'SELECT * FROM interface' knowledge/samples/change/atn-base.cfg
+```
+
+退出码：`2`
+
+### 未配置 AI：自然语言查询返回“未配置”（核心功能照常）
+
+```bash
+lmesh --output json ask '哪些接口绑定了 VPN 实例？'
+```
+
+退出码：`3`
+
+JSON 输出中的关键字段：
+
+- `ok` = `false`
+- `error.code` = `3`
+- `error.data.status` = `"not_configured"`
+
+### 配置护栏（不需要 AI）：合并到当前配置后检查，标出被拦截的行与原因
+
+```bash
+lmesh --output json guard tests/inputs/guard/atn-bad.cfg --device knowledge/samples/change/atn-base.cfg
+```
+
+退出码：`1`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.verdict` = `"blocked"`
+- `data.summary.bad` = `4`
+- `data.stages.parse.status` = `"bad"`
+- `data.stages.deps.status` = `"bad"`
+- `data.stages.conflict.status` = `"bad"`
+- `data.stages.template.status` = `"skipped"`
+- `data.lines.0.status` = `"skip"`
+- `data.lines.4.status` = `"bad"`
+
+错误提示（stderr）包含：`被拦截`
+
+### 配置护栏：目标是已导入设备，通过后附增量变更脚本
+
+```bash
+lmesh --output json guard tests/inputs/guard/atn-good.cfg --device ATN-CHANGE-01
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.verdict` = `"passed"`
+- `data.device` = `"ATN-CHANGE-01"`
+- `data.issues.0.rule` = `"side_effect_ok"`
+- `data.script.available` = `true`
+- `data.script.verify_ok` = `true`
+
 ### 对现网 ATN 配置跑基础基线
 
 ```bash
@@ -444,7 +551,7 @@ lmesh --lang en baseline knowledge/samples/huawei-atn-v800r023/atn-access-01.cfg
 
 退出码：`0`
 
-输出包含：`Baseline strict: 2 device(s), 26 rule(s), score 87`、`sec.snmp_v3_only               ✗              ✗`、`pe-asr920-02-igp-mgmt (cisco-iosxe) score 91`、`Reference commands: line con 0 | exec-timeout 10 0`
+输出包含：`Baseline strict: 2 device(s), 30 rule(s), score 86`、`sec.snmp_v3_only               ✗              ✗`、`pe-asr920-02-igp-mgmt (cisco-iosxe) score 91`、`Reference commands: line con 0 | exec-timeout 10 0`
 
 ### 同时导出 Markdown 基线报告
 
@@ -694,6 +801,200 @@ lmesh compare NO-SUCH-DEVICE tests/inputs/compare/cs-pe.cfg
 
 错误提示（stderr）包含：`NO-SUCH-DEVICE`
 
+### 列出预置模板
+
+```bash
+lmesh --output json export presets
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.presets.0.id` = `"ip-address"`
+- `data.presets.0.object` = `"interface"`
+- `data.presets.0.title.pt-BR` = `"Tabela de endereços IP"`
+- `data.presets.2.id` = `"bgp-peer"`
+
+### IP 地址表：一个目录中的配置，导出 CSV（UTF-8 BOM，英文表头）
+
+```bash
+lmesh --output json export table knowledge/samples/topology --preset ip --format csv --table-lang en -o out/ip.csv
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.format` = `"csv"`
+- `data.preset` = `"ip-address"`
+- `data.object` = `"interface"`
+- `data.summary.devices` = `5`
+- `data.summary.columns` = `7`
+- `data.columns.3.key` = `"derive:mask"`
+
+### BGP 邻居表（JSON）：每格带来源、节点与行号；认证密码只给出是否配置
+
+```bash
+lmesh --output json export table knowledge/samples/topology/rr-01.cfg --preset bgp --format json
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.summary.secret_columns` = `1`
+- `data.columns.9.key` = `"password"`
+- `data.columns.9.secret` = `true`
+- `data.rows.0.cells.9.secret` = `true`
+- `data.rows.0.cells.2.value` = `"iBGP"`
+
+### CSV 没有给输出文件
+
+```bash
+lmesh export table knowledge/samples/change/atn-base.cfg --preset ip --format csv
+```
+
+退出码：`2`
+
+### 按关键词查特性：各 Profile 的支持情况、默认值与命令写法
+
+```bash
+lmesh --output json feature mtu --profile huawei-atn-v800r025 --profile cisco-iosxe-asr920-17.15
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.items.0.node` = `"interface.mtu"`
+- `data.items.0.profiles.huawei-atn-v800r025.state` = `"supported"`
+- `data.items.0.profiles.huawei-atn-v800r025.default` = `1500`
+- `data.profiles.1.family` = `"cisco-iosxe"`
+
+### 两个 Profile 对比：默认值不同的排在前面
+
+```bash
+lmesh --output json feature-diff huawei-atn-v800r025 cisco-iosxe-asr920-17.15 --domain vrf
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.rows.0.kind` = `"default"`
+- `data.rows.0.node` = `"vrf.instance.af.label_mode"`
+- `data.rows.0.a.default` = `"per-instance"`
+- `data.rows.0.b.default` = `"per-route"`
+
+### Profile 不存在
+
+```bash
+lmesh feature mtu --profile nope
+```
+
+退出码：`4`
+
+### 快照时间线：重复导入只记导入记录，相对上一快照的变化计数
+
+```bash
+lmesh --output json history list ATN-CHANGE-01
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.device.name` = `"ATN-CHANGE-01"`
+- `data.count` = `2`
+- `data.imports` = `3`
+- `data.keep` = `50`
+- `data.snapshots.0.seq` = `1`
+- `data.snapshots.0.import_count` = `2`
+- `data.snapshots.0.imports.1.duplicate` = `true`
+- `data.snapshots.0.imports.0.actor` = `"tester"`
+- `data.snapshots.1.vs_previous.modified` = `1`
+- `data.snapshots.1.latest` = `true`
+- `data.snapshots.1.graph_stored` = `true`
+
+### 两个快照的差异：按对象归并（接口描述与 MTU 的修改）
+
+```bash
+lmesh --output json history diff ATN-CHANGE-01 --from 1 --to 2 --no-text
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.a.seq` = `1`
+- `data.b.seq` = `2`
+- `data.equal` = `false`
+- `data.summary.modified` = `1`
+- `data.summary.added` = `0`
+- `data.summary.noneff` = `0`
+- `data.items.0.object` = `"interface[GigabitEthernet0/2/0]"`
+- `data.items.0.kind` = `"modified"`
+- `data.items.0.changes.0.field` = `"description"`
+- `data.items.0.changes.0.b.value` = `"UPLINK-TO-AGG-01"`
+- `data.kb.differs` = `false`
+
+### 对象历史：接口在每个快照中的取值
+
+```bash
+lmesh --output json history object ATN-CHANGE-01 'interface[GigabitEthernet0/2/0]'
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.schema` = `"interface"`
+- `data.changes` = `1`
+- `data.snapshots.1.changed` = `["description", "mtu"]`
+- `data.snapshots.1.values.mtu.value` = `9216`
+- `data.snapshots.0.values.mtu.value` = `9000`
+
+### 给第一个快照贴标签（永久保留）
+
+```bash
+lmesh --output json history tag ATN-CHANGE-01 1 '割接前基线'
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.tag` = `"割接前基线"`
+- `data.id` = `1`
+
+### 回到第一个快照：生成增量变更脚本（不带说明行）
+
+```bash
+lmesh --lang en history restore ATN-CHANGE-01 --to 1 --plain
+```
+
+退出码：`0`
+
+输出包含：`system-view`、`interface GigabitEthernet0/2/0`、` description UPLINK-TO-AGG`、` mtu 9000`、`commit`、`From snapshot #2 back to #1: 2 command(s)`
+
+### 设备不存在
+
+```bash
+lmesh history list NOPE
+```
+
+退出码：`4`
+
 ### ASR 920 迁移到 ATN（新设备有出厂配置），输出目录里放新配置、增量配置、映射表、告警与步骤
 
 ```bash
@@ -744,6 +1045,106 @@ JSON 输出中的关键字段：
 - `data.map.0.basis` = `"same_index"`
 - `data.map.0.confidence` = `0.8`
 - `data.unmapped` = `[]`
+
+### 规则集列表（内置示例）
+
+```bash
+lmesh --output json naming list
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.0.id` = `"asr920-to-atn"`
+- `data.0.builtin` = `true`
+- `data.1.id` = `"atn-to-asr920"`
+
+### 试运行：改名清单、同步改的引用与端口映射
+
+```bash
+lmesh --output json naming test tests/inputs/naming/l3vpn-rules.yaml knowledge/samples/translate/atn-l3vpn-synth.cfg --to cisco-iosxe-asr920-17.15
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.summary.renamed` = `3`
+- `data.summary.ports` = `2`
+- `data.summary.conflicts` = `0`
+- `data.renames.0.type` = `"rp.policy"`
+- `data.renames.0.from` = `"EXPORT-LOOPBACK"`
+- `data.renames.0.to` = `"RP_EXPORT_LOOPBACK"`
+- `data.renames.0.rule.index` = `1`
+- `data.renames.0.refs` = `1`
+- `data.ports.1.from` = `"GigabitEthernet0/2/1"`
+- `data.ports.1.to` = `"GigabitEthernet0/0/2"`
+- `data.ports.1.subinterfaces` = `1`
+
+### 多个源名映射到同一个新名：报冲突、不改名，退出码 1
+
+```bash
+lmesh --output json naming test tests/inputs/naming/conflict-rules.yaml knowledge/samples/translate/atn-l3vpn-synth.cfg
+```
+
+退出码：`1`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.conflicts.0.kind` = `"many_to_one"`
+- `data.conflicts.0.to` = `"SAME"`
+- `data.conflicts.0.from` = `["OAM", "RAN"]`
+- `data.summary.renamed` = `0`
+
+### 测试一个名称：命中的规则与整理结果
+
+```bash
+lmesh --output json naming match tests/inputs/naming/l3vpn-rules.yaml BGP-IN --type rp.policy
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.result` = `"RP_BGP_IN"`
+- `data.rule` = `1`
+- `data.problems` = `[]`
+
+### 导入规则集到 data/translate-rules/
+
+```bash
+lmesh --output json naming import tests/inputs/naming/l3vpn-rules.yaml
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.id` = `"l3vpn-rules"`
+- `data.builtin` = `false`
+- `data.counts.names` = `2`
+
+### 翻译时按规则集改名（对象与引用一起改，端口按规则映射）
+
+```bash
+lmesh --output json translate knowledge/samples/translate/atn-l3vpn-synth.cfg --to cisco-iosxe-asr920-17.15 --interface-map tests/inputs/naming/loopback.yaml --rules tests/inputs/naming/l3vpn-rules.yaml
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.verify.unexplained` = `0`
+- `data.naming.summary.renamed` = `3`
+- `data.naming.renames.2.to` = `"VRF_RAN"`
+- `data.interface_map.GigabitEthernet0/2/1` = `"GigabitEthernet0/0/2"`
 
 ### 同角色设备对比时隐藏身份差异（主机名、Router ID、环回地址、对等体地址）
 
@@ -819,6 +1220,58 @@ JSON 输出中的关键字段：
 - `data.objects.1.node` = `"rp.prefix_list[ONLY-UNUSED]"`
 - `data.commands.0.fallback` = `false`
 - `data.verify.ok` = `true`
+
+### 检查变更脚本（顺序核查开启）：有错误时退出码 1
+
+```bash
+lmesh --output json script-check tests/inputs/scripts/atn-change-order.txt --device knowledge/samples/change/atn-base.cfg
+```
+
+退出码：`1`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.kind` = `"change"`
+- `data.summary.errors` = `3`
+- `data.order.violations` = `2`
+- `data.issues.1.code` = `"side_effect_lost"`
+- `data.issues.1.line` = `3`
+- `data.order.reorder.changed` = `true`
+- `data.baseline.device` = `"atn-base"`
+
+### 按依赖重排并写到文件：移动的命令与原因
+
+```bash
+lmesh --output json script-check tests/inputs/scripts/asr-change-order.txt --device knowledge/samples/change/asr920-base.cfg --reorder -o out/reordered.txt
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.changed` = `true`
+- `data.before.order_violations` = `1`
+- `data.after.order_violations` = `0`
+- `data.moves.0.reasons.0.dir` = `"after"`
+
+### 两份脚本的文本差异：重排造成的位置变化是移动；语义相同
+
+```bash
+lmesh --output json script-diff tests/inputs/scripts/atn-change-order.txt tests/inputs/scripts/atn-change-good.txt --kind change --device knowledge/samples/change/atn-base.cfg --ignore-order
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.equal` = `false`
+- `data.stats.move` = `4`
+- `data.stats.change` = `1`
+- `data.semantic.equal` = `true`
+- `data.unordered.only_b` = `[]`
 
 ### 列出模板
 
@@ -959,7 +1412,7 @@ JSON 输出中的关键字段：
 - `data.summary.by_rule.xd.pw.vc_id` = `1`
 - `data.summary.by_rule.xd.bgp.remote_as` = `1`
 - `data.findings.0.severity` = `"error"`
-- `data.rules_skipped.0.id` = `"xd.vrrp.virtual_ip"`
+- `data.rules_skipped` = `[]`
 
 ### 一条链路的一致性检查（文字输出）
 
@@ -1031,5 +1484,84 @@ lmesh render tests/inputs/translate/cs-small.cfg --with-defaults
 退出码：`0`
 
 输出包含：`! default`、` no shutdown`、`end`
+
+### 账号列表
+
+```bash
+lmesh --output json user list
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.count` = `2`
+- `data.users.0.username` = `"admin"`
+- `data.users.0.role` = `"admin"`
+- `data.users.1.username` = `"alice"`
+- `data.users.1.role` = `"user"`
+
+### 新建管理员，密码从标准输入读取
+
+```bash
+lmesh --output json user add ops --role admin --password-stdin
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.user.username` = `"ops"`
+- `data.user.role` = `"admin"`
+- `data.user.disabled` = `false`
+
+### 停用账号
+
+```bash
+lmesh user disable alice
+```
+
+退出码：`0`
+
+输出包含：`已停用账号 alice`
+
+### 重置密码（会话失效、锁定解除）
+
+```bash
+lmesh --output json user reset-password alice --password-stdin
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.user.username` = `"alice"`
+- `data.sessions_closed` = `0`
+
+### 改角色
+
+```bash
+lmesh user set-role alice admin
+```
+
+退出码：`0`
+
+输出包含：`alice 的角色已改为 管理员`
+
+### 删除账号（--yes 跳过确认）
+
+```bash
+lmesh --yes --output json user delete alice
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.deleted` = `"alice"`
 
 <!-- examples:end -->

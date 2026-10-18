@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, Integer, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -55,6 +55,11 @@ class ConfigVersion(Base):
     sanitized: Mapped[bool] = mapped_column(default=True)
     kb_version: Mapped[str] = mapped_column(String(40), default="")
     collected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # 版本历史（M5-2）：一个配置版本就是一个快照——原文 + 当时的图（gzip 压缩的 JSON）+ 解析用的知识库版本
+    content_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    graph_gz: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    tag: Mapped[str | None] = mapped_column(String(200), nullable=True)  # 贴了标签的快照永久保留
+    change_summary: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 相对上一个快照的变化计数
     device: Mapped[Device] = relationship(back_populates="versions")
 
 
@@ -164,3 +169,97 @@ class CheckIgnore(Base):
     reason: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     __table_args__ = (UniqueConstraint("device_id", "rule", "node", name="uq_check_ignores_device_rule_node"),)
+
+
+class ConfigImport(Base):
+    """导入记录（M5-2）：每次导入一条；内容与最新快照相同的重复导入只记这里，不存新快照。"""
+
+    __tablename__ = "config_imports"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    device_id: Mapped[int] = mapped_column(ForeignKey("devices.id", ondelete="CASCADE"), index=True)
+    version_id: Mapped[int] = mapped_column(ForeignKey("config_versions.id", ondelete="CASCADE"), index=True)
+    imported_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    source_kind: Mapped[str] = mapped_column(String(20), default="file")  # file / dir / zip / api / migrate
+    source_name: Mapped[str] = mapped_column(String(400), default="")
+    actor: Mapped[str] = mapped_column(String(200), default="")  # 导入人或令牌说明（不记录令牌本身）
+    duplicate: Mapped[bool] = mapped_column(default=False)
+
+
+class User(Base):
+    """网页登录账号（REQ-030）：只保存密码的 scrypt 哈希；角色 admin / user；连续登录失败时暂时锁定。"""
+
+    __tablename__ = "users"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String(64), unique=True)
+    role: Mapped[str] = mapped_column(String(20), default="user")  # admin / user
+    disabled: Mapped[bool] = mapped_column(default=False)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    failed_count: Mapped[int] = mapped_column(Integer, default=0)
+    locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    password_changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class UserSession(Base):
+    """网页会话：Cookie 里是随机令牌，这里只存它的 SHA-256；登出、停用、重置密码时删除。"""
+
+    __tablename__ = "user_sessions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class CheckProject(Base):
+    """配置检查项目（REQ-031）：一台设备（或它的某个配置版本）作为基线 + 多份脚本；属于创建它的账号（API 令牌创建的为空）。"""
+
+    __tablename__ = "check_projects"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text, default="")
+    device_id: Mapped[int | None] = mapped_column(ForeignKey("devices.id", ondelete="SET NULL"), nullable=True)
+    version_id: Mapped[int | None] = mapped_column(  # 为空表示跟随设备最新版本
+        ForeignKey("config_versions.id", ondelete="SET NULL"), nullable=True
+    )
+    profile: Mapped[str] = mapped_column(String(120), default="")  # 没有基线设备时完整配置用的 Profile（可空）
+    default_kind: Mapped[str] = mapped_column(String(20), default="change")  # change / full
+    order_check: Mapped[bool] = mapped_column(default=True)
+    ai_check: Mapped[bool] = mapped_column(default=False)
+    ai_rules: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 勾选交给 AI 的规则编号
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class CheckScript(Base):
+    """项目中的一份脚本（变更脚本或完整配置）；content 是当前内容，last_check 是最近一次检查的摘要。"""
+
+    __tablename__ = "check_scripts"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("check_projects.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(200))
+    kind: Mapped[str] = mapped_column(String(20), default="change")
+    content: Mapped[str] = mapped_column(Text, default="")
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    last_check: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class CheckRevision(Base):
+    """脚本的修订记录：创建、手动保存、按依赖重排（重排前后各一条）、恢复都形成一条；seq 是脚本内的序号。"""
+
+    __tablename__ = "check_revisions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    script_id: Mapped[int] = mapped_column(ForeignKey("check_scripts.id", ondelete="CASCADE"), index=True)
+    seq: Mapped[int] = mapped_column(Integer)
+    content: Mapped[str] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(String(20), default="manual")  # create / manual / reorder / restore
+    note: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 重排的移动与原因、恢复自哪个修订
+    summary: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 保存时的检查摘要（错误 / 警告数）
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    author: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (UniqueConstraint("script_id", "seq", name="uq_check_revisions_script_seq"),)

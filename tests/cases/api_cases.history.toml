@@ -1,0 +1,119 @@
+# 版本历史接口的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-fullkb-history：设备 ATN-CHANGE-01（编号 1）导入三次——基准、内容相同的重复导入、改了描述与 MTU 的版本。
+
+[[case]]
+id = "history-timeline"
+title = { zh-CN = "快照时间线（重复导入合并显示）", en = "Snapshot timeline (duplicate imports merged)", pt-BR = "Linha do tempo (importações duplicadas unidas)" }
+method = "GET"
+path = "/api/v1/devices/1/history"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.count" = 2, "data.imports" = 3, "data.keep" = 50, "data.snapshots.0.id" = 1, "data.snapshots.0.import_count" = 2, "data.snapshots.0.imports.0.source_kind" = "file", "data.snapshots.0.imports.1.duplicate" = true, "data.snapshots.1.vs_previous.modified" = 1, "data.snapshots.1.latest" = true }
+in_docs = true
+
+[[case]]
+id = "history-diff"
+title = { zh-CN = "两个快照的差异（快照用配置版本编号）", en = "Diff between two snapshots (by version id)", pt-BR = "Diferença entre dois instantâneos (por versão)" }
+method = "GET"
+path = "/api/v1/devices/1/history/diff?a=1&b=2"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.a.id" = 1, "data.b.id" = 2, "data.summary.modified" = 1, "data.summary.noneff" = 0, "data.items.0.object" = "interface[GigabitEthernet0/2/0]", "data.items.0.changes.1.field" = "mtu", "data.items.0.changes.1.a.value" = 9000, "data.items.0.changes.1.b.value" = 9216, "data.text.hunks.0.lines.3.op" = "del", "data.kb.differs" = false }
+in_docs = true
+
+[[case]]
+id = "history-diff-rebuild"
+title = { zh-CN = "按当前知识库重建两侧的图再比较（不附原文差异）", en = "Rebuild both sides with the current KB before comparing", pt-BR = "Reconstruir os dois lados com a base atual antes de comparar" }
+method = "GET"
+path = "/api/v1/devices/1/history/diff?rebuild=true&text=false&show_noneff=true"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.kb.rebuilt" = true, "data.a.graph" = "rebuilt", "data.summary.modified" = 1, "data.noneff" = [] }
+
+[[case]]
+id = "history-diff-full-text"
+title = { zh-CN = "原文差异取整份原文（界面在本地折叠相同的行）", en = "Text diff with the whole text (the UI folds equal lines itself)", pt-BR = "Diferença de texto com o texto inteiro (a interface recolhe as linhas iguais)" }
+method = "GET"
+path = "/api/v1/devices/1/history/diff?context=100000"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.text.hunks.0.a_start" = 1, "data.text.hunks.0.b_start" = 1, "data.text.hunks.0.lines.0.op" = "equal", "data.text.hunks.0.lines.0.a" = 1 }
+
+[[case]]
+id = "history-object"
+title = { zh-CN = "对象历史", en = "Object history", pt-BR = "Histórico do objeto" }
+method = "GET"
+path = "/api/v1/devices/1/history/object?node=interface[GigabitEthernet0/2/0]"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.schema" = "interface", "data.changes" = 1, "data.snapshots.1.changed" = ["description", "mtu"] }
+in_docs = true
+
+[[case]]
+id = "history-tag"
+title = { zh-CN = "给快照贴标签（永久保留）", en = "Tag a snapshot (kept forever)", pt-BR = "Etiquetar um instantâneo (mantido para sempre)" }
+method = "PUT"
+path = "/api/v1/devices/1/history/1/tag"
+setup = "configured-fullkb-history"
+auth = true
+body = { tag = "割接前基线" }
+expect_status = 200
+expect_json = { "code" = 0, "data.id" = 1, "data.tag" = "割接前基线" }
+in_docs = true
+
+[[case]]
+id = "history-untag"
+title = { zh-CN = "去掉快照的标签", en = "Remove a snapshot tag", pt-BR = "Remover a etiqueta" }
+method = "DELETE"
+path = "/api/v1/devices/1/history/1/tag"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.id" = 1, "data.device_id" = 1 }
+
+[[case]]
+id = "history-restore"
+title = { zh-CN = "回到上一个快照：增量变更脚本、回滚与模拟验证", en = "Back to the previous snapshot: change script, rollback and verification", pt-BR = "Voltar ao instantâneo anterior: script, reversão e verificação" }
+method = "POST"
+path = "/api/v1/devices/1/history/restore"
+setup = "configured-fullkb-history"
+auth = true
+body = { to = "prev", lang = "en" }
+expect_status = 200
+expect_json = { "code" = 0, "data.from.seq" = 2, "data.to.seq" = 1, "data.change.summary.ops" = 2, "data.change.verify.ok" = true, "data.change.rollback.verify.ok" = true, "data.change.script_plain" = "system-view\ninterface GigabitEthernet0/2/0\n description UPLINK-TO-AGG\n mtu 9000\nquit\ncommit\nreturn\n" }
+in_docs = true
+
+[[case]]
+id = "history-device-not-found"
+title = { zh-CN = "设备不存在", en = "Device not found", pt-BR = "Dispositivo não encontrado" }
+method = "GET"
+path = "/api/v1/devices/99/history"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+in_docs = true
+
+[[case]]
+id = "history-snapshot-not-found"
+title = { zh-CN = "快照不存在", en = "Snapshot not found", pt-BR = "Instantâneo não encontrado" }
+method = "GET"
+path = "/api/v1/devices/1/history/diff?a=99"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "history-no-token"
+title = { zh-CN = "没有令牌", en = "No token", pt-BR = "Sem token" }
+method = "GET"
+path = "/api/v1/devices/1/history"
+setup = "configured"
+auth = false
+expect_status = 401

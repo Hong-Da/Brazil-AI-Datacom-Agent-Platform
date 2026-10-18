@@ -7,7 +7,7 @@ import socket
 from typing import Any
 
 from lmesh import paths
-from lmesh.core import config, store
+from lmesh.core import config, store, users
 from lmesh.core.config import FIELDS, GROUP_TITLES, ConfigError
 
 
@@ -79,6 +79,22 @@ def validate_answers(
     return errors
 
 
+def validate_admin(admin: dict[str, Any] | None) -> dict[str, str]:
+    """向导中“管理员账号”一步：返回 {admin.username / admin.password: 文案键}。"""
+    if not admin:
+        return {}
+    errors: dict[str, str] = {}
+    try:
+        users.validate_username(str(admin.get("username") or ""))
+    except users.UserError as e:
+        errors["admin.username"] = e.key
+    try:
+        users.validate_password(str(admin.get("password") or ""))
+    except users.UserError as e:
+        errors["admin.password"] = e.key
+    return errors
+
+
 def ensure_runtime_knowledge(settings: config.Settings) -> bool:
     """首次启动时把程序自带的知识库复制到运行时目录；已存在时不动。返回是否复制了。"""
     target = settings.knowledge_dir
@@ -90,10 +106,18 @@ def ensure_runtime_knowledge(settings: config.Settings) -> bool:
 
 
 def apply(
-    answers: dict[str, Any], lang: str, check_port: bool = True, current_port: int | None = None
+    answers: dict[str, Any],
+    lang: str,
+    check_port: bool = True,
+    current_port: int | None = None,
+    admin: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """校验并写入配置，初始化数据库与运行时知识库。返回汇总（令牌只在这里显示一次）。"""
+    """校验并写入配置，初始化数据库与运行时知识库；给了 admin（username、password）时创建第一个管理员。
+
+    返回汇总（令牌只在这里显示一次；密码不出现在返回值里）。
+    """
     errors = validate_answers(answers, check_port=check_port, current_port=current_port)
+    errors.update(validate_admin(admin))
     if errors:
         raise SetupError(errors)
     values = {f.key: answers.get(f.key, f.default) for f in FIELDS}
@@ -107,6 +131,9 @@ def apply(
     settings = config.load(path)
     store.upgrade(settings.database_url)
     copied = ensure_runtime_knowledge(settings)
+    admin_user = None
+    if admin and users.count(settings.database_url) == 0:
+        admin_user = users.create_user(settings.database_url, str(admin["username"]), str(admin["password"]), "admin")
     changed = [
         f.key for f in FIELDS if values[f.key] != f.default and f.key not in ("security.api_token", "ai.api_key")
     ]
@@ -116,6 +143,7 @@ def apply(
         "token_generated": generated_token,
         "changed": changed,
         "knowledge_copied": copied,
+        "admin": admin_user,
         "url": f"http://{_display_host(settings.get('server.host'))}:{settings.get('server.port')}",
     }
 

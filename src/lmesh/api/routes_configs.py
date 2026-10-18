@@ -48,7 +48,8 @@ async def import_configs(
     from lmesh.core import kbservice
 
     kb_root = kbservice.runtime_root(settings_of(request))
-    for r in importer.import_sources(sources, url, level, kb_root):
+    keep = int(settings_of(request).get("history.keep"))
+    for r in importer.import_sources(sources, url, level, kb_root, source_kind="api", actor="api", keep=keep):
         d = r.as_dict()
         if not r.ok:
             d["error"] = i18n.t(r.error, lang)

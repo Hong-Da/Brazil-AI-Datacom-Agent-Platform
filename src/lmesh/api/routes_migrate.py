@@ -5,16 +5,18 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from lmesh.api.common import E_NOT_FOUND, E_PARAM, ApiError, ok, require_token, settings_of
-from lmesh.core import analysis, compare, importer, kbservice, migration, store, translate
+from lmesh.api.routes_translate_rules import RulesRef, resolve_rules
+from lmesh.core import analysis, compare, importer, kbservice, migration, naming, store, translate
 
 router = APIRouter(dependencies=[Depends(require_token)])
 
 
-class SuggestBody(BaseModel):
-    """旧设备配置：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"""
+class SuggestBody(RulesRef):
+    """旧设备配置：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一；
+    rule_set / rules：翻译自定义规则（REQ-032），端口映射规则在用户映射表之后、自动建议之前。"""
 
     text: str | None = Field(None, max_length=importer.MAX_BYTES)
     device_id: int | None = None
@@ -85,6 +87,7 @@ def run_migrate(request: Request, body: MigrateBody) -> dict[str, Any]:
             body.model,
             body.on_conflict,
             verify=body.verify,
+            rules=resolve_rules(request, body, kb),
         )
 
     return ok(request, _errors(go))
@@ -94,6 +97,10 @@ def run_migrate(request: Request, body: MigrateBody) -> dict[str, Any]:
 def run_suggest(request: Request, body: SuggestBody) -> dict[str, Any]:
     def go() -> dict[str, Any]:
         kb, g, tg = _inputs(request, body)
-        return migration.suggest_map(g, kb, str(g.graph.get("profile")), body.to, body.interface_map, tg, body.model)
+        rules = resolve_rules(request, body, kb)
+        ifmap = body.interface_map
+        if rules is not None:  # 端口映射规则：用户给出的映射优先
+            ifmap = {**naming.port_map(g, rules), **(ifmap or {})}
+        return migration.suggest_map(g, kb, str(g.graph.get("profile")), body.to, ifmap, tg, body.model)
 
     return ok(request, _errors(go))

@@ -39,10 +39,6 @@ export function dispositionName(h: string | null, fallback: string): string {
 export const reportName = (kind: string, device: string | null, lang: ReportLang, fmt: ReportFormat): string =>
   `${kind}-${(device || 'config').replace(/[^\w.-]+/g, '_')}.${lang}.${fmt}`
 
-function token(): string {
-  try { return localStorage.getItem('lmesh-token') ?? '' } catch { return '' }
-}
-
 /** POST 后拿文件：成功时返回 blob 与文件名；失败时按 {code, message} 抛 ApiError。 */
 export async function postFile(path: string, body: unknown, fallback: string): Promise<{ blob: Blob; name: string }> {
   const res = await fetch(`/api/v1${path}`, {
@@ -50,7 +46,6 @@ export async function postFile(path: string, body: unknown, fallback: string): P
     headers: {
       'Content-Type': 'application/json',
       'Accept-Language': String(i18n.global.locale.value),
-      Authorization: `Bearer ${token()}`,
     },
     body: JSON.stringify(body),
   })

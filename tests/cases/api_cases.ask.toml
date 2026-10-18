@@ -1,0 +1,105 @@
+# 图查询、AI 查询与配置护栏接口的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# AI 的正常流程用假的 AI 客户端在 tests/api/test_m5_api.py 中验证；这里验证未配置 AI 时的状态与不需要 AI 的接口。
+
+[[case]]
+id = "ask-status"
+title = { zh-CN = "AI 查询是否可用（未配置时界面隐藏入口）", en = "Whether AI questions are available", pt-BR = "Se as perguntas com IA estão disponíveis" }
+method = "GET"
+path = "/api/v1/ask/status"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.configured" = false, "data.status" = "not_configured", "data.sanitize" = "always", "data.guard_without_ai" = true }
+in_docs = true
+
+[[case]]
+id = "ask-not-configured"
+title = { zh-CN = "未配置 AI：自然语言查询返回“未配置”", en = "AI not configured: ask returns not configured", pt-BR = "IA não configurada: pergunta retorna não configurada" }
+method = "POST"
+path = "/api/v1/ask"
+setup = "configured-fullkb-history"
+auth = true
+body = { question = "哪些接口绑定了 VPN 实例？" }
+expect_status = 409
+expect_json = { "code" = 1003, "data.status" = "not_configured", "data.configured" = false }
+in_docs = true
+
+[[case]]
+id = "generate-not-configured"
+title = { zh-CN = "未配置 AI：生成配置返回“未配置”", en = "AI not configured: generate returns not configured", pt-BR = "IA não configurada: gerar retorna não configurada" }
+method = "POST"
+path = "/api/v1/generate"
+setup = "configured-fullkb-history"
+auth = true
+body = { request = "新增子接口", device = "ATN-CHANGE-01" }
+expect_status = 409
+expect_json = { "code" = 1003, "data.status" = "not_configured" }
+
+[[case]]
+id = "query-configs"
+title = { zh-CN = "图查询（不需要 AI）：上传的配置", en = "Graph query on an uploaded config (no AI)", pt-BR = "Consulta ao grafo numa configuração enviada (sem IA)" }
+method = "POST"
+path = "/api/v1/query"
+setup = "configured-fullkb"
+auth = true
+body = { query = "FIND interface WHERE mtu > 1500 RETURN name, description, mtu", configs = [{ name = "q.cfg", profile = "huawei-atn-v800r025", text = "#\nsysname Q-01\n#\ninterface GigabitEthernet0/2/0\n description UPLINK\n mtu 9000\n#\ninterface GigabitEthernet0/2/1\n description ACCESS\n#\nreturn" }] }
+expect_status = 200
+expect_json = { "code" = 0, "data.count" = 1, "data.rows.0.n" = 1, "data.rows.0.device" = "Q-01", "data.rows.0.cells.mtu.value" = 9000, "data.rows.0.cells.mtu.lines" = [6], "data.text" = "FIND interface\nON *\nWHERE mtu > 1500\nRETURN name, description, mtu" }
+in_docs = true
+
+[[case]]
+id = "query-json-devices"
+title = { zh-CN = "图查询（JSON 形式）：已导入设备", en = "Graph query in JSON form on imported devices", pt-BR = "Consulta em JSON nos dispositivos importados" }
+method = "POST"
+path = "/api/v1/query"
+setup = "configured-fullkb-history"
+auth = true
+body = { query = { find = "interface", where = [{ field = "vrf", op = "exists" }], return = ["name", "vrf", "mtu"], with_defaults = true } }
+expect_status = 200
+expect_json = { "code" = 0, "data.count" = 1, "data.rows.0.device_id" = 1, "data.rows.0.cells.vrf.value" = "RAN", "data.rows.0.cells.mtu.origin" = "default" }
+
+[[case]]
+id = "query-bad"
+title = { zh-CN = "查询的对象类型不存在", en = "Unknown object type in query", pt-BR = "Tipo de objeto desconhecido na consulta" }
+method = "POST"
+path = "/api/v1/query"
+setup = "configured-fullkb-history"
+auth = true
+body = { query = "FIND nope" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+in_docs = true
+
+[[case]]
+id = "guard-blocked"
+title = { zh-CN = "配置护栏（不需要 AI）：合并到给出的当前配置后检查", en = "Config guardrail without AI against a given current config", pt-BR = "Barreira de configuração sem IA contra a configuração atual informada" }
+method = "POST"
+path = "/api/v1/guard"
+setup = "configured-fullkb"
+auth = true
+body = { text = "interface GigabitEthernet0/2/2.105\n vlan-type dot1q 105\n ip binding vpn-instance RAN-5G\n#", base_text = "#\nsysname G-01\n#\ninterface GigabitEthernet0/2/2\n description OAM\n#\nreturn", profile = "huawei-atn-v800r025", lang = "en" }
+expect_status = 200
+expect_json = { "code" = 0, "data.verdict" = "blocked", "data.issues.0.rule" = "dangling_ref", "data.issues.0.line" = 3, "data.issues.0.text" = "References an object that does not exist: vrf.instance RAN-5G (defined neither in the current config nor in the new lines)", "data.lines.2.status" = "bad", "data.stages.deps.status" = "bad" }
+in_docs = true
+
+[[case]]
+id = "guard-device-passed"
+title = { zh-CN = "配置护栏：目标是已导入设备，通过后附增量变更脚本", en = "Guardrail on an imported device, with change script", pt-BR = "Barreira num dispositivo importado, com script de mudança" }
+method = "POST"
+path = "/api/v1/guard"
+setup = "configured-fullkb-history"
+auth = true
+body = { text = "interface GigabitEthernet0/2/2.105\n vlan-type dot1q 105\n ip binding vpn-instance RAN\n ip address 10.3.5.1 255.255.255.252\n#", device = "ATN-CHANGE-01" }
+expect_status = 200
+expect_json = { "code" = 0, "data.verdict" = "passed", "data.device" = "ATN-CHANGE-01", "data.script.available" = true, "data.script.verify_ok" = true }
+
+[[case]]
+id = "guard-device-not-found"
+title = { zh-CN = "目标设备不存在", en = "Target device not found", pt-BR = "Dispositivo alvo não encontrado" }
+method = "POST"
+path = "/api/v1/guard"
+setup = "configured-fullkb"
+auth = true
+body = { text = "interface X", device = "NOPE" }
+expect_status = 404
+expect_json = { "code" = 1004 }

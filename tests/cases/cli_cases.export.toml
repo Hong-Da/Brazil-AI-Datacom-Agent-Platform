@@ -1,0 +1,66 @@
+# 审计表格导出 lmesh export 的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+
+[[case]]
+id = "export-presets"
+title = { zh-CN = "列出预置模板", en = "List the built-in presets", pt-BR = "Listar os modelos prontos" }
+args = ["--output", "json", "export", "presets"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "ok" = true, "data.presets.0.id" = "ip-address", "data.presets.0.object" = "interface", "data.presets.0.title.pt-BR" = "Tabela de endereços IP", "data.presets.2.id" = "bgp-peer" }
+in_docs = true
+
+[[case]]
+id = "export-ip-csv"
+title = { zh-CN = "IP 地址表：一个目录中的配置，导出 CSV（UTF-8 BOM，英文表头）", en = "IP address table from a folder of configs, as CSV with English headers", pt-BR = "Tabela de endereços IP de uma pasta, em CSV com cabeçalhos em inglês" }
+args = ["--output", "json", "export", "table", "{samples}/topology", "--preset", "ip", "--format", "csv", "--table-lang", "en", "-o", "{out}/ip.csv"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.format" = "csv", "data.preset" = "ip-address", "data.object" = "interface", "data.summary.devices" = 5, "data.summary.columns" = 7, "data.columns.3.key" = "derive:mask" }
+in_docs = true
+
+[[case]]
+id = "export-bgp-json"
+title = { zh-CN = "BGP 邻居表（JSON）：每格带来源、节点与行号；认证密码只给出是否配置", en = "BGP neighbor table as JSON: each cell has source, node and lines; passwords only as configured / not", pt-BR = "Tabela BGP em JSON: cada célula com origem, nó e linhas; senhas só como configurada / não" }
+args = ["--output", "json", "export", "table", "{samples}/topology/rr-01.cfg", "--preset", "bgp", "--format", "json"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.summary.secret_columns" = 1, "data.columns.9.key" = "password", "data.columns.9.secret" = true, "data.rows.0.cells.9.secret" = true, "data.rows.0.cells.2.value" = "iBGP" }
+in_docs = true
+
+[[case]]
+id = "export-device-xlsx"
+title = { zh-CN = "已导入设备的接口描述表，导出 XLSX（葡语表头、全部一张表）", en = "Interface description table of an imported device as XLSX (Portuguese headers, one sheet)", pt-BR = "Tabela de descrições de um dispositivo importado em XLSX (cabeçalhos em português, uma planilha)" }
+args = ["--lang", "pt-BR", "export", "table", "ATN-CHANGE-01", "--preset", "desc", "--format", "xlsx", "--sheets", "single", "-o", "{out}/desc.xlsx"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_stdout = ["linha(s) (1 dispositivo(s))", "Gravado em"]
+
+[[case]]
+id = "export-custom-filter"
+title = { zh-CN = "自定义表格：对象类型、列与临时筛选条件", en = "Custom table: object type, columns and an ad-hoc filter", pt-BR = "Tabela personalizada: tipo de objeto, colunas e filtro avulso" }
+args = ["--output", "json", "export", "table", "{samples}/change/atn-base.cfg", "--object", "interface", "--fields", "name,mtu,description", "--filter", "mtu > 1500", "--format", "json"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.object" = "interface", "data.summary.rows" = 1, "data.rows.0.key" = "GigabitEthernet0/2/0", "data.rows.0.cells.1.value" = 9000 }
+
+[[case]]
+id = "export-need-out"
+title = { zh-CN = "CSV 没有给输出文件", en = "CSV without an output file", pt-BR = "CSV sem arquivo de saída" }
+args = ["export", "table", "{samples}/change/atn-base.cfg", "--preset", "ip", "--format", "csv"]
+setup = "fresh-fullkb"
+expect_exit = 2
+in_docs = true
+
+[[case]]
+id = "export-bad-preset"
+title = { zh-CN = "预置模板不存在", en = "Unknown preset", pt-BR = "Modelo desconhecido" }
+args = ["export", "table", "{samples}/change/atn-base.cfg", "--preset", "nope", "--format", "json"]
+setup = "fresh-fullkb"
+expect_exit = 4
+
+[[case]]
+id = "export-bad-field"
+title = { zh-CN = "字段不存在", en = "Unknown field", pt-BR = "Campo desconhecido" }
+args = ["export", "table", "{samples}/change/atn-base.cfg", "--object", "interface", "--fields", "nope", "--format", "json"]
+setup = "fresh-fullkb"
+expect_exit = 2

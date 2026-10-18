@@ -540,6 +540,10 @@ class _Translator:
             node_b = (d.get("b") or {}).get("node")
             if covered(node_a) or (node_a is None and covered(node_b)):
                 continue
+            src_entry = self.kb.resolve_profile(self.src).entries.get(str(d.get("schema") or ""))
+            if d["kind"] == "added" and src_entry is not None and not src_entry.supported:
+                # 源平台没有这个开关（Profile 标了 supported: false，例如 Cisco 没有 SSH 服务开关），目标取缺省值是预期结果
+                continue
             unexplained += 1
             self.warnings.append(
                 _item(
@@ -704,9 +708,24 @@ def translate(
     dst_profile: str,
     interface_map: dict[str, str] | None = None,
     verify: bool = True,
+    rules: Any = None,
+    target_graph: nx.MultiDiGraph | None = None,
 ) -> dict[str, Any]:
-    """翻译：返回 {text, lines, warnings[], unsupported[], defaults[], stats, verify, source, target}。"""
-    return _Translator(g_src, kb, src_profile, dst_profile, interface_map).run(verify)
+    """翻译：返回 {text, lines, warnings[], unsupported[], defaults[], stats, verify, source, target}。
+
+    rules（naming.RuleSet，REQ-032）：先在源图副本上按规则集改名（对象与引用一起改），端口映射并入接口映射表
+    （显式给出的 interface_map 优先），结果另有 naming（改名清单、冲突、命名规范告警）；不给时结果与原来完全一致。
+    target_graph：目标设备现有配置的图（新名与其中已有的名称重名时报冲突）。"""
+    if rules is None:
+        return _Translator(g_src, kb, src_profile, dst_profile, interface_map).run(verify)
+    from lmesh.core import naming
+
+    if dst_profile not in kb.profiles:
+        raise TranslateError("parse.profile_unknown", profile=dst_profile)
+    g2, ports, report = naming.run(g_src, kb, rules, dst_profile, target_graph)
+    result = _Translator(g2, kb, src_profile, dst_profile, {**ports, **(interface_map or {})}).run(verify)
+    result["naming"] = report
+    return result
 
 
 def translate_text(
@@ -717,6 +736,7 @@ def translate_text(
     interface_map: dict[str, str] | None = None,
     device: str = "device",
     verify: bool = True,
+    rules: Any = None,
 ) -> dict[str, Any]:
     """配置文本 → 解析建图 → 翻译（CLI、API 共用）。"""
     from lmesh.core import analysis
@@ -729,4 +749,4 @@ def translate_text(
     except analysis.AnalysisError as e:
         raise TranslateError(str(e), profile=src_profile or "") from e
     g = graphmod.build(res.parsed, kb, res.profile, device)
-    return translate(g, kb, res.profile, dst_profile, interface_map, verify)
+    return translate(g, kb, res.profile, dst_profile, interface_map, verify, rules)

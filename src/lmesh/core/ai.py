@@ -15,7 +15,12 @@ from lmesh.core import config, store
 from lmesh.core.store.models import AICall, iso
 
 _log = logging.getLogger("lmesh.ai")
-TASK_MODEL_KEYS = {"extract": "ai.model_extract", "merge": "ai.model_merge"}
+TASK_MODEL_KEYS = {
+    "extract": "ai.model_extract",
+    "merge": "ai.model_merge",
+    "ask": "ai.model_ask",
+    "generate": "ai.model_generate",
+}
 
 
 class AIError(RuntimeError):

@@ -24,6 +24,7 @@ import networkx as nx
 from lmesh.core.compare import _Schema, norm_scalar
 from lmesh.core.graph import DEVICE
 from lmesh.core.kb import KnowledgeBase
+from lmesh.core.kb.model import Note
 
 DIRECTIONS = ("up", "down", "both")
 MAX_DEPTH = 32
@@ -58,7 +59,7 @@ class Link:
     src: str
     dst: str
     kind: str  # reference / prerequisite / key / alias
-    note: str = ""
+    note: Note = field(default_factory=Note)  # 依赖说明；键字段 / 别名引用时为字段名
 
 
 def _key_text(key: Any) -> str:
@@ -99,7 +100,7 @@ def links(g: nx.MultiDiGraph, kb: KnowledgeBase) -> list[Link]:
     for a, b, d in g.edges(data=True):
         k = d.get("kind")
         if k in ("reference", "prerequisite"):
-            out.setdefault((a, b, k), Link(a, b, k, str(d.get("note") or "")))
+            out.setdefault((a, b, k), Link(a, b, k, Note.of(d.get("note"))))
     index: dict[tuple[str, str], list[str]] = defaultdict(list)
     for n, d in g.nodes(data=True):
         if d.get("kind") == "object" and d.get("schema"):
@@ -139,11 +140,11 @@ def links(g: nx.MultiDiGraph, kb: KnowledgeBase) -> list[Link]:
                 _, ref = sch.field_type(sn, f)
                 if ref and ref != sn.id:
                     for t in find(ref, v):
-                        out.setdefault((n, t, "key"), Link(n, t, "key", f))
+                        out.setdefault((n, t, "key"), Link(n, t, "key", Note.of(f)))
             for alias in KEY_ALIASES.get(sn.id, ()):
                 if not isinstance(key, dict):
                     for t in find(alias, key, near=n):
-                        out.setdefault((n, t, "alias"), Link(n, t, "alias", alias))
+                        out.setdefault((n, t, "alias"), Link(n, t, "alias", Note.of(alias)))
     return list(out.values())
 
 

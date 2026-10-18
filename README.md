@@ -23,13 +23,14 @@
 - Windows：双击 `start.bat`
 - Linux：`./start.sh`
 
-首次运行会进入 Web 配置向导。默认监听 `0.0.0.0:9000`，局域网内可访问。
+首次运行会进入 Web 配置向导。默认监听 `0.0.0.0:9090`，局域网内可访问。
 
 ## 使用方式
 
-- Web 界面：浏览器打开 `http://<地址>:9000`
+- Web 界面：浏览器打开 `http://<地址>:9090`
 - CLI：`lmesh --help`，见 [docs/cli.md](docs/cli.md)
-- 远程 API：前缀 `/api/v1`，令牌认证，见 [docs/api.md](docs/api.md)
+- 网页登录：用户账号（管理员 / 普通用户），首次运行向导创建第一个管理员；命令行管理账号用 `lmesh user`
+- 远程 API：前缀 `/api/v1`，脚本用 API 令牌认证（视为管理员），网页用会话 Cookie，见 [docs/api.md](docs/api.md)
 
 ## 项目结构
 
@@ -66,7 +67,9 @@ lmesh/
 │   ├── render/                 规范渲染的平台族书写习惯（退出命令、推导规则、接口类型；M3-3 起）
 │   ├── change/                 增量变更脚本的平台族下发习惯（开头 / 结尾命令、补充的副作用与取消写法、先删后建、高风险节点；M4-3 起）
 │   ├── migration/              割接迁移的平台族操作命令、管理口识别与各型号端口清单（ports/；M4-5 起）
+│   ├── export/                 审计表格导出的预置模板（tables.yaml：IP 地址表、VLAN / 桥域表、BGP 邻居表等；M5-3 起）
 │   ├── templates/              配置模板（M3-4 起）
+│   ├── translate-rules/        翻译规则集的内置示例（名称映射、命名规范、端口映射；只读；REQ-032 起）
 │   └── samples/                已脱敏的配置样本与往返期望结果（M1-3 起）
 │       ├── compare/            配置对比基准：由样本派生的变体与期望差异（manifest.yaml；M2-3 起）
 │       ├── translate/          配置翻译回归：用例、接口映射表与合成样本（manifest.yaml；M3-3 起）
@@ -89,7 +92,7 @@ lmesh/
 ├── tests/                      测试（见 tests/README.md）
 ├── .claude/settings.json       SessionStart 钩子
 ├── .claude/skills/             项目专属 skill（lmesh-docs-to-graph：产品文档 → 配置图）
-├── data/ logs/ cache/ tmp/     运行时文件（不入库）
+├── data/ logs/ cache/ tmp/     运行时文件（不入库；用户的翻译规则集在 data/translate-rules/）
 ├── .toolchain/                 依赖缓存与项目内的 Python、Node（不入库）
 └── dist/                       打包结果（不入库）
 ```

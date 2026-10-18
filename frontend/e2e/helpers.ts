@@ -1,13 +1,15 @@
 import { expect, type Page } from '@playwright/test'
 
 export const TOKEN = 'e2e-token'
+/** scripts/e2e_server.py 建好的账号（REQ-030）。 */
+export const ADMIN = { username: 'e2e-admin', password: 'E2e-admin-pass' }
+export const USER = { username: 'e2e-user', password: 'E2e-user-pass' }
 
-/** 预先写入令牌与语言，跳过令牌页。 */
-export async function login(page: Page, lang = 'zh-CN'): Promise<void> {
-  await page.addInitScript(([t, l]) => {
-    localStorage.setItem('lmesh-token', t)
-    localStorage.setItem('lmesh-lang', l)
-  }, [TOKEN, lang])
+/** 用账号登录（会话 Cookie 写进浏览器上下文）并预先写入语言，跳过登录页。默认用管理员。 */
+export async function login(page: Page, lang = 'zh-CN', who: { username: string; password: string } = ADMIN): Promise<void> {
+  await page.addInitScript((l) => { localStorage.setItem('lmesh-lang', l) }, lang)
+  const r = await page.request.post('/api/v1/auth/login', { data: who })
+  expect(r.ok(), await r.text()).toBeTruthy()
 }
 
 /** 页面上不应出现未翻译的文案键（形如 devices.title）。 */

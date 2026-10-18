@@ -176,7 +176,7 @@ cards:
   - id: cisco-iosxe.deny.1
     syntax: '[ <sequence-number> ] deny { <source> [ <source-wildcard> ] | host <source-host> | any } [ log ]'
     view: acl
-    undo: no deny { <source> [ <source-wildcard> ] | host <source-host> | any }
+    undo: no { <sequence-number> | deny { <source> [ <source-wildcard> ] | host <source-host> | any } }
     params: &id001
       sequence-number:
         type: integer
@@ -190,6 +190,12 @@ cards:
       source-host:
         type: ipv4
     default: There are no specific conditions under which a packet is denied passing the named access list.
+    maps:
+      acl.instance.rule: $sequence-number||auto
+      acl.instance.rule.action: kw:permit|deny
+      acl.instance.rule.source_ip: $source||$source-host||any
+      acl.instance.rule.source_wildcard: $source-wildcard||if:$source-host:0.0.0.0||if:$source:0.0.0.0
+      acl.instance.rule.log: if:log:true
     source:
       doc: cisco-iosxe-md
       file: acl/deny (IP).md
@@ -198,16 +204,10 @@ cards:
       version: '17.15'
       patched: 同 permit.1
     status: draft
-    maps:
-      acl.instance.rule: $sequence-number||auto
-      acl.instance.rule.action: kw:permit|deny
-      acl.instance.rule.source_ip: $source||$source-host||any
-      acl.instance.rule.source_wildcard: $source-wildcard||if:$source-host:0.0.0.0||if:$source:0.0.0.0
-      acl.instance.rule.log: if:log:true
   - id: cisco-iosxe.deny.4
     syntax: '[ <sequence-number> ] deny <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } [ fragments ] [ log ]'
     view: acl
-    undo: no deny <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any }
+    undo: no { <sequence-number> | deny <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } }
     params: &id002
       sequence-number:
         type: integer
@@ -229,14 +229,6 @@ cards:
       destination-host:
         type: ipv4
     default: There are no specific conditions under which a packet is denied passing the named access list.
-    source:
-      doc: cisco-iosxe-md
-      file: acl/deny (IP).md
-      title: deny (IP)
-      line: 5
-      version: '17.15'
-      patched: 同 permit.4
-    status: draft
     maps:
       acl.instance.rule: $sequence-number||auto
       acl.instance.rule.action: kw:permit|deny
@@ -246,10 +238,18 @@ cards:
       acl.instance.rule.destination_ip: $destination||$destination-host||any
       acl.instance.rule.destination_wildcard: $destination-wildcard||if:$destination-host:0.0.0.0
       acl.instance.rule.log: if:log:true
+    source:
+      doc: cisco-iosxe-md
+      file: acl/deny (IP).md
+      title: deny (IP)
+      line: 5
+      version: '17.15'
+      patched: 同 permit.4
+    status: draft
   - id: cisco-iosxe.deny.5
     syntax: '[ <sequence-number> ] deny { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ] [ established ] [ log ]'
     view: acl
-    undo: no deny { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ]
+    undo: no { <sequence-number> | deny { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ] }
     params: &id003
       sequence-number:
         type: integer
@@ -293,14 +293,6 @@ cards:
       destination-port-end:
         type: word
     default: There are no specific conditions under which a packet is denied passing the named access list.
-    source:
-      doc: cisco-iosxe-md
-      file: acl/deny (IP).md
-      title: deny (IP)
-      line: 5
-      version: '17.15'
-      patched: 同 permit.5
-    status: draft
     maps:
       acl.instance.rule: $sequence-number||auto
       acl.instance.rule.action: kw:permit|deny
@@ -312,6 +304,14 @@ cards:
       acl.instance.rule.source_port: fmt:{source-port-op} {source-port} {source-port-end}
       acl.instance.rule.destination_port: fmt:{destination-port-op} {destination-port} {destination-port-end}
       acl.instance.rule.log: if:log:true
+    source:
+      doc: cisco-iosxe-md
+      file: acl/deny (IP).md
+      title: deny (IP)
+      line: 5
+      version: '17.15'
+      patched: 同 permit.5
+    status: draft
   - id: cisco-iosxe.ip-access-group
     syntax: ip access-group { <access-list-name> | <access-list-number> } { in | out }
     view: interface
@@ -356,37 +356,29 @@ cards:
   - id: cisco-iosxe.permit.1
     syntax: '[ <sequence-number> ] permit { <source> [ <source-wildcard> ] | host <source-host> | any } [ log ]'
     view: acl
-    undo: no permit { <source> [ <source-wildcard> ] | host <source-host> | any }
+    undo: no { <sequence-number> | permit { <source> [ <source-wildcard> ] | host <source-host> | any } }
     params: *id001
     default: There are no specific conditions under which a packet passes the named access list.
-    source:
-      doc: cisco-iosxe-md
-      file: acl/permit (IP).md
-      title: permit (IP)
-      line: 5
-      version: '17.15'
-      patched: 原文序号写成 *[sequence-number]*、any / host 只写在参数说明里；标准 ACL 条目按运行配置整理
-    status: draft
     maps:
       acl.instance.rule: $sequence-number||auto
       acl.instance.rule.action: kw:permit|deny
       acl.instance.rule.source_ip: $source||$source-host||any
       acl.instance.rule.source_wildcard: $source-wildcard||if:$source-host:0.0.0.0||if:$source:0.0.0.0
       acl.instance.rule.log: if:log:true
-  - id: cisco-iosxe.permit.4
-    syntax: '[ <sequence-number> ] permit <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } [ fragments ] [ log ]'
-    view: acl
-    undo: no permit <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any }
-    params: *id002
-    default: There are no specific conditions under which a packet passes the named access list.
     source:
       doc: cisco-iosxe-md
       file: acl/permit (IP).md
       title: permit (IP)
       line: 5
       version: '17.15'
-      patched: 原文通用扩展格式（第 2 条语法）有多余的括号、转换失败，这张卡原为 IGMP 格式；按运行配置整理为通用扩展格式（协议为名称或编号）
+      patched: 原文序号写成 *[sequence-number]*、any / host 只写在参数说明里；标准 ACL 条目按运行配置整理。取消写法另有按序号删除（no <序号>，M4-2 补，变更脚本删除单条规则用）
     status: draft
+  - id: cisco-iosxe.permit.4
+    syntax: '[ <sequence-number> ] permit <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } [ fragments ] [ log ]'
+    view: acl
+    undo: no { <sequence-number> | permit <protocol> { <source> <source-wildcard> | host <source-host> | any } { <destination> <destination-wildcard> | host <destination-host> | any } }
+    params: *id002
+    default: There are no specific conditions under which a packet passes the named access list.
     maps:
       acl.instance.rule: $sequence-number||auto
       acl.instance.rule.action: kw:permit|deny
@@ -396,20 +388,20 @@ cards:
       acl.instance.rule.destination_ip: $destination||$destination-host||any
       acl.instance.rule.destination_wildcard: $destination-wildcard||if:$destination-host:0.0.0.0
       acl.instance.rule.log: if:log:true
-  - id: cisco-iosxe.permit.5
-    syntax: '[ <sequence-number> ] permit { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ] [ established ] [ log ]'
-    view: acl
-    undo: no permit { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ]
-    params: *id003
-    default: There are no specific conditions under which a packet passes the named access list.
     source:
       doc: cisco-iosxe-md
       file: acl/permit (IP).md
       title: permit (IP)
       line: 5
       version: '17.15'
-      patched: 原文 TCP 格式的端口参数写成 *[port]*；按运行配置整理为 TCP / UDP 端口格式
+      patched: 原文通用扩展格式（第 2 条语法）有多余的括号、转换失败，这张卡原为 IGMP 格式；按运行配置整理为通用扩展格式（协议为名称或编号）
     status: draft
+  - id: cisco-iosxe.permit.5
+    syntax: '[ <sequence-number> ] permit { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ] [ established ] [ log ]'
+    view: acl
+    undo: no { <sequence-number> | permit { tcp | udp } { <source> <source-wildcard> | host <source-host> | any } [ <source-port-op> <source-port> [ <source-port-end> ] ] { <destination> <destination-wildcard> | host <destination-host> | any } [ <destination-port-op> <destination-port> [ <destination-port-end> ] ] }
+    params: *id003
+    default: There are no specific conditions under which a packet passes the named access list.
     maps:
       acl.instance.rule: $sequence-number||auto
       acl.instance.rule.action: kw:permit|deny
@@ -421,10 +413,18 @@ cards:
       acl.instance.rule.source_port: fmt:{source-port-op} {source-port} {source-port-end}
       acl.instance.rule.destination_port: fmt:{destination-port-op} {destination-port} {destination-port-end}
       acl.instance.rule.log: if:log:true
+    source:
+      doc: cisco-iosxe-md
+      file: acl/permit (IP).md
+      title: permit (IP)
+      line: 5
+      version: '17.15'
+      patched: 原文 TCP 格式的端口参数写成 *[port]*；按运行配置整理为 TCP / UDP 端口格式
+    status: draft
   - id: cisco-iosxe.remark
     syntax: '[ <sequence-number> ] remark <remark>'
     view: acl
-    undo: no remark <remark>
+    undo: no { <sequence-number> | remark <remark> }
     params:
       sequence-number:
         type: integer
@@ -434,6 +434,9 @@ cards:
       remark:
         type: text
     default: The access-list entries have no remarks.
+    maps:
+      acl.instance.rule: $sequence-number
+      acl.instance.rule.description: $remark
     source:
       doc: cisco-iosxe-md
       file: acl/remark.md
@@ -442,9 +445,6 @@ cards:
       version: '17.15'
       patched: 命名 ACL 中的说明行在 IOS XE 运行配置里可以带序号；说明文字可含空格
     status: draft
-    maps:
-      acl.instance.rule: $sequence-number
-      acl.instance.rule.description: $remark
   - id: cisco-iosxe.access-list-standard
     syntax: access-list <access-list-number> { deny | permit } { <source> [ <source-wildcard> ] | host <source-host> | any } [ log ]
     view: system

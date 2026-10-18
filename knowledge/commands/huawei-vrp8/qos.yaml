@@ -1,0 +1,5310 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: qos
+cards:
+  - id: huawei-vrp8.8021p-inbound
+    syntax: 8021p-inbound <8021p-value> phb <service-class> [ <color> ]
+    view: diffserv-domain
+    undo: undo 8021p-inbound [ <8021p-value> ]
+    params:
+      8021p-value:
+        type: integer
+        range:
+          - 0
+          - 7
+      service-class:
+        type: word
+      color:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: 8021p-inbound
+      line: 15
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.8021p-outbound
+    syntax: 8021p-outbound <service-class> <color> map <8021p-value>
+    view: diffserv-domain
+    undo: undo 8021p-outbound [ <service-class> <color> ]
+    params:
+      service-class:
+        type: word
+      color:
+        type: word
+      8021p-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: 8021p-outbound
+      line: 94
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.car.1
+    syntax: car { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ green { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } | yellow { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } | red { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } ] &<1-9> [ summary ] [ color-aware ] [ limit-type pps ]
+    view: qos-behavior
+    undo: undo car [ { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ green { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } | yellow { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } | red { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } ] &<1-9> [ summary ] [ color-aware ] [ limit-type pps ] ]
+    params:
+      cir-value: &id001
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      pir-value: &id002
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      cbs-value: &id003
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      pbs-value: &id004
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      dscp: &id005
+        type: integer
+        range:
+          - 0
+          - 63
+      class: &id006
+        type: word
+      color: &id007
+        type: word
+    default: By default, traffic policing is not configured for traffic behavior.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: car (Traffic behavior view)
+      line: 175
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.car_cir: $cir-value
+      qos.behavior.car_pir: $pir-value
+  - id: huawei-vrp8.car.2
+    syntax: car { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ adjust <adjust-value> ] [ green { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } | yellow { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } | red { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } ] &<1-9> [ summary ] [ color-aware ]
+    view: qos-behavior
+    undo: undo car [ { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ adjust <adjust-value> ] [ green { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } | yellow { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } | red { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } ] &<1-9> [ summary ] [ color-aware ] ]
+    params:
+      cir-value: *id001
+      pir-value: *id002
+      cbs-value: *id003
+      pbs-value: *id004
+      adjust-value: &id008
+        type: integer
+      dscp: *id005
+      class: *id006
+      color: *id007
+    default: By default, traffic policing is not configured for traffic behavior.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: car (Traffic behavior view)
+      line: 175
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.car_cir: $cir-value
+      qos.behavior.car_pir: $pir-value
+  - id: huawei-vrp8.car.3
+    syntax: car { cir cir-percentage <cir-percentage-value> [ pir pir-percentage <pir-percentage-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ adjust <adjust-value> ] [ green { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } | yellow { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } | red { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } ] &<1-9> [ color-aware ]
+    view: qos-behavior
+    undo: undo car { cir cir-percentage <cir-percentage-value> [ pir pir-percentage <pir-percentage-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ adjust <adjust-value> ] [ green { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } | yellow { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } | red { discard | pass [ remark dscp <dscp> | service-class <class> color <color> ] } ] &<1-9> [ color-aware ]
+    params:
+      cir-percentage-value: &id009
+        type: integer
+        range:
+          - 0
+          - 100
+      pir-percentage-value: &id010
+        type: integer
+        range:
+          - 0
+          - 100
+      cbs-value: *id003
+      pbs-value: *id004
+      adjust-value: *id008
+      dscp: *id005
+      class: *id006
+      color: *id007
+    default: By default, traffic policing is not configured for traffic behavior.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: car (Traffic behavior view)
+      line: 175
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.car_cir_pct: $cir-percentage-value
+  - id: huawei-vrp8.car.4
+    syntax: car { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ green pass | yellow pass | red discard ] &<1-9> [ color-aware ]
+    view: qos-behavior
+    undo: undo car [ { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ green pass | yellow pass | red discard ] &<1-9> [ color-aware ] ]
+    params:
+      cir-value: *id001
+      pir-value: *id002
+      cbs-value: *id003
+      pbs-value: *id004
+    default: By default, traffic policing is not configured for traffic behavior.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: car (Traffic behavior view)
+      line: 175
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.car_cir: $cir-value
+      qos.behavior.car_pir: $pir-value
+  - id: huawei-vrp8.car.5
+    syntax: car { cir cir-percentage <cir-percentage-value> [ pir pir-percentage <pir-percentage-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ green pass | yellow pass | red discard ] &<1-9> [ color-aware ]
+    view: qos-behavior
+    undo: undo car { cir cir-percentage <cir-percentage-value> [ pir pir-percentage <pir-percentage-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ green pass | yellow pass | red discard ] &<1-9> [ color-aware ]
+    params:
+      cir-percentage-value: *id009
+      pir-percentage-value: *id010
+      cbs-value: *id003
+      pbs-value: *id004
+    default: By default, traffic policing is not configured for traffic behavior.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: car (Traffic behavior view)
+      line: 175
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.car_cir_pct: $cir-percentage-value
+  - id: huawei-vrp8.classifier-behavior
+    syntax: classifier <classifier-name> behavior <behavior-name> [ precedence <precedence-number> ]
+    view: qos-policy
+    undo: undo classifier <classifier-name>
+    params:
+      classifier-name:
+        type: word
+      behavior-name:
+        type: word
+      precedence-number:
+        type: integer
+        range:
+          - 1
+          - 5119
+    default: By default, the traffic behavior is not specified for the traffic classifier in the traffic policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: classifier behavior
+      line: 339
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.policy.rule: $classifier-name
+      qos.policy.rule.classifier: $classifier-name
+      qos.policy.rule.behavior: $behavior-name
+      qos.policy.rule.precedence: $precedence-number
+  - id: huawei-vrp8.description~12
+    syntax: description <information>
+    view: qos-behavior
+    undo: undo description [ <information> ]
+    params:
+      information:
+        type: word
+    default: By default, there is no description adding for the current configured traffic behavior.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: description (Traffic behavior view)
+      line: 417
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.description~14
+    syntax: description <information>
+    view: qos-classifier
+    undo: undo description
+    params:
+      information:
+        type: word
+    default: By default, there is no description adding for the current configured traffic classifier.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: description (Traffic classifier view)
+      line: 479
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.classifier.description: $information
+  - id: huawei-vrp8.description~15
+    syntax: description <information>
+    view: qos-policy
+    undo: undo description
+    params:
+      information:
+        type: word
+    default: By default, there is no description adding for the current configured traffic policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: description (Traffic policy view)
+      line: 541
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-domain.1
+    syntax: diffserv domain { <ds-domain-name> | default } domain-id <domain-id-value>
+    view: system
+    enters_view: diffserv-domain
+    undo: undo diffserv domain { <ds-domain-name> | default } [ domain-id <domain-id-value> ]
+    params:
+      ds-domain-name: &id011
+        type: word
+      domain-id-value:
+        type: integer
+        range:
+          - 1
+          - 15
+    default: By default, the system predefines the default domain.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv domain
+      line: 603
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-domain.2
+    syntax: diffserv domain { <ds-domain-name> | default }
+    view: system
+    enters_view: diffserv-domain
+    undo: undo diffserv domain { <ds-domain-name> | default } [ domain-id <domain-id-value> ]
+    params:
+      ds-domain-name: *id011
+    default: By default, the system predefines the default domain.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv domain
+      line: 603
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.field-dei-enable
+    syntax: field dei enable
+    view: interface
+    undo: undo field dei enable
+    default: By default, the DEI capability is not enabled for the packets on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: field dei enable
+      line: 3102
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.field-dei-enable-vlan
+    syntax: field dei enable vlan { { <vlan-id1> [ to <vlan-id2> ] } &<1-10> | all }
+    view: interface
+    undo: undo field dei enable vlan { { <vlan-id1> [ to <vlan-id2> ] } &<1-10> | all }
+    params:
+      vlan-id1:
+        type: integer
+        range:
+          - 1
+          - 4094
+      vlan-id2:
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, the DEI capability is not enabled for the packets within a specified VLAN range on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: field dei enable vlan
+      line: 3169
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flow-car
+    syntax: flow-car cir <cir-value> [ pir <pir-value> ] [ cbs <cbs-value> [ pbs <pbs-value> ] ] identifier { source-ip | destination-ip }
+    view: qos-behavior
+    undo: undo flow-car
+    params:
+      cir-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      pir-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      cbs-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      pbs-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, independent rate limiting is not performed for flows matching ACL rules based on IP addresses.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: flow-car
+      line: 3243
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.hierarchical-car-enable
+    syntax: hierarchical-car enable
+    view: qos-behavior
+    undo: undo hierarchical-car enable
+    default: By default, hierarchical CAR is disabled in a cascaded traffic policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: hierarchical-car enable
+      line: 3312
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.host-packet-dscp
+    syntax: host-packet dscp <dscp-value> map local-service <cos-value> [ color <color> ]
+    view: system
+    undo: undo host-packet dscp <dscp-value> [ map local-service <cos-value> color <color> ]
+    params:
+      dscp-value:
+        type: integer
+        range:
+          - 0
+          - 63
+      cos-value:
+        type: word
+      color:
+        type: word
+    default: By default, protocol packets enter the CS6 queue without the color during internal queue scheduling.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: host-packet dscp
+      line: 3381
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-8021p
+    syntax: if-match 8021p <8021p-value>
+    view: qos-classifier
+    undo: undo if-match 8021p <8021p-value>
+    params:
+      8021p-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, the matching rule for complex traffic classification based on the 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match 8021p
+      line: 3443
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: 8021p
+        value: $8021p-value
+  - id: huawei-vrp8.if-match-acl.1
+    syntax: if-match acl { <acl-number> | name <acl-name> }
+    view: qos-classifier
+    undo: undo if-match acl { <acl-number> | name <acl-name> }
+    params:
+      acl-number: &id012
+        type: integer
+        range:
+          - 2000
+          - 4999
+      acl-name: &id013
+        type: word
+    default: By default, the matching rule for complex traffic classification based on an IPv4 or IPv6 ACL is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match acl
+      line: 3522
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: acl
+        value: $acl-number||$acl-name
+      qos.classifier.match.acl: $acl-number||$acl-name
+  - id: huawei-vrp8.if-match-acl.2
+    syntax: if-match ipv6 acl { <acl-number> | name <acl-name> }
+    view: qos-classifier
+    undo: undo if-match ipv6 acl { <acl-number> | name <acl-name> }
+    params:
+      acl-number: *id012
+      acl-name: *id013
+    default: By default, the matching rule for complex traffic classification based on an IPv4 or IPv6 ACL is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match acl
+      line: 3522
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-acl.3
+    syntax: if-match acl { <acl-number> | name <acl-name> } precedence <precedence-value>
+    view: qos-classifier
+    undo: undo if-match acl { <acl-number> | name <acl-name> } precedence <precedence-value>
+    params:
+      acl-number: *id012
+      acl-name: *id013
+      precedence-value: &id014
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, the matching rule for complex traffic classification based on an IPv4 or IPv6 ACL is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match acl
+      line: 3522
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-acl.4
+    syntax: if-match ipv6 acl { <acl-number> | name <acl-name> } precedence <precedence-value>
+    view: qos-classifier
+    undo: undo if-match ipv6 acl { <acl-number> | name <acl-name> } precedence <precedence-value>
+    params:
+      acl-number: *id012
+      acl-name: *id013
+      precedence-value: *id014
+    default: By default, the matching rule for complex traffic classification based on an IPv4 or IPv6 ACL is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match acl
+      line: 3522
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-any.1
+    syntax: if-match ipv6 any
+    view: qos-classifier
+    undo: undo if-match ipv6 any
+    default: By default, the matching rule for complex traffic classification for all IPv4 or IPv6 packets is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match any
+      line: 3655
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-any.2
+    syntax: if-match any
+    view: qos-classifier
+    undo: undo if-match any
+    default: By default, the matching rule for complex traffic classification for all IPv4 or IPv6 packets is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match any
+      line: 3655
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: any
+        value: ''
+  - id: huawei-vrp8.if-match-destination-mac
+    syntax: if-match destination-mac <mac-address> [ <mac-mask> ]
+    view: qos-classifier
+    undo: undo if-match destination-mac <mac-address> [ <mac-mask> ]
+    params:
+      mac-address:
+        type: word
+      mac-mask:
+        type: mask
+    default: By default, the matching rule for complex traffic classification based on destination MAC addresses of packets is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match destination-mac
+      line: 3735
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-dscp.1
+    syntax: if-match ipv6 dscp <dscp-value>
+    view: qos-classifier
+    undo: undo if-match ipv6 dscp <dscp-value>
+    params:
+      dscp-value: &id015
+        type: integer
+        range:
+          - 0
+          - 63
+    default: By default, the matching rule for complex traffic classification based on DSCP values of IPv4 or IPv6 packets is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match dscp
+      line: 3812
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-dscp.2
+    syntax: if-match dscp { <dscp-value> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | ef | default }
+    view: qos-classifier
+    undo: undo if-match dscp { <dscp-value> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | ef | default }
+    params:
+      dscp-value: *id015
+    default: By default, the matching rule for complex traffic classification based on DSCP values of IPv4 or IPv6 packets is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match dscp
+      line: 3812
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: dscp
+        value: $dscp-value||tail:dscp
+  - id: huawei-vrp8.if-match-ip-precedence.1
+    syntax: if-match ip-precedence <ip-precedence>
+    view: qos-classifier
+    undo: undo if-match ip-precedence <ip-precedence>
+    params:
+      ip-precedence: &id016
+        type: integer
+        range:
+          - 0
+          - 7
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match ip-precedence
+      line: 3918
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: ip-precedence
+        value: $ip-precedence
+  - id: huawei-vrp8.if-match-ip-precedence.2
+    syntax: if-match ipv6 ip-precedence <ip-precedence>
+    view: qos-classifier
+    undo: undo if-match ipv6 ip-precedence <ip-precedence>
+    params:
+      ip-precedence: *id016
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match ip-precedence
+      line: 3918
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ipv6-destination-address
+    syntax: if-match ipv6 destination-address <ipv6-address> <prefix-length>
+    view: qos-classifier
+    undo: undo if-match ipv6 destination-address <ipv6-address> <prefix-length>
+    params:
+      ipv6-address:
+        type: word
+      prefix-length:
+        type: mask-length
+    default: By default, the matching rule for the complex traffic classification based on destination IP addresses of IPv6 packets is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match ipv6 destination-address
+      line: 4012
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ipv6-next-header
+    syntax: if-match ipv6 next-header <header-number> first-next-header
+    view: qos-classifier
+    undo: undo if-match ipv6 next-header <header-number> first-next-header
+    params:
+      header-number:
+        type: integer
+        range:
+          - 0
+          - 255
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match ipv6 next-header
+      line: 4089
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ipv6-qos-local-id
+    syntax: if-match ipv6 qos-local-id <qos-local-id>
+    view: qos-classifier
+    undo: undo if-match ipv6 qos-local-id <qos-local-id>
+    params:
+      qos-local-id:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, no matching rule based on the IPv6 QoS policy ID is configured in a traffic classifier.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match ipv6 qos-local-id
+      line: 4164
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-ipv6-source-address
+    syntax: if-match ipv6 source-address <ipv6-address> <prefix-length>
+    view: qos-classifier
+    undo: undo if-match ipv6 source-address <ipv6-address> <prefix-length>
+    params:
+      ipv6-address:
+        type: word
+      prefix-length:
+        type: mask-length
+    default: By default, the matching rule for complex traffic classification based on the source IP addresses of IPv6 packets is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match ipv6 source-address
+      line: 4244
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-mpls-exp
+    syntax: if-match mpls-exp <exp-value>
+    view: qos-classifier
+    undo: undo if-match mpls-exp <exp-value>
+    params:
+      exp-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, the matching rule to classify traffic based on the value of the MPLS EXP field is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match mpls-exp
+      line: 4321
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.classifier.match:
+        field: mpls-exp
+        value: $exp-value
+  - id: huawei-vrp8.if-match-offset
+    syntax: if-match { offset <offset-value> match-value <match-value> match-mask <match-mask> } &<1-4>
+    view: qos-classifier
+    undo: undo if-match { offset <offset-value> match-value <match-value> match-mask <match-mask> } &<1-4>
+    params:
+      offset-value:
+        type: integer
+        range:
+          - 0
+          - 60
+      match-value:
+        type: word
+      match-mask:
+        type: mask
+    default: By default, the packet offset of the matching rule is not configured in a traffic classifier.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match offset
+      line: 4397
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-qos-local-id
+    syntax: if-match qos-local-id <qos-local-id>
+    view: qos-classifier
+    undo: undo if-match qos-local-id <qos-local-id>
+    params:
+      qos-local-id:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the matching rule to classify traffic based on the QoS policy ID is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match qos-local-id
+      line: 4479
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-service-class
+    syntax: if-match service-class <service-class>
+    view: qos-classifier
+    undo: undo if-match service-class <service-class>
+    params:
+      service-class:
+        type: word
+    default: By default, no matching rules are configured for MF classification based on the service class.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match service-class
+      line: 4555
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-source-mac
+    syntax: if-match source-mac <mac-address> [ <mac-mask> ]
+    view: qos-classifier
+    undo: undo if-match source-mac <mac-address> [ <mac-mask> ]
+    params:
+      mac-address:
+        type: word
+      mac-mask:
+        type: mask
+    default: By default, the matching rule for complex traffic classification based on the source MAC addresses of packets is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match source-mac
+      line: 4629
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-tcp-syn-flag.1
+    syntax: if-match tcp syn-flag { { <tcpflag-value> [ mask <tcpflag-mask> ] } | { bit-match { established | fin | syn | rst | psh | ack | urg | ece | cwr | ns } } }
+    view: qos-classifier
+    undo: undo if-match tcp syn-flag { { <tcpflag-value> [ mask <tcpflag-mask> ] } | { bit-match { ack | cwr | ece | established | fin | ns | psh | rst | syn | urg } } }
+    params:
+      tcpflag-value:
+        type: integer
+        range:
+          - 0
+          - 511
+      tcpflag-mask:
+        type: mask
+    default: By default, the matching rule for complex traffic classification based on the SYN Flag value in the TCP packet header is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match tcp syn-flag
+      line: 4706
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-tcp-syn-flag.2
+    syntax: if-match ipv6 tcp syn-flag { { <tcpflag-value-ipv6> [ mask <tcpflag-mask-ipv6> ] } | { bit-match { established | fin | syn | rst | psh | ack | urg } } }
+    view: qos-classifier
+    undo: undo if-match ipv6 tcp syn-flag { { <tcpflag-value-ipv6> [ mask <tcpflag-mask-ipv6> ] } | { bit-match { established | fin | syn | rst | psh | ack | urg } } }
+    params:
+      tcpflag-value-ipv6:
+        type: integer
+        range:
+          - 0
+          - 63
+      tcpflag-mask-ipv6:
+        type: integer
+        range:
+          - 0
+          - 63
+    default: By default, the matching rule for complex traffic classification based on the SYN Flag value in the TCP packet header is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match tcp syn-flag
+      line: 4706
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-type
+    syntax: if-match type <eth-type-value>
+    view: qos-classifier
+    undo: undo if-match type <eth-type-value>
+    params:
+      eth-type-value:
+        type: integer
+    default: By default, the Ethernet-type-based matching rule is not configured in traffic classifier view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match type
+      line: 4812
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.if-match-vlan
+    syntax: if-match vlan <vlan-id> [ cvlan <ce-vlan-id> ]
+    view: qos-classifier
+    undo: undo if-match vlan <vlan-id> [ cvlan <ce-vlan-id> ]
+    params:
+      vlan-id:
+        type: integer
+        range:
+          - 1
+          - 4094
+      ce-vlan-id:
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, no matching rule for MF classification based on the VLAN is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: if-match vlan
+      line: 4880
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.increase-priority
+    syntax: increase-priority
+    view: qos-behavior
+    undo: undo increase-priority
+    default: By default, if traffic matches the MF classification, and BGP FlowSpec rules simultaneously and the actions are redirection, the redirection action takes effect based on the BGP FlowSpec service.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: increase-priority
+      line: 4949
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.inner-mark
+    syntax: inner mark
+    view: qos-behavior
+    undo: undo inner mark
+    default: By default, a device is not configured to mark packets matching a traffic policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: inner mark
+      line: 5009
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-netstream-sampler
+    syntax: ip netstream sampler { fix-packets <packet-interval> | fix-time <time-interval> | random-packets <packet-interval> }
+    view: qos-behavior
+    undo: undo ip netstream sampler [ fix-packets <packet-interval> | fix-time <time-interval> | random-packets <packet-interval> ]
+    params:
+      packet-interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+      time-interval:
+        type: integer
+        range:
+          - 5
+          - 30000
+    default: By default, the sampling of NetStream statistics is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ip netstream sampler(Traffic behavior view)
+      line: 5071
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-dscp-inbound.1
+    syntax: ip-dscp-inbound <dscp-value> phb <service-class> [ <color> ]
+    view: diffserv-domain
+    undo: undo ip-dscp-inbound [ <dscp-value> ]
+    params:
+      dscp-value: &id017
+        type: integer
+        range:
+          - 0
+          - 63
+      service-class: &id018
+        type: word
+      color: &id019
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ip-dscp-inbound
+      line: 5143
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-dscp-inbound.2
+    syntax: ip-dscp-inbound <dscp-value> to <dscp-value> phb <service-class> [ <color> ] [ exclude-user-defined ]
+    view: diffserv-domain
+    undo: undo ip-dscp-inbound <dscp-value> to <dscp-value>
+    params:
+      dscp-value: *id017
+      service-class: *id018
+      color: *id019
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ip-dscp-inbound
+      line: 5143
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-dscp-inbound-compatible-precedence-priority
+    syntax: ip-dscp-inbound compatible-precedence-priority
+    view: diffserv-domain
+    undo: undo ip-dscp-inbound compatible-precedence-priority
+    default: By default, the ip-dscp-inbound compatible-precedence-priority command is not configured in a DS domain.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ip-dscp-inbound compatible-precedence-priority
+      line: 5278
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-dscp-outbound
+    syntax: ip-dscp-outbound <service-class> <color> map <dscp-value>
+    view: diffserv-domain
+    undo: undo ip-dscp-outbound [ <service-class> <color> ]
+    params:
+      service-class:
+        type: word
+      color:
+        type: word
+      dscp-value:
+        type: integer
+        range:
+          - 0
+          - 63
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ip-dscp-outbound
+      line: 5378
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-precedence-inbound
+    syntax: ip-precedence-inbound <ip-precedence-value> phb <service-class> [ <color> ]
+    view: diffserv-domain
+    undo: undo ip-precedence-inbound [ <ip-precedence-value> ]
+    params:
+      ip-precedence-value:
+        type: integer
+        range:
+          - 0
+          - 7
+      service-class:
+        type: word
+      color:
+        type: word
+    default: By default, the mappings between precedence values of IP packets, service classes, and colors are shown in Table 1 in Usage Scenario.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ip-precedence-inbound
+      line: 5479
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ip-precedence-outbound
+    syntax: ip-precedence-outbound <service-class> <color> map <ip-precedence-value>
+    view: diffserv-domain
+    undo: undo ip-precedence-outbound [ <service-class> <color> ]
+    params:
+      service-class:
+        type: word
+      color:
+        type: word
+      ip-precedence-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, the mappings between service classes and colors of IP packets and precedence values are shown in Table 1 in Usage Scenario.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ip-precedence-outbound
+      line: 5560
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv4-dscp-inbound.1
+    syntax: ipv4-dscp-inbound <dscp-value> phb <service-class> [ <color> ]
+    view: diffserv-domain
+    undo: undo ipv4-dscp-inbound <dscp-value> phb <service-class> [ <color> ]
+    params:
+      dscp-value: &id020
+        type: integer
+        range:
+          - 0
+          - 63
+      service-class: &id021
+        type: word
+      color: &id022
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ipv4-dscp-inbound
+      line: 5643
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv4-dscp-inbound.2
+    syntax: ipv4-dscp-inbound <dscp-value> to <dscp-value> phb <service-class> [ <color> ] [ exclude-user-defined ]
+    view: diffserv-domain
+    undo: undo ipv4-dscp-inbound <dscp-value> to <dscp-value> phb <service-class> [ <color> ] [ exclude-user-defined ]
+    params:
+      dscp-value: *id020
+      service-class: *id021
+      color: *id022
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ipv4-dscp-inbound
+      line: 5643
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv4-dscp-outbound
+    syntax: ipv4-dscp-outbound <service-class> <color> map <dscp-value>
+    view: diffserv-domain
+    undo: undo ipv4-dscp-outbound <service-class> <color> map <dscp-value>
+    params:
+      service-class:
+        type: word
+      color:
+        type: word
+      dscp-value:
+        type: integer
+        range:
+          - 0
+          - 63
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ipv4-dscp-outbound
+      line: 5779
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-dscp-inbound.1
+    syntax: ipv6-dscp-inbound <dscp-value> phb <service-class> [ <color> ]
+    view: diffserv-domain
+    undo: undo ipv6-dscp-inbound <dscp-value> phb <service-class> [ <color> ]
+    params:
+      dscp-value: &id023
+        type: integer
+        range:
+          - 0
+          - 63
+      service-class: &id024
+        type: word
+      color: &id025
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ipv6-dscp-inbound
+      line: 5891
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-dscp-inbound.2
+    syntax: ipv6-dscp-inbound <dscp-value> to <dscp-value> phb <service-class> [ <color> ] [ exclude-user-defined ]
+    view: diffserv-domain
+    undo: undo ipv6-dscp-inbound <dscp-value> to <dscp-value> phb <service-class> [ <color> ] [ exclude-user-defined ]
+    params:
+      dscp-value: *id023
+      service-class: *id024
+      color: *id025
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ipv6-dscp-inbound
+      line: 5891
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv6-dscp-outbound
+    syntax: ipv6-dscp-outbound <service-class> <color> map <dscp-value>
+    view: diffserv-domain
+    undo: undo ipv6-dscp-outbound <service-class> <color> map <dscp-value>
+    params:
+      service-class:
+        type: word
+      color:
+        type: word
+      dscp-value:
+        type: integer
+        range:
+          - 0
+          - 63
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: ipv6-dscp-outbound
+      line: 6027
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.load-balance~2
+    syntax: load-balance { flow [ l2 | l3 ] | packet }
+    view: qos-behavior
+    undo: undo load-balance [ flow [ l2 | l3 ] | packet ]
+    default: By default, flow-based load balancing is performed for received packets based on Layer 3 information (source and destination IP addresses).
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: load-balance
+      line: 6139
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.log-first-packet
+    syntax: log first-packet
+    view: qos-behavior
+    undo: undo log first-packet
+    default: By default, the logging of the first packet that matches an ACL rule is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: log first-packet
+      line: 6212
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.match-type-ipv6-fragment-inner-protocol
+    syntax: match-type ipv6 fragment-inner-protocol enable
+    view: qos-policy
+    undo: undo match-type ipv6 fragment-inner-protocol enable
+    default: By default, traffic classification based on the actual protocol number of IPv6 fragment packets is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: match-type ipv6 fragment-inner-protocol
+      line: 6284
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.match-type-ipv6-qos-local-id-enable
+    syntax: match-type ipv6 qos-local-id enable
+    view: qos-policy
+    undo: undo match-type ipv6 qos-local-id enable
+    default: By default, the IPv6 QoS local ID matching mode is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: match-type ipv6 qos-local-id enable
+      line: 6341
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vc-diffserv-domain
+    syntax: mpls l2vc diffserv domain { 5p3d | <domain-name> | default }
+    view: interface
+    undo: undo mpls l2vc diffserv domain
+    params:
+      domain-name:
+        type: word
+    default: By default, the private network tag preference that a VLL-enabled interface uses is marked to be that in the default domain.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: mpls l2vc diffserv domain
+      line: 6403
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-exp-inbound
+    syntax: mpls-exp-inbound <exp> phb <service-class> [ <color> ]
+    view: diffserv-domain
+    undo: undo mpls-exp-inbound [ <exp> ]
+    params:
+      exp:
+        type: integer
+        range:
+          - 0
+          - 7
+      service-class:
+        type: word
+      color:
+        type: word
+    default: By default, the mappings from EXP values to CoSs and colors are shown in Table 1 in Usage Scenario.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: mpls-exp-inbound
+      line: 6470
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-exp-outbound
+    syntax: mpls-exp-outbound <service-class> <color> map <exp>
+    view: diffserv-domain
+    undo: undo mpls-exp-outbound [ <service-class> <color> ]
+    params:
+      service-class:
+        type: word
+      color:
+        type: word
+      exp:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, the mappings from internal CoSs and colors to EXP values are shown in Table 1 in Usage Scenario.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: mpls-exp-outbound
+      line: 6553
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-inner-exp-phb
+    syntax: mpls-inner-exp phb disable vll
+    view: system
+    undo: undo mpls-inner-exp phb disable vll
+    default: By default, the private network tag priority in a DS domain is marked for the downstream traffic on the PW interface in the VLL networking.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: mpls-inner-exp phb
+      line: 6632
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.permit-deny
+    syntax: '{ permit | deny }'
+    view: qos-behavior
+    default: By default, packets meet the rules can pass.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: permit | deny
+      line: 6775
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.action: kw:permit|deny
+  - id: huawei-vrp8.qos-default-service-class@interface
+    syntax: qos default-service-class <service-class>
+    view: interface
+    undo: undo qos default-service-class
+    params: &id026
+      service-class:
+        type: word
+    default: By default, the upstream traffic on an interface to enter the BE queue.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos default-service-class
+      line: 6850
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-default-service-class@bridge-domain
+    syntax: qos default-service-class <service-class>
+    view: bridge-domain
+    undo: undo qos default-service-class
+    params: *id026
+    default: By default, the upstream traffic on an interface to enter the BE queue.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos default-service-class
+      line: 6850
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-link-adjustment-link-layer-exclude
+    syntax: qos link-adjustment link-layer-exclude
+    view: qos-policy
+    undo: undo qos link-adjustment link-layer-exclude
+    default: By default, the CAR and statistics functions based on the layer 3 packet length are not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos link-adjustment link-layer-exclude
+      line: 6912
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-member-link-scheduler-distribute.1
+    syntax: qos mpls-te member-link-scheduler distribute
+    view: interface
+    undo: undo qos mpls-te member-link-scheduler distribute
+    default: By default, bandwidth allocation is not implemented for trunk member interfaces based on weights.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos member-link-scheduler distribute
+      line: 6976
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-member-link-scheduler-distribute.2
+    syntax: qos hqos-outbound member-link-scheduler distribute
+    view: interface
+    undo: undo qos hqos-outbound member-link-scheduler distribute
+    default: By default, bandwidth allocation is not implemented for trunk member interfaces based on weights.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos member-link-scheduler distribute
+      line: 6976
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-member-link-scheduler-distribute.3
+    syntax: qos port-shaping member-link-scheduler distribute
+    view: interface
+    undo: undo qos port-shaping member-link-scheduler distribute
+    default: By default, bandwidth allocation is not implemented for trunk member interfaces based on weights.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos member-link-scheduler distribute
+      line: 6976
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-member-link-scheduler-distribute.4
+    syntax: qos user-queue member-link-scheduler distribute
+    view: interface
+    undo: undo qos user-queue member-link-scheduler distribute
+    default: By default, bandwidth allocation is not implemented for trunk member interfaces based on weights.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos member-link-scheduler distribute
+      line: 6976
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-phb-disable@interface
+    syntax: qos phb disable
+    view: interface
+    undo: undo qos phb disable
+    default: By default, the function of checking the PHB table during the forwarding of downstream traffic is disabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos phb disable
+      line: 7106
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-phb-disable@bridge-domain
+    syntax: qos phb disable
+    view: bridge-domain
+    undo: undo qos phb disable
+    default: By default, the function of checking the PHB table during the forwarding of downstream traffic is disabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos phb disable
+      line: 7106
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-phb-disable-vxlan-mode@vpn-instance
+    syntax: qos phb disable vxlan-mode
+    view: vpn-instance
+    undo: undo qos phb disable vxlan-mode
+    default: By default, the VXLAN DSCP value of a packet is the same as its DSCP value.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos phb disable vxlan-mode
+      line: 7171
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-phb-disable-vxlan-mode@bridge-domain
+    syntax: qos phb disable vxlan-mode
+    view: bridge-domain
+    undo: undo qos phb disable vxlan-mode
+    default: By default, the VXLAN DSCP value of a packet is the same as its DSCP value.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos phb disable vxlan-mode
+      line: 7171
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-interface
+    syntax: redirect interface { <interface-name> | <interface-type> <interface-number> } [ destination-ip <destination-ip-address> <address-mask-length> vpn-instance <vpn-instance-name> ] [ route-forward ]
+    view: qos-behavior
+    undo: undo redirect interface { <interface-name> | <interface-type> <interface-number> } [ destination-ip <destination-ip-address> <address-mask-length> vpn-instance <vpn-instance-name> ] [ route-forward ]
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      destination-ip-address:
+        type: ipv4
+      address-mask-length:
+        type: mask-length
+      vpn-instance-name:
+        type: word
+    default: By default, the tunnel is not configured in the traffic behavior view for the next hop for redirection.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect interface
+      line: 7231
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ip-nexthop.1
+    syntax: redirect ip-nexthop <ip-address> vpn <vpn-name> [ nqa <nqa-test-administer-name> <name-of-nqa-test-instance> ] [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ] [ mask-greater-equal <mask-length> ]
+    view: qos-behavior
+    undo: undo redirect ip-nexthop
+    params:
+      ip-address: &id027
+        type: ipv4
+      vpn-name:
+        type: word
+      nqa-test-administer-name: &id028
+        type: word
+      name-of-nqa-test-instance: &id029
+        type: word
+      mask-length: &id030
+        type: mask-length
+    default: By default, the IP address, outbound interface, an NQA instance, and a VPN test instance are not configured in the traffic behavior view for the next hop for redirection.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ip-nexthop
+      line: 7326
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ip-nexthop.2
+    syntax: redirect ip-nexthop <ip-address> interface { <interface-name> | <interface-type> <interface-number> } [ route-forward ] [ pri-type common ]
+    view: qos-behavior
+    undo: undo redirect ip-nexthop
+    params:
+      ip-address: *id027
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, the IP address, outbound interface, an NQA instance, and a VPN test instance are not configured in the traffic behavior view for the next hop for redirection.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ip-nexthop
+      line: 7326
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ip-nexthop.3
+    syntax: redirect ip-nexthop <ip-address> nqa <nqa-test-administer-name> <name-of-nqa-test-instance> [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ] [ mask-greater-equal <mask-length> ]
+    view: qos-behavior
+    undo: undo redirect ip-nexthop
+    params:
+      ip-address: *id027
+      nqa-test-administer-name: *id028
+      name-of-nqa-test-instance: *id029
+      mask-length: *id030
+    default: By default, the IP address, outbound interface, an NQA instance, and a VPN test instance are not configured in the traffic behavior view for the next hop for redirection.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ip-nexthop
+      line: 7326
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ip-nexthop.4
+    syntax: redirect ip-nexthop <ip-address> [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ] [ mask-greater-equal <mask-length> ]
+    view: qos-behavior
+    undo: undo redirect ip-nexthop
+    params:
+      ip-address: *id027
+      mask-length: *id030
+    default: By default, the IP address, outbound interface, an NQA instance, and a VPN test instance are not configured in the traffic behavior view for the next hop for redirection.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ip-nexthop
+      line: 7326
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv4-multinhp.1
+    syntax: redirect ipv4-multinhp { nhp <ip-address> vpn <vpn-name> nqa <nqa-test-administer-name> <name-of-nqa-test-instance> } &<2-42> [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ] [ non-revertive ] [ mask-greater-equal <mask-length> ]
+    view: qos-behavior
+    undo: undo redirect ipv4-multinhp
+    params:
+      ip-address: &id031
+        type: ipv4
+      vpn-name: &id032
+        type: word
+      nqa-test-administer-name: &id034
+        type: word
+      name-of-nqa-test-instance: &id035
+        type: word
+      mask-length: &id033
+        type: mask-length
+    default: By default, the multiple redirected outbound interfaces and their next hops, a VPN instance and an NQA test instance are not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv4-multinhp
+      line: 7441
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv4-multinhp.2
+    syntax: redirect ipv4-multinhp { nhp <ip-address> vpn <vpn-name> } &<2-42> [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ] [ non-revertive ] [ mask-greater-equal <mask-length> ]
+    view: qos-behavior
+    undo: undo redirect ipv4-multinhp
+    params:
+      ip-address: *id031
+      vpn-name: *id032
+      mask-length: *id033
+    default: By default, the multiple redirected outbound interfaces and their next hops, a VPN instance and an NQA test instance are not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv4-multinhp
+      line: 7441
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv4-multinhp.3
+    syntax: redirect ipv4-multinhp { nhp <ip-address> interface { <interface-name> | <interface-type> <interface-number> } } &<2-42> [ loadbalance ] [ route-forward ] [ pri-type common ]
+    view: qos-behavior
+    undo: undo redirect ipv4-multinhp
+    params:
+      ip-address: *id031
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, the multiple redirected outbound interfaces and their next hops, a VPN instance and an NQA test instance are not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv4-multinhp
+      line: 7441
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv4-multinhp.4
+    syntax: redirect ipv4-multinhp { nhp <ip-address> } &<2-42> [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ] [ non-revertive ] [ mask-greater-equal <mask-length> ]
+    view: qos-behavior
+    undo: undo redirect ipv4-multinhp
+    params:
+      ip-address: *id031
+      mask-length: *id033
+    default: By default, the multiple redirected outbound interfaces and their next hops, a VPN instance and an NQA test instance are not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv4-multinhp
+      line: 7441
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv4-multinhp.5
+    syntax: redirect ipv4-multinhp { nhp <ip-address> nqa <nqa-test-administer-name> <name-of-nqa-test-instance> } &<2-42> [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ] [ non-revertive ] [ mask-greater-equal <mask-length> ]
+    view: qos-behavior
+    undo: undo redirect ipv4-multinhp
+    params:
+      ip-address: *id031
+      nqa-test-administer-name: *id034
+      name-of-nqa-test-instance: *id035
+      mask-length: *id033
+    default: By default, the multiple redirected outbound interfaces and their next hops, a VPN instance and an NQA test instance are not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv4-multinhp
+      line: 7441
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv6-to-interface
+    syntax: redirect ipv6 to interface { <interface-name> | <interface-type> <interface-number> } [ route-forward ]
+    view: qos-behavior
+    undo: undo redirect ipv6 to interface [ { <interface-name> | <interface-type> <interface-number> } [ route-forward ] ]
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, no outbound interface is specified for IPv6 packet redirection in the traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv6 to interface
+      line: 7572
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv6-multinhp.1
+    syntax: redirect ipv6-multinhp { nhp <ipv6-address> vpn <vpn-name> nqa <nqa-test-administer-name> <name-of-nqa-test-instance> } &<2-16> [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ]
+    view: qos-behavior
+    undo: undo redirect ipv6-multinhp
+    params:
+      ipv6-address: &id036
+        type: word
+      vpn-name: &id037
+        type: word
+      nqa-test-administer-name: &id038
+        type: word
+      name-of-nqa-test-instance: &id039
+        type: word
+    default: By default, multiple outbound interfaces for redirection and their next hops are not configured in a traffic behavior after the redirect ipv6-nexthop command is run.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv6-multinhp
+      line: 7648
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv6-multinhp.2
+    syntax: redirect ipv6-multinhp { nhp <ipv6-address> vpn <vpn-name> } &<2-16> [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ]
+    view: qos-behavior
+    undo: undo redirect ipv6-multinhp
+    params:
+      ipv6-address: *id036
+      vpn-name: *id037
+    default: By default, multiple outbound interfaces for redirection and their next hops are not configured in a traffic behavior after the redirect ipv6-nexthop command is run.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv6-multinhp
+      line: 7648
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv6-multinhp.3
+    syntax: redirect ipv6-multinhp { nhp <ipv6-address> } &<2-16> [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ]
+    view: qos-behavior
+    undo: undo redirect ipv6-multinhp
+    params:
+      ipv6-address: *id036
+    default: By default, multiple outbound interfaces for redirection and their next hops are not configured in a traffic behavior after the redirect ipv6-nexthop command is run.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv6-multinhp
+      line: 7648
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv6-multinhp.4
+    syntax: redirect ipv6-multinhp { nhp <ipv6-address> nqa <nqa-test-administer-name> <name-of-nqa-test-instance> } &<2-16> [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ]
+    view: qos-behavior
+    undo: undo redirect ipv6-multinhp
+    params:
+      ipv6-address: *id036
+      nqa-test-administer-name: *id038
+      name-of-nqa-test-instance: *id039
+    default: By default, multiple outbound interfaces for redirection and their next hops are not configured in a traffic behavior after the redirect ipv6-nexthop command is run.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv6-multinhp
+      line: 7648
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv6-multinhp.5
+    syntax: redirect ipv6-multinhp { nhp <ipv6-address> interface { <interface-name> | <interface-type> <interface-number> } } &<2-16> [ loadbalance ] [ route-forward ] [ pri-type common ]
+    view: qos-behavior
+    undo: undo redirect ipv6-multinhp
+    params:
+      ipv6-address: *id036
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, multiple outbound interfaces for redirection and their next hops are not configured in a traffic behavior after the redirect ipv6-nexthop command is run.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv6-multinhp
+      line: 7648
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv6-nexthop.1
+    syntax: redirect ipv6-nexthop <ipv6-address> vpn <vpn-name> [ nqa <nqa-test-administer-name> <name-of-nqa-test-instance> ] [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ]
+    view: qos-behavior
+    undo: undo redirect ipv6-nexthop
+    params:
+      ipv6-address: &id040
+        type: word
+      vpn-name:
+        type: word
+      nqa-test-administer-name: &id041
+        type: word
+      name-of-nqa-test-instance: &id042
+        type: word
+    default: By default, the redirection of the IPv6 address and the outbound interface of the next hop are not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv6-nexthop
+      line: 7754
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv6-nexthop.2
+    syntax: redirect ipv6-nexthop <ipv6-address> nqa <nqa-test-administer-name> <name-of-nqa-test-instance> [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ]
+    view: qos-behavior
+    undo: undo redirect ipv6-nexthop
+    params:
+      ipv6-address: *id040
+      nqa-test-administer-name: *id041
+      name-of-nqa-test-instance: *id042
+    default: By default, the redirection of the IPv6 address and the outbound interface of the next hop are not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv6-nexthop
+      line: 7754
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv6-nexthop.3
+    syntax: redirect ipv6-nexthop <ipv6-address> [ routing-filter { default-routing | blackhole-routing } &<1-9> ] [ deny ] [ pri-type common ]
+    view: qos-behavior
+    undo: undo redirect ipv6-nexthop
+    params:
+      ipv6-address: *id040
+    default: By default, the redirection of the IPv6 address and the outbound interface of the next hop are not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv6-nexthop
+      line: 7754
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-ipv6-nexthop.4
+    syntax: redirect ipv6-nexthop <ipv6-address> interface { <interface-name> | <interface-type> <interface-number> } [ route-forward ] [ pri-type common ]
+    view: qos-behavior
+    undo: undo redirect ipv6-nexthop
+    params:
+      ipv6-address: *id040
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, the redirection of the IPv6 address and the outbound interface of the next hop are not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect ipv6-nexthop
+      line: 7754
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-lsp-public
+    syntax: redirect lsp public <dest-ipv4-address> [ <nexthop-address> | interface { <interface-name> | <interface-type> <interface-number> } | secondary ]
+    view: qos-behavior
+    undo: undo redirect [ lsp public ]
+    params:
+      dest-ipv4-address:
+        type: ipv4
+      nexthop-address:
+        type: ipv4
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, the configuration of redirecting the IP data traffic to the destination LSP on the public network is not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect lsp public
+      line: 7838
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-mldp-p2mp-tunnel
+    syntax: redirect mldp-p2mp-tunnel <mldp-p2mp-tunnel-name>
+    view: qos-behavior
+    undo: undo redirect [ mldp-p2mp-tunnel ]
+    params:
+      mldp-p2mp-tunnel-name:
+        type: word
+    default: By default, redirecting the next hop of packets to an LDP P2MP tunnel is not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect mldp-p2mp-tunnel
+      line: 7919
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-public-network
+    syntax: redirect { ip | ipv6 } public-network
+    view: qos-behavior
+    undo: undo redirect { ip | ipv6 } public-network
+    default: By default, IPv4 or IPv6 packets to be forwarded using private network routes are not redirected to public network routes' outbound interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect public-network
+      line: 7987
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-sr-te-policy
+    syntax: redirect sr-te policy <endpoint> <color> [ label <label> ] [ route-forward ]
+    view: qos-behavior
+    undo: undo redirect sr-te policy <endpoint> <color> [ label <label> ] [ route-forward ]
+    params:
+      endpoint:
+        type: ipv4
+      color:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      label:
+        type: integer
+        range:
+          - 16
+          - 294927
+    default: By default, IPv4/IPv6 packets are not redirected to an SR-MPLS TE Policy.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect sr-te policy
+      line: 8052
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-srv6-te-policy
+    syntax: redirect srv6-te policy <endpoint> <color> [ { sid | vpnsid } <sid-ip> ]
+    view: qos-behavior
+    undo: undo redirect srv6-te
+    params:
+      endpoint:
+        type: word
+      color:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      sid-ip:
+        type: word
+    default: By default, the function of redirecting IPv4/IPv6 packets to an SRv6 TE Policy is not enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect srv6-te policy
+      line: 8137
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-template-srv6-te
+    syntax: redirect template <template-name> srv6-te
+    view: system
+    undo: undo redirect template <template-name> [ srv6-te ]
+    params:
+      template-name:
+        type: word
+    default: By default, no redirection profile is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect template srv6-te(System view)
+      line: 8225
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-to-interface
+    syntax: redirect to interface { <interface-name> | <interface-type> <interface-number> } [ route-forward ]
+    view: qos-behavior
+    undo: undo redirect to interface [ { <interface-name> | <interface-type> <interface-number> } [ route-forward ] ]
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, no outbound interface is configured for redirection in the traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect to interface
+      line: 8288
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-vpn-group
+    syntax: redirect vpn-group <vpn-group-name>
+    view: qos-behavior
+    undo: undo redirect [ vpn-group ]
+    params:
+      vpn-group-name:
+        type: word
+    default: By default, redirecting packets to a specific VPN group is not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect vpn-group
+      line: 8355
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-vsi
+    syntax: redirect vsi <vsi-name>
+    view: qos-behavior
+    undo: undo redirect vsi [ <vsi-name> ]
+    params:
+      vsi-name:
+        type: word
+    default: By default, no VSI-based redirection is configured in the traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect vsi
+      line: 8437
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.redirect-template-srv6-te~2
+    syntax: redirect-template srv6-te <template-name>
+    view: qos-behavior
+    undo: undo redirect-template srv6-te <template-name>
+    params:
+      template-name:
+        type: word
+    default: By default, no SRv6 TE template for packet redirection is configured in a traffic behavior.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: redirect-template srv6-te
+      line: 8511
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remark-8021p.1
+    syntax: remark 8021p <8021p-value>
+    view: qos-behavior
+    undo: undo remark 8021p [ <8021p-value> ]
+    params:
+      8021p-value: &id043
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, re-marking the 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark 8021p
+      line: 8579
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.remark_8021p: $8021p-value
+  - id: huawei-vrp8.remark-8021p.2
+    syntax: remark 8021p <8021p-value> after-trust
+    view: qos-behavior
+    undo: undo remark 8021p [ <8021p-value> ] [ after-trust ]
+    params:
+      8021p-value: *id043
+    default: By default, re-marking the 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark 8021p
+      line: 8579
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remark-apn-id-ipv6
+    syntax: remark apn-id-ipv6 instance <apn-instance-name>
+    view: qos-behavior
+    undo: undo remark apn-id-ipv6 instance <apn-instance-name>
+    params:
+      apn-instance-name:
+        type: word
+    default: By default, no IPv6 APN ID is marked for packets in a traffic behavior.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark apn-id-ipv6
+      line: 8656
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remark-dscp.1
+    syntax: remark ipv6 dscp <dscp-value>
+    view: qos-behavior
+    undo: undo remark ipv6 dscp [ <dscp-value> ]
+    params:
+      dscp-value: &id044
+        type: integer
+        range:
+          - 0
+          - 63
+    default: By default, re-marking the DSCP value of an IPv4 or IPv6 packet is not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark dscp
+      line: 8726
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remark-dscp.2
+    syntax: remark dscp { <dscp-value> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef }
+    view: qos-behavior
+    undo: undo remark dscp [ <dscp-value> | af11 | af12 | af13 | af21 | af22 | af23 | af31 | af32 | af33 | af41 | af42 | af43 | cs1 | cs2 | cs3 | cs4 | cs5 | cs6 | cs7 | default | ef ]
+    params:
+      dscp-value: *id044
+    default: By default, re-marking the DSCP value of an IPv4 or IPv6 packet is not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark dscp
+      line: 8726
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.remark_dscp: $dscp-value||tail:dscp
+  - id: huawei-vrp8.remark-inner-8021p
+    syntax: remark inner-8021p <8021p-value>
+    view: qos-behavior
+    undo: undo remark inner-8021p [ <8021p-value> ]
+    params:
+      8021p-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, re-marking the 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark inner-8021p
+      line: 8838
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remark-ip-df
+    syntax: remark ip-df <dfvalue>
+    view: qos-behavior
+    undo: undo remark ip-df [ <dfvalue> ]
+    params:
+      dfvalue:
+        type: integer
+        range:
+          - 0
+          - 1
+    default: By default, re-setting the value of the DF field in a packet is not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark ip-df
+      line: 8914
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remark-ip-precedence
+    syntax: remark ip-precedence <ip-precedence>
+    view: qos-behavior
+    undo: undo remark ip-precedence [ <ip-precedence> ]
+    params:
+      ip-precedence:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, the re-marking the precedence of IP packets is not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark ip-precedence
+      line: 8978
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.remark_ip_precedence: $ip-precedence
+  - id: huawei-vrp8.remark-mpls-exp
+    syntax: remark mpls-exp <exp>
+    view: qos-behavior
+    undo: undo remark mpls-exp [ <exp> ]
+    params:
+      exp:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, re-marking the EXP value of MPLS packets is not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark mpls-exp
+      line: 9050
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.remark_mpls_exp: $exp
+  - id: huawei-vrp8.remark-network-slice
+    syntax: remark network-slice <sliceId>
+    view: qos-behavior
+    undo: undo remark network-slice
+    params:
+      sliceId:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, no network slice ID is configured in the behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark network-slice
+      line: 9122
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remark-outer-8021p
+    syntax: remark outer-8021p <8021p-value>
+    view: qos-behavior
+    undo: undo remark outer-8021p [ <8021p-value> ]
+    params:
+      8021p-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, re-marking the 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark outer-8021p
+      line: 9184
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remark-te-class
+    syntax: remark te-class <classId>
+    view: qos-behavior
+    undo: undo remark te-class [ <classId> ]
+    params:
+      classId:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, no TE class ID is configured in the behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark te-class
+      line: 9260
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remark-tos
+    syntax: remark tos <tos>
+    view: qos-behavior
+    undo: undo remark tos [ <tos> ]
+    params:
+      tos:
+        type: integer
+        range:
+          - 0
+          - 15
+    default: By default, re-marking the ToS value of an IP packet is not configured in traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark tos
+      line: 9322
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.remark-ttl
+    syntax: remark ttl <ttl-value>
+    view: qos-behavior
+    undo: undo remark ttl [ <ttl-value> ]
+    params:
+      ttl-value:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the TTL value of IP packets is not re-marked.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: remark ttl
+      line: 9392
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.service-class.1
+    syntax: service-class <service-class> color <color> [ no-remark ]
+    view: qos-behavior
+    undo: undo service-class <service-class> color <color> [ no-remark ]
+    params:
+      service-class: &id045
+        type: word
+      color: &id046
+        type: word
+    default: By default, the upstream board (in the inbound direction of an interface) of the device re-sets the CoS and color based on the packet priority and the inbound mapping table.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: service-class
+      line: 9852
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.service_class: $service-class
+      qos.behavior.color: $color
+  - id: huawei-vrp8.service-class.2
+    syntax: service-class <service-class> color <color>
+    view: qos-behavior
+    undo: undo service-class <service-class> color <color> [ no-remark ]
+    params:
+      service-class: *id045
+      color: *id046
+    default: By default, the upstream board (in the inbound direction of an interface) of the device re-sets the CoS and color based on the packet priority and the inbound mapping table.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: service-class
+      line: 9852
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.service_class: $service-class
+      qos.behavior.color: $color
+  - id: huawei-vrp8.service-class-track-bfd-session
+    syntax: service-class <service-class> color <color> track { master | slave } bfd-session session-name <bfd-session-name>
+    view: qos-behavior
+    undo: undo service-class <service-class> color <color> track { master | slave } bfd-session session-name <bfd-session-name>
+    params:
+      service-class:
+        type: word
+      color:
+        type: word
+      bfd-session-name:
+        type: word
+    default: By default, the function of re-marking matching packets' CoS and color based on the status of the specified BFD session is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: service-class track bfd-session
+      line: 9940
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior.service_class: $service-class
+      qos.behavior.color: $color
+  - id: huawei-vrp8.share-mode
+    syntax: share-mode
+    view: qos-policy
+    undo: undo share-mode
+    default: By default, the attribute of a policy is shared.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: share-mode
+      line: 10025
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.policy.share_mode: flag
+  - id: huawei-vrp8.statistics-enable
+    syntax: statistics enable
+    view: qos-policy
+    undo: undo statistics enable
+    default: By default, the traffic statistics function of a traffic policy is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: statistics enable(Traffic policy view)
+      line: 10120
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.policy.statistics: flag
+  - id: huawei-vrp8.step~2
+    syntax: step <step-value>
+    view: qos-policy
+    undo: undo step
+    params:
+      step-value:
+        type: integer
+        range:
+          - 1
+          - 20
+    default: By default, the step is set to 1 for sub-policies.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: step(Traffic policy view)
+      line: 10194
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-behavior
+    syntax: traffic behavior <behavior-name>
+    view: system
+    enters_view: qos-behavior
+    undo: undo traffic behavior <behavior-name>
+    params:
+      behavior-name:
+        type: word
+    default: By default, no traffic behavior is defined.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic behavior
+      line: 10264
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.behavior: $behavior-name
+  - id: huawei-vrp8.traffic-classifier
+    syntax: traffic classifier <classifier-name> [ operator { and | or } ]
+    view: system
+    enters_view: qos-classifier
+    undo: undo traffic classifier <classifier-name>
+    params:
+      classifier-name:
+        type: word
+    default: By default, no traffic classifier is defined.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic classifier
+      line: 10334
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.classifier: $classifier-name
+      qos.classifier.operator: kw:and|or
+  - id: huawei-vrp8.traffic-policy
+    syntax: traffic policy <policy-name>
+    view: system
+    enters_view: qos-policy
+    undo: undo traffic policy <policy-name>
+    params:
+      policy-name:
+        type: word
+    default: By default, no traffic policy is defined.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic policy(System view)
+      line: 10407
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.policy: $policy-name
+  - id: huawei-vrp8.traffic-behavior-log
+    syntax: traffic-behavior log { entries <number-of-entries> | interval <interval-time> } &<1-9>
+    view: system
+    undo: undo traffic-behavior log
+    params:
+      number-of-entries:
+        type: integer
+        range:
+          - 1
+          - 8191
+      interval-time:
+        type: integer
+        range:
+          - 1
+          - 60
+    default: By default, the maximum number of flows recorded simultaneously is 256, and the interval for collecting packet statistics is 5 minutes.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-behavior log
+      line: 10477
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy~2
+    syntax: traffic-policy <policy-name> [ ip-layer [ srv6-inner ] | link-layer srv6-inner ]
+    view: qos-behavior
+    undo: undo traffic-policy [ <policy-name> [ ip-layer [ srv6-inner ] | link-layer srv6-inner ] ]
+    params:
+      policy-name:
+        type: word
+    default: By default, no traffic policy is configured in the traffic behavior view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy
+      line: 10539
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy.1
+    syntax: traffic-policy <policy-name> { inbound | outbound } pe-vid <pe-vid> ce-vid <ce-vid1> [ to <ce-vid2> ] [ all-layer | link-layer | mpls-layer ]
+    view: interface
+    undo: undo traffic-policy [ <policy-name> ] { inbound | outbound } [ pe-vid <pe-vid> ce-vid <ce-vid1> [ to <ce-vid2> ] ] [ link-layer ]
+    params:
+      policy-name: &id047
+        type: word
+      pe-vid: &id048
+        type: integer
+        range:
+          - 1
+          - 4094
+      ce-vid1: &id049
+        type: integer
+        range:
+          - 1
+          - 4094
+      ce-vid2: &id050
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, no traffic policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy (interface view)
+      line: 10621
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy.2
+    syntax: traffic-policy <policy-name> { inbound | outbound } [ identifier { none | vid | ce-vid | vid-ce-vid } ] [ all-layer | link-layer | mpls-layer ]
+    view: interface
+    undo: undo traffic-policy [ <policy-name> ] { inbound | outbound } [ identifier { none | vid | ce-vid | vid-ce-vid } ] [ link-layer ]
+    params:
+      policy-name: *id047
+    default: By default, no traffic policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy (interface view)
+      line: 10621
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.qos_policy: kw:inbound|outbound
+      interface.qos_policy.policy: $policy-name
+      interface.qos_policy.layer: kw:all-layer|link-layer|mpls-layer
+  - id: huawei-vrp8.traffic-policy.3
+    syntax: traffic-policy <policy-name> { inbound | outbound } [ identifier { none | vid } ] [ link-layer ]
+    view: interface
+    undo: undo traffic-policy [ <policy-name> ] { inbound | outbound } [ identifier { none | vid } ] [ link-layer ]
+    params:
+      policy-name: *id047
+    default: By default, no traffic policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy (interface view)
+      line: 10621
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.qos_policy: kw:inbound|outbound
+      interface.qos_policy.policy: $policy-name
+      interface.qos_policy.layer: kw:all-layer|link-layer|mpls-layer
+  - id: huawei-vrp8.traffic-policy.4
+    syntax: traffic-policy <policy-name> { inbound | outbound } [ identifier { none | vid } ] [ mpls-layer ]
+    view: interface
+    undo: undo traffic-policy [ <policy-name> ] { inbound | outbound } [ identifier { none | vid } ] [ mpls-layer ]
+    params:
+      policy-name: *id047
+    default: By default, no traffic policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy (interface view)
+      line: 10621
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.qos_policy: kw:inbound|outbound
+      interface.qos_policy.policy: $policy-name
+      interface.qos_policy.layer: kw:all-layer|link-layer|mpls-layer
+  - id: huawei-vrp8.traffic-policy.5
+    syntax: traffic-policy <policy-name> { inbound vlan { <vlan-id1> [ to <vlan-id2> ] | all } | outbound } [ link-layer | mpls-layer ]
+    view: interface
+    undo: undo traffic-policy <policy-name> { inbound vlan { <vlan-id1> [ to <vlan-id2> ] | all } | outbound } [ link-layer | mpls-layer ]
+    params:
+      policy-name: *id047
+      vlan-id1: &id051
+        type: integer
+        range:
+          - 1
+          - 4094
+      vlan-id2: &id052
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, no traffic policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy (interface view)
+      line: 10621
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy.6
+    syntax: traffic-policy <policy-name> { inbound | outbound } pe-vid <pe-vid> ce-vid <ce-vid1> [ to <ce-vid2> ] [ link-layer ]
+    view: interface
+    undo: undo traffic-policy [ <policy-name> ] { inbound | outbound } [ pe-vid <pe-vid> ce-vid <ce-vid1> [ to <ce-vid2> ] ] [ link-layer ]
+    params:
+      policy-name: *id047
+      pe-vid: *id048
+      ce-vid1: *id049
+      ce-vid2: *id050
+    default: By default, no traffic policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy (interface view)
+      line: 10621
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy.7
+    syntax: traffic-policy <policy-name> { inbound | outbound } vlan { <vlan-id1> [ to <vlan-id2> ] | all } [ link-layer ]
+    view: interface
+    undo: undo traffic-policy [ <policy-name> ] { inbound | outbound } vlan { <vlan-id1> [ to <vlan-id2> ] | all } [ link-layer ]
+    params:
+      policy-name: *id047
+      vlan-id1: *id051
+      vlan-id2: *id052
+    default: By default, no traffic policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy (interface view)
+      line: 10621
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy.8
+    syntax: traffic-policy <policy-name> { inbound | outbound } [ identifier { none | vid | ce-vid | vid-ce-vid } ] [ link-layer ]
+    view: interface
+    undo: undo traffic-policy [ <policy-name> ] { inbound | outbound } [ identifier { none | vid | ce-vid | vid-ce-vid } ] [ link-layer ]
+    params:
+      policy-name: *id047
+    default: By default, no traffic policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy (interface view)
+      line: 10621
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.qos_policy: kw:inbound|outbound
+      interface.qos_policy.policy: $policy-name
+      interface.qos_policy.layer: kw:all-layer|link-layer|mpls-layer
+  - id: huawei-vrp8.traffic-policy.9
+    syntax: traffic-policy <policy-name> { inbound | outbound } [ identifier { none | vid | ce-vid | vid-ce-vid } ] [ mpls-layer ]
+    view: interface
+    undo: undo traffic-policy [ <policy-name> ] { inbound | outbound } [ identifier { none | vid | ce-vid | vid-ce-vid } ] [ mpls-layer ]
+    params:
+      policy-name: *id047
+    default: By default, no traffic policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy (interface view)
+      line: 10621
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.qos_policy: kw:inbound|outbound
+      interface.qos_policy.policy: $policy-name
+      interface.qos_policy.layer: kw:all-layer|link-layer|mpls-layer
+  - id: huawei-vrp8.traffic-policy.10
+    syntax: traffic-policy <policy-name> { inbound | outbound } vlan { <vlan-id1> [ to <vlan-id2> ] | all } [ mpls-layer ]
+    view: interface
+    undo: undo traffic-policy [ <policy-name> ] { inbound | outbound } vlan { <vlan-id1> [ to <vlan-id2> ] | all } [ mpls-layer ]
+    params:
+      policy-name: *id047
+      vlan-id1: *id051
+      vlan-id2: *id052
+    default: By default, no traffic policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy (interface view)
+      line: 10621
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy.11
+    syntax: traffic-policy <policy-name> { inbound | outbound } pe-vid <pe-vid> ce-vid <ce-vid1> [ to <ce-vid2> ] [ mpls-layer ]
+    view: interface
+    undo: undo traffic-policy [ <policy-name> ] { inbound | outbound } [ pe-vid <pe-vid> ce-vid <ce-vid1> [ to <ce-vid2> ] ] [ mpls-layer ]
+    params:
+      policy-name: *id047
+      pe-vid: *id048
+      ce-vid1: *id049
+      ce-vid2: *id050
+    default: By default, no traffic policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy (interface view)
+      line: 10621
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy-ac-mode
+    syntax: traffic-policy <policy-name> ac-mode { inbound | outbound } [ link-layer ]
+    view: vsi
+    undo: undo traffic-policy [ <policy-name> ] ac-mode { inbound | outbound } [ link-layer ]
+    params:
+      policy-name:
+        type: word
+    default: By default, no traffic policy is applied in the VSI view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy ac-mode
+      line: 10791
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy-match-ip-layer
+    syntax: traffic-policy match-ip-layer { mpls-pop | mpls-push } &<1-9>
+    view: system
+    undo: undo traffic-policy match-ip-layer [ mpls-pop | mpls-push ]
+    default: By default, MF traffic classification is implemented based on Layer 2, MPLS Layer, and IP Layer information for outgoing or incoming traffic on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy match-ip-layer
+      line: 10866
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy-match-mpls-layer
+    syntax: traffic-policy match-mpls-layer { mpls-push | mpls-pop } &<1-9>
+    view: system
+    undo: undo traffic-policy match-mpls-layer [ mpls-push | mpls-pop ]
+    default: By default, when both IP and MPLS packets exist, MF classification can be performed based only on the IP information of IP packets instead of the MPLS information of MPLS packets for incoming or outgoing traffic on the public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy match-mpls-layer
+      line: 10936
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy-match-mpls-layer-l2-inbound
+    syntax: traffic-policy match-mpls-layer l2-inbound
+    view: system
+    undo: undo traffic-policy match-mpls-layer l2-inbound
+    default: By default, MF traffic classification is implemented not based on MPLS information for outgoing traffic on the public network in Layer 2 forwarding scenarios.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy match-mpls-layer l2-inbound
+      line: 11004
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy-match-protocol-type-mc-reserved
+    syntax: traffic-policy match-protocol-type mc-reserved
+    view: system
+    undo: undo traffic-policy match-protocol-type mc-reserved
+    default: By default, an interface is disabled from matching Layer 3 protocol packets with reserved multicast addresses against ACLs.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy match-protocol-type mc-reserved
+      line: 11067
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy-match-rule-packet-type
+    syntax: traffic-policy match-rule packet-type
+    view: system
+    undo: undo traffic-policy match-rule packet-type
+    default: By default, packet type-based filtering is disabled for MF classification.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy match-rule packet-type
+      line: 11126
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy-match-vlan-distinguish-untag-disable
+    syntax: traffic-policy match-vlan distinguish untag disable
+    view: system
+    undo: undo traffic-policy match-vlan distinguish untag disable
+    default: By default, VLAN tag-based packet matching for MF classification is enabled, and Layer 2 MF classification is implemented based on the original VLAN tag of packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy match-vlan distinguish untag disable
+      line: 11192
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy-network-inbound
+    syntax: traffic-policy <policy-name> network inbound
+    view: vpn-instance
+    undo: undo traffic-policy network inbound
+    params:
+      policy-name:
+        type: word
+    default: By default, a traffic policy is not applied to a VPN instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy network inbound
+      line: 11247
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy-network-inbound~2
+    syntax: traffic-policy <policy-name> network inbound link-layer
+    view: vsi
+    undo: undo traffic-policy [ <policy-name> ] network inbound [ link-layer ]
+    params:
+      policy-name:
+        type: word
+    default: By default, no traffic policy is applied in the VSI view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy network inbound(VSI view)
+      line: 11384
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy-vxlan-mode@vpn-instance-af-ipv4
+    syntax: traffic-policy <policy-name> { inbound [ link-layer ] | outbound } vxlan-mode
+    view: vpn-instance-af-ipv4
+    undo: undo traffic-policy [ <policy-name> ] { inbound [ link-layer ] | outbound } vxlan-mode
+    params: &id053
+      policy-name:
+        type: word
+    default: By default, traffic classification is implemented for packets entering or exiting a VXLAN tunnel based on Layer 3 information.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy vxlan-mode
+      line: 11454
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy-vxlan-mode@vpn-instance
+    syntax: traffic-policy <policy-name> { inbound [ link-layer ] | outbound } vxlan-mode
+    view: vpn-instance
+    undo: undo traffic-policy [ <policy-name> ] { inbound [ link-layer ] | outbound } vxlan-mode
+    params: *id053
+    default: By default, traffic classification is implemented for packets entering or exiting a VXLAN tunnel based on Layer 3 information.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy vxlan-mode
+      line: 11454
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy-vxlan-mode@bridge-domain
+    syntax: traffic-policy <policy-name> { inbound [ link-layer ] | outbound } vxlan-mode
+    view: bridge-domain
+    undo: undo traffic-policy [ <policy-name> ] { inbound [ link-layer ] | outbound } vxlan-mode
+    params: *id053
+    default: By default, traffic classification is implemented for packets entering or exiting a VXLAN tunnel based on Layer 3 information.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy vxlan-mode
+      line: 11454
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy.1~2
+    syntax: traffic-policy <policy-name> inbound [ link-layer | mpls-layer ]
+    view: bridge-domain
+    undo: undo traffic-policy [ <policy-name> ] inbound [ link-layer | mpls-layer ]
+    params:
+      policy-name: &id054
+        type: word
+    default: By default, no traffic policy is applied to a BD.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy(Bridge domain view)
+      line: 11550
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-policy.2~2
+    syntax: traffic-policy <policy-name> { inbound | outbound } [ link-layer | mpls-layer ]
+    view: bridge-domain
+    undo: undo traffic-policy [ <policy-name> ] { inbound | outbound } [ link-layer | mpls-layer ]
+    params:
+      policy-name: *id054
+    default: By default, no traffic policy is applied to a BD.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: traffic-policy(Bridge domain view)
+      line: 11550
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-8021p.1@interface
+    syntax: trust 8021p
+    view: interface
+    undo: undo trust 8021p
+    default: By default, BA classification based on the 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust 8021p
+      line: 11643
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-8021p.1@bridge-domain
+    syntax: trust 8021p
+    view: bridge-domain
+    undo: undo trust 8021p
+    default: By default, BA classification based on the 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust 8021p
+      line: 11643
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-8021p.2@interface
+    syntax: trust 8021p { inbound | outbound }
+    view: interface
+    undo: undo trust 8021p { inbound | outbound }
+    default: By default, BA classification based on the 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust 8021p
+      line: 11643
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-8021p.2@bridge-domain
+    syntax: trust 8021p { inbound | outbound }
+    view: bridge-domain
+    undo: undo trust 8021p { inbound | outbound }
+    default: By default, BA classification based on the 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust 8021p
+      line: 11643
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-8021p-vlan.1
+    syntax: trust { 8021p | inner-8021p | outer-8021p } [ inbound | outbound ] vlan { <vlan-id1> [ to <vlan-id2> ] } &<1-10>
+    view: interface
+    undo: undo trust { 8021p | inner-8021p | outer-8021p } [ inbound | outbound ] vlan { <vlan-id1> [ to <vlan-id2> ] } &<1-10>
+    params:
+      vlan-id1: &id055
+        type: integer
+        range:
+          - 1
+          - 4094
+      vlan-id2: &id056
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust 8021p vlan
+      line: 11728
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-8021p-vlan.2
+    syntax: trust 8021p vlan { <vlan-id1> [ to <vlan-id2> ] } &<1-10>
+    view: interface
+    undo: undo trust 8021p vlan { <vlan-id1> [ to <vlan-id2> ] } &<1-10>
+    params:
+      vlan-id1: *id055
+      vlan-id2: *id056
+    default: By default, 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust 8021p vlan
+      line: 11728
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-8021p-vxlan-mode@vpn-instance-af-ipv4
+    syntax: trust 8021p vxlan-mode
+    view: vpn-instance-af-ipv4
+    undo: undo trust 8021p vxlan-mode
+    default: By default, 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust 8021p vxlan-mode
+      line: 11807
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-8021p-vxlan-mode@vpn-instance
+    syntax: trust 8021p vxlan-mode
+    view: vpn-instance
+    undo: undo trust 8021p vxlan-mode
+    default: By default, 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust 8021p vxlan-mode
+      line: 11807
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-8021p-vxlan-mode@bridge-domain
+    syntax: trust 8021p vxlan-mode
+    view: bridge-domain
+    undo: undo trust 8021p vxlan-mode
+    default: By default, 802.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust 8021p vxlan-mode
+      line: 11807
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-ip-precedence
+    syntax: trust ip-precedence
+    view: interface
+    undo: undo trust ip-precedence
+    default: By default, BA classification based on the precedence value of IP packets is not configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust ip-precedence
+      line: 11871
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-ip-precedence-vlan
+    syntax: trust ip-precedence vlan { <vlan-id1> [ to <vlan-id2> ] } &<1-10>
+    view: interface
+    undo: undo trust ip-precedence vlan { <vlan-id1> [ to <vlan-id2> ] } &<1-10>
+    params:
+      vlan-id1:
+        type: integer
+        range:
+          - 1
+          - 4094
+      vlan-id2:
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, precedence-based BA classification for specific VLANs is not configured on a Layer 2 interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust ip-precedence vlan
+      line: 11934
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-untag-ip-precedence
+    syntax: trust untag ip-precedence
+    view: interface
+    undo: undo trust untag ip-precedence
+    default: By default, precedence-based BA classification is not configured for untagged packets on a Layer 2 interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust untag ip-precedence
+      line: 12002
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-upstream.1@interface
+    syntax: trust upstream { <ds-domain-name> | default } [ inbound | outbound ]
+    view: interface
+    undo: undo trust upstream [ inbound | outbound ]
+    params: &id057
+      ds-domain-name: &id058
+        type: word
+    default: By default, no DS domain is bound to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust upstream
+      line: 12070
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.trust_upstream: $ds-domain-name||kw:default
+  - id: huawei-vrp8.trust-upstream.1@bridge-domain
+    syntax: trust upstream { <ds-domain-name> | default } [ inbound | outbound ]
+    view: bridge-domain
+    undo: undo trust upstream [ inbound | outbound ]
+    params: *id057
+    default: By default, no DS domain is bound to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust upstream
+      line: 12070
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-upstream.2@interface
+    syntax: trust upstream { <ds-domain-name> | default }
+    view: interface
+    undo: undo trust upstream [ inbound | outbound ]
+    params: &id059
+      ds-domain-name: *id058
+    default: By default, no DS domain is bound to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust upstream
+      line: 12070
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.trust_upstream: $ds-domain-name||kw:default
+  - id: huawei-vrp8.trust-upstream.2@bridge-domain
+    syntax: trust upstream { <ds-domain-name> | default }
+    view: bridge-domain
+    undo: undo trust upstream [ inbound | outbound ]
+    params: *id059
+    default: By default, no DS domain is bound to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust upstream
+      line: 12070
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-upstream-vlan.1
+    syntax: trust upstream { 5p3d | <ds-domain-name> | default } [ inbound | outbound ] vlan { <vlan-id1> [ to <vlan-id2> ] } &<1-10>
+    view: interface
+    undo: undo trust upstream { 5p3d | <ds-domain-name> | default } [ inbound | outbound ] vlan { <vlan-id1> [ to <vlan-id2> ] } &<1-10>
+    params:
+      ds-domain-name: &id060
+        type: word
+      vlan-id1: &id061
+        type: integer
+        range:
+          - 1
+          - 4094
+      vlan-id2: &id062
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, no DS domain is bound to a Layer 2 interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust upstream vlan
+      line: 12165
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-upstream-vlan.2
+    syntax: trust upstream { <ds-domain-name> | default } vlan { <vlan-id1> [ to <vlan-id2> ] } &<1-10>
+    view: interface
+    undo: undo trust upstream { 5p3d | <ds-domain-name> | default } [ inbound | outbound ] vlan { <vlan-id1> [ to <vlan-id2> ] } &<1-10>
+    params:
+      ds-domain-name: *id060
+      vlan-id1: *id061
+      vlan-id2: *id062
+    default: By default, no DS domain is bound to a Layer 2 interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust upstream vlan
+      line: 12165
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.trust_upstream: $ds-domain-name||kw:default
+  - id: huawei-vrp8.trust-upstream-vxlan-mode@vpn-instance-af-ipv4
+    syntax: trust upstream <ds-domain-name> vxlan-mode
+    view: vpn-instance-af-ipv4
+    undo: undo trust upstream vxlan-mode
+    params: &id063
+      ds-domain-name:
+        type: word
+    default: By default, VXLAN-DSCP-based BA classification is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust upstream vxlan-mode
+      line: 12245
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-upstream-vxlan-mode@vpn-instance
+    syntax: trust upstream <ds-domain-name> vxlan-mode
+    view: vpn-instance
+    undo: undo trust upstream vxlan-mode
+    params: *id063
+    default: By default, VXLAN-DSCP-based BA classification is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust upstream vxlan-mode
+      line: 12245
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.trust-upstream-vxlan-mode@bridge-domain
+    syntax: trust upstream <ds-domain-name> vxlan-mode
+    view: bridge-domain
+    undo: undo trust upstream vxlan-mode
+    params: *id063
+    default: By default, VXLAN-DSCP-based BA classification is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: trust upstream vxlan-mode
+      line: 12245
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.user-queue
+    syntax: user-queue cir <cir-value> [ [ pir <pir-value> ] | [ flow-queue <flow-queue-name> ] | [ user-group-queue <group-name> ] | [ service-template <service-template-name> ] ] &<1-9>
+    view: qos-behavior
+    undo: undo user-queue [ cir <cir-value> [ [ pir <pir-value> ] | [ flow-queue <flow-queue-name> ] | [ user-group-queue <group-name> ] | [ service-template <service-template-name> ] ] &<1-9> ]
+    params:
+      cir-value:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      pir-value:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      flow-queue-name:
+        type: word
+      group-name:
+        type: word
+      service-template-name:
+        type: word
+    default: By default, the class-based HQOS parameters for the specified traffic behavior is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: user-queue(Traffic behavior view)
+      line: 12434
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vpn-group
+    syntax: vpn-group <vpn-group-name> [ vpn-instance { <vpn-name> } &<1-8> ]
+    view: system
+    undo: undo vpn-group <vpn-group-name> [ vpn-instance { <vpn-name> } &<1-8> ]
+    params:
+      vpn-group-name:
+        type: word
+      vpn-name:
+        type: word
+    default: By default, no VPN group is configured, and VPN instances are not configured to be added to the VPN group in sequence.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: vpn-group
+      line: 12502
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-mode.1
+    syntax: diffserv-mode pipe <service-class> <color>
+    view: interface
+    undo: undo diffserv-mode
+    params:
+      service-class: &id064
+        type: word
+      color:
+        type: word
+    default: By default, the DiffServ mode of VPWS services is Pipe.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv-mode (IMA group/ATM-bundle interface view)
+      line: 12650
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-mode.2
+    syntax: diffserv-mode pipe <service-class>
+    view: interface
+    undo: undo diffserv-mode
+    params:
+      service-class: *id064
+    default: By default, the DiffServ mode of VPWS services is Pipe.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv-mode (IMA group/ATM-bundle interface view)
+      line: 12650
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-mode.1~2
+    syntax: diffserv-mode { pipe <service-class> | short-pipe <service-class> [ domain <ds-name> ] | uniform }
+    view: interface
+    undo: undo diffserv-mode
+    params:
+      service-class: &id065
+        type: word
+      ds-name:
+        type: word
+    default: By default, the DiffServ mode of VPWS services is Uniform.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv-mode (interface view)
+      line: 12731
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-mode.2~2
+    syntax: diffserv-mode { pipe <service-class> | uniform }
+    view: interface
+    undo: undo diffserv-mode
+    params:
+      service-class: *id065
+    default: By default, the DiffServ mode of VPWS services is Uniform.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv-mode (interface view)
+      line: 12731
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-mode
+    syntax: diffserv-mode { pipe <service-class> | short-pipe <service-class> [ domain <ds-name> ] | uniform }
+    view: vsi
+    undo: undo diffserv-mode
+    params:
+      service-class:
+        type: word
+      ds-name:
+        type: word
+    default: By default, the MPLS DiffServ mode is Uniform.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv-mode (VSI view)
+      line: 13066
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-mode-ingress-egress.1
+    syntax: diffserv-mode ingress { uniform | pipe <service-class> | short-pipe <service-class> } egress { uniform | pipe | short-pipe [ trust { inner-vlan-8021p | ip-dscp } ] [ domain <ds-name> ] }
+    view: interface
+    undo: undo diffserv-mode
+    params:
+      service-class: &id066
+        type: word
+      ds-name: &id067
+        type: word
+    default: By default, the DiffServ mode of VPWS services is Uniform.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv-mode ingress egress (interface view)
+      line: 13346
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-mode-ingress-egress.2
+    syntax: diffserv-mode ingress { uniform | pipe <service-class> | short-pipe <service-class> } egress { uniform | pipe | short-pipe [ domain <ds-name> ] }
+    view: interface
+    undo: undo diffserv-mode
+    params:
+      service-class: *id066
+      ds-name: *id067
+    default: By default, the DiffServ mode of VPWS services is Uniform.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv-mode ingress egress (interface view)
+      line: 13346
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-mode-ingress-egress
+    syntax: diffserv-mode ingress { pipe <service-class> | short-pipe <service-class> } egress { uniform | pipe | short-pipe [ trust { inner-vlan-8021p | ip-dscp } ] [ domain <ds-name> ] }
+    view: vsi
+    undo: undo diffserv-mode
+    params:
+      service-class:
+        type: word
+      ds-name:
+        type: word
+    default: By default, the MPLS DiffServ mode is Uniform.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv-mode ingress egress (VSI view)
+      line: 13439
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-mode.1~3
+    syntax: diffserv-mode uniform
+    view: vpn-instance-af-ipv4
+    undo: undo diffserv-mode
+    default: By default, the MPLS DiffServ mode is Uniform.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv-mode(l3vpn)
+      line: 13524
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-mode.2~3
+    syntax: diffserv-mode pipe <service-class> [ <color> ]
+    view: vpn-instance-af-ipv4
+    undo: undo diffserv-mode
+    params:
+      service-class: &id068
+        type: word
+      color: &id069
+        type: word
+    default: By default, the MPLS DiffServ mode is Uniform.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv-mode(l3vpn)
+      line: 13524
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-mode.3
+    syntax: diffserv-mode short-pipe <service-class> [ <color> ] [ domain <dsName> ]
+    view: vpn-instance-af-ipv4
+    undo: undo diffserv-mode
+    params:
+      service-class: *id068
+      color: *id069
+      dsName: &id070
+        type: word
+    default: By default, the MPLS DiffServ mode is Uniform.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv-mode(l3vpn)
+      line: 13524
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.diffserv-mode.4
+    syntax: diffserv-mode ingress { { pipe <service-class> [ <color> ] } | { short-pipe <service-class> [ <color> ] } | uniform } egress { pipe | { short-pipe [ domain <dsName> ] } | uniform }
+    view: vpn-instance-af-ipv4
+    undo: undo diffserv-mode
+    params:
+      service-class: *id068
+      color: *id069
+      dsName: *id070
+    default: By default, the MPLS DiffServ mode is Uniform.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: diffserv-mode(l3vpn)
+      line: 13524
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.l3vpn-diffserv-mode-short-pipe-enhance-enable
+    syntax: l3vpn diffserv-mode short-pipe enhance enable
+    view: system
+    undo: undo l3vpn diffserv-mode short-pipe enhance enable
+    default: By default, the enhanced Short Pipe mode is not enabled in L3VPN scenarios.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: l3vpn diffserv-mode short-pipe enhance enable
+      line: 13781
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.apply-qos-buffer-policy
+    syntax: apply qos buffer-policy <policy-name>
+    view: system
+    undo: undo apply qos buffer-policy
+    params:
+      policy-name:
+        type: word
+    default: By default, the default QoS buffer policy is used.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: apply qos buffer-policy
+      line: 13852
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flow-queue.1
+    syntax: flow-queue <flow-queue-name>
+    view: system
+    enters_view: flow-queue
+    undo: undo flow-queue <flow-queue-name>
+    params:
+      flow-queue-name: &id071
+        type: word
+    default: By default, no flow queue profile is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: flow-queue
+      line: 16944
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.flow_queue: $flow-queue-name
+  - id: huawei-vrp8.flow-queue.2
+    syntax: flow-queue <flow-queue-name> 8cos-enhance-mode
+    view: system
+    enters_view: flow-queue
+    undo: undo flow-queue <flow-queue-name> 8cos-enhance-mode
+    params:
+      flow-queue-name: *id071
+    default: By default, no flow queue profile is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: flow-queue
+      line: 16944
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flow-wred
+    syntax: flow-wred <wred-name>
+    view: system
+    enters_view: flow-wred
+    undo: undo flow-wred <wred-name>
+    params:
+      wred-name:
+        type: word
+    default: By default, no flow-WRED object is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: flow-wred
+      line: 17028
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.flow_wred: $wred-name
+  - id: huawei-vrp8.qos-buffer-monitor-default-queue-enable
+    syntax: qos buffer-monitor default-queue enable
+    view: interface
+    undo: undo qos buffer-monitor default-queue enable
+    default: By default, buffer monitoring is disabled for the default SQ on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos buffer-monitor default-queue enable
+      line: 17716
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-buffer-policy
+    syntax: qos buffer-policy <policy-name>
+    view: system
+    undo: undo qos buffer-policy <policy-name>
+    params:
+      policy-name:
+        type: word
+    default: By default, no QoS buffer policy is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos buffer-policy
+      line: 17770
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-buffer-policy-enhance
+    syntax: qos buffer-policy enhance
+    view: system
+    undo: undo qos buffer-policy enhance
+    default: By default, the enhanced buffer policy mode is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos buffer-policy enhance
+      line: 17833
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-buffer-policy~2
+    syntax: qos buffer-policy { large | normal }
+    view: interface
+    undo: undo qos buffer-policy [ large | normal ]
+    default: By default, the default buffer mode is shown in Usage Scenario.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos buffer-policy(interface view)
+      line: 17894
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-cos-burst-size
+    syntax: qos cos { be | af1 | af2 | af3 | af4 | ef | cs6 | cs7 } burst-size <buffer-size-value>
+    view: system
+    undo: undo qos cos { be | af1 | af2 | af3 | af4 | ef | cs6 | cs7 } burst-size <buffer-size-value>
+    params:
+      buffer-size-value:
+        type: integer
+        range:
+          - 0
+          - 64
+    default: By default, no burst size is configured, and the effective value is 5 KB.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos cos burst-size
+      line: 17983
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-cos-pack-size
+    syntax: qos cos all pack-size <pack-size-value>
+    view: system
+    undo: undo qos cos all pack-size <pack-size-value>
+    params:
+      pack-size-value:
+        type: integer
+        range:
+          - 0
+          - 5
+    default: By default, the packet block threshold size is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos cos pack-size
+      line: 18052
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-default-flow-queue-outbound
+    syntax: qos default flow-queue <flow-queue-template-name> outbound
+    view: interface
+    undo: undo qos default flow-queue [ <flow-queue-template-name> ] outbound
+    params:
+      flow-queue-template-name:
+        type: word
+    default: By default, no flow queue profile is applied to a sliced sub-interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos default flow-queue outbound
+      line: 18114
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-default-service-template-outbound
+    syntax: qos default service-template <service-template-name> outbound
+    view: interface
+    undo: undo qos default service-template [ <service-template-name> ] outbound
+    params:
+      service-template-name:
+        type: word
+    default: By default, no service template is applied to a sliced sub-interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos default service-template outbound
+      line: 18197
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-default-shaping.1
+    syntax: qos default { user-group-queue | sub-port-queue } shaping <shaping-value> [ pbs <pbs-value> ] outbound
+    view: interface
+    undo: undo qos default { user-group-queue | sub-port-queue } [ shaping <shaping-value> ] [ pbs <pbs-value> ] outbound
+    params:
+      shaping-value: &id072
+        type: integer
+        range:
+          - 66
+          - 4294967294
+      pbs-value: &id073
+        type: integer
+        range:
+          - 64
+          - 2097152
+    default: By default, rate limiting parameters are not configured for the default GQ (user-group-queue) or VI (sub-port-queue) on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos default shaping
+      line: 18280
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-default-shaping.2
+    syntax: qos default user-group-queue shaping <shaping-value> [ pbs <pbs-value> ] outbound
+    view: interface
+    undo: undo qos default user-group-queue shaping <shaping-value> [ pbs <pbs-value> ] outbound
+    params:
+      shaping-value: *id072
+      pbs-value: *id073
+    default: By default, rate limiting parameters are not configured for the default GQ (user-group-queue) or VI (sub-port-queue) on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos default shaping
+      line: 18280
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-default-user-queue
+    syntax: qos default user-queue { cir <cir-value> | cbs <cbs-value> | pir <pir-value> | pbs <pbs-value> | weight <weight-value> } &<1-9> outbound
+    view: interface
+    undo: undo qos default user-queue outbound
+    params:
+      cir-value:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      cbs-value:
+        type: integer
+        range:
+          - 1
+          - 4194304
+      pir-value:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      pbs-value:
+        type: integer
+        range:
+          - 1
+          - 4194304
+      weight-value:
+        type: integer
+        range:
+          - 1
+          - 63
+    default: By default, the default user queue scheduling parameters are used.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos default user-queue
+      line: 18362
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-low-latency-enable
+    syntax: qos flow-queue low-latency enable
+    view: system
+    undo: undo qos flow-queue low-latency enable
+    default: By default, the low-latency function is disabled for all PQ queues in flow-queue mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos low-latency enable
+      line: 18453
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-received-multi-pause-frame-alarm-disable
+    syntax: qos received-multi-pause-frame-alarm disable
+    view: system
+    undo: undo qos received-multi-pause-frame-alarm disable
+    default: By default, a device is enabled to report an interface protocol down alarm when it receives a large number of pause frames within a short period of time.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos received-multi-pause-frame-alarm disable
+      line: 18516
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-schedule-tree-distribute-mode-outbound
+    syntax: qos schedule-tree distribute-mode outbound
+    view: interface
+    undo: undo qos schedule-tree distribute-mode outbound
+    default: By default, TM-based HQoS scheduling is implemented for traffic on a trunk interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos schedule-tree distribute-mode outbound
+      line: 18571
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-sub-port-queue-member-link-scheduler-distribute
+    syntax: qos sub-port-queue member-link-scheduler distribute outbound
+    view: interface
+    undo: undo qos sub-port-queue member-link-scheduler distribute outbound
+    default: By default, weight-based bandwidth distribution among a trunk interface's member interfaces is not configured when sub-port-queue is applied to the trunk interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos sub-port-queue member-link-scheduler distribute
+      line: 18638
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-trunk-traffic-congestion-alarm-disable
+    syntax: qos trunk traffic-congestion-alarm disable
+    view: system
+    undo: undo qos trunk traffic-congestion-alarm disable
+    default: By default, trunk traffic congestion alarms can be reported.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos trunk traffic-congestion-alarm disable
+      line: 18709
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-user-group-queue-member-link-scheduler-distribute
+    syntax: qos user-group-queue member-link-scheduler distribute outbound
+    view: interface
+    undo: undo qos user-group-queue member-link-scheduler distribute outbound
+    default: By default, weight-based bandwidth distribution among a trunk interface's member interfaces is not configured when user-group-queue is applied to the trunk interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos user-group-queue member-link-scheduler distribute
+      line: 18764
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-user-queue-resource
+    syntax: qos user-queue resource 8cos-enhance <8cos-enhance-size> { inbound | outbound }
+    view: system
+    undo: undo qos user-queue resource 8cos-enhance <8cos-enhance-size> { inbound | outbound }
+    params:
+      8cos-enhance-size:
+        type: integer
+        range:
+          - 4
+          - 1000
+    default: By default, the resource size of user queues in enhanced 8-CoS mode is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos user-queue resource
+      line: 18837
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.queue.1
+    syntax: queue <cos-value> { { pq | wfq weight <weight-value> | lpq } | { shaping { <shaping-value> | shaping-percentage <shaping-percentage-value> } [ pbs <pbs-value> ] | car { <car-value> | car-percentage <car-percentage-value> } [ pbs <pbs-value> ] } | { flow-wred <wred-name> } | low-latency } &<1-9>
+    view: flow-queue
+    undo: undo queue <cos-value> [ pq | wfq | lpq | shaping | flow-wred | low-latency | car ]
+    params:
+      cos-value: &id074
+        type: word
+      weight-value: &id075
+        type: integer
+        range:
+          - 1
+          - 100
+      shaping-value: &id076
+        type: integer
+        range:
+          - 64
+          - 4294967294
+      shaping-percentage-value: &id077
+        type: integer
+        range:
+          - 0
+          - 100
+      pbs-value: &id078
+        type: integer
+        range:
+          - 1
+          - 4194304
+      car-value:
+        type: integer
+        range:
+          - 64
+          - 4294967294
+      car-percentage-value:
+        type: integer
+        range:
+          - 0
+          - 100
+      wred-name: &id079
+        type: word
+    default: By default, the BE, AF1, AF2, AF3, and AF4 queues are scheduled using the WFQ scheduling mode, with the scheduling weights being 10, 10, 10, 15, and 15, respectively, and the EF, CS6, and CS7 queues are scheduled using the PQ scheduling mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: queue
+      line: 18902
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.flow_queue.queue: $cos-value
+      qos.flow_queue.queue.schedule: kw:pq|wfq|lpq
+      qos.flow_queue.queue.weight: $weight-value
+      qos.flow_queue.queue.shaping: $shaping-value
+      qos.flow_queue.queue.shaping_pct: $shaping-percentage-value
+      qos.flow_queue.queue.wred: $wred-name
+  - id: huawei-vrp8.queue.2
+    syntax: queue <cos-value> { { pq | wfq weight <weight-value> | lpq } | { shaping { <shaping-value> | shaping-percentage <shaping-percentage-value> } [ pbs <pbs-value> ] } | { flow-wred <wred-name> } } &<1-9>
+    view: flow-queue
+    undo: undo queue <cos-value> [ pq | wfq | lpq | shaping | flow-wred | low-latency | car ]
+    params:
+      cos-value: *id074
+      weight-value: *id075
+      shaping-value: *id076
+      shaping-percentage-value: *id077
+      pbs-value: *id078
+      wred-name: *id079
+    default: By default, the BE, AF1, AF2, AF3, and AF4 queues are scheduled using the WFQ scheduling mode, with the scheduling weights being 10, 10, 10, 15, and 15, respectively, and the EF, CS6, and CS7 queues are scheduled using the PQ scheduling mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: queue
+      line: 18902
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.flow_queue.queue: $cos-value
+      qos.flow_queue.queue.schedule: kw:pq|wfq|lpq
+      qos.flow_queue.queue.weight: $weight-value
+      qos.flow_queue.queue.shaping: $shaping-value
+      qos.flow_queue.queue.shaping_pct: $shaping-percentage-value
+      qos.flow_queue.queue.wred: $wred-name
+  - id: huawei-vrp8.queue.3
+    syntax: queue <cos-value> { { pq | wfq weight <weight-value> | lpq } | { shaping { <shaping-value> | shaping-percentage <shaping-percentage-value> } [ pbs <pbs-value> ] } | { flow-wred <wred-name> } | low-latency } &<1-9>
+    view: flow-queue
+    undo: undo queue <cos-value> [ pq | wfq | lpq | shaping | flow-wred | low-latency | car ]
+    params:
+      cos-value: *id074
+      weight-value: *id075
+      shaping-value: *id076
+      shaping-percentage-value: *id077
+      pbs-value: *id078
+      wred-name: *id079
+    default: By default, the BE, AF1, AF2, AF3, and AF4 queues are scheduled using the WFQ scheduling mode, with the scheduling weights being 10, 10, 10, 15, and 15, respectively, and the EF, CS6, and CS7 queues are scheduled using the PQ scheduling mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: queue
+      line: 18902
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.flow_queue.queue: $cos-value
+      qos.flow_queue.queue.schedule: kw:pq|wfq|lpq
+      qos.flow_queue.queue.weight: $weight-value
+      qos.flow_queue.queue.shaping: $shaping-value
+      qos.flow_queue.queue.shaping_pct: $shaping-percentage-value
+      qos.flow_queue.queue.wred: $wred-name
+  - id: huawei-vrp8.set-queue-stat-interval@interface
+    syntax: set queue-stat interval <interval>
+    view: interface
+    undo: undo set queue-stat interval
+    params: &id080
+      interval:
+        type: word
+    default: By default, the interval at which queue statistics are collected is 5 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: set queue-stat interval
+      line: 19486
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.set-queue-stat-interval@system
+    syntax: set queue-stat interval <interval>
+    view: system
+    undo: undo set queue-stat interval
+    params: *id080
+    default: By default, the interval at which queue statistics are collected is 5 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: set queue-stat interval
+      line: 19486
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.share-shaping.1
+    syntax: share-shaping [ <shap-id> ] { af1 | af2 | af3 | af4 | be | cs6 | cs7 | ef } &<1-9> [ pq | wfq weight <weight-value> | lpq ] <shaping-value> [ pbs <pbs-value> ]
+    view: flow-queue
+    undo: undo share-shaping [ <shap-id> ]
+    params:
+      shap-id: &id081
+        type: word
+      weight-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      shaping-value: &id082
+        type: integer
+        range:
+          - 1
+          - 4294967294
+      pbs-value: &id083
+        type: integer
+        range:
+          - 1
+          - 4194304
+    default: By default, unified traffic shaping is not configured in a flow queue profile.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: share-shaping
+      line: 19688
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.share-shaping.2
+    syntax: share-shaping [ <shap-id> ] { af1 | af2 | af3 | af4 | be | cs6 | cs7 | ef } &<1-9> <shaping-value> [ pbs <pbs-value> ]
+    view: flow-queue
+    undo: undo share-shaping [ <shap-id> ]
+    params:
+      shap-id: *id081
+      shaping-value: *id082
+      pbs-value: *id083
+    default: By default, unified traffic shaping is not configured in a flow queue profile.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: share-shaping
+      line: 19688
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.sub-port-queue
+    syntax: sub-port-queue <sub-port-queue-name>
+    view: system
+    undo: undo sub-port-queue <sub-port-queue-name>
+    params:
+      sub-port-queue-name:
+        type: word
+    default: By default, no sub-interface queue profile is created in the system.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: sub-port-queue
+      line: 19846
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.sub-port-queue-outbound
+    syntax: sub-port-queue <sub-port-queue-name> outbound [ group <group-name> ]
+    view: interface
+    undo: undo sub-port-queue [ <sub-port-queue-name> ] outbound [ group <group-name> ]
+    params:
+      sub-port-queue-name:
+        type: word
+      group-name:
+        type: word
+    default: By default, no sub-interface queue profile is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: sub-port-queue outbound
+      line: 19917
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.user-group-queue
+    syntax: user-group-queue <group-name>
+    view: system
+    undo: undo user-group-queue <group-name>
+    params:
+      group-name:
+        type: word
+    default: By default, an ATN 910C or ATN 950D (ANRD00CXPA01/ANRD00CXPB01/ANRD00CXPA00) supports a maximum of 2000 GQs, and other models support a maximum of 4096 GQs.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: user-group-queue
+      line: 19992
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.user-group-queue~2
+    syntax: user-group-queue <user-group-queue-name> outbound [ identifier none ] [ group <group-name> ]
+    view: interface
+    undo: undo user-group-queue [ <user-group-queue-name> ] outbound [ identifier none ] [ group <group-name> ]
+    params:
+      user-group-queue-name:
+        type: word
+      group-name:
+        type: word
+    default: By default, no GQ is assigned to Layer 3 leased line users or common Layer 3 users on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: user-group-queue (interface view)
+      line: 20058
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.user-queue.1
+    syntax: user-queue { { cir <cir-value> [ cbs <cbs-value> ] [ [ pir <pir-value> [ pbs <pbs-value> ] ] | [ flow-queue <flow-queue-name> ] | [ user-group-queue <group-name> ] ] &<1-9> [ inbound | outbound ] [ service-template <template-name> ] } | { cir-percentage <cir-percentage-value> [ cbs <cbs-value> ] [ [ pir-percentage <pir-percentage-value> [ pbs <pbs-value> ] ] | [ flow-queue <flow-queue-name> ] | [ user-group-queue <group-name> ] ] &<1-9> [ inbound | outbound ] [ service-template <template-name> ] } }
+    view: qos-profile
+    undo: undo user-queue [ inbound | outbound ]
+    params:
+      cir-value: &id084
+        type: integer
+        range:
+          - 64
+          - 4294967294
+      cbs-value: &id085
+        type: integer
+        range:
+          - 1
+          - 4194304
+      pir-value: &id086
+        type: integer
+        range:
+          - 64
+          - 4294967294
+      pbs-value: &id087
+        type: integer
+        range:
+          - 1
+          - 4194304
+      flow-queue-name: &id088
+        type: word
+      group-name: &id089
+        type: word
+      template-name: &id090
+        type: word
+      cir-percentage-value: &id091
+        type: integer
+        range:
+          - 0
+          - 100
+      pir-percentage-value: &id092
+        type: integer
+        range:
+          - 0
+          - 100
+    default: By default, no user-queue configuration exists in a QoS profile.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: user-queue (qos profile view)
+      line: 20307
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.profile.user_queue: kw:inbound|outbound:both
+      qos.profile.user_queue.cir: $cir-value
+      qos.profile.user_queue.pir: $pir-value
+      qos.profile.user_queue.cir_pct: $cir-percentage-value
+      qos.profile.user_queue.pir_pct: $pir-percentage-value
+      qos.profile.user_queue.flow_queue: $flow-queue-name
+  - id: huawei-vrp8.user-queue.2
+    syntax: user-queue { { cir <cir-value> [ cbs <cbs-value> ] [ [ pir <pir-value> [ pbs <pbs-value> ] ] | [ flow-queue <flow-queue-name> ] | [ user-group-queue <group-name> ] ] &<1-9> [ service-template <template-name> ] } | { cir-percentage <cir-percentage-value> [ cbs <cbs-value> ] [ [ pir-percentage <pir-percentage-value> [ pbs <pbs-value> ] ] | [ flow-queue <flow-queue-name> ] | [ user-group-queue <group-name> ] ] &<1-9> [ service-template <template-name> ] } }
+    view: qos-profile
+    undo: undo user-queue [ inbound | outbound ]
+    params:
+      cir-value: *id084
+      cbs-value: *id085
+      pir-value: *id086
+      pbs-value: *id087
+      flow-queue-name: *id088
+      group-name: *id089
+      template-name: *id090
+      cir-percentage-value: *id091
+      pir-percentage-value: *id092
+    default: By default, no user-queue configuration exists in a QoS profile.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: user-queue (qos profile view)
+      line: 20307
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.profile.user_queue: kw:inbound|outbound:both
+      qos.profile.user_queue.cir: $cir-value
+      qos.profile.user_queue.pir: $pir-value
+      qos.profile.user_queue.cir_pct: $cir-percentage-value
+      qos.profile.user_queue.pir_pct: $pir-percentage-value
+      qos.profile.user_queue.flow_queue: $flow-queue-name
+  - id: huawei-vrp8.user-queue~2
+    syntax: user-queue <user-queue-name>
+    view: system
+    undo: undo user-queue <user-queue-name>
+    params:
+      user-queue-name:
+        type: word
+    default: By default, no user queue profile is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: user-queue (system view)
+      line: 20418
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.broadcast-suppression.1
+    syntax: broadcast-suppression cir <cir-value> [ cbs <cbs-value> ] [ adjust <adjust-value> ]
+    view: qos-profile
+    undo: undo broadcast-suppression
+    params:
+      cir-value: &id093
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      cbs-value: &id094
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      adjust-value:
+        type: integer
+    default: By default, broadcast suppression is not configured in the QoS profile view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: broadcast-suppression
+      line: 20611
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.broadcast-suppression.2
+    syntax: broadcast-suppression cir <cir-value> [ cbs <cbs-value> ]
+    view: qos-profile
+    undo: undo broadcast-suppression
+    params:
+      cir-value: *id093
+      cbs-value: *id094
+    default: By default, broadcast suppression is not configured in the QoS profile view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: broadcast-suppression
+      line: 20611
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.car.1~2
+    syntax: car { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ priority-aware [ priority-template <priority-template-name> ] ] [ adjust <adjust-value> ] [ green { discard | pass [ service-class <class> color <color> ] } | yellow { discard | pass [ service-class <class> color <color> ] } | red { discard | pass [ service-class <class> color <color> ] } ] &<1-9> [ color-aware ]
+    view: qos-profile
+    undo: undo car
+    params:
+      cir-value: &id095
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      pir-value: &id096
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      cbs-value: &id097
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      pbs-value: &id098
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      priority-template-name:
+        type: word
+      adjust-value: &id099
+        type: integer
+      class: &id100
+        type: word
+      color: &id101
+        type: word
+    default: By default, user-specific traffic policing is not configured in a QoS profile.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: car (QoS profile view)
+      line: 20691
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.car.2~2
+    syntax: car { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ adjust <adjust-value> ] [ green { discard | pass [ service-class <class> color <color> ] } | yellow { discard | pass [ service-class <class> color <color> ] } | red { discard | pass [ service-class <class> color <color> ] } ] &<1-9> [ color-aware ]
+    view: qos-profile
+    undo: undo car
+    params:
+      cir-value: *id095
+      pir-value: *id096
+      cbs-value: *id097
+      pbs-value: *id098
+      adjust-value: *id099
+      class: *id100
+      color: *id101
+    default: By default, user-specific traffic policing is not configured in a QoS profile.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: car (QoS profile view)
+      line: 20691
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.car.3~2
+    syntax: car { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ green pass | yellow pass | red discard ] &<1-9> [ color-aware ]
+    view: qos-profile
+    undo: undo car
+    params:
+      cir-value: *id095
+      pir-value: *id096
+      cbs-value: *id097
+      pbs-value: *id098
+    default: By default, user-specific traffic policing is not configured in a QoS profile.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: car (QoS profile view)
+      line: 20691
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.description~16
+    syntax: description <description-info>
+    view: qos-profile
+    undo: undo description
+    params:
+      description-info:
+        type: word
+    default: By default, no description is configured in a QoS profile.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: description (QoS profile view)
+      line: 20922
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.eth-bn-group
+    syntax: eth-bn group <group-name>
+    view: system
+    undo: undo eth-bn group <group-name>
+    params:
+      group-name:
+        type: word
+    default: By default, no bandwidth group is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: eth-bn group (System view)
+      line: 21984
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.eth-bn-group~2
+    syntax: eth-bn-group <group-name>
+    view: interface
+    undo: undo eth-bn-group [ <group-name> ]
+    params:
+      group-name:
+        type: word
+    default: By default, an interface is not added to a microwave bandwidth group.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: eth-bn-group (Sub-interface view)
+      line: 22047
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.port-shaping
+    syntax: port shaping { <shaping-value> | shaping-percentage <shaping-percentage-value> } [ network-header-length <network-header-length-value> ] [ pbs <pbs-value> ]
+    view: interface
+    undo: undo port shaping shaping-percentage <shaping-percentage-value> [ network-header-length <network-header-length-value> ] [ pbs <pbs-value> ]
+    params:
+      shaping-value:
+        type: integer
+        range:
+          - 1
+          - 4294967294
+      shaping-percentage-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      network-header-length-value:
+        type: integer
+      pbs-value:
+        type: integer
+        range:
+          - 1
+          - 2147483646
+    default: By default, the shaping rate of an interface equals the bandwidth of the interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: port shaping
+      line: 22225
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.priority-template
+    syntax: priority-template <priority-template-name>
+    view: system
+    undo: undo priority-template <priority-template-name>
+    params:
+      priority-template-name:
+        type: word
+    default: By default, the system has a default profile named default.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: priority-template
+      line: 22305
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-car.1
+    syntax: qos car { cir-percentage <cir-percentage-value> [ pir-percentage <pir-percentage-value> ] } [ [ cbs <cbs-value> ] [ pbs <pbs-value> ] ] [ adjust <adjust-value> ] [ green { discard | pass [ service-class <class> color <color> ] } | yellow { discard | pass [ service-class <class> color <color> ] } | red { discard | pass [ service-class <class> color <color> ] } ] &<1-9> { inbound | outbound } [ color-aware ]
+    view: interface
+    undo: undo qos car { inbound | outbound } vlan { { <vlan-id1> [ to <vlan-id2> ] } &<1-10> | all }
+    params:
+      cir-percentage-value: &id107
+        type: integer
+        range:
+          - 0
+          - 100
+      pir-percentage-value: &id108
+        type: integer
+        range:
+          - 0
+          - 100
+      cbs-value: &id102
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      pbs-value: &id103
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      adjust-value: &id104
+        type: integer
+      class: &id105
+        type: word
+      color: &id106
+        type: word
+    default: By default, the traffic policing is not configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos car
+      line: 22368
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-car.2
+    syntax: qos car { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ adjust <adjust-value> ] [ green { discard | pass [ service-class <class> color <color> ] } | yellow { discard | pass [ service-class <class> color <color> ] } | red { discard | pass [ service-class <class> color <color> ] } ] &<1-9> { inbound | outbound } [ vlan { { <vlan-id1> [ to <vlan-id2> ] } &<1-10> } ] [ identifier { none | vid | ce-vid | vid-ce-vid } ] [ color-aware ]
+    view: interface
+    undo: undo qos car { inbound | outbound } vlan { { <vlan-id1> [ to <vlan-id2> ] } &<1-10> | all }
+    params:
+      cir-value: &id109
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      pir-value: &id110
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      cbs-value: *id102
+      pbs-value: *id103
+      adjust-value: *id104
+      class: *id105
+      color: *id106
+      vlan-id1: &id111
+        type: integer
+        range:
+          - 1
+          - 4094
+      vlan-id2: &id112
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, the traffic policing is not configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos car
+      line: 22368
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-car.3
+    syntax: qos car { cir-percentage <cir-percentage-value> [ pir-percentage <pir-percentage-value> ] } [ [ cbs <cbs-value> ] [ pbs <pbs-value> ] ] [ green pass | yellow pass | red discard ] &<1-9> { inbound | outbound } [ color-aware ]
+    view: interface
+    undo: undo qos car { inbound | outbound } vlan { { <vlan-id1> [ to <vlan-id2> ] } &<1-10> | all }
+    params:
+      cir-percentage-value: *id107
+      pir-percentage-value: *id108
+      cbs-value: *id102
+      pbs-value: *id103
+    default: By default, the traffic policing is not configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos car
+      line: 22368
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-car.4
+    syntax: qos car { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ green pass | yellow pass | red discard ] &<1-9> { inbound | outbound } [ identifier { none | vid | ce-vid | vid-ce-vid } ] [ color-aware ]
+    view: interface
+    undo: undo qos car { inbound | outbound } vlan { { <vlan-id1> [ to <vlan-id2> ] } &<1-10> | all }
+    params:
+      cir-value: *id109
+      pir-value: *id110
+      cbs-value: *id102
+      pbs-value: *id103
+    default: By default, the traffic policing is not configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos car
+      line: 22368
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-car.5
+    syntax: qos car { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ green pass | yellow pass | red discard ] &<1-9> { inbound | outbound } vlan { <vlan-id1> [ to <vlan-id2> ] } &<1-10> [ color-aware ]
+    view: interface
+    undo: undo qos car { inbound | outbound } vlan { { <vlan-id1> [ to <vlan-id2> ] } &<1-10> | all }
+    params:
+      cir-value: *id109
+      pir-value: *id110
+      cbs-value: *id102
+      pbs-value: *id103
+      vlan-id1: *id111
+      vlan-id2: *id112
+    default: By default, the traffic policing is not configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos car
+      line: 22368
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-car.6
+    syntax: qos car { cir <cir-value> [ pir <pir-value> ] } [ cbs <cbs-value> [ pbs <pbs-value> ] ] [ green pass | yellow pass | red discard ] &<1-9> inbound [ identifier { none | vid } ] [ color-aware ]
+    view: interface
+    undo: undo qos car { inbound | outbound } vlan { { <vlan-id1> [ to <vlan-id2> ] } &<1-10> | all }
+    params:
+      cir-value: *id109
+      pir-value: *id110
+      cbs-value: *id102
+      pbs-value: *id103
+    default: By default, the traffic policing is not configured on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos car
+      line: 22368
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-profile.1
+    syntax: qos-profile <profile-name>
+    view: system
+    enters_view: qos-profile
+    undo: undo qos-profile <profile-name>
+    params:
+      profile-name: &id113
+        type: word
+    default: By default, a QoS profile is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos-profile
+      line: 22520
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.profile: $profile-name
+  - id: huawei-vrp8.qos-profile.2
+    syntax: qos-profile <profile-name> 8cos-enhance-mode
+    view: system
+    enters_view: qos-profile
+    undo: undo qos-profile <profile-name>
+    params:
+      profile-name: *id113
+    default: By default, a QoS profile is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos-profile
+      line: 22520
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-profile.1~2
+    syntax: qos-profile <qos-profile-name> { inbound | outbound } [ identifier { none | vid | ce-vid | vid-ce-vid } ] [ group <group-name> ]
+    view: interface
+    undo: undo qos-profile { inbound | outbound }
+    params:
+      qos-profile-name: &id114
+        type: word
+      group-name: &id115
+        type: word
+    default: By default, no QoS profile is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos-profile (interface view)
+      line: 22589
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.qos_profile: kw:inbound|outbound
+      interface.qos_profile.profile: $qos-profile-name
+  - id: huawei-vrp8.qos-profile.2~2
+    syntax: qos-profile <qos-profile-name> { inbound | outbound } [ identifier none ] linkage-bandwidth
+    view: interface
+    undo: undo qos-profile { inbound | outbound }
+    params:
+      qos-profile-name: *id114
+    default: By default, no QoS profile is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos-profile (interface view)
+      line: 22589
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.qos_profile: kw:inbound|outbound
+      interface.qos_profile.profile: $qos-profile-name
+  - id: huawei-vrp8.qos-profile.3
+    syntax: qos-profile <qos-profile-name> { inbound | outbound } { identifier { vid | ce-vid | vid-ce-vid } } linkage-bandwidth
+    view: interface
+    undo: undo qos-profile { inbound | outbound }
+    params:
+      qos-profile-name: *id114
+    default: By default, no QoS profile is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos-profile (interface view)
+      line: 22589
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-profile.4
+    syntax: qos-profile <qos-profile-name> inbound [ identifier { none | vid } ] [ group <group-name> ]
+    view: interface
+    undo: undo qos-profile { inbound | outbound }
+    params:
+      qos-profile-name: *id114
+      group-name: *id115
+    default: By default, no QoS profile is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos-profile (interface view)
+      line: 22589
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-profile-pe-vid.1
+    syntax: qos-profile <qos-profile-name> { inbound | outbound } pe-vid <pe-vlan-id> ce-vid { <ce-vlan-id-begin> [ to <ce-vlan-id-end> ] } [ identifier { pe-vid | ce-vid | pe-ce-vid | none } ] [ group <group-name> ]
+    view: interface
+    undo: undo qos-profile { inbound | outbound } pe-vid <pe-vlan-id> ce-vid { <ce-vlan-id-begin> [ to <ce-vlan-id-end> ] }
+    params:
+      qos-profile-name: &id116
+        type: word
+      pe-vlan-id: &id117
+        type: integer
+        range:
+          - 1
+          - 4094
+      ce-vlan-id-begin: &id118
+        type: integer
+        range:
+          - 1
+          - 4094
+      ce-vlan-id-end: &id119
+        type: integer
+        range:
+          - 1
+          - 4094
+      group-name:
+        type: word
+    default: By default, no QoS profile is applied to a sub-interface for QinQ VLAN tag termination.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos-profile pe-vid
+      line: 22730
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-profile-pe-vid.2
+    syntax: qos-profile <qos-profile-name> { inbound | outbound } pe-vid <pe-vlan-id> ce-vid { <ce-vlan-id-begin> [ to <ce-vlan-id-end> ] } [ identifier { pe-vid | ce-vid | pe-ce-vid | none } ] linkage-bandwidth
+    view: interface
+    undo: undo qos-profile { inbound | outbound } pe-vid <pe-vlan-id> ce-vid { <ce-vlan-id-begin> [ to <ce-vlan-id-end> ] }
+    params:
+      qos-profile-name: *id116
+      pe-vlan-id: *id117
+      ce-vlan-id-begin: *id118
+      ce-vlan-id-end: *id119
+    default: By default, no QoS profile is applied to a sub-interface for QinQ VLAN tag termination.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos-profile pe-vid
+      line: 22730
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-profile-vlan.1
+    syntax: qos-profile <qos-profile-name> { inbound | outbound } vlan <vlan-id-begin> [ to <vlan-id-end> ] [ identifier { none | vlan-id } ] [ group <group-name> ]
+    view: interface
+    undo: undo qos-profile { inbound | outbound } vlan <vlan-id-begin> [ to <vlan-id-end> ]
+    params:
+      qos-profile-name: &id120
+        type: word
+      vlan-id-begin: &id121
+        type: integer
+        range:
+          - 1
+          - 4094
+      vlan-id-end: &id122
+        type: integer
+        range:
+          - 1
+          - 4094
+      group-name:
+        type: word
+    default: By default, no QoS profile is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos-profile vlan
+      line: 22825
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-profile-vlan.2
+    syntax: qos-profile <qos-profile-name> { inbound | outbound } vlan <vlan-id-begin> [ to <vlan-id-end> ] [ identifier { none | vlan-id } ] linkage-bandwidth
+    view: interface
+    undo: undo qos-profile { inbound | outbound } vlan <vlan-id-begin> [ to <vlan-id-end> ]
+    params:
+      qos-profile-name: *id120
+      vlan-id-begin: *id121
+      vlan-id-end: *id122
+    default: By default, no QoS profile is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos-profile vlan
+      line: 22825
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.service-template
+    syntax: service-template <service-template-name>
+    view: system
+    undo: undo service-template <service-template-name>
+    params:
+      service-template-name:
+        type: word
+    default: By default, no user-defined service profile is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: service-template
+      line: 23146
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.shaping-service-template
+    syntax: shaping service-template <service-template-name>
+    view: interface
+    undo: undo shaping service-template [ <service-template-name> ]
+    params:
+      service-template-name:
+        type: word
+    default: By default, no service profile is applied to an interface, and the default compensation value of the interface takes effect.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: shaping service-template
+      line: 23205
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.unknown-multicast-suppression.1
+    syntax: unknown-multicast-suppression cir <cir-value> [ cbs <cbs-value> ] [ adjust <adjust-value> ]
+    view: qos-profile
+    undo: undo unknown-multicast-suppression
+    params:
+      cir-value: &id123
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      cbs-value: &id124
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      adjust-value:
+        type: integer
+    default: By default, traffic suppression is disabled for unknown multicast packets in the QoS profile.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: unknown-multicast-suppression
+      line: 23266
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.unknown-multicast-suppression.2
+    syntax: unknown-multicast-suppression cir <cir-value> [ cbs <cbs-value> ]
+    view: qos-profile
+    undo: undo unknown-multicast-suppression
+    params:
+      cir-value: *id123
+      cbs-value: *id124
+    default: By default, traffic suppression is disabled for unknown multicast packets in the QoS profile.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: unknown-multicast-suppression
+      line: 23266
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.unknown-unicast-suppression.1
+    syntax: unknown-unicast-suppression cir <cir-value> [ cbs <cbs-value> ] [ adjust <adjust-value> ]
+    view: qos-profile
+    undo: undo unknown-unicast-suppression
+    params:
+      cir-value: &id125
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      cbs-value: &id126
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      adjust-value:
+        type: integer
+    default: By default, unknown unicast suppression is not configured in the QoS profile view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: unknown-unicast-suppression
+      line: 23354
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.unknown-unicast-suppression.2
+    syntax: unknown-unicast-suppression cir <cir-value> [ cbs <cbs-value> ]
+    view: qos-profile
+    undo: undo unknown-unicast-suppression
+    params:
+      cir-value: *id125
+      cbs-value: *id126
+    default: By default, unknown unicast suppression is not configured in the QoS profile view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: unknown-unicast-suppression
+      line: 23354
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.color-low-limit-high-limit@flow-wred
+    syntax: color { green | yellow | red } low-limit <low-limit-percentage> high-limit <high-limit-percentage> discard-percentage <discard-percentage>
+    view: flow-wred
+    undo: undo color { green | yellow | red }
+    params: &id127
+      low-limit-percentage:
+        type: integer
+        range:
+          - 0
+          - 100
+      high-limit-percentage:
+        type: integer
+        range:
+          - 0
+          - 100
+      discard-percentage:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, the lower and upper thresholds percentage and discarding percentage are 100 percent, which means the tail drop.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: color low-limit high-limit
+      line: 23523
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.flow_wred.color: kw:green|yellow|red
+      qos.flow_wred.color.low_limit: $low-limit-percentage
+      qos.flow_wred.color.high_limit: $high-limit-percentage
+      qos.flow_wred.color.discard_pct: $discard-percentage
+  - id: huawei-vrp8.color-low-limit-high-limit@port-wred
+    syntax: color { green | yellow | red } low-limit <low-limit-percentage> high-limit <high-limit-percentage> discard-percentage <discard-percentage>
+    view: port-wred
+    undo: undo color { green | yellow | red }
+    params: *id127
+    default: By default, the lower and upper thresholds percentage and discarding percentage are 100 percent, which means the tail drop.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: color low-limit high-limit
+      line: 23523
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.port_wred.color: kw:green|yellow|red
+      qos.port_wred.color.low_limit: $low-limit-percentage
+      qos.port_wred.color.high_limit: $high-limit-percentage
+      qos.port_wred.color.discard_pct: $discard-percentage
+  - id: huawei-vrp8.port-queue-outbound.1
+    syntax: port-queue <cos-value> { { pq | wfq weight <weight-value> | lpq } | shaping { <shaping-value> | shaping-percentage <shaping-percentage-value> } [ pbs <pbs-value> ] | port-wred <wred-name> | low-latency } &<1-9> outbound
+    view: interface
+    undo: undo port-queue <cos-value> { { pq | wfq weight <weight-value> | lpq } | shaping { <shaping-value> | shaping-percentage <shaping-percentage-value> } [ pbs <pbs-value> ] | port-wred <wred-name> | low-latency } &<1-9> outbound
+    params:
+      cos-value: &id128
+        type: word
+      weight-value: &id129
+        type: integer
+        range:
+          - 1
+          - 100
+      shaping-value: &id130
+        type: integer
+        range:
+          - 64
+          - 4294967294
+      shaping-percentage-value: &id131
+        type: integer
+        range:
+          - 0
+          - 100
+      pbs-value: &id132
+        type: integer
+        range:
+          - 1
+          - 10000000
+      wred-name: &id133
+        type: word
+    default: By default, the BE, AF1, AF2, AF3, and AF4 queues are scheduled using the WFQ scheduling mode, with the scheduling weights being 10, 10, 10, 15, and 15, respectively, and the EF, CS6, and CS7 queues are scheduled using the PQ scheduling mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: port-queue outbound
+      line: 24762
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.port_queue: $cos-value
+      interface.port_queue.schedule: kw:pq|wfq|lpq
+      interface.port_queue.weight: $weight-value
+      interface.port_queue.shaping: $shaping-value
+      interface.port_queue.shaping_pct: $shaping-percentage-value
+      interface.port_queue.wred: $wred-name
+  - id: huawei-vrp8.port-queue-outbound.2
+    syntax: port-queue <cos-value> { { pq | wfq weight <weight-value> | lpq } | shaping { <shaping-value> | shaping-percentage <shaping-percentage-value> } [ pbs <pbs-value> ] | port-wred <wred-name> } &<1-9> outbound
+    view: interface
+    undo: undo port-queue <cos-value> { { pq | wfq weight <weight-value> | lpq } | shaping { <shaping-value> | shaping-percentage <shaping-percentage-value> } [ pbs <pbs-value> ] | port-wred <wred-name> } &<1-9> outbound
+    params:
+      cos-value: *id128
+      weight-value: *id129
+      shaping-value: *id130
+      shaping-percentage-value: *id131
+      pbs-value: *id132
+      wred-name: *id133
+    default: By default, the BE, AF1, AF2, AF3, and AF4 queues are scheduled using the WFQ scheduling mode, with the scheduling weights being 10, 10, 10, 15, and 15, respectively, and the EF, CS6, and CS7 queues are scheduled using the PQ scheduling mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: port-queue outbound
+      line: 24762
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.port_queue: $cos-value
+      interface.port_queue.schedule: kw:pq|wfq|lpq
+      interface.port_queue.weight: $weight-value
+      interface.port_queue.shaping: $shaping-value
+      interface.port_queue.shaping_pct: $shaping-percentage-value
+      interface.port_queue.wred: $wred-name
+  - id: huawei-vrp8.port-queue-outbound.3
+    syntax: port-queue <cos-value> cir { { <cir-value> [ cbs <cbs-value> ] cir-schedule pq pir <pir-value> } | { cir-percentage <cir-percentage-value> [ cbs <cbs-value> ] cir-schedule pq pir pir-percentage <pir-percentage-value> } } [ pbs <pbs-value> ] pir-schedule { pq | wfq weight <weight-value> | lpq } [ port-wred <wred-name> ] outbound
+    view: interface
+    undo: undo port-queue <cos-value> [ cir { { <cir-value> [ cbs <cbs-value> ] cir-schedule pq pir <pir-value> } | { cir-percentage <cir-percentage-value> [ cbs <cbs-value> ] cir-schedule pq pir pir-percentage <pir-percentage-value> } } [ pbs <pbs-value> ] pir-schedule { pq | wfq weight <weight-value> | lpq } [ port-wred <wred-name> ] ] outbound
+    params:
+      cos-value: *id128
+      cir-value:
+        type: integer
+        range:
+          - 64
+          - 4294967294
+      cbs-value:
+        type: integer
+        range:
+          - 1
+          - 10000000
+      pir-value:
+        type: integer
+        range:
+          - 64
+          - 4294967294
+      cir-percentage-value:
+        type: integer
+        range:
+          - 0
+          - 100
+      pir-percentage-value:
+        type: integer
+        range:
+          - 0
+          - 100
+      pbs-value: *id132
+      weight-value: *id129
+      wred-name: *id133
+    default: By default, the BE, AF1, AF2, AF3, and AF4 queues are scheduled using the WFQ scheduling mode, with the scheduling weights being 10, 10, 10, 15, and 15, respectively, and the EF, CS6, and CS7 queues are scheduled using the PQ scheduling mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: port-queue outbound
+      line: 24762
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.port-queue-alarm-buffer
+    syntax: port-queue-alarm <cos-value> buffer percentage <percentage-value>
+    view: interface
+    undo: undo port-queue-alarm <cos-value> buffer
+    params:
+      cos-value:
+        type: word
+      percentage-value:
+        type: integer
+    default: By default, the alarm threshold for the usage of CS6 and CS7 queues is 99, and there are no default alarm thresholds for other queues.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: port-queue-alarm buffer
+      line: 24874
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.port-queue-alarm-discard
+    syntax: port-queue-alarm <cos-value> { discard-packet <discard-packet-number> | discard-byte <discard-byte-number> | discard-packet-ratio <discard-packet-coefficient> <discard-packet-exponent> } [ interval <interval-time> ]
+    view: interface
+    undo: undo port-queue-alarm <cos-value> { discard-packet <discard-packet-number> | discard-byte <discard-byte-number> | discard-packet-ratio <discard-packet-coefficient> <discard-packet-exponent> } [ interval <interval-time> ]
+    params:
+      cos-value:
+        type: word
+      discard-packet-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      discard-byte-number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      discard-packet-coefficient:
+        type: integer
+        range:
+          - 1
+          - 9
+      discard-packet-exponent:
+        type: integer
+        range:
+          - 1
+          - 9
+      interval-time:
+        type: integer
+        range:
+          - 15
+          - 3600
+    default: By default, the packet loss alarm function is disabled for port queues.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: port-queue-alarm discard
+      line: 24937
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.port-queue-template
+    syntax: port-queue-template <port-queue-name>
+    view: system
+    enters_view: port-queue-template
+    undo: undo port-queue-template <port-queue-name>
+    params:
+      port-queue-name:
+        type: word
+    default: By default, no port queue profile is created in the system view.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: port-queue-template
+      line: 25003
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.port-queue-template~2
+    syntax: port-queue-template <port-queue-name> outbound
+    view: interface
+    undo: undo port-queue-template [ <port-queue-name> ] outbound
+    params:
+      port-queue-name:
+        type: word
+    default: By default, no port queue profile is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: port-queue-template (interface view)
+      line: 25066
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.port-wred
+    syntax: port-wred <port-wred-name>
+    view: system
+    enters_view: port-wred
+    undo: undo port-wred <port-wred-name>
+    params:
+      port-wred-name:
+        type: word
+    default: By default, the system supports a maximum of 128 port queue WRED objects.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: port-wred
+      line: 25133
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.port_wred: $port-wred-name
+  - id: huawei-vrp8.queue.1~2
+    syntax: queue <cos-value> { { pq | wfq weight <weight-value> | lpq } | shaping { <shaping-value> | shaping-percentage <shaping-percentage-value> } [ pbs <pbs-value> ] | port-wred <wred-name> | low-latency } &<1-9>
+    view: port-queue-template
+    undo: undo queue <cos-value> [ pq | wfq | lpq | shaping | port-wred | low-latency ]
+    params:
+      cos-value: &id134
+        type: word
+      weight-value: &id136
+        type: integer
+        range:
+          - 1
+          - 100
+      shaping-value: &id138
+        type: integer
+        range:
+          - 64
+          - 4294967294
+      shaping-percentage-value: &id139
+        type: integer
+        range:
+          - 0
+          - 100
+      pbs-value: &id135
+        type: integer
+        range:
+          - 1
+          - 10000000
+      wred-name: &id137
+        type: word
+    default: By default, the shaping value of an interface equals the bandwidth of the interface, the BE, AF1, AF2, AF3, and AF4 queues are scheduled using the WFQ scheduling mode, with the scheduling weights being 10, 10, 10, 15, and 15, respectively, and the EF, CS6, and CS7 queues are scheduled using the PQ scheduling mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: queue (Port queue view)
+      line: 25199
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.queue.2~2
+    syntax: queue <cos-value> cir { { <cir-value> [ cbs <cbs-value> ] cir-schedule pq pir <pir-value> } | { cir-percentage <cir-percentage-value> [ cbs <cbs-value> ] cir-schedule pq pir pir-percentage <pir-percentage-value> } } [ pbs <pbs-value> ] pir-schedule { pq | wfq weight <weight-value> | lpq } [ port-wred <wred-name> ]
+    view: port-queue-template
+    undo: undo queue <cos-value> [ cir { { <cir-value> [ cbs <cbs-value> ] cir-schedule pq pir <pir-value> } | { cir-percentage <cir-percentage-value> [ cbs <cbs-value> ] cir-schedule pq pir pir-percentage <pir-percentage-value> } } [ pbs <pbs-value> ] pir-schedule { pq | wfq weight <weight-value> | lpq } [ port-wred <wred-name> ] ]
+    params:
+      cos-value: *id134
+      cir-value:
+        type: integer
+        range:
+          - 64
+          - 4294967294
+      cbs-value:
+        type: integer
+        range:
+          - 1
+          - 10000000
+      pir-value:
+        type: integer
+        range:
+          - 64
+          - 4294967294
+      cir-percentage-value:
+        type: integer
+        range:
+          - 0
+          - 100
+      pir-percentage-value:
+        type: integer
+        range:
+          - 0
+          - 100
+      pbs-value: *id135
+      weight-value: *id136
+      wred-name: *id137
+    default: By default, the shaping value of an interface equals the bandwidth of the interface, the BE, AF1, AF2, AF3, and AF4 queues are scheduled using the WFQ scheduling mode, with the scheduling weights being 10, 10, 10, 15, and 15, respectively, and the EF, CS6, and CS7 queues are scheduled using the PQ scheduling mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: queue (Port queue view)
+      line: 25199
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.queue.3~2
+    syntax: queue <cos-value> { { pq | wfq weight <weight-value> | lpq } | shaping { <shaping-value> | shaping-percentage <shaping-percentage-value> } [ pbs <pbs-value> ] | port-wred <wred-name> } &<1-9>
+    view: port-queue-template
+    undo: undo queue <cos-value> [ pq | wfq | lpq | shaping | port-wred | low-latency ]
+    params:
+      cos-value: *id134
+      weight-value: *id136
+      shaping-value: *id138
+      shaping-percentage-value: *id139
+      pbs-value: *id135
+      wred-name: *id137
+    default: By default, the shaping value of an interface equals the bandwidth of the interface, the BE, AF1, AF2, AF3, and AF4 queues are scheduled using the WFQ scheduling mode, with the scheduling weights being 10, 10, 10, 15, and 15, respectively, and the EF, CS6, and CS7 queues are scheduled using the PQ scheduling mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: queue (Port queue view)
+      line: 25199
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.queue-depth
+    syntax: queue-depth { <queue-depth-value> | buffer-time <queue-depth-time> }
+    view: flow-wred
+    undo: undo queue-depth
+    params:
+      queue-depth-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      queue-depth-time:
+        type: integer
+        range:
+          - 10
+          - 1000000
+    default: By default, the queue depth in the flow-wred view is 1024 Kbytes.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: queue-depth (Flow queue WRED view)
+      line: 25307
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.flow_wred.queue_depth: $queue-depth-value
+  - id: huawei-vrp8.queue-depth~2
+    syntax: queue-depth { <queue-depth-value> | buffer-time <queue-depth-time> }
+    view: port-wred
+    undo: undo queue-depth
+    params:
+      queue-depth-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      queue-depth-time:
+        type: integer
+        range:
+          - 10
+          - 1000000
+    default: By default, the queue depth is 512 KB.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: queue-depth (Port queue WRED view)
+      line: 25381
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      qos.port_wred.queue_depth: $queue-depth-value
+  - id: huawei-vrp8.qppb-local-policy
+    syntax: qppb local-policy <policy-name>
+    view: system
+    undo: undo qppb local-policy <policy-name>
+    params:
+      policy-name:
+        type: word
+    default: By default, no QPPB local policy is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qppb local-policy
+      line: 25885
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qppb-policy-inbound.1
+    syntax: qppb-policy <policy-name> [ unshared ] { destination | source } inbound
+    view: interface
+    undo: undo qppb-policy [ { qos-local-id | <policy-name> [ unshared ] } { destination | source } ] inbound
+    params:
+      policy-name:
+        type: word
+    default: By default, no QPPB local policy is applied to an inbound interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qppb-policy inbound
+      line: 25942
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qppb-policy-inbound.2
+    syntax: qppb-policy qos-local-id { destination | source } inbound
+    view: interface
+    undo: undo qppb-policy [ { qos-local-id | <policy-name> [ unshared ] } { destination | source } ] inbound
+    default: By default, no QPPB local policy is applied to an inbound interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qppb-policy inbound
+      line: 25942
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qppb-policy-ip-precedence.1
+    syntax: qppb-policy ip-precedence destination
+    view: interface
+    undo: undo qppb-policy [ ip-precedence ]
+    default: By default, no QPPB local policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qppb-policy ip-precedence
+      line: 26020
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qppb-policy-ip-precedence.2
+    syntax: qppb-policy ip-precedence source
+    view: interface
+    undo: undo qppb-policy [ ip-precedence ]
+    default: By default, no QPPB local policy is applied to an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qppb-policy ip-precedence
+      line: 26020
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qppb-policy-outbound
+    syntax: qppb-policy <policy-name> [ unshared ] outbound
+    view: interface
+    undo: undo qppb-policy [ <policy-name> [ unshared ] ] outbound
+    params:
+      policy-name:
+        type: word
+    default: By default, no QPPB local policy is applied to an outbound interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qppb-policy outbound
+      line: 26101
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-l2vpn-qos-cir
+    syntax: mpls l2vpn qos cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] [ secondary | bypass ]
+    view: interface
+    undo: undo mpls l2vpn qos [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ] [ secondary | bypass ]
+    params:
+      cir-value:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      pir-value:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      qos-profile-name:
+        type: word
+    default: By default, PW QoS parameters are not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: mpls l2vpn qos cir
+      line: 26565
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.mpls-hqos-flow-queue
+    syntax: mpls-hqos flow-queue <flow-queue-name> [ { user-group-queue <group-queue-name> } | { service-template <template-name> } ] &<1-9>
+    view: qos-profile
+    undo: undo mpls-hqos
+    params:
+      flow-queue-name:
+        type: word
+      group-queue-name:
+        type: word
+      template-name:
+        type: word
+    default: By default, no SQ scheduling parameters are configured in the QoS profile for the VPN.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: mpls-hqos flow-queue
+      line: 26644
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos
+    syntax: qos cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ]
+    view: vsi
+    undo: undo qos [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ]
+    params:
+      cir-value:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      pir-value:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      qos-profile-name:
+        type: word
+    default: By default, QoS parameters are not configured for a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos
+      line: 26716
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-cir
+    syntax: qos cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ]
+    view: pw-template
+    undo: undo qos cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ]
+    params:
+      cir-value:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      pir-value:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      qos-profile-name:
+        type: word
+    default: By default, QoS parameters are not configured in a PW template.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos cir (PW template view)
+      line: 26786
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qos-cir~2
+    syntax: qos cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ]
+    view: vsi-ldp-pw
+    undo: undo qos [ cir <cir-value> [ pir <pir-value> ] [ qos-profile <qos-profile-name> ] ]
+    params:
+      cir-value:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      pir-value:
+        type: integer
+        range:
+          - 16
+          - 4294967294
+      qos-profile-name:
+        type: word
+    default: By default, QoS parameters are not configured for an LDP PW in a VSI.
+    source:
+      doc: huawei-vrp8-md
+      file: 17_QoS Commands.md
+      title: qos cir (VSI-LDP-PW view)
+      line: 26865
+      version: V800R025C00SPC500
+    status: draft

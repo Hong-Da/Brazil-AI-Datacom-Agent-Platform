@@ -171,6 +171,27 @@ rules:
     syntax: '^address-family vpnv4'
     maps: {bgp.af: {afi: vpnv4, vrf: ""}}
   # 地址族内
+  # M4-2：address-family ipv4 vrf 下的邻居（PE–CE）：属性挂在地址族对等体上
+  - view: ^bgp-af$
+    syntax: 'remote-as <autonomous-system-number>'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.remote_as: $autonomous-system-number
+  - view: ^bgp-af$
+    syntax: '^neighbor .* description <text>$'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.description: $text
+  - view: ^bgp-af$
+    syntax: '^neighbor .* password '
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.password: $string
+  - view: ^bgp-af$
+    syntax: 'update-source <interface>$'
+    maps:
+      bgp.af.peer: *peer
+      bgp.af.peer.update_source: $interface
   - view: ^bgp-af$
     syntax: '^neighbor .* activate$'
     maps:
@@ -269,6 +290,13 @@ rules:
       ospf.process.passive_default: "if:default:flag"
       ospf.process.passive: $interface
       ospf.process.passive.enabled: flag
+  # M4-2：IS-IS 进程下的 passive-interface（与 OSPF 相同的写法；拓扑按进程缺省 + 接口例外计算静默）
+  - view: ^router-isis$
+    syntax: '^passive-interface \{ default \| <interface> \}$'
+    maps:
+      isis.process.passive_default: "if:default:flag"
+      isis.process.passive: $interface
+      isis.process.passive.enabled: flag
   - view: ^router-ospf$
     syntax: '^bfd all-interfaces$'
     maps: {ospf.process.bfd_all: flag}
@@ -397,6 +425,7 @@ rules:
     maps:
       interface.bfd: "_"
       interface.bfd.min_tx: $milliseconds
+      interface.bfd.min_rx: $min-rx
       interface.bfd.multiplier: $multiplier-value
 
   # ================= 0.2.0：管理面 =================
@@ -489,9 +518,74 @@ rules:
       mgmt.ssh.timeout: $seconds
       mgmt.ssh.retries: $retries
   # AAA
+  # M4-2：SSH 服务端算法、RSA 密钥对
+  - view: ^system$
+    syntax: '^ip ssh server algorithm encryption '
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.ciphers: "tail:encryption"
+  - view: ^system$
+    syntax: '^ip ssh server algorithm mac '
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.hmacs: "tail:mac"
+  - view: ^system$
+    syntax: '^ip ssh server algorithm kex '
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.kex: "tail:kex"
+  - view: ^system$
+    syntax: '^ip ssh rsa keypair-name <keypair-name>$'
+    maps:
+      mgmt.ssh: "_"
+      mgmt.ssh.rsa_keypair: $keypair-name
+  # M4-2：SNMPv3 组与用户
+  - view: ^system$
+    syntax: '^snmp-server group <group-name> '
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.group: $group-name
+      mgmt.snmp.group.version: "kw:v3|v2c|v1"
+      mgmt.snmp.group.security_level: "kw:noauth|auth|priv"
+      mgmt.snmp.group.read_view: $read-view
+      mgmt.snmp.group.write_view: $write-view
+      mgmt.snmp.group.notify_view: $notify-view
+      mgmt.snmp.group.acl: "$acl-number||$acl-name"
+  - view: ^system$
+    syntax: '^snmp-server user <username> <groupname> '
+    maps:
+      mgmt.snmp: "_"
+      mgmt.snmp.user: $username
+      mgmt.snmp.user.group: $groupname
+      mgmt.snmp.user.version: "kw:v3|v2c|v1"
+      mgmt.snmp.user.auth_protocol: "if:auth:kw:md5|sha-2|sha"
+      mgmt.snmp.user.priv_protocol: "if:priv:kw:3des|des|aes"
+      mgmt.snmp.user.acl: "$aclnumber||$aclname"
+  # M4-2：RADIUS 服务器（radius server <名称> 模式；旧写法 radius-server host 归到 "_"）
+  - view: ^system$
+    syntax: '^radius server <name>$'
+    maps: {mgmt.radius: $name}
+  - view: ^radius-server$
+    syntax: '^address ipv4 '
+    maps:
+      mgmt.radius.server: {role: all, address: "$ipv4address||$hostname"}
+      mgmt.radius.server.port: $auth-port
+  - view: ^radius-server$
+    syntax: '^key '
+    maps: {mgmt.radius.key_set: flag}
+  - view: ^system$
+    syntax: '^radius-server host '
+    maps:
+      mgmt.radius: "_"
+      mgmt.radius.server: {role: all, address: "$ip-address||$hostname"}
+      mgmt.radius.server.port: $auth-port
+      mgmt.radius.key_set: "if:key:flag"
+      mgmt.radius.timeout: $seconds
+      mgmt.radius.retransmit: $retries
+  # M4-2：no aaa new-model 记为 enabled = false（原来只建了 mgmt.aaa 对象，看不出是否开启）
   - view: ^system$
     syntax: '^aaa new-model$'
-    maps: {mgmt.aaa: "_"}
+    maps: {mgmt.aaa: "_", mgmt.aaa.enabled: flag}
   - view: ^system$
     syntax: '^aaa authentication login \{ default'
     maps:
@@ -838,3 +932,304 @@ rules:
     maps:
       acl.instance.rule: $sequence-number
       acl.instance.rule.description: $remark
+
+  # ==================== 0.4.0（M4-2）：VRRP（VRRPv2 接口写法 + VRRPv3 子模式） ====================
+  - view: ^system$
+    syntax: '^fhrp version vrrp v3$'
+    maps: {"vrrp.global{id=_}.version": "v3"}
+  - view: ^interface$
+    syntax: '^vrrp <group> ip <ip-address> \[ secondary \]$'
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.virtual_ip: $ip-address
+      interface.vrrp.virtual_ip.secondary: "kw:secondary=true:false"
+  - view: ^interface$
+    syntax: '^vrrp <group> priority <level>$'
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.priority: $level
+  - view: ^interface$
+    syntax: '^vrrp <group> preempt '
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.preempt: flag
+      interface.vrrp.preempt_delay: $seconds
+  - view: ^interface$
+    syntax: '^vrrp <group> timers advertise '
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.advertise_interval: "unless:msec:$interval"
+      interface.vrrp.advertise_msec: "if:msec:$interval"
+  - view: ^interface$
+    syntax: '^vrrp <group> authentication '
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.auth_mode: "kw:md5|text=simple:simple"
+  - view: ^interface$
+    syntax: '^vrrp <group> description <text>$'
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.description: $text
+  - view: ^interface$
+    syntax: '^vrrp <group-number> shutdown$'
+    maps:
+      interface.vrrp: $group-number
+      interface.vrrp.shutdown: flag
+  - view: ^interface$
+    syntax: '^vrrp <group> track <object-number>'
+    maps:
+      interface.vrrp: $group
+      interface.vrrp.track: $object-number
+      interface.vrrp.track.reduce: $priority
+  # VRRPv3：vrrp <组号> address-family ipv4 进入子模式
+  - view: ^interface$
+    syntax: '^vrrp <group-id> address-family '
+    maps: {interface.vrrp: $group-id}
+  - view: ^vrrp$
+    syntax: '^address <ip-address> '
+    maps:
+      interface.vrrp.virtual_ip: $ip-address
+      interface.vrrp.virtual_ip.secondary: "kw:secondary=true:false"
+  - view: ^vrrp$
+    syntax: '^priority <level>$'
+    maps: {interface.vrrp.priority: $level}
+  - view: ^vrrp$
+    syntax: '^preempt '
+    maps:
+      interface.vrrp.preempt: flag
+      interface.vrrp.preempt_delay: $seconds
+  - view: ^vrrp$
+    syntax: '^timers advertise '
+    maps:
+      interface.vrrp.advertise_interval: "unless:msec:$interval"
+      interface.vrrp.advertise_msec: "if:msec:$interval"
+  - view: ^vrrp$
+    syntax: '^description <text>$'
+    maps: {interface.vrrp.description: $text}
+  - view: ^vrrp$
+    syntax: '^track <object-number> '
+    maps:
+      interface.vrrp.track: $object-number
+      interface.vrrp.track.reduce: $priority
+
+  # ==================== 0.4.0（M4-2）：QoS（MQC） ====================
+  - view: ^system$
+    syntax: '^class-map \[ match-all \| match-any \] <class-map-name>$'
+    maps:
+      qos.classifier: $class-map-name
+      qos.classifier.operator: "kw:match-all=and|match-any=or"
+  - view: ^class-map$
+    syntax: '^match \[ ip \] dscp '
+    maps: {qos.classifier.match: {field: dscp, value: $dscp-value}}
+  - view: ^class-map$
+    syntax: '^match mpls experimental topmost '
+    maps: {qos.classifier.match: {field: mpls-exp, value: $number}}
+  - view: ^class-map$
+    syntax: '^match cos '
+    maps: {qos.classifier.match: {field: 8021p, value: $cos-value}}
+  - view: ^class-map$
+    syntax: '^match \[ ip \] precedence '
+    maps: {qos.classifier.match: {field: ip-precedence, value: $precedence}}
+  - view: ^class-map$
+    syntax: '^match qos-group <qos-group-value>$'
+    maps: {qos.classifier.match: {field: qos-group, value: $qos-group-value}}
+  - view: ^class-map$
+    syntax: '^match any$'
+    maps: {qos.classifier.match: {field: any, value: ""}}
+  - view: ^class-map$
+    syntax: '^match access-group '
+    maps:
+      qos.classifier.match: {field: acl, value: "$access-group||$access-group-name"}
+      qos.classifier.match.acl: "$access-group||$access-group-name"
+  - view: ^system$
+    syntax: '^policy-map \[ type '
+    maps: {qos.policy: $policy-map-name}
+  - view: ^policy-map$
+    syntax: '^class \{ class-default \| <class-name> \}$'
+    maps:
+      qos.policy.rule: "$class-name||kw:class-default"
+      qos.policy.rule.classifier: $class-name
+  - view: ^policy-map-class$
+    syntax: '^set dscp '
+    maps: {qos.policy.rule.remark_dscp: $dscp-value}
+  - view: ^policy-map-class$
+    syntax: '^set mpls experimental (imposition|topmost) '
+    maps: {qos.policy.rule.remark_mpls_exp: $mpls-exp-value}
+  - view: ^policy-map-class$
+    syntax: '^set cos '
+    maps: {qos.policy.rule.remark_8021p: $cos-value}
+  - view: ^policy-map-class$
+    syntax: '^set qos-group '
+    maps: {qos.policy.rule.qos_group: $group-id}
+  - view: ^policy-map-class$
+    syntax: '^police cir '
+    maps:
+      qos.policy.rule.police_cir: $cir
+      qos.policy.rule.police_pir: $pir
+  - view: ^policy-map-class$
+    syntax: '^police <bps> '
+    maps: {qos.policy.rule.police_cir: $bps}
+  - view: ^policy-map-class$
+    syntax: '^shape \{ average \| peak \} \{'
+    maps:
+      qos.policy.rule.shape_rate: $mean-rate
+      qos.policy.rule.shape_pct: $percentage
+  - view: ^policy-map-class$
+    syntax: '^bandwidth \{ <kbps> \| \[ remaining \] percent <percentage> \} \[ account'
+    maps:
+      qos.policy.rule.bandwidth_pct: "unless:remaining:$percentage"
+      qos.policy.rule.bandwidth_remaining_pct: "if:remaining:$percentage"
+  - view: ^policy-map-class$
+    syntax: '^priority \[ level'
+    maps:
+      qos.policy.rule.priority: flag
+      qos.policy.rule.priority_level: $level
+  - view: ^policy-map-class$
+    syntax: '^queue-limit <queue-limit-size> \[ bytes \| ms \| us \| packets \]$'
+    maps: {qos.policy.rule.queue_limit: "tail:queue-limit"}
+  - view: ^policy-map-class$
+    syntax: '^random-detect '
+    maps: {qos.policy.rule.wred: flag}
+  - view: ^policy-map-class$
+    syntax: '^service-policy <policy-map-name>$'
+    maps: {qos.policy.rule.child_policy: $policy-map-name}
+  - view: ^interface$
+    syntax: '^service-policy \[ type access-control \] \{ input \| output \} <policy-map-name>$'
+    maps:
+      interface.qos_policy: "kw:input=inbound|output=outbound"
+      interface.qos_policy.policy: $policy-map-name
+
+  # ==================== 0.4.0（M4-2）：SR-MPLS ====================
+  - view: ^system$
+    syntax: '^segment-routing mpls$'
+    maps: {sr.global: "_"}
+  - view: ^sr-mpls$
+    syntax: '^global-block <begin> <end>$'
+    maps:
+      sr.global.srgb_begin: $begin
+      sr.global.srgb_end: $end
+  - view: ^sr-mpls$
+    syntax: '^local-block <begin> <end>$'
+    maps:
+      sr.global.srlb_begin: $begin
+      sr.global.srlb_end: $end
+  - view: ^sr-mpls$
+    syntax: '^connected-prefix-sid-map$'
+    maps: {sr.global.conn_map: "_"}
+  - view: ^sr-conn$
+    syntax: '^address-family ipv4$'
+    maps: {sr.global.conn_map.af: ipv4}
+  - view: ^sr-conn-af$
+    syntax: '^<prefix> '
+    maps:
+      sr.global.conn_map.af.prefix: $prefix
+      sr.global.conn_map.af.prefix.index: $index
+      sr.global.conn_map.af.prefix.absolute: $label
+      sr.global.conn_map.af.prefix.range: $range
+  - view: ^router-isis$
+    syntax: '^segment-routing mpls$'
+    maps: {isis.process.sr_mpls: flag}
+  - view: ^router-isis$
+    syntax: '^fast-reroute ti-lfa '
+    maps: {isis.process.ti_lfa: flag}
+  - view: ^router-isis$
+    syntax: '^microloop avoidance segment-routing$'
+    maps: {isis.process.microloop_avoidance: flag}
+  - view: ^router-ospf$
+    syntax: '^segment-routing \[ area <area-id> \] \{ mpls \| disable \}$'
+    maps: {ospf.process.sr_mpls: "kw:mpls=true|disable=false"}
+  - view: ^router-ospf$
+    syntax: '^fast-reroute per-prefix ti-lfa'
+    maps: {ospf.process.ti_lfa: flag}
+  - view: ^router-ospf$
+    syntax: '^microloop avoidance segment-routing$'
+    maps: {ospf.process.microloop_avoidance: flag}
+
+  # ==================== 0.4.0（M4-2）：EVPN ====================
+  - view: ^system$
+    syntax: '^l2vpn evpn$'
+    maps: {evpn.global: "_"}
+  - view: ^l2vpn-evpn$
+    syntax: '^replication-type '
+    maps: {evpn.global.replication_type: "kw:ingress|static"}
+  - view: ^l2vpn-evpn$
+    syntax: '^router-id <interface>$'
+    maps: {evpn.global.router_id: $interface}
+  - view: ^system$
+    syntax: '^l2vpn evpn instance <evi> '
+    maps:
+      evpn.instance: $evi
+      evpn.instance.evi: $evi
+      evpn.instance.mode: "kw:vlan-based=bd-mode|point-to-point=vpws|vlan-bundle|vlan-aware"
+  - view: ^evpn-instance$
+    syntax: '^\{ rd \| route-distinguisher \} '
+    maps: {evpn.instance.rd: $route-distinguisher}
+  - view: ^evpn-instance$
+    syntax: '^route-target '
+    maps:
+      evpn.instance.rt: {value: $rt-value, direction: "kw:import|export|both:both"}
+      evpn.instance.rt.value: $rt-value
+      evpn.instance.rt.direction: "kw:import|export|both:both"
+  - view: ^evpn-instance$
+    syntax: '^auto-route-target$'
+    maps: {evpn.instance.auto_rt: flag}
+  - view: ^evpn-instance$
+    syntax: '^description <text>$'
+    maps: {evpn.instance.description: $text}
+  - view: ^bridge-domain$
+    syntax: '^member evpn-instance <evi>'
+    maps: {bridge_domain.evpn_instance: $evi}
+  - view: ^router-bgp$
+    syntax: '^address-family l2vpn '
+    maps: {bgp.af: {afi: "kw:evpn|vpls", vrf: ""}}
+
+  # ==================== 0.4.0（M4-2）：时钟同步 ====================
+  - view: ^system$
+    syntax: '^ptp clock \{ ordinary \| boundary \| e2e-transparent \} domain <domain>'
+    maps:
+      clock.ptp: "_"
+      clock.ptp.device_type: "kw:ordinary=oc|boundary=bc|e2e-transparent=e2etc"
+      clock.ptp.domain: $domain
+      clock.ptp.hybrid: "kw:hybrid=true:false"
+  - view: ^ptp-clock$
+    syntax: '^priority1 <priorityvalue>$'
+    maps: {clock.ptp.priority1: $priorityvalue}
+  - view: ^ptp-clock$
+    syntax: '^priority2 <priorityvalue>$'
+    maps: {clock.ptp.priority2: $priorityvalue}
+  - view: ^ptp-clock$
+    syntax: '^clock-port <name> '
+    maps:
+      clock.ptp.port: $name
+      clock.ptp.port.role: "kw:master|slave"
+      clock.ptp.profile: "kw:g8275.1|g8275.2|g8265.1"
+  - view: ^ptp-port$
+    syntax: '^transport ipv4 '
+    maps: {clock.ptp.port.transport_interface: $interface}
+  - view: ^ptp-port$
+    syntax: '^clock source <source-address>$'
+    maps: {clock.ptp.port.clock_source: $source-address}
+  - view: ^ptp-port$
+    syntax: '^clock destination <destination-address>$'
+    maps: {clock.ptp.port.clock_destination: $destination-address}
+  - view: ^system$
+    syntax: '^network-clock synchronization automatic$'
+    maps: {"clock.sync{id=_}.automatic": flag}
+  - view: ^system$
+    syntax: '^network-clock synchronization mode QL-enabled$'
+    maps: {"clock.sync{id=_}.ssm_control": flag}
+  - view: ^system$
+    syntax: '^esmc process$'
+    maps: {"clock.sync{id=_}.esmc": flag}
+  - view: ^system$
+    syntax: '^network-clock wait-to-restore <seconds>'
+    maps: {"clock.sync{id=_}.wtr": $seconds}
+  - view: ^system$
+    syntax: '^network-clock input-source <priority> \{ interface'
+    maps:
+      clock.sync: "_"
+      clock.sync.source: "$interface||if:ptp:ptp||fmt:external {slot-port}"
+      clock.sync.source.priority: $priority
+  - view: ^interface$
+    syntax: '^synchronous mode$'
+    maps: {interface.clock: "_", interface.clock.synchronization: flag}

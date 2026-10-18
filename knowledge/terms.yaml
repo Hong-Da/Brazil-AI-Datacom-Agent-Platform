@@ -255,6 +255,136 @@ objects:
     huawei: {name: {zh-CN: ACL 规则, en: ACL rule, pt-BR: Regra de ACL}, label: ["rule {id}"]}
     cisco: {name: {zh-CN: 访问列表条目, en: Access list entry, pt-BR: Entrada da lista de acesso}, label: ["{id}"]}
 
+  # ---------- 0.4.0（M4-2）：管理面补充、VRRP、SR-MPLS、EVPN、QoS、时钟同步 ----------
+  mgmt.snmp.group:
+    huawei: {name: {zh-CN: SNMP 组, en: SNMP group, pt-BR: Grupo SNMP}, label: ["snmp-agent group v3 {name}"]}
+    cisco: {name: {zh-CN: SNMP 组, en: SNMP group, pt-BR: Grupo SNMP}, label: ["snmp-server group {name}"]}
+  mgmt.snmp.user:
+    huawei: {name: {zh-CN: SNMPv3 用户, en: SNMPv3 user, pt-BR: Usuário SNMPv3}, label: ["snmp-agent usm-user v3 {name}"]}
+    cisco: {name: {zh-CN: SNMPv3 用户, en: SNMPv3 user, pt-BR: Usuário SNMPv3}, label: ["snmp-server user {name}"]}
+  mgmt.radius:
+    huawei: {name: {zh-CN: RADIUS 服务器组, en: RADIUS server group, pt-BR: Grupo de servidores RADIUS}, label: ["radius-server group {name}"]}
+    cisco: {name: {zh-CN: RADIUS 服务器, en: RADIUS server, pt-BR: Servidor RADIUS}, label: ["radius server {name}"]}
+  mgmt.radius.server:
+    huawei: {name: {zh-CN: RADIUS 服务器地址, en: RADIUS server address, pt-BR: Endereço do servidor RADIUS}, label: ["radius-server {role} {address}"]}
+    cisco: {name: {zh-CN: RADIUS 服务器地址, en: RADIUS server address, pt-BR: Endereço do servidor RADIUS}, label: ["address ipv4 {address}"]}
+  isis.process.passive:
+    huawei: {name: {zh-CN: IS-IS 被动接口, en: IS-IS passive interface, pt-BR: Interface passiva IS-IS}, label: ["isis silent（{interface}）"]}
+    cisco: {name: {zh-CN: IS-IS 被动接口, en: IS-IS passive interface, pt-BR: Interface passiva IS-IS}, label: ["passive-interface {interface}"]}
+  vrrp.global:
+    huawei: {name: {zh-CN: VRRP 全局设置, en: VRRP global settings, pt-BR: Configuração global VRRP}, label: [vrrp version]}
+    cisco: {name: {zh-CN: VRRP 全局设置, en: VRRP global settings, pt-BR: Configuração global VRRP}, label: [fhrp version vrrp]}
+  interface.vrrp:
+    huawei: {name: {zh-CN: VRRP 备份组, en: VRRP backup group, pt-BR: Grupo VRRP}, label: ["vrrp vrid {vrid}"]}
+    cisco: {name: {zh-CN: VRRP 组, en: VRRP group, pt-BR: Grupo VRRP}, label: ["vrrp {vrid}"]}
+  interface.vrrp.virtual_ip:
+    huawei: {name: {zh-CN: VRRP 虚拟地址, en: VRRP virtual IP, pt-BR: IP virtual VRRP}, label: ["virtual-ip {address}"]}
+    cisco: {name: {zh-CN: VRRP 虚拟地址, en: VRRP virtual IP, pt-BR: IP virtual VRRP}, label: ["ip {address}"]}
+  interface.vrrp.track:
+    huawei: {name: {zh-CN: VRRP 跟踪项, en: VRRP tracked object, pt-BR: Objeto rastreado VRRP}, label: ["track {target}"]}
+    cisco: {name: {zh-CN: VRRP 跟踪对象, en: VRRP tracked object, pt-BR: Objeto rastreado VRRP}, label: ["track {target}"]}
+  sr.global:
+    huawei: {name: {zh-CN: Segment Routing, en: Segment Routing, pt-BR: Segment Routing}, label: [segment-routing]}
+    cisco: {name: {zh-CN: SR-MPLS, en: SR-MPLS, pt-BR: SR-MPLS}, label: [segment-routing mpls]}
+  sr.prefix_sid_map:
+    huawei: {name: {zh-CN: 前缀 SID 映射, en: Prefix SID mapping, pt-BR: Mapeamento de SID de prefixo}, label: ["mapping-server prefix-sid-mapping {prefix}"]}
+    cisco: {name: {zh-CN: 映射服务器前缀 SID, en: Mapping-server prefix SID, pt-BR: SID de prefixo do mapping server}, label: ["mapping-server prefix-sid-map {prefix}"]}
+  sr.global.conn_map:
+    huawei: {name: {zh-CN: 本地前缀 SID 映射（无对应，用接口 prefix-sid）, en: Connected prefix SID map (use interface prefix-sid), pt-BR: Mapa de SID de prefixo conectado (use prefix-sid na interface)}, label: ["（connected-prefix-sid-map）"]}
+    cisco: {name: {zh-CN: 本地前缀 SID 映射, en: Connected prefix SID map, pt-BR: Mapa de SID de prefixo conectado}, label: [connected-prefix-sid-map]}
+  sr.global.conn_map.af:
+    huawei: {name: {zh-CN: 地址族, en: Address family, pt-BR: Família de endereços}, label: ["（address-family {afi}）"]}
+    cisco: {name: {zh-CN: 地址族, en: Address family, pt-BR: Família de endereços}, label: ["address-family {afi}"]}
+  sr.global.conn_map.af.prefix:
+    huawei: {name: {zh-CN: 前缀 SID, en: Prefix SID, pt-BR: SID de prefixo}, label: ["（prefix-sid：{prefix}）"]}
+    cisco: {name: {zh-CN: 前缀 SID, en: Prefix SID, pt-BR: SID de prefixo}, label: ["{prefix}"]}
+  interface.prefix_sid:
+    huawei: {name: {zh-CN: 接口前缀 SID, en: Interface prefix SID, pt-BR: SID de prefixo da interface}, label: ["{protocol} prefix-sid"]}
+    cisco: {name: {zh-CN: 接口前缀 SID, en: Interface prefix SID, pt-BR: SID de prefixo da interface}, label: ["prefix-sid（{protocol}）"]}
+  evpn.global:
+    huawei: {name: {zh-CN: EVPN 全局设置, en: EVPN global settings, pt-BR: Configuração global EVPN}, label: [evpn]}
+    cisco: {name: {zh-CN: L2VPN EVPN 全局设置, en: L2VPN EVPN global settings, pt-BR: Configuração global L2VPN EVPN}, label: [l2vpn evpn]}
+  evpn.instance:
+    huawei: {name: {zh-CN: EVPN 实例, en: EVPN instance, pt-BR: Instância EVPN}, label: ["evpn vpn-instance {name}"]}
+    cisco: {name: {zh-CN: EVPN 实例（EVI）, en: EVPN instance (EVI), pt-BR: Instância EVPN (EVI)}, label: ["l2vpn evpn instance {name}"]}
+  evpn.instance.rt:
+    huawei: {name: {zh-CN: EVPN VPN Target, en: EVPN VPN target, pt-BR: VPN target EVPN}, label: ["vpn-target {value} {direction}"]}
+    cisco: {name: {zh-CN: EVPN Route Target, en: EVPN route target, pt-BR: Route target EVPN}, label: ["route-target {direction} {value}"]}
+  evpn.evpl:
+    huawei: {name: {zh-CN: EVPL 实例, en: EVPL instance, pt-BR: Instância EVPL}, label: ["evpl instance {id}"]}
+    cisco: {name: {zh-CN: EVPN VPWS 上下文, en: EVPN VPWS context, pt-BR: Contexto EVPN VPWS}, label: ["vpws context {id}"]}
+  qos.classifier:
+    huawei: {name: {zh-CN: 流分类, en: Traffic classifier, pt-BR: Classificador de tráfego}, label: ["traffic classifier {name}"]}
+    cisco: {name: {zh-CN: 类映射, en: Class map, pt-BR: Class map}, label: ["class-map {name}"]}
+  qos.classifier.match:
+    huawei: {name: {zh-CN: 匹配规则, en: Match rule, pt-BR: Regra de correspondência}, label: ["if-match {field} {value}"]}
+    cisco: {name: {zh-CN: 匹配规则, en: Match rule, pt-BR: Regra de correspondência}, label: ["match {field} {value}"]}
+  qos.behavior:
+    huawei: {name: {zh-CN: 流行为, en: Traffic behavior, pt-BR: Comportamento de tráfego}, label: ["traffic behavior {name}"]}
+    cisco: {name: {zh-CN: 流行为（无对应，动作在 policy-map 的 class 下）, en: Traffic behavior (actions live under policy-map classes), pt-BR: Comportamento de tráfego (ações ficam nas classes do policy-map)}, label: ["（traffic behavior {name}）"]}
+  qos.policy:
+    huawei: {name: {zh-CN: 流策略, en: Traffic policy, pt-BR: Política de tráfego}, label: ["traffic policy {name}"]}
+    cisco: {name: {zh-CN: 策略映射, en: Policy map, pt-BR: Policy map}, label: ["policy-map {name}"]}
+  qos.policy.rule:
+    huawei: {name: {zh-CN: 分类与行为, en: Classifier-behavior pair, pt-BR: Par classificador-comportamento}, label: ["classifier {classifier}"]}
+    cisco: {name: {zh-CN: 策略中的类, en: Class in policy map, pt-BR: Classe no policy map}, label: ["class {classifier}"]}
+  interface.qos_policy:
+    huawei: {name: {zh-CN: 接口流策略, en: Interface traffic policy, pt-BR: Política de tráfego da interface}, label: ["traffic-policy {direction}"]}
+    cisco: {name: {zh-CN: 接口服务策略, en: Interface service policy, pt-BR: Service policy da interface}, label: ["service-policy {direction}"]}
+  interface.qos_profile:
+    huawei: {name: {zh-CN: 接口 QoS 模板, en: Interface QoS profile, pt-BR: Perfil QoS da interface}, label: ["qos-profile {direction}"]}
+    cisco: {name: {zh-CN: 接口 QoS 模板（无对应）, en: Interface QoS profile (no equivalent), pt-BR: Perfil QoS da interface (sem equivalente)}, label: ["（qos-profile {direction}）"]}
+  interface.port_queue:
+    huawei: {name: {zh-CN: 端口队列, en: Port queue, pt-BR: Fila de porta}, label: ["port-queue {cos}"]}
+    cisco: {name: {zh-CN: 端口队列（无对应，用 policy-map）, en: Port queue (use a policy map), pt-BR: Fila de porta (use um policy map)}, label: ["（port-queue {cos}）"]}
+  qos.profile:
+    huawei: {name: {zh-CN: QoS 模板, en: QoS profile, pt-BR: Perfil QoS}, label: ["qos-profile {name}"]}
+    cisco: {name: {zh-CN: QoS 模板（无对应）, en: QoS profile (no equivalent), pt-BR: Perfil QoS (sem equivalente)}, label: ["（qos-profile {name}）"]}
+  qos.profile.user_queue:
+    huawei: {name: {zh-CN: 用户队列, en: User queue, pt-BR: Fila de usuário}, label: ["user-queue {direction}"]}
+    cisco: {name: {zh-CN: 用户队列（无对应）, en: User queue (no equivalent), pt-BR: Fila de usuário (sem equivalente)}, label: ["（user-queue {direction}）"]}
+  qos.flow_queue:
+    huawei: {name: {zh-CN: 流队列模板, en: Flow queue template, pt-BR: Modelo de fila de fluxo}, label: ["flow-queue {name}"]}
+    cisco: {name: {zh-CN: 流队列模板（无对应）, en: Flow queue template (no equivalent), pt-BR: Modelo de fila de fluxo (sem equivalente)}, label: ["（flow-queue {name}）"]}
+  qos.flow_queue.queue:
+    huawei: {name: {zh-CN: 流队列调度, en: Flow queue scheduling, pt-BR: Agendamento da fila de fluxo}, label: ["queue {cos}"]}
+    cisco: {name: {zh-CN: 流队列调度（无对应）, en: Flow queue scheduling (no equivalent), pt-BR: Agendamento da fila de fluxo (sem equivalente)}, label: ["（queue {cos}）"]}
+  qos.flow_wred:
+    huawei: {name: {zh-CN: 流队列 WRED 模板, en: Flow WRED template, pt-BR: Modelo WRED de fluxo}, label: ["flow-wred {name}"]}
+    cisco: {name: {zh-CN: WRED 模板（无对应，用 random-detect）, en: WRED template (use random-detect), pt-BR: Modelo WRED (use random-detect)}, label: ["（flow-wred {name}）"]}
+  qos.flow_wred.color:
+    huawei: {name: {zh-CN: WRED 颜色参数, en: WRED color profile, pt-BR: Perfil de cor WRED}, label: ["color {color}"]}
+    cisco: {name: {zh-CN: WRED 颜色参数（无对应）, en: WRED color profile (no equivalent), pt-BR: Perfil de cor WRED (sem equivalente)}, label: ["（color {color}）"]}
+  qos.port_wred:
+    huawei: {name: {zh-CN: 端口队列 WRED 模板, en: Port WRED template, pt-BR: Modelo WRED de porta}, label: ["port-wred {name}"]}
+    cisco: {name: {zh-CN: 端口 WRED 模板（无对应）, en: Port WRED template (no equivalent), pt-BR: Modelo WRED de porta (sem equivalente)}, label: ["（port-wred {name}）"]}
+  qos.port_wred.color:
+    huawei: {name: {zh-CN: WRED 颜色参数, en: WRED color profile, pt-BR: Perfil de cor WRED}, label: ["color {color}"]}
+    cisco: {name: {zh-CN: WRED 颜色参数（无对应）, en: WRED color profile (no equivalent), pt-BR: Perfil de cor WRED (sem equivalente)}, label: ["（color {color}）"]}
+  clock.ptp:
+    huawei: {name: {zh-CN: PTP 全局设置, en: PTP global settings, pt-BR: Configuração global PTP}, label: [ptp]}
+    cisco: {name: {zh-CN: PTP 时钟, en: PTP clock, pt-BR: Relógio PTP}, label: [ptp clock]}
+  clock.ptp.port:
+    huawei: {name: {zh-CN: PTP 端口（按接口使能）, en: PTP port (enabled per interface), pt-BR: Porta PTP (ativada por interface)}, label: ["（ptp enable：{name}）"]}
+    cisco: {name: {zh-CN: PTP 时钟端口, en: PTP clock port, pt-BR: Porta de relógio PTP}, label: ["clock-port {name}"]}
+  interface.ptp:
+    huawei: {name: {zh-CN: 接口 PTP 设置, en: Interface PTP settings, pt-BR: Parâmetros PTP da interface}, label: [ptp]}
+    cisco: {name: {zh-CN: 接口 PTP 设置（用 clock-port）, en: Interface PTP settings (use clock-port), pt-BR: Parâmetros PTP da interface (use clock-port)}, label: [（ptp enable）]}
+  clock.ptp_adaptive:
+    huawei: {name: {zh-CN: 1588 ACR, en: 1588 ACR, pt-BR: 1588 ACR}, label: [ptp-adaptive]}
+    cisco: {name: {zh-CN: 1588 ACR（无对应）, en: 1588 ACR (no equivalent), pt-BR: 1588 ACR (sem equivalente)}, label: [（ptp-adaptive）]}
+  clock.ptp_adaptive.server:
+    huawei: {name: {zh-CN: ACR 时钟服务器, en: ACR clock server, pt-BR: Servidor de relógio ACR}, label: ["ptp-adaptive remote-server{index}-ip"]}
+    cisco: {name: {zh-CN: ACR 时钟服务器（无对应）, en: ACR clock server (no equivalent), pt-BR: Servidor de relógio ACR (sem equivalente)}, label: ["（remote-server{index}）"]}
+  clock.sync:
+    huawei: {name: {zh-CN: 时钟同步全局设置, en: Clock synchronization global, pt-BR: Sincronização de relógio global}, label: [clock]}
+    cisco: {name: {zh-CN: 网络时钟全局设置, en: Network clock global, pt-BR: Relógio de rede global}, label: [network-clock synchronization]}
+  clock.sync.source:
+    huawei: {name: {zh-CN: 时钟源, en: Clock source, pt-BR: Fonte de relógio}, label: ["clock source {source}"]}
+    cisco: {name: {zh-CN: 时钟输入源, en: Clock input source, pt-BR: Fonte de entrada de relógio}, label: ["network-clock input-source {source}"]}
+  interface.clock:
+    huawei: {name: {zh-CN: 接口时钟源设置, en: Interface clock source settings, pt-BR: Parâmetros de fonte de relógio da interface}, label: [clock synchronization]}
+    cisco: {name: {zh-CN: 接口同步模式, en: Interface synchronous mode, pt-BR: Modo síncrono da interface}, label: [synchronous mode]}
 attrs:
   interface.vrf: {huawei: ip binding vpn-instance, cisco: vrf forwarding}
   interface.mtu: {huawei: mtu, cisco: mtu}
@@ -324,3 +454,19 @@ attrs:
   mgmt.snmp.community.acl: {huawei: snmp-agent community … acl, cisco: snmp-server community … <acl>}
   mgmt.ntp.access.acl: {huawei: ntp-service access … acl, cisco: ntp access-group … <acl>}
   rp.policy.node.match_acl: {huawei: if-match acl, cisco: match ip address <acl>}
+  # 0.4.0（M4-2）
+  mgmt.ssh.ciphers: {huawei: ssh server cipher, cisco: ip ssh server algorithm encryption}
+  mgmt.ssh.hmacs: {huawei: ssh server hmac, cisco: ip ssh server algorithm mac}
+  mgmt.ssh.kex: {huawei: ssh server key-exchange, cisco: ip ssh server algorithm kex}
+  mgmt.ssh.compat_v1: {huawei: ssh server compatible-ssh1x enable, cisco: （ip ssh version 1.99 兼容模式）}
+  mgmt.aaa.enabled: {huawei: （恒开启）, cisco: aaa new-model}
+  interface.vrrp.preempt_delay: {huawei: preempt-mode timer delay, cisco: preempt delay minimum}
+  interface.vrrp.track.reduce: {huawei: reduced, cisco: decrement}
+  qos.classifier.operator: {huawei: operator and / or, cisco: match-all / match-any}
+  qos.policy.rule.remark_mpls_exp: {huawei: remark mpls-exp（流行为）, cisco: set mpls experimental}
+  interface.qos_policy.policy: {huawei: traffic-policy, cisco: service-policy}
+  isis.process.ti_lfa: {huawei: frr / ti-lfa, cisco: fast-reroute ti-lfa}
+  sr.global.srgb_begin: {huawei: segment-routing global-block（IGP 下）, cisco: global-block}
+  bridge_domain.evpn_instance: {huawei: evpn binding vpn-instance, cisco: member evpn-instance}
+  clock.sync.ssm_control: {huawei: clock ssm-control on, cisco: network-clock synchronization mode ql-enabled}
+  interface.clock.synchronization: {huawei: clock synchronization enable, cisco: synchronous mode}

@@ -1,0 +1,95 @@
+# AI 参与校验的规则（REQ-031 配置检查项目的“AI 一起校验”）：命名与描述规范这类代码难以完全判断的约定。
+# 格式见 src/lmesh/core/rules.py 开头的说明；ai: true 的规则在配置检查项目中可以勾选交给 AI，
+# 没有 assert 的规则只由 AI 判断，lmesh check 不对它们求值（不产生发现，也不计入已加载的规则数）。
+# AI 的每条发现都要经代码校验（行存在、属于规则适用的对象、证据是该行原文的一部分）后才显示，见 src/lmesh/core/script_check_ai.py。
+# 规范按企业习惯修改 message / suggestion 即可：AI 按这里的文字理解规范。
+rules:
+  - id: style.interface_description
+    ai: true
+    target: interface
+    severity: info
+    tags: [style]
+    title:
+      zh-CN: 接口描述规范
+      en: Interface description convention
+      pt-BR: Convenção de descrição de interface
+    message:
+      zh-CN: 接口 {key} 的描述应写明对端设备与对端端口（例如 TO-AGG-01-GE0/1/0），不要只写用途或留空
+      en: The description of interface {key} should name the peer device and peer port (for example TO-AGG-01-GE0/1/0), not only a purpose or nothing
+      pt-BR: A descrição da interface {key} deve citar o dispositivo e a porta do par (por exemplo TO-AGG-01-GE0/1/0), não só a finalidade ou nada
+    suggestion:
+      zh-CN: 按 TO-<对端设备>-<对端端口> 书写，业务接口可在后面加业务名
+      en: Use TO-<peer device>-<peer port>; service interfaces may append the service name
+      pt-BR: Use TO-<dispositivo par>-<porta par>; interfaces de serviço podem acrescentar o nome do serviço
+
+  - id: style.bgp_peer_description
+    ai: true
+    target: bgp.peer
+    severity: info
+    tags: [style]
+    title:
+      zh-CN: BGP 对等体描述规范
+      en: BGP peer description convention
+      pt-BR: Convenção de descrição de peer BGP
+    message:
+      zh-CN: BGP 对等体 {key} 应有描述，写明对端设备名与对端角色（RR、ASBR、客户等）
+      en: BGP peer {key} should have a description naming the peer device and its role (RR, ASBR, customer, …)
+      pt-BR: O peer BGP {key} deve ter descrição com o nome do dispositivo par e sua função (RR, ASBR, cliente…)
+    suggestion:
+      zh-CN: 华为 peer … description，Cisco neighbor … description，内容如 RR-01 或 CUST-ACME
+      en: Huawei peer … description, Cisco neighbor … description, for example RR-01 or CUST-ACME
+      pt-BR: Huawei peer … description, Cisco neighbor … description, por exemplo RR-01 ou CUST-ACME
+
+  - id: style.vrf_naming
+    ai: true
+    target: vrf.instance
+    severity: info
+    tags: [style]
+    title:
+      zh-CN: VPN 实例命名规范
+      en: VPN instance naming convention
+      pt-BR: Convenção de nomes de instância VPN
+    message:
+      zh-CN: VPN 实例 {key} 的名称应使用大写字母、数字与连字符，体现业务（如 RAN-2G、OAM、CUST-ACME），不要用无意义的编号或临时名
+      en: VPN instance {key} should use upper-case letters, digits and hyphens and reflect the service (RAN-2G, OAM, CUST-ACME), not a meaningless number or temporary name
+      pt-BR: A instância VPN {key} deve usar maiúsculas, dígitos e hífens e refletir o serviço (RAN-2G, OAM, CUST-ACME), não um número sem sentido ou nome provisório
+    suggestion:
+      zh-CN: 按 <业务>[-<细分>] 命名；改名在设备上是新建 + 改引用 + 删除旧的，变更前评估影响
+      en: Name it <service>[-<detail>]; renaming on the device means create, re-point and delete, so assess the impact first
+      pt-BR: Use <serviço>[-<detalhe>]; renomear no dispositivo é criar, redirecionar e remover, avalie o impacto antes
+
+  - id: style.policy_naming
+    ai: true
+    target: rp.policy
+    severity: info
+    tags: [style]
+    title:
+      zh-CN: 路由策略命名规范
+      en: Route policy naming convention
+      pt-BR: Convenção de nomes de política de roteamento
+    message:
+      zh-CN: 路由策略 {key} 的名称应写明方向与作用（如 IMPORT-FROM-RR、EXPORT-LOOPBACK），使用大写字母、数字与连字符
+      en: Route policy {key} should state its direction and purpose (IMPORT-FROM-RR, EXPORT-LOOPBACK) using upper-case letters, digits and hyphens
+      pt-BR: A política {key} deve indicar direção e finalidade (IMPORT-FROM-RR, EXPORT-LOOPBACK) com maiúsculas, dígitos e hífens
+    suggestion:
+      zh-CN: 按 IMPORT- / EXPORT- / SET- 开头加对象或作用命名
+      en: Start with IMPORT- / EXPORT- / SET- followed by the object or purpose
+      pt-BR: Comece com IMPORT- / EXPORT- / SET- seguido do objeto ou finalidade
+
+  - id: style.prefix_list_naming
+    ai: true
+    target: rp.prefix_list
+    severity: info
+    tags: [style]
+    title:
+      zh-CN: 前缀列表命名规范
+      en: Prefix list naming convention
+      pt-BR: Convenção de nomes de lista de prefixos
+    message:
+      zh-CN: 前缀列表 {key} 的名称应说明匹配的地址范围或用途（如 LOOPBACKS、RAN-USER-NETS），使用大写字母、数字与连字符
+      en: Prefix list {key} should describe the matched range or purpose (LOOPBACKS, RAN-USER-NETS) using upper-case letters, digits and hyphens
+      pt-BR: A lista de prefixos {key} deve descrever a faixa ou finalidade (LOOPBACKS, RAN-USER-NETS) com maiúsculas, dígitos e hífens
+    suggestion:
+      zh-CN: 按地址用途命名，避免 PL1、TEST 之类的名称
+      en: Name it after what the addresses are for; avoid names like PL1 or TEST
+      pt-BR: Nomeie conforme o uso dos endereços; evite nomes como PL1 ou TEST

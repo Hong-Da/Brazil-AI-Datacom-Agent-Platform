@@ -23,6 +23,7 @@ import networkx as nx
 from lmesh.core import i18n
 from lmesh.core import rules as rulesmod
 from lmesh.core.kb import KnowledgeBase, read_yaml
+from lmesh.core.kb.model import Note
 
 BUILTIN: dict[str, str] = {
     "ref.dangling": "error",
@@ -402,13 +403,13 @@ def find_orphans(g: nx.MultiDiGraph, kb: KnowledgeBase, ix: Index | None = None)
 # ---------- 互斥 ----------
 
 
-def mutex(g: nx.MultiDiGraph) -> list[tuple[str, str, str]]:
+def mutex(g: nx.MultiDiGraph) -> list[tuple[str, str, Note]]:
     seen: set[tuple[str, str]] = set()
     out = []
     for a, b, d in g.edges(data=True):
         if d.get("kind") == "mutex" and (a, b) not in seen and (b, a) not in seen:
             seen.add((a, b))
-            out.append((a, b, str(d.get("note", ""))))
+            out.append((a, b, Note.of(d.get("note"))))
     return out
 
 
@@ -512,7 +513,7 @@ def check(
         "profile": g.graph.get("profile"),
         "kb_version": g.graph.get("kb_version"),
         "filters": {"severity": severity or "info", "domain": domain},
-        "rules_loaded": len([r for r in rules if r.enabled]),
+        "rules_loaded": len([r for r in rules if r.enabled and r.assert_ is not None]),  # 只由 AI 判断的规则不计
         "summary": summarize(findings, total),
         "findings": findings,
         "texts": {k: v for k, v in sorted(texts.items()) if k in used},
@@ -556,6 +557,6 @@ def render_text(ref: dict[str, Any], lang: str, texts: dict[str, dict[str, str]]
     else:  # 参数里有 key（实例的键），不能直接传给 i18n.t
         tpl = i18n.catalog(lang).get(key) or i18n.catalog(i18n.DEFAULT).get(key, key)
     try:
-        return tpl.format(**params)
+        return tpl.format(**i18n.localize(params, lang))
     except (KeyError, IndexError, ValueError):
         return tpl

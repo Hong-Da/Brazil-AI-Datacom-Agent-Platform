@@ -112,6 +112,67 @@ nodes:
     parent: mgmt.snmp.host
     type: interface
     semantic: {zh-CN: 源接口, en: Source interface}
+  # SNMPv3（M4-2）：组与 USM 用户。安全级别统一为 noauth / auth / priv（华为 noauthentication / authentication / privacy）
+  mgmt.snmp.group:
+    parent: mgmt.snmp
+    type: object
+    key: [name]
+    semantic: {zh-CN: SNMP 组（华为 snmp-agent group / Cisco snmp-server group）, en: SNMP group}
+  mgmt.snmp.group.version:
+    parent: mgmt.snmp.group
+    type: enum
+    choices: [v1, v2c, v3]
+    semantic: {zh-CN: 版本, en: Version}
+  mgmt.snmp.group.security_level:
+    parent: mgmt.snmp.group
+    type: enum
+    choices: [noauth, auth, priv]
+    semantic: {zh-CN: 安全级别（不认证 / 认证 / 认证加加密）, en: Security level}
+  mgmt.snmp.group.read_view:
+    parent: mgmt.snmp.group
+    type: string
+    semantic: {zh-CN: 读视图, en: Read view}
+  mgmt.snmp.group.write_view:
+    parent: mgmt.snmp.group
+    type: string
+    semantic: {zh-CN: 写视图, en: Write view}
+  mgmt.snmp.group.notify_view:
+    parent: mgmt.snmp.group
+    type: string
+    semantic: {zh-CN: 通知视图, en: Notify view}
+  mgmt.snmp.group.acl:
+    parent: mgmt.snmp.group
+    type: ref
+    ref: acl.instance
+    semantic: {zh-CN: 限制访问的 ACL, en: ACL}
+  mgmt.snmp.user:
+    parent: mgmt.snmp
+    type: object
+    key: [name]
+    semantic: {zh-CN: SNMPv3 用户（华为 usm-user / Cisco snmp-server user）, en: SNMPv3 user}
+  mgmt.snmp.user.group:
+    parent: mgmt.snmp.user
+    type: ref
+    ref: mgmt.snmp.group
+    semantic: {zh-CN: 所属组, en: Group}
+  mgmt.snmp.user.version:
+    parent: mgmt.snmp.user
+    type: enum
+    choices: [v1, v2c, v3]
+    semantic: {zh-CN: 版本, en: Version}
+  mgmt.snmp.user.auth_protocol:
+    parent: mgmt.snmp.user
+    type: string
+    semantic: {zh-CN: 认证算法（md5、sha、sha2-256 等，按设备写法）, en: Authentication protocol}
+  mgmt.snmp.user.priv_protocol:
+    parent: mgmt.snmp.user
+    type: string
+    semantic: {zh-CN: 加密算法（des、3des、aes128 等，按设备写法）, en: Privacy protocol}
+  mgmt.snmp.user.acl:
+    parent: mgmt.snmp.user
+    type: ref
+    ref: acl.instance
+    semantic: {zh-CN: 限制访问的 ACL, en: ACL}
   # ---------- Syslog ----------
   mgmt.syslog:
     type: object
@@ -153,10 +214,12 @@ nodes:
     parent: mgmt.ssh
     type: boolean
     semantic: {zh-CN: 启用 SSH 服务（华为 stelnet server enable）, en: Enabled}
+  # M4-2：改为字符串，取值 1 / 2 / 1.99（Cisco 不写 ip ssh version 时为兼容模式 1.99）
   mgmt.ssh.version:
     parent: mgmt.ssh
-    type: integer
-    semantic: {zh-CN: 协议版本, en: Version}
+    type: string
+    choices: ["1", "2", "1.99"]
+    semantic: {zh-CN: 协议版本（1、2，或兼容模式 1.99：同时接受 v1 与 v2）, en: "Version (1, 2, or 1.99 compatibility mode accepting v1 and v2)"}
   mgmt.ssh.timeout:
     parent: mgmt.ssh
     type: integer
@@ -173,6 +236,27 @@ nodes:
     parent: mgmt.ssh
     type: boolean
     semantic: {zh-CN: 启用 SFTP 服务, en: SFTP server}
+  # M4-2：SSH 服务端算法与 SSHv1 兼容（安全基线用）。算法按设备写法原样记录、空格分隔（华为 aes128_ctr、Cisco aes128-ctr）
+  mgmt.ssh.compat_v1:
+    parent: mgmt.ssh
+    type: boolean
+    semantic: {zh-CN: 兼容 SSHv1（华为 ssh server compatible-ssh1x enable）, en: SSHv1 compatibility}
+  mgmt.ssh.ciphers:
+    parent: mgmt.ssh
+    type: string
+    semantic: {zh-CN: 服务端允许的加密算法（华为 ssh server cipher / Cisco ip ssh server algorithm encryption）, en: Server encryption algorithms}
+  mgmt.ssh.hmacs:
+    parent: mgmt.ssh
+    type: string
+    semantic: {zh-CN: 服务端允许的 HMAC 算法（华为 ssh server hmac / Cisco ip ssh server algorithm mac）, en: Server MAC algorithms}
+  mgmt.ssh.kex:
+    parent: mgmt.ssh
+    type: string
+    semantic: {zh-CN: 服务端允许的密钥交换算法（华为 ssh server key-exchange / Cisco ip ssh server algorithm kex）, en: Server key exchange algorithms}
+  mgmt.ssh.rsa_keypair:
+    parent: mgmt.ssh
+    type: string
+    semantic: {zh-CN: SSH 使用的 RSA 密钥对名称（Cisco ip ssh rsa keypair-name）, en: RSA key pair name}
   mgmt.ssh.user:
     parent: mgmt.ssh
     type: object
@@ -216,6 +300,11 @@ nodes:
     key: [id]
     semantic: {zh-CN: AAA（华为 aaa 视图 / Cisco aaa new-model）, en: AAA}
     status: reviewed
+  # M4-2：Cisco no aaa new-model 记为 enabled = false（原来只建了 mgmt.aaa 对象，看不出是否开启）；华为 AAA 恒开启（Profile 缺省 true）
+  mgmt.aaa.enabled:
+    parent: mgmt.aaa
+    type: boolean
+    semantic: {zh-CN: 启用 AAA（Cisco aaa new-model；华为恒开启）, en: AAA enabled (Cisco aaa new-model)}
   mgmt.aaa.user:
     parent: mgmt.aaa
     type: object
@@ -269,6 +358,11 @@ nodes:
     type: ref
     ref: mgmt.tacacs
     semantic: {zh-CN: 引用的 TACACS+ 服务器模板, en: TACACS+ server template}
+  mgmt.aaa.domain.radius:
+    parent: mgmt.aaa.domain
+    type: ref
+    ref: mgmt.radius
+    semantic: {zh-CN: 引用的 RADIUS 服务器组（M4-2）, en: RADIUS server group}
   mgmt.tacacs:
     type: object
     key: [name]
@@ -294,6 +388,41 @@ nodes:
     parent: mgmt.tacacs
     type: integer
     semantic: {zh-CN: 响应超时（秒）, en: Response timeout}
+  # ---------- RADIUS（M4-2） ----------
+  mgmt.radius:
+    type: object
+    key: [name]
+    semantic: {zh-CN: RADIUS 服务器组 / 模板（华为 radius-server group；Cisco radius server <名称>，旧写法 radius-server host 归到 "_"）, en: RADIUS server group / template}
+  mgmt.radius.server:
+    parent: mgmt.radius
+    type: object
+    key: [role, address]
+    semantic: {zh-CN: 服务器地址（role：authentication / accounting / all）, en: RADIUS server address}
+  mgmt.radius.server.port:
+    parent: mgmt.radius.server
+    type: integer
+    semantic: {zh-CN: 端口, en: Port}
+  mgmt.radius.server.vrf:
+    parent: mgmt.radius.server
+    type: ref
+    ref: vrf.instance
+    semantic: {zh-CN: 所属 VRF, en: VRF}
+  mgmt.radius.key_set:
+    parent: mgmt.radius
+    type: boolean
+    semantic: {zh-CN: 已设置共享密钥（只记录是否设置）, en: Shared key set}
+  mgmt.radius.source:
+    parent: mgmt.radius
+    type: string
+    semantic: {zh-CN: 源接口或源地址, en: Source interface or address}
+  mgmt.radius.timeout:
+    parent: mgmt.radius
+    type: integer
+    semantic: {zh-CN: 响应超时（秒）, en: Response timeout}
+  mgmt.radius.retransmit:
+    parent: mgmt.radius
+    type: integer
+    semantic: {zh-CN: 重传次数, en: Retransmissions}
   # ---------- 登录线路 ----------
   mgmt.line:
     type: object
@@ -331,3 +460,6 @@ deps:
   - {kind: reference, from: mgmt.aaa.domain.tacacs, to: mgmt.tacacs}
   - {kind: reference, from: mgmt.ntp.server.vrf, to: vrf.instance}
   - {kind: reference, from: mgmt.syslog.host.vrf, to: vrf.instance}
+  - {kind: reference, from: mgmt.radius.server.vrf, to: vrf.instance}
+  - {kind: reference, from: mgmt.aaa.domain.radius, to: mgmt.radius}
+  - {kind: reference, from: mgmt.snmp.user.group, to: mgmt.snmp.group}

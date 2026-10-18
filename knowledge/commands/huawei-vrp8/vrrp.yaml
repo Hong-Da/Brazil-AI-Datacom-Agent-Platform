@@ -1,0 +1,997 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: vrrp
+cards:
+  - id: huawei-vrp8.admin-vrrp-vrid
+    syntax: admin-vrrp vrid <virtual-router-id> [ ignore-if-down ]
+    view: interface
+    undo: undo admin-vrrp vrid <virtual-router-id>
+    params:
+      virtual-router-id:
+        type: integer
+    default: By default, no mVRRP group is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: admin-vrrp vrid
+      line: 29463
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.dot1q-vrrp
+    syntax: dot1q vrrp vid <vid>
+    view: interface
+    undo: undo dot1q vrrp
+    params:
+      vid:
+        type: integer
+        range:
+          - 1
+          - 4094
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: dot1q vrrp
+      line: 30093
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.qinq-vrrp
+    syntax: qinq vrrp pe-vid <pe-vid> ce-vid <ce-vid>
+    view: interface
+    undo: undo qinq vrrp
+    params:
+      pe-vid:
+        type: integer
+        range:
+          - 1
+          - 4094
+      ce-vid:
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, a sub-interface for QinQ VLAN tag termination sends VRRP packets carrying only the minimal inner VLAN ID and each VLAN ID in the outer tag.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: qinq vrrp
+      line: 30163
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.track-admin-vrrp
+    syntax: track admin-vrrp interface { <interface-type> <interface-number> | <interface-name> } vrid <virtual-router-id>
+    view: interface
+    undo: undo track admin-vrrp
+    params:
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      interface-name:
+        type: word
+      virtual-router-id:
+        type: integer
+    default: By default, no VRRP-disabled interface is bound to an mVRRP group.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: track admin-vrrp
+      line: 30300
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrid-split-horizon-disable
+    syntax: '{ vrrp | vrrp6 } vrid <vrid-value> split-horizon disable'
+    view: interface
+    undo: undo { vrrp | vrrp6 } vrid <vrid-value> split-horizon disable
+    params:
+      vrid-value:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the split horizon mode of a VRRP instance on a VBDIF interface is the same as that of the VBDIF interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrid split-horizon disable
+      line: 30368
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-advertise-send-mode.1
+    syntax: vrrp advertise send-mode <sub-vlan-id>
+    view: interface
+    undo: undo vrrp advertise send-mode
+    params:
+      sub-vlan-id:
+        type: integer
+        range:
+          - 1
+          - 4094
+    default: By default, a super VLAN sends VRRP Advertisement packets only to a sub-VLAN with the smallest VLAN ID among all the sub-VLANs in the Up state.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp advertise send-mode
+      line: 30429
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-advertise-send-mode.2
+    syntax: vrrp advertise send-mode all
+    view: interface
+    undo: undo vrrp advertise send-mode
+    default: By default, a super VLAN sends VRRP Advertisement packets only to a sub-VLAN with the smallest VLAN ID among all the sub-VLANs in the Up state.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp advertise send-mode
+      line: 30429
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-arp-send-mode-simple
+    syntax: vrrp arp send-mode simple
+    view: interface
+    undo: undo vrrp arp send-mode simple
+    default: By default, gratuitous ARP packets are sent as many as there are VLAN IDs in the inner tag.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp arp send-mode simple
+      line: 30514
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-dscp
+    syntax: vrrp dscp <dscp-value>
+    view: system
+    undo: undo vrrp dscp [ <dscp-value> ]
+    params:
+      dscp-value:
+        type: integer
+        range:
+          - 0
+          - 63
+    default: By default, the DSCP value is 48.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp dscp
+      line: 30586
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-first-packet-delay
+    syntax: vrrp first-packet-delay <delay-value>
+    view: system
+    undo: undo vrrp first-packet-delay [ <delay-value> ]
+    params:
+      delay-value:
+        type: integer
+        range:
+          - 0
+          - 3600
+    default: By default, the first packet delay is 30 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp first-packet-delay
+      line: 30639
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-gratuitous-arp.1
+    syntax: vrrp gratuitous-arp timeout <time>
+    view: system
+    undo: undo vrrp gratuitous-arp timeout
+    params:
+      time:
+        type: integer
+        range:
+          - 30
+          - 1200
+    default: By default, the status is enable.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp gratuitous-arp
+      line: 30707
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-gratuitous-arp.2
+    syntax: vrrp gratuitous-arp timeout disable
+    view: system
+    undo: undo vrrp gratuitous-arp timeout
+    default: By default, the status is enable.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp gratuitous-arp
+      line: 30707
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-gratuitous-arp.3
+    syntax: vrrp gratuitous-arp enhance enable
+    view: system
+    undo: undo vrrp gratuitous-arp enhance enable
+    default: By default, the status is enable.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp gratuitous-arp
+      line: 30707
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-passive
+    syntax: vrrp passive
+    view: interface
+    undo: undo vrrp passive
+    default: By default, the VRRP passive function is disabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp passive
+      line: 30803
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-recover-delay
+    syntax: vrrp recover-delay <delay-value>
+    view: system
+    undo: undo vrrp recover-delay
+    params:
+      delay-value:
+        type: integer
+        range:
+          - 0
+          - 3600
+    default: By default, the status recovery delay is 0 seconds, indicating that VRRP group flapping is not suppressed.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp recover-delay
+      line: 30864
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-recover-delay~2
+    syntax: vrrp recover-delay <delay-value>
+    view: interface
+    undo: undo vrrp recover-delay
+    params:
+      delay-value:
+        type: integer
+        range:
+          - 0
+          - 3600
+    default: By default, the status recovery delay is 0 seconds, indicating that VRRP group flapping is not suppressed.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp recover-delay (Interface view)
+      line: 30927
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-smooth-switching-timer
+    syntax: vrrp smooth-switching timer <timer-value>
+    view: system
+    undo: undo vrrp smooth-switching timer
+    params:
+      timer-value:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, smooth VRRP switching is enabled on a device, and the interval carried in VRRP Advertisement packets is 100 seconds.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp smooth-switching timer
+      line: 30993
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-timer-advertise-learning-enable
+    syntax: vrrp timer-advertise learning enable
+    view: system
+    undo: undo vrrp timer-advertise learning enable
+    default: By default, a device is enabled to learn the interval at which a VRRP Advertisement packet is sent.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp timer-advertise learning enable
+      line: 31057
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-un-check-ttl
+    syntax: vrrp un-check ttl
+    view: interface
+    undo: undo vrrp un-check ttl
+    default: By default, TTL values in VRRP Advertisement packets are checked.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp un-check ttl
+      line: 31116
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-unicast-port
+    syntax: vrrp unicast port <portnum>
+    view: system
+    undo: undo vrrp unicast port
+    params:
+      portnum:
+        type: integer
+        range:
+          - 1025
+          - 65535
+    default: By default, the UDP port number is 3077.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp unicast port
+      line: 31179
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-version
+    syntax: vrrp version { v2 | v3 }
+    view: system
+    undo: undo vrrp version
+    default: By default, VRRPv2 is used.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp version
+      line: 31242
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      vrrp.global{id=_}.version: kw:v2|v3
+  - id: huawei-vrp8.vrrp-version-3-send-packet-mode
+    syntax: vrrp version-3 send-packet-mode { v2-only | v2v3-both | v3-only }
+    view: system
+    undo: undo vrrp version-3 send-packet-mode
+    default: By default, a VRRPv3-enabled device sends only VRRPv3 Advertisement packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp version-3 send-packet-mode
+      line: 31306
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-virtual-ip-ping-enable
+    syntax: vrrp virtual-ip ping enable
+    view: system
+    undo: undo vrrp virtual-ip ping enable
+    default: By default, the master device is enabled to respond to ping packets sent to a virtual IP address.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp virtual-ip ping enable
+      line: 31374
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-virtual-ip-route-advertise-disable.1
+    syntax: vrrp virtual-ip route-advertise disable
+    view: system
+    undo: undo vrrp virtual-ip route-advertise disable
+    default: By default, a dynamic routing protocol advertises the routes generated by the virtual IP address of a VRRP group.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp virtual-ip route-advertise disable
+      line: 31436
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-virtual-ip-route-advertise-disable.2
+    syntax: vrrp virtual-ip route-advertise disable { isis | ospf | rip } &<1-9>
+    view: system
+    undo: undo vrrp virtual-ip route-advertise disable
+    default: By default, a dynamic routing protocol advertises the routes generated by the virtual IP address of a VRRP group.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp virtual-ip route-advertise disable
+      line: 31436
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid
+    syntax: vrrp vrid <virtual-router-id> [ virtual-ip <virtual-address> ]
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> [ virtual-ip <virtual-address> ]
+    params:
+      virtual-router-id:
+        type: integer
+      virtual-address:
+        type: ipv4
+    default: By default, no VRRP backup group is configured.
+    maps:
+      interface.vrrp: $virtual-router-id
+      interface.vrrp.virtual_ip: $virtual-address
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid
+      line: 31516
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-authentication-mode
+    syntax: vrrp vrid <virtual-router-id> authentication-mode { md5 <md5-key> | hmac-sha256 <hmac-sha256> }
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> authentication-mode
+    params:
+      virtual-router-id:
+        type: integer
+      md5-key:
+        type: word
+      hmac-sha256:
+        type: word
+    default: By default, a VRRP group uses the non-authentication mode.
+    maps:
+      interface.vrrp: $virtual-router-id
+      interface.vrrp.auth_mode: kw:simple|md5|hmac-sha256
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid authentication-mode
+      line: 31598
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-authentication-mode.1
+    syntax: vrrp vrid <virtual-router-id> authentication-mode { simple <key> | md5 <md5-key> }
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> authentication-mode
+    params:
+      virtual-router-id: &id001
+        type: integer
+      key: &id002
+        type: word
+      md5-key:
+        type: word
+    default: By default, a VRRP group does not authenticate packets.
+    maps:
+      interface.vrrp: $virtual-router-id
+      interface.vrrp.auth_mode: kw:simple|md5|hmac-sha256
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid authentication-mode (Interface view)
+      line: 31673
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-authentication-mode.2
+    syntax: vrrp vrid <virtual-router-id> authentication-mode simple { plain <key> | cipher <cipher-key> }
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> authentication-mode
+    params:
+      virtual-router-id: *id001
+      key: *id002
+      cipher-key:
+        type: word
+    default: By default, a VRRP group does not authenticate packets.
+    maps:
+      interface.vrrp: $virtual-router-id
+      interface.vrrp.auth_mode: kw:simple|md5|hmac-sha256
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid authentication-mode (Interface view)
+      line: 31673
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-backup-forward
+    syntax: vrrp vrid <virtual-router-id> backup-forward
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> backup-forward
+    params:
+      virtual-router-id:
+        type: integer
+    default: By default, backup devices are disabled from forwarding service traffic.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid backup-forward
+      line: 31754
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-fast-resume
+    syntax: vrrp vrid <virtual-router-id> fast-resume
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> fast-resume
+    params:
+      virtual-router-id:
+        type: integer
+    default: By default, rapid VRRP switchback is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid fast-resume
+      line: 31823
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-gratuitous-arp-copy-to-member
+    syntax: vrrp vrid <virtual-router-id> gratuitous-arp copy-to-member
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> gratuitous-arp copy-to-member
+    params:
+      virtual-router-id:
+        type: integer
+    default: By default, this function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid gratuitous-arp copy-to-member
+      line: 31904
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-holding-multiplier
+    syntax: vrrp vrid <virtual-router-id> holding-multiplier <holding-multiplier-value>
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> holding-multiplier [ <holding-multiplier-value> ]
+    params:
+      virtual-router-id:
+        type: integer
+      holding-multiplier-value:
+        type: integer
+        range:
+          - 3
+          - 10
+    default: By default, the timeout period of a backup device in a VRRP backup group is three times the interval at which VRRP Advertisement packets are sent.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid holding-multiplier
+      line: 31968
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-initialize-state-hold-time
+    syntax: vrrp vrid <virtual-router-id> initialize state-hold-time <timer-value>
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> initialize state-hold-time [ <timer-value> ]
+    params:
+      virtual-router-id:
+        type: integer
+      timer-value:
+        type: integer
+        range:
+          - 0
+          - 3600
+    default: By default, no Initialize state hold time is configured for an mVRRP group.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid initialize state-hold-time
+      line: 32038
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-peer-ip
+    syntax: vrrp vrid <virtual-router-id> peer-ip <ip-address> [ source-ip <source-ip-value> ]
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id>
+    params:
+      virtual-router-id:
+        type: integer
+      ip-address:
+        type: ipv4
+      source-ip-value:
+        type: ipv4
+    default: By default, unicast VRRP is disabled and no unicast VRRP group is created on a device.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid peer-ip
+      line: 32103
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-preempt-mode-disable
+    syntax: vrrp vrid <virtual-router-id> preempt-mode disable
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> preempt-mode
+    params:
+      virtual-router-id:
+        type: integer
+    default: By default, a device in a VRRP group adopts the immediate preemption mode.
+    maps:
+      interface.vrrp: $virtual-router-id
+      interface.vrrp.preempt: if:undo:true||false
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid preempt-mode disable
+      line: 32170
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-preempt-mode-timer-delay
+    syntax: vrrp vrid <virtual-router-id> preempt-mode timer delay <delay-time>
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> preempt-mode timer delay
+    params:
+      virtual-router-id:
+        type: integer
+      delay-time:
+        type: integer
+        range:
+          - 0
+          - 3600
+    maps:
+      interface.vrrp: $virtual-router-id
+      interface.vrrp.preempt_delay: $delay-time
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid preempt-mode timer delay
+      line: 32242
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-priority
+    syntax: vrrp vrid <virtual-router-id> priority <priority-value>
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> priority
+    params:
+      virtual-router-id:
+        type: integer
+      priority-value:
+        type: integer
+        range:
+          - 1
+          - 254
+    default: By default, the priority of a device in a VRRP group is 100.
+    maps:
+      interface.vrrp: $virtual-router-id
+      interface.vrrp.priority: $priority-value
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid priority
+      line: 32316
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-timer-advertise
+    syntax: vrrp vrid <virtual-router-id> timer advertise <advertise-interval>
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> timer advertise
+    params:
+      virtual-router-id:
+        type: integer
+      advertise-interval:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the master device in a non-unicast VRRP group (VRRP group configured on a non-Loopback interface) sends VRRP Advertisement packets at an interval of 1 second, and the master device in a unicast VRRP group (VRRP group configured on a Loopback interface) sends VRRP Advertisement packets at an interval of 10 seconds.
+    maps:
+      interface.vrrp: $virtual-router-id
+      interface.vrrp.advertise_interval: $advertise-interval
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid timer advertise
+      line: 32388
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-timer-advertise-millisecond
+    syntax: vrrp vrid <virtual-router-id> timer advertise millisecond { 100 | 200 | 500 }
+    view: interface
+    params:
+      virtual-router-id:
+        type: integer
+    default: By default, no millisecond-level interval at which the master device in a VRRP group sends a VRRP Advertisement packet is specified.
+    maps:
+      interface.vrrp: $virtual-router-id
+      interface.vrrp.advertise_msec: kw:100|200|500
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid timer advertise millisecond
+      line: 32469
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-admin-vrrp
+    syntax: vrrp vrid <virtual-router-id1> track admin-vrrp interface { <interface-name> | <interface-type> <interface-number> } vrid <virtual-router-id2> [ unflowdown ]
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id1> track admin-vrrp
+    params:
+      virtual-router-id1:
+        type: integer
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      virtual-router-id2:
+        type: integer
+    default: By default, no VRRP group is bound to an mVRRP group.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track admin-vrrp
+      line: 32546
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-bfd-session.1
+    syntax: vrrp vrid <virtual-router-id> track bfd-session <bfd-session-id> [ increased <value-increased> | reduced <value-reduced> ]
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> track bfd-session [ <bfd-session-id> | session-name <bfd-configure-name> ]
+    params:
+      virtual-router-id: &id003
+        type: integer
+      bfd-session-id: &id006
+        type: integer
+        range:
+          - 1
+          - 16384
+      value-increased: &id004
+        type: integer
+        range:
+          - 1
+          - 255
+      value-reduced: &id005
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, a VRRP group does not track a BFD session.
+    maps:
+      interface.vrrp: $virtual-router-id
+      interface.vrrp.track: fmt:bfd-session {bfd-session-id}
+      interface.vrrp.track.reduce: $value-reduced
+      interface.vrrp.track.increase: $value-increased
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track bfd-session
+      line: 32633
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-bfd-session.2
+    syntax: vrrp vrid <virtual-router-id> track bfd-session session-name <bfd-configure-name> [ increased <value-increased> | reduced <value-reduced> ]
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> track bfd-session [ <bfd-session-id> | session-name <bfd-configure-name> ]
+    params:
+      virtual-router-id: *id003
+      bfd-configure-name: &id007
+        type: word
+      value-increased: *id004
+      value-reduced: *id005
+    default: By default, a VRRP group does not track a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track bfd-session
+      line: 32633
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-bfd-session.3
+    syntax: vrrp vrid <virtual-router-id> track bfd-session <bfd-session-id> { peer | link }
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> track bfd-session [ <bfd-session-id> | session-name <bfd-configure-name> ]
+    params:
+      virtual-router-id: *id003
+      bfd-session-id: *id006
+    default: By default, a VRRP group does not track a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track bfd-session
+      line: 32633
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-bfd-session.4
+    syntax: vrrp vrid <virtual-router-id> track bfd-session session-name <bfd-configure-name> { peer | link }
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> track bfd-session [ <bfd-session-id> | session-name <bfd-configure-name> ]
+    params:
+      virtual-router-id: *id003
+      bfd-configure-name: *id007
+    default: By default, a VRRP group does not track a BFD session.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track bfd-session
+      line: 32633
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-efm
+    syntax: vrrp vrid <virtual-router-id> track efm interface { <interface-type> <interface-number> | <interface-name> }
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> track efm
+    params:
+      virtual-router-id:
+        type: integer
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      interface-name:
+        type: word
+    default: By default, a VRRP group does not monitor EFM sessions.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track efm
+      line: 32776
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-interface
+    syntax: vrrp vrid <virtual-router-id> track interface { <interface-name> | <interface-type> <interface-number> } [ increased <value-increased> | reduced <value-reduced> ]
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> track interface [ <interface-name> | <interface-type> <interface-number> ]
+    params:
+      virtual-router-id:
+        type: integer
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+      value-increased:
+        type: integer
+        range:
+          - 1
+          - 255
+      value-reduced:
+        type: integer
+    default: By default, a VRRP group does not track an interface.
+    maps:
+      interface.vrrp: $virtual-router-id
+      interface.vrrp.track: fmt:interface {interface-name|interface-type}{interface-number}
+      interface.vrrp.track.reduce: $value-reduced
+      interface.vrrp.track.increase: $value-increased
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track interface
+      line: 32853
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-ip-route.1
+    syntax: vrrp vrid <virtual-router-id> track ip route <ip-address> { <mask-address> | <mask-length> } vpn-instance <vpn-instance-name> [ reduced <value-reduced> ]
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> track ip route <ip-address> { <mask-address> | <mask-length> } vpn-instance <vpn-instance-name>
+    params:
+      virtual-router-id: &id008
+        type: integer
+      ip-address: &id009
+        type: ipv4
+      mask-address: &id010
+        type: ipv4
+      mask-length: &id011
+        type: mask-length
+      vpn-instance-name:
+        type: word
+      value-reduced: &id012
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, a VRRP group tracks no route.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track ip route
+      line: 32933
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-ip-route.2
+    syntax: vrrp vrid <virtual-router-id> track ip route <ip-address> { <mask-address> | <mask-length> } [ reduced <value-reduced> ]
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> track ip route <ip-address> { <mask-address> | <mask-length> } vpn-instance <vpn-instance-name>
+    params:
+      virtual-router-id: *id008
+      ip-address: *id009
+      mask-address: *id010
+      mask-length: *id011
+      value-reduced: *id012
+    default: By default, a VRRP group tracks no route.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track ip route
+      line: 32933
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-link-bfd-down-number
+    syntax: vrrp vrid <virtual-router-id> track link-bfd down-number <down-number>
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> track link-bfd
+    params:
+      virtual-router-id:
+        type: integer
+      down-number:
+        type: integer
+        range:
+          - 1
+          - 8
+    default: By default, a VRRP group performs a master/backup VRRP switchover only when all link BFD sessions tracked by it go Down.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track link-bfd down-number
+      line: 33011
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-monitor-group-failure-ratio
+    syntax: vrrp vrid <virtual-router-id> track monitor-group <monitor-group-name> failure-ratio <failure-ratio-value> [ link | reduced <priority-value> ]
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> track monitor-group [ <monitor-group-name> ]
+    params:
+      virtual-router-id:
+        type: integer
+      monitor-group-name:
+        type: word
+      failure-ratio-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      priority-value:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, a VRRP group is disabled from tracking an interface monitoring group.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track monitor-group failure-ratio
+      line: 33078
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-nqa
+    syntax: vrrp vrid <virtual-router-id> track nqa <admin-name> <test-name> [ reduced <value-reduced> ]
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> track nqa [ <admin-name> <test-name> ]
+    params:
+      virtual-router-id:
+        type: integer
+      admin-name:
+        type: word
+      test-name:
+        type: word
+      value-reduced:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, a VRRP group does not track an NQA test instance.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track nqa
+      line: 33166
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-track-route-monitor-group-failure-ratio
+    syntax: vrrp vrid <virtual-router-id> track route-monitor-group <route-monitor-group-name> failure-ratio <failure-ratio-value> [ link | reduced <priority-value> ]
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> track route-monitor-group [ <route-monitor-group-name> ]
+    params:
+      virtual-router-id:
+        type: integer
+      route-monitor-group-name:
+        type: word
+      failure-ratio-value:
+        type: integer
+        range:
+          - 1
+          - 100
+      priority-value:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, a VRRP group is disabled from tracking a route monitoring group.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid track route-monitor-group failure-ratio
+      line: 33245
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.vrrp-vrid-version-3-send-packet-mode
+    syntax: vrrp vrid <virtual-router-id> version-3 send-packet-mode { v2-only | v2v3-both | v3-only }
+    view: interface
+    undo: undo vrrp vrid <virtual-router-id> version-3 send-packet-mode
+    params:
+      virtual-router-id:
+        type: integer
+    default: By default, the mode in which VRRPv3 sends Advertisement packets is the same as that configured in the system view.
+    source:
+      doc: huawei-vrp8-md
+      file: 04_Network Reliability Commands.md
+      title: vrrp vrid version-3 send-packet-mode
+      line: 33333
+      version: V800R025C00SPC500
+    status: draft

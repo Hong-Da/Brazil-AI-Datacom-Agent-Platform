@@ -47,3 +47,21 @@ views:
   bridge-domain: {parent: system, title: 桥域模式 (config-bdomain)}
   l2vpn: {parent: system, title: L2VPN 全局模式 (config-l2vpn)}
   acl: {parent: system, title: 命名 ACL 模式 (config-std-nacl / config-ext-nacl)}
+  # 0.4.0（M4-2）：VRRPv3 组（vrrp <组号> address-family ipv4），运行配置以 exit-vrrp 结束
+  vrrp: {parent: interface, title: VRRP 配置模式 (config-if-vrrp), exit: [exit-vrrp]}
+  # 0.4.0（M4-2）：QoS（MQC）
+  class-map: {parent: system, title: Class-map 配置模式 (config-cmap)}
+  policy-map: {parent: system, title: Policy-map 配置模式 (config-pmap)}
+  policy-map-class: {parent: policy-map, title: Policy-map class 配置模式 (config-pmap-c)}
+  # 0.4.0（M4-2）：SR-MPLS（segment-routing mpls 全局模式与其下的 connected-prefix-sid-map / set-attributes）
+  sr-mpls: {parent: system, title: SR-MPLS 全局模式 (config-srmpls)}
+  sr-conn: {parent: sr-mpls, title: Connected prefix SID map 模式 (config-srmpls-conn)}
+  sr-conn-af: {parent: sr-conn, title: Connected prefix SID map 地址族模式 (config-srmpls-conn-af), exit: [exit-address-family]}
+  sr-attr: {parent: sr-mpls, title: SR 属性模式 (config-srmpls-attr)}
+  sr-attr-af: {parent: sr-attr, title: SR 属性地址族模式 (config-srmpls-attr-af), exit: [exit-address-family]}
+  # 0.4.0（M4-2）：EVPN（l2vpn evpn 全局模式、l2vpn evpn instance 模式）
+  l2vpn-evpn: {parent: system, title: L2VPN EVPN 全局模式 (config-evpn)}
+  evpn-instance: {parent: system, title: EVPN 实例模式 (config-evpn-evi)}
+  # 0.4.0（M4-2）：PTP（ptp clock 模式与其下的 clock-port 模式）
+  ptp-clock: {parent: system, title: PTP 时钟模式 (config-ptp-clk)}
+  ptp-port: {parent: ptp-clock, title: PTP 时钟端口模式 (config-ptp-port)}

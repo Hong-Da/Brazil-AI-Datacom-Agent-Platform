@@ -1,6 +1,6 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
 import { readFileSync } from 'node:fs'
-import { collectErrors, expectNoRawKeys, login } from './helpers'
+import { collectErrors, expectNoRawKeys, login, TOKEN } from './helpers'
 
 /**
  * 各页面的真实流程（文件名排在 shell.spec.ts 之后：本文件会发布知识库版本，改变共享后端的状态）。所有用例共享 e2e_server.py 建的同一个后端，按本文件顺序执行：
@@ -26,6 +26,18 @@ const TEST_NODE = 'interface.e2e_probe'
 test.beforeEach(async ({ page }) => {
   await login(page)
 })
+
+/**
+ * 测试开始时的设备名单。e2e_server.py 导入 3 台（ATN、LAB-ATN-09、PE-ASR920-01），
+ * 但文件名排在前面的用例（如 req031.spec.ts 导入 ATN-CHANGE-01 作基线）会再导入设备，且没有删除设备的接口，
+ * 所以设备数按测试开始时的实际数量做相对断言，同时核对 e2e_server.py 导入的 3 台都在。
+ */
+async function deviceNames(request: APIRequestContext): Promise<string[]> {
+  const r = await request.get('/api/v1/devices', { headers: { Authorization: `Bearer ${TOKEN}` } })
+  const names = ((await r.json()).data.devices as { name: string }[]).map((d) => d.name)
+  for (const n of [ATN, LAB, 'PE-ASR920-01']) expect(names, `e2e_server.py 导入的 ${n} 应在设备列表中`).toContain(n)
+  return names
+}
 
 /** 设备配置图的 cytoscape 实例挂在容器的 _cyreg 上：取一个节点的屏幕坐标，用真实鼠标点击。 */
 async function graphNodePoint(page: Page, selector: string): Promise<{ x: number; y: number; id: string }> {
@@ -58,13 +70,15 @@ async function graphNodePoint(page: Page, selector: string): Promise<{ x: number
   return { x: box.x + p!.x, y: box.y + p!.y, id: p!.id }
 }
 
-test('首页：概况数字与设备数一致，运行全部往返测试后样本全部一致', async ({ page }) => {
+test('首页：概况数字与设备数一致，运行全部往返测试后样本全部一致', async ({ page, request }) => {
   const errors = collectErrors(page)
+  const n0 = (await deviceNames(request)).length
   await page.goto('/')
   const strip = page.getByTestId('summary-strip')
   await expect(strip).toBeVisible()
-  await expect(page.getByTestId('recent-imports')).toContainText('3')
-  await expect(page.getByTestId('recent-imports').locator('a.imp')).toHaveCount(3)
+  await expect(page.getByTestId('recent-imports')).toContainText(String(n0))
+  // 最近导入最多列 5 台
+  await expect(page.getByTestId('recent-imports').locator('a.imp')).toHaveCount(Math.min(n0, 5))
   // 未识别行：1 种模式
   await expect(strip).toContainText('1')
   await expect(page.getByTestId('rt-never')).toBeVisible()
@@ -84,10 +98,11 @@ test('首页：概况数字与设备数一致，运行全部往返测试后样�
   expect(errors).toEqual([])
 })
 
-test('设备与导入：3 台设备，上传一份新配置后变成 4 台，按状态筛选有未识别行', async ({ page }) => {
+test('设备与导入：样本设备都在，上传一份新配置后多 1 台，按状态筛选有未识别行', async ({ page, request }) => {
+  const n0 = (await deviceNames(request)).length
   await page.goto('/devices')
   const table = page.getByTestId('devices-table')
-  await expect(table.getByTestId('device-link')).toHaveCount(3)
+  await expect(table.getByTestId('device-link')).toHaveCount(n0)
   await expect(table).toContainText(ATN)
   await expect(table).toContainText('PE-ASR920-01')
 
@@ -106,7 +121,7 @@ test('设备与导入：3 台设备，上传一份新配置后变成 4 台，按
   await dlg.getByTestId('import-done').click()
   await expect(dlg).toBeHidden()
 
-  await expect(table.getByTestId('device-link')).toHaveCount(4)
+  await expect(table.getByTestId('device-link')).toHaveCount(n0 + 1)
   await expect(table).toContainText('E2E-CS-01')
 
   await page.getByTestId('filter-state').selectOption('unknown')
@@ -170,14 +185,16 @@ test('设备配置图：未识别行可逐个跳转并标出', async ({ page }) 
   await expect(page.getByTestId('node-detail').getByTestId('goto-unknown')).toBeVisible()
 })
 
-test('未识别行：能看到 mtu 一行，送审后状态变为已送审，审核队列出现 unknown_line', async ({ page }) => {
+test('未识别行：能看到 mtu 一行，送审后状态变为已送审，审核队列出现 unknown_line', async ({ page, request }) => {
+  const n = (await deviceNames(request)).length
   await page.goto('/unknown-lines')
   const table = page.getByTestId('unknown-table')
   const row = page.getByTestId('unknown-row').filter({ hasText: 'mtu notanumber' })
   await expect(row).toHaveCount(1)
   await expect(row).toContainText('interface')
   const summary = page.getByTestId('unknown-summary')
-  await expect(summary).toContainText('1 / 4')
+  // 含未识别行的设备 / 全部设备：只有 LAB-ATN-09 含未识别行
+  await expect(summary).toContainText(`1 / ${n}`)
 
   await row.locator('input[type=checkbox]').check()
   await page.getByTestId('batch-send').click()

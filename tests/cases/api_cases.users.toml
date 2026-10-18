@@ -1,0 +1,346 @@
+# 用户账号（REQ-030）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-users：管理员 admin / Admin-pass-1，普通用户 alice / Alice-pass-1。
+# login = ["用户名", "密码"]：先调用 /auth/login，会话 Cookie 留在客户端里再发请求（不带令牌）。
+
+[[case]]
+id = "auth-status"
+title = { zh-CN = "登录页状态：是否已配置、是否已有账号（不需要认证）", en = "Sign-in status: configured, accounts exist (no auth)", pt-BR = "Estado do login: configurado, contas existentes (sem autenticação)" }
+method = "GET"
+path = "/api/v1/auth/status"
+setup = "configured-users"
+expect_status = 200
+expect_json = { "code" = 0, "data.configured" = true, "data.has_users" = true, "data.session_hours" = 12 }
+in_docs = true
+live = true
+
+[[case]]
+id = "auth-status-no-users"
+title = { zh-CN = "还没有账号时 has_users 为 false（登录页改为用 API 令牌创建管理员）", en = "No accounts yet: has_users is false", pt-BR = "Sem contas: has_users é false" }
+method = "GET"
+path = "/api/v1/auth/status"
+setup = "configured"
+expect_status = 200
+expect_json = { "code" = 0, "data.has_users" = false }
+
+[[case]]
+id = "auth-login"
+title = { zh-CN = "用户名 + 密码登录（返回 Set-Cookie: lmesh_session，HttpOnly、SameSite=Strict）", en = "Sign in with user name + password (sets the lmesh_session cookie)", pt-BR = "Entrar com usuário + senha (define o cookie lmesh_session)" }
+method = "POST"
+path = "/api/v1/auth/login"
+setup = "configured-users"
+body = { username = "alice", password = "Alice-pass-1" }
+expect_status = 200
+expect_json = { "code" = 0, "data.user.username" = "alice", "data.user.role" = "user", "data.user.locked" = false }
+in_docs = true
+
+[[case]]
+id = "auth-login-wrong"
+title = { zh-CN = "密码错误：401，不区分用户不存在与密码错误", en = "Wrong password: 401, same answer as an unknown user", pt-BR = "Senha incorreta: 401, mesma resposta que usuário inexistente" }
+method = "POST"
+path = "/api/v1/auth/login"
+setup = "configured-users"
+body = { username = "alice", password = "wrong-password" }
+expect_status = 401
+expect_json = { "code" = 1002, "message" = "用户名或密码不正确。连续多次错误会暂时锁定账号" }
+in_docs = true
+
+[[case]]
+id = "auth-login-unknown-en"
+title = { zh-CN = "不存在的用户：同样是 401（英文提示）", en = "Unknown user: also 401", pt-BR = "Usuário inexistente: também 401" }
+method = "POST"
+path = "/api/v1/auth/login"
+setup = "configured-users"
+headers = { Accept-Language = "en" }
+body = { username = "nobody", password = "whatever-1" }
+expect_status = 401
+expect_json = { "code" = 1002, "message" = "Wrong user name or password. Repeated failures lock the account for a while" }
+
+[[case]]
+id = "auth-me-session"
+title = { zh-CN = "当前用户（会话登录）", en = "Current user (session)", pt-BR = "Usuário atual (sessão)" }
+method = "GET"
+path = "/api/v1/auth/me"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.username" = "alice", "data.role" = "user", "data.via" = "session" }
+
+[[case]]
+id = "auth-me-token"
+title = { zh-CN = "当前调用者（API 令牌视为管理员）", en = "Current caller (the API token counts as admin)", pt-BR = "Chamador atual (o token da API conta como administrador)" }
+method = "GET"
+path = "/api/v1/auth/me"
+setup = "configured-users"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.username" = "api-token", "data.role" = "admin", "data.via" = "token" }
+in_docs = true
+live = true
+
+[[case]]
+id = "auth-me-anonymous"
+title = { zh-CN = "没登录：401", en = "Not signed in: 401", pt-BR = "Sem login: 401" }
+method = "GET"
+path = "/api/v1/auth/me"
+setup = "configured-users"
+expect_status = 401
+expect_json = { "code" = 1002 }
+
+[[case]]
+id = "session-user-can-read"
+title = { zh-CN = "普通用户用会话访问一般接口", en = "A user's session reaches ordinary endpoints", pt-BR = "A sessão de um usuário acessa endpoints comuns" }
+method = "GET"
+path = "/api/v1/devices"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.devices" = [] }
+
+[[case]]
+id = "user-forbidden-users"
+title = { zh-CN = "普通用户访问账号管理：403", en = "A user calling account management: 403", pt-BR = "Usuário chamando a gestão de contas: 403" }
+method = "GET"
+path = "/api/v1/users"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+expect_status = 403
+expect_json = { "code" = 1006, "message" = "没有权限：这项操作只有管理员可以做" }
+
+[[case]]
+id = "user-forbidden-config"
+title = { zh-CN = "普通用户读取系统设置：403", en = "A user reading system settings: 403", pt-BR = "Usuário lendo configurações do sistema: 403" }
+method = "GET"
+path = "/api/v1/config"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "user-forbidden-ai-settings"
+title = { zh-CN = "普通用户修改 AI 接口设置：403", en = "A user changing AI settings: 403", pt-BR = "Usuário alterando a IA: 403" }
+method = "PUT"
+path = "/api/v1/ai/settings"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+body = { provider = "" }
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "user-forbidden-release"
+title = { zh-CN = "普通用户发布知识库：403", en = "A user releasing the knowledge base: 403", pt-BR = "Usuário publicando a base: 403" }
+method = "POST"
+path = "/api/v1/kb/releases"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+body = { version = "9.9.9" }
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "admin-session-config"
+title = { zh-CN = "管理员会话可以读取系统设置", en = "An admin session reads system settings", pt-BR = "Uma sessão de administrador lê as configurações" }
+method = "GET"
+path = "/api/v1/config"
+setup = "configured-users"
+login = ["admin", "Admin-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.values.security.api_token" = true, "data.values.security.session_hours" = 12 }
+
+[[case]]
+id = "users-list"
+title = { zh-CN = "账号列表（管理员；不含密码哈希）", en = "List accounts (admin; no password hashes)", pt-BR = "Listar contas (administrador; sem hashes de senha)" }
+method = "GET"
+path = "/api/v1/users"
+setup = "configured-users"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.count" = 2, "data.users.0.username" = "admin", "data.users.0.role" = "admin", "data.users.1.username" = "alice", "data.users.1.disabled" = false }
+in_docs = true
+live = false
+
+[[case]]
+id = "users-create"
+title = { zh-CN = "新建账号（管理员）", en = "Create an account (admin)", pt-BR = "Criar conta (administrador)" }
+method = "POST"
+path = "/api/v1/users"
+setup = "configured-users"
+auth = true
+body = { username = "bob", password = "Bob-pass-123", role = "user" }
+expect_status = 200
+expect_json = { "code" = 0, "data.user.username" = "bob", "data.user.role" = "user", "data.user.disabled" = false }
+in_docs = true
+
+[[case]]
+id = "users-create-short"
+title = { zh-CN = "密码太短：422", en = "Password too short: 422", pt-BR = "Senha curta demais: 422" }
+method = "POST"
+path = "/api/v1/users"
+setup = "configured-users"
+auth = true
+body = { username = "bob", password = "short", role = "user" }
+expect_status = 422
+expect_json = { "code" = 1001, "message" = "密码至少 8 个字符" }
+
+[[case]]
+id = "users-create-exists"
+title = { zh-CN = "用户名已存在（不区分大小写）：409", en = "User name taken (case-insensitive): 409", pt-BR = "Usuário já existe (sem diferenciar maiúsculas): 409" }
+method = "POST"
+path = "/api/v1/users"
+setup = "configured-users"
+auth = true
+body = { username = "Alice", password = "Alice-pass-2" }
+expect_status = 409
+expect_json = { "code" = 1003, "message" = "账号 Alice 已存在" }
+
+[[case]]
+id = "users-disable"
+title = { zh-CN = "停用账号（管理员；会话立即失效）", en = "Disable an account (admin; sessions end now)", pt-BR = "Desativar conta (administrador; sessões terminam)" }
+method = "PUT"
+path = "/api/v1/users/alice"
+setup = "configured-users"
+auth = true
+body = { disabled = true }
+expect_status = 200
+expect_json = { "code" = 0, "data.user.username" = "alice", "data.user.disabled" = true }
+in_docs = true
+
+[[case]]
+id = "users-last-admin"
+title = { zh-CN = "最后一个启用的管理员不能停用：409", en = "The last enabled admin cannot be disabled: 409", pt-BR = "O último administrador ativo não pode ser desativado: 409" }
+method = "PUT"
+path = "/api/v1/users/admin"
+setup = "configured-users"
+auth = true
+body = { disabled = true }
+expect_status = 409
+expect_json = { "code" = 1003, "message" = "至少要保留一个启用的管理员：不能停用、删除最后一个管理员或把它改成普通用户" }
+
+[[case]]
+id = "users-self-delete"
+title = { zh-CN = "管理员不能删除自己：409", en = "Admins cannot delete themselves: 409", pt-BR = "Administradores não podem se excluir: 409" }
+method = "DELETE"
+path = "/api/v1/users/admin"
+setup = "configured-users"
+login = ["admin", "Admin-pass-1"]
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "users-reset"
+title = { zh-CN = "重置密码（管理员；解除锁定，会话失效）", en = "Reset a password (admin; clears lock, ends sessions)", pt-BR = "Redefinir senha (administrador; remove bloqueio, encerra sessões)" }
+method = "POST"
+path = "/api/v1/users/alice/password"
+setup = "configured-users"
+auth = true
+body = { password = "Alice-new-pass" }
+expect_status = 200
+expect_json = { "code" = 0, "data.user.username" = "alice", "data.user.locked" = false, "data.sessions_closed" = 0 }
+in_docs = true
+
+[[case]]
+id = "users-set-role"
+title = { zh-CN = "改角色（管理员）", en = "Change role (admin)", pt-BR = "Mudar papel (administrador)" }
+method = "PUT"
+path = "/api/v1/users/alice"
+setup = "configured-users"
+auth = true
+body = { role = "admin" }
+expect_status = 200
+expect_json = { "code" = 0, "data.user.role" = "admin" }
+
+[[case]]
+id = "users-delete"
+title = { zh-CN = "删除账号（管理员）", en = "Delete an account (admin)", pt-BR = "Excluir conta (administrador)" }
+method = "DELETE"
+path = "/api/v1/users/alice"
+setup = "configured-users"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.deleted" = "alice" }
+in_docs = true
+
+[[case]]
+id = "users-not-found"
+title = { zh-CN = "账号不存在：404", en = "Unknown account: 404", pt-BR = "Conta inexistente: 404" }
+method = "DELETE"
+path = "/api/v1/users/nobody"
+setup = "configured-users"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004, "message" = "账号 nobody 不存在" }
+
+[[case]]
+id = "auth-password-change"
+title = { zh-CN = "修改自己的密码（会话登录）", en = "Change your own password (session)", pt-BR = "Alterar a própria senha (sessão)" }
+method = "POST"
+path = "/api/v1/auth/password"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+body = { old_password = "Alice-pass-1", new_password = "Alice-pass-2" }
+expect_status = 200
+expect_json = { "code" = 0, "data.changed" = true, "data.sessions_closed" = 0 }
+
+[[case]]
+id = "auth-password-wrong-old"
+title = { zh-CN = "当前密码不对：422（不是 401，不会跳回登录页）", en = "Wrong current password: 422 (not 401)", pt-BR = "Senha atual incorreta: 422 (não 401)" }
+method = "POST"
+path = "/api/v1/auth/password"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+body = { old_password = "nope-nope", new_password = "Alice-pass-2" }
+expect_status = 422
+expect_json = { "code" = 1001, "message" = "当前密码不正确" }
+
+[[case]]
+id = "auth-password-token"
+title = { zh-CN = "API 令牌没有账号密码可改：409", en = "The API token has no password to change: 409", pt-BR = "O token da API não tem senha para alterar: 409" }
+method = "POST"
+path = "/api/v1/auth/password"
+setup = "configured-users"
+auth = true
+body = { old_password = "x", new_password = "Whatever-123" }
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "auth-bootstrap"
+title = { zh-CN = "还没有账号：用 API 令牌创建第一个管理员并登录", en = "No accounts yet: create the first admin with the API token", pt-BR = "Sem contas: criar o primeiro administrador com o token da API" }
+method = "POST"
+path = "/api/v1/auth/bootstrap"
+setup = "configured"
+body = { token = "test-token-0123456789", username = "admin", password = "Admin-pass-1" }
+expect_status = 200
+expect_json = { "code" = 0, "data.user.username" = "admin", "data.user.role" = "admin" }
+in_docs = true
+
+[[case]]
+id = "auth-bootstrap-bad-token"
+title = { zh-CN = "创建第一个管理员时令牌不对：401", en = "Wrong token when creating the first admin: 401", pt-BR = "Token incorreto ao criar o primeiro administrador: 401" }
+method = "POST"
+path = "/api/v1/auth/bootstrap"
+setup = "configured"
+body = { token = "wrong", username = "admin", password = "Admin-pass-1" }
+expect_status = 401
+expect_json = { "code" = 1002, "message" = "API 令牌不正确" }
+
+[[case]]
+id = "auth-bootstrap-has-users"
+title = { zh-CN = "已经有账号时不能再用令牌创建：409", en = "Bootstrap refused once accounts exist: 409", pt-BR = "Criação inicial recusada quando já há contas: 409" }
+method = "POST"
+path = "/api/v1/auth/bootstrap"
+setup = "configured-users"
+body = { token = "test-token-0123456789", username = "boss", password = "Boss-pass-123" }
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "auth-logout"
+title = { zh-CN = "登出（删除会话、清除 Cookie）", en = "Sign out (ends the session, clears the cookie)", pt-BR = "Sair (encerra a sessão, limpa o cookie)" }
+method = "POST"
+path = "/api/v1/auth/logout"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.logged_out" = true }

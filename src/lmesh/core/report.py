@@ -17,7 +17,7 @@ from urllib.parse import quote
 
 import networkx as nx
 
-from lmesh.core import checks, cleanup
+from lmesh.core import checks, cleanup, i18n
 from lmesh.core import rules as rulesmod
 from lmesh.core.kb import KnowledgeBase
 
@@ -284,7 +284,7 @@ class _Doc:
 
     def t(self, key: str, **kw: Any) -> str:
         text = TEXTS[self.lang].get(key, key)
-        return text.format(**kw) if kw else text
+        return text.format(**i18n.localize(kw, self.lang)) if kw else text
 
     # -- 行内
     def esc(self, s: Any) -> str:

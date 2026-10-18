@@ -547,3 +547,42 @@ rules:
       zh-CN: 在同网段的另一台设备上配置同一 VRRP 组，或删除多余的组
       en: Configure the same VRRP group on the other device in the segment, or remove the extra group
       pt-BR: Configure o mesmo grupo VRRP no outro dispositivo do segmento ou remova o grupo excedente
+
+  - id: xd.vrrp.advertise
+    link: subnet
+    pair: vrrp
+    requires: [interface.vrrp, interface.vrrp.advertise_interval]
+    compare: {value: advertise_interval}
+    severity: warning
+    title:
+      zh-CN: 同一 VRRP 组的通告间隔不一致
+      en: VRRP advertisement interval differs within a group
+      pt-BR: Intervalo de anúncio VRRP diferente no mesmo grupo
+    message:
+      zh-CN: "{a_device} {a_end} 的通告间隔是 {a_value} 秒，{b_device} {b_end} 是 {b_value} 秒"
+      en: "{a_device} {a_end} advertises every {a_value} s and {b_device} {b_end} every {b_value} s"
+      pt-BR: "{a_device} {a_end} anuncia a cada {a_value} s e {b_device} {b_end} a cada {b_value} s"
+    suggestion:
+      zh-CN: 同一 VRRP 组的各成员使用相同的通告间隔，避免备份设备误判主设备失效
+      en: Use the same advertisement interval on every member so backups do not misdetect a master failure
+      pt-BR: Use o mesmo intervalo de anúncio em todos os membros para que os backups não detectem falha do master por engano
+
+  - id: xd.vrrp.auth
+    link: subnet
+    pair: vrrp
+    requires: [interface.vrrp, interface.vrrp.auth_mode]
+    compare: {value: auth_mode}
+    op: same_presence
+    severity: warning
+    title:
+      zh-CN: VRRP 认证只在一端配置
+      en: VRRP authentication configured on one end only
+      pt-BR: Autenticação VRRP configurada em apenas uma ponta
+    message:
+      zh-CN: "{a_device} {a_end}：{a_value}；{b_device} {b_end}：{b_value}"
+      en: "{a_device} {a_end}: {a_value}; {b_device} {b_end}: {b_value}"
+      pt-BR: "{a_device} {a_end}: {a_value}; {b_device} {b_end}: {b_value}"
+    suggestion:
+      zh-CN: 同一 VRRP 组的各成员配置相同的认证方式与密钥，或都不认证
+      en: Configure the same authentication mode and key on every member of the group, or none on all
+      pt-BR: Configure o mesmo modo e chave de autenticação em todos os membros do grupo, ou nenhum

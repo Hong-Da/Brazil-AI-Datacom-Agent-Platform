@@ -35,6 +35,7 @@ from lmesh.core.compare import _Canon, _Canonicalizer, _Schema
 from lmesh.core.graph import DEVICE
 from lmesh.core.kb import KnowledgeBase, read_yaml
 from lmesh.core.kb import syntax as syn
+from lmesh.core.kb.model import Note
 
 ACTIONS = ("add", "modify", "delete", "side_effect", "mutex")
 RISKS = ("low", "medium", "high")
@@ -68,7 +69,7 @@ def load_rules(kb: KnowledgeBase, family: str) -> dict[str, Any]:
         "exit": str(data.get("exit") or ("quit" if undo else "exit")),
         "comment": str(data.get("comment") or ("#" if undo else "!")),
         "side_effects": [
-            (str(x["from"]), str(x["to"]), str(x.get("note") or ""))
+            (str(x["from"]), str(x["to"]), Note.of(x.get("note")))
             for x in (data.get("side_effects") or [])
             if isinstance(x, dict) and x.get("from") and x.get("to")
         ],
@@ -356,9 +357,9 @@ class _Planner:
 
     # ----- 2. 副作用 -----
 
-    def side_effects(self) -> list[tuple[str, str, str, str]]:
+    def side_effects(self) -> list[tuple[str, str, str, Note]]:
         """(触发节点, 所在一边 current / target, 对象规范编号, 说明)。补发 dst 节点加入 write。"""
-        triggers: list[tuple[str, str, str, str]] = []
+        triggers: list[tuple[str, str, str, Note]] = []
         for src, dst, note in self.side_rules:
             cand = [(n, "target") for n in self.write if self.tgt.nodes[n].get("schema") == src]
             cand += [(n, "current") for n in self.undo_attrs if self.cur.nodes[n].get("schema") == src]
@@ -668,11 +669,11 @@ class _Planner:
                 )
                 op.notes.append("ext")
                 for d in dels:
-                    op.after[d.id] = {"kind": "replace", "node": owner, "note": ""}
+                    op.after[d.id] = {"kind": "replace", "node": owner, "note": Note()}
 
     # ----- 4. 约束 -----
 
-    def constraints(self, triggers: list[tuple[str, str, str, str]]) -> None:
+    def constraints(self, triggers: list[tuple[str, str, str, Note]]) -> None:
         ops = self.ops
         by_target: dict[str, Op] = {}
         creates: dict[str, Op] = {}
@@ -690,10 +691,10 @@ class _Planner:
                 for c in self.cids_t(n):
                     by_cid_write.setdefault(c, op)
 
-        def need(before: Op | None, after: Op | None, kind: str, node: str, note: str = "") -> None:
+        def need(before: Op | None, after: Op | None, kind: str, node: str, note: Note | None = None) -> None:
             if before is None or after is None or before.id == after.id:
                 return
-            after.after.setdefault(before.id, {"kind": kind, "node": node, "note": note})
+            after.after.setdefault(before.id, {"kind": kind, "node": node, "note": note or Note()})
 
         for op in ops:
             # 对象的子命令在进入它的视图之后：上下文里的对象由别的命令新建时排在它之后
@@ -883,36 +884,44 @@ def _exit_word(kb: KnowledgeBase, family: str, view: str, rules: dict[str, Any])
     return exits.get(view) or rules["exit"]
 
 
-def script_lines(
-    ops: list[Op], kb: KnowledgeBase, family: str, rules: dict[str, Any], notes: dict[int, str] | None = None
-) -> list[str]:
-    """按视图分块：进入视图的命令、缩进的子命令、退出；notes 给出时每条命令前加一行说明（注释）。"""
-    indent = kb.families[family].indent
-    out: list[str] = list(rules["begin"])
+def script_rows(ops: list[Op], kb: KnowledgeBase, family: str, rules: dict[str, Any]) -> list[dict[str, Any]]:
+    """按视图分块的脚本行（界面用）：kind 为 frame（开头 / 结尾）、enter（进入视图）、cmd（一条变更命令，op 为它的 Op.id）、
+    quit（退出视图）；depth 是缩进层级。script_lines 由它渲染成文本，两者逐行对应（不含说明行）。"""
+    rows: list[dict[str, Any]] = [{"kind": "frame", "depth": 0, "text": t, "op": None} for t in rules["begin"]]
     stack: list[CtxLine] = []
-
-    def pad(n: int) -> str:
-        return " " * (indent * n)
-
     for op in ops:
         ctx = op.context
         common = 0
         while common < len(stack) and common < len(ctx) and stack[common].key == ctx[common].key:
             common += 1
         for i in reversed(range(common, len(stack))):
-            out.append(pad(i) + _exit_word(kb, family, stack[i].view, rules))
+            rows.append({"kind": "quit", "depth": i, "text": _exit_word(kb, family, stack[i].view, rules), "op": None})
         stack = stack[:common]
         for i in range(common, len(ctx)):
-            out.append(pad(i) + ctx[i].text)
+            rows.append({"kind": "enter", "depth": i, "text": ctx[i].text, "op": None})
             stack.append(ctx[i])
-        if notes is not None and op.id in notes:
-            out.append(pad(len(stack)) + f"{rules['comment']} {notes[op.id]}")
-        out.append(pad(len(stack)) + op.text)
+        rows.append({"kind": "cmd", "depth": len(stack), "text": op.text, "op": op.id})
         if op.opens and not op.negative:
             stack.append(op.as_ctx())
     for i in reversed(range(len(stack))):
-        out.append(pad(i) + _exit_word(kb, family, stack[i].view, rules))
-    out += rules["finish"]
+        rows.append({"kind": "quit", "depth": i, "text": _exit_word(kb, family, stack[i].view, rules), "op": None})
+    rows += [{"kind": "frame", "depth": 0, "text": t, "op": None} for t in rules["finish"]]
+    return rows
+
+
+def script_lines(
+    ops: list[Op], kb: KnowledgeBase, family: str, rules: dict[str, Any], notes: dict[int, str] | None = None
+) -> list[str]:
+    """按视图分块：进入视图的命令、缩进的子命令、退出；notes 给出时每条命令前加一行说明（注释）。"""
+    indent = kb.families[family].indent
+    out: list[str] = []
+    for r in script_rows(ops, kb, family, rules):
+        pad = " " * (indent * r["depth"])
+        if r["kind"] == "frame":
+            pad = ""
+        if notes is not None and r["op"] is not None and r["op"] in notes:
+            out.append(pad + f"{rules['comment']} {notes[r['op']]}")
+        out.append(pad + r["text"])
     return out
 
 
@@ -1040,7 +1049,7 @@ class _Sim:
             cand = [
                 e
                 for e in blk.children
-                if (extra or _base(e.card) == _base(card.id))
+                if (extra or _base(e.card) == _base(card.id) or self._undoes(e, op.text))
                 and (want or not extra)
                 and all(_norm_val(e.values.get(k)) == v for k, v in want.items())
             ]
@@ -1051,6 +1060,17 @@ class _Sim:
         blk.children = [e for e in blk.children if all(e is not x for x in cand)]
         if op.removes:
             self._prune(self.root, op.removes)
+
+    def _undoes(self, e: _Entry, text: str) -> bool:
+        """这条取消命令按行 e 自己那张卡的取消语法也能匹配（按键删除的写法对同一视图的多张卡通用：ACL 条目 no 10
+        删除的可以是 permit 卡也可以是 deny / remark 卡）。"""
+        card = self.p.kb.cards.get(e.card or "")
+        if card is None or not card.undo:
+            return False
+        try:
+            return syn.match(syn.parse(card.undo), text, card.params) is not None
+        except syn.SyntaxErrorKB:
+            return False
 
     def _extra_undo(self, view: str, text: str) -> tuple[Any, Any, Any] | None:
         """变更知识补充的取消写法（undo_extra）。"""
@@ -1188,7 +1208,7 @@ def _op_dict(op: Op, seq: dict[int, int], namer: Any, kb: KnowledgeBase, p: _Pla
                 "kind": r["kind"],
                 "node": r["node"],
                 "label": namer(r["node"]) if namer and r["node"] else r["node"],
-                "note": r.get("note", ""),
+                "note": Note.of(r.get("note")),
             }
             for b, r in sorted(op.after.items(), key=lambda kv: seq[kv[0]])
         ],
@@ -1239,6 +1259,15 @@ def _plan(
         "ops": items,
         "script": "\n".join(script_lines(ops, kb, p.family, p.rules, notes)) + "\n",
         "script_plain": "\n".join(script_lines(ops, kb, p.family, p.rules)) + "\n",
+        "script_rows": [
+            {
+                "kind": r["kind"],
+                "depth": r["depth"],
+                "text": r["text"],
+                "seq": None if r["op"] is None else seq[r["op"]],
+            }
+            for r in script_rows(ops, kb, p.family, p.rules)
+        ],
         "risk": {"level": RISKS[level], "counts": counts},
         "summary": {
             "ops": len(items),

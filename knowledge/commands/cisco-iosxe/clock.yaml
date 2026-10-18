@@ -1,0 +1,353 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: clock
+cards:
+  - id: cisco-iosxe.announce-interval
+    syntax: announce interval <interval-value>
+    view: ptp-port
+    undo: no announce interval <interval-value>
+    params:
+      interval-value:
+        type: word
+    default: For the IE 3000 switch, the default value is 1. For the MWR 2941 router, the default value is 2.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/announce interval.md
+      title: announce interval
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.clock-source
+    syntax: clock source <source-address>
+    view: ptp-port
+    undo: no clock source <source-address>
+    params:
+      source-address:
+        type: ipv4
+    default: A connection to a PTP primary device is not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/clock source (PTP).md
+      title: clock source (PTP)
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      clock.ptp.port.clock_source: $source-address
+  - id: cisco-iosxe.clock-port
+    syntax: clock-port <name> [ { slave | master } ] [ profile { g8265.1 | g8275.1 | g8275.2 } ] [ local-priority <local-priority> ]
+    view: ptp-clock
+    enters_view: ptp-port
+    undo: no clock-port <name>
+    params:
+      name:
+        type: word
+      local-priority:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: This command is disabled by default.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/clock-port.md
+      title: clock-port
+      line: 5
+      version: '17.15'
+      patched: 原文只有 profile g8265.1，ASR 920 常用 profile g8275.1 / g8275.2 与 local-priority；按 ASR 920 Timing and Synchronization 配置指南（IOS XE 17）的运行配置写法整理
+    status: draft
+    maps:
+      clock.ptp.port: $name
+      clock.ptp.port.role: kw:master|slave
+      clock.ptp.profile: kw:g8275.1|g8275.2|g8265.1
+  - id: cisco-iosxe.delay-req-interval
+    syntax: delay-req interval <interval-value> unicast
+    view: ptp-port
+    undo: no delay-req interval <interval-value> unicast
+    params:
+      interval-value:
+        type: word
+    default: The default value is -4 (16 packets per second).
+    source:
+      doc: cisco-iosxe-md
+      file: timing/delay-req interval.md
+      title: delay-req interval
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.esmc-mode-ql-disabled
+    syntax: esmc mode ql-disabled
+    view: interface
+    undo: no esmc mode ql-disabled
+    default: The ESMC mode is ql-enabled.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/esmc mode ql-disabled.md
+      title: esmc mode ql-disabled
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.esmc-process
+    syntax: esmc process
+    view: system
+    undo: no esmc process
+    default: The ESMC process is disabled.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/esmc process.md
+      title: esmc process
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      clock.sync{id=_}.esmc: flag
+  - id: cisco-iosxe.network-clock-hold-off-global
+    syntax: network-clock hold-off <timer> global
+    view: system
+    params:
+      timer:
+        type: word
+    default: The default value is 300 milliseconds on Cisco ASR 901 Series Aggregation Services Routers.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/network-clock hold-off global.md
+      title: network-clock hold-off global
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.network-clock-input-source
+    syntax: network-clock input-source <priority> controller t1/e1 <slot/bay/port>
+    view: system
+    undo: no network-clock input-source <priority> controller t1/e1 <slot/bay/port>
+    params:
+      priority:
+        type: word
+      slot/bay/port:
+        type: word
+    source:
+      doc: cisco-iosxe-md
+      file: timing/network-clock input-source.md
+      title: network-clock input-source
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.network-clock-quality-level.1
+    syntax: '{ network-clock quality-level { rx | tx } { QL-PRC | QL-SSU-A | QL-SSU-B | QL-SEC | QL-DNU } external <slot> / <card> / <port> 2048K | e1 { cas | crc4 | fas } }'
+    view: system
+    params:
+      slot: &id001
+        type: word
+      card: &id002
+        type: word
+      port: &id003
+        type: word
+    default: No default values are available.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/network-clock quality-level.md
+      title: network-clock quality-level
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.network-clock-quality-level.2
+    syntax: network-clock quality-level { rx | tx } { QL-PRS | QL-STU | QL-ST2 | QL-TNC | QL-ST3 | QL-ST3E | QL-SMC | QL-ST4 | QL-DUS } external { <slot> / <card> / <port> | R0 | R1 } T1 { d4 | esf | sf }
+    view: system
+    params:
+      slot: *id001
+      card: *id002
+      port: *id003
+    default: No default values are available.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/network-clock quality-level.md
+      title: network-clock quality-level
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.network-clock-synchronization-automatic
+    syntax: network-clock synchronization automatic
+    view: system
+    undo: no network-clock synchronization automatic
+    default: No default values are available.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/network-clock synchronization automatic.md
+      title: network-clock synchronization automatic
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      clock.sync{id=_}.automatic: flag
+  - id: cisco-iosxe.network-clock-synchronization-mode-ql-enabled
+    syntax: network-clock synchronization mode QL-enabled
+    view: system
+    undo: no network-clock synchronization mode ql-enabled
+    default: No default values are available.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/network-clock synchronization mode QL-enabled.md
+      title: network-clock synchronization mode QL-enabled
+      line: 5
+      version: '17.15'
+      patched: 原文关键字写成 QL-enabled（运行配置为小写 ql-enabled）；关键字匹配不区分大小写，补取消写法
+    status: draft
+    maps:
+      clock.sync{id=_}.ssm_control: flag
+  - id: cisco-iosxe.priority1
+    syntax: priority1 <priorityvalue>
+    view: ptp-clock
+    undo: no priority1 <priorityvalue>
+    params:
+      priorityvalue:
+        type: word
+    default: The default preference level is 128.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/priority1.md
+      title: priority1
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      clock.ptp.priority1: $priorityvalue
+  - id: cisco-iosxe.priority2
+    syntax: priority2 <priorityvalue>
+    view: ptp-clock
+    undo: no priority2 <priorityvalue>
+    params:
+      priorityvalue:
+        type: word
+    default: The default preference level is 128.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/priority2.md
+      title: priority2
+      line: 5
+      version: '17.15'
+    status: draft
+    maps:
+      clock.ptp.priority2: $priorityvalue
+  - id: cisco-iosxe.ptp-clock
+    syntax: ptp clock { ordinary | boundary | e2e-transparent } domain <domain> [ hybrid ]
+    view: system
+    enters_view: ptp-clock
+    undo: no ptp clock { ordinary | boundary | e2e-transparent } domain <domain>
+    params:
+      domain:
+        type: integer
+        range:
+          - 0
+          - 127
+    default: No default behavior or values.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/ptp clock.md
+      title: ptp clock
+      line: 5
+      version: '17.15'
+      patched: 原文把 boundary 写在花括号外（{ ordinary | transparent } boundary domain），且没有 hybrid 与 e2e-transparent；按 ASR 920 Timing and Synchronization 配置指南（IOS XE 17）的运行配置写法整理
+    status: draft
+    maps:
+      clock.ptp: _
+      clock.ptp.device_type: kw:ordinary=oc|boundary=bc|e2e-transparent=e2etc
+      clock.ptp.domain: $domain
+      clock.ptp.hybrid: kw:hybrid=true:false
+  - id: cisco-iosxe.sync-interval
+    syntax: sync interval <interval-value>
+    view: ptp-port
+    undo: no sync interval <interval-value>
+    params:
+      interval-value:
+        type: word
+    default: The default value is 1.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/sync interval.md
+      title: sync interval
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.transport-ipv4
+    syntax: transport ipv4 { unicast | multicast | multicast-mix } interface <interface> [ negotiation ] [ single-hop ]
+    view: ptp-port
+    undo: no transport ipv4 { unicast | multicast | multicast-mix } interface <interface>
+    params:
+      interface:
+        type: interface
+    default: The IP version, transmission mode, and interface are not specified for exchanging timing packets.
+    source:
+      doc: cisco-iosxe-md
+      file: timing/transport ipv4 (PTP).md
+      title: transport ipv4 (PTP)
+      line: 5
+      version: '17.15'
+      patched: 原文把接口写成类型与编号两个参数，模式写成了 config-ptp-clk（实际在 clock-port 下）；运行配置是 transport ipv4 unicast interface Loopback0 negotiation
+    status: draft
+    maps:
+      clock.ptp.port.transport_interface: $interface
+  - id: cisco-iosxe.network-clock-input-source-interface
+    syntax: network-clock input-source <priority> { interface <interface> | ptp domain <domain> | external <slot-port> [ 2m | 10m ] }
+    view: system
+    undo: no network-clock input-source <priority>
+    params:
+      priority:
+        type: integer
+        range:
+          - 1
+          - 250
+      interface:
+        type: interface
+      domain:
+        type: integer
+        range:
+          - 0
+          - 127
+      slot-port:
+        type: word
+    source:
+      patched: network-clock input-source 页只有 controller t1/e1 写法；按 ASR 920 Timing and Synchronization 配置指南（IOS XE 17）的运行配置写法补充接口与 PTP 作为输入源的写法
+      added_by_patch: true
+    status: draft
+    maps:
+      clock.sync: _
+      clock.sync.source: $interface||if:ptp:ptp||fmt:external {slot-port}
+      clock.sync.source.priority: $priority
+  - id: cisco-iosxe.network-clock-wait-to-restore
+    syntax: network-clock wait-to-restore <seconds> [ global ]
+    view: system
+    undo: no network-clock wait-to-restore
+    params:
+      seconds:
+        type: integer
+        range:
+          - 0
+          - 86400
+    source:
+      patched: network-clock wait-to-restore 没有命令参考页；按 ASR 920 Timing and Synchronization 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      clock.sync{id=_}.wtr: $seconds
+  - id: cisco-iosxe.synchronous-mode
+    syntax: synchronous mode
+    view: interface
+    undo: no synchronous mode
+    source:
+      patched: 接口下的 synchronous mode 没有命令参考页；按 ASR 920 Timing and Synchronization 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      interface.clock: _
+      interface.clock.synchronization: flag
+  - id: cisco-iosxe.ptp-clock-destination
+    syntax: clock destination <destination-address>
+    view: ptp-port
+    undo: no clock destination <destination-address>
+    params:
+      destination-address:
+        type: ipv4
+    source:
+      patched: clock-port 下的 clock destination（主时钟端口指定从时钟地址）没有命令参考页；按 ASR 920 Timing and Synchronization 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      clock.ptp.port.clock_destination: $destination-address

@@ -129,7 +129,7 @@ nodes:
     semantic: {zh-CN: 接口参与 LDP 与 IGP 同步（Cisco mpls ldp igp sync，IGP 下开启同步后缺省为是）, en: LDP-IGP sync on the interface}
 deps:
   # 华为必须先配 LSR ID、再全局使能 MPLS，再使能 LDP；Cisco 全局 MPLS 缺省开启，不检查
-  - {kind: prerequisite, from: mpls.global, to: mpls.global.lsr_id, note: 华为先配置 mpls lsr-id 再使能 MPLS, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}
-  - {kind: prerequisite, from: mpls.ldp, to: mpls.global, note: 华为先全局使能 MPLS 再使能 LDP, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}
-  - {kind: prerequisite, from: interface.mpls, to: mpls.global, note: 华为接口使能 MPLS 前要先全局使能 MPLS, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}
-  - {kind: cross_device, from: mpls.ldp.remote_peer.remote_ip, to: mpls.global.lsr_id, note: 远端对等体地址应是对端设备的 LSR ID}
+  - {kind: prerequisite, from: mpls.global, to: mpls.global.lsr_id, note: {zh-CN: 华为先配置 mpls lsr-id 再使能 MPLS, en: 'On Huawei, configure "mpls lsr-id" before enabling MPLS', pt-BR: 'No Huawei, configure "mpls lsr-id" antes de habilitar o MPLS'}, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}
+  - {kind: prerequisite, from: mpls.ldp, to: mpls.global, note: {zh-CN: 华为先全局使能 MPLS 再使能 LDP, en: 'On Huawei, enable MPLS globally before enabling LDP', pt-BR: 'No Huawei, habilite o MPLS globalmente antes de habilitar o LDP'}, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}
+  - {kind: prerequisite, from: interface.mpls, to: mpls.global, note: {zh-CN: 华为接口使能 MPLS 前要先全局使能 MPLS, en: 'On Huawei, enable MPLS globally before enabling it on interfaces', pt-BR: 'No Huawei, habilite o MPLS globalmente antes de habilitá-lo nas interfaces'}, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}
+  - {kind: cross_device, from: mpls.ldp.remote_peer.remote_ip, to: mpls.global.lsr_id, note: {zh-CN: 远端对等体地址应是对端设备的 LSR ID, en: 'The remote peer address should be the LSR ID of the remote device', pt-BR: 'O endereço do par remoto deve ser o LSR ID do dispositivo remoto'}}

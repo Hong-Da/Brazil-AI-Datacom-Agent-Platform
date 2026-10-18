@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { get, errorText } from '@/api'
 import { pickLang } from '@/i18n'
+import { noteText } from '@/i18n/note'
 import Icon from '@/components/Icon.vue'
 import {
   allDeps, allNodes, buildTree, compareGroups, coverageOf, credibilityCounts, depApplies, depStyle, edgesOf, fmtValue,
@@ -184,7 +185,7 @@ const edges = computed(() => {
         cls: ['g-edge', style, hot ? 'is-hot' : sel.value ? 'is-dim' : 'faint'],
         mutex: style === 'mutex',
         marker: `url(#sv-${style})`,
-        title: `${t('e.' + style)}: ${d.from} → ${d.to}${d.note ? '\n' + d.note : ''}`,
+        title: `${t('e.' + style)}: ${d.from} → ${d.to}${noteText(d.note, lang.value) ? '\n' + noteText(d.note, lang.value) : ''}`,
       }
     })
     .filter((x): x is NonNullable<typeof x> => x !== null)
@@ -417,7 +418,7 @@ function cmpValue(r: CompareRow): string {
                 <template v-if="selEdges.length">
                   <div class="section-t">{{ $t('schema-view.deps') }}</div>
                   <div class="dlist">
-                    <div v-for="(e, i) in selEdges" :key="i" class="ditem" :title="e.note" @click="pick(e.other, true)">
+                    <div v-for="(e, i) in selEdges" :key="i" class="ditem" :title="noteText(e.note, lang)" @click="pick(e.other, true)">
                       <span class="tag etag" :style="{ borderColor: `var(--e-${e.style})`, color: `var(--e-${e.style})` }">{{ $t('e.' + e.style) }}</span>
                       <span class="nm">{{ e.dir === 'in' ? '← ' : '' }}{{ e.other }}</span>
                     </div>

@@ -22,7 +22,7 @@ def test_cli_case(case: dict, tmp_root: Path, request: pytest.FixtureRequest) ->
         a.replace("{inputs}", str(INPUTS)).replace("{out}", str(out)).replace("{samples}", str(SAMPLES))
         for a in case["args"]
     ]
-    r = run_cli(args, tmp_root, env=case.get("env"))
+    r = run_cli(args, tmp_root, env=case.get("env"), input_text=case.get("stdin"))
     assert r.returncode == case["expect_exit"], f"退出码 {r.returncode}\nstdout:\n{r.stdout}\nstderr:\n{r.stderr}"
     for s in case.get("expect_stdout", []):
         assert s in r.stdout, f"stdout 中没有 {s!r}:\n{r.stdout}"

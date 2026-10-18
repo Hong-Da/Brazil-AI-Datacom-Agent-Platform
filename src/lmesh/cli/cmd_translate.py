@@ -82,17 +82,25 @@ def register(app: typer.Typer) -> None:
         ] = None,
         profile: Annotated[str | None, typer.Option(help="源配置的 Profile（不给时自动识别）")] = None,
         no_verify: Annotated[bool, typer.Option("--no-verify", help="不做译文的再解析校验")] = False,
+        rules: Annotated[
+            str | None, typer.Option("--rules", help="翻译规则集（编号或 YAML 文件）：名称映射、命名规范、端口映射")
+        ] = None,
     ) -> None:
+        from lmesh.cli.cmd_naming import load_rules, report_text
+
         c = output.get(ctx)
         g, kb = _graph_for(c, target, profile)
+        rs = load_rules(c, rules, kb)
         try:
             ifmap = compare.load_interface_map(interface_map) if interface_map else None
-            r = translate.translate(g, kb, str(g.graph.get("profile")), to, ifmap, verify=not no_verify)
+            r = translate.translate(g, kb, str(g.graph.get("profile")), to, ifmap, verify=not no_verify, rules=rs)
         except compare.CompareError as e:
             fail(c, output.EXIT_NOT_FOUND if e.kind == "not_found" else output.EXIT_USAGE, c.t(e.key, **e.fmt))
         except translate.TranslateError as e:
             fail(c, output.EXIT_USAGE, c.t(e.key, **e.fmt))
         report = text_report(c, r)
+        if r.get("naming") is not None:
+            report += "\n" + report_text(c, r["naming"])
         if out is not None:
             out.parent.mkdir(parents=True, exist_ok=True)
             out.write_text(r["text"].rstrip("\n") + "\n", encoding="utf-8")

@@ -1,0 +1,199 @@
+# 时钟同步功能域（0.4.0，M4-2）：PTP（IEEE 1588v2）、1588 ACR（华为 ptp-adaptive，分组网络上的频率 / 时间恢复）、
+# 物理层时钟同步（同步以太 SyncE）的时钟源、优先级与 SSM。
+# 华为：ptp enable / ptp device-type / ptp domain、接口 ptp enable；clock source <源> priority / ssm / synchronization enable、
+# 接口 clock synchronization enable / clock priority；ptp-adaptive …。
+# Cisco（ASR 920）：ptp clock { ordinary | boundary | e2e-transparent } domain N → clock-port <名称> { master | slave }；
+# network-clock synchronization automatic / mode ql-enabled、network-clock input-source <优先级> { interface <接口> | ptp domain N }、
+# 接口 synchronous mode、esmc process。两家结构差异大（Cisco 的 PTP 端口是命名对象，华为按接口使能），翻译以报不支持为主。
+domain: clock
+nodes:
+  # ---------- PTP ----------
+  clock.ptp:
+    type: object
+    key: [id]
+    semantic: {zh-CN: PTP（1588v2）全局设置（编号固定为 "_"；华为 ptp …；Cisco ptp clock …）, en: PTP global settings}
+  clock.ptp.enabled:
+    parent: clock.ptp
+    type: boolean
+    semantic: {zh-CN: 全局使能 PTP（华为 ptp enable）, en: PTP enabled}
+  clock.ptp.device_type:
+    parent: clock.ptp
+    type: string
+    semantic: {zh-CN: 时钟类型（oc 普通时钟、bc 边界时钟、e2etc / p2ptc 透明时钟、t-bc 等；Cisco ordinary 记为 oc、boundary 记为 bc、e2e-transparent 记为 e2etc）, en: Clock type}
+  clock.ptp.domain:
+    parent: clock.ptp
+    type: integer
+    semantic: {zh-CN: PTP 域, en: PTP domain}
+  clock.ptp.profile:
+    parent: clock.ptp
+    type: string
+    semantic: {zh-CN: PTP 配置文件（华为 ptp profile g-8275-1；Cisco clock-port profile g8275.1）, en: PTP profile}
+  clock.ptp.priority1:
+    parent: clock.ptp
+    type: integer
+    semantic: {zh-CN: 本地时钟 priority1, en: Priority1}
+  clock.ptp.priority2:
+    parent: clock.ptp
+    type: integer
+    semantic: {zh-CN: 本地时钟 priority2, en: Priority2}
+  clock.ptp.hybrid:
+    parent: clock.ptp
+    type: boolean
+    semantic: {zh-CN: 混合模式（Cisco ptp clock … hybrid：频率取自 SyncE、相位取自 PTP）, en: Hybrid mode}
+  clock.ptp.port:
+    parent: clock.ptp
+    type: object
+    key: [name]
+    semantic: {zh-CN: PTP 端口（Cisco clock-port <名称>；华为按接口使能，见 interface.ptp）, en: PTP clock port}
+  clock.ptp.port.role:
+    parent: clock.ptp.port
+    type: enum
+    choices: [master, slave]
+    semantic: {zh-CN: 端口角色, en: Port role}
+  clock.ptp.port.transport_interface:
+    parent: clock.ptp.port
+    type: interface
+    semantic: {zh-CN: 承载 PTP 报文的接口（Cisco transport ipv4 unicast interface）, en: Transport interface}
+  clock.ptp.port.clock_source:
+    parent: clock.ptp.port
+    type: ipv4
+    semantic: {zh-CN: 主时钟地址（Cisco clock source <地址>）, en: Clock source address}
+  clock.ptp.port.clock_destination:
+    parent: clock.ptp.port
+    type: ipv4
+    semantic: {zh-CN: 从时钟地址（Cisco clock destination <地址>）, en: Clock destination address}
+  interface.ptp:
+    parent: interface
+    type: object
+    key: [id]
+    semantic: {zh-CN: 接口上的 PTP 设置（华为接口 ptp …；编号固定为 "_"）, en: Interface PTP}
+  interface.ptp.enabled:
+    parent: interface.ptp
+    type: boolean
+    semantic: {zh-CN: 接口使能 PTP, en: PTP enabled}
+  interface.ptp.port_state:
+    parent: interface.ptp
+    type: string
+    semantic: {zh-CN: 静态指定的端口状态（华为 ptp port-state）, en: Static port state}
+  interface.ptp.domain:
+    parent: interface.ptp
+    type: integer
+    semantic: {zh-CN: 接口所属 PTP 域, en: PTP domain}
+  interface.ptp.local_priority:
+    parent: interface.ptp
+    type: integer
+    semantic: {zh-CN: 本地优先级（G.8275.1）, en: Local priority}
+  interface.ptp.delay_mechanism:
+    parent: interface.ptp
+    type: enum
+    choices: [delay, pdelay]
+    semantic: {zh-CN: 延时测量机制, en: Delay mechanism}
+  # ---------- 1588 ACR（华为 ptp-adaptive） ----------
+  clock.ptp_adaptive:
+    type: object
+    key: [id]
+    semantic: {zh-CN: 1588 ACR / ATR（华为 ptp-adaptive；编号固定为 "_"）, en: 1588 ACR (ptp-adaptive)}
+  clock.ptp_adaptive.enabled:
+    parent: clock.ptp_adaptive
+    type: boolean
+    semantic: {zh-CN: 使能, en: Enabled}
+  clock.ptp_adaptive.device_type:
+    parent: clock.ptp_adaptive
+    type: enum
+    choices: [client, server, server-and-client]
+    semantic: {zh-CN: 角色, en: Role}
+  clock.ptp_adaptive.local_ip:
+    parent: clock.ptp_adaptive
+    type: ipv4
+    semantic: {zh-CN: 本端地址, en: Local address}
+  clock.ptp_adaptive.server:
+    parent: clock.ptp_adaptive
+    type: object
+    key: [index]
+    semantic: {zh-CN: 远端时钟服务器（index 1 / 2：remote-server1-ip / remote-server2-ip）, en: Remote clock server}
+  clock.ptp_adaptive.server.address:
+    parent: clock.ptp_adaptive.server
+    type: ipv4
+    semantic: {zh-CN: 服务器地址, en: Server address}
+  clock.ptp_adaptive.unicast_negotiate:
+    parent: clock.ptp_adaptive
+    type: boolean
+    semantic: {zh-CN: ACR 单播协商（acr unicast-negotiate enable）, en: Unicast negotiation}
+  clock.ptp_adaptive.announce_interval:
+    parent: clock.ptp_adaptive
+    type: integer
+    semantic: {zh-CN: 请求的 Announce 报文间隔（指数值）, en: Requested announce interval}
+  clock.ptp_adaptive.sync_interval:
+    parent: clock.ptp_adaptive
+    type: integer
+    semantic: {zh-CN: 请求的 Sync 报文间隔（指数值）, en: Requested sync interval}
+  clock.ptp_adaptive.delay_resp_interval:
+    parent: clock.ptp_adaptive
+    type: integer
+    semantic: {zh-CN: 请求的 Delay_Resp 报文间隔（指数值）, en: Requested delay-response interval}
+  clock.ptp_adaptive.domain:
+    parent: clock.ptp_adaptive
+    type: integer
+    semantic: {zh-CN: 域, en: Domain}
+  # ---------- 物理层时钟同步（同步以太） ----------
+  clock.sync:
+    type: object
+    key: [id]
+    semantic: {zh-CN: 物理层时钟同步全局设置（编号固定为 "_"；华为 clock …；Cisco network-clock …）, en: Frequency synchronization (SyncE) global}
+  clock.sync.automatic:
+    parent: clock.sync
+    type: boolean
+    semantic: {zh-CN: 自动选源（Cisco network-clock synchronization automatic；华为缺省自动）, en: Automatic source selection}
+  clock.sync.ssm_control:
+    parent: clock.sync
+    type: boolean
+    semantic: {zh-CN: 按 SSM 质量等级选源（华为 clock ssm-control on；Cisco network-clock synchronization mode ql-enabled）, en: SSM / QL-enabled selection}
+  clock.sync.esmc:
+    parent: clock.sync
+    type: boolean
+    semantic: {zh-CN: 启用 ESMC（Cisco esmc process）, en: ESMC}
+  clock.sync.wtr:
+    parent: clock.sync
+    type: integer
+    semantic: {zh-CN: 回切等待时间（华为 clock wtr，分钟；Cisco network-clock wait-to-restore，秒）, en: Wait-to-restore}
+  clock.sync.run_mode:
+    parent: clock.sync
+    type: enum
+    choices: [free, hold, normal]
+    semantic: {zh-CN: 运行模式（华为 clock run-mode）, en: Run mode}
+  clock.sync.source:
+    parent: clock.sync
+    type: object
+    key: [source]
+    semantic: {zh-CN: 时钟源（source：ptp、bits0、接口名等；华为 clock source <源> …，Cisco network-clock input-source）, en: Clock source}
+  clock.sync.source.synchronization:
+    parent: clock.sync.source
+    type: boolean
+    semantic: {zh-CN: 参与时钟同步（华为 clock source … synchronization enable）, en: Used for synchronization}
+  clock.sync.source.priority:
+    parent: clock.sync.source
+    type: integer
+    semantic: {zh-CN: 优先级（数值越小越优先）, en: Priority}
+  clock.sync.source.ssm:
+    parent: clock.sync.source
+    type: string
+    semantic: {zh-CN: 手工指定的 SSM 质量等级（prc / ssua / ssub / sec / dnu…）, en: SSM quality level}
+  interface.clock:
+    parent: interface
+    type: object
+    key: [id]
+    semantic: {zh-CN: 接口作为时钟源的设置（华为 clock synchronization enable / clock priority / clock ssm；Cisco synchronous mode；编号固定为 "_"）, en: Interface clock source settings}
+  interface.clock.synchronization:
+    parent: interface.clock
+    type: boolean
+    semantic: {zh-CN: 接口参与时钟同步（华为 clock synchronization enable；Cisco synchronous mode）, en: Synchronization enabled}
+  interface.clock.priority:
+    parent: interface.clock
+    type: integer
+    semantic: {zh-CN: 作为时钟源的优先级, en: Priority}
+  interface.clock.ssm:
+    parent: interface.clock
+    type: string
+    semantic: {zh-CN: 手工指定的 SSM 质量等级, en: SSM quality level}
+deps:
+  - {kind: prerequisite, from: interface.ptp, to: clock.ptp, note: {zh-CN: 接口使能 PTP 前先全局使能 PTP, en: 'Enable PTP globally before enabling it on interfaces', pt-BR: 'Habilite o PTP globalmente antes de habilitá-lo nas interfaces'}}

@@ -2,26 +2,39 @@
 domain: bfd
 cards:
   - id: cisco-iosxe.bfd
-    syntax: bfd interval <milliseconds> min_rx <milliseconds> multiplier <multiplier-value>
+    syntax: bfd interval <milliseconds> min_rx <min-rx> multiplier <multiplier-value>
     view: interface
-    undo: no bfd interval <milliseconds> min_rx <milliseconds> multiplier <multiplier-value>
+    undo: no bfd interval
     params:
       milliseconds:
-        type: word
+        type: integer
+        range:
+          - 50
+          - 9999
+      min-rx:
+        type: integer
+        range:
+          - 50
+          - 9999
       multiplier-value:
-        type: word
+        type: integer
+        range:
+          - 3
+          - 50
     default: No baseline BFD session parameters are set.
+    maps:
+      interface.bfd: _
+      interface.bfd.min_tx: $milliseconds
+      interface.bfd.min_rx: $min-rx
+      interface.bfd.multiplier: $multiplier-value
     source:
       doc: cisco-iosxe-md
       file: bfd/bfd.md
       title: bfd
       line: 5
       version: '17.15'
+      patched: 原文最小发送间隔与最小接收间隔用了同名参数 milliseconds（取不到 min_rx），取值类型也没有推断出来；改成各自的整数参数
     status: draft
-    maps:
-      interface.bfd: _
-      interface.bfd.min_tx: $milliseconds
-      interface.bfd.multiplier: $multiplier-value
   - id: cisco-iosxe.bfd-template
     syntax: bfd template <template-name>
     view: interface

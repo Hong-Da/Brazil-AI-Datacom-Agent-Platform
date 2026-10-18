@@ -1,0 +1,2587 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: clock
+cards:
+  - id: huawei-vrp8.clock-2msync-1-max-out-ssm
+    syntax: clock 2msync-1 max-out-ssm { prc | ssua | ssub | sec }
+    view: system
+    undo: undo clock 2msync-1 max-out-ssm
+    default: By default, the maximum output SSM level of 2M-1 PLL clock signals is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock 2msync-1 max-out-ssm
+      line: 15
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-2msync-1-priority
+    syntax: clock 2msync-1 priority <priority-value-2m1>
+    view: interface
+    undo: undo clock 2msync-1 priority
+    params:
+      priority-value-2m1:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock 2msync-1 priority
+      line: 75
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-2msync-2-max-out-ssm
+    syntax: clock 2msync-2 max-out-ssm { prc | ssua | ssub | sec }
+    view: system
+    undo: undo clock 2msync-2 max-out-ssm
+    default: By default, the maximum output SSM level of 2M-2 PLL clock signals is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock 2msync-2 max-out-ssm
+      line: 133
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-2msync-2-priority
+    syntax: clock 2msync-2 priority <priority-value-2m2>
+    view: interface
+    undo: undo clock 2msync-2 priority
+    params:
+      priority-value-2m2:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock 2msync-2 priority
+      line: 197
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-alarm-switch-ais-enable
+    syntax: clock alarm-switch ais enable
+    view: interface
+    undo: undo clock alarm-switch ais enable
+    default: By default, the association of the clock source status on an interface upon an AIS alarm is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock alarm-switch ais enable
+      line: 259
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-alarm-threshold-frequency-offset
+    syntax: clock alarm-threshold frequency-offset <frequency-offset-value>
+    view: system
+    undo: undo clock alarm-threshold frequency-offset [ <frequency-offset-value> ]
+    params:
+      frequency-offset-value:
+        type: integer
+        range:
+          - 10
+          - 92
+    default: By default, the alarm threshold for frequency offset at the physical layer is 9200 ppb.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock alarm-threshold frequency-offset
+      line: 374
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-binding-flexe
+    syntax: clock binding flexe interface { <ifName> | <ifType> <ifNum> }
+    view: interface
+    undo: undo clock binding flexe [ interface { <ifName> | <ifType> <ifNum> } ]
+    params:
+      ifName:
+        type: word
+      ifType:
+        type: word
+      ifNum:
+        type: word
+    default: By default, the FlexE logical interface is not associated with any FlexE physical interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock binding flexe
+      line: 429
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-bits-force-cutoff
+    syntax: clock bits <bitsSrc> force-cutoff
+    view: system
+    undo: undo clock bits <bitsSrc> force-cutoff
+    params:
+      bitsSrc:
+        type: word
+    default: By default, the function of squelching the output of an external clock is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock bits force-cutoff
+      line: 491
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-bits-force-cutoff-slot
+    syntax: clock bits <bitsSrc> force-cutoff slot <slotId>
+    view: system
+    undo: undo clock bits <bitsSrc> force-cutoff slot <slotId>
+    params:
+      bitsSrc:
+        type: word
+      slotId:
+        type: word
+    default: By default, the function of squelching the output of an external clock is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock bits force-cutoff slot
+      line: 552
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-bits-lti-action-2mbps
+    syntax: clock bits <bitsSrc> lti-action-2mbps { send-dnu | send-ais }
+    view: system
+    undo: undo clock bits <bitsSrc> lti-action-2mbps [ send-dnu | send-ais ]
+    params:
+      bitsSrc:
+        type: word
+    default: By default, BITS interfaces do not output clock signals when the 2M ring does not trace the clock source.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock bits lti-action-2mbps
+      line: 614
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-bits-lti-action-2mbps-slot
+    syntax: clock bits <bitsSrc> lti-action-2mbps { send-dnu | send-ais } slot <slotId>
+    view: system
+    undo: undo clock bits <bitsSrc> lti-action-2mbps [ send-dnu | send-ais ] slot <slotId>
+    params:
+      bitsSrc:
+        type: word
+      slotId:
+        type: word
+    default: By default, BITS interfaces do not output clock signals when the 2M ring does not trace the clock source.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock bits lti-action-2mbps slot
+      line: 681
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-bits-output-threshold
+    syntax: clock bits output-threshold { prc | ssua | ssub | sec | dnu }
+    view: system
+    default: By default, the threshold is dnu.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock bits output-threshold
+      line: 747
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-bits-type.1
+    syntax: clock bits-type bits0 { 2mhz | 2mbps }
+    view: system
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock bits-type
+      line: 804
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-bits-type.2
+    syntax: clock bits-type bits1 { 1pps { input | output } }
+    view: system
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock bits-type
+      line: 804
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-bits-type.3
+    syntax: clock bits-type bits1 { 1pps { input | output } } slot <slotid>
+    view: system
+    params:
+      slotid: &id001
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock bits-type
+      line: 804
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-bits-type.4
+    syntax: clock bits-type bits0 { 2mhz | 2mbps } slot <slotid>
+    view: system
+    params:
+      slotid: *id001
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock bits-type
+      line: 804
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-bundle
+    syntax: clock bundle <bundle-value>
+    view: interface
+    undo: undo clock bundle [ <bundle-value> ]
+    params:
+      bundle-value:
+        type: integer
+        range:
+          - 1
+          - 64
+    default: By default, no bundle group is configured for the clock source.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock bundle
+      line: 878
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-clear
+    syntax: clock clear
+    view: system
+    default: By default, the automatic clock source selection mode is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock clear
+      line: 944
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-clear-2msync-1
+    syntax: clock clear 2msync-1
+    view: system
+    default: By default, the automatic clock source selection mode is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock clear 2msync-1
+      line: 999
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-clear-2msync-2
+    syntax: clock clear 2msync-2
+    view: system
+    default: By default, the automatic clock source selection mode is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock clear 2msync-2
+      line: 1054
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-clock-id
+    syntax: clock clock-id <clockid-value>
+    view: interface
+    undo: undo clock clock-id
+    params:
+      clockid-value:
+        type: integer
+        range:
+          - 1
+          - 15
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock clock-id
+      line: 1113
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-enhanced-ssm-control
+    syntax: clock enhanced-ssm-control { on | off }
+    view: system
+    undo: undo clock enhanced-ssm-control on
+    default: By default, the enhanced SSM function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock enhanced-ssm-control
+      line: 1173
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-extend-ssm-control
+    syntax: clock extend-ssm-control { on | off }
+    view: system
+    default: By default, the extended SSM function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock extend-ssm-control
+      line: 1229
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-force-2msync-1-source
+    syntax: clock force 2msync-1 source interface { <interface-name> | <interface-type> <interface-number> }
+    view: system
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock force 2msync-1 source
+      line: 1284
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-force-2msync-2-source
+    syntax: clock force 2msync-2 source interface { <interface-name> | <interface-type> <interface-number> }
+    view: system
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    default: By default, the clock source selection mode is forcible clock source selection.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock force 2msync-2 source
+      line: 1345
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-force-source
+    syntax: clock force source <bitsSrc>
+    view: system
+    params:
+      bitsSrc:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock force source
+      line: 1410
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-force-source-interface
+    syntax: clock force source interface { <interface-name> | <interface-type> <interface-number> }
+    view: system
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock force source interface
+      line: 1474
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-force-source-ptp
+    syntax: clock force source ptp
+    view: system
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock force source ptp
+      line: 1534
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-force-source-slot
+    syntax: clock force source <bitsSrc> slot <slotId>
+    view: system
+    params:
+      bitsSrc:
+        type: word
+      slotId:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock force source slot
+      line: 1590
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-freq-deviation-detect-enable
+    syntax: clock freq-deviation-detect enable
+    view: system
+    undo: undo clock freq-deviation-detect enable
+    default: By default, frequency deviation detection is disabled for clock signals.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock freq-deviation-detect enable
+      line: 1655
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-input-threshold
+    syntax: clock input-threshold { prc | ssua | ssub | sec | dnu | prtc | eprtc | esec | eprc }
+    view: system
+    undo: undo clock input-threshold [ prc | ssua | ssub | sec | dnu | prtc | eprtc | esec | eprc ]
+    default: By default, the lower threshold for the input quality level of a clock source is sec.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock input-threshold
+      line: 1708
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-manual-2msync-1-source
+    syntax: clock manual 2msync-1 source interface { <interface-name> | <interface-type> <interface-number> }
+    view: system
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock manual 2msync-1 source
+      line: 1771
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-manual-2msync-2-source
+    syntax: clock manual 2msync-2 source interface { <interface-name> | <interface-type> <interface-number> }
+    view: system
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock manual 2msync-2 source
+      line: 1838
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-manual-source
+    syntax: clock manual source <bitsSrc>
+    view: system
+    params:
+      bitsSrc:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock manual source
+      line: 1909
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-manual-source-interface
+    syntax: clock manual source interface { <interface-name> | <interface-type> <interface-number> }
+    view: system
+    params:
+      interface-name:
+        type: word
+      interface-type:
+        type: word
+      interface-number:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock manual source interface
+      line: 1978
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-manual-source-ptp
+    syntax: clock manual source ptp
+    view: system
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock manual source ptp
+      line: 2043
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-manual-source-slot
+    syntax: clock manual source <bitsSrc> slot <slotId>
+    view: system
+    params:
+      bitsSrc:
+        type: word
+      slotId:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock manual source slot
+      line: 2105
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-map-unk
+    syntax: clock map unk { prc | ssua | ssub | sec | dnu | prtc | eprtc | esec | eprc }
+    view: system
+    default: By default, dnu is mapped to the clock source with an SSM level of unk.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock map unk
+      line: 2176
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-max-out-ssm
+    syntax: clock max-out-ssm { prc | ssua | ssub | sec | prtc | eprtc | esec | eprc }
+    view: system
+    undo: undo clock max-out-ssm
+    default: By default, the maximum output SSM level of system clock signals is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock max-out-ssm
+      line: 2237
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-oam-profile-ccsa
+    syntax: clock oam profile ccsa
+    view: system
+    undo: undo clock oam profile [ ccsa ]
+    default: By default, CCSA OAM is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock oam profile ccsa
+      line: 2301
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-priority
+    syntax: clock priority <priority-value>
+    view: interface
+    undo: undo clock priority
+    params:
+      priority-value:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock priority
+      line: 2354
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.clock: _
+      interface.clock.priority: $priority-value
+  - id: huawei-vrp8.clock-run-mode
+    syntax: clock run-mode { free | hold | normal }
+    view: system
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock run-mode
+      line: 2416
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.sync{id=_}.run_mode: kw:free|hold|normal
+  - id: huawei-vrp8.clock-sa-bit-source
+    syntax: clock sa-bit { sa4 | sa5 | sa6 | sa7 | sa8 } source <bitsSrc>
+    view: system
+    params:
+      bitsSrc:
+        type: word
+    default: By default, the device extracts SSM levels of clock signals from the sa4 timeslot of 2 Mbps signals of a BITS clock source.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock sa-bit source
+      line: 2477
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-sa-bit-source-slot
+    syntax: clock sa-bit { sa4 | sa5 | sa6 | sa7 | sa8 } source <bitsSrc> slot <slotId>
+    view: system
+    params:
+      bitsSrc:
+        type: word
+      slotId:
+        type: word
+    default: By default, the device extracts SSM levels of clock signals from the sa4 timeslot of 2 Mbps signals of a BITS clock source.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock sa-bit source slot
+      line: 2539
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-source-clock-id
+    syntax: clock source <bitsSrc> clock-id <clockid-value>
+    view: system
+    undo: undo clock source <bitsSrc> clock-id
+    params:
+      bitsSrc:
+        type: word
+      clockid-value:
+        type: integer
+        range:
+          - 1
+          - 15
+    default: By default, the clock ID of a BITS clock source is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source clock-id
+      line: 2602
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-source-clock-id-slot
+    syntax: clock source <bitsSrc> clock-id <clockid-value> slot <slotId>
+    view: system
+    undo: undo clock source <bitsSrc> clock-id [ slot <slotId> ]
+    params:
+      bitsSrc:
+        type: word
+      clockid-value:
+        type: integer
+        range:
+          - 1
+          - 15
+      slotId:
+        type: word
+    default: By default, the clock ID of a BITS clock source is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source clock-id slot
+      line: 2666
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-source-internal-clock-id
+    syntax: clock source internal clock-id <clockid-value>
+    view: system
+    undo: undo clock source internal clock-id
+    params:
+      clockid-value:
+        type: integer
+        range:
+          - 1
+          - 15
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source internal clock-id
+      line: 2731
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-source-internal-ssm
+    syntax: clock source internal ssm { prc | ssua | ssub | sec | dnu | unk | prtc | eprtc | esec | eprc }
+    view: system
+    undo: undo clock source internal ssm
+    default: By default, the SSM level of an internal clock source is SEC.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source internal ssm
+      line: 2784
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-source-priority
+    syntax: clock source <bitsSrc> priority <priority-value>
+    view: system
+    undo: undo clock source <bitsSrc> priority
+    params:
+      bitsSrc:
+        type: word
+      priority-value:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the priority of a BITS clock source is 0, indicating that the clock source does not participate in clock source selection.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source priority
+      line: 2855
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.sync: _
+      clock.sync.source: $bitsSrc
+      clock.sync.source.priority: $priority-value
+  - id: huawei-vrp8.clock-source-priority-slot
+    syntax: clock source <bitsSrc> priority <priority-value> slot <slotId>
+    view: system
+    undo: undo clock source <bitsSrc> priority slot <slotId>
+    params:
+      bitsSrc:
+        type: word
+      priority-value:
+        type: integer
+        range:
+          - 1
+          - 255
+      slotId:
+        type: word
+    default: By default, the priority of a BITS clock source is 0, indicating that the clock source does not participate in clock source selection.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source priority slot
+      line: 2919
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-source-ptp-clock-id
+    syntax: clock source ptp clock-id <clockid-value>
+    view: system
+    undo: undo clock source ptp clock-id
+    params:
+      clockid-value:
+        type: integer
+        range:
+          - 1
+          - 15
+    default: By default, the clock ID is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source ptp clock-id
+      line: 2984
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-source-ptp-priority
+    syntax: clock source ptp priority <priority-value>
+    view: system
+    undo: undo clock source ptp priority
+    params:
+      priority-value:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the priority of a PTP clock source is 0, indicating that the clock source does not participate in clock source selection.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source ptp priority
+      line: 3041
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.sync: _
+      clock.sync.source: ptp
+      clock.sync.source.priority: $priority-value
+  - id: huawei-vrp8.clock-source-ptp-ssm
+    syntax: clock source ptp ssm { prc | ssua | ssub | sec | dnu | unk | prtc | eprtc | esec | eprc }
+    view: system
+    undo: undo clock source ptp ssm
+    default: By default (not configured and not learned), the SSM level is dnu.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source ptp ssm
+      line: 3100
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.sync: _
+      clock.sync.source: ptp
+      clock.sync.source.ssm: tail:ssm
+  - id: huawei-vrp8.clock-source-ptp-synchronization-enable
+    syntax: clock source ptp synchronization enable
+    view: system
+    undo: undo clock source ptp synchronization enable
+    default: By default, clock synchronization is disabled for the PTP clock source.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source ptp synchronization enable
+      line: 3170
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.sync: _
+      clock.sync.source: ptp
+      clock.sync.source.synchronization: flag
+  - id: huawei-vrp8.clock-source-ssm
+    syntax: clock source <bitsSrc> ssm { prc | ssua | ssub | sec | dnu | unk | prtc | eprtc | esec | eprc }
+    view: system
+    undo: undo clock source <bitsSrc> ssm
+    params:
+      bitsSrc:
+        type: word
+    default: By default (not configured and not learned), the SSM level is dnu.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source ssm
+      line: 3221
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.sync: _
+      clock.sync.source: $bitsSrc
+      clock.sync.source.ssm: tail:ssm
+  - id: huawei-vrp8.clock-source-ssm-slot
+    syntax: clock source <bitsSrc> ssm { prc | ssua | ssub | sec | dnu | unk | prtc | eprtc | esec | eprc } slot <slotId>
+    view: system
+    undo: undo clock source <bitsSrc> ssm slot <slotId>
+    params:
+      bitsSrc:
+        type: word
+      slotId:
+        type: word
+    default: By default (not configured and not learned), the SSM level is dnu.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source ssm slot
+      line: 3296
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.sync: _
+      clock.sync.source: $bitsSrc
+      clock.sync.source.ssm: tail:ssm
+  - id: huawei-vrp8.clock-source-synchronization-enable
+    syntax: clock source <bitsSrc> synchronization enable
+    view: system
+    undo: undo clock source <bitsSrc> synchronization enable
+    params:
+      bitsSrc:
+        type: word
+    default: By default, clock synchronization is disabled for a BITS clock source.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source synchronization enable
+      line: 3372
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.sync: _
+      clock.sync.source: $bitsSrc
+      clock.sync.source.synchronization: flag
+  - id: huawei-vrp8.clock-source-synchronization-enable-slot
+    syntax: clock source <bitsSrc> synchronization enable slot <slotId>
+    view: system
+    undo: undo clock source <bitsSrc> synchronization enable slot <slotId>
+    params:
+      bitsSrc:
+        type: word
+      slotId:
+        type: word
+    default: By default, clock synchronization is disabled for a BITS clock source.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source synchronization enable slot
+      line: 3429
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-source-lost-holdoff-time
+    syntax: clock source-lost holdoff-time <holdoff-time-value>
+    view: system
+    params:
+      holdoff-time-value:
+        type: integer
+        range:
+          - 300
+          - 1800
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock source-lost holdoff-time
+      line: 3487
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-ssm
+    syntax: clock ssm { prc | ssua | ssub | sec | dnu | unk | prtc | eprtc | esec | eprc }
+    view: interface
+    undo: undo clock ssm
+    default: By default, the SSM level of a line clock source is transmitted from the peer device.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock ssm
+      line: 3541
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.clock: _
+      interface.clock.ssm: tail:ssm
+  - id: huawei-vrp8.clock-ssm-control
+    syntax: clock ssm-control { on | off }
+    view: system
+    default: By default, SSM levels participate in clock source selection.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock ssm-control
+      line: 3612
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.sync{id=_}.ssm_control: kw:on=true|off=false
+  - id: huawei-vrp8.clock-switch
+    syntax: clock switch { revertive | non-revertive }
+    view: system
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock switch
+      line: 3670
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-synchronization-enable
+    syntax: clock synchronization enable
+    view: interface
+    undo: undo clock synchronization enable
+    default: By default, clock synchronization is disabled for the line clock source.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock synchronization enable
+      line: 3727
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.clock: _
+      interface.clock.synchronization: flag
+  - id: huawei-vrp8.clock-test-source.1
+    syntax: clock test-source <testSrcId> signal <testSignalType> <direction> slot <slotid>
+    view: system
+    undo: undo clock test-source <testSrcId> signal <testSignalType> <direction> slot <slotid>
+    params:
+      testSrcId: &id002
+        type: word
+      testSignalType:
+        type: word
+      direction:
+        type: word
+      slotid: &id003
+        type: word
+    default: The default value of send-delay is 0, indicating that the delivered delay value is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock test-source
+      line: 3785
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-test-source.2
+    syntax: clock test-source <testSrcId> send-delay <senddelayval> slot <slotid>
+    view: system
+    undo: undo clock test-source <testSrcId> send-delay [ <senddelayval> ] slot <slotid>
+    params:
+      testSrcId: *id002
+      senddelayval:
+        type: integer
+        range:
+          - 0
+          - 10000
+      slotid: *id003
+    default: The default value of send-delay is 0, indicating that the delivered delay value is 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock test-source
+      line: 3785
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-wtr
+    syntax: clock wtr <wtr-time>
+    view: system
+    params:
+      wtr-time:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock wtr
+      line: 3848
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.sync{id=_}.wtr: $wtr-time
+  - id: huawei-vrp8.set-negotiation-mode
+    syntax: set negotiation-mode { master | slave | auto }
+    view: interface
+    undo: undo set negotiation-mode
+    default: By default, the clock on a GE electrical interface works in automatic mode at the physical layer.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: set negotiation-mode
+      line: 4528
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-atr-enable
+    syntax: ptp clock-source atr enable
+    view: system
+    undo: undo ptp clock-source atr enable
+    default: By default, 1588 ATR time source synchronization is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source atr enable
+      line: 5379
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-adaptive-acr-unicast-negotiate-enable.1
+    syntax: ptp-adaptive acr { one-way | two-way } unicast-negotiate enable
+    view: system
+    undo: undo ptp-adaptive acr
+    default: By default, 1588 ACR unicast negotiation is disabled, and therefore the frequency recovery mode is none.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive acr unicast-negotiate enable
+      line: 5438
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-adaptive-acr-unicast-negotiate-enable.2
+    syntax: ptp-adaptive acr unicast-negotiate enable
+    view: system
+    undo: undo ptp-adaptive acr
+    default: By default, 1588 ACR unicast negotiation is disabled, and therefore the frequency recovery mode is none.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive acr unicast-negotiate enable
+      line: 5438
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp_adaptive{id=_}.unicast_negotiate: flag
+  - id: huawei-vrp8.ptp-adaptive-announce-receipt-timeout
+    syntax: ptp-adaptive announce receipt-timeout <timeout-value>
+    view: system
+    undo: undo ptp-adaptive announce receipt-timeout
+    params:
+      timeout-value:
+        type: integer
+        range:
+          - 2
+          - 255
+    default: The default value is 3.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive announce receipt-timeout
+      line: 5520
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-adaptive-atr-asymmetry-correction
+    syntax: ptp-adaptive atr { server1 | server2 } asymmetry-correction { positive | negative } <correction-value>
+    view: system
+    undo: undo ptp-adaptive atr { server1 | server2 } asymmetry-correction [ { positive | negative } <correction-value> ]
+    params:
+      correction-value:
+        type: integer
+        range:
+          - 0
+          - 2000000
+    default: By default, the correction time for delay asymmetry between the client and server in the 1588 ATR scenario is 0 ns.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive atr asymmetry-correction
+      line: 5597
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-adaptive-atr-enable
+    syntax: ptp-adaptive atr enable
+    view: interface
+    undo: undo ptp-adaptive atr enable
+    default: By default, 1588 ATR is disabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive atr enable
+      line: 5664
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-adaptive-atr-unicast-negotiate-enable
+    syntax: ptp-adaptive atr unicast-negotiate enable
+    view: system
+    undo: undo ptp-adaptive atr
+    default: By default, 1588 ATR unicast negotiation is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive atr unicast-negotiate enable
+      line: 5732
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-adaptive-device-type
+    syntax: ptp-adaptive device-type { client | server | server-and-client }
+    view: system
+    undo: undo ptp-adaptive device-type
+    default: By default, no 1588 ACR/ATR working mode is configured for a device.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive device-type
+      line: 5807
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp_adaptive{id=_}.device_type: kw:server-and-client|client|server
+  - id: huawei-vrp8.ptp-adaptive-domain
+    syntax: ptp-adaptive domain <domain-value>
+    view: system
+    undo: undo ptp-adaptive domain
+    params:
+      domain-value:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: By default, no 1588 ACR/ATR clock domain is configured for a device.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive domain
+      line: 5881
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp_adaptive{id=_}.domain: $domain-value
+  - id: huawei-vrp8.ptp-adaptive-dscp
+    syntax: ptp-adaptive dscp <dscp-value>
+    view: system
+    undo: undo ptp-adaptive dscp
+    params:
+      dscp-value:
+        type: integer
+        range:
+          - 0
+          - 63
+    default: By default, the QoS scheduling priority of 1588 ACR/ATR packets is 56.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive dscp
+      line: 5945
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-adaptive-enable
+    syntax: ptp-adaptive enable
+    view: system
+    undo: undo ptp-adaptive enable
+    default: By default, a router is disabled to support 1588 ACR/ATR.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive enable
+      line: 6013
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp_adaptive{id=_}.enabled: flag
+  - id: huawei-vrp8.ptp-adaptive-local-ip
+    syntax: ptp-adaptive local-ip <ip-address>
+    view: system
+    undo: undo ptp-adaptive local-ip
+    params:
+      ip-address:
+        type: ipv4
+    default: By default, no IP address is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive local-ip
+      line: 6082
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp_adaptive{id=_}.local_ip: $ip-address
+  - id: huawei-vrp8.ptp-adaptive-profile.1
+    syntax: ptp-adaptive time profile
+    view: system
+    undo: undo ptp-adaptive time profile
+    default: By default, a device partially supports ITU-T G.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive profile
+      line: 6164
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-adaptive-profile.2
+    syntax: ptp-adaptive frequency profile
+    view: system
+    undo: undo ptp-adaptive frequency profile
+    default: By default, a device partially supports ITU-T G.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive profile
+      line: 6164
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-adaptive-request-announce-interval
+    syntax: ptp-adaptive request announce-interval <interval-value>
+    view: system
+    undo: undo ptp-adaptive request announce-interval
+    params:
+      interval-value:
+        type: integer
+        range:
+          - 7
+          - 14
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive request announce-interval
+      line: 6257
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp_adaptive{id=_}.announce_interval: $interval-value
+  - id: huawei-vrp8.ptp-adaptive-request-delay-resp-interval
+    syntax: ptp-adaptive request delay-resp-interval <interval-value>
+    view: system
+    undo: undo ptp-adaptive request delay-resp-interval
+    params:
+      interval-value:
+        type: integer
+        range:
+          - 3
+          - 14
+    default: By default, the interval at which the server sends Delay_Resp packets is 3 (8/1024s).
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive request delay-resp-interval
+      line: 6329
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp_adaptive{id=_}.delay_resp_interval: $interval-value
+  - id: huawei-vrp8.ptp-adaptive-request-sync-interval
+    syntax: ptp-adaptive request sync-interval <interval-value>
+    view: system
+    undo: undo ptp-adaptive request sync-interval
+    params:
+      interval-value:
+        type: integer
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive request sync-interval
+      line: 6407
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp_adaptive{id=_}.sync_interval: $interval-value
+  - id: huawei-vrp8.ptp-adaptive-vpn-instance
+    syntax: ptp-adaptive vpn-instance <instance-name>
+    view: system
+    undo: undo ptp-adaptive vpn-instance
+    params:
+      instance-name:
+        type: word
+    default: By default, no name is configured for a VPN instance, and PTP packets are forwarded over a public network.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive vpn-instance
+      line: 6479
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-adaptive-announce-duration-sync-duration-delay-resp-duration
+    syntax: ptp-adaptive { announce-duration <announce-duration-value> | sync-duration <sync-duration-value> | delay-resp-duration <delay-resp-duration-value> }
+    view: system
+    undo: undo ptp-adaptive { announce-duration | sync-duration | delay-resp-duration }
+    params:
+      announce-duration-value:
+        type: integer
+        range:
+          - 60
+          - 1000
+      sync-duration-value:
+        type: integer
+        range:
+          - 60
+          - 1000
+      delay-resp-duration-value:
+        type: integer
+        range:
+          - 60
+          - 1000
+    default: By default, the duration of each type of 1588 ACR packet is 300s.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive { announce-duration | sync-duration | delay-resp-duration }
+      line: 6553
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-adaptive-remote-server1-ip-remote-server2-ip
+    syntax: ptp-adaptive { remote-server1-ip | remote-server2-ip } <ip-address>
+    view: system
+    undo: undo ptp-adaptive { remote-server1-ip | remote-server2-ip }
+    params:
+      ip-address:
+        type: ipv4
+    default: By default, no clock server is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp-adaptive { remote-server1-ip | remote-server2-ip }
+      line: 6625
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp_adaptive: _
+      clock.ptp_adaptive.server: kw:remote-server1-ip=1|remote-server2-ip=2
+      clock.ptp_adaptive.server.address: $ip-address
+  - id: huawei-vrp8.clock-tod-protocol.1
+    syntax: clock tod protocol g-8271
+    view: system
+    undo: undo clock tod protocol
+    default: By default, the protocol type is ubx.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock tod protocol
+      line: 6757
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.clock-tod-protocol.2
+    syntax: clock tod protocol { ubx | nmea | ccsa }
+    view: system
+    undo: undo clock tod protocol
+    default: By default, the protocol type is ubx.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: clock tod protocol
+      line: 6757
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-alarm-threshold-clock-class
+    syntax: ptp alarm-threshold clock-class <clock-class-value>
+    view: system
+    undo: undo ptp alarm-threshold clock-class [ <clock-class-value> ]
+    params:
+      clock-class-value:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: By default, the alarm threshold for time source input deterioration is 6.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp alarm-threshold clock-class
+      line: 7308
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-alarm-threshold-standard-time-offset
+    syntax: ptp alarm-threshold standard-time-offset <time-offset-value>
+    view: system
+    undo: undo ptp alarm-threshold standard-time-offset [ <time-offset-value> ]
+    params:
+      time-offset-value:
+        type: integer
+        range:
+          - 200
+          - 1000
+    default: By default, the alarm threshold for the PTP source absolute time reference is 1000 ns.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp alarm-threshold standard-time-offset
+      line: 7368
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-alarm-threshold-time-offset-sum
+    syntax: ptp alarm-threshold time-offset-sum <offset-sum-value>
+    view: system
+    undo: undo ptp alarm-threshold time-offset-sum [ <offset-sum-value> ]
+    params:
+      offset-sum-value:
+        type: integer
+        range:
+          - 0
+          - 1000000000
+    default: By default, the alarm threshold for the peak value of the accumulated PTP source time offsets is 2000 ns.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp alarm-threshold time-offset-sum
+      line: 7423
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-announce-receipt-timeout
+    syntax: ptp announce receipt-timeout <receipt-timeout-value>
+    view: interface
+    undo: undo ptp announce receipt-timeout
+    params:
+      receipt-timeout-value:
+        type: integer
+        range:
+          - 2
+          - 255
+    default: By default, a PTP interface enters the Master state if the PTP interface fails to receive three consecutive Announce packets.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp announce receipt-timeout
+      line: 7478
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-announce-drop-enable
+    syntax: ptp announce-drop enable
+    view: interface
+    undo: undo ptp announce-drop enable
+    default: By default, a PTP interface accepts Announce packets and sends responses.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp announce-drop enable
+      line: 7541
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-announce-interval
+    syntax: ptp announce-interval <announce-interval-value>
+    view: interface
+    undo: undo ptp announce-interval
+    params:
+      announce-interval-value:
+        type: integer
+        range:
+          - 0
+          - 20
+    default: The default value is 7.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp announce-interval
+      line: 7609
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-asymmetry-correction
+    syntax: ptp asymmetry-correction { positive | negative } <correction-value>
+    view: interface
+    undo: undo ptp asymmetry-correction
+    params:
+      correction-value:
+        type: integer
+        range:
+          - 0
+          - 2000000
+    default: By default, no asymmetry correction time is set.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp asymmetry-correction
+      line: 7672
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-asymmetry-measure-enable
+    syntax: ptp asymmetry-measure enable
+    view: system
+    undo: undo ptp asymmetry-measure enable
+    default: By default, automatic asymmetry measurement is disabled on the device.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp asymmetry-measure enable
+      line: 7734
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source
+    syntax: ptp clock-source <bitsSrc> { time-source <time-source-value> | clock-accuracy <clock-accuracy-value> | clock-class <clock-class-value> | priority2 <priority2-value> | grandmaster-clockid <clock-id> | offsetscaled-logvariance <offsetscaled-value> }
+    view: system
+    undo: undo ptp clock-source <bitsSrc> { time-source | clock-accuracy | clock-class | priority2 | grandmaster-clockid | offsetscaled-logvariance }
+    params:
+      bitsSrc:
+        type: word
+      time-source-value:
+        type: integer
+        range:
+          - 1
+          - 8
+      clock-accuracy-value:
+        type: word
+      clock-class-value:
+        type: integer
+        range:
+          - 0
+          - 255
+      priority2-value:
+        type: integer
+        range:
+          - 0
+          - 255
+      clock-id:
+        type: word
+      offsetscaled-value:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source (BITS time source)
+      line: 7800
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-local-local-priority
+    syntax: ptp clock-source local local-priority <local-priority-value>
+    view: system
+    undo: undo ptp clock-source local local-priority [ <local-priority-value> ]
+    params:
+      local-priority-value:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source local local-priority
+      line: 7895
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-local-clock-accuracy-clock-class-priority1.1
+    syntax: ptp clock-source local clock-accuracy <clock-accuracy-value>
+    view: system
+    undo: undo ptp clock-source local clock-accuracy
+    params:
+      clock-accuracy-value:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source local { clock-accuracy | clock-class | priority1 }
+      line: 7962
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-local-clock-accuracy-clock-class-priority1.2
+    syntax: ptp clock-source local clock-class <clock-class-value>
+    view: system
+    undo: undo ptp clock-source local clock-class
+    params:
+      clock-class-value:
+        type: integer
+        range:
+          - 0
+          - 255
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source local { clock-accuracy | clock-class | priority1 }
+      line: 7962
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-local-clock-accuracy-clock-class-priority1.3
+    syntax: ptp clock-source local priority1 <priority1-value>
+    view: system
+    undo: undo ptp clock-source local priority1
+    params:
+      priority1-value:
+        type: integer
+        range:
+          - 0
+          - 255
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source local { clock-accuracy | clock-class | priority1 }
+      line: 7962
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp{id=_}.priority1: $priority1-value
+  - id: huawei-vrp8.ptp-clock-source-local-time-source-priority2.1
+    syntax: ptp clock-source local time-source <time-source-value>
+    view: system
+    undo: undo ptp clock-source local time-source
+    params:
+      time-source-value:
+        type: integer
+        range:
+          - 1
+          - 8
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source local { time-source | priority2 }
+      line: 8050
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-local-time-source-priority2.2
+    syntax: ptp clock-source local priority2 <priority2-value>
+    view: system
+    undo: undo ptp clock-source local priority2
+    params:
+      priority2-value:
+        type: integer
+        range:
+          - 0
+          - 255
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source local { time-source | priority2 }
+      line: 8050
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp{id=_}.priority2: $priority2-value
+  - id: huawei-vrp8.ptp-clock-source-local-priority
+    syntax: ptp clock-source <bitsSrc> local-priority <local-priority-value>
+    view: system
+    undo: undo ptp clock-source <bitsSrc> local-priority [ <local-priority-value> ]
+    params:
+      bitsSrc:
+        type: word
+      local-priority-value:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source local-priority (BITS time source)
+      line: 8125
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-local-priority-slot
+    syntax: ptp clock-source <bitsSrc> local-priority <local-priority-value> slot <slotId>
+    view: system
+    undo: undo ptp clock-source <bitsSrc> local-priority [ <local-priority-value> ] slot <slotId>
+    params:
+      bitsSrc:
+        type: word
+      local-priority-value:
+        type: integer
+        range:
+          - 1
+          - 255
+      slotId:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source local-priority slot (BITS time source)
+      line: 8196
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-priority1
+    syntax: ptp clock-source <bitsSrc> priority1 <priority1-value>
+    view: system
+    undo: undo ptp clock-source <bitsSrc> priority1
+    params:
+      bitsSrc:
+        type: word
+      priority1-value:
+        type: integer
+        range:
+          - 0
+          - 255
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source priority1 (BITS time source)
+      line: 8268
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-priority1-slot
+    syntax: ptp clock-source <bitsSrc> priority1 <priority1-value> slot <slotId>
+    view: system
+    undo: undo ptp clock-source <bitsSrc> priority1 slot <slotId>
+    params:
+      bitsSrc:
+        type: word
+      priority1-value:
+        type: integer
+        range:
+          - 0
+          - 255
+      slotId:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source priority1 slot (BITS time source)
+      line: 8334
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-slot
+    syntax: ptp clock-source <bitsSrc> { time-source <time-source-value> | clock-accuracy <clock-accuracy-value> | clock-class <clock-class-value> | priority2 <priority2-value> | grandmaster-clockid <clock-id> | offsetscaled-logvariance <offsetscaled-value> } slot <slotId>
+    view: system
+    undo: undo ptp clock-source <bitsSrc> { time-source | clock-accuracy | clock-class | priority2 | grandmaster-clockid | offsetscaled-logvariance } slot <slotId>
+    params:
+      bitsSrc:
+        type: word
+      time-source-value:
+        type: integer
+        range:
+          - 1
+          - 8
+      clock-accuracy-value:
+        type: word
+      clock-class-value:
+        type: integer
+        range:
+          - 0
+          - 255
+      priority2-value:
+        type: integer
+        range:
+          - 0
+          - 255
+      clock-id:
+        type: word
+      offsetscaled-value:
+        type: word
+      slotId:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source slot (BITS time source)
+      line: 8401
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-on-off
+    syntax: ptp clock-source <bitsSrc> { on | off }
+    view: system
+    params:
+      bitsSrc:
+        type: word
+    default: By default, a device does not use BITS clock signals to calculate the BMC.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source { on | off }
+      line: 8497
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-on-off-slot
+    syntax: ptp clock-source <bitsSrc> { on | off } slot <slotId>
+    view: system
+    params:
+      bitsSrc:
+        type: word
+      slotId:
+        type: word
+    default: By default, a device does not use BITS clock signals to calculate the BMC.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source { on | off } slot
+      line: 8560
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-receive-delay-send-delay
+    syntax: ptp clock-source <bitsSrc> { receive-delay <receive-delay-value> | send-delay <send-delay-value> }
+    view: system
+    undo: undo ptp clock-source <bitsSrc> { receive-delay | send-delay }
+    params:
+      bitsSrc:
+        type: word
+      receive-delay-value:
+        type: integer
+        range:
+          - 0
+          - 2000000
+      send-delay-value:
+        type: integer
+        range:
+          - 0
+          - 10000
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source { receive-delay | send-delay }
+      line: 8624
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-source-receive-delay-send-delay-slot
+    syntax: ptp clock-source <bitsSrc> { receive-delay <receive-delay-value> | send-delay <send-delay-value> } slot <slotId>
+    view: system
+    undo: undo ptp clock-source <bitsSrc> { receive-delay | send-delay } slot <slotId>
+    params:
+      bitsSrc:
+        type: word
+      receive-delay-value:
+        type: integer
+        range:
+          - 0
+          - 2000000
+      send-delay-value:
+        type: integer
+        range:
+          - 0
+          - 10000
+      slotId:
+        type: word
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-source { receive-delay | send-delay } slot
+      line: 8686
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-clock-step
+    syntax: ptp clock-step { one-step | two-step }
+    view: interface
+    undo: undo ptp clock-step
+    default: By default, the one-step timestamping mode is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp clock-step
+      line: 8747
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-delay-mechanism
+    syntax: ptp delay-mechanism { delay | pdelay }
+    view: interface
+    undo: undo ptp delay-mechanism
+    default: By default, an OC interface, a BC interface, or a TCandBC interface uses the Delay measurement mechanism.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp delay-mechanism
+      line: 8814
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ptp: _
+      interface.ptp.delay_mechanism: kw:pdelay|delay
+  - id: huawei-vrp8.ptp-device-type.1
+    syntax: ptp device-type { oc | bc | e2etc | p2ptc | e2etcoc | p2ptcoc | tcandbc }
+    view: system
+    undo: undo ptp device-type
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp device-type
+      line: 8883
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp{id=_}.device_type: tail:device-type
+  - id: huawei-vrp8.ptp-device-type.2
+    syntax: ptp device-type { oc | bc | tcandbc }
+    view: system
+    undo: undo ptp device-type
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp device-type
+      line: 8883
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp{id=_}.device_type: tail:device-type
+  - id: huawei-vrp8.ptp-device-type-t-bc-t-tc.1
+    syntax: ptp device-type { t-bc | t-tc }
+    view: system
+    undo: undo ptp device-type [ t-bc | t-tc ]
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp device-type { t-bc | t-tc }
+      line: 8973
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp{id=_}.device_type: tail:device-type
+  - id: huawei-vrp8.ptp-device-type-t-bc-t-tc.2
+    syntax: ptp device-type t-bc
+    view: system
+    undo: undo ptp device-type [ t-bc | t-tc ]
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp device-type { t-bc | t-tc }
+      line: 8973
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp{id=_}.device_type: tail:device-type
+  - id: huawei-vrp8.ptp-domain
+    syntax: ptp domain <domain-value>
+    view: interface
+    undo: undo ptp domain
+    params:
+      domain-value:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: By default, a 1588v2 device resides in domain 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp domain (interface view)
+      line: 9053
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ptp: _
+      interface.ptp.domain: $domain-value
+  - id: huawei-vrp8.ptp-domain~2
+    syntax: ptp domain <domain-value>
+    view: system
+    undo: undo ptp domain
+    params:
+      domain-value:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: By default, a 1588v2 device resides in domain 0.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp domain (system view)
+      line: 9126
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp{id=_}.domain: $domain-value
+  - id: huawei-vrp8.ptp-enable
+    syntax: ptp enable
+    view: interface
+    undo: undo ptp enable
+    default: By default, PTP is disabled on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp enable (interface view)
+      line: 9192
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ptp: _
+      interface.ptp.enabled: flag
+  - id: huawei-vrp8.ptp-enable~2
+    syntax: ptp enable
+    view: system
+    undo: undo ptp enable
+    default: By default, the PTP function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp enable (system view)
+      line: 9253
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp{id=_}.enabled: flag
+  - id: huawei-vrp8.ptp-lite-sync
+    syntax: ptp lite-sync sub-ms enable
+    view: system
+    undo: undo ptp lite-sync [ sub-ms enable ]
+    default: By default, lightweight time synchronization is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp lite-sync
+      line: 9312
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-local-clock-class-holdoff-time
+    syntax: ptp local-clock-class holdoff-time <time-value>
+    view: system
+    undo: undo ptp local-clock-class holdoff-time [ <time-value> ]
+    params:
+      time-value:
+        type: integer
+        range:
+          - 0
+          - 10000
+    default: By default, the hold-off time is 0, that is, the function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp local-clock-class holdoff-time
+      line: 9373
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-local-priority
+    syntax: ptp local-priority <local-priority-value>
+    view: interface
+    undo: undo ptp local-priority [ <local-priority-value> ]
+    params:
+      local-priority-value:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp local-priority
+      line: 9430
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ptp: _
+      interface.ptp.local_priority: $local-priority-value
+  - id: huawei-vrp8.ptp-mac-egress.1
+    syntax: ptp mac-egress vlan <vlan-id> [ priority <priority-value> ]
+    view: interface
+    undo: undo ptp mac-egress vlan priority
+    params:
+      vlan-id:
+        type: integer
+        range:
+          - 1
+          - 4094
+      priority-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, PTP packets are encapsulated in MAC multicast encapsulation mode, and no VLAN or VLAN priority is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp mac-egress
+      line: 9496
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-mac-egress.2
+    syntax: ptp mac-egress destination-mac <destination-mac-value>
+    view: interface
+    undo: undo ptp mac-egress destination-mac
+    params:
+      destination-mac-value:
+        type: word
+    default: By default, PTP packets are encapsulated in MAC multicast encapsulation mode, and no VLAN or VLAN priority is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp mac-egress
+      line: 9496
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-max-steps-removed
+    syntax: ptp max-steps-removed <max-steps-removed-value>
+    view: system
+    undo: undo ptp max-steps-removed [ <max-steps-removed-value> ]
+    params:
+      max-steps-removed-value:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: By default, the maximum number of hops for time synchronization is 255.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp max-steps-removed
+      line: 9590
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-min-delayreq-interval
+    syntax: ptp min-delayreq-interval <min-delayreq-interval-value>
+    view: interface
+    undo: undo ptp min-delayreq-interval
+    params:
+      min-delayreq-interval-value:
+        type: integer
+        range:
+          - 0
+          - 20
+    default: the default value is 7.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp min-delayreq-interval
+      line: 9653
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-min-pdelayreq-interval
+    syntax: ptp min-pdelayreq-interval <min-pdelayreq-interval-value>
+    view: interface
+    undo: undo ptp min-pdelayreq-interval
+    params:
+      min-pdelayreq-interval-value:
+        type: integer
+        range:
+          - 0
+          - 20
+    default: By default, the minimum interval at which a PTP interface sends Pdelay_Req packets is 7.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp min-pdelayreq-interval
+      line: 9718
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-notslave-disable
+    syntax: ptp notslave disable
+    view: interface
+    undo: undo ptp notslave disable
+    default: By default, the notslave attribute is TRUE.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp notslave disable
+      line: 9790
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-passive-measure-alarm-threshold
+    syntax: ptp passive-measure alarm-threshold <alarm-threshold-value>
+    view: system
+    undo: undo ptp passive-measure alarm-threshold
+    params:
+      alarm-threshold-value:
+        type: integer
+        range:
+          - 55
+          - 10000
+    default: By default, the alarm threshold for the time offset on the passive interface of a PTP device is 600 ns.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp passive-measure alarm-threshold
+      line: 9852
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-passive-measure-enable
+    syntax: ptp passive-measure enable
+    view: system
+    undo: undo ptp passive-measure enable
+    default: By default, a PTP device monitors the performance of a passive interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp passive-measure enable
+      line: 9914
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-performance-monitor.1
+    syntax: ptp performance-monitor timeoffset-cycle <timeoffset-cycle-value>
+    view: system
+    undo: undo ptp performance-monitor timeoffset-cycle [ <timeoffset-cycle-value> ]
+    params:
+      timeoffset-cycle-value:
+        type: word
+    default: By default, the period of time offset monitoring is 15 minutes.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp performance-monitor
+      line: 9981
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-performance-monitor.2
+    syntax: ptp performance-monitor timestamp-cycle <timestamp-cycle-value>
+    view: system
+    undo: undo ptp performance-monitor timestamp-cycle [ <timestamp-cycle-value> ]
+    params:
+      timestamp-cycle-value:
+        type: word
+    default: By default, the period of time offset monitoring is 15 minutes.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp performance-monitor
+      line: 9981
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-permit-dmac
+    syntax: ptp permit-dmac <permit-dmac-value>
+    view: interface
+    undo: undo ptp permit-dmac
+    params:
+      permit-dmac-value:
+        type: word
+    default: By default, no MAC address is configured for packet check on an interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp permit-dmac
+      line: 10054
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-port-state
+    syntax: ptp port-state { disabled | faulty | initializing | listening | master | passive | premaster | slave }
+    view: interface
+    undo: undo ptp port-state
+    default: By default, the 1588v2 interface works in the Initializing state.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp port-state
+      line: 10115
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.ptp: _
+      interface.ptp.port_state: tail:port-state
+  - id: huawei-vrp8.ptp-port-state-primary
+    syntax: ptp port-state primary { slave | master }
+    view: interface
+    undo: undo ptp port-state primary
+    default: By default, the preselection status of a PTP interface is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp port-state primary
+      line: 10196
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-port-type.1
+    syntax: ptp port-type { tc | bc }
+    view: interface
+    undo: undo ptp port-type
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp port-type
+      line: 10266
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-port-type.2
+    syntax: ptp port-type bc
+    view: interface
+    undo: undo ptp port-type
+    default: by default.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp port-type
+      line: 10266
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-profile
+    syntax: ptp profile { g-8275-1 | cu-106 } enable
+    view: system
+    undo: undo ptp profile { g-8275-1 | cu-106 } enable
+    default: By default, the time synchronization mode is 1588v2.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp profile
+      line: 10343
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      clock.ptp{id=_}.profile: kw:g-8275-1|cu-106
+  - id: huawei-vrp8.ptp-ptsf-auto-recovery-time
+    syntax: ptp ptsf auto-recovery-time <time-value>
+    view: system
+    undo: undo ptp ptsf auto-recovery-time [ <time-value> ]
+    params:
+      time-value:
+        type: integer
+        range:
+          - 0
+          - 1440
+    default: By default, the PTSF auto-recovery time is 0 minutes, that is, the function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp ptsf auto-recovery-time
+      line: 10407
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-ptsf-enhanced-mode
+    syntax: ptp ptsf enhanced-mode
+    view: system
+    undo: undo ptp ptsf enhanced-mode
+    default: By default, the PTSF enhanced mode is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp ptsf enhanced-mode
+      line: 10464
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-send-gm-wtr
+    syntax: ptp send-gm-wtr <gm-wtr-time>
+    view: system
+    undo: undo ptp send-gm-wtr [ <gm-wtr-time> ]
+    params:
+      gm-wtr-time:
+        type: integer
+        range:
+          - 0
+          - 720
+    default: By default, the WTR time is 10 minutes.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp send-gm-wtr
+      line: 10522
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-set-port-state
+    syntax: ptp set-port-state enable
+    view: system
+    undo: undo ptp set-port-state enable
+    default: By default, statically specifying the status of PTP interfaces is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp set-port-state
+      line: 10575
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-slaveonly
+    syntax: ptp slaveonly
+    view: system
+    undo: undo ptp slaveonly
+    default: By default, the OC does not work in slaveonly mode, which means that the OC can serve either as a master clock or a slave clock.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp slaveonly
+      line: 10644
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-source-switch-ptsf-enable
+    syntax: ptp source-switch ptsf enable
+    view: system
+    undo: undo ptp source-switch ptsf enable
+    default: By default, PTSF-triggered time source switching is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp source-switch ptsf enable
+      line: 10707
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-source-switch-ptsf-recover
+    syntax: ptp source-switch ptsf recover
+    view: interface
+    default: By default, no recovery operation is performed.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp source-switch ptsf recover
+      line: 10760
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-standard-time-port
+    syntax: ptp standard-time-port <bitsSrc>
+    view: system
+    undo: undo ptp standard-time-port [ <bitsSrc> ]
+    params:
+      bitsSrc:
+        type: word
+    default: By default, a device is not configured with an absolute time reference interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp standard-time-port
+      line: 10808
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-standard-time-port~2
+    syntax: ptp standard-time-port { <ifName> | <ifType> <ifNum> }
+    view: system
+    undo: undo ptp standard-time-port { <ifName> | <ifType> <ifNum> }
+    params:
+      ifName:
+        type: word
+      ifType:
+        type: word
+      ifNum:
+        type: word
+    default: By default, a device is not configured with an absolute time reference interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp standard-time-port (Interface)
+      line: 10870
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-standard-time-port-slot
+    syntax: ptp standard-time-port <bitsSrc> slot <slotId>
+    view: system
+    undo: undo ptp standard-time-port [ <bitsSrc> slot <slotId> ]
+    params:
+      bitsSrc:
+        type: word
+      slotId:
+        type: word
+    default: By default, a device is not configured with an absolute time reference interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp standard-time-port slot
+      line: 10929
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-sync-interval
+    syntax: ptp sync-interval <sync-interval-value>
+    view: interface
+    undo: undo ptp sync-interval
+    params:
+      sync-interval-value:
+        type: integer
+        range:
+          - 0
+          - 20
+    default: the default value is 3.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp sync-interval
+      line: 10992
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-tcoc-clock-id
+    syntax: ptp tcoc-clock-id <clock-id-value> port-num <port-num-value>
+    view: interface
+    undo: undo ptp tcoc-clock-id
+    params:
+      clock-id-value:
+        type: word
+      port-num-value:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: By default, the the ID of a clock source that an OC interface on a TCOC tracks is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp tcoc-clock-id
+      line: 11059
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-time-adjustment-disable
+    syntax: ptp time-adjustment disable
+    view: system
+    undo: undo ptp time-adjustment disable
+    default: By default, the time adjustment function is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp time-adjustment disable
+      line: 11132
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-udp-egress.1
+    syntax: ptp udp-egress source-ip <source-ip-value> [ destination-ip <destination-ip-value> ] [ dscp <dscp-value> ] [ vlan <vlan-id> [ priority <priority-value> ] ]
+    view: interface
+    undo: undo ptp udp-egress { source-ip | destination-ip | dscp | vlan | priority | destination-mac }
+    params:
+      source-ip-value: &id004
+        type: ipv4
+      destination-ip-value: &id005
+        type: ipv4
+      dscp-value: &id006
+        type: integer
+        range:
+          - 0
+          - 63
+      vlan-id:
+        type: integer
+        range:
+          - 1
+          - 4094
+      priority-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: By default, PTP packets are encapsulated in MAC multicast mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp udp-egress
+      line: 11190
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-udp-egress.2
+    syntax: ptp udp-egress source-ip <source-ip-value> [ destination-ip <destination-ip-value> ] [ dscp <dscp-value> ]
+    view: interface
+    undo: undo ptp udp-egress { source-ip | destination-ip | dscp | vlan | priority | destination-mac }
+    params:
+      source-ip-value: *id004
+      destination-ip-value: *id005
+      dscp-value: *id006
+    default: By default, PTP packets are encapsulated in MAC multicast mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp udp-egress
+      line: 11190
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-udp-egress.3
+    syntax: ptp udp-egress destination-mac <destination-mac-value>
+    view: interface
+    undo: undo ptp udp-egress { source-ip | destination-ip | dscp | vlan | priority | destination-mac }
+    params:
+      destination-mac-value:
+        type: word
+    default: By default, PTP packets are encapsulated in MAC multicast mode.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp udp-egress
+      line: 11190
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-uhpc-enable
+    syntax: ptp uhpc enable
+    view: system
+    undo: undo ptp uhpc enable
+    default: By default, the ultra-high-precision PTP timestamping function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp uhpc enable
+      line: 11283
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-utc-offset
+    syntax: ptp utc-offset <utc-offset-value>
+    view: system
+    undo: undo ptp utc-offset
+    params:
+      utc-offset-value:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: By default, the offset is 35s.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp utc-offset
+      line: 11344
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ptp-virtual-clock-id
+    syntax: ptp virtual-clock-id <clock-id>
+    view: system
+    undo: undo ptp virtual-clock-id
+    params:
+      clock-id:
+        type: word
+    default: By default, a PTP device has only a default clock ID.
+    source:
+      doc: huawei-vrp8-md
+      file: 03_Clock and Time Synchronization Commands.md
+      title: ptp virtual-clock-id
+      line: 11410
+      version: V800R025C00SPC500
+    status: draft

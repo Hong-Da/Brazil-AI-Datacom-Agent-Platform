@@ -103,10 +103,12 @@ nodes:
     ref: acl.instance
     semantic: {zh-CN: 路由策略节点匹配的 ACL（华为 if-match acl；Cisco match ip address 编号或名称）, en: Match ACL}
 deps:
-  - {kind: reference, from: interface.acl_in, to: acl.instance, note: 接口引用 ACL}
-  - {kind: reference, from: interface.acl_out, to: acl.instance, note: 接口引用 ACL}
-  - {kind: reference, from: mgmt.line.acl_in, to: acl.instance, note: 登录线路引用 ACL}
-  - {kind: reference, from: mgmt.snmp.community.acl, to: acl.instance, note: SNMP 团体字引用 ACL}
-  - {kind: reference, from: mgmt.ntp.access.acl, to: acl.instance, note: NTP 访问控制引用 ACL}
-  - {kind: reference, from: acl.instance.rule.vrf, to: vrf.instance, note: 规则引用 VPN 实例}
-  - {kind: reference, from: rp.policy.node.match_acl, to: acl.instance, note: 路由策略引用 ACL}
+  - {kind: reference, from: interface.acl_in, to: acl.instance, note: {zh-CN: 接口引用 ACL, en: 'Interface references the ACL', pt-BR: 'A interface referencia a ACL'}}
+  - {kind: reference, from: interface.acl_out, to: acl.instance, note: {zh-CN: 接口引用 ACL, en: 'Interface references the ACL', pt-BR: 'A interface referencia a ACL'}}
+  - {kind: reference, from: mgmt.line.acl_in, to: acl.instance, note: {zh-CN: 登录线路引用 ACL, en: 'Login line (VTY) references the ACL', pt-BR: 'A linha de login (VTY) referencia a ACL'}}
+  - {kind: reference, from: mgmt.snmp.community.acl, to: acl.instance, note: {zh-CN: SNMP 团体字引用 ACL, en: 'SNMP community references the ACL', pt-BR: 'A comunidade SNMP referencia a ACL'}}
+  - {kind: reference, from: mgmt.ntp.access.acl, to: acl.instance, note: {zh-CN: NTP 访问控制引用 ACL, en: 'NTP access control references the ACL', pt-BR: 'O controle de acesso NTP referencia a ACL'}}
+  - {kind: reference, from: mgmt.snmp.group.acl, to: acl.instance, note: {zh-CN: SNMP 组引用 ACL, en: 'SNMP group references the ACL', pt-BR: 'O grupo SNMP referencia a ACL'}}
+  - {kind: reference, from: mgmt.snmp.user.acl, to: acl.instance, note: {zh-CN: SNMPv3 用户引用 ACL, en: 'SNMPv3 user references the ACL', pt-BR: 'O usuário SNMPv3 referencia a ACL'}}
+  - {kind: reference, from: acl.instance.rule.vrf, to: vrf.instance, note: {zh-CN: 规则引用 VPN 实例, en: 'ACL rule references the VPN instance (VRF)', pt-BR: 'A regra da ACL referencia a instância VPN (VRF)'}}
+  - {kind: reference, from: rp.policy.node.match_acl, to: acl.instance, note: {zh-CN: 路由策略引用 ACL, en: 'Route policy references the ACL', pt-BR: 'A política de roteamento referencia a ACL'}}

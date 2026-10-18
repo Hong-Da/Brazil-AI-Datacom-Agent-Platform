@@ -1,0 +1,93 @@
+# 图查询 lmesh query、AI 查询 lmesh ask、配置护栏 lmesh guard、AI 生成 lmesh generate 的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# AI 相关的正常流程用假的 AI 客户端在单元测试与 API 测试中验证；这里只验证未配置 AI 时的状态。
+
+[[case]]
+id = "query-file"
+title = { zh-CN = "图查询（不需要 AI）：绑定了 VPN 实例的接口及其地址与 MTU（含默认值）", en = "Graph query without AI: interfaces bound to a VPN instance", pt-BR = "Consulta ao grafo sem IA: interfaces ligadas a uma instância VPN" }
+args = ["--output", "json", "query", "FIND interface WHERE vrf EXISTS RETURN name, vrf, ipv4.address, mtu WITH DEFAULTS", "{samples}/change/atn-base.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.count" = 1, "data.object" = "interface", "data.rows.0.node" = "interface[GigabitEthernet0/2/1.101]", "data.rows.0.cells.vrf.value" = "RAN", "data.rows.0.cells.vrf.lines" = [36], "data.rows.0.cells.mtu.value" = 1500, "data.rows.0.cells.mtu.origin" = "default" }
+in_docs = true
+
+[[case]]
+id = "query-device-text"
+title = { zh-CN = "图查询已导入设备（文字输出）", en = "Graph query on an imported device (text)", pt-BR = "Consulta ao grafo num dispositivo importado (texto)" }
+args = ["--lang", "zh-CN", "query", "FIND interface WHERE mtu = 9216 RETURN name, description"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_stdout = ["1 行（列出 1 行）", "GigabitEthernet0/2/0", "UPLINK-TO-AGG-01"]
+
+[[case]]
+id = "query-syntax-error"
+title = { zh-CN = "查询写法不对", en = "Query syntax error", pt-BR = "Erro de sintaxe na consulta" }
+args = ["query", "SELECT * FROM interface", "{samples}/change/atn-base.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 2
+in_docs = true
+
+[[case]]
+id = "query-bad-field"
+title = { zh-CN = "查询的字段不存在", en = "Unknown field in query", pt-BR = "Campo desconhecido na consulta" }
+args = ["query", "FIND interface RETURN nope", "{samples}/change/atn-base.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 2
+
+[[case]]
+id = "ask-not-configured"
+title = { zh-CN = "未配置 AI：自然语言查询返回“未配置”（核心功能照常）", en = "AI not configured: ask reports not configured", pt-BR = "IA não configurada: a pergunta informa não configurada" }
+args = ["--output", "json", "ask", "哪些接口绑定了 VPN 实例？"]
+setup = "configured-fullkb-history"
+expect_exit = 3
+expect_json = { "ok" = false, "error.code" = 3, "error.data.status" = "not_configured" }
+in_docs = true
+
+[[case]]
+id = "generate-not-configured"
+title = { zh-CN = "未配置 AI：生成配置返回“未配置”", en = "AI not configured: generate reports not configured", pt-BR = "IA não configurada: gerar informa não configurada" }
+args = ["generate", "新增子接口", "--device", "ATN-CHANGE-01"]
+setup = "configured-fullkb-history"
+expect_exit = 3
+
+[[case]]
+id = "guard-blocked"
+title = { zh-CN = "配置护栏（不需要 AI）：合并到当前配置后检查，标出被拦截的行与原因", en = "Config guardrail without AI: blocked lines and reasons", pt-BR = "Barreira de configuração sem IA: linhas bloqueadas e motivos" }
+args = ["--output", "json", "guard", "{inputs}/guard/atn-bad.cfg", "--device", "{samples}/change/atn-base.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "ok" = true, "data.verdict" = "blocked", "data.summary.bad" = 4, "data.stages.parse.status" = "bad", "data.stages.deps.status" = "bad", "data.stages.conflict.status" = "bad", "data.stages.template.status" = "skipped", "data.lines.0.status" = "skip", "data.lines.4.status" = "bad" }
+expect_stderr = ["被拦截"]
+in_docs = true
+
+[[case]]
+id = "guard-passed-device"
+title = { zh-CN = "配置护栏：目标是已导入设备，通过后附增量变更脚本", en = "Guardrail on an imported device: passes and includes the change script", pt-BR = "Barreira num dispositivo importado: aprovado, com script de mudança" }
+args = ["--output", "json", "guard", "{inputs}/guard/atn-good.cfg", "--device", "ATN-CHANGE-01"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_json = { "ok" = true, "data.verdict" = "passed", "data.device" = "ATN-CHANGE-01", "data.issues.0.rule" = "side_effect_ok", "data.script.available" = true, "data.script.verify_ok" = true }
+in_docs = true
+
+[[case]]
+id = "guard-text-en"
+title = { zh-CN = "配置护栏的文字输出（英文）", en = "Guardrail text output (English)", pt-BR = "Saída de texto da barreira (inglês)" }
+args = ["--lang", "en", "guard", "{inputs}/guard/atn-bad.cfg", "--device", "{samples}/change/atn-base.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_stdout = ["Blocked: 4 problem(s)", "Unrecognized command: vpn-target 65000:105 both-direction", "References an object that does not exist"]
+expect_stderr = ["Blocked"]
+
+[[case]]
+id = "guard-empty"
+title = { zh-CN = "要校验的配置是空的", en = "The configuration to check is empty", pt-BR = "A configuração a verificar está vazia" }
+args = ["guard", "{inputs}/configs/bad/empty.cfg", "--device", "{samples}/change/atn-base.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 2
+
+[[case]]
+id = "guard-empty-base"
+title = { zh-CN = "没有目标设备：按空配置校验（引用的 VPN 实例不存在，被拦截）", en = "No target device: checked against an empty config", pt-BR = "Sem dispositivo alvo: verificado contra configuração vazia" }
+args = ["--output", "json", "guard", "{inputs}/guard/atn-good.cfg", "--profile", "huawei-atn-v800r025", "--no-script"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "ok" = true, "data.verdict" = "blocked", "data.profile" = "huawei-atn-v800r025", "data.issues.0.rule" = "dangling_ref", "data.issues.0.line" = 4 }

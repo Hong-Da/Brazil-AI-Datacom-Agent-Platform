@@ -1,0 +1,488 @@
+{
+ "status": {
+  "configured": true,
+  "status": "ready",
+  "provider": "openai",
+  "models": {
+   "ask": "fake-model",
+   "generate": "fake-model"
+  },
+  "sanitize": "always",
+  "guard_without_ai": true,
+  "grammar": {
+   "syntax": "FIND <object> [ON <device>[, ...] | ON *] [WHERE <field> <op> <value> [AND ...]] [RETURN <field>[, ...]] [WITH DEFAULTS] [LIMIT n]",
+   "ops": [
+    "=",
+    "!=",
+    "~ (regex)",
+    "!~",
+    ">",
+    "<",
+    ">=",
+    "<=",
+    "IN (a, b)",
+    "EXISTS",
+    "NOT EXISTS"
+   ],
+   "notes": [
+    "object is a Schema object id such as interface, bgp.peer, vrf.instance, static.route",
+    "field is a Schema path relative to the object (description, ipv4.address, af.rd) or a key field (name)",
+    "WHERE compares effective values (explicit, otherwise the Profile default)",
+    "read only; no OR, no joins: issue a query per object type"
+   ]
+  }
+ },
+ "ask": {
+  "question": "哪些接口配置了 MTU？",
+  "question_sent": "哪些接口配置了 MTU？",
+  "attempts": [
+   {
+    "query": "FIND interface\nON *\nWHERE mtu EXISTS\nRETURN name, description, mtu",
+    "error": null
+   }
+  ],
+  "sent": [
+   {
+    "step": "query",
+    "system": "You turn a network engineer's question about router configurations into ONE read-only query in the\nLucidMesh graph query language. The query is validated and executed by code; never answer the question yourself.\nGrammar: FIND <object> [ON <device>[, ...] | ON *] [WHERE <field> <op> <value> [AND ...]] [RETURN <field>[, ...]] [WITH DEFAULTS] [LIMIT n]\nOperators: =, !=, ~ (regex), !~, >, <, >=, <=, IN (a, b), EXISTS, NOT EXISTS\nNotes: object is a Schema object id such as interface, bgp.peer, vrf.instance, static.route; field is a Schema path relative to the object (description, ipv4.address, af.r",
+    "prompt": "Devices:\n- ATN-CHANGE-01 (profile huawei-atn-v800r025, family huawei-vrp8)\n- ORG-364464 (profile huawei-atn-v800r023, family huawei-vrp8)\n- PE-ASR920-01 (profile cisco-iosxe-asr920-17.15, family cisco-iosxe)\n\nSchema (object -> fields):\nacl.instance -> name:key, description:text, match_order:enum, number:integer, rule.id:key, rule.action:enum, rule.description:text, rule.destination_ip:string, rule.destination_port:string, rule.destination_wildcard:string, rule.log:boolean, rule.name:text, rule.protocol:string, rule.source_ip:string, rule.source_port:string, rule.source_wildcard:string, rule.vrf:ref, step:integer, type:enum\nacl.instance.rule -> id:key, action:enum, description:text, destination_ip:string, destination_port:string, destination_wildcard:string, log:boolean, name:text, protocol:string, source_ip:string, source_port:string, source_wildcard:string, vrf:ref\nbfd.global -> id:key\nbfd.session -> name:key, interface:interface, local_discriminator:integer, min_rx:integer, min_tx:integer, multiplier:integer, peer:ipv4, remote_discriminator:integer\nbgp.af -> afi:key, vrf:key, network.policy:ref, network.prefix:prefix, nexthop_policy:ref, peer.peer:key, peer.description:text, peer",
+    "reply": "{\"query\": \"FIND interface WHERE mtu EXISTS RETURN name, description, mtu\"}"
+   },
+   {
+    "step": "answer",
+    "system": "You answer a network engineer's question using ONLY the query result below. Every statement must cite the\nresult rows it relies on (row numbers), and list the facts it states as {\"row\": n, \"field\": \"<column>\", \"value\": \"<value>\"};\na statement about how many rows match uses \"count\". Statements that are not configuration facts (advice, opinions)\nhave no facts. Answer in Simplified Chinese. Reply with JSON only:\n{\"statements\": [{\"text\": \"...\", \"cites\": [1], \"facts\": [{\"row\": 1, \"field\": \"description\", \"value\": \"...\"}], \"count\": null}]}",
+    "prompt": "Question: 哪些接口配置了 MTU？\n\nQuery:\nFIND interface\nON *\nWHERE mtu EXISTS\nRETURN name, description, mtu\n\nResult:\n{\"columns\": [\"device\", \"object\", \"name\", \"description\", \"mtu\"], \"rows\": [{\"row\": 1, \"device\": \"ATN-CHANGE-01\", \"object\": \"GigabitEthernet0/2/0\", \"name\": \"GigabitEthernet0/2/0\", \"description\": \"UPLINK-TO-AGG-01\", \"mtu\": \"9216\"}, {\"row\": 2, \"device\": \"ATN-CHANGE-01\", \"object\": \"GigabitEthernet0/2/1\", \"name\": \"GigabitEthernet0/2/1\", \"description\": \"RAN-SITE\", \"mtu\": null}, {\"row\": 3, \"device\": \"ATN-CHANGE-01\", \"object\": \"GigabitEthernet0/2/1.101\", \"name\": \"GigabitEthernet0/2/1.101\", \"description\": null, \"mtu\": null}, {\"row\": 4, \"device\": \"ATN-CHANGE-01\", \"object\": \"GigabitEthernet0/2/2\", \"name\": \"GigabitEthernet0/2/2\", \"description\": \"OAM-LINK\", \"mtu\": null}, {\"row\": 5, \"device\": \"ATN-CHANGE-01\", \"object\": \"LoopBack0\", \"name\": \"LoopBack0\", \"description\": null, \"mtu\": null}, {\"row\": 6, \"device\": \"ORG-364464\", \"object\": \"Vbdif1584\", \"name\": \"Vbdif1584\", \"description\": \"DESC-D03874\", \"mtu\": null}, {\"row\": 7, \"device\": \"ORG-364464\", \"object\": \"Vbdif1585\", \"name\": \"Vbdif1585\", \"description\": \"DESC-A3D3C7\", \"mtu\": null}, {\"row\": 8, \"device\": \"ORG-364464\", \"object\": \"Vbdif1586\", \"name\":",
+    "reply": "{\"statements\": [{\"text\": \"共有 107 个对象符合条件。\", \"cites\": [1, 2, 3], \"count\": 107}, {\"text\": \"ATN-CHANGE-01 的 GigabitEthernet0/2/0 的 mtu 是 9216。\", \"cites\": [1], \"facts\": [{\"row\": 1, \"field\": \"mtu\", \"value\": \"9216\"}]}, {\"text\": \"GigabitEthernet0/2/1 的 mtu 也都是 9999。\", \"cites\": [2], \"facts\": [{\"row\": 2, \"field\": \"mtu\", \"value\": \"9999\"}]}, {\"text\": \"建议定期核对这些配置是否与规划一致。\", \"cites\": []}]}"
+   }
+  ],
+  "status": "answered",
+  "query": {
+   "find": "interface",
+   "on": [],
+   "where": [
+    {
+     "field": "mtu",
+     "op": "exists"
+    }
+   ],
+   "return": [
+    "name",
+    "description",
+    "mtu"
+   ],
+   "with_defaults": false,
+   "limit": 200
+  },
+  "query_text": "FIND interface\nON *\nWHERE mtu EXISTS\nRETURN name, description, mtu",
+  "result": {
+   "query": {
+    "find": "interface",
+    "on": [],
+    "where": [
+     {
+      "field": "mtu",
+      "op": "exists"
+     }
+    ],
+    "return": [
+     "name",
+     "description",
+     "mtu"
+    ],
+    "with_defaults": false,
+    "limit": 200
+   },
+   "text": "FIND interface\nON *\nWHERE mtu EXISTS\nRETURN name, description, mtu",
+   "object": "interface",
+   "columns": [
+    {
+     "field": "name",
+     "schema": null,
+     "type": "key",
+     "secret": false
+    },
+    {
+     "field": "description",
+     "schema": "interface.description",
+     "type": "text",
+     "secret": false
+    },
+    {
+     "field": "mtu",
+     "schema": "interface.mtu",
+     "type": "integer",
+     "secret": false
+    }
+   ],
+   "rows": [
+    {
+     "n": 1,
+     "device": "ATN-CHANGE-01",
+     "device_id": 3,
+     "version_id": 9,
+     "node": "interface[GigabitEthernet0/2/0]",
+     "schema": "interface",
+     "key": "GigabitEthernet0/2/0",
+     "label": "GigabitEthernet0/2/0",
+     "lines": [
+      23,
+      24,
+      25,
+      26,
+      27,
+      28
+     ],
+     "cells": {
+      "name": {
+       "value": "GigabitEthernet0/2/0",
+       "origin": "explicit",
+       "nodes": [
+        "interface[GigabitEthernet0/2/0]"
+       ],
+       "lines": [
+        23
+       ]
+      },
+      "description": {
+       "value": "UPLINK-TO-AGG-01",
+       "origin": "explicit",
+       "nodes": [
+        "interface[GigabitEthernet0/2/0]/description"
+       ],
+       "lines": [
+        24
+       ]
+      },
+      "mtu": {
+       "value": 9216,
+       "origin": "explicit",
+       "nodes": [
+        "interface[GigabitEthernet0/2/0]/mtu"
+       ],
+       "lines": [
+        25
+       ]
+      }
+     }
+    },
+    {
+     "n": 2,
+     "device": "ATN-CHANGE-01",
+     "device_id": 3,
+     "version_id": 9,
+     "node": "interface[GigabitEthernet0/2/1]",
+     "schema": "interface",
+     "key": "GigabitEthernet0/2/1",
+     "label": "GigabitEthernet0/2/1",
+     "lines": [
+      30,
+      31,
+      32
+     ],
+     "cells": {
+      "name": {
+       "value": "GigabitEthernet0/2/1",
+       "origin": "explicit",
+       "nodes": [
+        "interface[GigabitEthernet0/2/1]"
+       ],
+       "lines": [
+        30
+       ]
+      },
+      "description": {
+       "value": "RAN-SITE",
+       "origin": "explicit",
+       "nodes": [
+        "interface[GigabitEthernet0/2/1]/description"
+       ],
+       "lines": [
+        32
+       ]
+      },
+      "mtu": {
+       "value": null,
+       "origin": "none",
+       "nodes": [],
+       "lines": []
+      }
+     }
+    },
+    {
+     "n": 3,
+     "device": "ATN-CHANGE-01",
+     "device_id": 3,
+     "version_id": 9,
+     "node": "interface[GigabitEthernet0/2/1.101]",
+     "schema": "interface",
+     "key": "GigabitEthernet0/2/1.101",
+     "label": "GigabitEthernet0/2/1.101",
+     "lines": [
+      34,
+      35,
+      36,
+      37
+     ],
+     "cells": {
+      "name": {
+       "value": "GigabitEthernet0/2/1.101",
+       "origin": "explicit",
+       "nodes": [
+        "interface[GigabitEthernet0/2/1.101]"
+       ],
+       "lines": [
+        34
+       ]
+      },
+      "description": {
+       "value": null,
+       "origin": "none",
+       "nodes": [],
+       "lines": []
+      },
+      "mtu": {
+       "value": null,
+       "origin": "none",
+       "nodes": [],
+       "lines": []
+      }
+     }
+    },
+    {
+     "n": 4,
+     "device": "ATN-CHANGE-01",
+     "device_id": 3,
+     "version_id": 9,
+     "node": "interface[GigabitEthernet0/2/2]",
+     "schema": "interface",
+     "key": "GigabitEthernet0/2/2",
+     "label": "GigabitEthernet0/2/2",
+     "lines": [
+      39,
+      40,
+      41
+     ],
+     "cells": {
+      "name": {
+       "value": "GigabitEthernet0/2/2",
+       "origin": "explicit",
+       "nodes": [
+        "interface[GigabitEthernet0/2/2]"
+       ],
+       "lines": [
+        39
+       ]
+      },
+      "description": {
+       "value": "OAM-LINK",
+       "origin": "explicit",
+       "nodes": [
+        "interface[GigabitEthernet0/2/2]/description"
+       ],
+       "lines": [
+        40
+       ]
+      },
+      "mtu": {
+       "value": null,
+       "origin": "none",
+       "nodes": [],
+       "lines": []
+      }
+     }
+    },
+    {
+     "n": 5,
+     "device": "ATN-CHANGE-01",
+     "device_id": 3,
+     "version_id": 9,
+     "node": "interface[LoopBack0]",
+     "schema": "interface",
+     "key": "LoopBack0",
+     "label": "LoopBack0",
+     "lines": [
+      43,
+      44
+     ],
+     "cells": {
+      "name": {
+       "value": "LoopBack0",
+       "origin": "explicit",
+       "nodes": [
+        "interface[LoopBack0]"
+       ],
+       "lines": [
+        43
+       ]
+      },
+      "description": {
+       "value": null,
+       "origin": "none",
+       "nodes": [],
+       "lines": []
+      },
+      "mtu": {
+       "value": null,
+       "origin": "none",
+       "nodes": [],
+       "lines": []
+      }
+     }
+    },
+    {
+     "n": 6,
+     "device": "ORG-364464",
+     "device_id": 1,
+     "version_id": 1,
+     "node": "interface[Vbdif1584]",
+     "schema": "interface",
+     "key": "Vbdif1584",
+     "label": "Vbdif1584",
+     "lines": [
+      970,
+      971,
+      972,
+      973,
+      974
+     ],
+     "cells": {
+      "name": {
+       "value": "Vbdif1584",
+       "origin": "explicit",
+       "nodes": [
+        "interface[Vbdif1584]"
+       ],
+       "lines": [
+        970
+       ]
+      },
+      "description": {
+       "value": "DESC-D03874",
+       "origin": "explicit",
+       "nodes": [
+        "interface[Vbdif1584]/description"
+       ],
+       "lines": [
+        971
+       ]
+      },
+      "mtu": {
+       "value": null,
+       "origin": "none",
+       "nodes": [],
+       "lines": []
+      }
+     }
+    }
+   ],
+   "count": 6,
+   "truncated": false,
+   "devices": [
+    "ATN-CHANGE-01",
+    "ORG-364464",
+    "PE-ASR920-01"
+   ]
+  },
+  "answer": {
+   "statements": [
+    {
+     "text": "共有 6 个对象符合条件。",
+     "cites": [
+      1,
+      2,
+      3
+     ],
+     "facts": [],
+     "count": 6,
+     "status": "passed",
+     "issues": [],
+     "corrected_text": null,
+     "nodes": [
+      "interface[GigabitEthernet0/2/0]",
+      "interface[GigabitEthernet0/2/1.101]",
+      "interface[GigabitEthernet0/2/1]"
+     ]
+    },
+    {
+     "text": "ATN-CHANGE-01 的 GigabitEthernet0/2/0 的 mtu 是 9216。",
+     "cites": [
+      1
+     ],
+     "facts": [
+      {
+       "row": 1,
+       "field": "mtu",
+       "value": "9216",
+       "actual": 9216,
+       "ok": true,
+       "node": "interface[GigabitEthernet0/2/0]"
+      }
+     ],
+     "count": null,
+     "status": "passed",
+     "issues": [],
+     "corrected_text": null,
+     "nodes": [
+      "interface[GigabitEthernet0/2/0]"
+     ]
+    },
+    {
+     "text": "GigabitEthernet0/2/1 的 mtu 也都是 9999。",
+     "cites": [
+      2
+     ],
+     "facts": [
+      {
+       "row": 2,
+       "field": "mtu",
+       "value": "9999",
+       "actual": null,
+       "ok": false,
+       "node": "interface[GigabitEthernet0/2/1]"
+      }
+     ],
+     "count": null,
+     "status": "corrected",
+     "issues": [
+      {
+       "key": "ask.fix.value",
+       "params": {
+        "row": 2,
+        "object": "ATN-CHANGE-01 GigabitEthernet0/2/1",
+        "field": "mtu",
+        "actual": "未配置",
+        "claimed": "9999"
+       }
+      }
+     ],
+     "corrected_text": "ATN-CHANGE-01 GigabitEthernet0/2/1 的 mtu 实际是 未配置（AI 写的是 9999）。",
+     "nodes": [
+      "interface[GigabitEthernet0/2/1]"
+     ]
+    },
+    {
+     "text": "建议定期核对这些配置是否与规划一致。",
+     "cites": [],
+     "facts": [],
+     "count": null,
+     "status": "unverifiable",
+     "issues": [],
+     "corrected_text": null,
+     "nodes": []
+    }
+   ],
+   "summary": {
+    "passed": 2,
+    "corrected": 1,
+    "unverifiable": 1
+   }
+  },
+  "ai": {
+   "model": "fake-model",
+   "calls": 2,
+   "tokens_in": 1600,
+   "tokens_out": 150,
+   "ms": 0
+  }
+ }
+}

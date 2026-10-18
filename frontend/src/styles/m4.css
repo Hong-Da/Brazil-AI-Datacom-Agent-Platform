@@ -1,0 +1,152 @@
+/* M4 共用样式（来自 M4 界面预览 assets/m4.css）：变更原因、风险、链路状态、推导依据、设备标记、脚本视图、影响图、拓扑、基线矩阵。
+   导航分组：变更 = 蓝→琥珀（当前配置 → 目标），分析 = 橙色（跨设备边的颜色）。
+   变更原因沿用依赖边的颜色，脚本与图的读法一致：
+     新增 = 青 +    删除 = 红 −    修改 = 蓝 ~    副作用补发 = 品红 ↻（side_effect 边）    互斥先撤 = 紫 ⇄（mutex 边）
+   风险：会断业务 = 红色闪电，需关注 = 琥珀。
+   链路状态：一致 = 青色实线，需注意 = 琥珀，不匹配 = 红；只有一端（对端未导入）= 灰色虚线。
+   影响范围：起点琥珀，1 跳深色环，2 跳及以上浅色环，跨设备 = 橙色。 */
+
+:root {
+  --chg-add: #1B8A7C; --chg-del: #C23B44; --chg-mod: #2B6F9E; --chg-side: #C2417A; --chg-mutex: #7A52C7;
+  --side-soft: #FBE6F0; --side-line: #EBB0CB; --mutex-soft: #EEE7FA; --mutex-line: #C6B3EC;
+  --cross: #D9771C; --cross-ink: #A2560E; --cross-soft: #FCEBDA; --cross-line: #F0C08F;
+  --rail: #C9D7E0;
+  --ring1: #F2B33D; --ring2: #F7D48C;
+}
+:root[data-theme="dark"] {
+  --chg-add: #4FC7B7; --chg-del: #F08A90; --chg-mod: #86BCE3; --chg-side: #E883B2; --chg-mutex: #B9A0F5;
+  --side-soft: #3A1A2A; --side-line: #6E2F4C; --mutex-soft: #2A2245; --mutex-line: #4D3B7A;
+  --cross: #F09A4A; --cross-ink: #F6B57A; --cross-soft: #3A2612; --cross-line: #6E4A22;
+  --rail: #2E4352;
+  --ring1: #F2B33D; --ring2: #8A6A2A;
+}
+
+/* ---------- nav strata ---------- */
+.stratum.s-chg { background: linear-gradient(90deg, var(--blue) 0 50%, var(--amber) 50%); }
+.stratum.s-ana { background: var(--cross); }
+.nav a[data-stratum="chg"][aria-current="page"]::before { background: var(--amber); }
+.nav a[data-stratum="ana"][aria-current="page"]::before { background: var(--cross); }
+
+/* ---------- reason chips (symbol + word + colour) ---------- */
+.rs { display: inline-flex; align-items: center; gap: 4px; height: 19px; padding: 0 6px 0 4px; border-radius: 4px; font-size: 11px; font-weight: 600; white-space: nowrap; border: 1px solid; line-height: 1; }
+.rs::before { font: 700 12px/1 var(--font-mono); width: 10px; text-align: center; }
+.rs.add { color: var(--teal-ink); background: var(--teal-soft); border-color: var(--teal-line); }
+.rs.add::before { content: "+"; }
+.rs.del { color: var(--red-ink); background: var(--red-soft); border-color: var(--red-line); }
+.rs.del::before { content: "−"; }
+.rs.mod { color: var(--blue-ink); background: var(--blue-soft); border-color: var(--blue-line); }
+.rs.mod::before { content: "~"; }
+.rs.side { color: var(--chg-side); background: var(--side-soft); border-color: var(--side-line); }
+.rs.side::before { content: "↻"; font-family: var(--font-ui); }
+.rs.mutex { color: var(--chg-mutex); background: var(--mutex-soft); border-color: var(--mutex-line); }
+.rs.mutex::before { content: "⇄"; font-family: var(--font-ui); }
+.rs.view { color: var(--ink-3); background: transparent; border-color: var(--line); }
+.rs.view::before { content: "›"; }
+
+.risk { display: inline-flex; align-items: center; gap: 4px; height: 19px; padding: 0 6px 0 4px; border-radius: 4px; font-size: 11px; font-weight: 600; white-space: nowrap; border: 1px solid; line-height: 1; }
+.risk .ico { width: 12px; height: 12px; }
+.risk.cut { color: var(--red-ink); background: var(--red-soft); border-color: var(--red-line); }
+.risk.care { color: var(--amber-ink); background: var(--amber-soft); border-color: var(--amber-line); }
+
+/* link / check status */
+.ls { display: inline-flex; align-items: center; gap: 5px; height: 20px; padding: 0 7px 0 5px; border-radius: 4px; font-size: 11.5px; font-weight: 600; white-space: nowrap; border: 1px solid; line-height: 1; }
+.ls::before { font: 700 11px/1 var(--font-ui); width: 10px; text-align: center; }
+.ls.ok { color: var(--teal-ink); background: var(--teal-soft); border-color: var(--teal-line); }
+.ls.ok::before { content: "✓"; }
+.ls.warn { color: var(--amber-ink); background: var(--amber-soft); border-color: var(--amber-line); }
+.ls.warn::before { content: "!"; }
+.ls.bad { color: var(--red-ink); background: var(--red-soft); border-color: var(--red-line); }
+.ls.bad::before { content: "✕"; }
+.ls.na { color: var(--ink-3); background: transparent; border-color: var(--line-strong); border-style: dashed; }
+.ls.na::before { content: "?"; }
+
+/* inference basis chips on topology links */
+.basis { display: inline-flex; align-items: center; gap: 4px; height: 19px; padding: 0 6px; border-radius: 10px; font-size: 11px; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); white-space: nowrap; }
+.basis b { font: 600 11px var(--font-mono); color: var(--ink); }
+
+/* device chip */
+.dev { display: inline-flex; align-items: center; gap: 6px; font: 600 12px var(--font-mono); white-space: nowrap; }
+.dev i { width: 16px; height: 16px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font: 700 9.5px/1 var(--font-ui); color: #fff; font-style: normal; flex: none; }
+.dev i.hw { background: #C7000B; }
+.dev i.cs { background: #1BA0D7; }
+:root[data-theme="dark"] .dev i.hw { background: #E0464E; }
+:root[data-theme="dark"] .dev i.cs { background: #3BB3E3; }
+
+/* ---------- script view: view-depth rails + dependency arcs in the gutter ---------- */
+.scr { font: 12px/22px var(--font-mono); background: var(--surface); overflow: auto; position: relative; }
+.scr .sl { display: grid; grid-template-columns: 38px 34px minmax(0, 1fr) auto; align-items: center; min-width: max-content; position: relative; }
+.scr .sl > .no { color: var(--ink-3); text-align: right; padding-right: 8px; background: var(--surface-2); border-right: 1px solid var(--line); user-select: none; font-size: 11px; }
+.scr .sl > .arc { position: relative; height: 22px; }
+.scr .sl > .tx { white-space: pre; padding-right: 14px; position: relative; }
+.scr .sl > .rx { display: flex; gap: 6px; align-items: center; padding: 0 10px 0 6px; justify-content: flex-end; }
+.scr .sl .rail { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dotted var(--rail); }
+.scr .sl.k-enter > .tx { color: var(--ink); font-weight: 600; }
+.scr .sl.k-quit > .tx, .scr .sl.k-frame > .tx { color: var(--ink-3); }
+.scr .sl.k-frame > .tx { font-weight: 600; }
+.scr .sl.k-cmt > .tx { color: var(--ink-3); font-style: italic; }
+.scr .sl.k-cmd { cursor: pointer; }
+.scr .sl.k-cmd:hover { background: color-mix(in srgb, var(--blue-soft) 55%, transparent); }
+.scr .sl.r-add > .no { box-shadow: inset 3px 0 0 var(--chg-add); }
+.scr .sl.r-del > .no { box-shadow: inset 3px 0 0 var(--chg-del); }
+.scr .sl.r-mod > .no { box-shadow: inset 3px 0 0 var(--chg-mod); }
+.scr .sl.r-side > .no { box-shadow: inset 3px 0 0 var(--chg-side); }
+.scr .sl.r-mutex > .no { box-shadow: inset 3px 0 0 var(--chg-mutex); }
+.scr .sl.r-del > .tx .kw-undo, .scr .sl > .tx .kw-undo { color: var(--red-ink); }
+.scr .sl.is-sel { background: var(--hl-line); }
+.scr .sl.is-sel > .no { background: var(--hl-line); color: var(--amber-ink); font-weight: 700; }
+.scr .sl.is-dep { background: color-mix(in srgb, var(--teal-soft) 70%, transparent); }
+.scr .sl.is-dep > .no { color: var(--teal-ink); font-weight: 700; }
+.scr .sl.is-pair { background: color-mix(in srgb, var(--blue-soft) 80%, transparent); }
+.scr .sl.is-dim > .tx { opacity: .45; }
+.scr .sl.has-risk > .tx::after { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--red); margin-left: 8px; vertical-align: 1px; }
+.scr svg.arcs { position: absolute; left: 38px; top: 0; width: 34px; pointer-events: none; overflow: visible; }
+.scr svg.arcs path { fill: none; stroke: var(--teal); stroke-width: 1.6; }
+.scr svg.arcs path.k-mutex { stroke: var(--chg-mutex); }
+.scr svg.arcs path.k-side { stroke: var(--chg-side); }
+.scr svg.arcs circle { fill: var(--surface); stroke: var(--teal); stroke-width: 1.6; }
+
+/* ---------- impact graph ---------- */
+.ig-node circle.c { stroke-width: 1.6; }
+.ig-node text { font: 11px var(--font-ui); fill: var(--ink-2); pointer-events: none; }
+.ig-node text.mono { font: 10.5px var(--font-mono); }
+.ig-node { cursor: pointer; }
+.ig-node.is-dim { opacity: .28; }
+.ig-edge { fill: none; stroke-width: 1.3; opacity: .7; }
+.ig-edge.is-dim { opacity: .1; }
+.ig-edge.is-hot { stroke-width: 2.4; opacity: 1; }
+
+/* ---------- topology ---------- */
+.topo-link { stroke-width: 3; fill: none; cursor: pointer; }
+.topo-link.st-ok { stroke: var(--teal); }
+.topo-link.st-warn { stroke: var(--amber); }
+.topo-link.st-bad { stroke: var(--red); }
+.topo-link.st-na { stroke: var(--line-strong); stroke-dasharray: 5 4; }
+.topo-link.is-sel { stroke-width: 6; }
+.topo-hit { stroke: transparent; stroke-width: 16; fill: none; cursor: pointer; }
+.topo-bgp { fill: none; stroke: var(--violet); stroke-width: 1.4; stroke-dasharray: 2 4; stroke-linecap: round; }
+.topo-bgp.st-bad { stroke: var(--red); stroke-dasharray: 6 4; }
+.topo-area { stroke-width: 1.2; stroke-dasharray: 4 3; }
+
+.mini-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--ink-2); align-items: center; }
+.mini-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.mini-legend svg { width: 26px; height: 10px; }
+
+/* matrix cells (baseline) */
+.mx { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 22px; border-radius: 4px; font: 700 12px/1 var(--font-ui); border: 1px solid transparent; }
+.mx.pass { color: var(--teal-ink); background: var(--teal-soft); border-color: var(--teal-line); }
+.mx.fail { color: var(--red-ink); background: var(--red-soft); border-color: var(--red-line); }
+.mx.warn { color: var(--amber-ink); background: var(--amber-soft); border-color: var(--amber-line); }
+.mx.na { color: var(--ink-3); border: 1px dashed var(--line-strong); }
+.mx.dflt { box-shadow: inset 0 0 0 1px var(--surface), 0 0 0 1px var(--line-strong); border-style: dashed; }
+
+/* shared small bits */
+.hop { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 18px; padding: 0 5px; border-radius: 9px; font: 700 10.5px/1 var(--font-ui); background: var(--surface-3); color: var(--ink-2); }
+.hop.h0 { background: var(--amber); color: #3A2600; }
+.hop.h1 { background: var(--amber-soft); color: var(--amber-ink); border: 1px solid var(--amber-line); }
+.hop.hx { background: var(--cross-soft); color: var(--cross-ink); border: 1px solid var(--cross-line); }
+.chain { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font: 11.5px var(--font-mono); color: var(--ink-2); }
+.chain .lk { color: var(--ink-3); font-family: var(--font-ui); font-size: 11px; display: inline-flex; align-items: center; gap: 3px; }
+.chain .lk i { width: 14px; height: 2px; display: inline-block; border-radius: 1px; }
+.chain code { background: var(--surface-2); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; font-size: 11.5px; }
+.chain code.cur { background: var(--hl-line); border-color: var(--hl-line-edge); }
+.edge-sw { display: inline-block; width: 14px; height: 2px; border-radius: 1px; vertical-align: middle; }

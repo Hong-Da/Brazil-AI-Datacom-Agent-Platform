@@ -38,6 +38,20 @@ nodes:
     parent: isis.process
     type: boolean
     semantic: {zh-CN: 启用 IS-IS 快速重路由, en: Fast reroute}
+  # M4-2：Cisco passive-interface 写在 IS-IS 进程下（与 OSPF 的 ospf.process.passive 同样的写法；华为在接口下 isis silent）
+  isis.process.passive_default:
+    parent: isis.process
+    type: boolean
+    semantic: {zh-CN: 默认所有接口为被动接口（Cisco passive-interface default）, en: Passive by default}
+  isis.process.passive:
+    parent: isis.process
+    type: object
+    key: [interface]
+    semantic: {zh-CN: 进程下单个接口的被动设置（Cisco passive-interface <接口>；取值为 false 表示在默认被动时取消）, en: Per-interface passive setting}
+  isis.process.passive.enabled:
+    parent: isis.process.passive
+    type: boolean
+    semantic: {zh-CN: 被动, en: Passive}
   interface.isis:
     parent: interface
     type: object
@@ -69,5 +83,5 @@ nodes:
     type: boolean
     semantic: {zh-CN: 接口启用 IS-IS BFD, en: BFD}
 deps:
-  - {kind: reference, from: interface.isis.process, to: isis.process, note: 接口启用的 IS-IS 进程应已创建}
+  - {kind: reference, from: interface.isis.process, to: isis.process, note: {zh-CN: 接口启用的 IS-IS 进程应已创建, en: 'The IS-IS process enabled on the interface must already exist', pt-BR: 'O processo IS-IS habilitado na interface já deve existir'}}
   - {kind: reference, from: isis.process.vrf, to: vrf.instance}

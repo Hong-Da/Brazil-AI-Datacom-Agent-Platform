@@ -11,6 +11,9 @@ match:
   fallback: "true"
 # 被引用即隐式存在的对象：业务实例里的 bridge-domain <编号> 会自动创建桥域，不需要单独声明
 implicit: [bridge_domain]
+# 副作用：接口执行 vrf forwarding（绑定或解绑 VRF）时设备会删除接口上已有的 IPv4 地址，变更脚本需要在绑定后补发（M4-2 从变更知识移入）
+side_effects:
+  - {from: interface.vrf, to: interface.ipv4, note: {zh-CN: Cisco 接口 vrf forwarding 会删除接口 IP，需在绑定后补发, en: 'On Cisco, "vrf forwarding" on an interface removes its IP address; reapply the address after binding', pt-BR: 'No Cisco, "vrf forwarding" na interface remove o endereço IP; reaplique o endereço após a vinculação'}}
 # entries 由命令卡汇总生成（lmesh kb map）；人工补充的条目标 manual: true，汇总时保留
 entries:
   acl.instance:
@@ -155,6 +158,7 @@ entries:
     cards:
       - cisco-iosxe.address-family-ipv4.2
       - cisco-iosxe.address-family-ipv4.2@router-bgp
+      - cisco-iosxe.address-family-l2vpn@router-bgp
       - cisco-iosxe.address-family-vpnv4
       - cisco-iosxe.address-family-vpnv4@router-bgp
   bgp.af.network:
@@ -173,10 +177,18 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.neighbor-activate@bgp-af
+      - cisco-iosxe.neighbor-description@bgp-af
       - cisco-iosxe.neighbor-next-hop-self@bgp-af
+      - cisco-iosxe.neighbor-password@bgp-af
+      - cisco-iosxe.neighbor-remote-as@bgp-af
       - cisco-iosxe.neighbor-route-map@bgp-af
       - cisco-iosxe.neighbor-route-reflector-client@bgp-af
       - cisco-iosxe.neighbor-send-community@bgp-af
+      - cisco-iosxe.neighbor-update-source.1@bgp-af
+  bgp.af.peer.description:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-description@bgp-af
   bgp.af.peer.enabled:
     supported: true
     cards:
@@ -193,6 +205,14 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.neighbor-next-hop-self@bgp-af
+  bgp.af.peer.password:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-password@bgp-af
+  bgp.af.peer.remote_as:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-remote-as@bgp-af
   bgp.af.peer.rr_client:
     supported: true
     cards:
@@ -201,6 +221,10 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.neighbor-send-community@bgp-af
+  bgp.af.peer.update_source:
+    supported: true
+    cards:
+      - cisco-iosxe.neighbor-update-source.1@bgp-af
   bgp.af.redistribute:
     supported: true
     cards:
@@ -351,6 +375,10 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.bridge-domain
+  bridge_domain.evpn_instance:
+    supported: true
+    cards:
+      - cisco-iosxe.bridge-domain-member-evpn-instance
   bridge_domain.member:
     supported: true
     cards:
@@ -359,6 +387,150 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.bridge-domain-member-vfi
+  clock.ptp:
+    supported: true
+    cards:
+      - cisco-iosxe.ptp-clock
+  clock.ptp.device_type:
+    supported: true
+    cards:
+      - cisco-iosxe.ptp-clock
+  clock.ptp.domain:
+    supported: true
+    cards:
+      - cisco-iosxe.ptp-clock
+  clock.ptp.hybrid:
+    manual: true
+    supported: true
+    default: false
+    source: ASR 920 Timing 配置指南：不写 hybrid 时为普通 PTP 时钟
+    verified: doc
+    cards:
+      - cisco-iosxe.ptp-clock
+  clock.ptp.port:
+    supported: true
+    cards:
+      - cisco-iosxe.clock-port
+  clock.ptp.port.clock_destination:
+    supported: true
+    cards:
+      - cisco-iosxe.ptp-clock-destination
+  clock.ptp.port.clock_source:
+    supported: true
+    cards:
+      - cisco-iosxe.clock-source
+  clock.ptp.port.role:
+    supported: true
+    cards:
+      - cisco-iosxe.clock-port
+  clock.ptp.port.transport_interface:
+    supported: true
+    cards:
+      - cisco-iosxe.transport-ipv4
+  clock.ptp.priority1:
+    manual: true
+    supported: true
+    default: 128
+    source: 命令参考 priority1：缺省 128
+    verified: doc
+    cards:
+      - cisco-iosxe.priority1
+  clock.ptp.priority2:
+    manual: true
+    supported: true
+    default: 128
+    source: 命令参考 priority2：缺省 128
+    verified: doc
+    cards:
+      - cisco-iosxe.priority2
+  clock.ptp.profile:
+    supported: true
+    cards:
+      - cisco-iosxe.clock-port
+  clock.sync:
+    supported: true
+    cards:
+      - cisco-iosxe.esmc-process
+      - cisco-iosxe.network-clock-input-source-interface
+      - cisco-iosxe.network-clock-synchronization-automatic
+      - cisco-iosxe.network-clock-synchronization-mode-ql-enabled
+      - cisco-iosxe.network-clock-wait-to-restore
+  clock.sync.automatic:
+    supported: true
+    cards:
+      - cisco-iosxe.network-clock-synchronization-automatic
+  clock.sync.esmc:
+    supported: true
+    cards:
+      - cisco-iosxe.esmc-process
+  clock.sync.source:
+    supported: true
+    cards:
+      - cisco-iosxe.network-clock-input-source-interface
+  clock.sync.source.priority:
+    supported: true
+    cards:
+      - cisco-iosxe.network-clock-input-source-interface
+  clock.sync.ssm_control:
+    supported: true
+    cards:
+      - cisco-iosxe.network-clock-synchronization-mode-ql-enabled
+  clock.sync.wtr:
+    supported: true
+    cards:
+      - cisco-iosxe.network-clock-wait-to-restore
+  evpn.global:
+    supported: true
+    cards:
+      - cisco-iosxe.l2vpn-evpn
+  evpn.global.replication_type:
+    supported: true
+    cards:
+      - cisco-iosxe.evpn-replication-type
+  evpn.global.router_id:
+    supported: true
+    cards:
+      - cisco-iosxe.evpn-router-id
+  evpn.instance:
+    supported: true
+    cards:
+      - cisco-iosxe.l2vpn-evpn-instance
+  evpn.instance.auto_rt:
+    manual: true
+    supported: true
+    default: true
+    source: ASR 920 EVPN 配置指南：EVI 缺省自动生成 RT（no auto-route-target 关闭）
+    verified: doc
+    cards:
+      - cisco-iosxe.evpn-instance-auto-route-target
+  evpn.instance.description:
+    supported: true
+    cards:
+      - cisco-iosxe.evpn-instance-description
+  evpn.instance.evi:
+    supported: true
+    cards:
+      - cisco-iosxe.l2vpn-evpn-instance
+  evpn.instance.mode:
+    supported: true
+    cards:
+      - cisco-iosxe.l2vpn-evpn-instance
+  evpn.instance.rd:
+    supported: true
+    cards:
+      - cisco-iosxe.evpn-instance-rd
+  evpn.instance.rt:
+    supported: true
+    cards:
+      - cisco-iosxe.evpn-instance-route-target
+  evpn.instance.rt.direction:
+    supported: true
+    cards:
+      - cisco-iosxe.evpn-instance-route-target
+  evpn.instance.rt.value:
+    supported: true
+    cards:
+      - cisco-iosxe.evpn-instance-route-target
   interface:
     supported: true
     cards:
@@ -449,6 +621,10 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.bfd
+  interface.bfd.min_rx:
+    supported: true
+    cards:
+      - cisco-iosxe.bfd
   interface.bfd.min_tx:
     supported: true
     cards:
@@ -457,6 +633,14 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.bfd
+  interface.clock:
+    supported: true
+    cards:
+      - cisco-iosxe.synchronous-mode
+  interface.clock.synchronization:
+    supported: true
+    cards:
+      - cisco-iosxe.synchronous-mode
   interface.description:
     supported: true
     cards:
@@ -527,6 +711,8 @@ entries:
     default: false
     source: 缺省不是被动接口
     verified: doc
+    cards:
+      - cisco-iosxe.passive-interface~2
   interface.isis.process:
     supported: true
     cards:
@@ -680,6 +866,14 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.ip-ospf-area
+  interface.qos_policy:
+    supported: true
+    cards:
+      - cisco-iosxe.service-policy.1@interface
+  interface.qos_policy.policy:
+    supported: true
+    cards:
+      - cisco-iosxe.service-policy.1@interface
   interface.shutdown:
     manual: true
     supported: true
@@ -692,6 +886,96 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.vrf-forwarding
+  interface.vrrp:
+    supported: true
+    cards:
+      - cisco-iosxe.vrrp
+      - cisco-iosxe.vrrp-authentication
+      - cisco-iosxe.vrrp-description~2
+      - cisco-iosxe.vrrp-ip
+      - cisco-iosxe.vrrp-preempt~2
+      - cisco-iosxe.vrrp-priority~2
+      - cisco-iosxe.vrrp-shutdown
+      - cisco-iosxe.vrrp-timers-advertise~2
+      - cisco-iosxe.vrrp-track
+  interface.vrrp.advertise_interval:
+    manual: true
+    supported: true
+    default: 1
+    source: 命令参考 vrrp timers advertise：缺省 1 秒
+    verified: doc
+    cards:
+      - cisco-iosxe.vrrp-timers-advertise
+      - cisco-iosxe.vrrp-timers-advertise~2
+  interface.vrrp.advertise_msec:
+    supported: true
+    cards:
+      - cisco-iosxe.vrrp-timers-advertise
+      - cisco-iosxe.vrrp-timers-advertise~2
+  interface.vrrp.auth_mode:
+    supported: true
+    cards:
+      - cisco-iosxe.vrrp-authentication
+  interface.vrrp.description:
+    supported: true
+    cards:
+      - cisco-iosxe.vrrp-description
+      - cisco-iosxe.vrrp-description~2
+  interface.vrrp.preempt:
+    manual: true
+    supported: true
+    default: true
+    source: 命令参考 vrrp preempt：缺省开启抢占
+    verified: doc
+    cards:
+      - cisco-iosxe.vrrp-preempt
+      - cisco-iosxe.vrrp-preempt~2
+  interface.vrrp.preempt_delay:
+    manual: true
+    supported: true
+    default: 0
+    source: 命令参考 vrrp preempt：delay minimum 缺省 0 秒
+    verified: doc
+    cards:
+      - cisco-iosxe.vrrp-preempt
+      - cisco-iosxe.vrrp-preempt~2
+  interface.vrrp.priority:
+    manual: true
+    supported: true
+    default: 100
+    source: 命令参考 vrrp priority / priority (VRRPv3)：缺省 100
+    verified: doc
+    cards:
+      - cisco-iosxe.vrrp-priority
+      - cisco-iosxe.vrrp-priority~2
+  interface.vrrp.shutdown:
+    supported: true
+    cards:
+      - cisco-iosxe.vrrp-shutdown
+  interface.vrrp.track:
+    supported: true
+    cards:
+      - cisco-iosxe.track
+      - cisco-iosxe.vrrp-track
+  interface.vrrp.track.reduce:
+    supported: true
+    cards:
+      - cisco-iosxe.track
+      - cisco-iosxe.vrrp-track
+  interface.vrrp.virtual_ip:
+    supported: true
+    cards:
+      - cisco-iosxe.vrrp-address
+      - cisco-iosxe.vrrp-ip
+  interface.vrrp.virtual_ip.secondary:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 vrrp ip：不写 secondary 时为主虚拟地址
+    verified: doc
+    cards:
+      - cisco-iosxe.vrrp-address
+      - cisco-iosxe.vrrp-ip
   isis.process:
     supported: true
     cards:
@@ -708,6 +992,7 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.fast-reroute-per-prefix
+      - cisco-iosxe.isis-fast-reroute-per-prefix
     manual: true
     default: false
     source: 缺省不使能 IS-IS 快速重路由
@@ -738,10 +1023,34 @@ entries:
     default: narrow
     source: 命令参考 cost-style / metric-style：缺省 narrow
     verified: doc
+  isis.process.microloop_avoidance:
+    supported: true
+    cards:
+      - cisco-iosxe.isis-microloop-avoidance-sr
   isis.process.net:
     supported: true
     cards:
       - cisco-iosxe.net
+  isis.process.passive:
+    supported: true
+    cards:
+      - cisco-iosxe.passive-interface~2
+  isis.process.passive.enabled:
+    supported: true
+    cards:
+      - cisco-iosxe.passive-interface~2
+  isis.process.passive_default:
+    supported: true
+    cards:
+      - cisco-iosxe.passive-interface~2
+  isis.process.sr_mpls:
+    supported: true
+    cards:
+      - cisco-iosxe.isis-segment-routing-mpls
+  isis.process.ti_lfa:
+    supported: true
+    cards:
+      - cisco-iosxe.isis-fast-reroute-ti-lfa
   l2vpn.global:
     supported: true
     cards:
@@ -823,6 +1132,14 @@ entries:
       - cisco-iosxe.aaa-new-model
       - cisco-iosxe.username-privilege
       - cisco-iosxe.username-secret
+  mgmt.aaa.enabled:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 aaa new-model：缺省不启用 AAA
+    verified: doc
+    cards:
+      - cisco-iosxe.aaa-new-model
   mgmt.aaa.scheme:
     supported: true
     cards:
@@ -885,7 +1202,13 @@ entries:
     source: 命令参考 privilege level：缺省用户级别 1
     verified: doc
   mgmt.line.protocols:
+    manual: true
     supported: true
+    default: none
+    when:
+      key: ^vty
+    source: 命令参考 transport input：缺省不允许任何协议（15.4(3)M4 起；之前为 all）。只补到 VTY（控制台不受 transport input 限制本地登录）
+    verified: doc
     cards:
       - cisco-iosxe.transport-input
   mgmt.ntp:
@@ -926,15 +1249,50 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.ntp-source
+  mgmt.radius:
+    supported: true
+    cards:
+      - cisco-iosxe.radius-server
+      - cisco-iosxe.radius-server-host.1
+      - cisco-iosxe.radius-server-host.2
+  mgmt.radius.key_set:
+    supported: true
+    cards:
+      - cisco-iosxe.key
+      - cisco-iosxe.radius-server-host.1
+      - cisco-iosxe.radius-server-host.2
+  mgmt.radius.retransmit:
+    supported: true
+    cards:
+      - cisco-iosxe.radius-server-host.1
+      - cisco-iosxe.radius-server-host.2
+  mgmt.radius.server:
+    supported: true
+    cards:
+      - cisco-iosxe.address-ipv4
+      - cisco-iosxe.radius-server-host.1
+      - cisco-iosxe.radius-server-host.2
+  mgmt.radius.server.port:
+    supported: true
+    cards:
+      - cisco-iosxe.address-ipv4
+      - cisco-iosxe.radius-server-host.1
+  mgmt.radius.timeout:
+    supported: true
+    cards:
+      - cisco-iosxe.radius-server-host.1
+      - cisco-iosxe.radius-server-host.2
   mgmt.snmp:
     supported: true
     cards:
       - cisco-iosxe.snmp-server-community
       - cisco-iosxe.snmp-server-contact
       - cisco-iosxe.snmp-server-enable-traps
+      - cisco-iosxe.snmp-server-group
       - cisco-iosxe.snmp-server-host.1
       - cisco-iosxe.snmp-server-location
       - cisco-iosxe.snmp-server-trap-source
+      - cisco-iosxe.snmp-server-user
   mgmt.snmp.community:
     supported: true
     cards:
@@ -951,6 +1309,34 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.snmp-server-contact
+  mgmt.snmp.group:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-group
+  mgmt.snmp.group.acl:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-group
+  mgmt.snmp.group.notify_view:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-group
+  mgmt.snmp.group.read_view:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-group
+  mgmt.snmp.group.security_level:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-group
+  mgmt.snmp.group.version:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-group
+  mgmt.snmp.group.write_view:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-group
   mgmt.snmp.host:
     supported: true
     cards:
@@ -971,11 +1357,59 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.snmp-server-trap-source
+  mgmt.snmp.user:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-user
+  mgmt.snmp.user.acl:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-user
+  mgmt.snmp.user.auth_protocol:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-user
+  mgmt.snmp.user.group:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-user
+  mgmt.snmp.user.priv_protocol:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-user
+  mgmt.snmp.user.version:
+    supported: true
+    cards:
+      - cisco-iosxe.snmp-server-user
   mgmt.ssh:
     supported: true
     cards:
       - cisco-iosxe.ip-ssh
+      - cisco-iosxe.ip-ssh-rsa-keypair-name
+      - cisco-iosxe.ip-ssh-server-algorithm-encryption
+      - cisco-iosxe.ip-ssh-server-algorithm-kex
+      - cisco-iosxe.ip-ssh-server-algorithm-mac
       - cisco-iosxe.ip-ssh-version
+  mgmt.ssh.ciphers:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ssh-server-algorithm-encryption
+  mgmt.ssh.compat_v1:
+    manual: true
+    supported: false
+    source: Cisco 没有单独的 SSHv1 兼容开关，兼容模式由 mgmt.ssh.version = 1.99 表示
+  mgmt.ssh.enabled:
+    manual: true
+    supported: false
+    source: Cisco 没有 SSH 服务开关：生成 RSA 密钥后即可用，登录线路的 transport input 决定是否接受 SSH
+  mgmt.ssh.hmacs:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ssh-server-algorithm-mac
+  mgmt.ssh.kex:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ssh-server-algorithm-kex
   mgmt.ssh.retries:
     supported: true
     cards:
@@ -984,6 +1418,10 @@ entries:
     default: 3
     source: 命令参考 ssh server authentication-retries / ip ssh authentication-retries：缺省 3 次
     verified: doc
+  mgmt.ssh.rsa_keypair:
+    supported: true
+    cards:
+      - cisco-iosxe.ip-ssh-rsa-keypair-name
   mgmt.ssh.timeout:
     supported: true
     cards:
@@ -993,7 +1431,11 @@ entries:
     source: 命令参考 ip ssh time-out：缺省 120 秒
     verified: doc
   mgmt.ssh.version:
+    manual: true
     supported: true
+    default: '1.99'
+    source: 命令参考 ip ssh version：不配置时为兼容模式，同时支持 SSHv1 与 SSHv2（显示为 1.99）
+    verified: doc
     cards:
       - cisco-iosxe.ip-ssh-version
   mgmt.syslog:
@@ -1035,6 +1477,10 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.address-ipv6
+  mgmt.telnet.enabled:
+    manual: true
+    supported: false
+    source: Cisco 没有 Telnet 服务开关，登录线路的 transport input 允许 telnet（或 all）即可 Telnet 登录
   mpls.global:
     supported: true
     cards:
@@ -1176,6 +1622,7 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.fast-reroute-per-prefix-enable
+      - cisco-iosxe.ospf-fast-reroute-per-prefix-enable
     manual: true
     default: false
     source: 命令参考：缺省不使能 OSPF 快速重路由
@@ -1188,6 +1635,10 @@ entries:
     default: true
     source: 命令参考 log-adjacency-changes：IOS XE 缺省记录邻接变化
     verified: doc
+  ospf.process.microloop_avoidance:
+    supported: true
+    cards:
+      - cisco-iosxe.ospf-microloop-avoidance-sr
   ospf.process.passive:
     supported: true
     cards:
@@ -1208,10 +1659,123 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.router-id
+  ospf.process.sr_mpls:
+    supported: true
+    cards:
+      - cisco-iosxe.ospf-segment-routing
+  ospf.process.ti_lfa:
+    supported: true
+    cards:
+      - cisco-iosxe.ospf-fast-reroute-ti-lfa
   ospf.process.vrf:
     supported: true
     cards:
       - cisco-iosxe.router-ospf
+  qos.classifier:
+    supported: true
+    cards:
+      - cisco-iosxe.class-map.1
+  qos.classifier.match:
+    supported: true
+    cards:
+      - cisco-iosxe.match-access-group
+      - cisco-iosxe.match-any
+      - cisco-iosxe.match-cos
+      - cisco-iosxe.match-dscp
+      - cisco-iosxe.match-mpls-experimental-topmost
+      - cisco-iosxe.match-precedence
+      - cisco-iosxe.match-qos-group
+  qos.classifier.match.acl:
+    supported: true
+    cards:
+      - cisco-iosxe.match-access-group
+  qos.classifier.operator:
+    manual: true
+    supported: true
+    default: and
+    source: 命令参考 class-map：不写 match-all / match-any 时为 match-all（“与”）
+    verified: doc
+    cards:
+      - cisco-iosxe.class-map.1
+  qos.policy:
+    supported: true
+    cards:
+      - cisco-iosxe.policy-map.1
+      - cisco-iosxe.policy-map.2
+      - cisco-iosxe.policy-map.3
+  qos.policy.rule:
+    supported: true
+    cards:
+      - cisco-iosxe.class
+  qos.policy.rule.bandwidth_pct:
+    supported: true
+    cards:
+      - cisco-iosxe.bandwidth.1
+  qos.policy.rule.bandwidth_remaining_pct:
+    supported: true
+    cards:
+      - cisco-iosxe.bandwidth.1
+  qos.policy.rule.child_policy:
+    supported: true
+    cards:
+      - cisco-iosxe.service-policy-child
+  qos.policy.rule.classifier:
+    supported: true
+    cards:
+      - cisco-iosxe.class
+  qos.policy.rule.police_cir:
+    supported: true
+    cards:
+      - cisco-iosxe.police
+      - cisco-iosxe.police~2
+  qos.policy.rule.police_pir:
+    supported: true
+    cards:
+      - cisco-iosxe.police
+  qos.policy.rule.priority:
+    supported: true
+    cards:
+      - cisco-iosxe.priority
+  qos.policy.rule.priority_level:
+    supported: true
+    cards:
+      - cisco-iosxe.priority
+  qos.policy.rule.qos_group:
+    supported: true
+    cards:
+      - cisco-iosxe.set-qos-group.1
+      - cisco-iosxe.set-qos-group.2
+  qos.policy.rule.queue_limit:
+    supported: true
+    cards:
+      - cisco-iosxe.queue-limit.1
+  qos.policy.rule.remark_8021p:
+    supported: true
+    cards:
+      - cisco-iosxe.set-cos.1
+      - cisco-iosxe.set-cos.2
+  qos.policy.rule.remark_dscp:
+    supported: true
+    cards:
+      - cisco-iosxe.set-dscp
+  qos.policy.rule.remark_mpls_exp:
+    supported: true
+    cards:
+      - cisco-iosxe.set-mpls-experimental-imposition.1
+      - cisco-iosxe.set-mpls-experimental-imposition.2
+      - cisco-iosxe.set-mpls-experimental-topmost
+  qos.policy.rule.shape_pct:
+    supported: true
+    cards:
+      - cisco-iosxe.shape.1
+  qos.policy.rule.shape_rate:
+    supported: true
+    cards:
+      - cisco-iosxe.shape.1
+  qos.policy.rule.wred:
+    supported: true
+    cards:
+      - cisco-iosxe.random-detect@policy-map-class
   rp.community_list:
     supported: true
     cards:
@@ -1296,6 +1860,50 @@ entries:
     supported: true
     cards:
       - cisco-iosxe.ip-prefix-list
+  sr.global:
+    supported: true
+    cards:
+      - cisco-iosxe.sr-segment-routing-mpls
+  sr.global.conn_map:
+    supported: true
+    cards:
+      - cisco-iosxe.sr-connected-prefix-sid-map
+  sr.global.conn_map.af:
+    supported: true
+    cards:
+      - cisco-iosxe.sr-conn-address-family
+  sr.global.conn_map.af.prefix:
+    supported: true
+    cards:
+      - cisco-iosxe.sr-conn-prefix
+  sr.global.conn_map.af.prefix.absolute:
+    supported: true
+    cards:
+      - cisco-iosxe.sr-conn-prefix
+  sr.global.conn_map.af.prefix.index:
+    supported: true
+    cards:
+      - cisco-iosxe.sr-conn-prefix
+  sr.global.conn_map.af.prefix.range:
+    supported: true
+    cards:
+      - cisco-iosxe.sr-conn-prefix
+  sr.global.srgb_begin:
+    supported: true
+    cards:
+      - cisco-iosxe.sr-global-block
+  sr.global.srgb_end:
+    supported: true
+    cards:
+      - cisco-iosxe.sr-global-block
+  sr.global.srlb_begin:
+    supported: true
+    cards:
+      - cisco-iosxe.sr-local-block
+  sr.global.srlb_end:
+    supported: true
+    cards:
+      - cisco-iosxe.sr-local-block
   static.route:
     supported: true
     cards:
@@ -1397,3 +2005,15 @@ entries:
       - cisco-iosxe.route-target
       - cisco-iosxe.route-target@vrf
       - cisco-iosxe.route-target@vrf-af
+  vrrp.global:
+    supported: true
+    cards:
+      - cisco-iosxe.fhrp-version-vrrp-v3
+  vrrp.global.version:
+    manual: true
+    supported: true
+    default: v2
+    source: 命令参考 fhrp version vrrp v3：不配置时为 VRRPv2
+    verified: doc
+    cards:
+      - cisco-iosxe.fhrp-version-vrrp-v3

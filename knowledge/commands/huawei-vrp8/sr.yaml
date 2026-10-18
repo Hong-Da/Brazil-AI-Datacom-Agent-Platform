@@ -1,0 +1,1327 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: sr
+cards:
+  - id: huawei-vrp8.avoid-microloop-segment-routing
+    syntax: avoid-microloop segment-routing
+    view: isis
+    undo: undo avoid-microloop segment-routing
+    default: By default, this function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: avoid-microloop segment-routing (IS-IS view)
+      line: 15
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      isis.process.microloop_avoidance: flag
+  - id: huawei-vrp8.avoid-microloop-segment-routing~2
+    syntax: avoid-microloop segment-routing
+    view: ospf
+    undo: undo avoid-microloop segment-routing
+    default: By default, the anti-microloop function in segment routing is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: avoid-microloop segment-routing (OSPF view)
+      line: 83
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.microloop_avoidance: flag
+  - id: huawei-vrp8.avoid-microloop-segment-routing-rib-update-delay
+    syntax: avoid-microloop segment-routing rib-update-delay <rib-update-delay>
+    view: isis
+    undo: undo avoid-microloop segment-routing rib-update-delay [ <rib-update-delay> ]
+    params:
+      rib-update-delay:
+        type: integer
+        range:
+          - 1000
+          - 60000
+    default: By default, the delay in delivering routes is 5000 ms.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: avoid-microloop segment-routing rib-update-delay (IS-IS view)
+      line: 147
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.avoid-microloop-segment-routing-rib-update-delay~2
+    syntax: avoid-microloop segment-routing rib-update-delay <rib-update-delay>
+    view: ospf
+    undo: undo avoid-microloop segment-routing rib-update-delay
+    params:
+      rib-update-delay:
+        type: integer
+        range:
+          - 1000
+          - 60000
+    default: By default, the delay in delivering routes in Segment Routing is 5000 ms.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: avoid-microloop segment-routing rib-update-delay (OSPF view)
+      line: 209
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd~3
+    syntax: bfd tunnel { min-tx-interval <transmit-interval> | min-rx-interval <receive-interval> | detect-multiplier <multiplier-value> } &<1-9>
+    view: segment-routing
+    undo: undo bfd tunnel { min-tx-interval [ <transmit-interval> ] | min-rx-interval [ <receive-interval> ] | detect-multiplier [ <multiplier-value> ] } &<1-9>
+    params:
+      transmit-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      receive-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      multiplier-value:
+        type: integer
+        range:
+          - 3
+          - 50
+    default: By default, no BFD parameters are set for Segment Routing tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: bfd (Segment routing view)
+      line: 277
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.bfd-enable
+    syntax: bfd enable mode tunnel [ [ filter-policy ip-prefix <ip-prefix-name> ] | [ effect-sr-lsp ] | [ nil-fec ] ] &<1-9>
+    view: segment-routing
+    undo: undo bfd enable mode tunnel [ [ filter-policy ip-prefix <ip-prefix-name> ] | [ effect-sr-lsp ] | [ nil-fec ] ] &<1-9>
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, this function is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: bfd enable (Segment routing view)
+      line: 341
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flex-algo-lsp-apply-original-cost
+    syntax: flex-algo-lsp apply original-cost
+    view: segment-routing
+    undo: undo flex-algo-lsp apply original-cost
+    default: By default, Flex-Algo paths are disabled from using the original IGP cost.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: flex-algo-lsp apply original-cost
+      line: 2324
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv4-adjacency.1
+    syntax: ipv4 adjacency local-ip-addr <local-ip-address> remote-ip-addr <remote-ip-address> sid <sid-value> [ vpn-instance <vpn-name> ]
+    view: segment-routing
+    undo: undo ipv4 adjacency local-ip-addr <local-ip-address> remote-ip-addr <remote-ip-address> sid <sid-value> [ vpn-instance <vpn-name> ]
+    params:
+      local-ip-address: &id001
+        type: ipv4
+      remote-ip-address: &id002
+        type: ipv4
+      sid-value: &id003
+        type: integer
+        range:
+          - 142336
+          - 147455
+      vpn-name:
+        type: word
+    default: By default, no static adjacency SID is configured for the segment routing connection to be established between the local and remote interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: ipv4 adjacency
+      line: 2380
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ipv4-adjacency.2
+    syntax: ipv4 adjacency local-ip-addr <local-ip-address> remote-ip-addr <remote-ip-address> sid <sid-value> protected
+    view: segment-routing
+    undo: undo ipv4 adjacency local-ip-addr <local-ip-address> remote-ip-addr <remote-ip-address> sid <sid-value> protected
+    params:
+      local-ip-address: *id001
+      remote-ip-address: *id002
+      sid-value: *id003
+    default: By default, no static adjacency SID is configured for the segment routing connection to be established between the local and remote interfaces.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: ipv4 adjacency
+      line: 2380
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-prefix-sid.1
+    syntax: isis prefix-sid { absolute <sid-value> | index <index-value> } [ node-disable ] [ flex-algo <flex-algo-id> ]
+    view: interface
+    undo: undo isis prefix-sid { absolute <sid-value> | index <index-value> } [ node-disable ] [ flex-algo <flex-algo-id> ]
+    params:
+      sid-value: &id004
+        type: word
+      index-value: &id005
+        type: integer
+        range:
+          - 0
+          - 255999
+      flex-algo-id: &id006
+        type: integer
+        range:
+          - 128
+          - 255
+    default: By default, no prefix SID is configured for the IP address of a loopback interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: isis prefix-sid
+      line: 2459
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.prefix_sid: isis
+      interface.prefix_sid.index: $index-value
+      interface.prefix_sid.absolute: $sid-value
+      interface.prefix_sid.node_disable: kw:node-disable=true:false
+  - id: huawei-vrp8.isis-prefix-sid.2
+    syntax: isis process-id <process-id> prefix-sid { absolute <sid-value> | index <index-value> } [ node-disable ] [ flex-algo <flex-algo-id> ]
+    view: interface
+    undo: undo isis process-id <process-id> prefix-sid [ { absolute <sid-value> | index <index-value> } [ node-disable ] [ flex-algo <flex-algo-id> ] ]
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      sid-value: *id004
+      index-value: *id005
+      flex-algo-id: *id006
+    default: By default, no prefix SID is configured for the IP address of a loopback interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: isis prefix-sid
+      line: 2459
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.prefix_sid: isis
+      interface.prefix_sid.index: $index-value
+      interface.prefix_sid.absolute: $sid-value
+      interface.prefix_sid.node_disable: kw:node-disable=true:false
+  - id: huawei-vrp8.isis-ti-lfa-disable.1
+    syntax: isis ti-lfa disable [ level-1 | level-2 | level-1-2 ]
+    view: interface
+    undo: undo isis ti-lfa disable [ level-1 | level-2 | level-1-2 ]
+    default: By default, TI-LFA is enabled on an IS-IS interface automatically.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: isis ti-lfa disable
+      line: 2562
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.isis-ti-lfa-disable.2
+    syntax: isis process-id <process-id> ti-lfa disable [ level-1 | level-2 | level-1-2 ]
+    view: interface
+    undo: undo isis process-id <process-id> ti-lfa disable [ level-1 | level-2 | level-1-2 ]
+    params:
+      process-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: By default, TI-LFA is enabled on an IS-IS interface automatically.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: isis ti-lfa disable
+      line: 2562
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.local-block
+    syntax: local-block <begin-value> <end-value> [ ignore-conflict ]
+    view: segment-routing
+    undo: undo local-block [ <begin-value> <end-value> [ ignore-conflict ] ]
+    params:
+      begin-value:
+        type: integer
+        range:
+          - 48000
+          - 368623
+      end-value:
+        type: integer
+        range:
+          - 48000
+          - 368623
+    default: By default, no SRLB range is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: local-block
+      line: 2638
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      sr.global.srlb_begin: $begin-value
+      sr.global.srlb_end: $end-value
+  - id: huawei-vrp8.mapping-server-prefix-sid-mapping
+    syntax: mapping-server prefix-sid-mapping <ip-address> <mask-length> <begin-value> [ range <range-value> ] [ attached ]
+    view: segment-routing
+    undo: undo mapping-server prefix-sid-mapping [ <ip-address> <mask-length> [ <begin-value> [ range <range-value> ] [ attached ] ] ]
+    params:
+      ip-address:
+        type: ipv4
+      mask-length:
+        type: mask-length
+      begin-value:
+        type: integer
+        range:
+          - 0
+          - 65534
+      range-value:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: By default, no mapping between prefixes and SIDs is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: mapping-server prefix-sid-mapping
+      line: 2763
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      sr.prefix_sid_map: fmt:{ip-address}/{mask-length}
+      sr.prefix_sid_map.index: $begin-value
+      sr.prefix_sid_map.range: $range-value
+      sr.prefix_sid_map.mapping_server: 'true'
+  - id: huawei-vrp8.mpls-in-udp
+    syntax: mpls-in-udp
+    view: system
+    undo: undo mpls-in-udp
+    default: By default, MPLS in UDP is disabled on a node.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: mpls-in-udp
+      line: 3602
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-prefix-sid
+    syntax: ospf prefix-sid { absolute <sid-value> | index <index-value> } [ flex-algo <flex-algo-id> ] [ node-disable ]
+    view: interface
+    undo: undo ospf prefix-sid [ { absolute <sid-value> | index <index-value> } [ flex-algo <flex-algo-id> ] [ node-disable ] ]
+    params:
+      sid-value:
+        type: word
+      index-value:
+        type: integer
+        range:
+          - 0
+          - 255999
+      flex-algo-id:
+        type: integer
+        range:
+          - 128
+          - 255
+    default: By default, no prefix SID is configured for the IP address of a loopback interface.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: ospf prefix-sid
+      line: 3731
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      interface.prefix_sid: ospf
+      interface.prefix_sid.index: $index-value
+      interface.prefix_sid.absolute: $sid-value
+      interface.prefix_sid.node_disable: kw:node-disable=true:false
+  - id: huawei-vrp8.ospf-ti-lfa-disable.1
+    syntax: ospf ti-lfa disable
+    view: interface
+    undo: undo ospf ti-lfa disable
+    default: By default, TI-LFA is enabled automatically on OSPF interfaces if the ti-lfa enable command is run.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: ospf ti-lfa disable
+      line: 3809
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ospf-ti-lfa-disable.2
+    syntax: ospf ti-lfa disable multi-area { <area-id-integer> | <area-id-ipv4> }
+    view: interface
+    undo: undo ospf ti-lfa disable multi-area { <area-id-integer> | <area-id-ipv4> }
+    params:
+      area-id-integer:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      area-id-ipv4:
+        type: ipv4
+    default: By default, TI-LFA is enabled automatically on OSPF interfaces if the ti-lfa enable command is run.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: ospf ti-lfa disable
+      line: 3809
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.peer-peer-set
+    syntax: peer <ipv4-address> peer-set name <peer-set-name>
+    view: bgp
+    undo: undo peer <ipv4-address> peer-set name <peer-set-name>
+    params:
+      ipv4-address:
+        type: ipv4
+      peer-set-name:
+        type: word
+    default: By default, a BGP peer is not added to any peer set.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: peer peer-set
+      line: 3889
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.protected-adj-sid-delete-delay
+    syntax: protected-adj-sid delete-delay <delay-time>
+    view: segment-routing
+    undo: undo protected-adj-sid delete-delay [ <delay-time> ]
+    params:
+      delay-time:
+        type: integer
+        range:
+          - 30
+          - 1800
+    default: By default, the deletion delay is 900s.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: protected-adj-sid delete-delay
+      line: 3951
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.protected-adj-sid-update-delay
+    syntax: protected-adj-sid update-delay <delay-time>
+    view: segment-routing
+    undo: undo protected-adj-sid update-delay [ <delay-time> ]
+    params:
+      delay-time:
+        type: integer
+        range:
+          - 1
+          - 600000
+    default: By default, protected adjacency SIDs are delivered to the forwarding table without any delay.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: protected-adj-sid update-delay
+      line: 4011
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.seamless-bfd-enable-mode-tunnel
+    syntax: seamless-bfd enable mode tunnel [ [ filter-policy ip-prefix <ip-prefix-name> ] | [ effect-sr-lsp ] ] &<1-9>
+    view: segment-routing
+    undo: undo seamless-bfd enable mode tunnel [ [ filter-policy ip-prefix <ip-prefix-name> ] | [ effect-sr-lsp ] ] &<1-9>
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, the SBFD function is disabled for SR-MPLS BE tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: seamless-bfd enable mode tunnel
+      line: 4129
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.seamless-bfd-flex-algo
+    syntax: seamless-bfd flex-algo exclude { <flex-algo-begin> [ to <flex-algo-end> ] } &<1-10>
+    view: segment-routing
+    undo: undo seamless-bfd flex-algo exclude { <flex-algo-begin> [ to <flex-algo-end> ] } &<1-10>
+    params:
+      flex-algo-begin:
+        type: integer
+        range:
+          - 128
+          - 255
+      flex-algo-end:
+        type: integer
+        range:
+          - 128
+          - 255
+    default: By default, SR-MPLS Flex-Algo SBFD is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: seamless-bfd flex-algo
+      line: 4197
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.seamless-bfd-tunnel
+    syntax: seamless-bfd tunnel { min-tx-interval <transmit-interval> | min-rx-interval <receive-interval> | detect-multiplier <multiplier-value> } &<1-9>
+    view: segment-routing
+    undo: undo seamless-bfd tunnel { min-tx-interval [ <transmit-interval> ] | min-rx-interval [ <receive-interval> ] | detect-multiplier [ <multiplier-value> ] } &<1-9>
+    params:
+      transmit-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      receive-interval:
+        type: integer
+        range:
+          - 3
+          - 20000
+      multiplier-value:
+        type: integer
+        range:
+          - 3
+          - 50
+    default: By default, no SBFD parameters are set for Segment Routing tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: seamless-bfd tunnel
+      line: 4253
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing
+    syntax: segment-routing
+    view: system
+    enters_view: segment-routing
+    undo: undo segment-routing
+    default: By default, Segment Routing is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing
+      line: 4319
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      sr.global: _
+  - id: huawei-vrp8.segment-routing-auto-adj-sid-disable
+    syntax: segment-routing auto-adj-sid disable
+    view: isis
+    undo: undo segment-routing auto-adj-sid disable
+    default: By default, a device automatically computes a dynamic adjacency label once the node label capability is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing auto-adj-sid disable (IS-IS view)
+      line: 4374
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-auto-adj-sid-protected
+    syntax: segment-routing auto-adj-sid protected
+    view: isis
+    undo: undo segment-routing auto-adj-sid protected
+    default: By default, dynamic protected adjacency labels are not automatically generated.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing auto-adj-sid protected
+      line: 4438
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-global-block~3
+    syntax: segment-routing global-block <begin-value> <end-value> [ ignore-conflict ]
+    view: isis
+    undo: undo segment-routing global-block [ <begin-value> <end-value> [ ignore-conflict ] ]
+    params:
+      begin-value:
+        type: integer
+        range:
+          - 16000
+          - 142335
+      end-value:
+        type: integer
+        range:
+          - 16000
+          - 142335
+    default: By default, no SRGB is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing global-block (IS-IS view)
+      line: 4502
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      isis.process.srgb_begin: $begin-value
+      isis.process.srgb_end: $end-value
+  - id: huawei-vrp8.segment-routing-global-block~2
+    syntax: segment-routing global-block <begin-value> <end-value> [ ignore-conflict ]
+    view: ospf
+    undo: undo segment-routing global-block [ <begin-value> <end-value> [ ignore-conflict ] ]
+    params:
+      begin-value:
+        type: integer
+        range:
+          - 16000
+          - 142335
+      end-value:
+        type: integer
+        range:
+          - 16000
+          - 142335
+    default: By default, no SRGB is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing global-block (OSPF view)
+      line: 4590
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.srgb_begin: $begin-value
+      ospf.process.srgb_end: $end-value
+  - id: huawei-vrp8.segment-routing-lsp-trigger.1
+    syntax: segment-routing lsp-trigger { host | none }
+    view: isis
+    undo: undo segment-routing lsp-trigger [ host | none ]
+    default: By default, the ingress establishes SR-MPLS BE LSPs over IP routes with 32-bit masks.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing lsp-trigger (IS-IS view)
+      line: 4677
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-lsp-trigger.2
+    syntax: segment-routing lsp-trigger ip-prefix <ip-prefix-name>
+    view: isis
+    undo: undo segment-routing lsp-trigger [ ip-prefix <ip-prefix-name> ]
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, the ingress establishes SR-MPLS BE LSPs over IP routes with 32-bit masks.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing lsp-trigger (IS-IS view)
+      line: 4677
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-lsp-trigger.1~2
+    syntax: segment-routing lsp-trigger { none | host }
+    view: ospf
+    undo: undo segment-routing lsp-trigger [ none | host ]
+    default: By default, the ingress establishes SR-MPLS BE LSPs over IP routes with 32-bit masks.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing lsp-trigger (OSPF view)
+      line: 4751
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-lsp-trigger.2~2
+    syntax: segment-routing lsp-trigger ip-prefix <ip-prefix-name>
+    view: ospf
+    undo: undo segment-routing lsp-trigger [ ip-prefix <ip-prefix-name> ]
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, the ingress establishes SR-MPLS BE LSPs over IP routes with 32-bit masks.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing lsp-trigger (OSPF view)
+      line: 4751
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-mapping-server
+    syntax: segment-routing mapping-server { send | receive }
+    view: isis
+    undo: undo segment-routing mapping-server { send | receive }
+    default: By default, only the SID receiving capability is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing mapping-server (IS-IS view)
+      line: 4825
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-mapping-server~2
+    syntax: segment-routing mapping-server { send | receive }
+    view: ospf
+    undo: undo segment-routing mapping-server { send | receive }
+    default: By default, only the SID receiving capability is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing mapping-server (OSPF view)
+      line: 4896
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-mpls
+    syntax: segment-routing mpls
+    view: isis
+    undo: undo segment-routing mpls
+    default: By default, Segment Routing is disabled for IS-IS processes.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing mpls (IS-IS view)
+      line: 4955
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      isis.process.sr_mpls: flag
+  - id: huawei-vrp8.segment-routing-mpls~2
+    syntax: segment-routing mpls
+    view: ospf
+    undo: undo segment-routing mpls
+    default: By default, Segment Routing is disabled for OSPF processes.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing mpls (OSPF view)
+      line: 5019
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.sr_mpls: flag
+  - id: huawei-vrp8.segment-routing-mpls-over-gre
+    syntax: segment-routing mpls over gre
+    view: isis
+    undo: undo segment-routing mpls over gre
+    default: By default, segment routing routes are not recursed to GRE tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing mpls over gre (IS-IS view)
+      line: 5083
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-mpls-over-gre~2
+    syntax: segment-routing mpls over gre
+    view: ospf
+    undo: undo segment-routing mpls over gre
+    default: By default, segment routing routes are not recursed to GRE tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing mpls over gre (OSPF view)
+      line: 5143
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-mpls-over-rsvp-te
+    syntax: segment-routing mpls over rsvp-te
+    view: isis
+    undo: undo segment-routing mpls over rsvp-te
+    default: By default, Segment Routing routes do not recurse to RSVP-TE tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing mpls over rsvp-te
+      line: 5203
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-mpls-over-rsvp-te~2
+    syntax: segment-routing mpls over rsvp-te
+    view: ospf
+    undo: undo segment-routing mpls over rsvp-te
+    default: By default, Segment Routing routes do not recurse to RSVP-TE tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing mpls over rsvp-te (OSPF view)
+      line: 5263
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-mpls-static-adj-sid-advertise
+    syntax: segment-routing mpls static adj-sid advertise
+    view: isis
+    undo: undo segment-routing mpls static adj-sid advertise
+    default: By default, a device is disabled to advertise static adjacency labels.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing mpls static adj-sid advertise (IS-IS view)
+      line: 5322
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-sbfd-source-address
+    syntax: segment-routing sbfd source-address <ip-address>
+    view: isis
+    undo: undo segment-routing sbfd source-address [ <ip-address> ]
+    params:
+      ip-address:
+        type: ipv4
+    default: By default, no SBFD source address is configured for IS-IS.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing sbfd source-address (IS-IS view)
+      line: 5386
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.sr-lsp-strict-check
+    syntax: sr-lsp strict-check
+    view: isis
+    undo: undo sr-lsp strict-check
+    default: By default, IS-IS does not support node-based SR LSP strict check.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: sr-lsp strict-check (IS-IS view)
+      line: 5572
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.sr-lsp-strict-check~2
+    syntax: sr-lsp strict-check
+    view: ospf
+    undo: undo sr-lsp strict-check
+    default: By default, OSPF does not support node-based SR LSP strict check.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: sr-lsp strict-check (OSPF view)
+      line: 5634
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.sr-te-policy-segment-list-reverse-binding-sid-switch-delay-delete-delay
+    syntax: sr-te-policy segment-list reverse-binding-sid switch-delay <switchDelay> binding-sid delete-delay <deleteDelay>
+    view: segment-routing
+    undo: undo sr-te-policy segment-list reverse-binding-sid switch-delay <switchDelay> binding-sid delete-delay <deleteDelay>
+    params:
+      switchDelay:
+        type: integer
+        range:
+          - 0
+          - 600000
+      deleteDelay:
+        type: integer
+        range:
+          - 0
+          - 600000
+    default: By default, the switching delay for the reverse binding SID of an SR-MPLS TE Policy's segment list is 5000 ms, and the deletion delay for the forward binding SID of the SR-MPLS TE Policy's segment list is 20000 ms.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: sr-te-policy segment-list reverse-binding-sid switch-delay delete-delay
+      line: 5696
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.static-label-block
+    syntax: static-label-block <begin-value> <end-value>
+    view: segment-routing
+    undo: undo static-label-block [ <begin-value> <end-value> ]
+    params:
+      begin-value:
+        type: integer
+        range:
+          - 48000
+          - 368623
+      end-value:
+        type: integer
+        range:
+          - 48000
+          - 368623
+    default: By default, no SR static adjacency label range is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: static-label-block
+      line: 5758
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.ti-lfa
+    syntax: ti-lfa [ remote-srlg ] [ level-1 | level-2 | level-1-2 ]
+    view: isis-frr
+    undo: undo ti-lfa [ remote-srlg ] [ level-1 | level-2 | level-1-2 ]
+    default: By default, IS-IS TI-LFA is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: ti-lfa (IS-IS FRR view)
+      line: 5827
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      isis.process.ti_lfa: flag
+  - id: huawei-vrp8.ti-lfa-enable
+    syntax: ti-lfa enable
+    view: ospf-frr
+    undo: undo ti-lfa enable
+    default: By default, OSPF TI-LFA is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: ti-lfa enable
+      line: 5912
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      ospf.process.ti_lfa: flag
+  - id: huawei-vrp8.traffic-statistics-enable~4
+    syntax: traffic-statistics enable host [ ip-prefix <ip-prefix-name> ]
+    view: segment-routing
+    undo: undo traffic-statistics enable host [ ip-prefix <ip-prefix-name> ]
+    params:
+      ip-prefix-name:
+        type: word
+    default: By default, the function to collect SR LSP traffic statistics is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: traffic-statistics enable (Segment routing view)
+      line: 5980
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.traffic-statistics-flex-algo-exclude
+    syntax: traffic-statistics flex-algo exclude { <flex-algo-begin> [ to <flex-algo-end> ] } &<1-10>
+    view: segment-routing
+    undo: undo traffic-statistics flex-algo exclude { <flex-algo-begin> [ to <flex-algo-end> ] } &<1-10>
+    params:
+      flex-algo-begin:
+        type: integer
+        range:
+          - 128
+          - 255
+      flex-algo-end:
+        type: integer
+        range:
+          - 128
+          - 255
+    default: By default, LSP traffic statistics collection is enabled for all Flex-Algos.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: traffic-statistics flex-algo exclude
+      line: 6037
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.tunnel-prefer-segment-routing
+    syntax: tunnel-prefer segment-routing
+    view: segment-routing
+    undo: undo tunnel-prefer segment-routing
+    default: By default, LDP tunnels take precedence over SR-MPLS BE tunnels.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: tunnel-prefer segment-routing
+      line: 6093
+      version: V800R025C00SPC500
+    status: draft
+    maps:
+      sr.global.tunnel_prefer: flag
+  - id: huawei-vrp8.flex-algo~3
+    syntax: flex-algo <flexAlgoIdentifier> [ level-1 | level-1-2 | level-2 ]
+    view: isis
+    undo: undo flex-algo <flexAlgoIdentifier> [ level-1 | level-1-2 | level-2 ]
+    params:
+      flexAlgoIdentifier:
+        type: integer
+        range:
+          - 128
+          - 255
+    default: By default, Flex-Algo advertisement is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: flex-algo (IS-IS view)
+      line: 21055
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flex-algo-color-mapping
+    syntax: flex-algo color-mapping
+    view: system
+    undo: undo flex-algo color-mapping
+    default: By default, the Flex-Algo and color mapping view is not created.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: flex-algo color-mapping
+      line: 21115
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flex-algo-identifier
+    syntax: flex-algo identifier <flexAlgoId>
+    view: system
+    undo: undo flex-algo identifier <flexAlgoId>
+    params:
+      flexAlgoId:
+        type: integer
+        range:
+          - 128
+          - 255
+    default: By default, no Flex-Algo is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: flex-algo identifier
+      line: 21166
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.flex-algo-prefix-sid-incr-prefix-cost
+    syntax: flex-algo prefix-sid incr-prefix-cost
+    view: isis
+    undo: undo flex-algo prefix-sid incr-prefix-cost
+    default: By default, the IS-IS cost of a loopback interface is not used to calculate the cost of an IS-IS Flex-Algo SR-MPLS Prefix-SID route.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: flex-algo prefix-sid incr-prefix-cost
+      line: 21221
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.path-constraint-affinity-mapping
+    syntax: path-constraint affinity-mapping
+    view: system
+    undo: undo path-constraint affinity-mapping
+    default: By default, no template is configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: path-constraint affinity-mapping
+      line: 22112
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-policy-constraint-path
+    syntax: segment-routing policy constraint-path <path-name>
+    view: system
+    undo: undo segment-routing policy constraint-path <path-name>
+    params:
+      path-name:
+        type: word
+    default: By default, no SR Policy path constraint is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing policy constraint-path
+      line: 22364
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-policy-constraint-template
+    syntax: segment-routing policy constraint-template <constraintName>
+    view: system
+    undo: undo segment-routing policy constraint-template <constraintName>
+    params:
+      constraintName:
+        type: word
+    default: By default, no SR Policy constraint template is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing policy constraint-template
+      line: 22420
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-policy-cpu-overload-control-disable
+    syntax: segment-routing policy cpu-overload control disable
+    view: system
+    undo: undo segment-routing policy cpu-overload control disable
+    default: By default, SRPOLICY CPU overload control is enabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing policy cpu-overload control disable
+      line: 22476
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.segment-routing-policy-template
+    syntax: segment-routing policy-template <template-value>
+    view: system
+    undo: undo segment-routing policy-template <template-value>
+    params:
+      template-value:
+        type: integer
+        range:
+          - 1
+          - 4294967269
+    default: By default, no SR Policy attribute template is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: segment-routing policy-template
+      line: 22531
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-attribute-enable
+    syntax: te attribute enable
+    view: system
+    undo: undo te attribute enable
+    default: By default, TE is disabled.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te attribute enable
+      line: 22858
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-bandwidth
+    syntax: te bandwidth <bc0Bw>
+    view: interface
+    undo: undo te bandwidth
+    params:
+      bc0Bw:
+        type: integer
+        range:
+          - 0
+          - 256000000000
+    default: By default, no BC bandwidth is configured for a link.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te bandwidth (interface view)
+      line: 22916
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-bandwidth~2
+    syntax: te bandwidth { bc0 <bc0Bw> | bc1 <bc1Bw> | bc2 <bc2Bw> | bc3 <bc3Bw> | bc4 <bc4Bw> | bc5 <bc5Bw> | bc6 <bc6Bw> | bc7 <bc7Bw> } &<1-9>
+    view: interface
+    params:
+      bc0Bw:
+        type: integer
+        range:
+          - 0
+          - 256000000000
+      bc1Bw:
+        type: integer
+        range:
+          - 0
+          - 256000000000
+      bc2Bw:
+        type: integer
+        range:
+          - 0
+          - 256000000000
+      bc3Bw:
+        type: integer
+        range:
+          - 0
+          - 256000000000
+      bc4Bw:
+        type: integer
+        range:
+          - 0
+          - 256000000000
+      bc5Bw:
+        type: integer
+        range:
+          - 0
+          - 256000000000
+      bc6Bw:
+        type: integer
+        range:
+          - 0
+          - 256000000000
+      bc7Bw:
+        type: integer
+        range:
+          - 0
+          - 256000000000
+    default: By default, no BC bandwidth is configured for a link.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te bandwidth (Interface view) (IETF)
+      line: 22976
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-bandwidth-bc0
+    syntax: te bandwidth bc0 <bc0Bw>
+    view: interface
+    params:
+      bc0Bw:
+        type: integer
+        range:
+          - 0
+          - 256000000000
+    default: By default, the BC0 bandwidth of a link is not configured.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te bandwidth bc0 (Interface view)
+      line: 23045
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-bandwidth-change-thresholds.1
+    syntax: te bandwidth change thresholds up <percent-up>
+    view: interface
+    undo: undo te bandwidth change thresholds up
+    params:
+      percent-up:
+        type: integer
+        range:
+          - 0
+          - 100
+    default: By default, if the ratio of the bandwidth occupied or released by TE tunnels to the remaining bandwidth in the TEDB is greater than or equal to 10%, an IGP floods link information, and CSPF updates the TEDB.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te bandwidth change thresholds
+      line: 23101
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-bandwidth-change-thresholds.2
+    syntax: te bandwidth change thresholds down <percent-down>
+    view: interface
+    undo: undo te bandwidth change thresholds down
+    params:
+      percent-down:
+        type: integer
+        range:
+          - 0
+          - 100
+    default: By default, if the ratio of the bandwidth occupied or released by TE tunnels to the remaining bandwidth in the TEDB is greater than or equal to 10%, an IGP floods link information, and CSPF updates the TEDB.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te bandwidth change thresholds
+      line: 23101
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-bandwidth-dynamic
+    syntax: te bandwidth dynamic bc0 <bc0-bw-percentage>
+    view: interface
+    params:
+      bc0-bw-percentage:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: By default, the proportion of the BC0 dynamic reservable bandwidth to the maximum reservable bandwidth is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te bandwidth dynamic (Interface view)
+      line: 23170
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-bandwidth-max-reservable-bandwidth
+    syntax: te bandwidth max-reservable-bandwidth <max-bw-value>
+    view: interface
+    undo: undo te bandwidth max-reservable-bandwidth
+    params:
+      max-bw-value:
+        type: integer
+    default: By default, the maximum reservable bandwidth is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te bandwidth max-reservable-bandwidth
+      line: 23299
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-bandwidth-max-reservable-bandwidth-dynamic
+    syntax: te bandwidth max-reservable-bandwidth dynamic <max-dynamic-bw-value>
+    view: interface
+    params:
+      max-dynamic-bw-value:
+        type: integer
+        range:
+          - 1
+          - 1000
+    default: By default, the proportion of the dynamic maximum reservable bandwidth to the physical bandwidth is not set.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te bandwidth max-reservable-bandwidth dynamic
+      line: 23363
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-bandwidth-max-reservable-bandwidth-dynamic-baseline-remain-bandwidth
+    syntax: te bandwidth max-reservable-bandwidth dynamic baseline remain-bandwidth
+    view: interface
+    undo: undo te bandwidth max-reservable-bandwidth dynamic baseline remain-bandwidth
+    default: By default, the physical bandwidth of an interface is used to calculate the maximum dynamic reservable bandwidth for TE.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te bandwidth max-reservable-bandwidth dynamic baseline remain-bandwidth
+      line: 23426
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-link-administrative-group
+    syntax: te link administrative group <group-value>
+    view: interface
+    undo: undo te link administrative group
+    params:
+      group-value:
+        type: integer
+    default: By default, the value of the link administrative group is 0x0.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te link administrative group
+      line: 23555
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-link-administrative-group-name
+    syntax: te link administrative group name { <bit-name> } &<1-32>
+    view: interface
+    undo: undo te link administrative group name { <bit-name> } &<1-32>
+    params:
+      bit-name:
+        type: word
+    default: By default, a link administrative group is 0x0, and no bit names are specified for it.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te link administrative group name
+      line: 23622
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-link-attribute-application-flex-algo
+    syntax: te link-attribute-application flex-algo
+    view: interface
+    undo: undo te link-attribute-application flex-algo
+    default: By default, no Flex-Algo link attribute application view is created.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te link-attribute-application flex-algo
+      line: 23694
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-metric
+    syntax: te metric <metric-value>
+    view: interface
+    undo: undo te metric
+    params:
+      metric-value:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: By default, an IGP metric value is used as the TE metric value for links.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te metric
+      line: 23748
+      version: V800R025C00SPC500
+    status: draft
+  - id: huawei-vrp8.te-srlg
+    syntax: te srlg <srlg-number>
+    view: interface
+    undo: undo te srlg <srlg-number>
+    params:
+      srlg-number:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: By default, no interface is added to any SRLG.
+    source:
+      doc: huawei-vrp8-md
+      file: 12_Segment Routing Commands.md
+      title: te srlg
+      line: 23813
+      version: V800R025C00SPC500
+    status: draft

@@ -12,6 +12,10 @@ vars:
   max_idle_seconds: 900
   # SSH 认证重试次数上限
   max_ssh_retries: 3
+  # SSH 弱算法（正则，按设备写法：华为下划线、Cisco 连字符；不区分大小写）
+  weak_ssh_ciphers: '(cbc|arcfour|blowfish|rc4|(^|\s)3?des(\s|$))'
+  weak_ssh_hmacs: '(md5|(^|\s)(hmac-)?sha1([_-]96|-etm@openssh\.com)?(\s|$))'
+  weak_ssh_kex: '(sha1(\s|$)|group1([_-]|\s|$))'
 
 profiles:
   basic:
@@ -23,9 +27,9 @@ profiles:
   strict:
     title: {zh-CN: 严格基线, en: Strict baseline, pt-BR: Baseline estrita}
     description:
-      zh-CN: 在基础基线之上：只用 SNMPv3、NTP 服务器逐个绑定认证密钥、更短的空闲超时、限制最高级别的本地用户与 SSH 重试次数
-      en: "On top of the basic baseline: SNMPv3 only, an authentication key on every NTP server, shorter idle timeouts, limits on top-level local users and SSH retries"
-      pt-BR: "Além da baseline básica: apenas SNMPv3, chave de autenticação em cada servidor NTP, timeouts de inatividade menores, limites para usuários locais de nível máximo e tentativas SSH"
+      zh-CN: 在基础基线之上：只用 SNMPv3（认证加加密、强算法）、SSH 只用强算法、NTP 服务器逐个绑定认证密钥、更短的空闲超时、限制最高级别的本地用户与 SSH 重试次数
+      en: "On top of the basic baseline: SNMPv3 only (authPriv, strong algorithms), strong SSH algorithms only, an authentication key on every NTP server, shorter idle timeouts, limits on top-level local users and SSH retries"
+      pt-BR: "Além da baseline básica: apenas SNMPv3 (authPriv, algoritmos fortes), apenas algoritmos SSH fortes, chave de autenticação em cada servidor NTP, timeouts de inatividade menores, limites para usuários locais de nível máximo e tentativas SSH"
     includes: [basic]
     vars:
       max_idle_seconds: 600
@@ -37,13 +41,14 @@ rules:
     profiles: [basic]
     tags: [services]
     target: device
-    # Cisco 没有单独的 Telnet 服务开关，登录线路允许 telnet（或 all）即开启；华为由 telnet server enable 决定
+    # 华为由 telnet server enable 决定；没有 Telnet 服务开关的平台（Profile 不支持 mgmt.telnet.enabled，例如 Cisco）
+    # 登录线路允许 telnet（或 all）即开启（M4-2：按 Profile 判断，替代原来按平台族的分支）
     assert:
       not:
         any:
           - exists: mgmt.telnet/enabled
           - all:
-              - family: [cisco-iosxe]
+              - not: {supported: mgmt.telnet.enabled}
               - match: {path: mgmt.line/protocols, pattern: '\b(telnet|all)\b'}
     severity: error
     title:
@@ -89,12 +94,12 @@ rules:
     profiles: [basic]
     tags: [ssh]
     target: device
+    # 华为看 stelnet server enable；没有 SSH 服务开关的平台（Profile 不支持 mgmt.ssh.enabled，例如 Cisco）看登录线路是否接受 SSH
     assert:
       any:
         - exists: mgmt.ssh/enabled
-        - exists: mgmt.ssh/version
         - all:
-            - family: [cisco-iosxe]
+            - not: {supported: mgmt.ssh.enabled}
             - match: {path: mgmt.line/protocols, pattern: '\bssh\b'}
     severity: error
     title:
@@ -121,14 +126,14 @@ rules:
       any:
         - exists: mgmt.ssh/enabled
         - exists: mgmt.ssh/version
-        - match: {path: mgmt.line/protocols, pattern: '\bssh\b'}
-    # 华为 VRP8 缺省不开启 SSHv1 兼容（ssh server compatible-ssh1x），知识库还没有映射该命令，按缺省行为判断
-    assert:
-      any:
-        - equals: {path: mgmt.ssh/version, value: 2}
         - all:
-            - family: [huawei-vrp8]
-            - not: {equals: {path: mgmt.ssh/version, value: 1}}
+            - not: {supported: mgmt.ssh.enabled}
+            - match: {path: mgmt.line/protocols, pattern: '\bssh\b'}
+    # 版本按有效值判断（M4-2 补了缺省值：华为 2；Cisco 不写 ip ssh version 时为兼容模式 1.99），华为另看 SSHv1 兼容开关
+    assert:
+      all:
+        - equals: {path: mgmt.ssh/version, value: "2"}
+        - not: {equals: {path: mgmt.ssh/compat_v1, value: true}}
     severity: error
     title:
       zh-CN: SSH 只用版本 2
@@ -168,6 +173,39 @@ rules:
     remedy:
       huawei: [ssh server authentication-retries 3]
       cisco: [ip ssh authentication-retries 3]
+
+  - id: sec.ssh_strong_algorithms
+    profiles: [strict]
+    tags: [ssh]
+    target: mgmt.ssh
+    # 算法名按设备写法（华为 3des_cbc、hmac sha1；Cisco 3des-cbc、hmac-sha1）。没有配置时按 Profile 缺省值判断
+    # （华为缺省只开 GCM / CTR、SHA2 与 curve25519 / DH-GEX-SHA256；Cisco 缺省值随版本变化，没有登记）
+    when:
+      any:
+        - exists: ciphers
+        - exists: hmacs
+        - exists: kex
+    assert:
+      all:
+        - not: {match: {path: ciphers, pattern: $weak_ssh_ciphers, ignore_case: true}}
+        - not: {match: {path: hmacs, pattern: $weak_ssh_hmacs, ignore_case: true}}
+        - not: {match: {path: kex, pattern: $weak_ssh_kex, ignore_case: true}}
+    severity: warning
+    title:
+      zh-CN: SSH 只用强算法
+      en: SSH uses strong algorithms only
+      pt-BR: SSH usa apenas algoritmos fortes
+    message:
+      zh-CN: SSH 服务端允许弱算法（CBC 模式或 3DES / RC4 加密、MD5 / SHA1 校验、SHA1 密钥交换），可能被降级攻击利用
+      en: The SSH server allows weak algorithms (CBC-mode or 3DES / RC4 ciphers, MD5 / SHA1 MACs, SHA1 key exchange) that downgrade attacks can exploit
+      pt-BR: O servidor SSH permite algoritmos fracos (cifras em modo CBC ou 3DES / RC4, MAC MD5 / SHA1, troca de chaves SHA1) exploráveis em ataques de downgrade
+    suggestion:
+      zh-CN: 只保留 AES-GCM / AES-CTR 加密、SHA2 校验与 ECDH / DH-GEX-SHA256 及以上的密钥交换
+      en: Keep only AES-GCM / AES-CTR ciphers, SHA2 MACs and ECDH / DH-GEX-SHA256 or stronger key exchange
+      pt-BR: Mantenha apenas cifras AES-GCM / AES-CTR, MAC SHA2 e troca de chaves ECDH / DH-GEX-SHA256 ou superior
+    remedy:
+      huawei: [ssh server cipher aes256_gcm aes128_gcm aes256_ctr aes192_ctr aes128_ctr, ssh server hmac sha2_512 sha2_256, ssh server key-exchange dh_group_exchange_sha256 ecdh_sha2_nistp256 ecdh_sha2_nistp384 ecdh_sha2_nistp521]
+      cisco: [ip ssh server algorithm encryption aes256-gcm aes128-gcm aes256-ctr aes192-ctr aes128-ctr, ip ssh server algorithm mac hmac-sha2-512 hmac-sha2-256, ip ssh server algorithm kex ecdh-sha2-nistp521 ecdh-sha2-nistp384 ecdh-sha2-nistp256]
 
   # ---------- 登录线路（VTY） ----------
   - id: sec.vty_ssh_only
@@ -230,15 +268,16 @@ rules:
       all:
         - key: {pattern: '^vty\b'}
         - not: {equals: {path: protocols, value: none}}
-    # Cisco 开启 aaa new-model 后，没有 login authentication 的线路使用 default 方法列表
+    # 开启 AAA（Cisco aaa new-model）后，没有 login authentication 的线路使用 default 方法列表（M4-2：按 mgmt.aaa.enabled 判断；
+    # 华为不设认证方式时 Profile 缺省为 none，不会走第二个分支）
     assert:
       any:
         - all:
             - exists: auth
             - not: {in: {path: auth, values: [password, none, line]}}
         - all:
-            - family: [cisco-iosxe]
             - not: {exists: auth}
+            - equals: {path: /mgmt.aaa/enabled, value: true}
             - exists: /mgmt.aaa/scheme
     severity: warning
     title:
@@ -373,6 +412,57 @@ rules:
       huawei: [snmp-agent sys-info version v3, "undo snmp-agent community <COMMUNITY>"]
       cisco: ["snmp-server group <GROUP> v3 priv", "no snmp-server community <COMMUNITY>"]
 
+  - id: sec.snmp_v3_priv
+    profiles: [strict]
+    tags: [snmp]
+    target: mgmt.snmp.group
+    when: {equals: {path: version, value: v3}}
+    assert: {equals: {path: security_level, value: priv}}
+    severity: warning
+    title:
+      zh-CN: SNMPv3 组使用认证加加密
+      en: SNMPv3 groups use authentication and privacy
+      pt-BR: Grupos SNMPv3 usam autenticação e privacidade
+    message:
+      zh-CN: SNMPv3 组 {key} 的安全级别不是认证加加密（priv），报文内容可被窃听
+      en: The security level of SNMPv3 group {key} is not authPriv; SNMP contents can be eavesdropped
+      pt-BR: O nível de segurança do grupo SNMPv3 {key} não é authPriv; o conteúdo SNMP pode ser interceptado
+    suggestion:
+      zh-CN: 把组的安全级别改为认证加加密（华为 privacy，Cisco priv），用户配置 SHA2 认证与 AES 加密
+      en: Set the group security level to authPriv (Huawei privacy, Cisco priv) and give users SHA2 authentication and AES privacy
+      pt-BR: Defina o nível do grupo como authPriv (Huawei privacy, Cisco priv) e use autenticação SHA2 e criptografia AES nos usuários
+    remedy:
+      huawei: ["snmp-agent group v3 {key} privacy"]
+      cisco: ["snmp-server group {key} v3 priv"]
+
+  - id: sec.snmp_v3_user_strong
+    profiles: [strict]
+    tags: [snmp]
+    target: mgmt.snmp.user
+    when: {equals: {path: version, value: v3}}
+    assert:
+      all:
+        - exists: auth_protocol
+        - exists: priv_protocol
+        - not: {match: {path: auth_protocol, pattern: '^md5$', ignore_case: true}}
+        - not: {match: {path: priv_protocol, pattern: '^(des|des56|3des|3des168)$', ignore_case: true}}
+    severity: warning
+    title:
+      zh-CN: SNMPv3 用户使用强认证与加密算法
+      en: SNMPv3 users use strong authentication and privacy
+      pt-BR: Usuários SNMPv3 usam autenticação e criptografia fortes
+    message:
+      zh-CN: SNMPv3 用户 {key} 没有配置认证或加密，或使用 MD5 / DES / 3DES
+      en: SNMPv3 user {key} lacks authentication or privacy, or uses MD5 / DES / 3DES
+      pt-BR: O usuário SNMPv3 {key} não tem autenticação ou privacidade, ou usa MD5 / DES / 3DES
+    suggestion:
+      zh-CN: 为用户配置 SHA2 认证与 AES 加密
+      en: Configure SHA2 authentication and AES privacy for the user
+      pt-BR: Configure autenticação SHA2 e criptografia AES para o usuário
+    remedy:
+      huawei: ["snmp-agent usm-user v3 {key} authentication-mode sha2-256 cipher <KEY>", "snmp-agent usm-user v3 {key} privacy-mode aes256 cipher <KEY>"]
+      cisco: ["snmp-server user {key} <GROUP> v3 auth sha-2 256 <KEY> priv aes 256 <KEY>"]
+
   - id: sec.snmp_trap_source_loopback
     profiles: [basic]
     tags: [snmp, source]
@@ -407,8 +497,11 @@ rules:
     profiles: [basic]
     tags: [aaa]
     target: device
-    # 以认证方案 / 方法列表为准：Cisco 的 no aaa new-model 目前也映射成 mgmt.aaa 对象，不能只看对象是否存在
-    assert: {count: {path: mgmt.aaa/scheme, min: 1}}
+    # AAA 已开启（M4-2：Cisco no aaa new-model 记为 enabled = false，华为恒开启）且有认证方案 / 方法列表
+    assert:
+      all:
+        - equals: {path: mgmt.aaa/enabled, value: true}
+        - count: {path: mgmt.aaa/scheme, min: 1}
     severity: warning
     title:
       zh-CN: 配置 AAA
@@ -430,11 +523,11 @@ rules:
     profiles: [basic]
     tags: [aaa]
     target: device
-    # RADIUS 服务器还没有进入 Schema：方法里出现 radius 时按已配置处理
+    # M4-2：RADIUS 服务器已进入 Schema（mgmt.radius），不再按方法里出现 radius 推断
     assert:
       any:
         - count: {path: mgmt.tacacs/server, min: 1}
-        - match: {path: mgmt.aaa/scheme/methods, pattern: '\bradius\b'}
+        - count: {path: mgmt.radius/server, min: 1}
     severity: warning
     title:
       zh-CN: 配置 TACACS+ / RADIUS 服务器
@@ -473,6 +566,29 @@ rules:
     remedy:
       huawei: ["hwtacacs-server template {key}", " hwtacacs-server shared-key cipher <KEY>"]
       cisco: ["tacacs server {key}", " key <KEY>"]
+
+  - id: sec.radius_key
+    profiles: [basic]
+    tags: [aaa]
+    target: mgmt.radius
+    when: {count: {path: server, min: 1}}
+    assert: {exists: key_set}
+    severity: warning
+    title:
+      zh-CN: RADIUS 服务器设置共享密钥
+      en: RADIUS server has a shared key
+      pt-BR: Servidor RADIUS com chave compartilhada
+    message:
+      zh-CN: RADIUS 服务器组 {key} 没有设置共享密钥，认证报文无法校验、口令属性无法加密
+      en: RADIUS server group {key} has no shared key; packets cannot be authenticated and password attributes are not protected
+      pt-BR: O grupo de servidores RADIUS {key} não tem chave compartilhada; os pacotes não são autenticados e as senhas não são protegidas
+    suggestion:
+      zh-CN: 为 RADIUS 服务器设置共享密钥（密文形式）
+      en: Set a shared key for the RADIUS servers (cipher form)
+      pt-BR: Defina uma chave compartilhada para os servidores RADIUS (forma cifrada)
+    remedy:
+      huawei: ["radius-server group {key}", " radius-server shared-key-cipher <KEY>"]
+      cisco: ["radius server {key}", " key <KEY>"]
 
   - id: sec.local_user_password
     profiles: [basic]

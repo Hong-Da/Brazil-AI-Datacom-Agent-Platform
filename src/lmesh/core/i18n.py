@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Mapping
 from functools import cache
 from typing import Any
 
@@ -46,10 +47,29 @@ def from_accept_language(header: str | None) -> str:
     return DEFAULT
 
 
+def pick(m: Any, lang: str | None) -> str:
+    """多语言文本 {zh-CN, en, pt-BR}（例如知识库依赖说明 Note）按语言取值：缺失时回退英文、中文；字符串原样返回。"""
+    if m is None:
+        return ""
+    if not isinstance(m, Mapping):
+        return str(m)
+    lang = normalize(lang)
+    return str(m.get(lang) or m.get("en") or m.get(DEFAULT) or next(iter(m.values()), "") or "")
+
+
+def is_text_map(v: Any) -> bool:
+    return isinstance(v, Mapping) and all(k in LANGS for k in v)
+
+
+def localize(params: Mapping[str, Any], lang: str | None) -> dict[str, Any]:
+    """文案参数中的多语言文本换成对应语言的字符串。"""
+    return {k: pick(v, lang) if is_text_map(v) else v for k, v in params.items()}
+
+
 def t(key: str, lang: str | None = None, **kwargs: Any) -> str:
     lang = normalize(lang)
     text = catalog(lang).get(key)
     if text is None:
         _log.debug("缺少翻译 %s [%s]", key, lang)
         text = catalog(DEFAULT).get(key, key)
-    return text.format(**kwargs) if kwargs else text
+    return text.format(**localize(kwargs, lang)) if kwargs else text

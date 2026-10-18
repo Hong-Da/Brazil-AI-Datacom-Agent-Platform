@@ -174,9 +174,16 @@ def register(app: typer.Typer) -> None:
         profile: Annotated[str | None, typer.Option(help="旧配置的 Profile（不给时自动识别）")] = None,
         suggest_only: Annotated[bool, typer.Option("--suggest-only", help="只给接口映射建议")] = False,
         no_verify: Annotated[bool, typer.Option("--no-verify", help="不做新配置的再解析校验")] = False,
+        rules: Annotated[
+            str | None, typer.Option("--rules", help="翻译规则集（编号或 YAML 文件）：名称映射、命名规范、端口映射")
+        ] = None,
     ) -> None:
+        from lmesh.cli.cmd_naming import load_rules, report_text
+        from lmesh.core import naming
+
         c = output.get(ctx)
         g, kb = _graph_for(c, target, profile)
+        rs = load_rules(c, rules, kb)
         src = str(g.graph.get("profile"))
         try:
             ifmap = migration.load_map_file(interface_map) if interface_map else None
@@ -186,6 +193,8 @@ def register(app: typer.Typer) -> None:
                     fail(c, output.EXIT_NOT_FOUND, c.t("migrate.target_missing", path=str(target_config)))
                 tg = migration.target_graph_from_text(importer.decode(target_config.read_bytes()), kb, to)
             if suggest_only:
+                if rs is not None:  # 端口映射规则：用户给出的映射优先
+                    ifmap = {**naming.port_map(g, rs), **(ifmap or {})}
                 s = migration.suggest_map(g, kb, src, to, ifmap, tg, model)
                 emit(
                     c,
@@ -194,12 +203,14 @@ def register(app: typer.Typer) -> None:
                     + "".join(f"\n  {_line(c, w)}" for w in s["warnings"]),
                 )
                 return
-            r = migration.migrate(g, kb, src, to, ifmap, tg, model, on_conflict, verify=not no_verify)
+            r = migration.migrate(g, kb, src, to, ifmap, tg, model, on_conflict, verify=not no_verify, rules=rs)
         except compare.CompareError as e:
             fail(c, output.EXIT_NOT_FOUND if e.kind == "not_found" else output.EXIT_USAGE, c.t(e.key, **e.fmt))
         except (migration.MigrateError, translate.TranslateError) as e:
             fail(c, output.EXIT_USAGE, c.t(e.key, **e.fmt))
         report = text_report(c, r)
+        if r.get("naming") is not None:
+            report += "\n" + report_text(c, r["naming"])
         if out is not None:
             files = write_outputs(c, r, out)
             emit(

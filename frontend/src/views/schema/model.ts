@@ -1,5 +1,7 @@
 /** Schema 视图与 Schema 管理共用的数据类型与纯逻辑：树结构、依赖边、覆盖率统计、对比分组。 */
 
+import type { Note } from '@/i18n/note'
+
 export type I18nText = Record<string, string>
 
 export interface SchemaNode {
@@ -22,7 +24,7 @@ export interface SchemaDep {
   kind: string
   from: string
   to: string
-  note: string
+  note: Note
   profiles: string[]
 }
 
@@ -185,7 +187,7 @@ export interface NodeEdge {
   kind: string
   other: string
   dir: 'out' | 'in'
-  note: string
+  note: Note
 }
 
 /** 一个节点的依赖：出边（它依赖谁）与入边（谁依赖它）。 */

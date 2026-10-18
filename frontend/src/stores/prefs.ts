@@ -4,7 +4,6 @@ import { i18n, saveLang, type Lang } from '@/i18n'
 
 export type Theme = 'auto' | 'light' | 'dark'
 const THEME_KEY = 'lmesh-theme'
-const TOKEN_KEY = 'lmesh-token'
 const STYLE_KEY = 'lmesh-term-style'
 
 function read(key: string, fallback: string): string {
@@ -16,11 +15,10 @@ function write(key: string, value: string): void {
 
 const media = window.matchMedia('(prefers-color-scheme: dark)')
 
-/** 语言、主题、API 令牌：保存在浏览器本地。 */
+/** 语言、主题、显示风格：保存在浏览器本地（登录状态在会话 Cookie 里，不在这里）。 */
 export const usePrefs = defineStore('prefs', () => {
   const lang = ref<Lang>(i18n.global.locale.value as Lang)
   const theme = ref<Theme>(read(THEME_KEY, 'auto') as Theme)
-  const token = ref<string>(read(TOKEN_KEY, ''))
   /** 显示风格（huawei / cisco）；空表示还没选过，跟随系统默认（/kb/terms 的 default） */
   const termStyle = ref<string>(read(STYLE_KEY, ''))
 
@@ -34,9 +32,8 @@ export const usePrefs = defineStore('prefs', () => {
   media.addEventListener('change', applyTheme)
   watch(theme, (t) => { write(THEME_KEY, t); applyTheme() }, { immediate: true })
   watch(lang, (l) => { i18n.global.locale.value = l; saveLang(l) }, { immediate: true })
-  watch(token, (t) => write(TOKEN_KEY, t))
   watch(termStyle, (s) => write(STYLE_KEY, s))
-  return { lang, theme, token, termStyle }
+  return { lang, theme, termStyle }
 })
 
 /** 每个浏览器记住的开关（例如各视图的“显示默认配置”），name 是视图名。 */

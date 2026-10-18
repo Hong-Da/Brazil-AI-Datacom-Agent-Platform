@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -27,6 +28,61 @@ NODE_TYPES = (
 )
 DEP_KINDS = ("reference", "prerequisite", "side_effect", "mutex", "cross_device")
 SHOW_RULES = ("always", "hide_when_default", "never")
+NOTE_LANGS = ("zh-CN", "en", "pt-BR")
+
+
+class Note(dict[str, str]):
+    """依赖 / 副作用的三语说明 {zh-CN, en, pt-BR}。
+
+    知识库里可写成纯字符串（视为 zh-CN）或三语字典；统一成三个键齐全的字典，缺的语言回退
+    （en 缺用 zh-CN，pt-BR 缺用 en），given 记录文件里实际写了哪些语言（校验与写回用）。
+    JSON 输出为字典；可哈希；str() 得到中文，旧的按字符串使用的代码照常可用。
+    """
+
+    given: tuple[str, ...]
+
+    def __init__(self, m: Mapping[str, str] | None = None, given: tuple[str, ...] | None = None) -> None:
+        super().__init__(m or {})
+        self.given = tuple(self) if given is None else given
+
+    @classmethod
+    def of(cls, raw: Any) -> Note:
+        if isinstance(raw, Note):
+            return raw
+        if isinstance(raw, Mapping):
+            src = {str(k): str(v) for k, v in raw.items() if v not in (None, "")}
+        else:
+            src = {} if raw in (None, "") else {"zh-CN": str(raw)}
+        if not src:
+            return cls()
+        zh = src.get("zh-CN") or src.get("en") or next(iter(src.values()))
+        en = src.get("en") or zh
+        return cls(
+            {"zh-CN": zh, "en": en, "pt-BR": src.get("pt-BR") or en},
+            tuple(k for k in NOTE_LANGS if k in src),
+        )
+
+    def missing(self) -> list[str]:
+        """非空说明中文件里没写的语言。"""
+        return [k for k in NOTE_LANGS if k not in self.given] if self else []
+
+    def text(self, lang: str | None) -> str:
+        return self.get(lang or "zh-CN") or self.get("en") or self.get("zh-CN") or ""
+
+    def raw(self) -> str | dict[str, str]:
+        """写回知识库的形式：只有中文时为字符串，否则只写文件里给出的语言。"""
+        if self.given in ((), ("zh-CN",)):
+            return self.get("zh-CN", "")
+        return {k: self[k] for k in self.given}
+
+    def __str__(self) -> str:
+        return self.get("zh-CN", "")
+
+    def __format__(self, spec: str) -> str:
+        return format(str(self), spec)
+
+    def __hash__(self) -> int:  # type: ignore[override]
+        return hash(tuple(sorted(self.items())))
 
 
 @dataclass
@@ -111,7 +167,7 @@ class DepRule:
     kind: str
     src: str  # Schema 节点
     dst: str
-    note: str = ""
+    note: Note = field(default_factory=Note)
     profiles: list[str] = field(default_factory=list)  # 只在这些 Profile 中生效；空表示全部
     domain: str = ""
 

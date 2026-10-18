@@ -1,0 +1,275 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: sr
+cards:
+  - id: cisco-iosxe.microloop-avoidance-rib-update-delay
+    syntax: microloop avoidance [ rib-update-delay <delay-time> ]
+    view: router-isis
+    undo: no microloop avoidance [ rib-update-delay ]
+    params:
+      delay-time:
+        type: word
+    default: A RIB update delay value is not configured.
+    source:
+      doc: cisco-iosxe-md
+      file: segment-routing/microloop avoidance rib-update-delay.md
+      title: microloop avoidance rib-update-delay
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.microloop-avoidance
+    syntax: microloop avoidance [ disable | protected ]
+    view: router-isis
+    undo: no microloop avoidance [ disable | protected ]
+    default: Microloop avoidance is disabled when remote loop-free alternate (RLFA) is not configured but is enabled for protected prefixes when RLFA is configured.
+    source:
+      doc: cisco-iosxe-md
+      file: segment-routing/microloop avoidance.md
+      title: microloop avoidance
+      line: 5
+      version: '17.15'
+    status: draft
+  - id: cisco-iosxe.sr-segment-routing-mpls
+    syntax: segment-routing mpls
+    view: system
+    enters_view: sr-mpls
+    undo: no segment-routing mpls
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      sr.global: _
+  - id: cisco-iosxe.sr-global-block
+    syntax: global-block <begin> <end>
+    view: sr-mpls
+    undo: no global-block
+    params:
+      begin:
+        type: integer
+        range:
+          - 16
+          - 1048575
+      end:
+        type: integer
+        range:
+          - 16
+          - 1048575
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      sr.global.srgb_begin: $begin
+      sr.global.srgb_end: $end
+  - id: cisco-iosxe.sr-local-block
+    syntax: local-block <begin> <end>
+    view: sr-mpls
+    undo: no local-block
+    params:
+      begin:
+        type: integer
+        range:
+          - 16
+          - 1048575
+      end:
+        type: integer
+        range:
+          - 16
+          - 1048575
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      sr.global.srlb_begin: $begin
+      sr.global.srlb_end: $end
+  - id: cisco-iosxe.sr-connected-prefix-sid-map
+    syntax: connected-prefix-sid-map
+    view: sr-mpls
+    enters_view: sr-conn
+    undo: no connected-prefix-sid-map
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      sr.global.conn_map: _
+  - id: cisco-iosxe.sr-conn-address-family
+    syntax: address-family ipv4
+    view: sr-conn
+    enters_view: sr-conn-af
+    undo: no address-family ipv4
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      sr.global.conn_map.af: ipv4
+  - id: cisco-iosxe.sr-conn-prefix
+    syntax: <prefix> { index <index> | absolute <label> } [ range <range> ] [ attached ]
+    view: sr-conn-af
+    undo: no <prefix>
+    params:
+      prefix:
+        type: prefix
+      index:
+        type: integer
+        range:
+          - 0
+          - 1048575
+      label:
+        type: integer
+        range:
+          - 16
+          - 1048575
+      range:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      sr.global.conn_map.af.prefix: $prefix
+      sr.global.conn_map.af.prefix.index: $index
+      sr.global.conn_map.af.prefix.absolute: $label
+      sr.global.conn_map.af.prefix.range: $range
+  - id: cisco-iosxe.sr-set-attributes
+    syntax: set-attributes
+    view: sr-mpls
+    enters_view: sr-attr
+    undo: no set-attributes
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+  - id: cisco-iosxe.sr-attr-address-family
+    syntax: address-family ipv4
+    view: sr-attr
+    enters_view: sr-attr-af
+    undo: no address-family ipv4
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+  - id: cisco-iosxe.sr-attr-sr-label-preferred
+    syntax: sr-label-preferred
+    view: sr-attr-af
+    undo: no sr-label-preferred
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+  - id: cisco-iosxe.sr-attr-explicit-null
+    syntax: explicit-null
+    view: sr-attr-af
+    undo: no explicit-null
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+  - id: cisco-iosxe.isis-segment-routing-mpls
+    syntax: segment-routing mpls
+    view: router-isis
+    undo: no segment-routing mpls
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      isis.process.sr_mpls: flag
+  - id: cisco-iosxe.isis-segment-routing-prefix-sid-map
+    syntax: segment-routing prefix-sid-map { advertise-local [ domain-wide ] | receive [ disable ] }
+    view: router-isis
+    undo: no segment-routing prefix-sid-map { advertise-local | receive }
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+  - id: cisco-iosxe.isis-fast-reroute-per-prefix
+    syntax: fast-reroute per-prefix { level-1 | level-2 } { all | route-map <route-map-name> }
+    view: router-isis
+    undo: no fast-reroute per-prefix { level-1 | level-2 }
+    params:
+      route-map-name:
+        type: word
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      isis.process.frr: flag
+  - id: cisco-iosxe.isis-fast-reroute-ti-lfa
+    syntax: fast-reroute ti-lfa { level-1 | level-2 } [ maximum-metric <metric> ]
+    view: router-isis
+    undo: no fast-reroute ti-lfa { level-1 | level-2 }
+    params:
+      metric:
+        type: integer
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      isis.process.ti_lfa: flag
+  - id: cisco-iosxe.isis-microloop-avoidance-sr
+    syntax: microloop avoidance segment-routing
+    view: router-isis
+    undo: no microloop avoidance segment-routing
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      isis.process.microloop_avoidance: flag
+  - id: cisco-iosxe.ospf-segment-routing
+    syntax: segment-routing [ area <area-id> ] { mpls | disable }
+    view: router-ospf
+    undo: no segment-routing [ area <area-id> ] { mpls | disable }
+    params:
+      area-id:
+        type: word
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      ospf.process.sr_mpls: kw:mpls=true|disable=false
+  - id: cisco-iosxe.ospf-fast-reroute-per-prefix-enable
+    syntax: fast-reroute per-prefix enable [ area <area-id> ] prefix-priority { low | high }
+    view: router-ospf
+    undo: no fast-reroute per-prefix enable
+    params:
+      area-id:
+        type: word
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      ospf.process.frr: flag
+  - id: cisco-iosxe.ospf-fast-reroute-ti-lfa
+    syntax: fast-reroute per-prefix ti-lfa [ area <area-id> ]
+    view: router-ospf
+    undo: no fast-reroute per-prefix ti-lfa [ area <area-id> ]
+    params:
+      area-id:
+        type: word
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      ospf.process.ti_lfa: flag
+  - id: cisco-iosxe.ospf-microloop-avoidance-sr
+    syntax: microloop avoidance segment-routing
+    view: router-ospf
+    undo: no microloop avoidance segment-routing
+    source:
+      patched: 公开 IOS XE 命令参考没有 Segment Routing 书（缺口见 Cisco README 第四批）；按 ASR 920 Segment Routing 配置指南（IOS XE 17）的运行配置写法补充
+      added_by_patch: true
+    status: draft
+    maps:
+      ospf.process.microloop_avoidance: flag

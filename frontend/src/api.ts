@@ -6,24 +6,27 @@ export class ApiError extends Error {
   constructor(public code: number, message: string, public status: number, public data: unknown) { super(message) }
 }
 
-function token(): string {
-  try { return localStorage.getItem('lmesh-token') ?? '' } catch { return '' }
+// 以前的版本把 API 令牌存在浏览器里；网页改用账号登录（会话 Cookie）后清掉它
+try { localStorage.removeItem('lmesh-token') } catch { /* 忽略 */ }
+
+/** 登录已失效：回到登录页，登录后回到当前页面。登录页和向导自己处理 401。 */
+export function toLogin(expired: boolean): void {
+  if (location.pathname === '/login' || location.pathname === '/setup') return
+  const q = new URLSearchParams({ next: location.pathname + location.search })
+  if (expired) q.set('expired', '1')
+  location.assign(`/login?${q}`)
 }
 
-/** 统一请求：带上语言与令牌，按 {code, message, data} 解析；code 非 0 时抛出 ApiError。 */
+/** 统一请求：带上语言（认证靠同源的会话 Cookie），按 {code, message, data} 解析；code 非 0 时抛出 ApiError。 */
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers)
   headers.set('Accept-Language', String(i18n.global.locale.value))
   if (init.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
-  const t = token()
-  if (t) headers.set('Authorization', `Bearer ${t}`)
-  const res = await fetch(`/api/v1${path}`, { ...init, headers })
+  const res = await fetch(`/api/v1${path}`, { credentials: 'same-origin', ...init, headers })
   let body: ApiBody<T>
   try { body = await res.json() } catch { throw new ApiError(1000, res.statusText, res.status, null) }
   if (body.code !== 0) {
-    if (body.code === 1002 && location.pathname !== '/login') {
-      location.assign(`/login?next=${encodeURIComponent(location.pathname + location.search)}`)
-    }
+    if (body.code === 1002 && res.status === 401 && !path.startsWith('/auth/')) toLogin(true)
     throw new ApiError(body.code, body.message, res.status, body.data)
   }
   return body.data
@@ -56,9 +59,9 @@ export async function waitTask<R>(id: string, onTick?: (t: Task<R>) => void, int
   }
 }
 
-/** 下载需要令牌的文件（例如知识库包）。 */
+/** 下载需要登录的文件（例如知识库包）。 */
 export async function download(path: string, filename: string): Promise<void> {
-  const res = await fetch(`/api/v1${path}`, { headers: { Authorization: `Bearer ${token()}` } })
+  const res = await fetch(`/api/v1${path}`, { credentials: 'same-origin' })
   if (!res.ok) throw new ApiError(1000, res.statusText, res.status, null)
   const url = URL.createObjectURL(await res.blob())
   const a = document.createElement('a')

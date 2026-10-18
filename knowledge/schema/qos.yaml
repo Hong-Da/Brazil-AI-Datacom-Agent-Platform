@@ -1,0 +1,350 @@
+# QoS 功能域（0.4.0，M4-2）：基于类的 QoS 与 HQoS。以华为为基准（流分类 / 流行为 / 流策略三段式），Cisco MQC
+# （class-map / policy-map）归并到同样的对象：class-map ↔ 流分类，policy-map ↔ 流策略，policy-map 下的 class ↔ 流策略中的
+# “分类 + 行为”条目；Cisco 没有独立的流行为，class 下的动作（set / police / shape / bandwidth / priority）记在条目上，
+# 动作的节点名与华为流行为的相同（两边结构不同，跨平台族翻译时报不支持，见 docs/project-spec.md）。
+domain: qos
+nodes:
+  # ---------- 流分类（Cisco class-map） ----------
+  qos.classifier:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 流分类（华为 traffic classifier / Cisco class-map）, en: Traffic classifier (class-map)}
+  qos.classifier.operator:
+    parent: qos.classifier
+    type: enum
+    choices: [and, or]
+    semantic: {zh-CN: 匹配规则之间的关系（华为 operator and / or；Cisco match-all 为 and、match-any 为 or）, en: Match operator}
+  qos.classifier.description:
+    parent: qos.classifier
+    type: text
+    semantic: {zh-CN: 描述, en: Description}
+  qos.classifier.match:
+    parent: qos.classifier
+    type: object
+    key: [field, value]
+    semantic: {zh-CN: 匹配规则（field：dscp / mpls-exp / 8021p / ip-precedence / acl / any / qos-group…；value 按设备写法，any 的取值为空）, en: Match rule}
+  qos.classifier.match.acl:
+    parent: qos.classifier.match
+    type: ref
+    ref: acl.instance
+    semantic: {zh-CN: 按 ACL 匹配时引用的 ACL（华为 if-match acl / Cisco match access-group）, en: ACL}
+  # ---------- 流行为（华为） ----------
+  qos.behavior:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 流行为（华为 traffic behavior；Cisco 没有独立的行为，动作写在 policy-map 的 class 下）, en: Traffic behavior}
+  qos.behavior.action:
+    parent: qos.behavior
+    type: enum
+    choices: [permit, deny]
+    semantic: {zh-CN: 允许 / 丢弃, en: Permit or deny}
+  qos.behavior.remark_dscp:
+    parent: qos.behavior
+    type: string
+    semantic: {zh-CN: 重标记 DSCP, en: Remark DSCP}
+  qos.behavior.remark_mpls_exp:
+    parent: qos.behavior
+    type: integer
+    semantic: {zh-CN: 重标记 MPLS EXP, en: Remark MPLS EXP}
+  qos.behavior.remark_8021p:
+    parent: qos.behavior
+    type: integer
+    semantic: {zh-CN: 重标记 802.1p, en: Remark 802.1p}
+  qos.behavior.remark_ip_precedence:
+    parent: qos.behavior
+    type: integer
+    semantic: {zh-CN: 重标记 IP 优先级, en: Remark IP precedence}
+  qos.behavior.service_class:
+    parent: qos.behavior
+    type: string
+    semantic: {zh-CN: 内部服务等级（be / af1–af4 / ef / cs6 / cs7）, en: Service class}
+  qos.behavior.color:
+    parent: qos.behavior
+    type: enum
+    choices: [green, yellow, red]
+    semantic: {zh-CN: 内部颜色, en: Color}
+  qos.behavior.car_cir:
+    parent: qos.behavior
+    type: integer
+    semantic: {zh-CN: 限速承诺速率（kbit/s）, en: CAR CIR (kbit/s)}
+  qos.behavior.car_pir:
+    parent: qos.behavior
+    type: integer
+    semantic: {zh-CN: 限速峰值速率（kbit/s）, en: CAR PIR (kbit/s)}
+  qos.behavior.car_cir_pct:
+    parent: qos.behavior
+    type: integer
+    semantic: {zh-CN: 限速承诺速率（接口带宽百分比）, en: CAR CIR (percent)}
+  # ---------- 流策略（Cisco policy-map） ----------
+  qos.policy:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 流策略（华为 traffic policy / Cisco policy-map）, en: Traffic policy (policy-map)}
+  qos.policy.statistics:
+    parent: qos.policy
+    type: boolean
+    semantic: {zh-CN: 统计流量（华为 statistics enable）, en: Statistics}
+  qos.policy.share_mode:
+    parent: qos.policy
+    type: boolean
+    semantic: {zh-CN: 多个接口共享策略资源（华为 share-mode，缺省共享）, en: Share mode}
+  qos.policy.rule:
+    parent: qos.policy
+    type: object
+    key: [classifier]
+    semantic: {zh-CN: 策略中的“分类 + 行为”条目（华为 classifier … behavior …；Cisco policy-map 下的 class）, en: Classifier-behavior pair (class in policy-map)}
+  qos.policy.rule.classifier:
+    parent: qos.policy.rule
+    type: ref
+    ref: qos.classifier
+    semantic: {zh-CN: 引用的流分类（与条目的键相同）, en: Classifier}
+  qos.policy.rule.behavior:
+    parent: qos.policy.rule
+    type: ref
+    ref: qos.behavior
+    semantic: {zh-CN: 关联的流行为（华为）, en: Behavior}
+  qos.policy.rule.precedence:
+    parent: qos.policy.rule
+    type: integer
+    semantic: {zh-CN: 条目优先级（华为 precedence）, en: Precedence}
+  qos.policy.rule.remark_dscp:
+    parent: qos.policy.rule
+    type: string
+    semantic: {zh-CN: 重标记 DSCP（Cisco set dscp）, en: Set DSCP}
+  qos.policy.rule.remark_mpls_exp:
+    parent: qos.policy.rule
+    type: integer
+    semantic: {zh-CN: 重标记 MPLS EXP（Cisco set mpls experimental imposition / topmost）, en: Set MPLS EXP}
+  qos.policy.rule.remark_8021p:
+    parent: qos.policy.rule
+    type: integer
+    semantic: {zh-CN: 重标记 802.1p（Cisco set cos）, en: Set CoS}
+  qos.policy.rule.qos_group:
+    parent: qos.policy.rule
+    type: integer
+    semantic: {zh-CN: 内部 QoS 组（Cisco set qos-group，相当于华为的内部服务等级）, en: Set qos-group}
+  qos.policy.rule.police_cir:
+    parent: qos.policy.rule
+    type: integer
+    semantic: {zh-CN: 限速承诺速率（Cisco police cir，bit/s）, en: Police CIR (bit/s)}
+  qos.policy.rule.police_pir:
+    parent: qos.policy.rule
+    type: integer
+    semantic: {zh-CN: 限速峰值速率（Cisco police pir，bit/s）, en: Police PIR (bit/s)}
+  qos.policy.rule.shape_rate:
+    parent: qos.policy.rule
+    type: integer
+    semantic: {zh-CN: 整形速率（Cisco shape average，bit/s）, en: Shape rate (bit/s)}
+  qos.policy.rule.shape_pct:
+    parent: qos.policy.rule
+    type: integer
+    semantic: {zh-CN: 整形速率（百分比）, en: Shape rate (percent)}
+  qos.policy.rule.bandwidth_pct:
+    parent: qos.policy.rule
+    type: integer
+    semantic: {zh-CN: 保证带宽（百分比；Cisco bandwidth percent）, en: Bandwidth (percent)}
+  qos.policy.rule.bandwidth_remaining_pct:
+    parent: qos.policy.rule
+    type: integer
+    semantic: {zh-CN: 剩余带宽比例（Cisco bandwidth remaining percent）, en: Bandwidth remaining (percent)}
+  qos.policy.rule.priority:
+    parent: qos.policy.rule
+    type: boolean
+    semantic: {zh-CN: 严格优先队列（Cisco priority）, en: Priority queue}
+  qos.policy.rule.priority_level:
+    parent: qos.policy.rule
+    type: integer
+    semantic: {zh-CN: 优先队列级别（Cisco priority level）, en: Priority level}
+  qos.policy.rule.queue_limit:
+    parent: qos.policy.rule
+    type: string
+    semantic: {zh-CN: 队列长度（Cisco queue-limit，带单位）, en: Queue limit}
+  qos.policy.rule.wred:
+    parent: qos.policy.rule
+    type: boolean
+    semantic: {zh-CN: 启用 WRED（Cisco random-detect）, en: WRED}
+  qos.policy.rule.child_policy:
+    parent: qos.policy.rule
+    type: ref
+    ref: qos.policy
+    semantic: {zh-CN: 嵌套的子策略（Cisco class 下的 service-policy）, en: Child policy}
+  # ---------- 接口应用 ----------
+  interface.qos_policy:
+    parent: interface
+    type: object
+    key: [direction]
+    semantic: {zh-CN: 接口应用的流策略（direction：inbound / outbound；华为 traffic-policy，Cisco service-policy input / output）, en: Traffic policy applied on the interface}
+  interface.qos_policy.policy:
+    parent: interface.qos_policy
+    type: ref
+    ref: qos.policy
+    semantic: {zh-CN: 流策略, en: Policy}
+  interface.qos_policy.layer:
+    parent: interface.qos_policy
+    type: enum
+    choices: [all-layer, link-layer, mpls-layer]
+    semantic: {zh-CN: 匹配的报文层次（华为 link-layer / mpls-layer）, en: Matched layer}
+  interface.qos_profile:
+    parent: interface
+    type: object
+    key: [direction]
+    semantic: {zh-CN: 接口应用的 QoS 模板（华为 HQoS qos-profile … inbound / outbound）, en: QoS profile applied on the interface}
+  interface.qos_profile.profile:
+    parent: interface.qos_profile
+    type: ref
+    ref: qos.profile
+    semantic: {zh-CN: QoS 模板, en: QoS profile}
+  interface.port_queue:
+    parent: interface
+    type: object
+    key: [cos]
+    semantic: {zh-CN: 接口出方向的端口队列调度（华为 port-queue <服务等级> … outbound）, en: Port queue scheduling}
+  interface.port_queue.schedule:
+    parent: interface.port_queue
+    type: enum
+    choices: [pq, wfq, lpq]
+    semantic: {zh-CN: 调度方式, en: Scheduling}
+  interface.port_queue.weight:
+    parent: interface.port_queue
+    type: integer
+    semantic: {zh-CN: WFQ 权重, en: WFQ weight}
+  interface.port_queue.shaping:
+    parent: interface.port_queue
+    type: integer
+    semantic: {zh-CN: 整形速率（kbit/s）, en: Shaping rate}
+  interface.port_queue.shaping_pct:
+    parent: interface.port_queue
+    type: integer
+    semantic: {zh-CN: 整形速率（百分比）, en: Shaping rate (percent)}
+  interface.port_queue.wred:
+    parent: interface.port_queue
+    type: ref
+    ref: qos.port_wred
+    semantic: {zh-CN: 端口队列 WRED 模板, en: Port WRED template}
+  # ---------- HQoS：QoS 模板、流队列、WRED ----------
+  qos.profile:
+    type: object
+    key: [name]
+    semantic: {zh-CN: QoS 模板（华为 qos-profile）, en: QoS profile}
+  qos.profile.user_queue:
+    parent: qos.profile
+    type: object
+    key: [direction]
+    semantic: {zh-CN: 用户队列（华为 user-queue … inbound / outbound；不写方向时记为 both）, en: User queue}
+  qos.profile.user_queue.cir:
+    parent: qos.profile.user_queue
+    type: integer
+    semantic: {zh-CN: 承诺速率（kbit/s）, en: CIR (kbit/s)}
+  qos.profile.user_queue.pir:
+    parent: qos.profile.user_queue
+    type: integer
+    semantic: {zh-CN: 峰值速率（kbit/s）, en: PIR (kbit/s)}
+  qos.profile.user_queue.cir_pct:
+    parent: qos.profile.user_queue
+    type: integer
+    semantic: {zh-CN: 承诺速率（百分比）, en: CIR (percent)}
+  qos.profile.user_queue.pir_pct:
+    parent: qos.profile.user_queue
+    type: integer
+    semantic: {zh-CN: 峰值速率（百分比）, en: PIR (percent)}
+  qos.profile.user_queue.flow_queue:
+    parent: qos.profile.user_queue
+    type: ref
+    ref: qos.flow_queue
+    semantic: {zh-CN: 流队列模板, en: Flow queue}
+  qos.flow_queue:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 流队列模板（华为 flow-queue）, en: Flow queue template}
+  qos.flow_queue.queue:
+    parent: qos.flow_queue
+    type: object
+    key: [cos]
+    semantic: {zh-CN: 各服务等级的队列调度, en: Per-class queue}
+  qos.flow_queue.queue.schedule:
+    parent: qos.flow_queue.queue
+    type: enum
+    choices: [pq, wfq, lpq]
+    semantic: {zh-CN: 调度方式, en: Scheduling}
+  qos.flow_queue.queue.weight:
+    parent: qos.flow_queue.queue
+    type: integer
+    semantic: {zh-CN: WFQ 权重, en: WFQ weight}
+  qos.flow_queue.queue.shaping:
+    parent: qos.flow_queue.queue
+    type: integer
+    semantic: {zh-CN: 整形速率（kbit/s）, en: Shaping rate}
+  qos.flow_queue.queue.shaping_pct:
+    parent: qos.flow_queue.queue
+    type: integer
+    semantic: {zh-CN: 整形速率（百分比）, en: Shaping rate (percent)}
+  qos.flow_queue.queue.wred:
+    parent: qos.flow_queue.queue
+    type: ref
+    ref: qos.flow_wred
+    semantic: {zh-CN: 流队列 WRED 模板, en: Flow WRED template}
+  qos.flow_wred:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 流队列 WRED 模板（华为 flow-wred）, en: Flow queue WRED template}
+  qos.flow_wred.queue_depth:
+    parent: qos.flow_wred
+    type: integer
+    semantic: {zh-CN: 队列深度, en: Queue depth}
+  qos.flow_wred.color:
+    parent: qos.flow_wred
+    type: object
+    key: [color]
+    semantic: {zh-CN: 按颜色的丢弃参数, en: Per-color drop profile}
+  qos.flow_wred.color.low_limit:
+    parent: qos.flow_wred.color
+    type: integer
+    semantic: {zh-CN: 低门限（百分比）, en: Low limit (%)}
+  qos.flow_wred.color.high_limit:
+    parent: qos.flow_wred.color
+    type: integer
+    semantic: {zh-CN: 高门限（百分比）, en: High limit (%)}
+  qos.flow_wred.color.discard_pct:
+    parent: qos.flow_wred.color
+    type: integer
+    semantic: {zh-CN: 丢弃概率（百分比）, en: Discard probability (%)}
+  qos.port_wred:
+    type: object
+    key: [name]
+    semantic: {zh-CN: 端口队列 WRED 模板（华为 port-wred）, en: Port queue WRED template}
+  qos.port_wred.queue_depth:
+    parent: qos.port_wred
+    type: integer
+    semantic: {zh-CN: 队列深度, en: Queue depth}
+  qos.port_wred.color:
+    parent: qos.port_wred
+    type: object
+    key: [color]
+    semantic: {zh-CN: 按颜色的丢弃参数, en: Per-color drop profile}
+  qos.port_wred.color.low_limit:
+    parent: qos.port_wred.color
+    type: integer
+    semantic: {zh-CN: 低门限（百分比）, en: Low limit (%)}
+  qos.port_wred.color.high_limit:
+    parent: qos.port_wred.color
+    type: integer
+    semantic: {zh-CN: 高门限（百分比）, en: High limit (%)}
+  qos.port_wred.color.discard_pct:
+    parent: qos.port_wred.color
+    type: integer
+    semantic: {zh-CN: 丢弃概率（百分比）, en: Discard probability (%)}
+  # DiffServ 域（华为 diffserv domain，内置 default 域）本身不建对象：命令按未映射命令保留；接口只记信任的域名
+  interface.trust_upstream:
+    parent: interface
+    type: string
+    semantic: {zh-CN: 接口信任的 DiffServ 域（华为 trust upstream；Cisco 用 table-map，不归并）, en: Trusted DiffServ domain}
+deps:
+  - {kind: reference, from: qos.policy.rule.classifier, to: qos.classifier, note: {zh-CN: 策略条目引用的流分类应已定义, en: 'The traffic classifier referenced by the policy entry must be defined', pt-BR: 'O classificador de tráfego referenciado pela entrada da política deve estar definido'}}
+  - {kind: reference, from: qos.policy.rule.behavior, to: qos.behavior, note: {zh-CN: 策略条目引用的流行为应已定义, en: 'The traffic behavior referenced by the policy entry must be defined', pt-BR: 'O comportamento de tráfego referenciado pela entrada da política deve estar definido'}}
+  - {kind: reference, from: qos.policy.rule.child_policy, to: qos.policy}
+  - {kind: reference, from: interface.qos_policy.policy, to: qos.policy, note: {zh-CN: 接口应用的流策略应已定义, en: 'The traffic policy applied to the interface must be defined', pt-BR: 'A política de tráfego aplicada à interface deve estar definida'}}
+  - {kind: reference, from: interface.qos_profile.profile, to: qos.profile, note: {zh-CN: 接口应用的 QoS 模板应已定义, en: 'The QoS profile applied to the interface must be defined', pt-BR: 'O perfil de QoS aplicado à interface deve estar definido'}}
+  - {kind: reference, from: qos.profile.user_queue.flow_queue, to: qos.flow_queue}
+  - {kind: reference, from: qos.flow_queue.queue.wred, to: qos.flow_wred}
+  - {kind: reference, from: interface.port_queue.wred, to: qos.port_wred}
+  - {kind: reference, from: qos.classifier.match.acl, to: acl.instance, note: {zh-CN: 流分类按 ACL 匹配时引用 ACL, en: 'Traffic classifier references the ACL when matching by ACL', pt-BR: 'O classificador de tráfego referencia a ACL ao fazer match por ACL'}}

@@ -31,6 +31,7 @@ infer（写声明行必须给出、源配置又没有的取值的推导规则）
 
 from __future__ import annotations
 
+import copy
 import ipaddress
 import itertools
 import re
@@ -46,7 +47,7 @@ from lmesh.core.compare import _Schema, norm_scalar, norm_value
 from lmesh.core.graph import DEVICE, Builder, _short
 from lmesh.core.kb import KnowledgeBase, mapping, read_yaml
 from lmesh.core.kb import syntax as syn
-from lmesh.core.kb.model import Card, SchemaNode
+from lmesh.core.kb.model import Card, Note, SchemaNode
 
 DEFAULT_MARK = "! default"
 _AUTO = object()  # auto 表达式：按出现顺序编号，生成时不约束
@@ -65,13 +66,25 @@ class CanonError(ValueError):
 # ---------------------------------------------------------------- 平台族的书写习惯
 
 
+_STYLE_CACHE: dict[tuple[str, int], dict[str, Any]] = {}
+
+
 def load_style(kb: KnowledgeBase, family: str) -> dict[str, Any]:
-    """平台族的书写习惯：运行时知识库没有 render/ 时（M3-3 之前创建的）用程序自带的。"""
+    """平台族的书写习惯：运行时知识库没有 render/ 时（M3-3 之前创建的）用程序自带的。
+    按文件与修改时间缓存（增量变更、重排每个视图块都要取退出命令）；返回副本，调用方可以修改。"""
     f = Path(kb.root) / "render" / f"{family}.yaml"
     if not f.exists():
         from lmesh import paths
 
         f = paths.builtin_knowledge_dir() / "render" / f"{family}.yaml"
+    key = (str(f), f.stat().st_mtime_ns if f.exists() else -1)
+    hit = _STYLE_CACHE.get(key)
+    if hit is None:
+        hit = _STYLE_CACHE[key] = _read_style(f)
+    return copy.deepcopy(hit)
+
+
+def _read_style(f: Path) -> dict[str, Any]:
     data = (read_yaml(f) or {}) if f.exists() else {}
     return {
         "exits": {str(k): str(v) for k, v in (data.get("exits") or {}).items()},
@@ -287,6 +300,11 @@ class _Inverter:
             if kw.startswith("$"):  # if:$参数:表达式——参数有值即可（通常由同一行的对象键给出）
                 return self.run(rest, want, node_type)
             return [m for s in self.run(rest, want, node_type) if (m := _merge(_Sol(kws=frozenset({kw.lower()})), s))]
+        if e.startswith("unless:"):  # 行里没有该关键字时才取值：写出取值时不能出现该关键字
+            _, kw, rest = e.split(":", 2)
+            return [
+                m for s in self.run(rest, want, node_type) if (m := _merge(_Sol(forbid=frozenset({kw.lower()})), s))
+            ]
         if e.startswith("tail:"):
             kw = e[5:].lower()
             return [_Sol(kws=frozenset({kw}), tail=(kw, _text(want)))]
@@ -1400,7 +1418,7 @@ def graph_from_json(data: dict[str, Any]) -> nx.MultiDiGraph:
         attrs.setdefault("origin", "explicit")
         g.add_node(n["id"], **attrs)
     for e in data.get("edges", []):
-        g.add_edge(e["from"], e["to"], kind=e.get("kind"), note=e.get("note", ""))
+        g.add_edge(e["from"], e["to"], kind=e.get("kind"), note=Note.of(e.get("note")))
     return g
 
 

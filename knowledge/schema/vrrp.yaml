@@ -1,0 +1,76 @@
+# VRRP 功能域（0.4.0，M4-2）：接口上的 VRRP 组（IPv4）。华为 vrrp vrid <组号> …（接口视图），
+# Cisco VRRPv2 vrrp <组号> ip / priority …（接口模式）与 VRRPv3 vrrp <组号> address-family ipv4 子模式。
+domain: vrrp
+nodes:
+  vrrp.global:
+    type: object
+    key: [id]
+    semantic: {zh-CN: VRRP 全局设置（编号固定为 "_"；华为 vrrp version、Cisco fhrp version vrrp v3）, en: VRRP global settings}
+  vrrp.global.version:
+    parent: vrrp.global
+    type: enum
+    choices: [v2, v3]
+    semantic: {zh-CN: 协议版本, en: Protocol version}
+  interface.vrrp:
+    parent: interface
+    type: object
+    key: [vrid]
+    semantic: {zh-CN: 接口上的 VRRP 组（键为组号 / VRID）, en: VRRP group on the interface}
+  interface.vrrp.virtual_ip:
+    parent: interface.vrrp
+    type: object
+    key: [address]
+    semantic: {zh-CN: 虚拟地址（华为 virtual-ip；Cisco vrrp ip / address）, en: Virtual IP address}
+  interface.vrrp.virtual_ip.secondary:
+    parent: interface.vrrp.virtual_ip
+    type: boolean
+    semantic: {zh-CN: 次虚拟地址（Cisco secondary；VRRPv3 不写 primary 的地址）, en: Secondary virtual address}
+  interface.vrrp.priority:
+    parent: interface.vrrp
+    type: integer
+    range: [1, 254]
+    semantic: {zh-CN: 优先级（缺省 100）, en: Priority}
+  interface.vrrp.preempt:
+    parent: interface.vrrp
+    type: boolean
+    semantic: {zh-CN: 抢占（两家缺省都开启；华为 preempt-mode disable、Cisco no vrrp … preempt 关闭）, en: Preemption}
+  interface.vrrp.preempt_delay:
+    parent: interface.vrrp
+    type: integer
+    semantic: {zh-CN: 抢占延时（秒）, en: Preemption delay (s)}
+  interface.vrrp.advertise_interval:
+    parent: interface.vrrp
+    type: integer
+    semantic: {zh-CN: 通告间隔（秒）, en: Advertisement interval (s)}
+  interface.vrrp.advertise_msec:
+    parent: interface.vrrp
+    type: integer
+    semantic: {zh-CN: 通告间隔（毫秒；华为 timer advertise millisecond、Cisco timers advertise msec）, en: Advertisement interval (ms)}
+  interface.vrrp.auth_mode:
+    parent: interface.vrrp
+    type: enum
+    choices: [simple, md5, hmac-sha256]
+    semantic: {zh-CN: 认证方式（只记录方式，不记录密钥；Cisco 文本认证记为 simple）, en: Authentication mode}
+  interface.vrrp.description:
+    parent: interface.vrrp
+    type: text
+    semantic: {zh-CN: 描述（Cisco）, en: Description}
+  interface.vrrp.shutdown:
+    parent: interface.vrrp
+    type: boolean
+    semantic: {zh-CN: 关闭该组（Cisco vrrp … shutdown）, en: Shut down}
+  interface.vrrp.track:
+    parent: interface.vrrp
+    type: object
+    key: [target]
+    semantic: {zh-CN: 跟踪项（华为 "interface <接口>" / "bfd-session <编号>"；Cisco 为跟踪对象编号）, en: Tracked object}
+  interface.vrrp.track.reduce:
+    parent: interface.vrrp.track
+    type: integer
+    semantic: {zh-CN: 故障时降低的优先级（华为 reduced、Cisco decrement）, en: Priority decrement}
+  interface.vrrp.track.increase:
+    parent: interface.vrrp.track
+    type: integer
+    semantic: {zh-CN: 故障时增加的优先级（华为 increased）, en: Priority increment}
+deps:
+  - {kind: cross_device, from: interface.vrrp.virtual_ip, to: interface.vrrp.virtual_ip, note: {zh-CN: 同一网段上同一 VRRP 组的各成员应配置相同的虚拟地址, en: 'All members of the same VRRP group on a subnet should use the same virtual IP address', pt-BR: 'Todos os membros do mesmo grupo VRRP em uma sub-rede devem usar o mesmo endereço IP virtual'}}

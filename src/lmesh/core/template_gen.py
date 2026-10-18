@@ -244,6 +244,7 @@ def generate_row(
     engine: str = "text",
     target_profile: str | None = None,
     verify: bool = True,
+    rules: Any = None,
 ) -> dict[str, Any]:
     from lmesh.core import template_match
 
@@ -269,6 +270,11 @@ def generate_row(
     if engine == "canon":
         res = analysis.parse_text(text, kb, t.profile)
         g0 = graphmod.build(res.parsed, kb, res.profile, device)
+        if rules is not None:  # 翻译规则集（REQ-032）：按规则改名后再渲染（端口映射不用于生成）
+            from lmesh.core import naming
+
+            g0, _, report = naming.run(g0, kb, rules, profile)
+            result["checks"]["naming"] = report
         try:
             text, uncovered, skipped = _canon_render(g0, kb, profile)
         except TemplateError as e:
@@ -293,7 +299,8 @@ def generate_row(
     result["checks"]["roundtrip"] = rt
     if not rt:
         result["errors"].append({"stage": "roundtrip", "problem": "template.gen.roundtrip"})
-    if kb.profiles[res.profile].family == kb.profiles[t.profile].family:
+    renamed = bool(result["checks"].get("naming", {}).get("summary", {}).get("renamed"))
+    if kb.profiles[res.profile].family == kb.profiles[t.profile].family and not renamed:
         chk = template_match.check(t, g, kb, device)
         mism = _mismatch(t, row, chk["row"])
         errs = [f for f in chk["findings"] if f["severity"] == "error"]
@@ -310,7 +317,7 @@ def generate_row(
                 {"stage": "template", "problem": "template.gen.extract_mismatch", "count": len(mism)}
             )
     else:
-        result["checks"]["template"] = None  # 生成到另一平台族时不按模板校验（模板的命令写法属于原平台族）
+        result["checks"]["template"] = None  # 生成到另一平台族、或按规则集改过名时不按模板校验
     result["ok"] = not result["errors"]
     return result
 
@@ -322,16 +329,20 @@ def generate(
     engine: str = "text",
     target_profile: str | None = None,
     verify: bool = True,
+    rules: Any = None,
 ) -> dict[str, Any]:
+    """rules（naming.RuleSet，REQ-032）只用于 engine=canon：生成的图按规则集改名后再渲染。"""
     if engine not in ENGINES:
         raise TemplateError("template.bad_engine", engine=engine)
     if target_profile and target_profile not in kb.profiles:
         raise TemplateError("parse.profile_unknown", profile=target_profile)
     if target_profile and engine != "canon" and target_profile != t.profile:
         raise TemplateError("template.target_needs_canon")
+    if rules is not None and engine != "canon":
+        raise TemplateError("template.rules_need_canon")
     if not rows:
         raise TemplateError("template.params_empty")
-    out = [generate_row(t, r, kb, i, engine, target_profile, verify) for i, r in enumerate(rows)]
+    out = [generate_row(t, r, kb, i, engine, target_profile, verify, rules) for i, r in enumerate(rows)]
     names: dict[str, int] = {}
     for r in out:  # 设备名重复时文件名加序号
         n = names.get(r["device"], 0)

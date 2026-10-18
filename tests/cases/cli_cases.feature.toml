@@ -1,0 +1,43 @@
+# 特性能力查询 lmesh feature / feature-diff 的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+
+[[case]]
+id = "feature-search"
+title = { zh-CN = "按关键词查特性：各 Profile 的支持情况、默认值与命令写法", en = "Look up a feature: support, default and syntax per Profile", pt-BR = "Consultar um recurso: suporte, padrão e sintaxe por Profile" }
+args = ["--output", "json", "feature", "mtu", "--profile", "huawei-atn-v800r025", "--profile", "cisco-iosxe-asr920-17.15"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "ok" = true, "data.items.0.node" = "interface.mtu", "data.items.0.profiles.huawei-atn-v800r025.state" = "supported", "data.items.0.profiles.huawei-atn-v800r025.default" = 1500, "data.profiles.1.family" = "cisco-iosxe" }
+in_docs = true
+
+[[case]]
+id = "feature-search-text"
+title = { zh-CN = "特性查询的文字输出（英文）", en = "Feature lookup text output (English)", pt-BR = "Saída de texto da consulta de recursos (inglês)" }
+args = ["--lang", "en", "feature", "label_mode", "--family", "cisco-iosxe"]
+setup = "fresh"
+expect_exit = 0
+expect_stdout = ["feature(s) found", "vrf.instance.af.label_mode", "per-route"]
+
+[[case]]
+id = "feature-detail"
+title = { zh-CN = "一个特性的完整信息：命令卡、视图、来源、依赖", en = "Full detail of one feature", pt-BR = "Detalhe completo de um recurso" }
+args = ["--output", "json", "feature", "--detail", "interface.vrf", "--profile", "huawei-atn-v800r025"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "ok" = true, "data.node" = "interface.vrf", "data.type" = "ref", "data.ref" = "vrf.instance", "data.profiles.huawei-atn-v800r025.state" = "supported" }
+
+[[case]]
+id = "feature-diff"
+title = { zh-CN = "两个 Profile 对比：默认值不同的排在前面", en = "Compare two Profiles: different defaults first", pt-BR = "Comparar dois Profiles: padrões diferentes primeiro" }
+args = ["--output", "json", "feature-diff", "huawei-atn-v800r025", "cisco-iosxe-asr920-17.15", "--domain", "vrf"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "ok" = true, "data.rows.0.kind" = "default", "data.rows.0.node" = "vrf.instance.af.label_mode", "data.rows.0.a.default" = "per-instance", "data.rows.0.b.default" = "per-route" }
+in_docs = true
+
+[[case]]
+id = "feature-bad-profile"
+title = { zh-CN = "Profile 不存在", en = "Unknown Profile", pt-BR = "Profile desconhecido" }
+args = ["feature", "mtu", "--profile", "nope"]
+setup = "fresh"
+expect_exit = 4
+in_docs = true
