@@ -6,7 +6,18 @@ export const router = createRouter({
   routes: [
     { path: '/setup', name: 'setup', component: () => import('@/views/WizardView.vue'), meta: { bare: true } },
     { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue'), meta: { bare: true } },
-    { path: '/', name: 'home', component: () => import('@/views/HomeView.vue') },
+    { path: '/', name: 'dashboard', component: () => import('@/views/DashboardView.vue') },
+    { path: '/devices', name: 'devices', component: () => import('@/views/DevicesView.vue') },
+    { path: '/graph/:id?', name: 'device-graph', component: () => import('@/views/DeviceGraphView.vue') },
+    { path: '/unknown-lines', name: 'unknown-lines', component: () => import('@/views/UnknownLinesView.vue') },
+    { path: '/schema', name: 'schema-view', component: () => import('@/views/SchemaViewView.vue') },
+    { path: '/schema/edit', name: 'schema-edit', component: () => import('@/views/SchemaEditView.vue') },
+    { path: '/profiles', name: 'profiles', component: () => import('@/views/ProfilesView.vue') },
+    { path: '/coverage', name: 'coverage', component: () => import('@/views/CoverageView.vue') },
+    { path: '/review', name: 'review', component: () => import('@/views/ReviewView.vue') },
+    { path: '/ingest', name: 'ingest', component: () => import('@/views/IngestView.vue') },
+    { path: '/releases', name: 'releases', component: () => import('@/views/ReleasesView.vue') },
+    { path: '/ai', name: 'ai-settings', component: () => import('@/views/AiSettingsView.vue') },
     { path: '/:rest(.*)*', redirect: '/' },
   ],
 })
@@ -32,7 +43,7 @@ router.beforeEach(async (to) => {
     }
   }
   if (configured === false && to.name !== 'setup') return { name: 'setup' }
-  if (configured && to.name === 'setup') return { name: 'home' }
+  if (configured && to.name === 'setup') return { name: 'dashboard' }
   if (configured && !hasToken() && to.name !== 'login') return { name: 'login', query: { next: to.fullPath } }
   return true
 })

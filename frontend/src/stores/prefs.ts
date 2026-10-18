@@ -23,8 +23,10 @@ export const usePrefs = defineStore('prefs', () => {
 
   function applyTheme(): void {
     const dark = theme.value === 'dark' || (theme.value === 'auto' && media.matches)
+    // 设计系统按 data-theme（实际生效的明 / 暗）取色；Element Plus 按 .dark 类
     document.documentElement.classList.toggle('dark', dark)
-    document.documentElement.setAttribute('data-theme', theme.value)
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light')
+    document.documentElement.setAttribute('data-theme-pref', theme.value)
   }
   media.addEventListener('change', applyTheme)
   watch(theme, (t) => { write(THEME_KEY, t); applyTheme() }, { immediate: true })

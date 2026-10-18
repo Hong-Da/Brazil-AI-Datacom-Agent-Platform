@@ -23,8 +23,11 @@ def runtime_root(settings: config.Settings) -> Path:
     root = settings.knowledge_dir
     root.mkdir(parents=True, exist_ok=True)
     repo.ensure_repo(root)
-    if copied:
+    # 首次复制后为 draft 卡补审核记录；向导复制知识库时数据库可能还没建好，所以用标记文件判断是否补过
+    marker = root / ".git" / "lmesh-drafts-queued"
+    if copied or not marker.exists() or marker.read_text(encoding="utf-8") != settings.database_url:
         queue_drafts(root, settings.database_url)
+        marker.write_text(settings.database_url, encoding="utf-8")
     return root
 
 
