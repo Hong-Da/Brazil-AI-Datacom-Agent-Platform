@@ -4,6 +4,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import { useTerms } from '@/stores/terms'
 import { errorText, get, post } from '@/api'
 import type { Device } from './devices/logic'
 import CheckTabs from './check/CheckTabs.vue'
@@ -16,6 +17,7 @@ import {
 import type { CleanupObject, CleanupResult } from './check/types'
 
 const { t } = useI18n()
+const terms = useTerms()
 const route = useRoute()
 const router = useRouter()
 
@@ -56,7 +58,9 @@ const verify = computed(() => result.value?.verify ?? null)
 const verifyLeft = computed(() => (verify.value ? verify.value.remaining_objects.length + verify.value.new_orphans.length : 0))
 const rulesLabel = computed(() => (target.rulesAll ? `${target.rulesOn ?? 0} / ${target.rulesAll}` : null))
 
-const label = (node: string) => byNode.value.get(node)?.key || node
+/** 节点名：当前显示风格的命令写法（REQ-026），规范编号放在悬停提示里 */
+const label = (node: string) => (node ? terms.describe(node) : '')
+const canonTip = (node: string) => `${t('hid.canonical')}: ${node}`
 const kindOf = (o: CleanupObject) => o.schema || o.node.replace(/\[.*$/, '')
 const kindCls = (o: CleanupObject) => {
   const s = kindOf(o)
@@ -196,7 +200,7 @@ onMounted(async () => {
       <template v-else>
         <div v-if="result.skipped.length" class="notice info mb12" data-testid="cleanup-skipped">
           <Icon name="info" /><div class="grow small">{{ $t('cleanup.skipped', { n: result.skipped.length }) }}
-            <span v-for="s in result.skipped" :key="s.node" class="tag mono skip-tag">{{ s.node }}</span></div>
+            <span v-for="s in result.skipped" :key="s.node" class="tag mono skip-tag" :title="canonTip(s.node)">{{ label(s.node) }}</span></div>
         </div>
 
         <div v-if="!objects.length" class="panel" data-testid="cleanup-empty">
@@ -221,8 +225,8 @@ onMounted(async () => {
                     <input type="checkbox" :checked="picked.has(r.o.node)" :disabled="locked(r.o)" :aria-label="r.o.node" :data-testid="`pick-${r.o.node}`" @change="onPick(r.o, $event)" />
                     <button type="button" class="tw" :aria-expanded="open.has(r.o.node)" :title="$t('cleanup.showLines')" :aria-label="$t('cleanup.showLines')" @click="toggleOpen(r.o.node)"><Icon name="chevR" small /></button>
                     <div class="oname">
-                      <span class="tag" :class="kindCls(r.o)">{{ kindOf(r.o) }}</span>
-                      <span class="nm">{{ r.o.key || r.o.node }}</span>
+                      <span class="tag" :class="kindCls(r.o)" :title="kindOf(r.o)">{{ terms.name(kindOf(r.o)) }}</span>
+                      <span class="nm" :title="canonTip(r.o.node)">{{ label(r.o.node) }}</span>
                       <span v-if="r.o.reason === 'cascade'" class="tag t-violet">{{ $t('cleanup.cascadeTag') }}</span>
                       <span v-else class="tag">{{ $t('cleanup.noRef') }}</span>
                     </div>
@@ -296,9 +300,9 @@ onMounted(async () => {
               <div v-else class="notice err mt12"><Icon name="err" /><div class="grow small">
                 <b>{{ $t('cleanup.verifyBad') }}</b>
                 <ul class="vlist mono">
-                  <li v-for="(d, i) in verify.new_dangling" :key="`d${i}`">{{ $t('cleanup.newDangling', { referrer: d.referrer, type: d.target_type, value: d.value }) }}</li>
-                  <li v-for="n in verify.remaining_objects" :key="`r${n}`">{{ $t('cleanup.remainingObj', { node: n }) }}</li>
-                  <li v-for="n in verify.new_orphans" :key="`o${n}`">{{ $t('cleanup.newOrphan', { node: n }) }}</li>
+                  <li v-for="(d, i) in verify.new_dangling" :key="`d${i}`">{{ $t('cleanup.newDangling', { referrer: label(d.referrer), type: d.target_type, value: d.value }) }}</li>
+                  <li v-for="n in verify.remaining_objects" :key="`r${n}`">{{ $t('cleanup.remainingObj', { node: label(n) }) }}</li>
+                  <li v-for="n in verify.new_orphans" :key="`o${n}`">{{ $t('cleanup.newOrphan', { node: label(n) }) }}</li>
                 </ul></div></div>
               <div v-if="partial" class="notice warn mt12"><Icon name="warn" /><div class="grow small">{{ $t('cleanup.leftNotice', { n: objects.length - nPicked }) }}</div></div>
               <div class="row mt12"><router-link class="btn btn-sm" :to="{ name: 'devices' }"><Icon name="upload" small />{{ $t('cleanup.importNew') }}</router-link></div>

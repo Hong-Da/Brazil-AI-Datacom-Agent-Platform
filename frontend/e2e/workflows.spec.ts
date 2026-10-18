@@ -131,7 +131,8 @@ test('设备配置图：选中节点后详情与原文高亮联动，往返测�
   await expect(text.locator('.is-hl')).toHaveCount(0)
 
   // 图 → 详情 + 原文：点一个接口节点
-  // 大图默认收起到功能域：先点 interface 功能域展开下一层，再点一个接口对象
+  // 按功能域组织（华为风格默认按视图层级，这里切到按功能域）：先点 interface 功能域展开下一层，再点一个接口对象
+  await page.getByTestId('org-switch').locator('[data-org="domain"]').click()
   const dom = await graphNodePoint(page, '[id = "domain:interface"]')
   await page.mouse.click(dom.x, dom.y)
   await expect(detail.locator('.d-name')).toHaveText('interface')

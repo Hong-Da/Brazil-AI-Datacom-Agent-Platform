@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
- * 设备配置图：左上图（cytoscape + ELK）、右侧节点详情、左下原始配置，三者联动。
- * 大图默认按功能域收起，只在预算内展开；点选节点只展开它的下一层。
+ * 设备配置图：左上图（树状图：cytoscape + ELK；关系图谱：cose 力导向）、右侧节点详情、左下原始配置，三者联动。
+ * 树状图可按视图层级（对象的父子关系，华为风格默认）或按功能域组织；大图只在预算内展开，点选节点只展开它的下一层。
+ * 节点名按当前显示风格（华为 / Cisco）写成命令，规范编号在详情里保留。
  */
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -10,7 +11,13 @@ import { ElMessage } from 'element-plus'
 import Icon from '@/components/Icon.vue'
 import { ApiError, errorText, get, post } from '@/api'
 import { useStatus } from '@/stores/status'
+import { useTerms } from '@/stores/terms'
+import { rememberedChoice, rememberedFlag } from '@/stores/prefs'
+import HiddenLegend from '@/components/hidden-legend.vue'
+import ShowDefaultToggle from '@/components/show-default-toggle.vue'
 import GraphCanvas from './device-graph/GraphCanvas.vue'
+import ForceGraph from './device-graph/ForceGraph.vue'
+import { buildForce, domainColorVar, domainCounts } from './device-graph/force'
 import NodeDetail from './device-graph/NodeDetail.vue'
 import ConfigText from './device-graph/ConfigText.vue'
 import {
@@ -18,12 +25,13 @@ import {
   domainResolver, expandSubtree, highlightLines, searchNodes, shownChildren, splitLines, stepLine, visibleRep, visibleTree,
   type Model,
 } from './device-graph/model'
-import type { DeviceRow, GraphData, RoundtripResult, SchemaNodeInfo, SchemaTree } from './device-graph/types'
+import type { ApiNode, DeviceRow, GraphData, RoundtripResult, SchemaNodeInfo, SchemaTree } from './device-graph/types'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const status = useStatus()
+const terms = useTerms()
 
 const deviceId = computed(() => {
   const v = Number(route.params.id)
@@ -77,7 +85,15 @@ async function loadGraph(): Promise<void> {
 
 // ---------- 图模型与视图状态 ----------
 const groupRaw = ref(true)
-const showDefault = ref(false)
+const showDefault = rememberedFlag('graph-default')
+/** 关系图谱里显示原文 / 未识别 / 扩展命令节点（默认隐藏） */
+const showRaw = rememberedFlag('graph-raw')
+/** 视图：树状图 / 关系图谱 */
+const view = rememberedChoice<'tree' | 'force'>('graph-view', 'tree')
+/** 树状图的组织方式：auto = 华为风格按视图层级、Cisco 风格按功能域 */
+const orgPref = rememberedChoice<'auto' | 'tree' | 'domain'>('graph-org', 'auto')
+const org = computed<'tree' | 'domain'>(() => (orgPref.value === 'auto' ? (terms.style === 'huawei' ? 'tree' : 'domain') : orgPref.value))
+const hiddenDomains = ref(new Set<string>())
 const domain = ref('')
 const query = ref('')
 const debouncedQuery = ref('')
@@ -100,9 +116,46 @@ const schemaInfo = computed(() => {
   for (const d of schema.value?.domains ?? []) for (const n of d.nodes) m.set(n.id, n)
   return m
 })
+/** 节点名：对象用当前风格的命令写法，属性用命令关键字（没有登记时用 Schema 名）。 */
+const labeler = computed(() => {
+  const style = terms.style
+  void terms.terms
+  return (a: ApiNode): string | null => {
+    if (!a.schema || a.schema.startsWith('ext:')) return null
+    if (a.kind === 'object') return terms.label(a.schema, a.key, style)
+    if (a.kind === 'attr') return terms.attr(a.schema, style)
+    return null
+  }
+})
 const model = computed<Model | null>(() =>
-  graph.value ? buildModel(graph.value, domainOf.value, { domainOrder: domainOrder.value, groupRaw: groupRaw.value }) : null,
+  graph.value
+    ? buildModel(graph.value, domainOf.value, { domainOrder: domainOrder.value, groupRaw: groupRaw.value, byDomain: org.value === 'domain', labeler: labeler.value })
+    : null,
 )
+const force = computed(() => (model.value && view.value === 'force' ? buildForce(model.value, { showDefault: showDefault.value, showRaw: showRaw.value }) : null))
+const forceSel = computed(() => (force.value ? force.value.owner(selected.value) : null))
+const forceMatches = computed(() => {
+  const out = new Set<string>()
+  const f = force.value
+  if (!f) return out
+  for (const id of matchIds.value) {
+    const o = f.owner(id)
+    if (o) out.add(o)
+  }
+  return out
+})
+const forceKinds = computed(() => new Set<string>(EDGE_KINDS.filter((k) => edgeOn.value.has(k))))
+const forceDomains = computed(() => {
+  const c = force.value ? domainCounts(force.value.nodes) : new Map<string, number>()
+  const order = [...domainOrder.value.filter((d) => c.has(d)), ...[...c.keys()].filter((d) => !domainOrder.value.includes(d))]
+  return order.map((d) => ({ d, n: c.get(d) ?? 0, color: `var(${domainColorVar(d, domainOrder.value)})` }))
+})
+function toggleDomain(d: string): void {
+  const s = new Set(hiddenDomains.value)
+  if (s.has(d)) s.delete(d)
+  else s.add(d)
+  hiddenDomains.value = s
+}
 const viewOpts = computed(() => ({ showDefault: showDefault.value, domain: domain.value }))
 const vis = computed(() => (model.value ? visibleTree(model.value, { ...viewOpts.value, expanded: expanded.value, limits: limits.value }) : []))
 const visSet = computed(() => new Set(vis.value.map((v) => v.id)))
@@ -144,6 +197,7 @@ const domainOptions = computed(() => {
 })
 
 const canvas = ref<InstanceType<typeof GraphCanvas>>()
+const forceCanvas = ref<InstanceType<typeof ForceGraph>>()
 const text = ref<InstanceType<typeof ConfigText>>()
 
 function resetView(): void {
@@ -186,6 +240,10 @@ function select(id: string | null, from: 'graph' | 'text' | 'other' = 'other', l
   if (from !== 'graph') {
     anchor.value = null
     requestAnimationFrame(() => {
+      if (view.value === 'force') {
+        if (forceSel.value) forceCanvas.value?.focus(forceSel.value)
+        return
+      }
       const r = selRep.value
       if (r) canvas.value?.focus(r)
     })
@@ -452,22 +510,51 @@ onMounted(async () => {
       <div v-else class="work">
         <section class="panel p-graph" aria-label="Graph">
           <div class="gbar">
+            <div class="seg" role="group" :aria-label="$t('device-graph.viewMode')" data-testid="view-switch">
+              <button type="button" data-view="tree" :aria-pressed="view === 'tree'" @click="view = 'tree'"><Icon name="tree" small /><span>{{ $t('device-graph.viewTree') }}</span></button>
+              <button type="button" data-view="force" :aria-pressed="view === 'force'" @click="view = 'force'"><Icon name="graph" small /><span>{{ $t('device-graph.viewForce') }}</span></button>
+            </div>
             <label class="input-wrap">
               <Icon name="search" small />
               <input v-model="query" class="input" style="height: 28px" type="search" :placeholder="$t('device-graph.searchPh')" data-testid="graph-search">
             </label>
             <span v-if="debouncedQuery" class="small faint" data-testid="search-count">{{ $t('device-graph.matchN', { n: matchIds.length }) }}</span>
-            <select v-model="domain" class="select" :aria-label="$t('device-graph.domain')" data-testid="domain-filter">
+            <div v-if="view === 'tree'" class="seg" role="group" :aria-label="$t('device-graph.org')" :title="$t('device-graph.orgTip')" data-testid="org-switch">
+              <button type="button" data-org="tree" :aria-pressed="org === 'tree'" @click="orgPref = 'tree'"><span>{{ $t('device-graph.orgTree') }}</span></button>
+              <button type="button" data-org="domain" :aria-pressed="org === 'domain'" @click="orgPref = 'domain'"><span>{{ $t('device-graph.orgDomain') }}</span></button>
+            </div>
+            <select v-if="view === 'tree'" v-model="domain" class="select" :aria-label="$t('device-graph.domain')" data-testid="domain-filter">
               <option value="">{{ $t('device-graph.allDomains') }}</option>
               <option v-for="d in domainOptions" :key="d" :value="d">{{ d === 'raw' ? $t('device-graph.rawDomain') : d }}</option>
             </select>
             <span class="divider" />
-            <button class="btn btn-sm" data-testid="btn-collapse-all" @click="collapseAll"><Icon name="collapse" small /><span>{{ $t('device-graph.collapseAll') }}</span></button>
-            <button class="btn btn-sm" data-testid="btn-expand-sel" @click="expandSelected"><Icon name="expand" small /><span>{{ $t('device-graph.expandSel') }}</span></button>
-            <button class="btn btn-sm" :disabled="!selRep" data-testid="btn-collapse-sel" @click="collapseSelected"><Icon name="minus" small /><span>{{ $t('device-graph.collapseSel') }}</span></button>
-            <button class="btn btn-sm btn-icon" :title="$t('device-graph.fit')" data-testid="btn-fit" @click="canvas?.fit()"><Icon name="target" small /></button>
+            <template v-if="view === 'tree'">
+              <button class="btn btn-sm" data-testid="btn-collapse-all" @click="collapseAll"><Icon name="collapse" small /><span>{{ $t('device-graph.collapseAll') }}</span></button>
+              <button class="btn btn-sm" data-testid="btn-expand-sel" @click="expandSelected"><Icon name="expand" small /><span>{{ $t('device-graph.expandSel') }}</span></button>
+              <button class="btn btn-sm" :disabled="!selRep" data-testid="btn-collapse-sel" @click="collapseSelected"><Icon name="minus" small /><span>{{ $t('device-graph.collapseSel') }}</span></button>
+              <button class="btn btn-sm btn-icon" :title="$t('device-graph.fit')" data-testid="btn-fit" @click="canvas?.fit()"><Icon name="target" small /></button>
+            </template>
+            <template v-else>
+              <button class="btn btn-sm" data-testid="btn-relayout" @click="forceCanvas?.relayout()"><Icon name="refresh" small /><span>{{ $t('device-graph.relayout') }}</span></button>
+              <button class="btn btn-sm btn-icon" :title="$t('device-graph.fit')" data-testid="btn-fit" @click="forceCanvas?.fit()"><Icon name="target" small /></button>
+            </template>
           </div>
+          <ForceGraph
+            v-if="view === 'force' && force"
+            ref="forceCanvas"
+            :data="force"
+            :domain-order="domainOrder"
+            :hidden-domains="hiddenDomains"
+            :kinds="forceKinds"
+            :selected="forceSel"
+            :matches="forceMatches"
+            :dim-others="!!debouncedQuery"
+            :edge-name="edgeName"
+            @tap="(id) => select(id, 'graph')"
+            @background="select(null)"
+          />
           <GraphCanvas
+            v-else
             ref="canvas"
             :model="model"
             :vis="vis"
@@ -492,19 +579,26 @@ onMounted(async () => {
               </button>
             </span>
             <span class="sep" />
-            <span class="grp nodes-key">
+            <span v-if="view === 'force'" class="grp" data-testid="domain-legend">
+              <button v-for="x in forceDomains" :key="x.d" class="ekey dkey" type="button" :aria-pressed="!hiddenDomains.has(x.d)" :data-domain="x.d" @click="toggleDomain(x.d)">
+                <i class="dsw" :style="{ background: x.color }" />{{ x.d === 'raw' ? $t('device-graph.rawDomainShort') : x.d }}<span class="faint">{{ x.n }}</span>
+              </button>
+            </span>
+            <span v-else class="grp nodes-key">
               <span class="nkey"><svg viewBox="0 0 24 10"><rect class="nk-exp" x="1" y="1" width="22" height="8" rx="2" /></svg>{{ $t('src.explicit') }}</span>
-              <span class="nkey"><svg viewBox="0 0 24 10"><rect class="nk-def" x="1" y="1" width="22" height="8" rx="2" /></svg>{{ $t('device-graph.defaultHidden') }}</span>
-              <span class="nkey"><svg viewBox="0 0 24 10"><rect class="nk-der" x="1" y="1" width="22" height="8" rx="2" /></svg>{{ $t('src.derived') }}</span>
               <span class="nkey"><svg viewBox="0 0 24 10"><rect class="nk-raw" x="1" y="1" width="22" height="8" rx="2" /></svg>{{ $t('device-graph.k.raw') }}</span>
               <span class="nkey"><svg viewBox="0 0 24 10"><rect class="nk-unk" x="1" y="1" width="22" height="8" rx="2" /></svg>{{ $t('device-graph.hasUnknown') }}</span>
             </span>
+            <span class="sep" />
+            <HiddenLegend />
             <span class="dg-stats ml-auto" data-testid="visible-count">
-              <span>{{ $t('device-graph.visible') }} <b>{{ visibleReal }}</b> / {{ realCount }}</span>
+              <span v-if="view === 'force'">{{ $t('device-graph.dots') }} <b>{{ force?.nodes.length ?? 0 }}</b></span>
+              <span v-else>{{ $t('device-graph.visible') }} <b>{{ visibleReal }}</b> / {{ realCount }}</span>
               <span>{{ $t('device-graph.defaultNodes') }} <b>{{ defaultCount }}</b></span>
             </span>
-            <label class="check small"><input v-model="groupRaw" type="checkbox" data-testid="toggle-group-raw"><span>{{ $t('device-graph.groupRaw') }}</span></label>
-            <label class="check small"><input v-model="showDefault" type="checkbox" data-testid="toggle-default"><span>{{ $t('device-graph.showDefault') }}</span></label>
+            <label v-if="view === 'tree'" class="check small"><input v-model="groupRaw" type="checkbox" data-testid="toggle-group-raw"><span>{{ $t('device-graph.groupRaw') }}</span></label>
+            <label v-else class="check small"><input v-model="showRaw" type="checkbox" data-testid="toggle-raw"><span>{{ $t('device-graph.showRaw') }}</span></label>
+            <ShowDefaultToggle v-model="showDefault" />
           </div>
         </section>
 
@@ -562,7 +656,7 @@ onMounted(async () => {
 @media (max-width: 1300px) { .work { grid-template-columns: minmax(0, 1fr) 300px; } }
 @media (max-width: 1100px) {
   .work { grid-template-columns: minmax(0, 1fr) 270px; grid-template-rows: minmax(0, 1fr) 180px; }
-  .gbar .btn span, .glegend .grp.nodes-key, .glegend .sep { display: none; }
+  .gbar .btn span, .gbar .seg span, .glegend .grp.nodes-key, .glegend .sep { display: none; }
   .gbar .input-wrap { width: 170px; }
 }
 .loading-box { flex: 1; display: flex; align-items: center; justify-content: center; }
@@ -581,6 +675,7 @@ onMounted(async () => {
 .ekey[aria-pressed="false"] { opacity: .4; text-decoration: line-through; }
 .ekey svg, .nkey svg { width: 24px; height: 10px; }
 .nkey { display: inline-flex; align-items: center; gap: 5px; }
+.dkey .dsw { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 .ek .ln { stroke-width: 2; fill: none; }
 .ek .tee { stroke-width: 2; }
 .ek.contains .ln { stroke: var(--line-strong); stroke-width: 1.4; }
@@ -589,8 +684,6 @@ onMounted(async () => {
 .ek.side .ln { stroke: var(--e-side); stroke-dasharray: 2 3; } .ek.side .hd { fill: var(--e-side); }
 .ek.mutex .ln, .ek.mutex .tee { stroke: var(--e-mutex); }
 .nk-exp { fill: var(--surface); stroke: var(--line-strong); }
-.nk-def { fill: none; stroke: var(--ink-3); stroke-dasharray: 3 2; }
-.nk-der { fill: none; stroke: var(--violet); stroke-dasharray: 1 2; }
 .nk-raw { fill: var(--surface-3); stroke: var(--line-strong); stroke-dasharray: 2 2; }
 .nk-unk { fill: var(--red-soft); stroke: var(--red); }
 .tbar { display: flex; align-items: center; gap: 10px; padding: 6px 10px; border-bottom: 1px solid var(--line); font-size: 12px; flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }

@@ -1,5 +1,5 @@
 /** 差异图：设备 → 功能域 → 对象 → 属性的叠加树，引用关系画成右侧的弧线。纯逻辑（建树、可见性、布局）。 */
-import { fmtValue, prettySeg, sideOf, splitPath, type Row } from './logic'
+import { fmtValue, hiddenKind, segLabels, sideOf, splitPath, type PartsFn, type Row } from './logic'
 
 export type NodeState = 'same' | 'add' | 'del' | 'mod' | 'ren' | 'na' | 'ref'
 export type GSide = 'both' | 'a' | 'b'
@@ -15,6 +15,8 @@ export interface TNode {
   state: NodeState
   /** 本节点自己的状态（不含下级汇总），用于 A / B 侧隐藏 */
   own: NodeState
+  /** 隐藏配置标记（REQ-028）：差异的某侧是默认值 / 派生值 */
+  hid?: 'default' | 'derived' | ''
   depth: number
   rowId: string | null
   parent: TNode | null
@@ -31,10 +33,20 @@ function segName(seg: string): string {
   return i < 0 ? seg : seg.slice(0, i)
 }
 
-function labels(row: Row, seg: string): [string, string, string] {
-  const base = prettySeg(seg)
+function lastLabel(node: string, parts?: PartsFn): string {
+  const l = segLabels(node, parts)
+  return l[l.length - 1] ?? node
+}
+
+function labels(row: Row, seg: string, base: string, parts?: PartsFn): [string, string, string] {
   const d = row.diff
   if (d?.kind === 'renamed') {
+    // 有显示风格时两侧各用自己的命令写法（route-policy OLD ⇢ route-policy NEW）
+    if (parts && d.a?.node && d.b?.node) {
+      const a = lastLabel(d.a.node, parts)
+      const b = lastLabel(d.b.node, parts)
+      return [`${a} ⇢ ${b}`, a, b]
+    }
     const n = segName(seg)
     const from = d.from ?? fmtValue(d.a?.value)
     const to = d.to ?? fmtValue(d.b?.value)
@@ -56,7 +68,7 @@ export interface Extra { node: string; domain: string }
  * 建树：rows 是差异行（含不可比项），extras 是“显示全部”时补进来的无变化节点（规范编号 + 功能域）。
  * 树的键：根 dev、功能域 D:<域>、其余 <域>|<规范编号>（同一对象在不同功能域下各自出现，保持纯树）。
  */
-export function buildTree(rows: Row[], rootLabel: string, extras: Extra[] = []): Tree {
+export function buildTree(rows: Row[], rootLabel: string, extras: Extra[] = [], parts?: PartsFn): Tree {
   const root: TNode = { key: 'dev', path: '', domain: '', label: rootLabel, labelA: rootLabel, labelB: rootLabel, state: 'same', own: 'same', depth: 0, rowId: null, parent: null, children: [] }
   const byKey = new Map<string, TNode>([['dev', root]])
   const byPath = new Map<string, string>()
@@ -75,13 +87,15 @@ export function buildTree(rows: Row[], rootLabel: string, extras: Extra[] = []):
   function ensure(dom: string, path: string): TNode {
     let parent = domainNode(dom)
     const segs = splitPath(path)
+    let labelsOf: string[] | null = null
     let n: TNode = parent
     for (let i = 0; i < segs.length; i++) {
       const p = segs.slice(0, i + 1).join('/')
       const key = `${dom}|${p}`
       let c = byKey.get(key)
       if (!c) {
-        const l = prettySeg(segs[i])
+        labelsOf ??= segLabels(path, parts)
+        const l = labelsOf[i]
         c = { key, path: p, domain: dom, label: l, labelA: l, labelB: l, state: 'same', own: 'same', depth: i + 2, rowId: null, parent, children: [] }
         parent.children.push(c)
         byKey.set(key, c)
@@ -96,8 +110,9 @@ export function buildTree(rows: Row[], rootLabel: string, extras: Extra[] = []):
   for (const row of rows) {
     const n = ensure(row.domain, row.node)
     const segs = splitPath(row.node)
-    ;[n.label, n.labelA, n.labelB] = labels(row, segs[segs.length - 1] ?? row.node)
+    ;[n.label, n.labelA, n.labelB] = labels(row, segs[segs.length - 1] ?? row.node, lastLabel(row.node, parts), parts)
     n.own = STATE[row.type]
+    n.hid = hiddenKind(row)
     n.rowId = row.id
     byRow.set(row.id, n.key)
   }
@@ -167,6 +182,9 @@ export function countDesc(n: TNode): number {
 
 export interface LNode {
   key: string
+  /** 规范编号（根与功能域为空） */
+  path: string
+  hid: 'default' | 'derived' | ''
   label: string
   state: NodeState
   depth: number
@@ -223,6 +241,8 @@ export function layoutTree(tree: Tree, o: LayoutOpts): Layout {
     const y = ys.length ? (ys[0] + ys[ys.length - 1]) / 2 : rowN++ * ROW + 20
     const ln: LNode = {
       key: n.key,
+      path: n.path,
+      hid: n.hid ?? '',
       label: labelOf(n),
       state: n.state,
       depth: n.depth,

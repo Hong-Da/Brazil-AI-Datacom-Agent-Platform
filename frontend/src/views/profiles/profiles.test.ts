@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { toCsv } from './csv'
 import { credPercents, formatDefault, parseDefault, shortId, treeOrder, vendorBadge } from './format'
-import { entryBody, entryOrigin, filterEntries, formDirty, formFromEntry, type EntryFilter } from './entries'
+import { entryBody, entryOrigin, filterEntries, formDirty, formFromEntry, hasDefault, type EntryFilter } from './entries'
 import { compareCsv, compareSummary, filterCompare, warnOf } from './compare'
 import { buildCoverage, coverageCsv, coverageSummary, domainStats, filterCoverage, groupByDomain, type CovFilter } from './coverage'
 import type { CompareResult, CoverageResult, Entry, ProfileDetail } from './types'
@@ -62,6 +62,16 @@ describe('Profile 条目', () => {
     expect(filterEntries(list, { ...f, origin: 'inherited' }).map((e) => e.node)).toEqual(['interface.mtu'])
     expect(filterEntries(list, { ...f, origin: 'unfilled' }).map((e) => e.node)).toEqual(['vrf.rd'])
     expect(filterEntries(list, { ...f, cred: 'reviewed' }).map((e) => e.node)).toEqual(['bgp.peer.hold'])
+    // 搜索也匹配当前显示风格的命令写法
+    const formOf = (e: Entry) => (e.node === 'bgp.peer' ? 'neighbor {address}' : '')
+    expect(filterEntries(list, { ...f, q: 'neighbor' }, undefined, formOf).map((e) => e.node)).toEqual(['bgp.peer'])
+    expect(filterEntries(list, { ...f, q: 'neighbor' }).length).toBe(0)
+  })
+  it('默认值：有缺省值的条目（未填写的不算）', () => {
+    expect(hasDefault(E('interface.mtu', { default: 1500 }))).toBe(true)
+    expect(hasDefault(E('interface.mtu', { default: false }))).toBe(true)
+    expect(hasDefault(E('interface.mtu', { default: null }))).toBe(false)
+    expect(hasDefault(E('interface.mtu', { default: 1500, state: 'unfilled' }))).toBe(false)
   })
   it('编辑表单与请求体', () => {
     const form = formFromEntry(E('interface.mtu', { default: 1500, source: 'doc p.1' }))
@@ -146,6 +156,7 @@ describe('覆盖矩阵', () => {
     expect(filterCoverage(rows, { ...f, cred: 'verified' }).map((r) => r.node)).toEqual(['bgp.peer'])
     expect(filterCoverage(rows, { ...f, cred: 'reviewed' }).map((r) => r.node)).toEqual(['bgp.peer.hold'])
     expect(filterCoverage(rows, { ...f, q: 'L2', domain: 'interface' }).length).toBe(1)
+    expect(filterCoverage(rows, { ...f, q: 'router bgp' }, (r) => (r.node === 'bgp.peer' ? 'router bgp {asn}' : '')).map((r) => r.node)).toEqual(['bgp.peer'])
   })
   it('分组、功能域覆盖率与汇总', () => {
     expect(groupByDomain(filterCoverage(rows, f)).map((g) => [g.domain, g.rows.length])).toEqual([['bgp', 3], ['interface', 1]])

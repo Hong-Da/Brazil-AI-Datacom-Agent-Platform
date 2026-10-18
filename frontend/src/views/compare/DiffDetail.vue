@@ -2,6 +2,7 @@
 /** 差异详情：两侧有效值与来源、判定依据（由结果字段推出）、关联引用、原文行跳转、在配置图中打开。 */
 import { computed } from 'vue'
 import Icon from '@/components/Icon.vue'
+import { useTerms } from '@/stores/terms'
 import { describe, explain, sideOf, type Row } from './logic'
 
 const props = defineProps<{
@@ -17,7 +18,8 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ (e: 'select', id: string): void; (e: 'jump', side: 'a' | 'b', line: number): void }>()
 
-const what = computed(() => (props.row ? describe(props.row.node, props.row.dflt ? 'attr' : props.row.diff?.node_kind ?? 'attr') : null))
+const terms = useTerms()
+const what = computed(() => (props.row ? describe(props.row.node, props.row.dflt ? 'attr' : props.row.diff?.node_kind ?? 'attr', terms.describeParts) : null))
 const why = computed(() => (props.row ? explain(props.row) : null))
 const sides = computed(() => {
   const r = props.row
@@ -35,7 +37,7 @@ const sides = computed(() => {
 const related = computed(() => {
   const r = props.row
   if (!r?.diff?.related.length) return []
-  return r.diff.related.map((n) => ({ node: n, row: props.rows.find((x) => x.node === n && x.id !== r.id) ?? null }))
+  return r.diff.related.map((n) => ({ node: n, text: terms.describe(n), row: props.rows.find((x) => x.node === n && x.id !== r.id) ?? null }))
 })
 </script>
 
@@ -49,11 +51,11 @@ const related = computed(() => {
     <template v-else>
       <div class="d-obj">{{ what.o }}</div>
       <div v-if="what.a" class="muted small">{{ what.a }}</div>
-      <div class="d-path">{{ row.node }}</div>
+      <div class="d-path" :title="$t('hid.canonical')" data-testid="diff-canon"><span class="faint">{{ $t('hid.canonical') }}</span> {{ row.node }}</div>
       <div v-if="row.diff?.schema || row.dflt?.schema" class="small faint mt4">Schema <span class="mono">{{ row.diff?.schema ?? row.dflt?.schema }}</span></div>
 
       <div class="vcards">
-        <div v-for="x in sides" :key="x.s" class="vcard" :class="x.v.origin === 'absent' ? 'absent' : x.v.origin === 'explicit' ? '' : 'dashed'">
+        <div v-for="x in sides" :key="x.s" class="vcard" :class="[x.v.origin === 'absent' ? 'absent' : x.v.origin === 'explicit' ? '' : 'dashed', x.v.origin === 'default' ? 'hid-default' : x.v.origin === 'derived' ? 'hid-derived' : '']">
           <div class="h">
             <b>{{ x.k }}</b><span class="trunc" :title="x.label">{{ x.label }}</span>
             <span v-if="x.v.origin !== 'absent'" class="tag" :class="x.v.origin">{{ $t('src.' + x.v.origin) }}</span>
@@ -71,8 +73,9 @@ const related = computed(() => {
         <div class="section-t">{{ $t('compare.detail.related') }}</div>
         <ul class="rel">
           <li v-for="x in related" :key="x.node">
-            <button v-if="x.row" class="link-btn mono" @click="emit('select', x.row.id)">{{ x.node }}</button>
-            <span v-else class="mono">{{ x.node }}</span>
+            <button v-if="x.row" class="link-btn mono" :title="x.node" @click="emit('select', x.row.id)">{{ x.text }}</button>
+            <span v-else class="mono" :title="x.node">{{ x.text }}</span>
+            <div class="canon">{{ x.node }}</div>
           </li>
         </ul>
       </template>
@@ -108,6 +111,7 @@ const related = computed(() => {
 .vcards { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin: 12px 0; }
 .vcard { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; background: var(--surface-2); min-width: 0; }
 .vcard.dashed { border-style: dashed; background: transparent; }
+.vcard.hid-default, .vcard.hid-derived { border-color: transparent; outline-offset: 0; }
 .vcard.absent { background: transparent; border-style: dotted; }
 .vcard .h { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-3); min-width: 0; }
 .vcard .h b { color: var(--ink); }

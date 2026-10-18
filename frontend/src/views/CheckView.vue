@@ -4,6 +4,8 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import HiddenLegend from '@/components/hidden-legend.vue'
+import { useTerms } from '@/stores/terms'
 import { ApiError, del, errorText, get, post, put } from '@/api'
 import type { Device } from './devices/logic'
 import CheckTabs from './check/CheckTabs.vue'
@@ -18,6 +20,7 @@ import {
 import { SEVERITIES, type CheckResult, type Finding, type Rule, type Severity } from './check/types'
 
 const { t, locale } = useI18n()
+const terms = useTerms()
 const route = useRoute()
 const router = useRouter()
 const lang = computed(() => String(locale.value))
@@ -29,6 +32,7 @@ const rulesError = ref('')
 const result = ref<CheckResult | null>(null)
 const lines = ref<string[]>([])
 const kinds = ref(new Map<string, string>())
+const origins = ref(new Map<string, string>())
 const graphCounts = ref<{ objects: number; attrs: number } | null>(null)
 const graphFor = ref<number | null>(null)
 const loading = ref(false)
@@ -81,7 +85,7 @@ const railDomains = computed(() => {
   return [...ids].map((id) => ({ id, n: domainCounts.value[id] ?? 0 })).sort((a, b) => a.id.localeCompare(b.id))
 })
 
-const visible = computed(() => findings.value.filter((f) => matches(f, filter, `${titleOf(f.rule)} ${msgOf(f)}`)))
+const visible = computed(() => findings.value.filter((f) => matches(f, filter, `${titleOf(f.rule)} ${msgOf(f)} ${f.nodes.map((n) => terms.describe(n)).join(' ')}`)))
 const rows = computed(() => orderWithCascade(visible.value))
 const selected = computed(() => rows.value.find((r) => r.key === selKey.value)?.f ?? rows.value[0]?.f ?? null)
 watch(selected, () => { ignoreOpen.value = false; ignoreErr.value = false })
@@ -144,9 +148,10 @@ async function run(keepSel = false): Promise<void> {
     // 依次请求原文与图（后端并发请求偶发失败，见 M1 报告）
     if ('device_id' in body) {
       if (graphFor.value !== body.device_id) {
-        const g = await get<{ text?: string; nodes: { id: string; kind: string }[]; summary?: { kinds?: Record<string, number> } }>(`/devices/${body.device_id}/graph?raw=true`)
+        const g = await get<{ text?: string; nodes: { id: string; kind: string; origin?: string }[]; summary?: { kinds?: Record<string, number> } }>(`/devices/${body.device_id}/graph?raw=true`)
         lines.value = splitLines(g.text ?? '')
         kinds.value = new Map(g.nodes.map((n) => [n.id, n.kind]))
+        origins.value = new Map(g.nodes.map((n) => [n.id, n.origin ?? 'explicit']))
         const k = g.summary?.kinds
         graphCounts.value = k ? { objects: k.object ?? 0, attrs: k.attr ?? 0 } : null
         graphFor.value = body.device_id
@@ -154,6 +159,7 @@ async function run(keepSel = false): Promise<void> {
     } else {
       lines.value = splitLines(body.text)
       kinds.value = new Map()
+      origins.value = new Map()
       graphCounts.value = null
       graphFor.value = null
     }
@@ -182,7 +188,7 @@ function onTargetChange(): void {
 }
 
 // ---------- 详情 ----------
-const chips = computed(() => (selected.value ? nodeChips(selected.value, kinds.value) : []))
+const chips = computed(() => (selected.value ? nodeChips(selected.value, kinds.value, origins.value) : []))
 const code = computed(() => (selected.value ? codeWindows(lines.value, selected.value.lines) : []))
 const canIgnore = computed(() => target.mode === 'device' && target.deviceId != null)
 
@@ -381,7 +387,7 @@ onMounted(async () => {
                       <span v-if="r.f.ignored" class="tag">{{ $t('check.ignored') }}</span>
                       <span>{{ r.f.domain }}</span>
                     </div>
-                    <div class="fm"><span class="path">{{ r.f.node }}</span></div>
+                    <div class="fm"><span class="path" :title="`${$t('hid.canonical')}: ${r.f.node}`">{{ terms.describe(r.f.node) }}</span></div>
                   </div>
                 </div>
               </div>
@@ -401,12 +407,13 @@ onMounted(async () => {
                   <p class="d-msg">{{ msgOf(selected) }}</p>
                   <div v-if="selected.ignored" class="notice mt12"><Icon name="eyeOff" /><div class="grow small"><b>{{ $t('check.ignored') }}</b>：{{ selected.ignore_reason }}</div></div>
 
-                  <div class="section-t mt16">{{ $t('check.nodes') }}</div>
+                  <div class="section-t mt16 nodes-h">{{ $t('check.nodes') }}<HiddenLegend v-if="chips.some((c) => c.origin)" /></div>
                   <div class="nchips" data-testid="detail-nodes">
-                    <div v-for="c in chips" :key="c.id" class="nchip" :class="{ missing: c.kind === 'missing' }" :title="c.id">
+                    <div v-for="c in chips" :key="c.id" class="nchip" :class="[{ missing: c.kind === 'missing' }, c.origin === 'default' ? 'hid-default' : c.origin === 'derived' ? 'hid-derived' : '']" :title="`${$t('hid.canonical')}: ${c.id}`">
                       <span class="nk">{{ $t(`check.kind${c.kind[0].toUpperCase()}${c.kind.slice(1)}`) }}</span>
-                      <span class="nl">{{ c.id }}</span>
+                      <span class="nl">{{ terms.describe(c.id) }}<span v-if="terms.describe(c.id) !== c.id" class="canon">{{ c.id }}</span></span>
                       <span v-if="c.kind === 'missing'" class="tag t-red">{{ $t('check.kindMissing') }}</span>
+                      <span v-if="c.origin === 'default' || c.origin === 'derived'" class="tag" :class="c.origin">{{ $t(`hid.${c.origin}`) }}</span>
                     </div>
                   </div>
 
@@ -565,6 +572,9 @@ onMounted(async () => {
 .nchip { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-2); min-width: 0; }
 .nchip .nk { font-size: 11px; color: var(--ink-3); min-width: 32px; }
 .nchip .nl { font: 12px var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.nchip .nl .canon { display: block; overflow: hidden; text-overflow: ellipsis; }
+.nchip.hid-default, .nchip.hid-derived { border-color: transparent; background: transparent; outline-offset: 0; }
+.nodes-h { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .nchip.missing { border-style: dashed; border-color: var(--red-line); background: transparent; }
 .nchip.missing .nl { color: var(--red-ink); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--red) 50%, transparent); }
 .d-code { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }

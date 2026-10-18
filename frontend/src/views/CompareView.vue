@@ -4,6 +4,10 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import HiddenLegend from '@/components/hidden-legend.vue'
+import ShowDefaultToggle from '@/components/show-default-toggle.vue'
+import { rememberedFlag } from '@/stores/prefs'
+import { useTerms } from '@/stores/terms'
 import { errorText, get, post } from '@/api'
 import type { Device } from '@/views/devices/logic'
 import SetupPanel from './compare/SetupPanel.vue'
@@ -13,7 +17,7 @@ import DiffDetail from './compare/DiffDetail.vue'
 import RawPane from './compare/RawPane.vue'
 import ExportDialog from './compare/ExportDialog.vue'
 import {
-  buildRows, countTypes, domainsOf, filterRows, groupRows, lineClass, ROW_TYPES, sideOf, stepRow, TYPE_SYM,
+  buildRows, countTypes, defaultOnly, domainsOf, filterRows, groupRows, lineClass, ROW_TYPES, sideOf, stepRow, TYPE_SYM,
   type RowFilter, type RowType,
 } from './compare/logic'
 import { buildTree, countDesc, extrasFromGraph, initialCollapsed, prefixMap, type Extra, type GSide } from './compare/tree'
@@ -24,6 +28,9 @@ import type { CompareResult, DeviceGraph, VersionInfo } from './compare/types'
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const terms = useTerms()
+/** 显示默认配置（REQ-028）：关闭时折叠不可比项与两侧都只有默认值的项；每个浏览器记住 */
+const showDefault = rememberedFlag('compare-default')
 
 // ---------------------------------------------------------------- 基础数据
 const devices = ref<Device[]>([])
@@ -175,7 +182,7 @@ async function run(): Promise<void> {
     filter.type = ''
     filter.q = ''
     filter.domain = ''
-    filter.showNa = false
+    filter.showNa = showDefault.value
     groupCollapsed.value = new Set()
     sel.value = rows.value[0]?.id ?? null
     void router.replace({ query: toQuery(setup) })
@@ -192,8 +199,10 @@ async function run(): Promise<void> {
 
 // ---------------------------------------------------------------- 结果：筛选、分组、选择
 const rows = computed(() => (result.value ? buildRows(result.value) : []))
-const filter = reactive<RowFilter>({ type: '', domain: '', q: '', showNa: false })
-const visible = computed(() => filterRows(rows.value, filter))
+const filter = reactive<RowFilter>({ type: '', domain: '', q: '', showNa: showDefault.value })
+watch(showDefault, (v) => { filter.showNa = v })
+const visible = computed(() => filterRows(rows.value, filter, terms.describeParts))
+const nDefaultOnly = computed(() => rows.value.filter(defaultOnly).length)
 const groups = computed(() => groupRows(visible.value, rows.value.filter((r) => (!filter.domain || r.domain === filter.domain)), filter.showNa || filter.type !== ''))
 const counts = computed(() => countTypes(rows.value))
 const resultDomains = computed(() => domainsOf(rows.value))
@@ -300,7 +309,7 @@ const graphNote = computed(() => {
   const need = (['a', 'b'] as K[]).filter((k) => !((gSide.value === 'a' && k === 'b') || (gSide.value === 'b' && k === 'a')))
   return need.some((k) => !latestGraph(k)) ? t('compare.graph.allNoGraph') : ''
 })
-const tree = computed(() => buildTree(visible.value, `${sideName('a')} ⇢ ${sideName('b')}`, extras.value))
+const tree = computed(() => buildTree(visible.value, `${sideName('a')} ⇢ ${sideName('b')}`, extras.value, terms.describeParts))
 watch(tree, (tr) => { treeCollapsed.value = initialCollapsed(tr) })
 const bigTree = computed(() => treeCollapsed.value.size > 0 && tree.value.root.children.every((c) => treeCollapsed.value.has(c.key)))
 function toggleTree(key: string): void {
@@ -408,9 +417,10 @@ onMounted(async () => {
           <div class="fold" data-testid="fold-notice">
             <span class="eqsign">=</span>
             <p>{{ $t('compare.fold.text') }}<template v-if="result.default_only.length"> {{ $t('compare.fold.na', { n: result.default_only.length }) }}</template></p>
-            <button v-if="result.default_only.length" class="btn btn-sm" data-testid="fold-toggle" @click="filter.showNa = !filter.showNa">
-              {{ filter.showNa ? $t('compare.fold.hide') : $t('compare.fold.show', { n: result.default_only.length }) }}
-            </button>
+            <span class="fold-tools">
+              <HiddenLegend />
+              <ShowDefaultToggle v-model="showDefault" :count="nDefaultOnly" />
+            </span>
           </div>
 
           <div class="rbar">
@@ -431,7 +441,7 @@ onMounted(async () => {
               <DiffList
                 v-if="view === 'list'"
                 :groups="groups" :sel="sel" :collapsed="groupCollapsed" :a-label="sideName('a')" :b-label="sideName('b')"
-                @select="sel = $event" @step="step" @toggle="toggleGroup" @show-na="filter.showNa = true" @reset="resetFilters"
+                @select="sel = $event" @step="step" @toggle="toggleGroup" @show-na="showDefault = true" @reset="resetFilters"
               />
               <DiffGraph
                 v-else
@@ -513,6 +523,7 @@ onMounted(async () => {
 .fold { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-top: 10px; padding: 10px 14px; border: 1px dashed var(--line-strong); border-radius: 6px; background: var(--surface); }
 .fold .eqsign { width: 30px; height: 30px; border-radius: 6px; border: 1.5px dashed var(--ink-3); display: inline-flex; align-items: center; justify-content: center; font: 700 16px var(--font-mono); color: var(--ink-2); }
 .fold p { color: var(--ink-2); }
+.fold-tools { display: inline-flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
 .rbar { display: flex; align-items: center; gap: 8px; margin: 12px 0 10px; flex-wrap: wrap; }
 .rbar .tabs { margin: 0; border: 0; }
 .rbar .input-wrap { width: 220px; }

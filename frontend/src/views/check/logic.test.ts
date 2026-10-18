@@ -111,6 +111,9 @@ describe('涉及节点与原文窗口', () => {
       { id: 'rp.policy[UNDEF]', kind: 'missing' },
     ])
     expect(nodeChips(f('dep.mutex', 'device'), new Map([['device', 'device']]))[0].kind).toBe('node')
+    // 图里的来源：默认值 / 派生值节点带上 origin（REQ-028），显式的不带
+    const o = nodeChips(d, new Map(), new Map([['vrf.instance[A]/af[ipv4]', 'explicit'], ['vrf.instance[A]/af[ipv4]/import_policy', 'default']]))
+    expect(o.map((c) => c.origin)).toEqual([undefined, 'default', undefined])
   })
   it('相关行带上下文，相邻窗口合并，中间用省略行数隔开', () => {
     const lines = Array.from({ length: 30 }, (_, i) => `l${i + 1}`)

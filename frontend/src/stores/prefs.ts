@@ -1,10 +1,11 @@
 import { defineStore } from 'pinia'
-import { ref, watch } from 'vue'
+import { ref, watch, type Ref } from 'vue'
 import { i18n, saveLang, type Lang } from '@/i18n'
 
 export type Theme = 'auto' | 'light' | 'dark'
 const THEME_KEY = 'lmesh-theme'
 const TOKEN_KEY = 'lmesh-token'
+const STYLE_KEY = 'lmesh-term-style'
 
 function read(key: string, fallback: string): string {
   try { return localStorage.getItem(key) ?? fallback } catch { return fallback }
@@ -20,6 +21,8 @@ export const usePrefs = defineStore('prefs', () => {
   const lang = ref<Lang>(i18n.global.locale.value as Lang)
   const theme = ref<Theme>(read(THEME_KEY, 'auto') as Theme)
   const token = ref<string>(read(TOKEN_KEY, ''))
+  /** 显示风格（huawei / cisco）；空表示还没选过，跟随系统默认（/kb/terms 的 default） */
+  const termStyle = ref<string>(read(STYLE_KEY, ''))
 
   function applyTheme(): void {
     const dark = theme.value === 'dark' || (theme.value === 'auto' && media.matches)
@@ -32,5 +35,22 @@ export const usePrefs = defineStore('prefs', () => {
   watch(theme, (t) => { write(THEME_KEY, t); applyTheme() }, { immediate: true })
   watch(lang, (l) => { i18n.global.locale.value = l; saveLang(l) }, { immediate: true })
   watch(token, (t) => write(TOKEN_KEY, t))
-  return { lang, theme, token }
+  watch(termStyle, (s) => write(STYLE_KEY, s))
+  return { lang, theme, token, termStyle }
 })
+
+/** 每个浏览器记住的开关（例如各视图的“显示默认配置”），name 是视图名。 */
+export function rememberedFlag(name: string, fallback = false): Ref<boolean> {
+  const key = `lmesh-flag-${name}`
+  const v = ref(read(key, fallback ? '1' : '0') === '1')
+  watch(v, (x) => write(key, x ? '1' : '0'))
+  return v
+}
+
+/** 每个浏览器记住的选项（字符串）。 */
+export function rememberedChoice<T extends string>(name: string, fallback: T): Ref<T> {
+  const key = `lmesh-choice-${name}`
+  const v = ref(read(key, fallback)) as Ref<T>
+  watch(v, (x) => write(key, x))
+  return v
+}

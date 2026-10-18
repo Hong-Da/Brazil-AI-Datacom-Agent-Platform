@@ -8,6 +8,9 @@ import { pickLang } from '@/i18n'
 import { useStatus } from '@/stores/status'
 import Icon from '@/components/Icon.vue'
 import { allDeps, allNodes, buildTree, depStyle, edgesOf, filterTree, nodeDomain, type SchemaData, type SchemaNode } from './schema/model'
+import StyleForms from './schema/StyleForms.vue'
+import { styleForm } from './schema/styles'
+import { useTerms } from '@/stores/terms'
 import {
   errorDetails, formToBody, isDirty, newForm, nodeToForm, parseRange, SEM_LANGS, STATUSES, usageGroups, validateForm,
   descendants, type NodeForm, type NodeUsage,
@@ -25,6 +28,7 @@ const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const status = useStatus()
+const terms = useTerms()
 
 const loading = ref(true)
 const loadError = ref('')
@@ -363,6 +367,7 @@ function semLabel(l: string): string {
               >
                 <span class="tw"><Icon v-if="it.node.type === 'object'" name="chevD" small /></span>
                 <span class="nm">{{ it.name }}</span>
+                <span v-if="styleForm(terms, it.node.id, it.node.type, terms.style)" class="sf-mini" data-testid="se-tree-form">{{ styleForm(terms, it.node.id, it.node.type, terms.style) }}</span>
                 <span v-if="draftNodes.has(it.node.id)" class="dirty" :title="$t('schema-edit.draftDot')"></span>
                 <span v-else-if="it.node.deprecated" class="tag tg deprecated">deprecated</span>
                 <span v-else-if="it.node.status === 'draft'" class="tag tg draft">draft</span>
@@ -392,6 +397,7 @@ function semLabel(l: string): string {
                     <button class="btn btn-sm btn-danger" data-testid="se-delete" @click="openDelete"><Icon name="trash" small />{{ $t('c.delete') }}</button>
                   </span>
                 </div>
+                <StyleForms v-if="current && !creating" :id="current.id" :type="current.type" />
                 <div v-if="current?.deprecated && !creating" class="notice warn mt12">
                   <Icon name="warn" />
                   <div class="grow">
@@ -693,6 +699,8 @@ function semLabel(l: string): string {
 .tree .ti .dirty { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); flex: none; margin-left: auto; }
 .tree .ti .tg { margin-left: auto; height: 16px; font-size: 10.5px; padding: 0 5px; }
 .tree .ti .tg.deprecated { text-decoration: none; }
+.tree .ti .sf-mini { font: 10.5px var(--font-mono); color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+.tree .ti.is-sel .sf-mini { color: var(--blue-ink); opacity: .75; }
 .edit-col { grid-area: edit; overflow: auto; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
 .side-col { grid-area: side; overflow: auto; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
 .nh { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }

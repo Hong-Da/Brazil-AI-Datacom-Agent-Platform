@@ -2,7 +2,8 @@
 /** 差异列表：按功能域分组（可折叠），每行显示类型、对象 / 属性、两侧有效值与来源。 */
 import { nextTick, ref, watch } from 'vue'
 import Icon from '@/components/Icon.vue'
-import { describe, sideOf, TYPE_SYM, type Group, type Row } from './logic'
+import { useTerms } from '@/stores/terms'
+import { defaultOnly, describe, sideOf, TYPE_SYM, type Group, type Row } from './logic'
 
 const props = defineProps<{
   groups: Group[]
@@ -19,9 +20,14 @@ const emit = defineEmits<{
   (e: 'reset'): void
 }>()
 const box = ref<HTMLDivElement>()
+const terms = useTerms()
 
 function what(r: Row): { o: string; a: string } {
-  return describe(r.node, r.dflt ? 'attr' : r.diff?.node_kind ?? 'attr')
+  return describe(r.node, r.dflt ? 'attr' : r.diff?.node_kind ?? 'attr', terms.describeParts)
+}
+/** 隐藏配置的样式（REQ-028）：默认值灰色虚线、派生值紫色点线 */
+function hidClass(origin: string): string {
+  return origin === 'default' ? 'hid-default' : origin === 'derived' ? 'hid-derived' : ''
 }
 function srcLabel(o: string): string {
   return o === 'absent' ? 'compare.src.absent' : `src.${o}`
@@ -72,20 +78,20 @@ function onKey(ev: KeyboardEvent): void {
       <template v-if="!collapsed.has(g.domain)">
         <div
           v-for="r in g.rows" :key="r.id"
-          class="drow" :class="['t-' + r.type, { child: r.child, 'is-sel': sel === r.id }]"
+          class="drow" :class="['t-' + r.type, { child: r.child, 'is-sel': sel === r.id, 'hid-default': defaultOnly(r) }]"
           tabindex="0" :data-id="r.id" data-testid="diff-row"
           @click="emit('select', r.id)" @keydown.enter.prevent="emit('select', r.id)"
         >
           <span><span class="dk" :class="r.type">{{ $t('compare.type.' + r.type) }}</span></span>
           <span class="what">
-            <span class="o" :title="r.node">{{ what(r).o }}</span>
+            <span class="o" :title="`${$t('hid.canonical')}: ${r.node}`">{{ what(r).o }}</span>
             <span v-if="what(r).a || r.diff?.count" class="a">
               {{ what(r).a }}<span v-if="r.diff?.count" class="why-chip">{{ $t('compare.objCount', { n: r.diff.count }) }}</span>
             </span>
           </span>
           <template v-for="s in (['a', 'b'] as const)" :key="s">
             <span>
-              <span class="ev" :class="'is-' + sideOf(r, s).origin">
+              <span class="ev" :class="['is-' + sideOf(r, s).origin, hidClass(sideOf(r, s).origin)]">
                 <span class="v" :title="sideOf(r, s).text">{{ sideOf(r, s).origin === 'absent' ? $t('compare.absent') : sideOf(r, s).text }}</span>
                 <span class="tag" :class="sideOf(r, s).origin === 'absent' ? 'absent' : sideOf(r, s).origin">{{ $t(srcLabel(sideOf(r, s).origin)) }}</span>
               </span>
@@ -142,5 +148,6 @@ function onKey(ev: KeyboardEvent): void {
 .fold-row { padding: 6px 12px 6px 114px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--ink-3); display: flex; gap: 6px; align-items: center; }
 .fold-row .eqk { font: 700 12px var(--font-mono); }
 .why-chip { font-size: 11px; color: var(--ink-3); border: 1px dashed var(--line-strong); border-radius: 3px; padding: 0 5px; white-space: nowrap; margin-left: 6px; }
+.ev.hid-default, .ev.hid-derived { outline-offset: 0; padding: 1px 4px; border-radius: 4px; }
 .tag.absent { border-style: dotted; background: transparent; color: var(--ink-3); }
 </style>

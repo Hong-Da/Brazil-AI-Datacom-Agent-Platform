@@ -94,11 +94,12 @@ export interface CovFilter {
   showDeprecated: boolean
 }
 
-export function filterCoverage(rows: CovRow[], f: CovFilter): CovRow[] {
+/** formOf：节点在当前显示风格下的命令写法（REQ-026），给出时搜索也匹配它。 */
+export function filterCoverage(rows: CovRow[], f: CovFilter, formOf?: (r: CovRow) => string): CovRow[] {
   const q = f.q.trim().toLowerCase()
   return rows.filter((r) => {
     if (r.deprecated && !f.showDeprecated) return false
-    if (q && !r.node.toLowerCase().includes(q)) return false
+    if (q && !r.node.toLowerCase().includes(q) && !(formOf?.(r) ?? '').toLowerCase().includes(q)) return false
     if (f.domain && r.domain !== f.domain) return false
     if (f.gapsOnly && !r.gap) return false
     if (f.diffOnly && !r.supportDiff && !r.defaultDiff) return false

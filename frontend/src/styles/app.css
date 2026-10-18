@@ -568,3 +568,26 @@ pre.block { margin: 0; padding: 10px 12px; font: 12px/1.6 var(--font-mono); back
 .nav-foot .ai-on { display: flex; align-items: flex-start; gap: 6px; color: var(--teal-ink); }
 .nav-foot .ai-on i { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); display: inline-block; flex: none; margin-top: 6px; }
 a.kbchip:hover { text-decoration: none; border-color: var(--line-strong); }
+
+/* ------------------------------------------------------------ 隐藏配置（REQ-028）：默认值 / 派生值，全站统一 */
+/* 默认值（origin=default，来自 Profile 缺省，配置中没有这一行）：灰色虚线描边 + “默认”标签（.tag.default）
+   派生值（origin=derived，由其他配置推出）：紫色点线描边 + “派生”标签（.tag.derived） */
+.hid-default { outline: 1.2px dashed var(--ink-3); outline-offset: -3px; color: var(--ink-2); }
+.hid-derived { outline: 1.2px dotted var(--violet); outline-offset: -3px; }
+.hid-legend { display: inline-flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--ink-2); flex-wrap: wrap; }
+.hid-legend .hk { display: inline-flex; align-items: center; gap: 5px; }
+.hid-legend svg { width: 22px; height: 10px; }
+.hid-legend .hk-def { fill: none; stroke: var(--ink-3); stroke-dasharray: 3 2; }
+.hid-legend .hk-der { fill: none; stroke: var(--violet); stroke-dasharray: 1 2; }
+/* 规范编号：命令写法下面的小字 */
+.canon { font: 11px var(--font-mono); color: var(--ink-3); overflow-wrap: anywhere; }
+
+/* 功能域的分类色（关系图谱的圆点、图例） */
+:root {
+  --dom-1: #2B6F9E; --dom-2: #2A9D8F; --dom-3: #D9771C; --dom-4: #7A52C7; --dom-5: #C2417A;
+  --dom-6: #5E8C31; --dom-7: #B08A12; --dom-8: #3D8DBF; --dom-9: #8C5A3C; --dom-10: #66788A;
+}
+:root[data-theme="dark"] {
+  --dom-1: #6AAEE0; --dom-2: #3DC0B0; --dom-3: #F09A4A; --dom-4: #A98CF2; --dom-5: #E36FA4;
+  --dom-6: #8CC063; --dom-7: #E2BE4A; --dom-8: #74BFEA; --dom-9: #C79574; --dom-10: #9AAAB8;
+}

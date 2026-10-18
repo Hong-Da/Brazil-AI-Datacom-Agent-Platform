@@ -41,13 +41,26 @@ export function prettySeg(seg: string): string {
   return `${seg.slice(0, i)} ${seg.slice(i + 1, -1)}`
 }
 
-/** 列表里的两行：o（主行）与 a（副行）。属性：主行是所属对象，副行是属性名；对象：主行是自身，副行是上级。 */
-export function describe(node: string, nodeKind: string): { o: string; a: string } {
+/** 规范编号 → 各层的显示文字（显示风格的命令写法，REQ-026）；由 useTerms().describeParts 提供。 */
+export type PartsFn = (node: string) => string[]
+
+/** 各层的显示文字：给了渲染函数且层数对得上时用它，否则用编号本身（interface[GE0/0/1] → interface GE0/0/1）。 */
+export function segLabels(node: string, parts?: PartsFn): string[] {
   const segs = splitPath(node)
-  const last = segs[segs.length - 1] ?? node
-  const parent = segs.slice(0, -1).map(prettySeg).join(' › ')
-  if (nodeKind === 'attr') return { o: parent || prettySeg(last), a: parent ? prettySeg(last) : '' }
-  return { o: prettySeg(last), a: parent }
+  if (parts) {
+    const p = parts(node)
+    if (p.length === segs.length) return p
+  }
+  return segs.map(prettySeg)
+}
+
+/** 列表里的两行：o（主行）与 a（副行）。属性：主行是所属对象，副行是属性名；对象：主行是自身，副行是上级。 */
+export function describe(node: string, nodeKind: string, parts?: PartsFn): { o: string; a: string } {
+  const labels = segLabels(node, parts)
+  const last = labels[labels.length - 1] ?? node
+  const parent = labels.slice(0, -1).join(' › ')
+  if (nodeKind === 'attr') return { o: parent || last, a: parent ? last : '' }
+  return { o: last, a: parent }
 }
 
 /** 有效值的文字：对象值按键值拼接，列表用逗号。 */
@@ -92,23 +105,42 @@ export interface RowFilter {
   type: RowType | ''
   domain: string
   q: string
-  /** 类型为全部时，是否展开不可比（default_only）项 */
+  /** 类型为全部时，是否显示默认配置（不可比项与两侧都只有默认值的项，REQ-028） */
   showNa: boolean
 }
 
-export function rowText(row: Row): string {
-  const d = row.diff
-  return [row.node, d?.a?.node ?? '', d?.b?.node ?? '', sideOf(row, 'a').text, sideOf(row, 'b').text, d?.from ?? '', d?.to ?? '', row.diff?.schema ?? row.dflt?.schema ?? ''].join(' ').toLowerCase()
+/**
+ * 隐藏配置的标记（REQ-028）：default = 有一侧的有效值来自 Profile 默认值（或不可比项），derived = 有一侧是派生值。
+ * 用于统一样式（.hid-default / .hid-derived）。
+ */
+export function hiddenKind(row: Row): 'default' | 'derived' | '' {
+  if (row.dflt) return 'default'
+  const o = [row.diff?.a?.origin, row.diff?.b?.origin]
+  if (o.includes('default')) return 'default'
+  if (o.includes('derived')) return 'derived'
+  return ''
 }
 
-export function filterRows(rows: Row[], f: RowFilter): Row[] {
+/** “只差在默认值”：不可比项，或存在的各侧都只是默认值（没有显式配置）。关闭“显示默认配置”时折叠这些项；一侧显式、一侧默认的真实差异不折叠。 */
+export function defaultOnly(row: Row): boolean {
+  if (row.dflt) return true
+  const sides = [row.diff?.a, row.diff?.b].filter((x): x is SideVal => !!x)
+  return sides.length > 0 && sides.every((x) => x.origin === 'default')
+}
+
+export function rowText(row: Row, parts?: PartsFn): string {
+  const d = row.diff
+  return [row.node, parts ? segLabels(row.node, parts).join(' ') : '', d?.a?.node ?? '', d?.b?.node ?? '', sideOf(row, 'a').text, sideOf(row, 'b').text, d?.from ?? '', d?.to ?? '', row.diff?.schema ?? row.dflt?.schema ?? ''].join(' ').toLowerCase()
+}
+
+export function filterRows(rows: Row[], f: RowFilter, parts?: PartsFn): Row[] {
   const q = f.q.trim().toLowerCase()
   return rows.filter((r) => {
     if (f.type) {
       if (r.type !== f.type) return false
-    } else if (r.type === 'na' && !f.showNa) return false
+    } else if (defaultOnly(r) && !f.showNa) return false
     if (f.domain && r.domain !== f.domain) return false
-    if (q && !rowText(r).includes(q)) return false
+    if (q && !rowText(r, parts).includes(q)) return false
     return true
   })
 }
@@ -134,7 +166,7 @@ export function groupRows(rows: Row[], allRows: Row[] = rows, showNa = true): Gr
   }
   const out = order.map((d) => ({ domain: d, rows: m.get(d)!, counts: countTypes(m.get(d)!), folded: 0 }))
   if (!showNa) {
-    for (const g of out) g.folded = allRows.filter((r) => r.type === 'na' && r.domain === g.domain).length
+    for (const g of out) g.folded = allRows.filter((r) => defaultOnly(r) && r.domain === g.domain).length
   }
   return out
 }

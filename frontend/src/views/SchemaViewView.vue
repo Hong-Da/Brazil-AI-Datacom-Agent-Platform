@@ -12,11 +12,15 @@ import {
   type ProfileEntry, type ProfileRow, type SchemaData, type SchemaNode,
 } from './schema/model'
 import { edgePath, fitText, layoutGroups, PH, type PillPos } from './schema/layout'
+import StyleForms from './schema/StyleForms.vue'
+import { styleForm } from './schema/styles'
+import { useTerms } from '@/stores/terms'
 
 type Mode = 'one' | 'cmp' | 'all'
 
 const { t, locale } = useI18n()
 const route = useRoute()
+const terms = useTerms()
 
 const loading = ref(true)
 const error = ref('')
@@ -333,7 +337,7 @@ function cmpValue(r: CompareRow): string {
                   v-for="p in layout.pills" :key="p.item.node.id" :class="pillClass(p)" :data-id="p.item.node.id"
                   :transform="`translate(${p.x} ${p.y})`" data-testid="sv-node" @click="onPill(p.item.node.id)"
                 >
-                  <title>{{ p.item.node.id }}&#10;{{ sem(p.item.node) }}</title>
+                  <title>{{ p.item.node.id }}&#10;{{ sem(p.item.node) }}<template v-if="styleForm(terms, p.item.node.id, p.item.node.type, terms.style)">&#10;{{ $t(`style.${terms.style}`) }}: {{ styleForm(terms, p.item.node.id, p.item.node.type, terms.style) }}</template></title>
                   <rect class="box" :width="p.w" :height="PH" rx="4" />
                   <rect v-if="stripe(p.item.node)" :class="['stripe', stripe(p.item.node)]" x="0.5" y="3" width="3" :height="PH - 6" rx="1.5" />
                   <text x="9" y="14">{{ pillText(p) }}</text>
@@ -374,6 +378,7 @@ function cmpValue(r: CompareRow): string {
                   <button class="btn btn-ghost btn-sm btn-icon" :title="$t('schema-view.clearSel')" data-testid="sv-clear-sel" @click="pick(null)"><Icon name="x" small /></button>
                 </div>
                 <p class="small muted mt8">{{ sem(selNode) }}</p>
+                <StyleForms :id="selNode.id" :type="selNode.type" />
                 <dl class="kv mt12">
                   <dt>{{ $t('schema-view.type') }}</dt><dd class="mono">{{ selNode.type }}</dd>
                   <template v-if="selNode.range"><dt>{{ $t('schema-view.range') }}</dt><dd class="mono">[{{ selNode.range.join(', ') }}]</dd></template>

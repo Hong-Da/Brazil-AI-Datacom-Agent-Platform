@@ -4,11 +4,13 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import { i18n } from '@/i18n'
+import { useTerms } from '@/stores/terms'
 import { dispositionName, reportName } from './setup'
 
 const props = defineProps<{ body: Record<string, unknown> | null; aName: string; bName: string }>()
 const emit = defineEmits<{ (e: 'close'): void }>()
 const { t, locale } = useI18n()
+const terms = useTerms()
 
 type Lang = 'zh-CN' | 'en'
 type Fmt = 'html' | 'md'
@@ -32,7 +34,7 @@ async function fetchReport(lang: Lang, fmt: Fmt): Promise<{ blob: Blob; filename
       'Accept-Language': String(i18n.global.locale.value),
       Authorization: `Bearer ${token()}`,
     },
-    body: JSON.stringify({ kind: 'compare', lang, format: fmt, compare: props.body }),
+    body: JSON.stringify({ kind: 'compare', lang, format: fmt, style: terms.style, compare: props.body }),
   })
   if (res.status === 404 || res.status === 405) throw new Error(t('compare.export.unavailable'))
   const type = res.headers.get('Content-Type') ?? ''

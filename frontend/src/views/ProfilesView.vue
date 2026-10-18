@@ -8,7 +8,12 @@ import { useStatus } from '@/stores/status'
 import CompareTab from './profiles/CompareTab.vue'
 import EntryEditor from './profiles/EntryEditor.vue'
 import NewProfileDialog from './profiles/NewProfileDialog.vue'
-import { domainsOf, entryOrigin, filterEntries, type EntryFilter } from './profiles/entries'
+import { domainsOf, entryOrigin, filterEntries, hasDefault, type EntryFilter } from './profiles/entries'
+import HiddenLegend from '@/components/hidden-legend.vue'
+import ShowDefaultToggle from '@/components/show-default-toggle.vue'
+import { rememberedFlag } from '@/stores/prefs'
+import { useTerms } from '@/stores/terms'
+import { styleForm } from './schema/styles'
 import { credPercents, formatDefault, pct, treeOrder, vendorBadge, vendorName } from './profiles/format'
 import type { Entry, ProfileDetail, ProfileList } from './profiles/types'
 
@@ -16,6 +21,9 @@ const route = useRoute()
 const router = useRouter()
 const status = useStatus()
 const { t } = useI18n()
+const terms = useTerms()
+/** 默认值列（REQ-028）：Profile 管理就是维护缺省值的地方，默认显示；选择每个浏览器记住 */
+const showDefault = rememberedFlag('profiles-default', true)
 
 const tab = ref<'list' | 'cmp'>(route.query.tab === 'cmp' ? 'cmp' : 'list')
 const list = ref<ProfileList | null>(null)
@@ -86,7 +94,9 @@ const selProfile = computed(() => profiles.value.find((p) => p.id === selId.valu
 const parentMap = computed(() => new Map<string, Entry>((parentDetail.value?.entries ?? []).map((e) => [e.node, e])))
 const entries = computed(() => detail.value?.entries ?? [])
 const domains = computed(() => domainsOf(entries.value))
-const shown = computed(() => filterEntries(entries.value, filter, parentMap.value))
+const formOf = (e: Entry) => styleForm(terms, e.node, e.type, terms.style)
+const shown = computed(() => filterEntries(entries.value, filter, parentMap.value, formOf))
+const defaultCount = computed(() => entries.value.filter(hasDefault).length)
 const selEntry = computed(() => entries.value.find((e) => e.node === selNode.value))
 const liveCount = computed(() => entries.value.filter((e) => !e.deprecated || filter.showDeprecated).length)
 
@@ -252,10 +262,12 @@ async function exportKb() {
                   <option value="verified">verified</option>
                 </select>
                 <label class="check"><input v-model="filter.showDeprecated" type="checkbox"><span>{{ $t('profiles.showDeprecated') }}</span></label>
+                <ShowDefaultToggle v-model="showDefault" :count="defaultCount" testid="entries-show-default" />
                 <span class="grow"></span>
                 <span class="small faint" data-testid="entries-count">{{ shown.length }} / {{ liveCount }}</span>
               </div>
             </div>
+            <div v-if="showDefault" class="ent-legend small faint"><HiddenLegend :derived="false" /><span>{{ $t('profiles.defaultLegend') }}</span></div>
             <div v-if="detailErr" class="notice err" style="margin:0 14px 14px">
               <Icon name="err" /><div class="grow small">{{ detailErr }}</div>
               <button class="btn btn-xs" @click="loadDetail()">{{ $t('c.retry') }}</button>
@@ -265,22 +277,28 @@ async function exportKb() {
                 <thead><tr>
                   <th>{{ $t('profiles.schemaNode') }}</th>
                   <th>{{ $t('profiles.supported') }}</th>
-                  <th>{{ $t('profiles.default') }}</th>
+                  <th v-if="showDefault">{{ $t('profiles.default') }}</th>
                   <th class="col-sr">{{ $t('profiles.showRule') }}</th>
                   <th>{{ $t('profiles.origin') }}</th>
                   <th>{{ $t('profiles.credibility') }}</th>
                 </tr></thead>
                 <tbody>
-                  <tr v-if="loadingDetail && !detail"><td colspan="6"><div class="empty"><p>{{ $t('c.loading') }}</p></div></td></tr>
-                  <tr v-else-if="detail && !shown.length"><td colspan="6"><div class="empty"><p>{{ $t('profiles.noMatch') }}</p></div></td></tr>
+                  <tr v-if="loadingDetail && !detail"><td :colspan="showDefault ? 6 : 5"><div class="empty"><p>{{ $t('c.loading') }}</p></div></td></tr>
+                  <tr v-else-if="detail && !shown.length"><td :colspan="showDefault ? 6 : 5"><div class="empty"><p>{{ $t('profiles.noMatch') }}</p></div></td></tr>
                   <tr v-for="e in shown" :key="e.node" :class="['ent-row', { 'is-sel': e.node === selNode, dep: e.deprecated }]" :data-testid="`entry-row-${e.node}`" @click="selNode = e.node">
-                    <td class="sch">{{ e.node }}</td>
+                    <td class="sch" :title="formOf(e) ? `${$t(`style.${terms.style}`)}: ${formOf(e)}` : undefined">
+                      <span>{{ e.node }}</span>
+                      <span v-if="formOf(e)" class="ent-form" data-testid="entry-form">{{ formOf(e) }}</span>
+                    </td>
                     <td>
                       <span v-if="e.state === 'supported'" class="supmark yes"><Icon name="check" small /></span>
                       <span v-else-if="e.state === 'unsupported'" class="supmark no"><Icon name="x" small /></span>
                       <span v-else class="tag unfilled">{{ $t('st.unfilled') }}</span>
                     </td>
-                    <td><span class="mono">{{ formatDefault(e.default) || (e.state === 'unfilled' ? '' : '—') }}</span></td>
+                    <td v-if="showDefault">
+                      <span v-if="hasDefault(e)" class="dval hid-default" :title="$t('hid.defaultTip')" data-testid="entry-default-val"><span class="mono">{{ formatDefault(e.default) }}</span><span class="tag default">{{ $t('hid.default') }}</span></span>
+                      <span v-else class="mono faint">{{ e.state === 'unfilled' ? '' : '—' }}</span>
+                    </td>
                     <td class="mono small col-sr">{{ e.show_rule || '' }}</td>
                     <td>
                       <span :class="entryOrigin(e, parentMap) === 'inherited' ? 'origin-inh' : 'origin-own'">{{ originLabel(e) }}</span>
@@ -337,6 +355,12 @@ async function exportKb() {
 .ent-row.dep td { color: var(--ink-3); }
 .ent-row.dep .sch { text-decoration: line-through; }
 .ent-row .sch { font: 12px var(--font-mono); white-space: nowrap; }
+.ent-row .sch > span { display: block; }
+.ent-row .sch .ent-form { font-size: 11px; color: var(--ink-3); max-width: 340px; overflow: hidden; text-overflow: ellipsis; }
+.ent-row.dep .sch .ent-form { text-decoration: none; }
+.dval { display: inline-flex; align-items: center; gap: 6px; padding: 1px 4px 1px 6px; border-radius: 4px; }
+.dval .tag { height: 17px; font-size: 10.5px; padding: 0 5px; }
+.ent-legend { display: flex; align-items: center; gap: 10px; padding: 0 14px 8px; flex-wrap: wrap; }
 .origin-own { color: var(--blue-ink); font-weight: 600; font-size: 12px; white-space: nowrap; }
 .origin-inh { color: var(--teal-ink); font-size: 12px; white-space: nowrap; }
 .supmark { font-size: 12px; display: inline-flex; gap: 4px; align-items: center; }

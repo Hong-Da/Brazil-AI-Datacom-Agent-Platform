@@ -11,8 +11,17 @@ import {
 } from './profiles/coverage'
 import { pct, shortId, vendorBadge } from './profiles/format'
 import type { CoverageResult, ProfileDetail, ProfileList, ProfileRow } from './profiles/types'
+import { useTerms } from '@/stores/terms'
+import { styleForm } from './schema/styles'
 
 const { t, te, locale } = useI18n()
+const terms = useTerms()
+/** 当前显示风格的命令写法（REQ-026） */
+const formOf = (r: CovRow) => styleForm(terms, r.node, r.type, terms.style)
+function nodeTitle(r: CovRow): string {
+  const f = formOf(r)
+  return [pickLang(r.semantic, String(locale.value)), f ? `${t(`style.${terms.style}`)}: ${f}` : ''].filter(Boolean).join(' · ')
+}
 
 const rows = ref<CovRow[]>([])
 const pids = ref<string[]>([])
@@ -46,7 +55,7 @@ async function load() {
 onMounted(load)
 
 const domains = computed(() => [...new Set(rows.value.map((r) => r.domain))].sort())
-const filtered = computed(() => filterCoverage(rows.value, filter))
+const filtered = computed(() => filterCoverage(rows.value, filter, formOf))
 const groups = computed(() => groupByDomain(filtered.value))
 const sum = computed(() => coverageSummary(rows.value))
 const filtering = computed(() => !!(filter.q || filter.domain || filter.cred || filter.gapsOnly || filter.diffOnly))
@@ -166,8 +175,9 @@ function exportCsv() {
               </tr>
               <template v-if="!closed[g.domain]">
                 <tr v-for="r in g.rows" :key="r.node" :class="{ gap: r.gap, dep: r.deprecated }">
-                  <td class="c-node" :title="pickLang(r.semantic, String(locale))">
-                    <span class="pre">{{ r.node.includes('.') ? r.node.slice(0, r.node.lastIndexOf('.') + 1) : '' }}</span>{{ r.node.slice(r.node.lastIndexOf('.') + 1) }}
+                  <td class="c-node" :title="nodeTitle(r)">
+                    <div><span class="pre">{{ r.node.includes('.') ? r.node.slice(0, r.node.lastIndexOf('.') + 1) : '' }}</span>{{ r.node.slice(r.node.lastIndexOf('.') + 1) }}</div>
+                    <div v-if="formOf(r)" class="cform" data-testid="coverage-form">{{ formOf(r) }}</div>
                   </td>
                   <td class="c-type" :title="r.type">{{ r.type }}</td>
                   <td v-for="pid in pids" :key="pid" class="c-p">
@@ -213,6 +223,8 @@ function exportCsv() {
 .cov thead .c-node { z-index: 4; }
 .cov td.c-node { font: 12px var(--font-mono); white-space: nowrap; }
 .cov td.c-node .pre { color: var(--ink-3); }
+.cov td.c-node .cform { font-size: 10.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; max-width: 300px; }
+.cov tr.dep td.c-node .cform { text-decoration: none; }
 .cov td.c-type { font: 11.5px var(--font-mono); color: var(--ink-3); white-space: nowrap; max-width: 116px; overflow: hidden; text-overflow: ellipsis; }
 .cov .c-p { min-width: 128px; width: 136px; }
 .cov tbody tr:hover td { background: var(--surface-2); }

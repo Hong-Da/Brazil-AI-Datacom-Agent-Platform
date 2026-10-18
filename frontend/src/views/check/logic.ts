@@ -134,14 +134,18 @@ export function orderWithCascade(list: Finding[]): ListRow[] {
 // ---------- 涉及节点 ----------
 
 export type ChipKind = 'object' | 'attr' | 'missing' | 'node'
-export interface NodeChip { id: string; kind: ChipKind }
+/** origin：节点在图里的来源（default / derived 用隐藏配置样式，REQ-028） */
+export interface NodeChip { id: string; kind: ChipKind; origin?: string }
 
 /** 涉及节点；悬空引用补一个不存在的目标（目标类型[名称]），界面画成红色虚线。 */
-export function nodeChips(f: Finding, kinds: Map<string, string>): NodeChip[] {
+export function nodeChips(f: Finding, kinds: Map<string, string>, origins?: Map<string, string>): NodeChip[] {
   const out: NodeChip[] = f.nodes.map((id) => {
     // 没有图（粘贴的配置）时按编号判断：最后一段带键（[...]）的是对象，否则是属性
     const k = kinds.get(id) ?? (/\]$/.test(id) ? 'object' : id.includes('/') ? 'attr' : '')
-    return { id, kind: k === 'object' || k === 'attr' ? k : 'node' }
+    const chip: NodeChip = { id, kind: k === 'object' || k === 'attr' ? k : 'node' }
+    const o = origins?.get(id)
+    if (o && o !== 'explicit') chip.origin = o
+    return chip
   })
   if (f.rule === 'ref.dangling' || f.rule === 'ref.dangling_unsure') {
     const p = f.message.params ?? {}

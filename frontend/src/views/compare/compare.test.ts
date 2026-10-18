@@ -249,3 +249,50 @@ describe('对比对象与 URL 参数', () => {
     expect(reportName('PE-ASR920-01@12', 'PE 2', 'en', 'md')).toBe('compare-PE-ASR920-01@12-PE_2.en.md')
   })
 })
+
+describe('显示风格与隐藏配置（REQ-026 / REQ-028）', async () => {
+  const { Terms } = await import('@/terms/terms')
+  const golden = (await import('@/terms/golden.json')).default as unknown as {
+    terms: ConstructorParameters<typeof Terms>[0]
+    schema: { ids: string[]; keyNames: Record<string, string[]> }
+  }
+  const terms = new Terms(golden.terms, { ids: new Set(golden.schema.ids), keyNames: new Map(Object.entries(golden.schema.keyNames)), semantic: new Map() })
+  const hw = (n: string) => terms.describeParts(n, 'huawei')
+  const cs = (n: string) => terms.describeParts(n, 'cisco')
+  const rows = buildRows(result)
+
+  it('主副行按风格的命令写法；层数对不上时退回编号', async () => {
+    const { segLabels } = await import('./logic')
+    expect(describeNode('vrf.instance[RAN-2G]/af[ipv4]/rt[value=64512:1,direction=import]', 'object', hw))
+      .toEqual({ o: 'vpn-target 64512:1 import-extcommunity', a: 'ip vpn-instance RAN-2G › ipv4-family' })
+    expect(describeNode('vrf.instance[RAN-2G]/af[ipv4]/rt[value=64512:1,direction=import]', 'object', cs))
+      .toEqual({ o: 'route-target import 64512:1', a: 'vrf definition RAN-2G › address-family ipv4' })
+    expect(describeNode('interface[Gi0/0/0]/mtu', 'attr', cs)).toEqual({ o: 'interface Gi0/0/0', a: 'mtu' })
+    expect(segLabels('a[1]/b', () => ['x'])).toEqual(['a 1', 'b'])
+  })
+  it('搜索也匹配命令写法', () => {
+    const f = { type: '' as const, domain: '', q: 'route-map export-lo', showNa: false }
+    expect(filterRows(rows, f, cs).map((r) => r.id)).toEqual(['d3', 'd4'])
+    expect(filterRows(rows, f, hw)).toHaveLength(0)
+  })
+  it('隐藏配置标记：一侧默认值标 default，只差在默认值的项折叠', async () => {
+    const { defaultOnly, hiddenKind } = await import('./logic')
+    expect(rows.map(hiddenKind)).toEqual(['', '', '', '', 'default', 'default'])
+    expect(rows.map(defaultOnly)).toEqual([false, false, false, false, false, true])
+    const both = buildRows({ ...result, default_only: [], diffs: [diff({ a: { node: 'x', value: 1, origin: 'default', lines: [] }, b: null })] })
+    expect(defaultOnly(both[0])).toBe(true)
+    expect(filterRows(both, { type: '', domain: '', q: '', showNa: false })).toHaveLength(0)
+    expect(groupRows([], both, false)).toEqual([])
+    const derived = buildRows({ ...result, default_only: [], diffs: [diff({ a: { node: 'x', value: 1, origin: 'derived', lines: [] } })] })
+    expect(hiddenKind(derived[0])).toBe('derived')
+  })
+  it('差异图节点用风格写法，改名两侧各自写，带隐藏配置标记', () => {
+    const t = buildTree(rows, 'A ⇢ B', [], cs)
+    expect(t.byKey.get('routing-policy|rp.policy[EXPORT-LO]')!.label).toBe('route-map EXPORT-LOOPBACK ⇢ route-map EXPORT-LO')
+    expect(t.byKey.get('vrf|vrf.instance[RAN-2G]')!.label).toBe('vrf definition RAN-2G')
+    expect(t.byKey.get('routing-policy|rp.policy[EXPORT-LO]/node[10]/action')!.hid).toBe('default')
+    const lay = layoutTree(t, { side: 'both', collapsed: new Set() })
+    expect(lay.nodes.find((n) => n.path === 'rp.policy[EXPORT-LO]/node[10]/action')!.hid).toBe('default')
+    expect(buildTree(rows, 'A ⇢ B', [], hw).byKey.get('vrf|vrf.instance[RAN-2G]')!.label).toBe('ip vpn-instance RAN-2G')
+  })
+})

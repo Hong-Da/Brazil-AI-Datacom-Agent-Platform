@@ -7,6 +7,7 @@ import { pickLang } from '@/i18n'
 import { entryBody, entryOrigin, formDirty, formFromEntry, type EntryForm } from './entries'
 import { formatDefault, parseDefault } from './format'
 import type { Entry } from './types'
+import StyleForms from '../schema/StyleForms.vue'
 
 const props = defineProps<{
   profileId: string
@@ -87,6 +88,7 @@ function detailText(e: unknown): string {
     </div>
     <div class="panel-b">
       <div class="small muted">{{ pickLang(entry.semantic, String(locale)) }} <span class="mono faint">· {{ entry.type }}</span></div>
+      <StyleForms :id="entry.node" :type="entry.type" />
 
       <div class="inh-box" data-testid="entry-origin">
         <div class="row">

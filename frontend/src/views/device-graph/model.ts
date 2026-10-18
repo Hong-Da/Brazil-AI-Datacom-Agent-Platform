@@ -1,5 +1,6 @@
 /**
- * 设备配置图的数据整理：把接口返回的扁平节点 / 边整理成树（设备 → 功能域 → 对象 → 属性），
+ * 设备配置图的数据整理：把接口返回的扁平节点 / 边整理成树（按功能域：设备 → 功能域 → 对象 → 属性；
+ * 按视图层级：设备 → 对象 → 子对象 → 属性，不插入功能域这一层），
  * 计算收起 / 展开后的可见部分、依赖边聚合到可见祖先、配置行与节点的对应关系。
  * 纯函数，不依赖 DOM，便于测试；大图（约 2500 节点）只渲染可见部分。
  */
@@ -114,10 +115,22 @@ export function nodeLabel(n: ApiNode): string {
 
 /** Schema 节点 id → 功能域。用 /kb/schema 的各域节点建表；Schema 前缀（如 rp.、static.）不一定等于功能域名。 */
 export function domainResolver(domains: { domain: string; nodes: { id: string }[] }[]): (schema: string) => string | null {
+  // 先按节点编号（及其上级编号）精确查找：interface.bfd 属于 bfd 域而 interface 属于 interface 域；查不到时按首段兜底（先登记的域优先）
+  const exact = new Map<string, string>()
   const roots = new Map<string, string>()
-  for (const d of domains) for (const n of d.nodes) roots.set(n.id.split('.')[0], d.domain)
+  for (const d of domains) {
+    for (const n of d.nodes) {
+      exact.set(n.id, d.domain)
+      const r = n.id.split('.')[0]
+      if (!roots.has(r) || n.id === r) roots.set(r, d.domain)
+    }
+  }
   return (schema) => {
     if (!schema || schema.startsWith('ext:')) return null
+    for (let s = schema; s; s = s.includes('.') ? s.slice(0, s.lastIndexOf('.')) : '') {
+      const d = exact.get(s)
+      if (d) return d
+    }
     return roots.get(schema.split('.')[0]) ?? null
   }
 }
@@ -131,6 +144,10 @@ export interface BuildOptions {
   domainOrder?: string[]
   /** 把同一对象下的原文节点收进一个“raw ×N”组 */
   groupRaw?: boolean
+  /** 在设备下插入功能域分组（默认 true）；false 时按视图层级（对象的父子关系）组织 */
+  byDomain?: boolean
+  /** 节点名（显示风格的命令写法）；返回 null 时用默认名 */
+  labeler?: (n: ApiNode) => string | null | undefined
 }
 
 export function buildModel(data: GraphData, domainOf: (schema: string) => string | null, opts: BuildOptions = {}): Model {
@@ -142,7 +159,7 @@ export function buildModel(data: GraphData, domainOf: (schema: string) => string
     nodes.set(a.id, {
       id: a.id,
       kind,
-      label: nodeLabel(a),
+      label: opts.labeler?.(a) || nodeLabel(a),
       value: kind === 'attr' || kind === 'ext' ? formatValue(a.value) : kind === 'raw' || kind === 'unknown' ? (a.text ?? '') : '',
       schema: a.schema,
       origin: a.origin || 'explicit',
@@ -186,7 +203,8 @@ export function buildModel(data: GraphData, domainOf: (schema: string) => string
   }
   for (const n of nodes.values()) resolve(n)
 
-  // 设备下插入功能域分组
+  // 设备下插入功能域分组（按视图层级时只记下出现的功能域，供筛选）
+  const byDomain = opts.byDomain !== false
   const present = new Set<string>()
   for (const n of nodes.values()) if (n.parent === root) present.add(n.domain)
   const order = opts.domainOrder ?? []
@@ -195,15 +213,15 @@ export function buildModel(data: GraphData, domainOf: (schema: string) => string
     const ib = b === RAW_DOMAIN ? 1e6 : order.indexOf(b) < 0 ? 1e5 : order.indexOf(b)
     return ia - ib || a.localeCompare(b)
   })
-  for (const d of domains) {
+  for (const d of byDomain ? domains : []) {
     nodes.set(`domain:${d}`, {
       id: `domain:${d}`, kind: 'domain', label: d, value: '', schema: null, origin: 'explicit',
       lines: [], domain: d, parent: root, children: [], depth: 1, size: 0, hasUnknown: false,
     })
   }
-  for (const n of nodes.values()) if (n.parent === root && n.kind !== 'domain') n.parent = `domain:${n.domain}`
+  if (byDomain) for (const n of nodes.values()) if (n.parent === root && n.kind !== 'domain') n.parent = `domain:${n.domain}`
 
-  // 原文节点分组（只在对象下；功能域外的顶层原文已由 raw 功能域收起）
+  // 原文节点分组（在对象下；按功能域时顶层原文已由 raw 功能域收起，按视图层级时设备下的原文也收成一组）
   if (opts.groupRaw) {
     const byParent = new Map<string, TNode[]>()
     for (const n of nodes.values()) {
@@ -217,7 +235,7 @@ export function buildModel(data: GraphData, domainOf: (schema: string) => string
       const lines = arr.flatMap((n) => n.lines).sort((a, b) => a - b)
       nodes.set(gid, {
         id: gid, kind: 'rawgroup', label: `raw ×${arr.length}`, value: '', schema: null, origin: 'explicit',
-        lines, domain: nodes.get(pid)!.domain, parent: pid, children: [], depth: 0, size: 0, hasUnknown: false,
+        lines, domain: pid === root ? RAW_DOMAIN : nodes.get(pid)!.domain, parent: pid, children: [], depth: 0, size: 0, hasUnknown: false,
       })
       for (const n of arr) n.parent = gid
     }
@@ -303,7 +321,8 @@ export const MORE_PREFIX = 'more:'
 
 function isShown(m: Model, n: TNode, o: ViewOptions): boolean {
   if (!o.showDefault && n.origin === 'default') return false
-  if (o.domain && n.kind === 'domain' && n.domain !== o.domain) return false
+  // 只看一个功能域：设备下一层（功能域分组，或按视图层级时的顶层对象）按功能域筛选
+  if (o.domain && n.parent === m.root && n.domain !== o.domain) return false
   return true
 }
 

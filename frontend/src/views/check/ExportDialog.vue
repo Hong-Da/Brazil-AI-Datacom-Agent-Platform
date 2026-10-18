@@ -4,18 +4,20 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import { errorText } from '@/api'
+import { useTerms } from '@/stores/terms'
 import { postFile, reportName, saveBlob, target, targetBody, type ReportFormat, type ReportLang } from './report'
 
 const props = defineProps<{ device: string | null }>()
 const emit = defineEmits<{ close: []; toast: [msg: string, err?: boolean] }>()
 const { t, locale } = useI18n()
 const busy = ref('')
+const terms = useTerms()
 
 const LANGS: { code: ReportLang; label: string }[] = [{ code: 'zh-CN', label: '中文' }, { code: 'en', label: 'English' }]
 const FORMATS: { code: ReportFormat; label: string }[] = [{ code: 'html', label: 'HTML' }, { code: 'md', label: 'Markdown' }]
 
 function body(lang: ReportLang, format: ReportFormat) {
-  return { kind: 'check', lang, format, check: targetBody() }
+  return { kind: 'check', lang, format, style: terms.style, check: targetBody() }
 }
 
 async function dl(lang: ReportLang, format: ReportFormat): Promise<void> {

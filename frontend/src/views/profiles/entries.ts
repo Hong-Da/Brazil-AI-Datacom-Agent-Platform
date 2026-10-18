@@ -22,11 +22,12 @@ export interface EntryFilter {
   showDeprecated: boolean
 }
 
-export function filterEntries(list: Entry[], f: EntryFilter, parent?: Map<string, Entry>): Entry[] {
+/** formOf：条目在当前显示风格下的命令写法（REQ-026），给出时搜索也匹配它。 */
+export function filterEntries(list: Entry[], f: EntryFilter, parent?: Map<string, Entry>, formOf?: (e: Entry) => string): Entry[] {
   const q = f.q.trim().toLowerCase()
   return list.filter((e) => {
     if (e.deprecated && !f.showDeprecated) return false
-    if (q && !e.node.toLowerCase().includes(q)) return false
+    if (q && !e.node.toLowerCase().includes(q) && !(formOf?.(e) ?? '').toLowerCase().includes(q)) return false
     if (f.domain && e.domain !== f.domain) return false
     const o = entryOrigin(e, parent)
     if (f.origin === 'own' && o !== 'own' && o !== 'override') return false
@@ -35,6 +36,11 @@ export function filterEntries(list: Entry[], f: EntryFilter, parent?: Map<string
     if (f.cred && e.credibility !== f.cred) return false
     return true
   })
+}
+
+/** 条目有 Profile 缺省值（REQ-028：配置中没写时由它补成隐藏的默认节点）。 */
+export function hasDefault(e: Entry): boolean {
+  return e.state !== 'unfilled' && e.default !== null && e.default !== undefined && e.default !== ''
 }
 
 export function domainsOf(list: { domain: string }[]): string[] {

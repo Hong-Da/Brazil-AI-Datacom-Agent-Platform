@@ -1,6 +1,7 @@
 <script setup lang="ts">
 /** 差异图：设备 → 功能域 → 对象 → 属性的叠加树（SVG），引用关系画成右侧弧线；A / B / 叠加切换，节点可收起。 */
 import { computed } from 'vue'
+import HiddenLegend from '@/components/hidden-legend.vue'
 import { layoutTree, type GSide, type LNode, type NodeState, type Tree } from './tree'
 
 const props = defineProps<{
@@ -76,11 +77,11 @@ function key(ev: KeyboardEvent, n: LNode): void {
       <path v-for="(r, i) in lay.refs" :key="'r' + i" class="gl-ref" :class="'st-' + r.state" :d="r.d" :marker-end="`url(#cmp-m-${r.state})`" />
       <g
         v-for="n in lay.nodes" :key="n.key"
-        class="dn" :class="['lv' + Math.min(n.depth, 2), 'st-' + n.state, { 'is-sel': n.rowId && n.rowId === sel }]"
+        class="dn" :class="['lv' + Math.min(n.depth, 2), 'st-' + n.state, n.hid ? 'h-' + n.hid : '', { 'is-sel': n.rowId && n.rowId === sel }]"
         :transform="`translate(${n.x},${n.y - 11})`" tabindex="0" :data-key="n.key"
         @click="click(n)" @keydown="key($event, n)"
       >
-        <title>{{ n.label }}</title>
+        <title>{{ n.path && n.path !== n.label ? `${n.label} — ${$t('hid.canonical')}: ${n.path}` : n.label }}</title>
         <rect :width="n.w" height="22" rx="4" />
         <text v-if="sym(n)" class="sym" x="8" y="15">{{ sym(n) }}</text>
         <text :x="sym(n) ? 20 : 9" y="15">{{ text(n) }}</text>
@@ -98,11 +99,14 @@ function key(ev: KeyboardEvent, n: LNode): void {
       <svg viewBox="0 0 22 12"><rect class="lg" :class="'st-' + st" x="1" y="1" width="20" height="10" rx="2" /></svg>{{ $t(k) }}
     </span>
     <span class="nk"><svg viewBox="0 0 22 12"><path d="M1 6h17" class="gl-ref st-ref" /><path d="M16 3l4 3-4 3z" class="mk-ref" /></svg>{{ $t('e.ref') }}</span>
+    <HiddenLegend />
     <span class="ml-auto faint">{{ $t('compare.graph.count', { n: lay.nodes.length, e: lay.refs.length }) }}</span>
   </div>
 </template>
 
 <style scoped>
+.dn.h-default rect { stroke: var(--ink-3); stroke-dasharray: 3 2; }
+.dn.h-derived rect { stroke: var(--violet); stroke-dasharray: 1 2; }
 .gbar { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; font-size: 12px; color: var(--ink-2); }
 .gbar .hint { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
 .gnote { padding: 6px 12px; color: var(--ink-2); background: var(--surface-2); border-bottom: 1px dashed var(--line-strong); }

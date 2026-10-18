@@ -6,9 +6,11 @@ import { LOGO_SVG } from '@/components/icons'
 import { LANGS } from '@/i18n'
 import { usePrefs, type Theme } from '@/stores/prefs'
 import { useStatus } from '@/stores/status'
+import { useTerms } from '@/stores/terms'
 
 const prefs = usePrefs()
 const status = useStatus()
+const terms = useTerms()
 const route = useRoute()
 
 interface Item { name: string; icon: string; count?: () => number | undefined; tone?: string }
@@ -43,8 +45,10 @@ const THEMES: { v: Theme; icon: string }[] = [
 ]
 const kb = computed(() => status.summary?.kb)
 
-onMounted(() => status.refresh())
-watch(() => route.name, () => status.refresh())
+onMounted(() => { status.refresh(); void terms.load() })
+watch(() => route.name, () => { status.refresh(); void terms.load() })
+// 知识库发布 / 回滚后术语表可能变化
+watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void terms.load(true) })
 </script>
 
 <template>
@@ -65,6 +69,11 @@ watch(() => route.name, () => status.refresh())
         <select v-model="prefs.lang" class="lang-select" aria-label="Language" data-testid="lang-switch">
           <option v-for="l in LANGS" :key="l.code" :value="l.code">{{ l.label }}</option>
         </select>
+        <div class="seg" role="group" :aria-label="$t('style.label')" :title="$t('style.tip')" data-testid="style-switch">
+          <button v-for="s in terms.styles" :key="s" type="button" :aria-pressed="terms.style === s" :data-style="s" @click="terms.style = s">
+            <span>{{ $t(`style.${s}`) }}</span>
+          </button>
+        </div>
         <div class="seg" role="group" :aria-label="$t('shell.theme')" data-testid="theme-switch">
           <button v-for="t in THEMES" :key="t.v" type="button" :aria-pressed="prefs.theme === t.v" @click="prefs.theme = t.v">
             <Icon :name="t.icon" small /><span>{{ $t(`theme.${t.v}`) }}</span>

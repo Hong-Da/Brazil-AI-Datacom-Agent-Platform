@@ -88,15 +88,19 @@ function edgeName(kind: string): string {
             </span>
             <span v-if="node.api?.negated" class="tag t-amber">{{ $t('device-graph.negated') }}</span>
           </div>
-          <div class="d-name mt8">{{ node.kind === 'raw' ? node.value.trim() : node.label }}</div>
+          <div class="d-name mt8" :title="node.id" data-testid="detail-name">{{ node.kind === 'raw' ? node.value.trim() : node.label }}</div>
           <div v-if="path" class="small faint mono path">{{ path }}</div>
 
-          <div v-if="node.kind === 'attr' || node.kind === 'ext'" class="d-val" :class="{ dashed: node.origin !== 'explicit' }">
+          <div v-if="node.kind === 'attr' || node.kind === 'ext'" class="d-val" :class="{ dashed: node.origin !== 'explicit', 'hid-default': node.origin === 'default', 'hid-derived': node.origin === 'derived' }">
             <div class="lbl">{{ $t('device-graph.value') }}</div>
             <div class="v">{{ node.value }}</div>
             <div v-if="rawForm" class="small muted mt8">{{ $t('device-graph.rawForm') }}: <span class="mono">{{ rawForm }}</span></div>
-            <div v-if="node.origin !== 'explicit' && SRC.includes(node.origin)" class="small muted mt8">{{ $t(`device-graph.note.${node.origin}`) }}</div>
+            <div v-if="node.origin === 'default'" class="small muted mt8" data-testid="default-note">{{ $t('device-graph.note.defaultFrom', { p: profile || '—' }) }}</div>
+            <div v-else-if="node.origin !== 'explicit' && SRC.includes(node.origin)" class="small muted mt8">{{ $t(`device-graph.note.${node.origin}`) }}</div>
             <div v-if="node.kind === 'ext'" class="small muted mt8">{{ $t('device-graph.note.ext') }}</div>
+          </div>
+          <div v-else-if="node.kind === 'object' && (node.origin === 'default' || node.origin === 'derived')" class="d-val" :class="node.origin === 'default' ? 'hid-default' : 'hid-derived'">
+            <div class="small muted" data-testid="default-note">{{ node.origin === 'default' ? $t('device-graph.note.defaultFrom', { p: profile || '—' }) : $t('device-graph.note.derived') }}</div>
           </div>
           <div v-else-if="node.kind === 'raw' || node.kind === 'rawgroup'" class="notice mt12">
             <Icon name="info" />
