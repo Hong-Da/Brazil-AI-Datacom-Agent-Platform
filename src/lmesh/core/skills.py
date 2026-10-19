@@ -35,11 +35,26 @@ from lmesh.core.store.models import SkillCase, SkillEvolution, SkillRun, iso, ut
 
 _log = logging.getLogger("lmesh.skills")
 DIR_NAME = "ai-skills"
-ORDER = ("card-extract", "ask-query", "ask-answer", "config-generate", "script-review", "skill-evolve")
+ORDER = (
+    "card-extract",
+    "ask-query",
+    "ask-answer",
+    "config-generate",
+    "script-review",
+    "skill-evolve",
+    "device-summary",
+    "topology-roles",
+)
 EDITABLE = ("system", "prompt", "templates", "examples", "tools", "output")
 TEXT_FIELDS = ("system", "prompt")
 STATUSES = ("passed", "corrected", "rejected", "unverifiable", "error")
-LIVE_SOURCES = ("ask", "generate", "ingest", "script_check")  # 计入统计的来源；test / regression / evolve 不计
+LIVE_SOURCES = (
+    "ask",
+    "generate",
+    "ingest",
+    "script_check",
+    "suggest",
+)  # 计入统计的来源；test / regression / evolve 不计
 SCORES = {"passed": 1.0, "unverifiable": 0.5, "corrected": 0.0, "rejected": 0.0, "error": 0.0}
 OUTPUT_FORMATS = ("json", "text", "config")
 MAX_TEXT = 50000
@@ -82,6 +97,31 @@ CHECKS = {
         "发现的规则、行、入图、适用对象、代码断言与证据都经代码确认",
         "Each finding's rule, line, graph node, target, code assertion and evidence are confirmed by code",
         "Regra, linha, nó, alvo, asserção e evidência de cada achado são confirmados pelo código",
+    ),
+    "suggest.refs_exist": _t(
+        "引用的对象、差异条目、行号都在代码给出的事实里",
+        "Every cited object, diff entry and line is in the facts given by code",
+        "Todo objeto, item de diferença e linha citado está nos fatos dados pelo código",
+    ),
+    "suggest.text_only": _t(
+        "文字中提到的对象与数字与代码给出的事实一致，图中没有的对象则拒绝",
+        "Objects and numbers in the text match the facts from code; objects not in the graph are rejected",
+        "Objetos e números do texto conferem com os fatos do código; objetos fora do grafo são rejeitados",
+    ),
+    "suggest.view_hint": _t(
+        "只影响显示：目标设备在图中、取值合法；采纳写入项目视图标注，可撤销",
+        "Display only: the target device is in the graph and the value is allowed; adopting writes a revertible view annotation",
+        "Só exibição: o dispositivo alvo está no grafo e o valor é permitido; adotar grava uma anotação reversível",
+    ),
+    "suggest.script_valid": _t(
+        "脚本通过脚本检查并在模拟图上执行，可要求复检问题消失",
+        "The script passes the script check and runs on the simulated graph; optionally the problem must be gone",
+        "O script passa na verificação e roda no grafo simulado; opcionalmente o problema deve sumir",
+    ),
+    "suggest.kb_review": _t(
+        "知识库草稿进审核队列，由维护员或管理员决定",
+        "Knowledge-base drafts go to the review queue for maintainers or admins",
+        "Rascunhos da base de conhecimento vão para a fila de revisão de mantenedores ou administradores",
     ),
     "evolve.placeholders": _t(
         "候选版本保留全部变量，回复是规定的 JSON",

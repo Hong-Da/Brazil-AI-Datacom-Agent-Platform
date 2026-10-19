@@ -1437,6 +1437,60 @@ M6-7 实现。预览 `DevelopDocs/ui-preview/REQ-039/`（登录与注册、账�
 
 另有已存在的 6 个 skill（问答 2 个、配置生成、脚本审查、命令卡语法修正、skill 进化）。每个新 skill 走 REQ-033 的管理与进化机制，使用 REQ-040 的用户 AI 接口选择。
 
+### M8-2 结果（AI 建议框架）
+
+所有 AI skill 共用的“建议 → 代码校验 → 采纳 / 撤销”框架，后端 + 通用前端组件，按已评审的预览 `DevelopDocs/ui-preview/M8/suggest.html` 实现。决策 D-0259～D-0264。
+
+**数据**（迁移 `0010_ai_suggestions`，接在 0009 之后）：
+
+- `ai_suggestion_batches`：一次运行——项目、设备、范围（`scope_key`：`device:<编号>` / `topology` …）、skill 与生效版本、模式（ai / replay）、状态（queued / running / done / failed / cancelled）、后台任务编号、skill 调用记录编号（`skill_run_id`）、AI 调用记录编号（`ai_call_ids`，含重试）、接口名称与来源、模型、token、发起人、参数、`context`（代码给出的事实，编辑后重新校验用同一份）、计数、失败原因。
+- `ai_suggestions`：一条建议——批次、项目、设备、范围、skill、类别、kind、标题、内容（JSON）、编辑前的原内容、引用、代码校验结果（`check`：`status` pass / warn / reject 与 `reasons`）、状态（pending / adopted / dismissed / reverted）、AI 调用记录编号与接口、发起人、采纳人与时间、采纳信息（做了什么、原来的值）、撤销人、时间与信息。
+- `view_annotations`：项目级视图标注（目标类型、目标、键 role / group / label / layer、值、来源 user / ai、建议编号）。角色取值顺序：手工标注优先，其次采纳的 AI 建议，最后按平台默认（REQ-042，M8-3 接到拓扑图标）。
+- `ai_choices.no_token_warn`：个人偏好“不提示大请求”。
+
+**流程**（`core/ai_suggest.py`；示范 skill 的上下文在 `core/ai_suggest_skills.py`）：
+
+1. 准备上下文：skill 的 `build(env, params)` 在图上取事实——对象编号表（`d1` 设备、`n1` 对象、以后的 `c1` 差异条目、`f1` 问题……；编号由代码生成，AI 只能引用这些编号）、代码算好的数字（`numbers`）、配置行数、可在正文直接出现的名称；配置来自数据库（导入时已脱敏），发送前再经 `ask.sanitize_text` 脱敏。
+2. 调用：生效版本的提示词（REQ-033 的 `skills.current`），`ask._Session` → `ai.complete`，用量按功能（skill 编号）记录；`ai.collect_call_ids()` 收集调用记录编号；按发起人的 AI 选择（REQ-040）。
+3. 解析：回复必须是 `{"suggestions": [{"category", "kind", "title", "content", "refs"}]}`；不合格时用 skill 的 `retry` 模板（没有时用通用提示）重试一次，仍不合格批次记为 failed（`ai_suggest.bad_reply`）。AI 调用失败同样记为 failed，不抛出。
+4. 校验：通用检查（类别必须是该 skill 允许的、内容是对象、大小、标题里不能有图中没有的对象、`refs` 都在事实里：`{"id": "n3"}` 或 `{"line": 12, "of": "d1"}`），再交给类别的校验器；同一原因只列一次。正文写法：`[[编号]]` 提到对象、`<<键>>` 引用代码填入的数字，界面把它们换成实线小块（`check.segments`、`display`、`title_display`）。
+5. 入库：每条建议（被拒绝的也入库，只读展示原因）与批次；同时记一条 skill 调用记录（来源 `suggest`，计入 REQ-033 统计；有被拒绝的记为 rejected，自动进入回归集供进化）。REQ-033 的试运行与回归运行对这类 skill 用同一套校验器（`skill_runners` 的通用运行器，输入为记下的 `vars` 与 `facts`）。
+6. 取消：批次标为 cancelled，AI 回复到达后丢弃（已发出的调用照常计入用量）。运行中任务进度的 `message` 依次为 sanitize / send / generate / check，对应界面的四步。
+
+**校验器注册表**（`register_category(类别, Validator(check, adopt, revert, kb=False, batch=True))`）：
+
+| 类别 | 校验 | 采纳 | 撤销 |
+|---|---|---|---|
+| `refs_exist` | 至少一个引用，引用都在事实里（防止编造） | 只记录结论 | 只记录 |
+| `script_valid` | `content.script` 对 `content.device` 的当前版本过脚本检查（变更脚本，在模拟图上执行）：有 error 拒绝，有 warning 或代码无法确认的行（功能域外 / 未识别）给警告；`content.fixes`（`rule` + `node`）要求模拟后这些问题消失 | 在项目里新建一份变更脚本（基线为该设备） | 脚本没改过时删除，改过 409 |
+| `kb_review` | `content.review_kind` 是审核队列支持的类型、`payload` 是对象；按类型的额外校验注册在 `KB_CHECKS` | 进审核队列（来源 ai，带建议编号）；只有维护员与管理员可以采纳与撤销 | 审核项仍待处理时撤回（标为驳回），已处理 409 |
+| `view_hint` | `content.target` 是图中的设备、`key` 为 role / group / label / layer、取值合法（role：core / aggregation / access / pe / p / ce）；`reason` 里不能有图中没有的对象；会覆盖手工标注时警告 | 写入项目视图标注（记下原值） | 标注仍是这条建议写的时恢复原值（原来没有则删除），被后来的建议覆盖 409 |
+| `text_only` | `[[编号]]`、`<<键>>` 都在事实里；正文中直接写出的接口名、地址、带数字的主机名必须是图中的对象或属性值，否则拒绝；对不上任何事实的数字给警告（由代码填入的数字不检查） | 只记录结论 | 只记录 |
+
+采纳规则（M8-1 评审推荐）：reject 不能采纳；warn 可以逐条采纳；“全部采纳 / 按类别采纳”只含 pass 且待处理的；编辑后采纳先用同一份事实重新校验（不合格 409，`data.check`）；忽略后可恢复或直接采纳；采纳后 30 天内可撤销（`REVERT_DAYS`），之后或对象又被改过时提示用版本历史回退。
+
+**权限**：接口只挂在项目路径下，沿用 M6 的项目角色——查看（列表、详情、批次、采纳记录、视图标注、skill 列表、运行前估计）所有成员；运行、取消、采纳、批量采纳、忽略、恢复、撤销需要可编辑（属主、可编辑成员、管理员）；知识库类（`kb_review`）的采纳与撤销另外要求维护员或管理员。不是成员 404。命令行等同管理员。
+
+**大请求提示**（用户评审第 7 题）：新配置项 `ai.warn_tokens = 50000`（0 = 不提示；向导“AI 接口”一步与 `config/config.example.toml` 已同步）；“我的 AI”里的个人开关“不提示大请求”（`PUT /me/ai {"no_token_warn": true}`）优先于全局值。`POST …/ai/suggestions/estimate` 按当前上下文渲染提示词估计 token（ASCII 约 4 字符一个，其他字符各一个），超过提示线时界面提示条变黄、按钮改为“仍然生成（约 N token）”。
+
+**接口与命令行**：`/api/v1/projects/{p}/ai/suggestions/…`（skills、estimate、run、batches/{id}、batches/{id}/cancel、列表、{id}、{id}/adopt、adopt-batch、{id}/dismiss、{id}/restore、{id}/revert、adoptions）与 `/projects/{p}/view-annotations`，见 `docs/api.md`；`lmesh ai suggest run|list|show|adopt|dismiss|revert|annotations`（`run --replay <文件>` 用文件里的回复代替真实 AI，同样经过代码校验），见 `docs/cli.md`。
+
+**示范 skill**（`knowledge/ai-skills/`，`group: analysis`，M8-3 做完整）：`device-summary`（text_only：设备与顶层对象编号表、主要属性、代码算好的计数，3～6 句交接摘要）、`topology-roles`（view_hint：项目设备的名称、平台、链路数、接口描述与还原的链路，推断角色）。两者都带 `retry` 模板、一条通过与一条被拒绝的试运行样例，提示词要求只引用给定的编号。
+
+**前端通用组件**（`frontend/src/components/ai-suggest/`，样式移植自预览 `m8.css`，明暗两套，文案 `i18n/pages/ai-suggest.json` 三语）：`AiEntryButton.vue`（统一的 AI 按钮 + ▾ 菜单；运行中显示进度；不可用时变灰但可点，点开是 REQ-040 的 `ai-off-hint`）、`AiSuggestPanel.vue`（未运行 / 运行中四步可取消 / 有建议 / 空 / 失败 / 已取消 / 不可用；汇总条、全部采纳与按类别采纳、筛选、采纳记录与撤销；会改脚本或知识库的采纳二次确认并勾选“已查看”）、`AiSuggestCard.vue`（通过的折叠成一行，有警告或被拒绝的展开；被拒绝的灰底红虚线、不存在的引用打删除线、不可采纳；采纳后实线并保留紫色细条；编辑后采纳）、`AiText.vue`（AI 文字紫色虚线半透明，代码填入的对象名与数字实线、可跳转）、`logic.ts`（纯逻辑与 vitest）。示范接入：设备配置分析页头（设备摘要）、拓扑页头（设备角色）。“我的 AI”页加“不提示大请求”开关。
+
+**以后加一个 skill 的步骤**：
+
+1. 定义 skill：`knowledge/ai-skills/<编号>.yaml`（`group` 用 `_groups.yaml` 里的组；`system` 写清只能引用给定编号、正文用 `[[编号]]` 与 `<<键>>`、只回 JSON `{"suggestions": […]}`；带 `retry` 模板与一条通过、一条被拒绝的 `samples`，样例输入为 `{vars, facts}`），并加入 `skills.ORDER`。
+2. 写上下文：在 `core/ai_suggest_skills.py`（或功能自己的模块，由 `ai_suggest._load_skills` 导入）`register_skill(SkillSpec(id, build, categories, default_category, scope, prepare))`；`build` 只用代码在图上算出的事实，所有对象都编进 `facts.objects`（带 `device_id` / `node` / `line` 供跳转），数字放 `facts.numbers`。
+3. 选校验器：能用现有类别就用；不够时 `register_category` 新写（校验函数返回原因列表，采纳与撤销各自用自己的数据库会话，撤销要能判断“之后被改过”）；知识库草稿按类型的额外校验注册到 `KB_CHECKS`。
+4. 接入页面：在页面工具栏放 `<AiEntryButton :skills="[…]" @run="panel.start()" />` 与 `<AiSuggestPanel ref="panel" skill="…" :params="…" :scope="…" />`，按需处理 `changed`（采纳后刷新页面数据）与 `jump`（引用跳转）。
+5. 测试：用假的 AI（替换 `ai.provider_hook`）覆盖正常建议、代码校验拒绝（编造对象 / 脚本校验失败）、未配置 AI 时降级；CLI 用例用 `--replay`。
+
+**测试**：单元 `tests/unit/test_ai_suggest.py`（五类校验器的通过与拒绝、编造对象被拒并进入回归集、解析失败重试与失败、AI 调用失败、未配置 AI 降级与回放、停用 skill、批量采纳只取通过的、编辑后重新校验、手工标注优先与覆盖后不能撤销、审核队列撤回、脚本采纳与改过后不能撤销、取消、后台任务保持项目、跨项目不可见、30 天撤销期、大请求提示线与个人开关、REQ-033 回放样例、迁移 0010）；API `tests/api/test_ai_suggest_api.py`（权限矩阵：属主 / 可编辑 / 只读 / 非成员 / 维护员；后台任务；批量采纳只采纳通过的；编辑后采纳；知识库类权限；参数错误；未配置 409；个人开关）与用例 `api_cases.ai_suggest.toml`（准备方式 `configured-fullkb-suggest`）；CLI 用例 `cli_cases.ai_suggest.toml` 与 `tests/cli/test_ai_suggest_cli.py`（回放运行 → 采纳 → 标注 → 撤销）；vitest `components/ai-suggest/logic.test.ts`；e2e `frontend/e2e/m82.spec.ts`（`playwright.m82.config.ts` 用 `e2e/m82_server.py` 的假 AI：设备摘要采纳与撤销、拓扑角色编造设备被拒、全部采纳只采纳通过的；主配置下验证入口的“不可用”提示）。
+
+**与预览的差异**：采纳记录按条撤销（没有“回退本批”）；运行中只显示四步与接口、模型，不显示逐 token 的接收进度（后端不流式）；超时由 `ai.timeout` 决定，按失败显示（重试 / 改用其他接口）；“把握”百分比没有（AI 的自评不经代码校验，不展示）；入口菜单的“本月我已用”改为“查看用量”链接。
+
 ## 拓扑设备图标（REQ-042）
 
 用户 2026-10-19 提出：网元拓扑视图需要设计设备的图标。做法（Claude 按推荐，等预览评审）：

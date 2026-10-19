@@ -313,7 +313,7 @@ def full_kb_root(tmp_root: Path) -> Path:
 def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
     """用例的准备方式：fresh / configured / fresh-fullkb / configured-fullkb / configured-fullkb-history / configured-users /
     configured-notoken / configured-fullkb-checkproj / configured-projects / configured-samename / configured-pending /
-    configured-ai。"""
+    configured-ai / configured-fullkb-suggest。"""
     if setup and "fullkb" in setup:
         request.getfixturevalue("full_kb_root")
     if setup and setup.startswith("configured"):
@@ -332,6 +332,8 @@ def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
         request.getfixturevalue("pending_root")
     if setup and setup.endswith("-ai"):
         request.getfixturevalue("ai_root")
+    if setup and setup.endswith("-suggest"):
+        request.getfixturevalue("suggest_root")
     if setup and setup.endswith("-notoken"):  # 实例没有设置 API 令牌（环境变量覆盖为空）
         request.getfixturevalue("monkeypatch").setenv("LMESH_SECURITY__API_TOKEN", "")
 
@@ -448,6 +450,73 @@ def ai_root(users_root: Path) -> Path:
         s, alice, {"personal": {**base, "model": "alice-model", "api_key": "alice-secret-key"}, "choice": "personal"}
     )
     return users_root
+
+
+SUGGEST_ROLES = {
+    "suggestions": [
+        {
+            "category": "view_hint",
+            "kind": "role",
+            "title": "d1: access",
+            "content": {"target": "d1", "key": "role", "value": "access", "reason": "[[d1]] has a single uplink."},
+            "refs": [{"id": "d1"}],
+        },
+        {
+            "category": "view_hint",
+            "kind": "role",
+            "title": "d2: pe",
+            "content": {"target": "d2", "key": "role", "value": "pe"},
+            "refs": [{"id": "d2"}],
+        },
+        {
+            "category": "view_hint",
+            "kind": "role",
+            "title": "d9: core",
+            "content": {"target": "d9", "key": "role", "value": "core"},
+            "refs": [{"id": "d9"}],
+        },
+    ]
+}
+SUGGEST_SUMMARY = {
+    "suggestions": [
+        {
+            "category": "text_only",
+            "kind": "summary",
+            "title": "Access router",
+            "content": {"text": "[[d1]] has <<count.interface>> interfaces and <<count.vrf.instance>> VPN instances."},
+            "refs": [{"id": "n1"}],
+        },
+    ]
+}
+
+
+@pytest.fixture
+def suggest_root(projects_root: Path) -> Path:
+    """AI 建议用例（M8-2，需要全量知识库）：在项目用例之上，alice 在 lab 里用回放（不调用 AI）运行两次——
+    拓扑角色（建议 #1 d1 access、#2 d2 pe 通过，#3 编造的 d9 被拒绝）与 ATN-CHANGE-01 的设备摘要（#4 通过）。"""
+    import json as _json
+
+    from lmesh.core import ai_suggest, analysis, config, importer, kbservice, projects
+
+    s = config.load()
+    url = s.database_url
+    alice = projects.cli_identity(url, "alice")
+    scope = projects.resolve(url, alice, "lab")
+    env = ai_suggest.Env(
+        s,
+        lambda: analysis.load_kb(kbservice.runtime_root(s)),
+        scope.project_id,
+        alice.user_id,
+        "alice",
+        False,
+        False,
+        "en",
+    )
+    with projects.use(scope, alice):
+        ai_suggest.run(env, "topology-roles", {}, reply=_json.dumps(SUGGEST_ROLES))
+        did = next(d["id"] for d in importer.list_devices(url) if d["name"] == HISTORY_DEVICE)
+        ai_suggest.run(env, "device-summary", {"device_id": did}, reply=_json.dumps(SUGGEST_SUMMARY))
+    return projects_root
 
 
 @pytest.fixture

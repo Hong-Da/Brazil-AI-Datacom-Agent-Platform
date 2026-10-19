@@ -156,6 +156,7 @@ class MineBody(BaseModel):
     connection_id: int | None = Field(None, description="choice = connection 时必填：可选的管理员接口编号")
     personal: PersonalBody | None = Field(None, description="个人接口（新建或修改；不传 api_key 时保留原值）")
     remove_personal: bool = False
+    no_token_warn: bool | None = Field(None, description="个人偏好：不提示大请求（优先于全局 ai.warn_tokens）")
 
 
 @router.put(

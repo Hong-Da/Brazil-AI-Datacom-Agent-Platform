@@ -108,6 +108,25 @@ def _default_hook(conn: ai_connections.Conn, model: str, system: str, prompt: st
 
 provider_hook: Callable[[Any, str, str, str], Reply] = _default_hook
 _HOOK_SETTINGS: ContextVar[config.Settings] = ContextVar("lmesh_ai_settings")
+_CALL_IDS: ContextVar[list[int] | None] = ContextVar("lmesh_ai_call_ids", default=None)
+
+
+def _record_call_id(call_id: int) -> None:
+    ids = _CALL_IDS.get()
+    if ids is not None:
+        ids.append(call_id)
+
+
+class collect_call_ids:  # noqa: N801  用法像函数：with ai.collect_call_ids() as ids
+    """收集这段代码里（同一线程）每次 complete 写入的调用记录编号（AI 建议记下“调用记录编号”用）。"""
+
+    def __enter__(self) -> list[int]:
+        self._ids: list[int] = []
+        self._token = _CALL_IDS.set(self._ids)
+        return self._ids
+
+    def __exit__(self, *exc: object) -> None:
+        _CALL_IDS.reset(self._token)
 
 
 def complete(
@@ -156,6 +175,8 @@ def complete(
         try:
             with store.session(settings.database_url) as s:
                 s.add(call)
+                s.flush()
+                _record_call_id(int(call.id))
         except Exception:  # 记录失败不影响调用结果
             _log.debug("AI 调用记录写入失败", exc_info=True)
 

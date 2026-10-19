@@ -3,7 +3,7 @@
   "info": {
     "title": "LucidMesh API",
     "description": "透网 LucidMesh 远程 API。除 /health、/auth/status、/auth/login 与首次运行向导外，所有接口都需要登录：网页用会话 Cookie，脚本用 Authorization: Bearer <令牌>（全局令牌或个人令牌 lmp_…）。设备相关接口在 /api/v1/projects/{project}/… 下；旧的无项目路径保留为兼容别名（调用者的默认项目，已弃用）。",
-    "version": "0.5.0"
+    "version": "0.3.0"
   },
   "paths": {
     "/api/v1/health": {
@@ -14399,6 +14399,949 @@
         }
       }
     },
+    "/api/v1/projects/{project}/ai/suggestions/skills": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "可生成建议的 skill（名称、分组、类别、是否启用）与 AI 是否可用；不可用时 ai.reason 给出原因",
+        "operationId": "suggest_skills_api_v1_projects__project__ai_suggestions_skills_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Skills Api V1 Projects  Project  Ai Suggestions Skills Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions/batches/{batch_id}": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "一次运行：状态、计数、AI 接口与调用记录编号、失败原因",
+        "operationId": "suggest_batch_api_v1_projects__project__ai_suggestions_batches__batch_id__get",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Batch Api V1 Projects  Project  Ai Suggestions Batches  Batch Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions/adoptions": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "采纳记录：已采纳与已撤销的建议（新的在前），含采纳做了什么与撤销信息",
+        "operationId": "suggest_adoptions_api_v1_projects__project__ai_suggestions_adoptions_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Adoptions Api V1 Projects  Project  Ai Suggestions Adoptions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/view-annotations": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "项目级视图标注（设备角色、分组、标签、层次）：手工或采纳的 AI 建议",
+        "operationId": "view_annotations_api_v1_projects__project__view_annotations_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "target_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Target Type"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response View Annotations Api V1 Projects  Project  View Annotations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "建议列表：按 skill、状态、校验结果、类别、设备、批次、范围过滤（新的在前）",
+        "operationId": "suggest_list_api_v1_projects__project__ai_suggestions_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "skill",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Skill"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "pending",
+                    "adopted",
+                    "dismissed",
+                    "reverted"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "check",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "pass",
+                    "warn",
+                    "reject"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Check"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "device_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "batch_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "范围，例如 device:3、topology",
+              "title": "Scope"
+            },
+            "description": "范围，例如 device:3、topology"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "default": 200,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest List Api V1 Projects  Project  Ai Suggestions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions/{sid}": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "一条建议：内容、依据与引用（可跳转）、代码校验结果、状态与采纳信息",
+        "operationId": "suggest_get_api_v1_projects__project__ai_suggestions__sid__get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Get Api V1 Projects  Project  Ai Suggestions  Sid  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions/run": {
+      "post": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "运行一个 skill 生成建议（后台任务，返回 task_id 与 batch_id；GET /tasks/{id} 看进度）；AI 不可用时 409",
+        "operationId": "suggest_run_api_v1_projects__project__ai_suggestions_run_post",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Run Api V1 Projects  Project  Ai Suggestions Run Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions/batches/{batch_id}/cancel": {
+      "post": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "取消运行：AI 的回复到达后丢弃，不生成建议（已发出的调用照常计入用量）",
+        "operationId": "suggest_cancel_api_v1_projects__project__ai_suggestions_batches__batch_id__cancel_post",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Cancel Api V1 Projects  Project  Ai Suggestions Batches  Batch Id  Cancel Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions/adopt-batch": {
+      "post": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "按类别批量采纳：只采纳校验通过（pass）且待处理的，warn / reject 的跳过",
+        "operationId": "suggest_adopt_batch_api_v1_projects__project__ai_suggestions_adopt_batch_post",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchAdoptBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Adopt Batch Api V1 Projects  Project  Ai Suggestions Adopt Batch Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions/{sid}/adopt": {
+      "post": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "采纳（可带编辑后的内容，先重新校验）；被拒绝的不能采纳（409，data.check）；知识库类只限维护员与管理员",
+        "operationId": "suggest_adopt_api_v1_projects__project__ai_suggestions__sid__adopt_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdoptBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Adopt Api V1 Projects  Project  Ai Suggestions  Sid  Adopt Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions/{sid}/dismiss": {
+      "post": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "忽略一条待处理的建议",
+        "operationId": "suggest_dismiss_api_v1_projects__project__ai_suggestions__sid__dismiss_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Dismiss Api V1 Projects  Project  Ai Suggestions  Sid  Dismiss Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions/{sid}/restore": {
+      "post": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "把忽略的建议恢复为待处理",
+        "operationId": "suggest_restore_api_v1_projects__project__ai_suggestions__sid__restore_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Restore Api V1 Projects  Project  Ai Suggestions  Sid  Restore Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions/{sid}/revert": {
+      "post": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "撤销已采纳的建议：视图标注恢复原值、审核项撤回、未改动的脚本删除；之后被改动过时 409",
+        "operationId": "suggest_revert_api_v1_projects__project__ai_suggestions__sid__revert_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Revert Api V1 Projects  Project  Ai Suggestions  Sid  Revert Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions/estimate": {
+      "post": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "运行前估计发给 AI 的量（tokens；超过 50k 时 warn 为 true），不调用 AI",
+        "operationId": "suggest_estimate_api_v1_projects__project__ai_suggestions_estimate_post",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Estimate Api V1 Projects  Project  Ai Suggestions Estimate Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tokens": {
       "get": {
         "tags": [
@@ -14669,6 +15612,59 @@
         "type": "object",
         "title": "AdminBody"
       },
+      "AdoptBody": {
+        "properties": {
+          "content": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content",
+            "description": "编辑后的内容（给出时先重新校验，被拒绝则 409）"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "refs": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Refs",
+            "description": "编辑后的引用（不给时沿用原来的）"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "AdoptBody"
+      },
       "AnalysisBody": {
         "properties": {
           "text": {
@@ -14913,6 +15909,57 @@
         },
         "type": "object",
         "title": "BaselineReportBody"
+      },
+      "BatchAdoptBody": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "类别：refs_exist / script_valid / kb_review / view_hint / text_only"
+          },
+          "skill": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skill"
+          },
+          "batch_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Batch Id"
+          },
+          "ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ids",
+            "description": "只在这些建议里选"
+          }
+        },
+        "type": "object",
+        "required": [
+          "category"
+        ],
+        "title": "BatchAdoptBody"
       },
       "BatchBody": {
         "properties": {
@@ -16729,6 +17776,18 @@
             "type": "boolean",
             "title": "Remove Personal",
             "default": false
+          },
+          "no_token_warn": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "No Token Warn",
+            "description": "个人偏好：不提示大请求（优先于全局 ai.warn_tokens）"
           }
         },
         "type": "object",
@@ -16950,6 +18009,18 @@
           "type"
         ],
         "title": "NodeBody"
+      },
+      "NoteBody": {
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "NoteBody"
       },
       "OverrideBody": {
         "properties": {
@@ -17686,6 +18757,45 @@
         },
         "type": "object",
         "title": "RulePatch"
+      },
+      "RunBody": {
+        "properties": {
+          "skill": {
+            "type": "string",
+            "maxLength": 60,
+            "title": "Skill",
+            "description": "skill 编号，例如 device-summary、topology-roles"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id",
+            "description": "设备（作用于单台设备的 skill 必填）"
+          },
+          "params": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Params",
+            "description": "skill 的其他参数，例如 device_ids"
+          },
+          "wait": {
+            "type": "boolean",
+            "title": "Wait",
+            "description": "true 时同步运行并直接返回批次（测试、脚本用）",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "skill"
+        ],
+        "title": "RunBody"
       },
       "SanitizeBody": {
         "properties": {

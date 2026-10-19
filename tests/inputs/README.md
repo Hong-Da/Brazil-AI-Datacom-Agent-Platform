@@ -23,6 +23,7 @@
 | `guard/atn-bad.cfg` | 要合并到 `knowledge/samples/change/atn-base.cfg` 的华为配置片段，故意包含被护栏拦截的问题：命令卡没有的写法（`vpn-target … both-direction`）、RD 与已有 VPN 实例重复、先配地址再绑定 VPN 实例（副作用顺序）、引用不存在的路由策略；描述含葡语字符 | CLI 用例 `guard-blocked`；单元测试 `test_ask_guard.py` 的同类片段 |
 | `guard/atn-good.cfg` | 同一设备上能通过护栏的配置片段（绑定已有 VPN 实例后再配地址） | CLI 用例 `guard-passed-device`、`guard-empty-base` |
 | `scripts/atn-change-order.txt` | 以 `knowledge/samples/change/atn-base.cfg` 为基线的华为变更脚本（REQ-031），故意包含：先配地址再绑定 VPN 实例（副作用丢值）、引用后面才创建的 VPN 实例（顺序）、取消不存在的前缀列表、在系统视图写 BGP 命令（视图错误） | 单元测试 `test_script_check.py`；CLI 用例 `script-check-*`；API 用例 `cp-*`（准备方式 `configured-fullkb-checkproj` 的脚本 1） |
+| `ai-suggest/summary.json`、`summary-invented.json`、`not-json.txt`、`role-edit.json` | AI 建议（M8-2）的回放回复：只用代码给出的编号与数字的设备摘要（通过）、编造了图中没有的接口与主机名的摘要（被拒绝）、不是 JSON 的回复（解析失败）；`role-edit.json` 是编辑后采纳的新内容（把 d2 的角色改为 aggregation） | CLI 用例 `ai-suggest-*`；CLI 测试 `test_ai_suggest_cli.py` |
 | `scripts/atn-change-good.txt` | 同一变更按依赖顺序写好的版本（检查无错误；与上一份的差异是移动） | 单元测试、CLI 用例 `script-check-good`、`script-diff*` |
 | `scripts/asr-change-order.txt` | 以 `asr920-base.cfg` 为基线的 Cisco 变更脚本：接口绑定的 VRF 在后面才定义 | 单元测试、CLI 用例 `script-check-reorder*` |
 | `scripts/atn-full.cfg` | 基于 `atn-base.cfg` 的完整配置：改了接口描述、加了一行未识别命令（`ospf cost abc`） | 单元测试、CLI 用例 `script-check-full`；API 用例的脚本 2 |

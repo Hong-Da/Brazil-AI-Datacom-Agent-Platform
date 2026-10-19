@@ -341,6 +341,19 @@ FIELDS: tuple[Field, ...] = (
         minimum=1,
         maximum=3650,
     ),
+    Field(
+        "ai.warn_tokens",
+        50000,
+        "ai",
+        "int",
+        _d(
+            "AI 建议预计输入超过多少 token 时提示（0 = 不提示；个人可在“我的 AI”里关闭提示）",
+            "Warn when an AI suggestion request is estimated above this many input tokens (0 = never; users can turn it off in My AI)",
+            "Avisar quando o pedido de sugestão da IA passar desta estimativa de tokens (0 = nunca; cada usuário pode desligar em Minha IA)",
+        ),
+        minimum=0,
+        maximum=10000000,
+    ),
 )
 
 FIELD_MAP = {f.key: f for f in FIELDS}

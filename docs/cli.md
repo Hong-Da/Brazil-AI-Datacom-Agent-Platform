@@ -143,6 +143,10 @@
 | `lmesh ask "<问题>" [设备名…] [--show-sent]` | AI 自然语言查询（需要配置 AI，未配置时退出码 3）：AI 写图查询 → 代码校验并执行 → AI 只根据结果回答 → 代码逐句核对（通过 / 已按图更正 / 无法校验）；发给 AI 的内容先脱敏，`--show-sent` 打印实际发送的内容；AI 写不出合法查询时退出码 1 |
 | `lmesh guard <配置片段> [--device 设备名\|当前配置文件] [--profile P] [--template T] [--no-cross-device] [--no-script]` | 配置护栏（不需要 AI）：片段合并到目标设备当前配置后解析、入图、依赖（悬空引用、互斥、前置、副作用顺序）、模板约束、冲突（地址、RD 跨设备查重，dot1q 重复）检查，逐行标出通过 / 拦截 / 注意；被拦截时退出码 1，通过时附增量变更脚本 |
 | `lmesh generate "<需求>" --device <设备> [--profile P] [--template T] [--rounds 2] [-o 文件]` | AI 生成配置（需要配置 AI）：生成后经护栏检查，被拦截时把问题交回 AI 修改，最多 `--rounds` 轮；最终仍被拦截时退出码 1 |
+| `lmesh ai suggest run <skill> [--device 设备] [--devices a,b] [--replay 文件]` | 运行 skill 生成 AI 建议（M8-2，作用于当前项目，同步执行）：代码校验后入库，列出每条的校验结果与原因；`--replay` 用文件里的回复代替真实 AI（仍经过代码校验）；未配置 AI 退出码 3，设备不存在退出码 4，回复无法解析（已重试一次）或 AI 出错退出码 5 |
+| `lmesh ai suggest list [--skill S] [--status pending\|adopted\|dismissed\|reverted] [--check pass\|warn\|reject] [--category C] [--device D] [--batch N]` / `show <编号>` | 建议列表 / 详情：`✓` 通过、`!` 警告、`✕` 被拒绝，附代码校验原因；参数不合法退出码 2 |
+| `lmesh ai suggest adopt <编号…> [--edit 文件]` / `adopt --category C [--skill S] [--batch N]` | 采纳（`--edit` 给出编辑后的内容 JSON，先重新校验）/ 按类别批量采纳校验通过的；被拒绝或编辑后不合格退出码 1，不存在退出码 4 |
+| `lmesh ai suggest dismiss <编号…> [--note 说明]` / `revert <编号…>` / `annotations` | 忽略 / 撤销（30 天内）/ 项目的视图标注 |
 | `lmesh skill list [--days N]` | 内置 AI skill（REQ-033）列表：编号、名称、启用、生效版本（builtin / vN）、近 N 天调用数、代码校验通过率、被拦截比例、评价、回归集条数；需要数据库（未配置退出码 3） |
 | `lmesh skill show <skill> [--version builtin\|N]` | 显示 skill 的定义：任务与模型配置键、工具、代码校验、系统提示词、提示模板、示例数；不存在退出码 4 |
 | `lmesh skill test <skill> [--sample N \| --case 编号] [--replay [--reply 文本]] [--version V]` | 试运行：渲染提示词 → 调用 AI → 代码校验，输出状态、得分与逐项结果；`--replay` 不调用 AI，用样例 / 案例记下的回复（或 `--reply`）走一遍校验；真实调用而未配置 AI 时退出码 3 |
@@ -569,6 +573,112 @@ JSON 输出中的关键字段：
 
 - `ok` = `true`
 - `data.totals.calls` = `0`
+
+### 运行设备摘要（回放回复，代码校验后入库）
+
+```bash
+lmesh --output json --project alice/lab ai suggest run device-summary --device ATN-CHANGE-01 --replay tests/inputs/ai-suggest/summary.json
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.batch.status` = `"done"`
+- `data.batch.mode` = `"replay"`
+- `data.batch.counts.pass` = `1`
+- `data.items.0.category` = `"text_only"`
+- `data.items.0.check_status` = `"pass"`
+- `data.items.0.refs.0.found` = `true`
+
+### 建议列表（按 skill 过滤）
+
+```bash
+lmesh --output json --project alice/lab ai suggest list --skill topology-roles
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.total` = `3`
+- `data.items.0.id` = `3`
+- `data.items.0.check_status` = `"reject"`
+- `data.items.2.content.value` = `"access"`
+
+### 采纳一条建议
+
+```bash
+lmesh --output json --project alice/lab ai suggest adopt 1
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.items.0.status` = `"adopted"`
+- `data.items.0.adopt_info.action` = `"annotate"`
+- `data.items.0.adopt_info.value` = `"access"`
+
+### 编辑后采纳（重新校验）
+
+```bash
+lmesh --output json --project alice/lab ai suggest adopt 2 --edit tests/inputs/ai-suggest/role-edit.json
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.items.0.status` = `"adopted"`
+- `data.items.0.edited` = `true`
+- `data.items.0.adopt_info.value` = `"aggregation"`
+- `data.items.0.original.content.value` = `"pe"`
+
+### 按类别批量采纳（只采纳校验通过的）
+
+```bash
+lmesh --output json --project alice/lab ai suggest adopt --category view_hint
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.adopted` = `[1, 2]`
+- `data.skipped.0.id` = `3`
+
+### 忽略建议
+
+```bash
+lmesh --output json --project alice/lab ai suggest dismiss 4 --note outdated
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.items.0.status` = `"dismissed"`
+- `data.items.0.note` = `"outdated"`
+
+### 项目的视图标注（还没有采纳时为空）
+
+```bash
+lmesh --output json --project alice/lab ai suggest annotations
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.items` = `[]`
 
 ### 分析现网 ATN 配置：摘要与 TCP/IP 分层
 
@@ -1822,8 +1932,10 @@ JSON 输出中的关键字段：
 - `data.skills.0.enabled` = `true`
 - `data.skills.0.model_key` = `"ai.model_ask"`
 - `data.skills.0.stats.calls` = `0`
-- `data.skills.4.id` = `"card-extract"`
-- `data.skills.5.id` = `"skill-evolve"`
+- `data.skills.3.id` = `"device-summary"`
+- `data.skills.3.group` = `"analysis"`
+- `data.skills.6.id` = `"card-extract"`
+- `data.skills.7.id` = `"skill-evolve"`
 
 ### 只列一个功能分组的 skill
 

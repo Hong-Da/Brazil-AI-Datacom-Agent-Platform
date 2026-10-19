@@ -89,8 +89,8 @@
 | `GET /ai/connections` | 管理员 | 管理员 AI 接口列表（REQ-040）：`connections`（`id`、`name`、`provider`、`base_url`、`api_key_set`、`model`、`model_extract`、`model_merge`、`model_ask`、`model_generate`、`public` 允许公共使用、`enabled`、`complete`、`is_default`（全局令牌与管理员默认用它）、`chosen_by`（明确选用它的账号数）、`usage`（本月 `calls`、`errors`、`tokens_in`、`tokens_out`））、`limits`（全局的 `timeout`、`max_tokens`，在配置文件中修改）；个人接口不在其中 |
 | `POST /ai/connections` / `GET /ai/connections/{id}` / `PUT /ai/connections/{id}` / `DELETE /ai/connections/{id}` | 管理员 | 新建 / 查看 / 修改 / 删除：`{"name", "provider": "anthropic"\|"openai"\|"local", "base_url", "api_key", "clear_api_key", "model", "model_extract", "model_merge", "model_ask", "model_generate", "public": false, "enabled": true}`；修改时各字段可选，不传 `api_key` 保留原值；名称重复 409，填写不完整（Anthropic 需要 Key，其他需要地址；都需要模型）422；删除返回 `affected_users`（选用它的账号随后提示改选） |
 | `POST /ai/connections/{id}/test` | 管理员 | 测试一个管理员接口（不论是否启用、是否公共），记入调用记录；AI 出错 502 |
-| `GET /me/ai` | 是 | 我的 AI：`choice`（auto 默认 / connection / personal / none；全局令牌为 system）、`connection_id`、`personal`（个人接口，不含 Key，只有 `api_key_set`；只有本人能看到，管理员也看不到）、`options`（可选的管理员接口：普通账号只有启用且允许公共使用的，管理员为全部启用的）、`effective`、`is_admin`、`has_account` |
-| `PUT /me/ai` | 是 | 修改：`{"choice", "connection_id", "personal": {…同接口字段}, "remove_personal": false}`；选不可用的接口或没有完整的个人接口时 422；全局令牌没有账号 409；只读令牌 403 |
+| `GET /me/ai` | 是 | 我的 AI：`choice`（auto 默认 / connection / personal / none；全局令牌为 system）、`connection_id`、`personal`（个人接口，不含 Key，只有 `api_key_set`；只有本人能看到，管理员也看不到）、`options`（可选的管理员接口：普通账号只有启用且允许公共使用的，管理员为全部启用的）、`effective`、`is_admin`、`has_account`、`no_token_warn`（个人偏好：不提示大请求，M8-2） |
+| `PUT /me/ai` | 是 | 修改：`{"choice", "connection_id", "personal": {…同接口字段}, "remove_personal": false, "no_token_warn": true}`（各项可选）；选不可用的接口或没有完整的个人接口时 422；全局令牌没有账号 409；只读令牌 403 |
 | `POST /me/ai/test` | 是 | `{"target": "personal"\|"effective"}`：测试我的个人接口或当前生效的接口；不可用时 409（`data.reason`） |
 | `GET /ai/usage?from=&to=&user=&connection_id=` | 是 | 用量统计（UTC 日期，含两端，默认最近 30 天）：`totals` 与 `by_day`（每天一行，没有调用补 0）、`by_user`、`by_connection`（个人接口统一记为 `personal`）、`by_feature`、`by_model`，每行 `key`、`calls`、`errors`、`tokens_in`、`tokens_out`；管理员看全部，其他账号只统计自己的（`scope`） |
 | `GET /ai/usage/export?group=day\|user\|connection\|feature\|model&from=&to=` | 是 | 导出一组为 CSV（UTF-8 带 BOM；列 `key,calls,errors,tokens_in,tokens_out`），范围与权限同上 |
@@ -133,6 +133,17 @@
 | `POST /ask` | 是 | AI 自然语言查询：`{"question", "devices": null, "lang": null}`；返回 `status`（answered / query_invalid）、`question_sent`（脱敏后）、`attempts`、`query` / `query_text`、`result`（同 `POST /query`）、`answer`（`statements`：`text`、`cites`、`facts`（`row`、`field`、`value`、`actual`、`ok`、`node`）、`count`、`status` passed / corrected / unverifiable、`corrected_text`、`nodes`；`summary`）、`sent`（发给 AI 的内容，已脱敏）、`ai`（`model`、`calls`、`tokens_in`、`tokens_out`、`ms`）；未配置 AI 时 409，`data.status` = not_configured；AI 调用失败时 502 |
 | `POST /guard` | 是 | 配置护栏（不需要 AI）：`{"text", "device" 或 "base_text", "profile", "template", "cross_device": true, "script": true, "merged": false, "lang"}`（`merged: true` 时另返回合并后的完整配置 `merged_text`，界面交给增量变更时用）；返回 `verdict` passed / blocked、`lines`（每行 `status` ok / bad / warn / ctx / skip、`issues`、`nodes`）、`issues`（`id`、`status` bad / warn / ok、`stage` parse / deps / template / conflict、`rule`、`line`、`message`（文案键与参数）、`text`）、`stages`、`summary`、`script`（通过时的增量变更脚本） |
 | `POST /generate` | 是 | AI 生成配置：`{"request", "device", "profile", "template", "rounds": 2, "merged": false, "lang"}`（`merged: true` 时最后一轮的 `guard` 附 `merged_text`）；返回 `rounds`（每轮 `text` 与 `guard` 结果）、`final`、`verdict`、`request_sent`、`sent`、`ai`；未配置 AI 时 409 |
+| `GET /projects/{p}/ai/suggestions/skills` | 项目成员 | AI 建议（M8-2，只在项目路径下）：可生成建议的 skill（`id`、三语 `title` / `description`、`group`、`enabled`、`scope` device / project、`categories`）与 `ai`（`configured`、`reason`、`warn_tokens` 大请求提示线：全局 `ai.warn_tokens`，本人关闭提示时为 0）；入口按钮据此显示不可用的原因 |
+| `POST /projects/{p}/ai/suggestions/estimate` | 项目成员 | 运行前估计发给 AI 的量（不调用 AI）：`{"skill", "device_id", "params"}` → `tokens`、`threshold`、`warn`（超过提示线；0 表示不提示） |
+| `POST /projects/{p}/ai/suggestions/run` | 可编辑 | 运行 skill 生成建议：`{"skill", "device_id", "params": {"device_ids": […]}, "wait": false}`；默认后台任务（返回 `task_id`、`batch_id`；`GET /tasks/{id}` 的 `message` 依次为 sanitize / send / generate / check），`wait: true` 同步返回批次；AI 不可用 409（`data.reason`），skill 不存在 404，单台设备的 skill 缺设备 422；AI 回复无法解析（已重试一次）或调用失败时批次 `status: failed`、`error.key` |
+| `GET /projects/{p}/ai/suggestions/batches/{id}` / `POST …/batches/{id}/cancel` | 项目成员 / 可编辑 | 一次运行：`status`（queued / running / done / failed / cancelled）、`mode`（ai / replay）、`skill_version`、`connection`、`model`、`tokens_in` / `tokens_out`、`ai_call_ids`（调用记录编号）、`skill_run_id`、`counts`（total / pass / warn / reject）、`error`；取消：AI 回复到达后丢弃，不生成建议（已结束的 409） |
+| `GET /projects/{p}/ai/suggestions?skill=&status=&check=&category=&device_id=&batch_id=&scope=&limit=&offset=` | 项目成员 | 建议列表（新的在前）：`total`、`counts`（按状态，不受状态过滤影响）、`items`（`id`、`skill`、`category`、`kind`、`title`、`content`、`original`（编辑前）、`edited`、`refs`（解析后的引用：`id`、`found`、`type`、`label`、`node`、`line`、`device_id`，供界面跳转）、`check`（`status` pass / warn / reject、`reasons`：`code`、`level`、`ref`、`detail`；`display` / `segments` 代码填入后的正文，`title_display`；脚本类 `result` 模拟结果）、`check_status`、`status`（pending / adopted / dismissed / reverted）、`kb`（知识库类）、`ai_call_id`、`connection`、`decided_by` / `decided_at`、`adopt_info`、`note`、`reverted_by` / `reverted_at`、`revert_info`） |
+| `GET /projects/{p}/ai/suggestions/{id}` | 项目成员 | 一条建议；不存在或不在本项目 404 |
+| `POST /projects/{p}/ai/suggestions/{id}/adopt` | 可编辑（知识库类：维护员与管理员） | 采纳：`{"content", "title", "refs", "note"}`（都可选；给出编辑后的内容时先用同一份事实重新校验）；被拒绝的建议或编辑后不合格 409（`data.check`）；按类别执行：视图标注写入项目、脚本新建为项目脚本、知识库草稿进审核队列、文字与依据只记录结论 |
+| `POST /projects/{p}/ai/suggestions/adopt-batch` | 可编辑 | 按类别批量采纳：`{"category", "skill", "batch_id", "ids"}`，只采纳校验通过（pass）且待处理的；返回 `adopted`、`skipped`（warn / reject）、`failed` |
+| `POST /projects/{p}/ai/suggestions/{id}/dismiss` / `…/restore` / `…/revert` | 可编辑 | 忽略待处理的建议 / 把忽略的恢复为待处理 / 撤销已采纳的（30 天内；视图标注恢复原值、审核项撤回、未改动的脚本删除；之后被改动过、审核项已处理或超过 30 天 409） |
+| `GET /projects/{p}/ai/suggestions/adoptions?limit=` | 项目成员 | 采纳记录：已采纳与已撤销的建议（按采纳时间，新的在前） |
+| `GET /projects/{p}/view-annotations?target_type=` | 项目成员 | 项目级视图标注（设备角色、分组、标签、层次）：`target_type`、`target`（设备编号）、`key`、`value`、`source`（user / ai）、`suggestion_id` |
 | `GET /ai/skills?days=30` | 管理员 | 内置 AI skill（REQ-033）列表：`ai`（`configured`、`provider`、`status`）、`days`、`skills`（`id`、三语 `title` / `description`、`task`、`used_by`、`model_key`、`model`、`enabled`、`active`（`builtin` 或版本号）、`builtin_version`、`versions`、`modified`、`tools`、`checks`、`examples`、`stats`（近 N 天线上调用：`calls`、`passed` / `corrected` / `rejected` / `unverifiable` / `error`、`pass_rate`、`reject_rate`、`up`、`down`、`corrections`、`regression_cases`、`candidates`、`pending_evolutions`））；普通账号 403 |
 | `GET /ai/skills/{id}` | 管理员 | skill 详情：列表字段 + `definition`（生效的 `system`、`prompt`、`templates`、`examples`、`tools`、`output`）、`builtin`（内置定义）、`variables`（`name`、`in`、三语 `desc`）、`samples`（试运行样例：`index`、`title`、`input`、`reply`）、`tool_choices`、`check_titles`、`output_formats`、`stats`、`ai`；不存在 404 |
 | `PUT /ai/skills/{id}` | 管理员 | 保存为新版本并生效：`{"system", "prompt", "templates", "examples": [{"input", "output", "note"}], "tools", "output": {"format", "schema"}, "note"}`（只给要改的字段）；返回 `version`、`unchanged`（与生效版本相同时不新建）、`warnings`（`skills.warn.var_dropped`）、`skill`；校验不通过 422（`data.issues`：`field`、`key`、`params`——未登记的变量、缺少或多出的模板、示例缺输入输出、工具或输出格式不在可选范围） |
@@ -1093,6 +1104,299 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.scope` = `"all"`
 - `data.from` = `"2026-10-01"`
 - `data.totals.calls` = `0`
+
+### 可生成建议的 skill 与 AI 是否可用（入口按钮据此显示不可用的原因）
+
+`GET /api/v1/projects/alice~lab/ai/suggestions/skills`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/skills'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/skills'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/skills')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.ai.configured` = `false`
+- `data.ai.reason` = `"no_public"`
+- `data.skills.0.id` = `"device-summary"`
+- `data.skills.0.categories` = `["text_only"]`
+- `data.skills.1.id` = `"topology-roles"`
+- `data.skills.1.scope` = `"project"`
+
+### 运行 skill：未配置 AI 时 409（data.reason 给出原因）
+
+`POST /api/v1/projects/alice~lab/ai/suggestions/run`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/run' \
+  -H 'Content-Type: application/json' \
+  -d '{"skill": "topology-roles"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/run' -ContentType 'application/json; charset=utf-8' -Body '{"skill": "topology-roles"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/run', json={'skill': 'topology-roles'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`409`；返回中的关键字段：
+
+- `code` = `1003`
+- `data.status` = `"not_configured"`
+- `data.reason` = `"no_public"`
+
+### 建议列表：内容、引用（可跳转）、代码校验结果、状态与计数
+
+`GET /api/v1/projects/alice~lab/ai/suggestions?skill=topology-roles`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions?skill=topology-roles'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions?skill=topology-roles'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions?skill=topology-roles')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.total` = `3`
+- `data.counts.pending` = `3`
+- `data.items.0.id` = `3`
+- `data.items.0.check_status` = `"reject"`
+- `data.items.0.check.reasons.0.code` = `"ref_not_found"`
+- `data.items.1.check_status` = `"pass"`
+- `data.items.1.category` = `"view_hint"`
+- `data.items.1.refs.0.found` = `true`
+
+### 某台设备的建议：设备摘要（数字与对象名由代码填入 check.display）
+
+`GET /api/v1/projects/alice~lab/ai/suggestions?skill=device-summary&check=pass`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions?skill=device-summary&check=pass'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions?skill=device-summary&check=pass'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions?skill=device-summary&check=pass')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.total` = `1`
+- `data.items.0.id` = `4`
+- `data.items.0.category` = `"text_only"`
+- `data.items.0.refs.0.type` = `"vrf.instance"`
+
+### 采纳一条建议（视图标注写入项目）
+
+`POST /api/v1/projects/alice~lab/ai/suggestions/1/adopt`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/1/adopt' \
+  -H 'Content-Type: application/json' \
+  -d '{}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/1/adopt' -ContentType 'application/json; charset=utf-8' -Body '{}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/1/adopt', json={})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.status` = `"adopted"`
+- `data.adopt_info.action` = `"annotate"`
+- `data.adopt_info.key` = `"role"`
+- `data.adopt_info.value` = `"access"`
+- `data.decided_by` = `"alice"`
+
+### 编辑后采纳：先重新校验，不合格 409（data.check）
+
+`POST /api/v1/projects/alice~lab/ai/suggestions/2/adopt`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/2/adopt' \
+  -H 'Content-Type: application/json' \
+  -d '{"content": {"target": "d2", "key": "role", "value": "router"}}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/2/adopt' -ContentType 'application/json; charset=utf-8' -Body '{"content": {"target": "d2", "key": "role", "value": "router"}}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/2/adopt', json={'content': {'target': 'd2', 'key': 'role', 'value': 'router'}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`409`；返回中的关键字段：
+
+- `code` = `1003`
+- `data.check.status` = `"reject"`
+- `data.check.reasons.0.code` = `"bad_hint_value"`
+
+### 按类别批量采纳：只采纳校验通过的
+
+`POST /api/v1/projects/alice~lab/ai/suggestions/adopt-batch`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/adopt-batch' \
+  -H 'Content-Type: application/json' \
+  -d '{"category": "view_hint", "skill": "topology-roles"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/adopt-batch' -ContentType 'application/json; charset=utf-8' -Body '{"category": "view_hint", "skill": "topology-roles"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/adopt-batch', json={'category': 'view_hint', 'skill': 'topology-roles'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.adopted` = `[1, 2]`
+- `data.skipped.0.id` = `3`
+- `data.skipped.0.check_status` = `"reject"`
+
+### 忽略一条建议
+
+`POST /api/v1/projects/alice~lab/ai/suggestions/4/dismiss`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/4/dismiss' \
+  -H 'Content-Type: application/json' \
+  -d '{"note": "outdated"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/4/dismiss' -ContentType 'application/json; charset=utf-8' -Body '{"note": "outdated"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/4/dismiss', json={'note': 'outdated'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.status` = `"dismissed"`
+- `data.note` = `"outdated"`
+
+### 一次运行：状态、计数、模式（回放）、发起人
+
+`GET /api/v1/projects/alice~lab/ai/suggestions/batches/1`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/batches/1'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/batches/1'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/batches/1')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.status` = `"done"`
+- `data.mode` = `"replay"`
+- `data.skill` = `"topology-roles"`
+- `data.counts.total` = `3`
+- `data.counts.pass` = `2`
+- `data.counts.reject` = `1`
+- `data.created_by` = `"alice"`
+
+### 采纳记录（还没有采纳时为空）
+
+`GET /api/v1/projects/alice~lab/ai/suggestions/adoptions`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/adoptions'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/adoptions'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/adoptions')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.items` = `[]`
+
+### 项目的视图标注（设备角色等，手工或采纳的 AI 建议）
+
+`GET /api/v1/projects/alice~lab/view-annotations`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/alice~lab/view-annotations'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/view-annotations'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/view-annotations')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.items` = `[]`
 
 ### 设备的分析摘要（含与上一版本的变化、安全基线得分）
 

@@ -316,11 +316,36 @@ RUNNERS: dict[str, tuple[Callable[..., tuple[str, str]], Callable[..., dict[str,
 }
 
 
+# ---------------------------------------------------------------- AI 建议类 skill（M8-2，core/ai_suggest.py）
+
+
+def _suggest_build(s: skills.Skill, inp: dict[str, Any], ctx: Ctx) -> tuple[str, str]:
+    return s.system_text(**dict(inp["vars"])), s.prompt_text(**dict(inp["vars"]))
+
+
+def _suggest_check(s: skills.Skill, inp: dict[str, Any], reply: str, ctx: Ctx) -> dict[str, Any]:
+    """按调用时记下的事实（facts）解析并校验回复，与线上同一套校验器。"""
+    from lmesh.core import ai_suggest
+
+    env = ai_suggest.Env(ctx.settings, ctx.kb_loader, lang=ctx.lang)
+    r = ai_suggest.replay_check(s.id, reply, dict(inp.get("facts") or {}), env)
+    return _result(r["status"], r["items"], summary=r["counts"])
+
+
+def _runner(sid: str) -> tuple[Any, Any] | None:
+    if sid in RUNNERS:
+        return RUNNERS[sid]
+    from lmesh.core import ai_suggest
+
+    return (_suggest_build, _suggest_check) if ai_suggest.is_suggest_skill(sid) else None
+
+
 def build(skill: skills.Skill, inp: dict[str, Any], ctx: Ctx) -> tuple[str, str]:
-    if skill.id not in RUNNERS:
+    runner = _runner(skill.id)
+    if runner is None:
         raise skills.SkillError("skills.no_runner", id=skill.id)
     try:
-        return RUNNERS[skill.id][0](skill, inp, ctx)
+        return runner[0](skill, inp, ctx)
     except (KeyError, TypeError) as e:
         raise skills.SkillError("skills.bad_input", id=skill.id, field=str(e)) from e
 
@@ -369,7 +394,7 @@ def run(
             {"step": "replay", "system": ask.sanitize_text(system), "prompt": ask.sanitize_text(prompt), "reply": reply}
         ]
         info["ms"] = int((time.monotonic() - t0) * 1000)
-    checked = RUNNERS[skill.id][1](skill, inp, reply, ctx)
+    checked = _runner(skill.id)[1](skill, inp, reply, ctx)  # type: ignore[index]
     run_id = None
     if mode == "ai":
         det = {"summary": {"status": checked["status"], "score": checked["score"]}, "items": checked["items"][:50]}

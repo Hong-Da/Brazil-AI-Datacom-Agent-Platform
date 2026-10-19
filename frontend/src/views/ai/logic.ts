@@ -65,6 +65,8 @@ export interface MyAi {
   options: ConnOption[]
   effective: Effective
   is_admin: boolean
+  /** 个人偏好：不提示大请求（M8-2；优先于全局 ai.warn_tokens） */
+  no_token_warn?: boolean
 }
 
 export interface AiStatus { configured: boolean; provider: string | null; models: Record<string, string | null>; effective?: Effective; reason?: AiReason | null }

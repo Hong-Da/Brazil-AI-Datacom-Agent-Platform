@@ -30,11 +30,24 @@ import { ownerObject } from './device-analysis/layers'
 import { indexScript } from './device-analysis/script'
 import { BAND_ORDER, VIEWS, type AnalysisData, type SummaryData, type ViewName } from './device-analysis/types'
 import VendorBadge from '@/components/vendor-badge.vue'
+import AiEntryButton from '@/components/ai-suggest/AiEntryButton.vue'
+import AiSuggestPanel from '@/components/ai-suggest/AiSuggestPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
 const terms = useTerms()
+
+// ---------- AI 建议：设备摘要（M8-2 示范，通用组件 components/ai-suggest/） ----------
+const aiPanel = ref<InstanceType<typeof AiSuggestPanel> | null>(null)
+const aiOpen = ref(false)
+const aiState = ref('loading')
+const aiShown = computed(() => aiOpen.value || ['done', 'running', 'empty', 'failed', 'cancelled'].includes(aiState.value))
+async function runAi(): Promise<void> {
+  aiOpen.value = true
+  await nextTick()
+  await aiPanel.value?.start()
+}
 
 const deviceId = computed(() => {
   const v = Number(route.params.id)
@@ -371,7 +384,11 @@ onMounted(async () => {
           <router-link class="btn btn-sm" :to="{ name: 'device-graph', params: { id: deviceId }, query: selected ? { node: selected } : {} }"><Icon name="graph" small /><span>{{ $t('device-analysis.toGraph') }}</span></router-link>
           <router-link class="btn btn-sm" :to="{ name: 'history', params: { id: deviceId } }"><Icon name="history" small /><span>{{ $t('nav.history') }}</span></router-link>
           <button class="btn btn-sm btn-icon" :title="$t('c.refresh')" :disabled="loading" data-testid="analysis-refresh" @click="loadAll"><Icon name="refresh" small /></button>
+          <AiEntryButton :skills="['device-summary']" :busy="aiState === 'running'" small @run="runAi" />
         </div>
+      </div>
+      <div v-show="aiShown" class="an-ai" data-testid="analysis-ai">
+        <AiSuggestPanel ref="aiPanel" skill="device-summary" :params="{ device_id: deviceId }" :scope="`device:${deviceId}`" @state="aiState = $event" />
       </div>
 
       <FullscreenPane class="an-fs" :title="device?.name ?? data?.device ?? ''" data-testid="analysis-fs">
@@ -562,6 +579,7 @@ onMounted(async () => {
 .ly { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--ink-2); white-space: nowrap; }
 .ly i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; background: var(--c, var(--ly-unclassified)); }
 .ly.mpls i { background: repeating-linear-gradient(135deg, var(--c) 0 2px, transparent 2px 4px); outline: 1px solid var(--c); outline-offset: -1px; }
+.an-ai { max-height: 42vh; overflow: auto; margin-bottom: 10px; flex: none; }
 </style>
 
 <style scoped>

@@ -1,0 +1,90 @@
+# 内置 AI skill（只读）：设备摘要（M8-2 示范，M8-3 完善）：交接、巡检时一段话说明设备的角色、业务、上下联与特殊配置。
+# 管理员修改后的版本保存在 data/ai-skills/device-summary/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。AI 只能用 [[编号]] 提到对象、用 <<键>> 引用由代码填入的数字。
+id: device-summary
+version: 1
+title: {zh-CN: 设备摘要, en: Device summary, pt-BR: Resumo do dispositivo}
+description: {zh-CN: 交接、巡检时用一段话说明设备的角色、业务、上下联与特殊配置。对象只能用代码给出的编号提到，数字由代码填入；出现图中没有的对象则拒绝。, en: "A short paragraph for handover and inspection: the device's role, services, uplinks and special settings. Objects may only be mentioned by the ids given by code and numbers are filled in by code; objects not in the graph are rejected.", pt-BR: 'Um parágrafo para passagem de turno e inspeção: papel, serviços, uplinks e configurações especiais do dispositivo. Objetos só podem ser citados pelos ids dados pelo código e os números são preenchidos pelo código; objetos fora do grafo são rejeitados.'}
+task: ask
+used_by: ai_suggest
+group: analysis
+enabled: true
+system: |-
+  You write a short handover summary of ONE router configuration for network engineers. All facts come from code; never invent anything.
+  Rules:
+  - Mention the device and configuration objects ONLY as [[id]] with the ids given (d1, n1, n2 ...). Do not type interface names, addresses or hostnames yourself.
+  - Write every count ONLY as <<key>> with the fact keys given (for example <<count.interface>>). Do not type numbers yourself.
+  - 3 to 6 sentences: role, services (VPNs, routing), uplinks / downlinks, anything unusual. Write the text in {lang}.
+  Reply with JSON only: {{"suggestions": [{{"category": "text_only", "kind": "summary", "title": "<short title>", "content": {{"text": "<summary>"}}, "refs": [{{"id": "n1"}}]}}]}}
+  refs lists the ids the summary relies on.
+prompt: |-
+  Device:
+  {device}
+
+  Facts (key = value):
+  {facts}
+
+  Top-level objects (id | type | name | attributes):
+  {objects}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format, citing only the given ids.
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 回复语言（按界面语言）, en: Reply language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}
+  - name: device
+    in: prompt
+    desc: {zh-CN: 设备（编号 d1、名称、厂商、平台、Profile）, en: 'The device (id d1, name, vendor, platform, profile)', pt-BR: 'O dispositivo (id d1, nome, fabricante, plataforma, perfil)'}
+  - name: facts
+    in: prompt
+    desc: {zh-CN: 代码算好的数字（键 = 值）, en: Numbers computed by code (key = value), pt-BR: Números calculados pelo código (chave = valor)}
+  - name: objects
+    in: prompt
+    desc: {zh-CN: 顶层对象（编号、类型、名称、主要属性）, en: 'Top-level objects (id, type, name, main attributes)', pt-BR: 'Objetos de nível superior (id, tipo, nome, atributos principais)'}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - gquery
+  - sanitize
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "text_only", "kind": "summary", "title": "...", "content": {"text": "..."}, "refs": [{"id": "n1"}]}]}'
+checks:
+  - suggest.refs_exist
+  - suggest.text_only
+samples:
+  - title: {zh-CN: 引用给定的对象与数字, en: Cites the given objects and numbers, pt-BR: Cita os objetos e números dados}
+    input:
+      vars:
+        lang: English
+        device: 'd1 | ATN-CHANGE-01 | vendor=huawei | platform=ATN | profile=huawei-atn-v800r025'
+        facts: "count.interface = 4\ncount.vrf.instance = 2\nlines = 99"
+        objects: "n1 | interface | GigabitEthernet0/2/0 | description=UPLINK-TO-AGG\nn2 | vrf.instance | RAN | "
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01, device_id: 1}
+          n1: {type: interface, label: GigabitEthernet0/2/0, device: d1, node: 'interface[GigabitEthernet0/2/0]', line: 23}
+          n2: {type: vrf.instance, label: RAN, device: d1, node: 'vrf.instance[RAN]', line: 6}
+        numbers: {count.interface: 4, count.vrf.instance: 2, lines: 99}
+        lines: {d1: 99}
+        names: [ATN-CHANGE-01, GigabitEthernet0/2/0, RAN, UPLINK-TO-AGG]
+    reply: '{"suggestions": [{"category": "text_only", "kind": "summary", "title": "Access router summary", "content": {"text": "[[d1]] is an access router with <<count.interface>> interfaces and <<count.vrf.instance>> VPN instances. Its uplink is [[n1]] and RAN services run in [[n2]]."}, "refs": [{"id": "n1"}, {"id": "n2"}]}]}'
+  - title: {zh-CN: 编造了图中没有的接口（演示拒绝）, en: Invents an interface not in the graph (shows a rejection), pt-BR: Inventa uma interface fora do grafo (mostra a rejeição)}
+    input:
+      vars:
+        lang: English
+        device: 'd1 | ATN-CHANGE-01 | vendor=huawei | platform=ATN | profile=huawei-atn-v800r025'
+        facts: "count.interface = 4"
+        objects: "n1 | interface | GigabitEthernet0/2/0 | description=UPLINK-TO-AGG"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01, device_id: 1}
+          n1: {type: interface, label: GigabitEthernet0/2/0, device: d1, node: 'interface[GigabitEthernet0/2/0]', line: 23}
+        numbers: {count.interface: 4}
+        lines: {d1: 99}
+        names: [ATN-CHANGE-01, GigabitEthernet0/2/0, UPLINK-TO-AGG]
+    reply: '{"suggestions": [{"category": "text_only", "kind": "summary", "title": "Summary", "content": {"text": "[[d1]] connects to the core through GigabitEthernet0/3/9 and [[n7]]."}, "refs": [{"id": "n1"}]}]}'

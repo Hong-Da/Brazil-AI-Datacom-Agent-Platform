@@ -90,6 +90,23 @@ const effKind = computed(() => {
   if (e.source === 'personal') return T('effPersonal')
   return e.choice === 'auto' ? T('effAuto') : T('effConn')
 })
+// ---------- 个人偏好：不提示大请求（M8-2，立即保存） ----------
+const warnSaving = ref(false)
+const warnErr = ref('')
+async function setNoWarn(ev: Event): Promise<void> {
+  const on = (ev.target as HTMLInputElement).checked
+  warnSaving.value = true
+  warnErr.value = ''
+  try {
+    const m = await put<MyAi>('/me/ai', { no_token_warn: on })
+    if (my.value) my.value = { ...my.value, no_token_warn: m.no_token_warn }
+  } catch (e) {
+    warnErr.value = errorText(e)
+  } finally {
+    warnSaving.value = false
+  }
+}
+
 const LOGO: Record<string, string> = { anthropic: 'A', openai: 'OA', local: 'L' }
 const provName = (p: string | null | undefined) => (p && ['anthropic', 'openai', 'local'].includes(p) ? A(`p_${p}`) : p ?? '—')
 
@@ -203,6 +220,14 @@ onMounted(load)
                   <Icon name="refresh" small />{{ testE === 'running' ? T('testing') : T('testE') }}
                 </button>
                 <span v-if="testE && testE !== 'running'" class="small" :style="{ color: testE.ok ? 'var(--teal-ink)' : 'var(--red-ink)' }" data-testid="my-ai-test-effective-result">{{ testE.text }}</span>
+              </div>
+            </section>
+            <section v-if="!viaToken" class="panel" data-testid="my-ai-warn">
+              <div class="panel-h"><h2>{{ T('warnT') }}</h2></div>
+              <div class="panel-b">
+                <label class="check"><input type="checkbox" :checked="!!my.no_token_warn" :disabled="warnSaving" data-testid="my-ai-no-token-warn" @change="setNoWarn"><span>{{ T('warnLabel') }}</span></label>
+                <p class="small faint" style="margin-top: 6px">{{ T('warnD') }}</p>
+                <p v-if="warnErr" class="small" style="color: var(--red-ink)">{{ warnErr }}</p>
               </div>
             </section>
             <section class="panel">

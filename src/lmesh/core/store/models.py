@@ -219,6 +219,8 @@ class AIChoice(Base):
     connection_id: Mapped[int | None] = mapped_column(
         ForeignKey("ai_connections.id", ondelete="SET NULL"), nullable=True
     )
+    # 个人偏好：不提示大请求（M8-2；优先于全局 ai.warn_tokens）
+    no_token_warn: Mapped[bool] = mapped_column(default=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
 
@@ -545,3 +547,98 @@ class UserAsset(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     __table_args__ = (UniqueConstraint("kind", "asset_id", name="uq_user_assets_kind_asset"),)
+
+
+# ---------------------------------------------------------------- AI 建议（M8-2，REQ-041）
+
+
+class AISuggestionBatch(Base):
+    """一次 AI 建议运行：项目、设备 / 范围、skill 与版本、AI 接口与调用记录、发起人、状态与计数。
+    context 保存代码给出的事实（对象编号表、数字、行数，已脱敏），编辑后重新校验时用同一份事实。"""
+
+    __tablename__ = "ai_suggestion_batches"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    device_id: Mapped[int | None] = mapped_column(ForeignKey("devices.id", ondelete="SET NULL"), nullable=True)
+    scope_key: Mapped[str] = mapped_column(String(200), default="")  # device:<编号> / topology / project …
+    skill: Mapped[str] = mapped_column(String(60), index=True)
+    skill_version: Mapped[str] = mapped_column(String(20), default="builtin")
+    mode: Mapped[str] = mapped_column(String(10), default="ai")  # ai / replay
+    # queued / running / done / failed / cancelled
+    status: Mapped[str] = mapped_column(String(20), default="queued")
+    task_id: Mapped[str] = mapped_column(String(40), default="")
+    skill_run_id: Mapped[int | None] = mapped_column(ForeignKey("skill_runs.id", ondelete="SET NULL"), nullable=True)
+    ai_call_ids: Mapped[Any] = mapped_column(JSONType, nullable=True)  # ai_calls 的编号（含重试）
+    connection_name: Mapped[str] = mapped_column(String(64), default="")
+    ai_source: Mapped[str] = mapped_column(String(16), default="")  # connection / personal
+    model: Mapped[str] = mapped_column(String(120), default="")
+    tokens_in: Mapped[int] = mapped_column(Integer, default=0)
+    tokens_out: Mapped[int] = mapped_column(Integer, default=0)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_by: Mapped[str] = mapped_column(String(200), default="")
+    params: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    context: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    counts: Mapped[Any] = mapped_column(JSONType, nullable=True)  # total / pass / warn / reject
+    error: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class AISuggestion(Base):
+    """一条 AI 建议：类别（决定校验器、采纳与撤销方式）、内容、依据与引用、代码校验结果、状态与采纳 / 撤销信息。
+    status：pending 待处理 / adopted 已采纳 / dismissed 已忽略 / reverted 已撤销；check_status：pass / warn / reject。"""
+
+    __tablename__ = "ai_suggestions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    batch_id: Mapped[int] = mapped_column(ForeignKey("ai_suggestion_batches.id", ondelete="CASCADE"), index=True)
+    project_id: Mapped[int | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    device_id: Mapped[int | None] = mapped_column(ForeignKey("devices.id", ondelete="SET NULL"), nullable=True)
+    scope_key: Mapped[str] = mapped_column(String(200), default="")
+    skill: Mapped[str] = mapped_column(String(60), index=True)
+    category: Mapped[str] = mapped_column(String(30))
+    kind: Mapped[str] = mapped_column(String(40), default="")
+    title: Mapped[str] = mapped_column(String(400), default="")
+    content: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    original: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 编辑后采纳时保留 AI 的原内容
+    refs: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    check: Mapped[Any] = mapped_column(JSONType, nullable=True)  # {status, reasons: [{code, ref?, detail?}]}
+    check_status: Mapped[str] = mapped_column(String(10), default="reject", index=True)
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    ai_call_id: Mapped[int | None] = mapped_column(ForeignKey("ai_calls.id", ondelete="SET NULL"), nullable=True)
+    connection_name: Mapped[str] = mapped_column(String(64), default="")
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_by: Mapped[str] = mapped_column(String(200), default="")
+    decided_by: Mapped[str] = mapped_column(String(200), default="")  # 采纳 / 忽略的人
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    adopt_info: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 采纳时做了什么、原来的值（撤销用）
+    note: Mapped[str] = mapped_column(Text, default="")
+    reverted_by: Mapped[str] = mapped_column(String(200), default="")
+    reverted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    revert_info: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
+class ViewAnnotation(Base):
+    """项目级视图标注（只影响显示）：设备角色、分组、标签……source 为 user（手工）或 ai（采纳的 AI 建议）。
+    角色的取值顺序：手工标注优先，其次采纳的 AI 建议，最后按平台默认（REQ-042）。"""
+
+    __tablename__ = "view_annotations"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    target_type: Mapped[str] = mapped_column(String(20))  # device / link / group
+    target: Mapped[str] = mapped_column(String(200))  # 设备编号（文本）等
+    key: Mapped[str] = mapped_column(String(40))  # role / group / label / layer
+    value: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    source: Mapped[str] = mapped_column(String(10), default="user")
+    suggestion_id: Mapped[int | None] = mapped_column(
+        ForeignKey("ai_suggestions.id", ondelete="SET NULL"), nullable=True
+    )
+    updated_by: Mapped[str] = mapped_column(String(200), default="")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (
+        UniqueConstraint("project_id", "target_type", "target", "key", name="uq_view_annotations_target_key"),
+    )

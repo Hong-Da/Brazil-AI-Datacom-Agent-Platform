@@ -4,13 +4,15 @@
  * 选设备集（已导入设备，可加上传的配置文件）→ POST /consistency → 三层拓扑图（同网段链路、BGP 会话、伪线等）、
  * 一致性问题列表；点链路看推导依据、两端事实、问题与两端配置，点问题回到拓扑图并高亮两端设备与链路。
  */
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import FullscreenPane from '@/components/FullscreenPane.vue'
 import FullscreenButton from '@/components/FullscreenButton.vue'
 import DevChip from '@/components/m4-dev.vue'
+import AiEntryButton from '@/components/ai-suggest/AiEntryButton.vue'
+import AiSuggestPanel from '@/components/ai-suggest/AiSuggestPanel.vue'
 import { errorText, get, post } from '@/api'
 import { useTerms } from '@/stores/terms'
 import { saveText, toCsv } from '@/views/profiles/csv'
@@ -28,6 +30,17 @@ const router = useRouter()
 const { t, locale } = useI18n()
 const lang = computed(() => String(locale.value))
 const terms = useTerms()
+
+// ---------- AI 建议：拓扑整理的设备角色（M8-2 示范；采纳后写入项目视图标注，M8-3 接到拓扑图标） ----------
+const aiPanel = ref<InstanceType<typeof AiSuggestPanel> | null>(null)
+const aiOpen = ref(false)
+const aiState = ref('loading')
+const aiShown = computed(() => aiOpen.value || ['done', 'running', 'empty', 'failed', 'cancelled'].includes(aiState.value))
+async function runAi(): Promise<void> {
+  aiOpen.value = true
+  await nextTick()
+  await aiPanel.value?.start()
+}
 
 const view = computed<'map' | 'consistency'>(() => (route.name === 'consistency' ? 'consistency' : 'map'))
 function setView(v: 'map' | 'consistency'): void {
@@ -191,7 +204,11 @@ onMounted(async () => {
         </div>
         <div class="ph-actions">
           <button class="btn btn-sm" type="button" :disabled="!result" data-testid="topo-csv" @click="exportCsv"><Icon name="download" small />{{ $t('topology.exportCsv') }}</button>
+          <AiEntryButton v-if="view === 'map'" :skills="['topology-roles']" :busy="aiState === 'running'" small @run="runAi" />
         </div>
+      </div>
+      <div v-if="view === 'map'" v-show="aiShown" style="margin-bottom: 12px" data-testid="topo-ai">
+        <AiSuggestPanel ref="aiPanel" skill="topology-roles" scope="topology" @state="aiState = $event" />
       </div>
       <div v-if="loadError" class="notice err" style="margin-bottom: 12px"><Icon name="err" /><div class="grow">{{ loadError }}</div></div>
 

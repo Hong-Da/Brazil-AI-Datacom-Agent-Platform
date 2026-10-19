@@ -1,0 +1,84 @@
+# 内置 AI skill（只读）：拓扑整理——设备角色（M8-2 示范，M8-3 完善分组、分层与推测对端）。
+# 管理员修改后的版本保存在 data/ai-skills/topology-roles/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。AI 只能引用代码给出的设备编号（d1、d2……）。
+id: topology-roles
+version: 1
+title: {zh-CN: 拓扑整理：设备角色, en: 'Topology tidy-up: device roles', pt-BR: 'Organizar topologia: papéis dos dispositivos'}
+description: {zh-CN: 按设备名、接口描述、链路与 AS 等特征推断设备角色（核心 / 汇聚 / 接入 / PE / P / CE）。只影响拓扑显示；设备必须在图中、角色必须是规定的取值，采纳后写入项目的视图标注，可撤销。, en: 'Infers device roles (core / aggregation / access / PE / P / CE) from names, interface descriptions, links and AS numbers. Display only: the device must be in the graph and the role one of the allowed values; adopting writes a project view annotation that can be reverted.', pt-BR: 'Deduz o papel de cada dispositivo (core / agregação / acesso / PE / P / CE) por nomes, descrições de interface, enlaces e AS. Só afeta a exibição: o dispositivo deve estar no grafo e o papel ser um dos valores permitidos; adotar grava uma anotação de visualização do projeto, reversível.'}
+task: ask
+used_by: ai_suggest
+group: analysis
+enabled: true
+system: |-
+  You suggest a topology role for routers of one network, for display only. Allowed roles: {roles}.
+  Rules:
+  - Refer to devices ONLY by the ids given (d1, d2 ...). Do not invent devices.
+  - Suggest a role only when the names, interface descriptions, links or AS numbers support it; skip devices without evidence.
+  - The reason is one sentence in {lang}; mention devices in it only as [[id]].
+  Reply with JSON only: {{"suggestions": [{{"category": "view_hint", "kind": "role", "title": "<device id>: <role>", "content": {{"target": "d1", "key": "role", "value": "pe", "reason": "<one sentence>"}}, "refs": [{{"id": "d1"}}]}}]}}
+prompt: |-
+  Devices (id | name | family | profile | links | interfaces | asn | loopbacks | interface descriptions):
+  {devices}
+
+  Links (id:interface <-> id:interface (type)):
+  {links}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format, citing only the given device ids.
+variables:
+  - name: roles
+    in: system
+    desc: {zh-CN: 允许的角色取值, en: Allowed role values, pt-BR: Valores de papel permitidos}
+  - name: lang
+    in: system
+    desc: {zh-CN: 回复语言（按界面语言）, en: Reply language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}
+  - name: devices
+    in: prompt
+    desc: {zh-CN: 设备表（编号、名称、平台、链路数、接口描述……）, en: 'Device table (id, name, platform, links, interface descriptions…)', pt-BR: 'Tabela de dispositivos (id, nome, plataforma, enlaces, descrições…)'}
+  - name: links
+    in: prompt
+    desc: {zh-CN: 代码还原的链路, en: Links restored by code, pt-BR: Enlaces reconstruídos pelo código}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - gquery
+  - sanitize
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "view_hint", "kind": "role", "title": "...", "content": {"target": "d1", "key": "role", "value": "pe", "reason": "..."}, "refs": [{"id": "d1"}]}]}'
+checks:
+  - suggest.refs_exist
+  - suggest.view_hint
+samples:
+  - title: {zh-CN: 两台设备的角色, en: Roles of two devices, pt-BR: Papéis de dois dispositivos}
+    input:
+      vars:
+        roles: 'core, aggregation, access, pe, p, ce'
+        lang: English
+        devices: "d1 | ATN-CHANGE-01 | family=huawei-vrp8 | links=1 | descriptions: UPLINK-TO-AGG\nd2 | AGG-01 | family=cisco-iosxe | links=1 | descriptions: TO-ATN"
+        links: 'd1:GigabitEthernet0/2/0 <-> d2:GigabitEthernet0/0/1 (subnet)'
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01, device_id: 1}
+          d2: {type: device, label: AGG-01, device_id: 2}
+        numbers: {devices: 2, links: 1}
+        lines: {}
+        names: [ATN-CHANGE-01, AGG-01, UPLINK-TO-AGG, TO-ATN]
+    reply: '{"suggestions": [{"category": "view_hint", "kind": "role", "title": "d1: access", "content": {"target": "d1", "key": "role", "value": "access", "reason": "[[d1]] has a single uplink described UPLINK-TO-AGG towards [[d2]]."}, "refs": [{"id": "d1"}, {"id": "d2"}]}, {"category": "view_hint", "kind": "role", "title": "d2: aggregation", "content": {"target": "d2", "key": "role", "value": "aggregation", "reason": "The access router [[d1]] uplinks to [[d2]]."}, "refs": [{"id": "d2"}]}]}'
+  - title: {zh-CN: 编造设备与角色（演示拒绝）, en: Invented device and role (shows a rejection), pt-BR: Dispositivo e papel inventados (mostra a rejeição)}
+    input:
+      vars:
+        roles: 'core, aggregation, access, pe, p, ce'
+        lang: English
+        devices: 'd1 | ATN-CHANGE-01 | family=huawei-vrp8 | links=0'
+        links: '(none)'
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01, device_id: 1}
+        numbers: {devices: 1, links: 0}
+        lines: {}
+        names: [ATN-CHANGE-01]
+    reply: '{"suggestions": [{"category": "view_hint", "kind": "role", "title": "d9: core", "content": {"target": "d9", "key": "role", "value": "core", "reason": "Big box."}, "refs": [{"id": "d9"}]}, {"category": "view_hint", "kind": "role", "title": "d1: firewall", "content": {"target": "d1", "key": "role", "value": "firewall"}, "refs": [{"id": "d1"}]}]}'

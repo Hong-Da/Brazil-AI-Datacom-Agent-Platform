@@ -517,6 +517,7 @@ def mine(settings: config.Settings, actor: Any) -> dict[str, Any]:
             "options": options,
             "is_admin": is_admin,
             "has_account": uid is not None,
+            "no_token_warn": bool(ch.no_token_warn) if ch else False,
         }
     out["effective"] = resolve(settings, actor if actor is not None else _NO_ACTOR).public_dict()
     return out
@@ -588,7 +589,24 @@ def save_mine(settings: config.Settings, actor: Any, data: dict[str, Any]) -> di
             ch = s.get(AIChoice, uid)
             if ch is not None and ch.choice == "personal":
                 ch.choice, ch.connection_id = "auto", None
+        if data.get("no_token_warn") is not None:  # 个人偏好：不提示大请求
+            ch = s.get(AIChoice, uid)
+            if ch is None:
+                ch = AIChoice(user_id=uid, choice="auto")
+                s.add(ch)
+            ch.no_token_warn, ch.updated_at = bool(data["no_token_warn"]), _now()
     return mine(settings, actor)
+
+
+def token_warn_limit(settings: config.Settings, actor: Any) -> int:
+    """大请求提示线（M8-2）：本人关闭了提示时为 0，否则取全局 ai.warn_tokens（0 = 不提示）。"""
+    uid = getattr(actor, "user_id", None)
+    if uid is not None:
+        with store.session(settings.database_url) as s:
+            ch = s.get(AIChoice, uid)
+            if ch is not None and ch.no_token_warn:
+                return 0
+    return max(0, int(settings.get("ai.warn_tokens") or 0))
 
 
 def personal_conn(settings: config.Settings, actor: Any) -> Conn | None:

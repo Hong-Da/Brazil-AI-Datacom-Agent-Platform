@@ -1,0 +1,134 @@
+# AI 建议（M8-2，REQ-041）的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-fullkb-suggest：alice 的项目 lab 里已有两次回放运行（建议 #1 d1 access、#2 d2 pe 通过，#3 编造的 d9 被拒绝，
+# #4 ATN-CHANGE-01 的设备摘要通过）。AI 未配置；run 用 --replay 回放 tests/inputs/ai-suggest/ 里的回复（同样经过代码校验）。
+
+[[case]]
+id = "ai-suggest-run-replay"
+title = { zh-CN = "运行设备摘要（回放回复，代码校验后入库）", en = "Run the device summary (replayed reply, stored after the code check)", pt-BR = "Executar o resumo do dispositivo (resposta reproduzida, gravada após a verificação)" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "run", "device-summary", "--device", "ATN-CHANGE-01", "--replay", "{inputs}/ai-suggest/summary.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.batch.status" = "done", "data.batch.mode" = "replay", "data.batch.counts.pass" = 1, "data.items.0.category" = "text_only", "data.items.0.check_status" = "pass", "data.items.0.refs.0.found" = true }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-run-invented"
+title = { zh-CN = "编造了图中没有的对象：建议被代码拒绝（text 输出列出原因）", en = "Invented objects: the suggestion is rejected by code", pt-BR = "Objetos inventados: a sugestão é rejeitada pelo código" }
+args = ["--lang", "en", "--project", "alice/lab", "ai", "suggest", "run", "device-summary", "--device", "ATN-CHANGE-01", "--replay", "{inputs}/ai-suggest/summary-invented.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_stdout = ["1 rejected", "Mentions an object that is not in the graph: CORE-RTR-99", "GigabitEthernet9/9/9"]
+
+[[case]]
+id = "ai-suggest-run-bad-reply"
+title = { zh-CN = "回复不是 JSON：运行失败，退出码 5", en = "The reply is not JSON: the run fails, exit 5", pt-BR = "A resposta não é JSON: a execução falha, saída 5" }
+args = ["--lang", "zh-CN", "--project", "alice/lab", "ai", "suggest", "run", "device-summary", "--device", "ATN-CHANGE-01", "--replay", "{inputs}/ai-suggest/not-json.txt"]
+setup = "configured-fullkb-suggest"
+expect_exit = 5
+expect_stderr = ["failed", "AI 的回复无法解析"]
+
+[[case]]
+id = "ai-suggest-run-not-configured"
+title = { zh-CN = "未配置 AI：退出码 3，说明原因", en = "AI not configured: exit 3 with the reason", pt-BR = "IA não configurada: saída 3 com o motivo" }
+args = ["--lang", "pt-BR", "--project", "alice/lab", "ai", "suggest", "run", "topology-roles"]
+setup = "configured-fullkb-suggest"
+expect_exit = 3
+expect_stderr = ["IA indisponível"]
+
+[[case]]
+id = "ai-suggest-run-no-device"
+title = { zh-CN = "设备不存在：退出码 4", en = "Unknown device: exit 4", pt-BR = "Dispositivo inexistente: saída 4" }
+args = ["--project", "alice/lab", "ai", "suggest", "run", "device-summary", "--device", "NOPE-01", "--replay", "{inputs}/ai-suggest/summary.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 4
+
+[[case]]
+id = "ai-suggest-list"
+title = { zh-CN = "建议列表（按 skill 过滤）", en = "List suggestions (by skill)", pt-BR = "Listar sugestões (por skill)" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "list", "--skill", "topology-roles"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.total" = 3, "data.items.0.id" = 3, "data.items.0.check_status" = "reject", "data.items.2.content.value" = "access" }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-list-text"
+title = { zh-CN = "建议列表（文字输出：校验标记、状态、原因）", en = "List suggestions (text)", pt-BR = "Listar sugestões (texto)" }
+args = ["--lang", "zh-CN", "--project", "alice/lab", "ai", "suggest", "list", "--check", "reject"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_stdout = ["#3 ✕ view_hint [待处理] d9: core", "引用了图中没有的对象: d9"]
+
+[[case]]
+id = "ai-suggest-list-bad-status"
+title = { zh-CN = "状态不合法：退出码 2", en = "Bad status: exit 2", pt-BR = "Status inválido: saída 2" }
+args = ["--project", "alice/lab", "ai", "suggest", "list", "--status", "nope"]
+setup = "configured-fullkb-suggest"
+expect_exit = 2
+
+[[case]]
+id = "ai-suggest-adopt"
+title = { zh-CN = "采纳一条建议", en = "Adopt a suggestion", pt-BR = "Adotar uma sugestão" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "adopt", "1"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.items.0.status" = "adopted", "data.items.0.adopt_info.action" = "annotate", "data.items.0.adopt_info.value" = "access" }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-adopt-edit"
+title = { zh-CN = "编辑后采纳（重新校验）", en = "Adopt after editing (re-checked)", pt-BR = "Adotar após editar (verificado de novo)" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "adopt", "2", "--edit", "{inputs}/ai-suggest/role-edit.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.items.0.status" = "adopted", "data.items.0.edited" = true, "data.items.0.adopt_info.value" = "aggregation", "data.items.0.original.content.value" = "pe" }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-adopt-batch"
+title = { zh-CN = "按类别批量采纳（只采纳校验通过的）", en = "Adopt in bulk by category (only those that passed)", pt-BR = "Adotar em lote por categoria (só as aprovadas)" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "adopt", "--category", "view_hint"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.adopted" = [1, 2], "data.skipped.0.id" = 3 }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-adopt-rejected"
+title = { zh-CN = "被代码拒绝的建议不能采纳：退出码 1", en = "A rejected suggestion cannot be adopted: exit 1", pt-BR = "Sugestão rejeitada não pode ser adotada: saída 1" }
+args = ["--lang", "en", "--project", "alice/lab", "ai", "suggest", "adopt", "3"]
+setup = "configured-fullkb-suggest"
+expect_exit = 1
+expect_stderr = ["failed the code check", "Cites an object that is not in the graph: d9"]
+
+[[case]]
+id = "ai-suggest-adopt-missing"
+title = { zh-CN = "建议不存在：退出码 4", en = "Unknown suggestion: exit 4", pt-BR = "Sugestão inexistente: saída 4" }
+args = ["--project", "alice/lab", "ai", "suggest", "adopt", "999"]
+setup = "configured-fullkb-suggest"
+expect_exit = 4
+
+[[case]]
+id = "ai-suggest-dismiss"
+title = { zh-CN = "忽略建议", en = "Dismiss a suggestion", pt-BR = "Ignorar uma sugestão" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "dismiss", "4", "--note", "outdated"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.items.0.status" = "dismissed", "data.items.0.note" = "outdated" }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-revert-not-adopted"
+title = { zh-CN = "撤销还没有采纳的建议：退出码 1", en = "Revert a suggestion that is not adopted: exit 1", pt-BR = "Reverter sugestão não adotada: saída 1" }
+args = ["--project", "alice/lab", "ai", "suggest", "revert", "1"]
+setup = "configured-fullkb-suggest"
+expect_exit = 1
+
+[[case]]
+id = "ai-suggest-annotations"
+title = { zh-CN = "项目的视图标注（还没有采纳时为空）", en = "Project view annotations (empty before adoption)", pt-BR = "Anotações do projeto (vazias antes de adotar)" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "annotations"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.items" = [] }
+in_docs = true

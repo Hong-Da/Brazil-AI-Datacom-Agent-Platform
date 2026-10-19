@@ -1,0 +1,202 @@
+# AI 建议（M8-2，REQ-041）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-fullkb-suggest：在 configured-projects 之上（alice 是项目 lab 的属主，bob 只读成员，carol 不是成员），
+# alice 用回放运行过两次：拓扑角色（建议 #1 d1 access、#2 d2 pe 通过，#3 编造的 d9 被拒绝）与 ATN-CHANGE-01 的设备摘要（#4 通过）。
+# AI 未配置：运行接口返回 409，其余接口照常。真实 AI 的运行（后台任务、重试、权限矩阵）见 tests/api/test_ai_suggest_api.py。
+
+[[case]]
+id = "ai-suggest-skills"
+title = { zh-CN = "可生成建议的 skill 与 AI 是否可用（入口按钮据此显示不可用的原因）", en = "Skills that produce suggestions and whether AI is available", pt-BR = "Skills que geram sugestões e se a IA está disponível" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/suggestions/skills"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.ai.configured" = false, "data.ai.reason" = "no_public", "data.skills.0.id" = "device-summary", "data.skills.0.categories" = ["text_only"], "data.skills.1.id" = "topology-roles", "data.skills.1.scope" = "project" }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-run-not-configured"
+title = { zh-CN = "运行 skill：未配置 AI 时 409（data.reason 给出原因）", en = "Run a skill: 409 when AI is not configured", pt-BR = "Executar skill: 409 sem IA configurada" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/run"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { skill = "topology-roles" }
+expect_status = 409
+expect_json = { "code" = 1003, "data.status" = "not_configured", "data.reason" = "no_public" }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-run-read-only"
+title = { zh-CN = "只读成员不能运行：403", en = "A read-only member cannot run: 403", pt-BR = "Membro somente leitura não pode executar: 403" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/run"
+setup = "configured-fullkb-suggest"
+login = ["bob", "Bob-pass-12"]
+body = { skill = "topology-roles" }
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "ai-suggest-list"
+title = { zh-CN = "建议列表：内容、引用（可跳转）、代码校验结果、状态与计数", en = "Suggestions: content, references, code check, status and counts", pt-BR = "Sugestões: conteúdo, referências, verificação, status e contagens" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/suggestions?skill=topology-roles"
+setup = "configured-fullkb-suggest"
+login = ["bob", "Bob-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.total" = 3, "data.counts.pending" = 3, "data.items.0.id" = 3, "data.items.0.check_status" = "reject", "data.items.0.check.reasons.0.code" = "ref_not_found", "data.items.1.check_status" = "pass", "data.items.1.category" = "view_hint", "data.items.1.refs.0.found" = true }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-list-device"
+title = { zh-CN = "某台设备的建议：设备摘要（数字与对象名由代码填入 check.display）", en = "Suggestions of one device: device summary (check.display filled by code)", pt-BR = "Sugestões de um dispositivo: resumo (check.display preenchido pelo código)" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/suggestions?skill=device-summary&check=pass"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.total" = 1, "data.items.0.id" = 4, "data.items.0.category" = "text_only", "data.items.0.refs.0.type" = "vrf.instance" }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-list-non-member"
+title = { zh-CN = "不是项目成员：404", en = "Not a project member: 404", pt-BR = "Não é membro do projeto: 404" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/suggestions"
+setup = "configured-fullkb-suggest"
+login = ["carol", "Carol-pass-1"]
+expect_status = 404
+
+[[case]]
+id = "ai-suggest-get"
+title = { zh-CN = "一条建议的详情", en = "One suggestion", pt-BR = "Uma sugestão" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/suggestions/1"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.id" = 1, "data.skill" = "topology-roles", "data.status" = "pending", "data.content.key" = "role", "data.created_by" = "alice" }
+
+[[case]]
+id = "ai-suggest-adopt"
+title = { zh-CN = "采纳一条建议（视图标注写入项目）", en = "Adopt a suggestion (writes a project view annotation)", pt-BR = "Adotar uma sugestão (grava uma anotação de visualização)" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/1/adopt"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = {}
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "adopted", "data.adopt_info.action" = "annotate", "data.adopt_info.key" = "role", "data.adopt_info.value" = "access", "data.decided_by" = "alice" }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-adopt-edited"
+title = { zh-CN = "编辑后采纳：先重新校验，不合格 409（data.check）", en = "Adopt after editing: re-checked first, 409 when it fails", pt-BR = "Adotar após editar: verificado de novo, 409 se falhar" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/2/adopt"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { content = { target = "d2", key = "role", value = "router" } }
+expect_status = 409
+expect_json = { "code" = 1003, "data.check.status" = "reject", "data.check.reasons.0.code" = "bad_hint_value" }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-adopt-rejected"
+title = { zh-CN = "被代码拒绝的建议不能采纳：409", en = "A suggestion rejected by code cannot be adopted: 409", pt-BR = "Sugestão rejeitada pelo código não pode ser adotada: 409" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/3/adopt"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = {}
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "ai-suggest-adopt-read-only"
+title = { zh-CN = "只读成员不能采纳：403", en = "A read-only member cannot adopt: 403", pt-BR = "Membro somente leitura não pode adotar: 403" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/1/adopt"
+setup = "configured-fullkb-suggest"
+login = ["bob", "Bob-pass-12"]
+body = {}
+expect_status = 403
+
+[[case]]
+id = "ai-suggest-adopt-batch"
+title = { zh-CN = "按类别批量采纳：只采纳校验通过的", en = "Adopt in bulk by category: only those that passed", pt-BR = "Adotar em lote por categoria: só as aprovadas" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/adopt-batch"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { category = "view_hint", skill = "topology-roles" }
+expect_status = 200
+expect_json = { "code" = 0, "data.adopted" = [1, 2], "data.skipped.0.id" = 3, "data.skipped.0.check_status" = "reject" }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-dismiss"
+title = { zh-CN = "忽略一条建议", en = "Dismiss a suggestion", pt-BR = "Ignorar uma sugestão" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/4/dismiss"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { note = "outdated" }
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "dismissed", "data.note" = "outdated" }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-revert-not-adopted"
+title = { zh-CN = "撤销还没有采纳的建议：409", en = "Revert a suggestion that is not adopted: 409", pt-BR = "Reverter sugestão não adotada: 409" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/1/revert"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = {}
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "ai-suggest-not-found"
+title = { zh-CN = "建议不存在：404", en = "Suggestion not found: 404", pt-BR = "Sugestão inexistente: 404" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/suggestions/999"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "ai-suggest-batch"
+title = { zh-CN = "一次运行：状态、计数、模式（回放）、发起人", en = "One run: status, counts, mode, initiator", pt-BR = "Uma execução: status, contagens, modo, autor" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/suggestions/batches/1"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "done", "data.mode" = "replay", "data.skill" = "topology-roles", "data.counts.total" = 3, "data.counts.pass" = 2, "data.counts.reject" = 1, "data.created_by" = "alice" }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-adoptions"
+title = { zh-CN = "采纳记录（还没有采纳时为空）", en = "Adoption history (empty before any adoption)", pt-BR = "Histórico de adoções (vazio antes de adotar)" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/suggestions/adoptions"
+setup = "configured-fullkb-suggest"
+login = ["bob", "Bob-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.items" = [] }
+in_docs = true
+
+[[case]]
+id = "ai-suggest-view-annotations"
+title = { zh-CN = "项目的视图标注（设备角色等，手工或采纳的 AI 建议）", en = "Project view annotations (device roles…, manual or adopted AI suggestions)", pt-BR = "Anotações de visualização do projeto (papéis…, manuais ou sugestões de IA adotadas)" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/view-annotations"
+setup = "configured-fullkb-suggest"
+login = ["bob", "Bob-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.items" = [] }
+in_docs = true
