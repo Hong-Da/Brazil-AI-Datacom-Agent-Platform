@@ -123,7 +123,7 @@ def run(
     inp: dict[str, Any] = {"script": sanitized, "rules": rinfo, "line_kinds": list(out["line_kinds"])}
     if hit is None:
         try:
-            reply = sess.call("check", system, prompt)
+            reply = sess.call("check", system, prompt, skill.id)
         except ask.AskError as e:
             info.update(status="error", error=str(e), sent=sess.sent)
             skills.log_run(settings, skill, "script_check", "error", inp, "", {"step": "check"}, sess.info(), actor)

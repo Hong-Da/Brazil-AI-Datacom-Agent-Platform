@@ -5,7 +5,8 @@ import { del, errorText, put } from '@/api'
 import Icon from '@/components/Icon.vue'
 import { pickLang } from '@/i18n'
 import { entryBody, entryOrigin, formDirty, formFromEntry, type EntryForm } from './entries'
-import { formatDefault, parseDefault } from './format'
+import { formatDefault } from './format'
+import { checkDefault, defaultKind, parseTyped } from './defaults'
 import type { Entry } from './types'
 import StyleForms from '../schema/StyleForms.vue'
 import { useAuth } from '@/stores/auth'
@@ -19,7 +20,7 @@ const props = defineProps<{
   showRules: string[]
 }>()
 const emit = defineEmits<{ changed: [message: string] }>()
-const { t, locale } = useI18n()
+const { t, te, locale } = useI18n()
 // 普通用户只读（REQ-036）：不能覆盖、删除或保存条目，可以对默认值提建议
 const auth = useAuth()
 const suggesting = ref(false)
@@ -47,6 +48,24 @@ function reset() {
 watch(() => [props.profileId, props.entry], reset, { immediate: true })
 
 const dirty = computed(() => opened.value || formDirty(form.value, base.value))
+// 默认值输入随数据类型变化（M6-9）
+const kind = computed(() => defaultKind(props.entry))
+const defaultErr = computed(() => (form.value.supported ? checkDefault(form.value.default, props.entry) : ''))
+const enumOptions = computed(() => {
+  const list = [...(props.entry.choices ?? [])]
+  const cur = form.value.default.trim()
+  if (cur && !list.includes(cur)) list.push(cur) // 已有的值不在可选值中：照样列出，并显示问题
+  return list
+})
+const fmtText = computed(() => (te(`schema-edit.fmt.${props.entry.type}`) ? t(`schema-edit.fmt.${props.entry.type}`) : props.entry.type))
+const defaultHintText = computed(() => {
+  const r = props.entry.range
+  if (kind.value === 'int') return r && r.length === 2 ? t('profiles.dHintIntRange', { min: r[0], max: r[1] }) : t('profiles.dHintInt')
+  if (kind.value === 'bool') return t('profiles.dHintBool')
+  if (kind.value === 'enum') return t('profiles.dHintEnum')
+  if (props.entry.type && te(`schema-edit.fmt.${props.entry.type}`)) return `${t(`schema-edit.fmt.${props.entry.type}`)}${t('profiles.dHintEg', { v: t(`schema-edit.fmtEg.${props.entry.type}`) })}`
+  return t('profiles.defaultHint')
+})
 const rules = computed(() => (props.showRules.length ? props.showRules : ['always', 'hide_when_default', 'never']))
 const cards = computed(() => props.entry.cards ?? [])
 const enc = encodeURIComponent
@@ -56,7 +75,7 @@ async function save() {
   busy.value = true
   err.value = ''
   try {
-    await put(path.value, entryBody(form.value, (s) => parseDefault(s, props.entry.default)))
+    await put(path.value, entryBody(form.value, (s) => parseTyped(s, props.entry, props.entry.default)))
     emit('changed', t('profiles.savedDraft'))
   } catch (e) {
     err.value = detailText(e)
@@ -139,9 +158,19 @@ function detailText(e: unknown): string {
 
       <div class="field">
         <label>{{ $t('profiles.defaultValue') }}</label>
-        <input v-model="form.default" class="input mono" :readonly="!editable" :disabled="!form.supported"
-               :placeholder="$t('profiles.defaultPh')" data-testid="entry-default">
-        <div class="hint">{{ $t('profiles.defaultHint') }}</div>
+        <div v-if="kind === 'bool'" class="seg" role="group" data-testid="entry-default-bool">
+          <button v-for="o in ['', 'true', 'false']" :key="o" type="button" :aria-pressed="form.default === o" :disabled="!editable || !form.supported"
+                  :data-v="o || 'unset'" @click="form.default = o">{{ $t(o === '' ? 'profiles.dUnset' : o === 'true' ? 'profiles.dOn' : 'profiles.dOff') }}</button>
+        </div>
+        <select v-else-if="kind === 'enum'" v-model="form.default" :class="['select', 'mono', { 'is-error': defaultErr }]"
+                :disabled="!editable || !form.supported" data-testid="entry-default">
+          <option value="">{{ $t('profiles.dUnsetOpt') }}</option>
+          <option v-for="c in enumOptions" :key="c" :value="c">{{ c }}</option>
+        </select>
+        <input v-else v-model="form.default" :class="['input', 'mono', { 'is-error': defaultErr }]" :readonly="!editable" :disabled="!form.supported"
+               :inputmode="kind === 'int' ? 'numeric' : undefined" :placeholder="$t('profiles.defaultPh')" data-testid="entry-default">
+        <span v-if="defaultErr" class="err" data-testid="entry-default-err"><Icon name="err" small />{{ $t(`profiles.dErr.${defaultErr}`, { min: entry.range?.[0] ?? '', max: entry.range?.[1] ?? '', fmt: fmtText }) }}</span>
+        <div v-else class="hint">{{ defaultHintText }}</div>
       </div>
 
       <div class="field">
@@ -189,7 +218,7 @@ function detailText(e: unknown): string {
       <span class="small faint">{{ $t('profiles.saveNote') }}</span>
       <span style="flex:1"></span>
       <button class="btn btn-sm" :disabled="busy" @click="reset">{{ $t('c.cancel') }}</button>
-      <button class="btn btn-sm btn-primary" :disabled="busy || !dirty" data-testid="entry-save" @click="save">{{ busy ? $t('c.loading') : $t('profiles.saveDraft') }}</button>
+      <button class="btn btn-sm btn-primary" :disabled="busy || !dirty || !!defaultErr" data-testid="entry-save" @click="save">{{ busy ? $t('c.loading') : $t('profiles.saveDraft') }}</button>
     </div>
   </aside>
 </template>

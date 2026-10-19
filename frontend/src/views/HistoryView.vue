@@ -8,6 +8,8 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import FullscreenPane from '@/components/FullscreenPane.vue'
+import FullscreenButton from '@/components/FullscreenButton.vue'
 import DevChip from '@/components/m4-dev.vue'
 import { del, errorText, get, post, put } from '@/api'
 import { useTerms } from '@/stores/terms'
@@ -462,11 +464,12 @@ onMounted(async () => {
             </div>
 
             <!-- 标签页 -->
-            <section class="panel hw">
+            <FullscreenPane class="panel hw" :title="tl.device.name" data-testid="hist-fs">
               <div class="tabs" role="tablist">
                 <button type="button" role="tab" :aria-selected="tab === 'graph'" data-testid="hist-tab-graph" @click="tab = 'graph'">{{ $t('history.tabGraph') }} <span class="count">{{ shownCount }}</span></button>
                 <button type="button" role="tab" :aria-selected="tab === 'text'" data-testid="hist-tab-text" @click="tab = 'text'">{{ $t('history.tabText') }}<span v-if="diff.text" class="count">+{{ diff.text.stats.added }} −{{ diff.text.stats.removed }}</span></button>
                 <button type="button" role="tab" :aria-selected="tab === 'object'" data-testid="hist-tab-object" @click="tab = 'object'">{{ $t('history.tabObject') }}</button>
+                <FullscreenButton size="xs" class="tabs-fs" />
               </div>
 
               <!-- 图差异 -->
@@ -634,7 +637,7 @@ onMounted(async () => {
                   </div>
                 </template>
               </template>
-            </section>
+            </FullscreenPane>
           </template>
         </template>
       </template>
@@ -722,6 +725,11 @@ onMounted(async () => {
 
 .hw { margin-top: 12px; }
 .hw .tabs { margin: 0; padding: 0 8px; }
+.hw .tabs-fs { margin-left: auto; align-self: center; }
+.hw.is-fs { overflow: auto; }
+.hw.is-fs .gd { flex: 1; min-height: 0; }
+.hw.is-fs .gd-list, .hw.is-fs .gd-det { max-height: none; }
+.hw.is-fs .td { max-height: none; flex: 1; min-height: 0; }
 .gd { display: grid; grid-template-columns: minmax(0, 1fr) 420px; min-height: 420px; }
 .gd-list { border-right: 1px solid var(--line); overflow: auto; max-height: 68vh; }
 .gd-tools { min-height: 40px; display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); background: var(--surface); position: sticky; top: 0; z-index: 2; }

@@ -10,7 +10,7 @@ import ipaddress
 import os
 import secrets
 import tomllib
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -230,9 +230,9 @@ FIELDS: tuple[Field, ...] = (
         "ai",
         "choice",
         _d(
-            "AI 接口类型；留空表示不使用 AI，核心功能照常可用",
-            "AI interface type; empty = no AI, core features still work",
-            "Tipo de interface de IA; vazio = sem IA, as funções principais continuam funcionando",
+            "AI 接口类型；[ai] 的接口项是第一个管理员 AI 接口的初始值（第一次用到 AI 时导入并允许公共使用，之后在 AI 接口页管理）；留空表示不导入，核心功能照常可用",
+            "AI interface type; the connection keys in [ai] seed the first admin AI connection (imported and shared on first use, then managed on the AI connections page); empty = nothing imported, core features still work",
+            "Tipo de interface de IA; as chaves de conexão em [ai] criam a primeira conexão de IA do administrador (importada e compartilhada no primeiro uso, depois gerenciada na página Conexões de IA); vazio = nada importado, as funções principais continuam funcionando",
         ),
         choices=("", "anthropic", "openai", "local"),
     ),
@@ -435,6 +435,12 @@ def _set_nested(data: dict[str, Any], key: str, value: Any) -> None:
 class Settings:
     values: dict[str, Any] = field(default_factory=dict)
     sources: dict[str, str] = field(default_factory=dict)  # default / file / env
+    # 发起请求的账号（projects.Identity；REQ-040 按它的选择决定用哪个 AI 接口）；为空表示系统自身（全局令牌、命令行）
+    actor: Any = field(default=None, compare=False)
+
+    def for_actor(self, actor: Any) -> Settings:
+        """同一份配置，绑定发起人（浅拷贝：values 共用）。后台任务带着它运行，就按发起人的 AI 选择调用。"""
+        return replace(self, actor=actor)
 
     def get(self, key: str) -> Any:
         return self.values[key]

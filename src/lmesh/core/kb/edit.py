@@ -174,6 +174,11 @@ def profile_detail(kb: KnowledgeBase, pid: str) -> dict[str, Any]:
             "deprecated": n.deprecated,
             "state": "unfilled" if e is None else ("supported" if e.supported else "unsupported"),
         }
+        # 默认值输入按类型变化（M6-9）：枚举给出可选值，整数给出取值范围
+        if n.choices:
+            row["choices"] = list(n.choices)
+        if n.range:
+            row["range"] = list(n.range)
         if e is not None:
             row.update(
                 default=e.default,

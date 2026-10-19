@@ -7,6 +7,9 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import FullscreenPane from '@/components/FullscreenPane.vue'
+import FullscreenButton from '@/components/FullscreenButton.vue'
+import { fsTarget } from '@/components/fullscreen'
 import DevChip from '@/components/m4-dev.vue'
 import { api, del, errorText, get, post, put } from '@/api'
 import { pickLang } from '@/i18n'
@@ -385,7 +388,7 @@ watch(() => [terms.style, prefs.lang], () => { if (sid.value !== null) void runC
           <span v-if="project.description" class="small faint">{{ project.description }}</span>
         </div>
 
-        <div class="wsp">
+        <FullscreenPane class="wsp" :title="project.name" data-testid="cp-fs">
           <ProjectSide
             :project="project" :scripts="scripts" :cur="sid" :dirty="dirtySet" :live="live"
             @select="openScript" @new="openNew" @rename="renameScript" @delete="(s) => (delTarget = s)" @baseline="setBaseline"
@@ -405,6 +408,7 @@ watch(() => [terms.style, prefs.lang], () => { if (sid.value !== null) void runC
                 <span v-else-if="checking || pending" class="chk-state run" aria-live="polite" data-testid="cp-state" data-state="run"><span class="spin" /><span>{{ aiBusy ? T('aiChecking') : T('checking') }}</span></span>
                 <span v-else-if="result" class="chk-state ok" aria-live="polite" data-testid="cp-state" data-state="ok"><Icon name="ok" small /><span>{{ T('checkedMs', { n: result.ms }) }}</span></span>
                 <button v-if="canWrite" class="btn btn-sm btn-primary" type="button" :disabled="busy" :title="T('saveTip')" data-testid="cp-save" @click="save"><Icon name="check" small /><span>{{ $t('c.save') }}</span></button>
+                <FullscreenButton icon-only />
               </div>
               <div class="edbar opts">
                 <label class="tgl" :class="{ 'is-disabled': !orderApplicable }" :title="orderApplicable ? T('orderTip') : T('orderNa')" data-testid="cp-order">
@@ -465,7 +469,7 @@ watch(() => [terms.style, prefs.lang], () => { if (sid.value !== null) void runC
             />
             <SimPanel :result="result" :kind="kind" @diff-baseline="go('diff', { a: 'base', b: `script:${sid}` })" @line="gotoLine" />
           </div>
-        </div>
+        </FullscreenPane>
       </template>
 
       <ReorderPane
@@ -483,6 +487,8 @@ watch(() => [terms.style, prefs.lang], () => { if (sid.value !== null) void runC
       <section v-else class="panel"><div v-if="loadingScript" class="empty">{{ $t('c.loading') }}</div><div v-else class="empty">{{ T('noScripts') }} <a href="#" @click.prevent="go('edit')">{{ T('backWs') }}</a></div></section>
     </div>
 
+    <!-- 全屏时对话框与提示挂进全屏区域（REQ-043） -->
+    <Teleport :to="fsTarget ?? 'body'" :disabled="!fsTarget">
     <div v-if="showNew" class="modal-back r31" data-testid="cp-new-script-modal" @click.self="showNew = false" @keydown.esc="showNew = false">
       <div class="modal sm" role="dialog" aria-modal="true" aria-labelledby="mNewT">
         <div class="modal-h"><h2 id="mNewT">{{ T('newScript') }}</h2><button class="btn btn-ghost btn-icon" type="button" :aria-label="$t('c.close')" @click="showNew = false"><Icon name="x" /></button></div>
@@ -510,6 +516,7 @@ watch(() => [terms.style, prefs.lang], () => { if (sid.value !== null) void runC
     </div>
 
     <div v-if="toast" class="toast" role="status" data-testid="cp-toast">{{ toast }}</div>
+    </Teleport>
   </main>
 </template>
 
@@ -518,6 +525,8 @@ watch(() => [terms.style, prefs.lang], () => { if (sid.value !== null) void runC
 .col.col-r > .iss-p { flex: 1.25; }
 .col.col-r > .sim { flex: 1; }
 .modal.sm { width: min(480px, 100%); }
+.wsp.is-fs { height: 100vh; grid-template-rows: auto minmax(0, 1fr); }
+.wsp.is-fs > :deep(.fs-title) { grid-column: 1 / -1; }
 @media (max-width: 1366px) {
   .edbar .wl { display: none; }
 }

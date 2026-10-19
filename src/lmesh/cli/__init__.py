@@ -12,7 +12,7 @@ import typer
 from lmesh import __version__, paths
 from lmesh.cli import output
 from lmesh.cli.output import Ctx, emit, fail
-from lmesh.core import config, i18n, projects, setup, status, store
+from lmesh.core import ai_connections, config, i18n, projects, setup, status, store
 from lmesh.core import logging as lmlog
 
 app = typer.Typer(
@@ -80,7 +80,31 @@ def main_options(
         console=verbose,
     )
     _setup_project(c, settings)
-    ctx.call_on_close(lambda: projects.set_lazy(None))
+    _setup_ai_actor(c, settings)
+    ctx.call_on_close(_reset_context)
+
+
+def _reset_context() -> None:
+    projects.set_lazy(None)
+    ai_connections.set_cli_actor(None)
+
+
+def _setup_ai_actor(c: Ctx, settings: config.Settings) -> None:
+    """命令行调用 AI 时按哪个账号的选择（REQ-040）：--as 账号，不给时第一个管理员（与项目一致）；还没有账号时
+    按系统自身（第一个管理员接口）。第一次用到 AI 时才查数据库。"""
+    ai_connections.set_cli_actor(None)
+    if not config.is_configured():
+        return
+    db = settings.database_url
+    cache: dict[str, projects.Identity] = {}
+
+    def actor() -> projects.Identity:
+        if "v" not in cache:
+            store.upgrade(db)
+            cache["v"] = projects.cli_identity(db, c.as_user)
+        return cache["v"]
+
+    ai_connections.set_cli_actor(actor)
 
 
 def _setup_project(c: Ctx, settings: config.Settings) -> None:

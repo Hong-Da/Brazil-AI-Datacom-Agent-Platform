@@ -23,9 +23,17 @@ def setup_schema(request: Request) -> dict[str, Any]:
     if config.is_configured():
         raise ApiError(E_STATE, 409, "setup.already")
     lang = lang_of(request)
+    s = settings_of(request)
     return ok(
         request,
-        {"groups": setup.wizard_schema(lang), "addresses": setup.local_addresses(), "languages": list(i18n.LANGS)},
+        {
+            "groups": setup.wizard_schema(lang),
+            "addresses": setup.local_addresses(),
+            "languages": list(i18n.LANGS),
+            # 确认页（M6-9）：将写入的配置文件，以及当前运行的监听地址（与它不同的项需要重启才生效）
+            "config_path": str(config.config_path()),
+            "running": {"server.host": s.get("server.host"), "server.port": s.get("server.port")},
+        },
     )
 
 

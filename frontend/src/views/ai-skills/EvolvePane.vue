@@ -5,6 +5,7 @@
  */
 import { computed, onMounted, ref, watch } from 'vue'
 import Icon from '@/components/Icon.vue'
+import AiOffHint from '@/components/ai-off-hint.vue'
 import { ApiError, errorText, get, post, waitTask, type Task } from '@/api'
 import { shortTime } from '@/views/account/account'
 import Bits from './Bits.vue'
@@ -128,10 +129,7 @@ watch(() => detail.value?.id, () => { sel.value = null; void loadList() })
 <template>
   <div v-if="detail" data-testid="sk-evolve">
     <p class="small muted" style="margin-bottom: 10px">{{ T('evo.intro') }}</p>
-    <div v-if="!detail.ai.configured" class="notice warn" style="margin-bottom: 14px" data-testid="evo-ai-off">
-      <Icon name="info" /><div class="grow"><b>{{ T('evo.aiOffTitle') }}</b>{{ T('evo.aiOffText') }}</div>
-      <router-link class="btn btn-sm" :to="{ name: 'ai-settings' }"><Icon name="plug" small />{{ T('aiOff.setup') }}</router-link>
-    </div>
+    <AiOffHint v-if="!detail.ai.configured" style="margin-bottom: 14px" data-testid="evo-ai-off"><div class="small muted">{{ T('evo.aiOffText') }}</div></AiOffHint>
     <section class="panel">
       <div class="ev-top">
         <div>

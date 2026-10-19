@@ -3,12 +3,29 @@
 
 [[case]]
 id = "skill-list"
-title = { zh-CN = "skill 列表：启用状态、当前版本、近 30 天调用与校验通过率", en = "Skill list: enabled, version, calls and pass rate in the last 30 days", pt-BR = "Lista de skills: ativa, versão, chamadas e aprovação nos últimos 30 dias" }
+title = { zh-CN = "skill 列表：按功能分组，启用状态、当前版本、近 30 天调用与校验通过率", en = "Skill list by group: enabled, version, calls and pass rate in the last 30 days", pt-BR = "Lista de skills por grupo: ativa, versão, chamadas e aprovação nos últimos 30 dias" }
 args = ["--output", "json", "skill", "list"]
 setup = "configured"
 expect_exit = 0
-expect_json = { "ok" = true, "data.days" = 30, "data.skills.0.id" = "card-extract", "data.skills.1.id" = "ask-query", "data.skills.1.active" = "builtin", "data.skills.1.enabled" = true, "data.skills.1.model_key" = "ai.model_ask", "data.skills.1.stats.calls" = 0, "data.skills.5.id" = "skill-evolve" }
+expect_json = { "ok" = true, "data.days" = 30, "data.groups.0.id" = "qa", "data.groups.0.count" = 2, "data.skills.0.id" = "ask-query", "data.skills.0.group" = "qa", "data.skills.0.active" = "builtin", "data.skills.0.enabled" = true, "data.skills.0.model_key" = "ai.model_ask", "data.skills.0.stats.calls" = 0, "data.skills.4.id" = "card-extract", "data.skills.5.id" = "skill-evolve" }
 in_docs = true
+
+[[case]]
+id = "skill-list-group"
+title = { zh-CN = "只列一个功能分组的 skill", en = "List the skills of one group", pt-BR = "Listar as skills de um grupo" }
+args = ["--output", "json", "skill", "list", "--group", "kb"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "ok" = true, "data.skills.0.id" = "card-extract", "data.groups.5.id" = "kb" }
+in_docs = true
+
+[[case]]
+id = "skill-list-bad-group"
+title = { zh-CN = "分组不存在：退出码 2", en = "Unknown group: exit 2", pt-BR = "Grupo desconhecido: saída 2" }
+args = ["skill", "list", "--group", "nope"]
+setup = "configured"
+expect_exit = 2
+expect_stderr = ["qa"]
 
 [[case]]
 id = "skill-list-text"
@@ -16,7 +33,7 @@ title = { zh-CN = "skill 列表（文字输出）", en = "Skill list (text)", pt
 args = ["--lang", "zh-CN", "skill", "list"]
 setup = "configured"
 expect_exit = 0
-expect_stdout = ["ask-query", "问答：写图查询", "builtin", "回归集"]
+expect_stdout = ["ask-query", "问答：写图查询", "builtin", "回归集", "分组", "知识库构建"]
 
 [[case]]
 id = "skill-list-not-configured"

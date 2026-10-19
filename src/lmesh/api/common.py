@@ -61,7 +61,10 @@ def error_response(request: Request, err: ApiError) -> JSONResponse:
 
 
 def settings_of(request: Request) -> config.Settings:
-    return request.app.state.settings  # type: ignore[no-any-return]
+    """应用配置；已认证的请求绑定调用者（REQ-040：AI 按调用者的选择，后台任务带着它运行即按发起人）。"""
+    s: config.Settings = request.app.state.settings
+    p = getattr(request.state, "principal", None)
+    return s.for_actor(p.identity()) if p is not None else s
 
 
 SESSION_COOKIE = "lmesh_session"

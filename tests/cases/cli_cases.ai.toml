@@ -1,0 +1,130 @@
+# AI 接口命令（REQ-040）的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-ai：管理员 admin、普通用户 alice / bob；管理员接口 shared（公共）与 internal（不公开），
+# 地址指向本机不存在的端口；alice 有个人接口并选用它。不调用外部 AI。
+
+[[case]]
+id = "ai-connections-list"
+title = { zh-CN = "管理员 AI 接口列表", en = "List admin AI connections", pt-BR = "Listar conexões de IA do administrador" }
+args = ["--output", "json", "ai", "connections", "list"]
+setup = "configured-ai"
+expect_exit = 0
+expect_json = { "ok" = true, "data.connections.0.name" = "shared", "data.connections.0.public" = true, "data.connections.0.is_default" = true, "data.connections.1.name" = "internal", "data.connections.1.public" = false }
+in_docs = true
+
+[[case]]
+id = "ai-connections-list-text"
+title = { zh-CN = "接口列表的文字输出（葡萄牙语）", en = "Connection list text output (Portuguese)", pt-BR = "Saída de texto da lista de conexões (português)" }
+args = ["--lang", "pt-BR", "ai", "connections", "list"]
+setup = "configured-ai"
+expect_exit = 0
+expect_stdout = ["shared", "internal", "Compartilhada", "conexão padrão"]
+
+[[case]]
+id = "ai-connections-add"
+title = { zh-CN = "新建允许公共使用的接口，API Key 从标准输入读取", en = "Add a shared connection, API key from stdin", pt-BR = "Criar conexão compartilhada com a chave pela entrada padrão" }
+args = ["--output", "json", "ai", "connections", "add", "lab", "--provider", "local", "--base-url", "http://127.0.0.1:11434/v1", "--model", "qwen2.5", "--api-key-stdin", "--public"]
+stdin = "sk-local-123\n"
+setup = "configured-ai"
+expect_exit = 0
+expect_json = { "ok" = true, "data.name" = "lab", "data.public" = true, "data.api_key_set" = true }
+in_docs = true
+
+[[case]]
+id = "ai-connections-add-incomplete"
+title = { zh-CN = "Anthropic 接口没有 API Key：退出码 2", en = "Anthropic without an API key: exit 2", pt-BR = "Anthropic sem chave de API: saída 2" }
+args = ["ai", "connections", "add", "claude", "--provider", "anthropic", "--model", "claude-x"]
+setup = "configured-ai"
+expect_exit = 2
+expect_stderr = ["API Key"]
+
+[[case]]
+id = "ai-connections-set-private"
+title = { zh-CN = "关闭公共使用", en = "Stop sharing a connection", pt-BR = "Deixar de compartilhar uma conexão" }
+args = ["--output", "json", "ai", "connections", "set", "shared", "--private"]
+setup = "configured-ai"
+expect_exit = 0
+expect_json = { "ok" = true, "data.name" = "shared", "data.public" = false }
+in_docs = true
+
+[[case]]
+id = "ai-connections-remove-missing"
+title = { zh-CN = "删除不存在的接口：退出码 4", en = "Remove a missing connection: exit 4", pt-BR = "Remover conexão inexistente: saída 4" }
+args = ["-y", "ai", "connections", "remove", "nope"]
+setup = "configured-ai"
+expect_exit = 4
+expect_stderr = ["nope"]
+
+[[case]]
+id = "ai-connections-remove"
+title = { zh-CN = "删除接口", en = "Remove a connection", pt-BR = "Remover uma conexão" }
+args = ["--output", "json", "-y", "ai", "connections", "remove", "internal"]
+setup = "configured-ai"
+expect_exit = 0
+expect_json = { "ok" = true, "data.affected_users" = 0 }
+
+[[case]]
+id = "ai-connections-test-unreachable"
+title = { zh-CN = "测试连接失败（地址不可达）：退出码 5", en = "Connection test fails (unreachable): exit 5", pt-BR = "Teste de conexão falha (inacessível): saída 5" }
+args = ["ai", "connections", "test", "shared"]
+setup = "configured-ai"
+env = { LMESH_AI__TIMEOUT = "5" }
+expect_exit = 5
+expect_stderr = ["AI"]
+
+[[case]]
+id = "ai-use-public"
+title = { zh-CN = "账号 bob 改用公共接口 shared", en = "bob switches to the shared connection", pt-BR = "bob passa a usar a conexão compartilhada" }
+args = ["--output", "json", "--as", "bob", "ai", "use", "shared"]
+setup = "configured-ai"
+expect_exit = 0
+expect_json = { "ok" = true, "data.choice" = "connection", "data.effective.configured" = true, "data.effective.connection.name" = "shared" }
+in_docs = true
+
+[[case]]
+id = "ai-use-private-denied"
+title = { zh-CN = "普通账号不能选用不公开的接口：退出码 2", en = "A user cannot choose a private connection: exit 2", pt-BR = "Usuário não pode escolher conexão privada: saída 2" }
+args = ["--as", "bob", "ai", "use", "internal"]
+setup = "configured-ai"
+expect_exit = 2
+
+[[case]]
+id = "ai-status-personal"
+title = { zh-CN = "alice 的生效来源：个人 API", en = "Effective source of alice: personal API", pt-BR = "Fonte efetiva de alice: API pessoal" }
+args = ["--as", "alice", "ai", "status"]
+setup = "configured-ai"
+expect_exit = 0
+expect_stdout = ["alice: personal", "个人 API", "alice-model"]
+
+[[case]]
+id = "ai-personal-set"
+title = { zh-CN = "设置个人接口并改为使用它", en = "Set a personal connection and use it", pt-BR = "Configurar conexão pessoal e passar a usá-la" }
+args = ["--output", "json", "--as", "bob", "ai", "personal", "set", "--provider", "openai", "--base-url", "http://127.0.0.1:9/v1", "--model", "bob-model", "--use"]
+setup = "configured-ai"
+expect_exit = 0
+expect_json = { "ok" = true, "data.choice" = "personal", "data.personal.model" = "bob-model", "data.effective.source" = "personal" }
+in_docs = true
+
+[[case]]
+id = "ai-personal-show-no-key"
+title = { zh-CN = "查看个人接口不显示 Key", en = "Showing the personal connection hides the key", pt-BR = "Ver a conexão pessoal não mostra a chave" }
+args = ["--output", "json", "--as", "alice", "ai", "personal", "show"]
+setup = "configured-ai"
+expect_exit = 0
+expect_json = { "ok" = true, "data.personal.api_key_set" = true, "data.personal.model" = "alice-model" }
+
+[[case]]
+id = "ai-usage"
+title = { zh-CN = "AI 用量统计（按接口）", en = "AI usage by connection", pt-BR = "Uso de IA por conexão" }
+args = ["--output", "json", "ai", "usage", "--group", "connection"]
+setup = "configured-ai"
+expect_exit = 0
+expect_json = { "ok" = true, "data.totals.calls" = 0 }
+in_docs = true
+
+[[case]]
+id = "ai-usage-bad-group"
+title = { zh-CN = "用量统计的分组不对：退出码 2", en = "Bad usage group: exit 2", pt-BR = "Agrupamento inválido: saída 2" }
+args = ["ai", "usage", "--group", "week"]
+setup = "configured-ai"
+expect_exit = 2
+expect_stderr = ["day"]

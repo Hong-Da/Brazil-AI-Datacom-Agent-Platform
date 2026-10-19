@@ -62,7 +62,7 @@ def _ai_fix(settings: config.Settings, res: ExtractResult, family: str, progress
         prompt = skill.prompt_text(title=f["title"], format=f["format"])
         inp = {"title": f["title"], "format": f["format"]}
         try:
-            reply = ai.complete(settings, skill.task, prompt, system)
+            reply = ai.complete(settings, skill.task, prompt, system, feature=skill.id)
         except ai.AIError:
             skills.log_run(settings, skill, "ingest", "error", inp, "", {})
             break  # AI 不可用时整批停止，保留规则抽取的结果

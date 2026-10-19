@@ -13,6 +13,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from lmesh import __version__, paths
 from lmesh.api import scoping
 from lmesh.api.common import E_INTERNAL, E_NOT_FOUND, E_PARAM, ApiError, error_response
+from lmesh.api.routes_ai import admin as ai_admin_router
+from lmesh.api.routes_ai import router as ai_router
 from lmesh.api.routes_analysis import router as analysis_router
 from lmesh.api.routes_ask import router as ask_router
 from lmesh.api.routes_auth import admin as users_router
@@ -97,6 +99,8 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     scoping.mount(app, configs_router, API_PREFIX, "configs")
     scoping.mount(app, devices_router, API_PREFIX, "configs")
     scoping.mount(app, tasks_ai_router, API_PREFIX, "tasks-ai")
+    scoping.mount(app, ai_router, API_PREFIX, "ai")
+    scoping.mount(app, ai_admin_router, API_PREFIX, "ai")
     scoping.mount(app, kb_router, API_PREFIX, "knowledge")
     scoping.mount(app, graph_router, API_PREFIX, "graph")
     scoping.mount(app, analysis_router, API_PREFIX, "analysis")

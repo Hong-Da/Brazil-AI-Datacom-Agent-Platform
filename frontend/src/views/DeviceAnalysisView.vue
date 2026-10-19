@@ -8,7 +8,10 @@ import { computed, nextTick, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
+import { fsHost } from '@/components/fullscreen'
 import Icon from '@/components/Icon.vue'
+import FullscreenPane from '@/components/FullscreenPane.vue'
+import FullscreenButton from '@/components/FullscreenButton.vue'
 import HiddenLegend from '@/components/hidden-legend.vue'
 import ShowDefaultToggle from '@/components/show-default-toggle.vue'
 import { ApiError, errorText, get } from '@/api'
@@ -253,7 +256,7 @@ function onRef(target: string): void {
   select(target, 'script')
   const def = data.value?.script?.defs[target]
   if (def) scriptRef.value?.scrollToLine(def, { force: true, flash: true })
-  else ElMessage.info(t('device-analysis.noDefLine'))
+  else ElMessage({ type: 'info', message: t('device-analysis.noDefLine'), appendTo: fsHost() })
 }
 function gotoLine(no: number): void {
   if (view.value !== 'script') {
@@ -371,10 +374,14 @@ onMounted(async () => {
         </div>
       </div>
 
+      <FullscreenPane class="an-fs" :title="device?.name ?? data?.device ?? ''" data-testid="analysis-fs">
+      <div class="an-tabrow">
       <div class="an-tabs" role="tablist" data-testid="analysis-tabs">
         <button v-for="v in VIEWS" :key="v" type="button" role="tab" :aria-selected="view === v" :data-view="v" @click="switchView(v)">
           <Icon :name="TAB_ICON[v]" small />{{ $t(`device-analysis.tab.${v}`) }}<span class="cnt">{{ tabCount[v] }}</span>
         </button>
+      </div>
+      <FullscreenButton class="tabs-fs" />
       </div>
 
       <div v-if="loadErr" class="notice err" data-testid="analysis-error">
@@ -529,6 +536,7 @@ onMounted(async () => {
           @view="switchView"
         />
       </div>
+      </FullscreenPane>
     </div>
   </main>
 </template>
@@ -562,13 +570,17 @@ onMounted(async () => {
 .an-head h1 { font: 600 18px var(--font-mono); letter-spacing: 0; overflow-wrap: anywhere; }
 .an-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .dev-sel { width: auto; height: 28px; max-width: 220px; }
-.an-tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 10px; overflow-x: auto; flex: none; }
+.an-tabrow { display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); margin-bottom: 10px; flex: none; }
+.an-tabs { display: flex; gap: 2px; overflow-x: auto; flex: 1; min-width: 0; }
 .an-tabs button { all: unset; box-sizing: border-box; position: relative; display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px 9px; font-size: 13px; color: var(--ink-2); cursor: pointer; white-space: nowrap; }
 .an-tabs button:hover { color: var(--ink); }
 .an-tabs button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; border-radius: 4px; }
 .an-tabs button[aria-selected="true"] { color: var(--ink); font-weight: 600; }
 .an-tabs button[aria-selected="true"]::after { content: ""; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 2px; background: var(--amber); border-radius: 2px; }
 .an-tabs .cnt { font-size: 11px; color: var(--ink-3); font-weight: 400; }
+.an-fs { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.an-fs.is-fs { gap: 0; }
+.tabs-fs { margin-left: auto; align-self: center; flex: none; }
 .an-work { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 10px; }
 @media (max-width: 1150px) { .an-work { grid-template-columns: minmax(0, 1fr) 270px; } }
 .an-main { display: flex; flex-direction: column; min-height: 0; overflow: hidden; }

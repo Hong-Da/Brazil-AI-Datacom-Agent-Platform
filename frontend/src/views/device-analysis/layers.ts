@@ -146,3 +146,66 @@ export function layerName(info: { id: string; name: Record<string, string> | nul
   const x = info.find((l) => l.id === id)
   return (x?.name && (x.name[lang] || x.name.en)) || id
 }
+
+/* ---------- 合并相似（REQ-034 评审修改）：同组内键只差末尾编号的对象合并成一个范围格子 ---------- */
+
+export type ChipEntry =
+  | { merged: false; id: string }
+  | { merged: true; key: string; stem: string; from: number; to: number; members: string[] }
+
+/** 合并至少要有几个成员（两个时合并省不了地方） */
+export const MERGE_MIN = 3
+
+/**
+ * 把一组格子里“相似”的对象合并：标签（对象的键）去掉末尾编号后相同的对象归为一簇，簇的成员不少于 min 个时合并，
+ * 例如 GigabitEthernet0/2/0…7、子接口 GE0/2/1.101…108、对等体 10.255.0.101…103。属性格子与没有末尾编号的对象不合并。
+ * 合并后的格子放在第一个成员原来的位置，成员按编号排序。
+ */
+export function mergeSimilar(items: string[], labelOf: (id: string) => string, isObject: (id: string) => boolean, min = MERGE_MIN): ChipEntry[] {
+  const parse = (id: string): { stem: string; n: number } | null => {
+    if (!isObject(id)) return null
+    const m = /^(.*?)(\d+)$/.exec(labelOf(id))
+    // 地址（10.0.149.40、2001:db8::1）末尾的数字不是编号，合并成范围会误读
+    if (!m || /\d+\.\d+\.\d+\.$/.test(m[1]!) || /[0-9a-f]*:[0-9a-f]*:$/i.test(m[1]!)) return null
+    return { stem: m[1]!, n: Number(m[2]) }
+  }
+  const parsed = new Map<string, { stem: string; n: number }>()
+  const byStem = new Map<string, string[]>()
+  for (const id of items) {
+    const p = parse(id)
+    if (!p) continue
+    parsed.set(id, p)
+    const list = byStem.get(p.stem)
+    if (list) list.push(id)
+    else byStem.set(p.stem, [id])
+  }
+  const out: ChipEntry[] = []
+  const done = new Set<string>()
+  for (const id of items) {
+    const p = parsed.get(id)
+    const members = p ? byStem.get(p.stem)! : null
+    if (!p || !members || members.length < min) {
+      out.push({ merged: false, id })
+      continue
+    }
+    if (done.has(p.stem)) continue
+    done.add(p.stem)
+    const sorted = [...members].sort((a, b) => parsed.get(a)!.n - parsed.get(b)!.n)
+    out.push({ merged: true, key: p.stem, stem: p.stem, from: parsed.get(sorted[0]!)!.n, to: parsed.get(sorted[sorted.length - 1]!)!.n, members: sorted })
+  }
+  return out
+}
+
+const STEM_SHORT: [RegExp, string][] = [
+  [/TenGigabitEthernet/, 'Te'],
+  [/HundredGigE/, 'Hu'],
+  [/XGigabitEthernet/, 'XGE'],
+  [/GigabitEthernet/, 'GE'],
+]
+
+/** 合并格子的文字：接口名用简写，例如 “GE0/2/1–8”。 */
+export function mergedText(e: { stem: string; from: number; to: number }): string {
+  let stem = e.stem
+  for (const [re, s] of STEM_SHORT) if (re.test(stem)) { stem = stem.replace(re, s); break }
+  return `${stem}${e.from}–${e.to}`
+}

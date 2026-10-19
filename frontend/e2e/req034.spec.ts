@@ -115,3 +115,39 @@ test('设备配置分析：大配置虚拟滚动、Cisco 叫法、暗色主题',
   await expect(page.getByTestId('tile-defaults')).toBeVisible({ timeout: 60_000 })
   expect(errors).toEqual([])
 })
+
+test('设备配置分析：TCP/IP 视图合并相似（评审修改）', async ({ page }) => {
+  await login(page, 'zh-CN')
+  const errors = collectErrors(page)
+  const id = await deviceId(page, 'ORG-')
+  await page.goto(`/analysis/${id}?view=tcpip`)
+  await expect(page.getByTestId('tcpip-view')).toBeVisible({ timeout: 90_000 })
+  // 默认合并：大配置里同类接口等合并成范围格子
+  await expect(page.getByTestId('tcp-merge')).toBeChecked()
+  const merged = page.getByTestId('tcp-merged')
+  await expect(merged.first()).toBeVisible()
+  const mergedCount = await merged.count()
+  const chipsOn = await page.getByTestId('tcp-chip').count()
+  // 点开组逐个查看，选中其中一个成员，收起后组仍显示为选中
+  const first = merged.first()
+  const n = Number(await first.locator('.n').innerText())
+  expect(n).toBeGreaterThanOrEqual(3)
+  await first.click()
+  const open = page.getByTestId('tcp-merged-open').first()
+  await expect(open.getByTestId('tcp-chip')).toHaveCount(n)
+  await open.getByTestId('tcp-chip').nth(1).click()
+  await expect(open.locator('[data-testid="tcp-chip"].is-sel')).toHaveCount(1)
+  await open.getByTestId('tcp-merged-fold').click()
+  await expect(page.locator('[data-testid="tcp-merged"].is-sel')).toHaveCount(1)
+  await expect(page.getByTestId('tcp-merged')).toHaveCount(mergedCount)
+  // 关闭合并：逐个显示，选中的格子还在
+  await page.getByTestId('tcpip-view').locator('.tcp-tools label').click() // 开关的 input 被样式隐藏，点标签
+  await expect(page.getByTestId('tcp-merged')).toHaveCount(0)
+  await expect(page.locator('[data-testid="tcp-chip"].is-sel')).toHaveCount(1)
+  expect(await page.getByTestId('tcp-chip').count()).toBeGreaterThan(chipsOn)
+  // 开关记在浏览器里：刷新后保持关闭
+  await page.reload()
+  await expect(page.getByTestId('tcpip-view')).toBeVisible({ timeout: 90_000 })
+  await expect(page.getByTestId('tcp-merge')).not.toBeChecked()
+  expect(errors).toEqual([])
+})

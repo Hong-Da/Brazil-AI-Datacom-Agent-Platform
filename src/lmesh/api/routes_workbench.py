@@ -287,7 +287,10 @@ def unknown_review(request: Request, body: PatternsBody) -> dict[str, Any]:
 
 
 @router.get(
-    "/ai/settings", summary="AI 接口设置（API Key 只显示是否已设置；管理员）", dependencies=[Depends(require_admin)]
+    "/ai/settings",
+    summary="（已弃用，改用 /ai/connections）第一个管理员 AI 接口的设置（API Key 只显示是否已设置；管理员）",
+    dependencies=[Depends(require_admin)],
+    deprecated=True,
 )
 def ai_settings(request: Request) -> dict[str, Any]:
     return ok(request, workbench.ai_settings(settings_of(request)))
@@ -307,13 +310,15 @@ class AISettingsBody(BaseModel):
 
 @router.put(
     "/ai/settings",
-    summary="保存 AI 接口设置（写入配置文件，API Key 加密保存；管理员）",
+    summary="（已弃用，改用 /ai/connections）保存第一个管理员 AI 接口（API Key 加密保存）；超时与 max_tokens 写入配置文件（管理员）",
     dependencies=[Depends(require_admin)],
+    deprecated=True,
 )
 def ai_settings_put(request: Request, body: AISettingsBody) -> dict[str, Any]:
     try:
-        new = workbench.save_ai_settings(body.model_dump(), lang_of(request))
+        new = workbench.save_ai_settings(settings_of(request), body.model_dump(), lang_of(request))
     except config.ConfigError as e:
         raise ApiError(E_PARAM, 422, data={"error": str(e)}) from e
-    request.app.state.settings = new
-    return ok(request, workbench.ai_settings(new))
+    if new is not None:
+        request.app.state.settings = new
+    return ok(request, workbench.ai_settings(settings_of(request)))

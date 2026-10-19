@@ -9,6 +9,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import Icon from '@/components/Icon.vue'
+import FullscreenPane from '@/components/FullscreenPane.vue'
+import FullscreenButton from '@/components/FullscreenButton.vue'
 import { ApiError, errorText, get, post } from '@/api'
 import { useStatus } from '@/stores/status'
 import { useTerms } from '@/stores/terms'
@@ -533,7 +535,7 @@ onMounted(async () => {
       </div>
       <div v-else-if="!model" class="panel loading-box faint">{{ $t('c.loading') }}</div>
 
-      <div v-else class="work">
+      <FullscreenPane v-else class="work" data-testid="graph-fs">
         <section class="panel p-graph" aria-label="Graph">
           <div class="gbar">
             <div class="seg" role="group" :aria-label="$t('device-graph.viewMode')" data-testid="view-switch">
@@ -564,6 +566,7 @@ onMounted(async () => {
               <button class="btn btn-sm" data-testid="btn-relayout" @click="forceCanvas?.relayout()"><Icon name="refresh" small /><span>{{ $t('device-graph.relayout') }}</span></button>
               <button class="btn btn-sm btn-icon" :title="$t('device-graph.fit')" data-testid="btn-fit" @click="forceCanvas?.fit()"><Icon name="target" small /></button>
             </template>
+            <FullscreenButton class="ml-auto" />
           </div>
           <ForceGraph
             v-if="view === 'force' && force"
@@ -659,7 +662,7 @@ onMounted(async () => {
           />
           <div v-else class="empty"><p>{{ $t('device-graph.noText') }}</p></div>
         </section>
-      </div>
+      </FullscreenPane>
     </div>
     <DevDelDialog v-if="showDelete && deviceId" :device-id="deviceId" @close="showDelete = false" @deleted="onDeviceDeleted" />
   </main>
@@ -680,6 +683,7 @@ onMounted(async () => {
   grid-template-rows: minmax(0, 1fr) 248px;
   grid-template-areas: "graph detail" "text detail";
 }
+.work.is-fs { grid-template-rows: minmax(0, 1fr) 30vh; }
 @media (max-width: 1300px) { .work { grid-template-columns: minmax(0, 1fr) 300px; } }
 @media (max-width: 1100px) {
   .work { grid-template-columns: minmax(0, 1fr) 270px; grid-template-rows: minmax(0, 1fr) 180px; }

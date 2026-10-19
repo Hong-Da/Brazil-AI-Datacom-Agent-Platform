@@ -25,7 +25,7 @@ from lmesh.api.common import (
 from lmesh.api.routes_export import load_devices, targets_of
 from lmesh.api.routes_skills import skill_actor
 from lmesh.api.routes_topology import ConfigText
-from lmesh.core import analysis, ask, gquery, guard, history, importer, kbservice, store, template
+from lmesh.core import ai, analysis, ask, gquery, guard, history, importer, kbservice, store, template
 from lmesh.core.kb import KnowledgeBase
 
 router = APIRouter(dependencies=[Depends(require_token)])
@@ -82,7 +82,7 @@ class AskBody(BaseModel):
 def post_ask(request: Request, body: AskBody) -> dict[str, Any]:
     settings = settings_of(request)
     if not ask.status(settings)["configured"]:
-        raise ApiError(E_STATE, 409, "ai.not_configured", data={"status": "not_configured", "configured": False})
+        raise ApiError(E_STATE, 409, "ai.not_configured", data=ai.not_configured_data(settings))
     kb, _ = _kb(request)
     devices = load_devices(request, kb, [], targets_of([], body.devices))
     try:
@@ -176,7 +176,7 @@ class GenerateBody(BaseModel):
 def post_generate(request: Request, body: GenerateBody) -> dict[str, Any]:
     settings = settings_of(request)
     if not ask.status(settings)["configured"]:
-        raise ApiError(E_STATE, 409, "ai.not_configured", data={"status": "not_configured", "configured": False})
+        raise ApiError(E_STATE, 409, "ai.not_configured", data=ai.not_configured_data(settings))
     kb, root = _kb(request)
     base, name, profile, others = _target(request, kb, body.device, None, True)
     try:

@@ -8,6 +8,8 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import FullscreenPane from '@/components/FullscreenPane.vue'
+import FullscreenButton from '@/components/FullscreenButton.vue'
 import DevChip from '@/components/m4-dev.vue'
 import { errorText, get, post } from '@/api'
 import { useTerms } from '@/stores/terms'
@@ -214,10 +216,11 @@ onMounted(async () => {
       <div v-if="runError" class="notice err mt12" data-testid="topo-error"><Icon name="err" /><div class="grow">{{ runError }}</div><button class="btn btn-sm" type="button" @click="run">{{ $t('c.retry') }}</button></div>
       <div v-if="!result && !runError" class="empty mt16"><Icon name="network" /><h3>{{ running ? $t('c.loading') : $t('topology.emptyTitle') }}</h3><p v-if="!running">{{ $t('topology.emptyText') }}</p></div>
 
-      <template v-if="result">
+      <FullscreenPane v-if="result" class="topo-fs" :title="view === 'map' ? $t('topology.title') : $t('topology.titleCons')" data-testid="topo-fs">
         <div class="tabs mt12" role="tablist">
           <button type="button" role="tab" :aria-selected="view === 'map'" data-testid="topo-tab-map" @click="setView('map')"><Icon name="network" small />{{ $t('topology.tabMap') }}</button>
           <button type="button" role="tab" :aria-selected="view === 'consistency'" data-testid="topo-tab-cons" @click="setView('consistency')"><Icon name="link" small />{{ $t('topology.tabCons') }}<span v-if="sev.error" class="count bad">{{ sev.error }}</span></button>
+          <FullscreenButton class="tabs-fs" />
         </div>
         <div class="tstrip" data-testid="topo-strip">
           <div><div class="v">{{ nodes.length }}</div><div class="k">{{ $t('topology.s.devices') }}<span v-if="topo?.unresolved" class="faint">{{ $t('topology.s.unresolved', { n: topo.unresolved }) }}</span></div></div>
@@ -373,7 +376,7 @@ onMounted(async () => {
             </div>
           </div>
         </section>
-      </template>
+      </FullscreenPane>
     </div>
   </main>
 </template>
@@ -443,6 +446,10 @@ onMounted(async () => {
 .ctbl tr { cursor: pointer; }
 .ctbl .why { color: var(--ink); font-size: 12px; max-width: 520px; }
 .ctbl .lk { font: 11.5px var(--font-mono); color: var(--ink-2); }
+.tabs-fs { margin-left: auto; align-self: center; }
+.topo-fs.is-fs .tabs, .topo-fs.is-fs .tstrip { margin: 0; }
+.topo-fs.is-fs .tw { flex: 1; height: auto; min-height: 0; }
+.topo-fs.is-fs [data-testid="topo-cons"] { flex: 1; min-height: 0; overflow: auto; margin: 0; }
 @media (max-width: 1300px) {
   .tw { grid-template-columns: minmax(0, 1fr); height: auto; grid-template-rows: 560px auto; }
   .tw .side { max-height: 760px; }

@@ -78,7 +78,7 @@ function navTo(name: string, proj?: boolean): RouteLocationRaw {
   return project.ref ? { name, params: { project: project.ref } } : { name }
 }
 // 同一项导航对应的其他页面（清理属于检查、脚本编辑器属于项目脚本、单个 skill 属于 skill 列表）
-const ALIAS: Record<string, string> = { cleanup: 'check', 'check-project': 'scripts', 'ai-skill': 'ai-skills', 'add-device': 'devices' }
+const ALIAS: Record<string, string> = { cleanup: 'check', 'check-project': 'scripts', 'ai-skill': 'ai-skills', 'add-device': 'devices', 'ai-connection': 'ai-settings' }
 const current = computed(() => ALIAS[String(route.name)] ?? String(route.name))
 const roleTag = computed(() => (auth.me?.role === 'admin' ? 'admin' : auth.me?.role === 'maintainer' ? 'maintainer' : null))
 
@@ -171,6 +171,7 @@ watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void
             </div>
             <router-link v-if="auth.me.via === 'session'" role="menuitem" :to="{ name: 'password' }" data-testid="menu-password"><Icon name="key" small />{{ $t('account.changePassword') }}</router-link>
             <router-link v-if="auth.me.via !== 'token'" role="menuitem" :to="{ name: 'tokens' }" data-testid="menu-tokens"><Icon name="key" small />{{ $t('nav.tokens') }}</router-link>
+            <router-link v-if="auth.me.via !== 'token'" role="menuitem" :to="{ name: 'my-ai' }" data-testid="menu-my-ai"><Icon name="spark" small />{{ $t('my-ai.title') }}</router-link>
             <router-link role="menuitem" :to="{ name: 'projects' }" data-testid="menu-projects"><Icon name="folders" small />{{ $t('nav.projects') }}</router-link>
             <router-link v-if="auth.isAdmin" role="menuitem" :to="{ name: 'users' }" data-testid="menu-users"><Icon name="users" small />{{ $t('nav.users') }}</router-link>
             <button type="button" role="menuitem" data-testid="menu-logout" @click="signOut"><Icon name="logout" small />{{ $t('account.signOut') }}</button>

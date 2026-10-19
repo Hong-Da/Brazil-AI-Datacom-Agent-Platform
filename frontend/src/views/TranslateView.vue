@@ -7,6 +7,9 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import FullscreenPane from '@/components/FullscreenPane.vue'
+import FullscreenButton from '@/components/FullscreenButton.vue'
+import type { FsMode } from '@/components/fullscreen'
 import HiddenLegend from '@/components/hidden-legend.vue'
 import ShowDefaultToggle from '@/components/show-default-toggle.vue'
 import TermName from '@/components/term-name.vue'
@@ -364,6 +367,8 @@ const outFile = computed(() => {
 
 // ---------------------------------------------------------------- 复制与下载
 const toast = ref('')
+/** 全屏时提示放进全屏区域里（REQ-043），否则看不到。 */
+const fsMode = ref<FsMode>('')
 let toastTimer = 0
 function flash(s: string): void {
   toast.value = s
@@ -531,6 +536,7 @@ onMounted(async () => {
 
         <NamingReportPanel v-if="result.naming" :report="result.naming" class="mt12" testid="tr-naming" />
 
+        <FullscreenPane class="tr-fs" :title="`${result.source.profile} → ${result.target.profile}`" data-testid="tr-fs" @change="(m) => (fsMode = m)">
         <div class="rbar">
           <ShowDefaultToggle v-model="showDefault" testid="tr-show-default" />
           <span v-if="showDefault && renderLoading" class="small faint">{{ $t('c.loading') }}</span>
@@ -538,6 +544,7 @@ onMounted(async () => {
           <HiddenLegend :derived="false" />
           <span class="legend-m3"><span class="faint">|</span><span class="wk default">{{ $t('translate.lgDefault') }}</span><span class="wk unsup">{{ $t('translate.lgUnsup') }}</span><span class="wk raw">{{ $t('translate.lgRaw') }}</span><span class="wk infer">{{ $t('translate.lgInfer') }}</span><span v-if="result.naming?.summary.renamed" class="wk rename" data-testid="tr-rename-legend">{{ $t('translate-rules.report') }}</span></span>
           <span class="ml-auto small faint">{{ $t('translate.linkHint') }}</span>
+          <FullscreenButton />
         </div>
         <div class="tw">
           <section class="panel pane src" aria-label="Source">
@@ -571,9 +578,11 @@ onMounted(async () => {
             @filter="setFilter" @select="(id) => selectWarn(id)" @go="go" @handle="(id, v) => (handled = { ...handled, [id]: v })" @copy="copyText"
           />
         </div>
+        <div v-if="toast && fsMode" class="toast" role="status">{{ toast }}</div>
+        </FullscreenPane>
       </template>
     </div>
-    <div v-if="toast" class="toast" role="status">{{ toast }}</div>
+    <div v-if="toast && !fsMode" class="toast" role="status">{{ toast }}</div>
     <DownloadDialog v-if="dlOpen && result" :file="outFile" :has-defaults="!!rendered" :has-map="mapRows.length > 0" @close="dlOpen = false" @dl="doDl" />
   </main>
 </template>
@@ -629,6 +638,8 @@ onMounted(async () => {
 .mt12 { margin-top: 12px; }
 
 .tw { display: grid; grid-template-columns: minmax(0, 1fr) 46px minmax(0, 1fr) 380px; gap: 0 10px; height: min(70vh, 760px); min-height: 460px; }
+.tr-fs.is-fs .rbar { margin: 0; }
+.tr-fs.is-fs .tw { flex: 1; height: auto; min-height: 0; }
 .tw .pane { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
 .pane .tbar { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-bottom: 1px solid var(--line); font-size: 12px; white-space: nowrap; overflow: hidden; }
 .pane .tbar .side-b { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font: 700 11px var(--font-ui); border: 1.5px solid var(--line-strong); flex: none; }

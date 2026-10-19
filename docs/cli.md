@@ -23,7 +23,7 @@
 | `--verbose` / `-v` | 同时把日志打印到 stderr |
 | `--yes` / `-y` | 跳过所有确认提示（非终端调用时自动开启） |
 | `--project <项目>` / `-P` | 命令作用于哪个项目（M6）：项目标识、`属主/标识` 或项目编号；不给时用默认项目；项目不存在退出码 4。标识只在属主内唯一：只写标识时先找 `--as` 账号自己的项目，没有时在他能访问的项目里找，有多个同名时退出码 2（提示写成 `属主/标识`，`--output json` 的 `error.data.candidates` 列出候选） |
-| `--as <账号>` | 以哪个账号的身份：默认项目、新建项目与个人令牌的属主；默认第一个启用的管理员（还没有账号时等同全局令牌） |
+| `--as <账号>` | 以哪个账号的身份：默认项目、新建项目与个人令牌的属主，调用 AI 时按这个账号的 AI 选择（REQ-040）；默认第一个启用的管理员（还没有账号时等同全局令牌，用第一个可用的管理员 AI 接口） |
 | `--version` | 显示版本 |
 
 命令行直接操作本机数据库，权限等同管理员（不按项目角色限制）；设备相关的命令（导入、列表、配置图、对比、检查、版本历史、拓扑、导出……）都只看当前项目里的设备（私有设备与引用的公共设备）。
@@ -120,7 +120,14 @@
 | `lmesh template draft <文件>… [--id 编号] [-o 模板文件] [--params-out 参数表] [--profile P]` | 模板制作辅助：从一份或几份同角色设备的配置生成模板草稿（第一份为基准）；在图上对齐各设备的节点，取值不同的词作为候选变量（名字建议、类型推断），只有一份时以设备身份与描述为候选；列出可选块与重复块候选，并用草稿校验每份源配置（自检） |
 | `lmesh template generate <模板> <参数表> [--format csv\|json] [--out-dir 目录] [--engine text\|canon] [--target-profile P] [--no-verify] [--rules 规则集]` | 批量生成：参数表每行生成一份配置；生成后解析（未识别行为 0）、往返（逐字一致）并按模板校验（符合且提取出的变量与输入一致），失败的行给出原因；`--engine canon` 用规范渲染器输出，可配合 `--target-profile` 生成另一平台族的配置；`--out-dir` 只写成功的行（`<设备名>.cfg`）；**有失败的行时退出码 1**；`--rules` 只能与 `--engine canon` 一起用：生成的图按规则集改名后再渲染（改过名的行不按模板校验） |
 | `lmesh template save <模板文件>` | 校验（含正文解析建图）后把模板写入运行时知识库的 `templates/<编号>.yaml` 并提交 |
-| `lmesh ai test` / `lmesh ai calls` | 测试 AI 接口 / 最近的 AI 调用记录（任务、模型、token 用量、成功与否） |
+| `lmesh ai test` / `lmesh ai calls [--user 账号]` | 测试当前生效的 AI 接口 / 最近的 AI 调用记录（发起人、接口、功能、模型、token 用量、成功与否） |
+| `lmesh ai connections list` | 管理员 AI 接口（REQ-040）：名称、类型、模型、允许公共使用、启用、选用人数、本月 token；`*` 标出默认接口 |
+| `lmesh ai connections add <名称> --provider P [--base-url U] [--api-key K \| --api-key-stdin] --model M [--model-extract/--model-merge/--model-ask/--model-generate M] [--public/--private] [--enabled/--disabled]` | 新建管理员 AI 接口（API Key 加密保存；建议用 `--api-key-stdin`，不进 shell 历史）；名称重复退出码 1，填写不完整退出码 2 |
+| `lmesh ai connections set <名称\|编号> [--name N] [同上各项] [--clear-api-key]` / `remove <名称\|编号>` / `test <名称\|编号>` | 修改 / 删除（选用它的账号随后提示改选）/ 测试；不存在退出码 4，AI 出错退出码 5 |
+| `lmesh ai use <personal\|接口名\|none\|auto>` | 选择 AI 来源（作用于 `--as` 账号，不给时第一个管理员）：个人 API、某个管理员接口（普通账号只能选允许公共使用的）、不使用、自动；不可选时退出码 2 |
+| `lmesh ai status` | 当前账号的选择与生效来源（不可用时给出原因） |
+| `lmesh ai personal show\|set\|remove\|test` | 个人 AI 接口（作用于 `--as` 账号）：`set` 的选项同 `connections add`，`--use` 同时改为使用它；只显示 Key 是否已设置 |
+| `lmesh ai usage [--from D] [--to D] [--group day\|user\|connection\|feature\|model] [--user 账号] [--csv 文件]` | AI 用量统计：范围（UTC 日期，默认最近 30 天）内的调用次数、失败与 token，按分组列出；`--csv` 导出这一组 |
 | `lmesh history list <设备>` | 版本历史时间线：每个快照的导入记录（内容相同的重复导入不存新快照，只记导入记录，显示 ×N）、行数、节点数、解析用的知识库版本、内容指纹、标签、相对上一快照的变化（+新增 ~修改 -删除）；保留最近 `history.keep` 个（默认 50），贴标签的永久保留 |
 | `lmesh history diff <设备> [--from 快照] [--to 快照] [--rebuild] [--show-noneff] [--domain D] [--no-text] [--report 文件.html\|.md] [--report-lang zh-CN\|en]` | 两个快照之间的变化（默认上一个 → 最新）：按对象归并的图差异、只是写法不同的变化（默认只计数）、配置原文差异；默认用快照当时保存的图，`--rebuild` 两侧都按当前知识库重新解析。快照写法：数字是序号（同 `#3`），`v<编号>` 是配置版本编号，另有 `latest`、`prev`、`tag:<标签>` |
 | `lmesh history object <设备> <对象规范编号> [--rebuild]` | 一个对象在每个快照中的取值与变化 |
@@ -473,6 +480,95 @@ lmesh --output json unknown list
 JSON 输出中的关键字段：
 
 - `data.patterns` = `[]`
+
+### 管理员 AI 接口列表
+
+```bash
+lmesh --output json ai connections list
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.connections.0.name` = `"shared"`
+- `data.connections.0.public` = `true`
+- `data.connections.0.is_default` = `true`
+- `data.connections.1.name` = `"internal"`
+- `data.connections.1.public` = `false`
+
+### 新建允许公共使用的接口，API Key 从标准输入读取
+
+```bash
+lmesh --output json ai connections add lab --provider local --base-url http://127.0.0.1:11434/v1 --model qwen2.5 --api-key-stdin --public
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.name` = `"lab"`
+- `data.public` = `true`
+- `data.api_key_set` = `true`
+
+### 关闭公共使用
+
+```bash
+lmesh --output json ai connections set shared --private
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.name` = `"shared"`
+- `data.public` = `false`
+
+### 账号 bob 改用公共接口 shared
+
+```bash
+lmesh --output json --as bob ai use shared
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.choice` = `"connection"`
+- `data.effective.configured` = `true`
+- `data.effective.connection.name` = `"shared"`
+
+### 设置个人接口并改为使用它
+
+```bash
+lmesh --output json --as bob ai personal set --provider openai --base-url http://127.0.0.1:9/v1 --model bob-model --use
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.choice` = `"personal"`
+- `data.personal.model` = `"bob-model"`
+- `data.effective.source` = `"personal"`
+
+### AI 用量统计（按接口）
+
+```bash
+lmesh --output json ai usage --group connection
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.totals.calls` = `0`
 
 ### 分析现网 ATN 配置：摘要与 TCP/IP 分层
 
@@ -1706,7 +1802,7 @@ JSON 输出中的关键字段：
 - `data.semantic.equal` = `true`
 - `data.unordered.only_b` = `[]`
 
-### skill 列表：启用状态、当前版本、近 30 天调用与校验通过率
+### skill 列表：按功能分组，启用状态、当前版本、近 30 天调用与校验通过率
 
 ```bash
 lmesh --output json skill list
@@ -1718,13 +1814,30 @@ JSON 输出中的关键字段：
 
 - `ok` = `true`
 - `data.days` = `30`
-- `data.skills.0.id` = `"card-extract"`
-- `data.skills.1.id` = `"ask-query"`
-- `data.skills.1.active` = `"builtin"`
-- `data.skills.1.enabled` = `true`
-- `data.skills.1.model_key` = `"ai.model_ask"`
-- `data.skills.1.stats.calls` = `0`
+- `data.groups.0.id` = `"qa"`
+- `data.groups.0.count` = `2`
+- `data.skills.0.id` = `"ask-query"`
+- `data.skills.0.group` = `"qa"`
+- `data.skills.0.active` = `"builtin"`
+- `data.skills.0.enabled` = `true`
+- `data.skills.0.model_key` = `"ai.model_ask"`
+- `data.skills.0.stats.calls` = `0`
+- `data.skills.4.id` = `"card-extract"`
 - `data.skills.5.id` = `"skill-evolve"`
+
+### 只列一个功能分组的 skill
+
+```bash
+lmesh --output json skill list --group kb
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.skills.0.id` = `"card-extract"`
+- `data.groups.5.id` = `"kb"`
 
 ### 显示 skill 的生效定义：系统提示词、提示模板、工具、代码校验
 

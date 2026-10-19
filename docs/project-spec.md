@@ -57,15 +57,15 @@
 | REQ-032 | 配置翻译自定义规则：命名规范、名称映射（支持模糊规则）、端口映射规则；翻译、割接迁移、批量生成共用 | 用户 2026-10-18 | M4 补充 | `core/naming.py`、规则集文件、`/api/v1/translate-rules`、CLI `--rules`、翻译页规则编辑与预览 | 进行中 | 设计见“翻译自定义规则（REQ-032）”一节 |
 | REQ-033 | 内置 AI skill：内置 AI 的能力以 skill 形式管理；管理员有 skill 管理界面；提供 skill 学习进化功能 | 用户 2026-10-18 | M5 补充 | `core/skills.py`、`knowledge/ai-skills/`、`data/ai-skills/`、`/api/v1/ai/skills`、CLI `lmesh skill`、skill 管理页 | 进行中 | 设计见“内置 AI skill（REQ-033）”一节 |
 | REQ-034 | 设备配置分析：结构化脚本显示、配置分层视图、TCP/IP 模型视图、配置关系视图（图结构）与分析摘要，集中在一个页面 | 用户 2026-10-18 | M5 补充 | `core/layers.py`、`core/config_analysis.py`、`knowledge/layers.yaml`、`/api/v1/devices/{id}/analysis`、`POST /api/v1/analysis`、`lmesh analyze`、设备配置分析页 | 已实现（预览待评审） | 设计与实现结果见“设备配置分析（REQ-034）”一节 |
-| REQ-035 | 用户工作空间与项目：每个账号有独立的工作空间，可创建项目，每个项目有自己的设备与脚本；公共设备库；项目成员；个人 API 令牌 | 用户 2026-10-19 | M6（0.6.0） | 数据库（工作空间、项目、成员、公共设备库）、所有设备相关接口按项目隔离、项目切换器 | 待开发 | 设计见“用户工作空间与项目（REQ-035）”一节，经用户确认 |
-| REQ-036 | 权限模型：新增“知识库维护员”角色；知识库与共享的规则、基线、模板只有管理员和维护员可改，普通用户只读并可提交建议；用户可建私有模板、在项目中调整规则；全部设备重新解析仅管理员 | 用户 2026-10-19 | M6（0.6.0） | 角色、权限检查、审核队列“建议”、项目级规则覆盖 | 待开发 | 设计见“权限模型（REQ-036）”一节，经用户确认 |
+| REQ-035 | 用户工作空间与项目：每个账号有独立的工作空间，可创建项目，每个项目有自己的设备与脚本；公共设备库；项目成员；个人 API 令牌 | 用户 2026-10-19 | M6（0.6.0） | 数据库（工作空间、项目、成员、公共设备库）、所有设备相关接口按项目隔离、项目切换器 | 已完成（M6） | 设计见“用户工作空间与项目（REQ-035）”一节，经用户确认 |
+| REQ-036 | 权限模型：新增“知识库维护员”角色；知识库与共享的规则、基线、模板只有管理员和维护员可改，普通用户只读并可提交建议；用户可建私有模板、在项目中调整规则；全部设备重新解析仅管理员 | 用户 2026-10-19 | M6（0.6.0） | 角色、权限检查、审核队列“建议”、项目级规则覆盖 | 已完成（M6） | 设计见“权限模型（REQ-036）”一节，经用户确认 |
 | REQ-037 | 接入 Nokia 7750 SR（SR OS）：Classic CLI 与 MD-CLI 两种格式，映射到统一 Schema，支持解析、往返、对比、检查、翻译等 | 用户 2026-10-19 | M7（0.7.0） | `knowledge/` 新平台族、解析器 MD-CLI 分块扩展、Profile | 进行中 | 文档与知识准备先行，与 M6 并行 |
 | REQ-038 | 删除设备与单个配置版本（确认对话列出连带删除的内容；被配置检查项目作基线时提示；最后一个版本不能单独删除）；CLI `lmesh device delete`、`DELETE /api/v1/devices/{id}`；所有登录账号都可删除（删除记入日志），M6 起项目属主与“可编辑”成员可删除项目内的设备与配置（只读成员不可，公共设备库仅管理员，引用的公共设备为解除引用） | 用户 2026-10-19 | M5 补充（问题修复） | 设备接口、设备列表与版本历史页 | 已完成 | 用户确认现在做；用户随后要求每个用户都可以删除项目下的配置；现阶段所有登录账号都可删除，M6 项目权限另做；实现见“删除设备与配置版本（REQ-038）”一节 |
 | REQ-039 | 用户自助注册：设置中开启 / 关闭注册（默认关闭）；可选注册后直接生效或需管理员审核（默认需审核）；注册频率限制 | 用户 2026-10-19 | M6（0.6.0） | 设置项、登录页注册入口、注册接口、账号管理“待审核”、注册后自动建工作空间与默认项目 | 待开发 | 设计见“用户自助注册（REQ-039）”一节，经用户确认 |
-| REQ-040 | AI 接口：管理员配置一个或多个 AI 接口并设定是否允许公共使用；每个用户可选用个人 API 或允许的公共 API | 用户 2026-10-19 | M6（0.6.0） | AI 接口表、设置页、账号设置“我的 AI”、AI 调用按用户选择的接口 | 待开发 | 设计见“AI 接口：公共与个人（REQ-040）”一节 |
+| REQ-040 | AI 接口：管理员配置一个或多个 AI 接口并设定是否允许公共使用；每个用户可选用个人 API 或允许的公共 API | 用户 2026-10-19 | M6（0.6.0） | AI 接口表、设置页、账号设置“我的 AI”、AI 调用按用户选择的接口 | 已完成（M6-8） | 设计见“AI 接口：公共与个人（REQ-040）”一节 |
 | REQ-041 | AI 增强：为各功能新增内置 AI skill（日常分析、变更与割接、规范与合规、知识库构建、报告共 21 个），AI 只给建议，代码验证后由用户确认生效 | 用户 2026-10-19 | M8（0.8.0） | `knowledge/ai-skills/`、各功能页的 AI 入口、审核与采纳流程 | 待开发 | 设计见“AI 增强（REQ-041）”一节 |
 | REQ-042 | 网元拓扑视图的设备图标：按设备角色与类型设计图标，显示厂商与平台 | 用户 2026-10-19 | M8（0.8.0） | 拓扑视图、关系图谱、图标资源 | 待开发 | 设计见“拓扑设备图标（REQ-042）”一节；先做预览 |
-| REQ-043 | 所有视图可以全屏显示与操作（配置图、关系图谱、拓扑、设备分析各视图、对比、脚本编辑器等） | 用户 2026-10-19 | M7（0.7.0） | 前端通用全屏组件 | 待开发 | 设计见“视图全屏（REQ-043）”一节 |
+| REQ-043 | 所有视图可以全屏显示与操作（配置图、关系图谱、拓扑、设备分析各视图、对比、脚本编辑器等） | 用户 2026-10-19 | M7（0.7.0） | 前端通用全屏组件 | 已完成（M7-7） | 设计见“视图全屏（REQ-043）”一节 |
 
 ## 待确认
 
@@ -1209,6 +1209,13 @@ ports:                       # 端口映射：按顺序，第一条命中生效
 - 与预览页的差异：版本与进化做成详情页的标签页；回滚不新增版本记录、没有说明框；去掉“每天生效的版本色带”（后端没有），换成按版本表；调用记录没有“问题”列（列表接口不带输入摘要），改为详情弹窗；进化不显示模型名、运行中只显示任务百分比与当前步骤；工具只显示名称；配置检查项目的反馈按次检查而不是按每条 AI 发现。
 - 测试：vitest `views/ai-skills/logic.test.ts`；e2e `frontend/e2e/req033.spec.ts`（管理员：列表 → 编辑保存为 v1 → 未配置 AI 时进化不可用、试运行只能回放 → 版本对比 → 恢复内置 → 回滚；普通用户看不到入口），`playwright.req033.config.ts` 用独立端口（后端 9333、Vite 5333）与独立数据目录 `tests/output/e2e-req033-root`，后端由 `frontend/e2e/req033_server.py` 启动（`--fake-ai` 用假 AI 供本地查看“已配置”状态）。
 
+### 评审修改：按功能分组（用户 2026-10-19 评审预览 skills.html）
+
+- 用户意见：“skill 可以按照功能进行分组”。分组：问答（qa）、配置生成（generate）、日常分析（analysis）、变更与割接（change）、规范与合规（compliance）、知识库构建（kb）、报告（report）、skill 进化（evolve），另有“其他”（other，没写或写错 group 的 skill）；M8（REQ-041）新增的约 21 个 skill 放进已有的组。
+- 定义：组编号与三语组名只在 `knowledge/ai-skills/_groups.yaml` 定义（顺序即显示顺序；`_` 开头的文件不是 skill）；每个 skill 的 `<编号>.yaml` 用 `group` 字段引用。现有 6 个：ask-query、ask-answer → qa；config-generate → generate；script-review → compliance；card-extract → kb；skill-evolve → evolve。
+- 接口：`GET /ai/skills` 每个 skill 带 `group`，另返回 `groups`（`id`、三语 `title`、`count`），可用 `?group=` 只列一组；CLI `lmesh skill list` 按组排序、加“分组”列，`--group <编号>` 只列一组（不存在退出码 2）。
+- 界面：列表按组显示，组可折叠、显示个数、可按组筛选，搜索跨组；预览页 `DevelopDocs/ui-preview/REQ-033/skills.html` 已同步。
+
 
 ## 设备配置分析（REQ-034）
 
@@ -1231,6 +1238,13 @@ ports:                       # 端口映射：按顺序，第一条命中生效
 - 界面（决策 D-0165，预览 `DevelopDocs/ui-preview/REQ-034/`）：导航“设备配置”组新增“设备配置分析”（`/analysis/:id`，query `view`、`node`、`line`），设备列表每行与设备配置图页头有入口。五个页签 + 右侧常驻“选中对象”面板（命令写法随显示风格、规范编号、层与跨层特性、配置行、被引用处、定义行、跨层依赖、在其他视图中查看），选中跨页签保持并自动定位。结构化脚本虚拟滚动（只渲染窗口内的行，现网 2267 行渲染约 50 行）、折叠 / 全部折叠、按功能域筛选、显示默认配置（REQ-028 样式）、点引用跳到定义并闪烁；配置分层复用设备配置图的树状图（华为按视图、Cisco 按功能域）；TCP/IP 模型六条横带（应用在上，2.5 层斜纹缩进），同层子对象由父对象代表，作用层不同的属性单独成组，跨层依赖按对象类型汇总画细线、选中对象画自己的带箭头连线并描边对端，右侧竖条是 QoS、时钟同步；配置关系复用关系图谱组件（`ForceGraph` 新增 `layout="bands"`、`bands`、`colorOf`），“按层分带”用预设位置网格与每层背景带，跨层的引用 / 前置依赖橙色加粗；分析摘要六格与各段列表都可跳到对应视图或脚本行。层的颜色 `--ly-*` 借用功能域分类色，明暗两套。
 - 测试：`tests/unit/test_layers.py`（全部 Schema 对象已归层、未归层提示、按键细分、跨层边、现网样本分层、区间与引用、默认值行位置、摘要数值、跨平台默认值）、`tests/cases/cli_cases.analysis.toml`、`tests/cases/api_cases.analysis.toml`、前端 `src/views/device-analysis/*.test.ts`、端到端 `frontend/e2e/req034.spec.ts`（从设备列表进入 → 点引用跳到定义 → TCP/IP 选中与跨层描边 → 关系视图按层分带联动 → 摘要跳回脚本；现网大配置虚拟滚动、显示风格切换、暗色主题）。
 
+### 评审修改：TCP/IP 视图合并相似（用户 2026-10-19 评审预览 analysis.html#tcpip）
+
+- 用户意见：“相似的可以选择合并一起显示”。预览 `DevelopDocs/ui-preview/REQ-034/analysis.html#tcpip` 工具条右侧加“合并相似”开关（`?merge=0` 看不合并的样子）。
+- 规则（决策 D-0258，纯函数 `frontend/src/views/device-analysis/layers.ts` 的 `mergeSimilar`、`mergedText`）：同一层同一分组（同一对象类型）内，对象的键（显示标签）去掉末尾编号后相同、且不少于 3 个的合并成一个范围格子，例如“GE0/2/1–8 ⑧”、子接口“GE0/2/1.101–108”；IPv4 / IPv6 地址（对等体、接口地址等）末尾的数字不是编号，不合并（避免被误读成连续地址段）；成员按编号排序，合并格子放在第一个成员原来的位置；属性格子与没有末尾编号的对象不合并；接口名用简写（GigabitEthernet → GE 等）。
+- 合并格子代表全部成员：成员被选中或与选中对象相关时整格高亮；选中对象的跨层连线画到合并格子上，同一对格子之间只画一条；按类型汇总的细线不变。点合并格子展开逐个查看（虚线框内列出成员，末尾“⟨ N”收起）。
+- 默认开启（现网 2000+ 行配置中接口、子接口、IPv4 地址等格子成百上千，合并后可读性明显更好；小配置不足 3 个不合并，几乎不受影响）；开关在 TCP/IP 视图内吸顶显示，状态记在浏览器（`lmesh-flag-analysis-tcp-merge`）。
+- 测试：`layers.test.ts`（合并阈值、排序与位置、子接口与地址、属性不合并）、`frontend/e2e/req034.spec.ts`“TCP/IP 视图合并相似”（现网大配置：默认合并、展开选中成员、收起后整格高亮、关闭合并后逐个显示、刷新后保持）。
 
 
 ## 删除设备与配置版本（REQ-038）
@@ -1382,6 +1396,19 @@ M6-7 实现。预览 `DevelopDocs/ui-preview/REQ-039/`（登录与注册、账�
 - 个人 Key 加密保存，只显示是否已设置，管理员也看不到；个人接口只用于本人发起的请求（含本人发起的后台任务）。
 - AI 调用记录标明用户与接口（不含 Key）；AI 设置页的连接测试对个人接口同样可用。
 - 先做预览页 `DevelopDocs/ui-preview/REQ-040/` 再编码。
+- 用户评审 M1 预览 ai-settings.html 时追加（2026-10-19）：AI token 用量统计（按天、用户、接口、功能、模型，管理员看全部、用户看自己的，可导出）；接口列表只做概览，每个接口点开进入单独的设置页编辑，个人接口同样单独页面编辑。
+
+实现结果（M6-8）：
+
+- 数据（迁移 0009）：`ai_connections`（`owner_id` 为空是管理员接口，可多个，名称在管理员接口间唯一；不为空是该账号的个人接口，每人最多一个；Key 用 Fernet 加密，`enc:` 前缀）、`ai_choices`（账号的选择 auto / connection / personal / none）、`app_meta`（标记）；`ai_calls` 加 `user_id`、`actor`、`connection_id`、`connection_name`、`source`、`feature`（skill 编号）；`tasks` 加 `created_by`。
+- `[ai]` 配置的去向：接口项（provider、base_url、api_key、model*）是第一个管理员接口的初始值——迁移只拿得到数据库，所以在第一次用到 AI 时（`core/ai_connections.ensure_seeded`）导入为 `default`（允许公共使用），写标记 `ai.seeded` 后不再导入（管理员删掉它也不会被配置文件“复活”）；之后以数据库为准。`ai.timeout`、`ai.max_tokens`、`ai.skill_log_days` 仍是全局配置。没有新增配置项（向导与 config.example 只更新了说明）。
+- 解析（`ai_connections.resolve`，唯一入口；`ai.complete / is_configured / model_for` 都经过它）：没有账号（全局令牌、没有账号的命令行）用第一个可用的管理员接口；auto 时管理员用第一个可用的管理员接口、其他账号用第一个可用且公共的；选了某个接口但它被关闭公共、停用或删除时不自动换，原因 `public_closed`（提示改选）；其他原因 `no_connection`、`no_public`、`personal_missing`、`disabled_by_user`。可用 = 启用且填写完整。
+- 发起人：接口层的 `settings_of(request)` 绑定调用者（`Settings.for_actor`），后台任务带着提交时的 settings 运行即按发起人的选择，任务记录 `created_by`；命令行按 `--as` 账号（不给时第一个管理员，与项目一致）。
+- 接口：管理员 `GET/POST /ai/connections`、`GET/PUT/DELETE /ai/connections/{id}`、`POST /ai/connections/{id}/test`；本人 `GET/PUT /me/ai`、`POST /me/ai/test`；`GET /ai/status` 加 `effective` 与 `reason`；`/ai/calls` 普通账号只看自己的；`GET /ai/usage`、`GET /ai/usage/export`（CSV）；`/summary` 的 `ai` 加 `reason`；各 AI 功能“未配置”的 409 在 `data.reason` 给出原因。旧的 `/ai/settings`、`/ai/test` 保留（deprecated，对应第一个管理员接口）。
+- 命令行：`lmesh ai connections list|add|set|remove|test`、`lmesh ai use`、`lmesh ai status`、`lmesh ai personal show|set|remove|test`、`lmesh ai usage`；`lmesh ai calls` 加发起人与接口列。
+- 界面：AI 接口页 `/ai`（管理员）分“接口 / 用量统计 / 调用记录”，接口列表只做概览（保留公共与启用开关），单个接口与新建走单独设置页 `/ai/connections/:id`、`/ai/connections/new`（编辑、测试、该接口用量与最近调用、删除）；账号菜单加“我的 AI”（`/me/ai`：选择、生效来源与测试、我的用量与调用；全局令牌不显示），个人接口单独页 `/me/ai/personal`；用量统计近 7 / 30 / 90 天或自定义，按天输入 / 输出堆叠柱（可切换表格），按用户 / 接口 / 功能 / 模型汇总，导出 CSV；通用组件 `components/ai-off-hint.vue` 按原因给出“未配置”提示与去处（问答、文档导入、未识别行、AI skill、进化、脚本检查）。代码：`AiSettingsView.vue`、`AiConnectionView.vue`、`MyAiView.vue`、`MyAiPersonalView.vue`、`views/ai/`（`logic.ts`、`usage.ts` 与 vitest）。
+- 测试：单元 `tests/unit/test_ai_connections.py`（解析各分支、导入、加密、记录归属、后台任务、用量、迁移 0009）；API `tests/api/test_ai_connections_api.py` 与用例 `api_cases.ai.toml`；CLI 用例 `cli_cases.ai.toml`（准备方式 `configured-ai`）；vitest；e2e `frontend/e2e/req040.spec.ts`（管理员建两个接口只开放一个 → 用户只看到开放的 → 用户改用个人接口 → 管理员关闭公共接口后另一用户看到改选提示）。
+- 与预览的差异：全局限制与安全说明放在“接口”分区；所选接口被删除后只能显示“已关闭”（`/me/ai` 的 `chosen_name` 在接口仍存在时给出名称）。
 
 ## AI 增强（REQ-041）
 
@@ -1419,6 +1446,7 @@ M6-7 实现。预览 `DevelopDocs/ui-preview/REQ-039/`（登录与注册、账�
 - 线条风格统一、单色可着色，明暗主题两套，72 / 32 / 16 像素都可辨认；用于拓扑视图、关系图谱、设备列表。
 - 角色来源：用户手工标注优先，其次 M8 的“拓扑整理”AI 建议（采纳后），最后按平台默认。
 - 先在 `DevelopDocs/ui-preview/REQ-042/` 做预览页，评审后随 M8 实现。
+- 评审结果（用户 2026-10-19，三页全部通过）：图标风格三套都做（A 圆柱、B 几何徽章、C 线框），可在设置中切换（个人偏好，默认 B）【用户修改】；角色未知时按平台画设备外形；状态角标最多 2 个加“+n”；全屏优先浏览器全屏、不支持时页面内最大化；待采纳的 AI 角色建议以紫色虚线半透明显示。
 
 ## 视图全屏（REQ-043）
 
@@ -1428,6 +1456,56 @@ M6-7 实现。预览 `DevelopDocs/ui-preview/REQ-039/`（登录与注册、账�
 - 全屏时保留该视图的工具栏、图例、选中对象面板与右键菜单，操作与非全屏一致；退出后保持缩放、选中与滚动位置。
 - 范围：设备配置图、关系图谱、拓扑与一致性、设备配置分析五个页签、依赖分析、影响分析、配置对比、翻译两侧原文、配置检查项目的脚本编辑器、版本历史、表格导出预览。
 - 文案三语，明暗主题；e2e 覆盖进入、操作、退出。
+
+**实现结果**（M7-7，2026-10-19；预览已评审通过，全屏方式按“浏览器全屏优先、不支持时页面内最大化”；决策 D-0247）：
+
+- 组件：`frontend/src/components/FullscreenPane.vue`（容器）、`FullscreenButton.vue`（按钮，放在区域内的工具栏或页签条，tooltip 写明快捷键，按钮上显示 `F` / `Esc`）、`fullscreen.ts`（逻辑）。全屏只切换容器的显示方式、不重建内容，所以缩放、选中、滚动位置自然保持；容器带 `data-fs`（`off` / `native` / `max`）。
+- 行为：先调用 Fullscreen API，不可用或被拒绝时改为页面内最大化（固定定位盖住导航与顶栏，提示条写明是哪一种）；Esc 退出（浏览器全屏由浏览器处理），再按 F 也退出；输入框、下拉框、可编辑区（CodeMirror）聚焦、带修饰键或有对话框打开时 F 不触发，对话框打开时 Esc 先关对话框。一页一个全屏区域；万一有多个，F 作用于已全屏的那个，否则作用于最后注册的可见区域。`localStorage` 的 `lmesh-fs` = `max` 强制页面内最大化（测试与不支持浏览器全屏的环境用）。
+- 尺寸重算：cytoscape（配置图、关系图谱、拓扑、影响分析、配置分层）、TCP/IP 视图与结构化脚本的虚拟滚动都用 ResizeObserver 跟随容器；切换后再派发一次 `resize`，翻译页两侧连线等只监听窗口尺寸的组件也会重画。CodeMirror 自己跟随容器。
+- 弹出层：区域内的下拉、建议列表、右键菜单本来就在容器里；区域外的对话框与提示在全屏时用 `<Teleport :to="fsTarget">` 挂进全屏元素（项目脚本工作区的新建 / 删除对话框与提示、翻译页的提示），Element Plus 的消息用 `appendTo: fsHost()`（设备分析页）。
+- 接入：设备配置图与关系图谱（同一页，区域含图、图例、节点详情、原始配置）、拓扑与一致性（含两个页签与侧栏）、设备配置分析五个页签（含页签条与选中对象面板）、依赖与影响分析（同一页，两个方向）、配置对比（汇总、差异列表 / 差异图、详情、两侧原文）、翻译两侧原文（含告警面板）、项目脚本工作区的脚本编辑器（含脚本列表、问题与模拟结果）、版本历史的差异区（图差异、配置差异、对象历史三个页签）、表格导出预览（含来源面板）。
+- 未接入：项目脚本列表页（只有表格，编辑器在工作区里已接入）；工作区的重排、修订记录、对比三个子页（独立页面，不是“编辑器”本身，后续需要时用同一组件接入）。
+- 测试：`src/components/fullscreen.test.ts`（7 例：快捷键、输入框与对话框下不触发、浏览器全屏与被拒绝退回、强制开关、多区域、组件按钮与文案）；`e2e/req043.spec.ts`（拓扑：F 进入、滚轮缩放与点设备打开侧栏、按钮退出后缩放与选中保持、画布尺寸跟随；设备分析：强制页面内最大化、全屏里点引用选中与切页签、Esc 退出后选中与滚动位置保持、F 进出）。
+
+## M1 预览评审修改（M6-9）
+
+用户对 M1 预览页提了两条修改意见（`DevelopDocs/ui-preview/M1/review.json`）：wizard.html“优化确认页面的 UI”、schema-edit.html“数据类型变化，相应的输入框会变化吗”。按推荐做法先改预览页再编码（向导确认页未经二次评审先编码，决策 D-0248）。
+
+### 向导确认页
+
+- 预览：`DevelopDocs/ui-preview/M1/wizard.html?step=5`，页头“确认页”切换可对比修改前后；`?db=bad` 演示有问题时的样子。
+- 按分组汇总（界面语言、各设置分组、管理员账号），每行三列：名称、取值、标记。与默认值不同的行左侧色条加浅底，标“已修改”，取值下方写“默认：…”；其余行标“默认”。
+- 密码、令牌、API Key 只显示“已设置 / 未设置”（API 令牌未填时显示“完成时自动生成”）；数据库地址仍显示遮住密码的地址。
+- 每组标题右侧“返回修改”直接跳到该步；从确认页跳过去的步骤，页脚多一个“回到确认页”，校验本步后直接回来。
+- 进入确认页时把全部取值与管理员账号交给 `POST /setup`（dry_run）统一校验一次，顶部显示“检查通过”或“有 N 个问题”，出错的行显示原因、所在组标出问题数；有问题时“保存设置”不可用，页脚提示先处理；可“重新检查”。
+- 顶部显示将写入的配置文件路径；与当前运行的监听地址、端口不同的项标“需重启”，并在页尾汇总列出。
+- “全部 / 只看已修改”切换；窄屏（≤ 620px）时名称与取值上下排列，没有横向滚动。
+- 后端最小补充：`GET /api/v1/setup` 增加 `config_path`（将写入的配置文件）与 `running`（`server.host`、`server.port` 的当前运行值），测试 `tests/api/test_m69_api.py`。
+- 逻辑在 `frontend/src/views/wizard/wizard.ts`（`confirmRows`、`confirmStats`、`needsRestart`、`groupErrors`），单元测试在 `wizard.test.ts`。
+
+### Schema 编辑：输入项随数据类型变化
+
+- 预览：`DevelopDocs/ui-preview/M1/schema-edit.html`（换“数据类型”即可看到）。
+- 按类型显示的设置项（`frontend/src/views/schema/typefields.ts` 的 `TYPE_FIELDS`，组件 `views/schema/TypeParams.vue`）：
+  - integer：取值范围，最小值、最大值两个输入框，都是整数且最小值不大于最大值，两端都空表示不限，只填一端报错；
+  - enum：可选值，标签式输入（回车或逗号添加，退格删最后一个），必填、至少 1 个、不能重复；
+  - object：键字段、是否有序；
+  - ref：引用目标，必填，只能选 object 节点（选了非 object 节点报错）；
+  - ipv4、mask、prefix、rd、asn、community、interface：只显示格式说明与示例；
+  - boolean、flag、string、text：没有额外设置项。
+- 换类型后，不再适用但已填的内容在表单里用警告列出（“保存时会清掉”），提供“改回原类型”；`formToBody` 只提交当前类型适用的字段，`validateForm` 只校验适用的字段，两者同步（决策 D-0250）。现有知识库中只有 `mgmt.ssh.version`（string 带 choices）会出现这条提示。
+- 后端接口不变。
+
+### Profile 默认值输入
+
+- 预览：`DevelopDocs/ui-preview/M1/profiles.html`。
+- 按节点类型（`frontend/src/views/profiles/defaults.ts`）：boolean / flag 用“不设置 / 开启 true / 关闭 false”三态分段按钮（单个开关无法表示没有默认值，决策 D-0249）；enum 用下拉（含“不设置”）；integer 用数字框并按取值范围校验；ipv4、prefix、rd、asn、community、interface 等按格式校验；其余用文本框。有问题时不能保存。保存时布尔转 true / false、整数转数字、枚举保持文字。
+- 后端最小补充：`GET /api/v1/kb/profiles/{id}` 的条目增加 `choices`（enum）与 `range`（integer），测试同上。
+
+### 测试
+
+- 单元：`wizard.test.ts`、`schema.test.ts`（按类型的字段规则、换类型清理、enum / ref 校验、格式校验）、`profiles.test.ts`（默认值输入方式、校验、转换）。
+- 端到端：`frontend/e2e/m69.spec.ts`（向导确认页：浏览器内替换 `/health` 与 `/setup` 为未配置实例的应答，检查汇总、需重启、只看已修改、重新检查出问题后不能提交、返回修改后回到确认页、窄屏；Schema 编辑换类型）。
 
 ## 接入 Nokia 7750 SR（REQ-037）
 

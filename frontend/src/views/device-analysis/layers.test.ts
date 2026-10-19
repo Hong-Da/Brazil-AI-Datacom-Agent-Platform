@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { buildModel } from '@/views/device-graph/model'
 import { bandLayout, type FNode } from '@/views/device-graph/force'
 import type { GraphData } from '@/views/device-graph/types'
-import { bandGroups, chipOf, crossOf, groupKeyOf, groupLinks, layerName, ownerObject } from './layers'
+import { bandGroups, chipOf, crossOf, groupKeyOf, groupLinks, layerName, mergedText, mergeSimilar, ownerObject } from './layers'
 import type { CrossEdge } from './types'
 
 const N = (id: string, kind: string, schema: string | null, extra: Record<string, unknown> = {}) => ({ id, kind, schema, origin: 'explicit', lines: [], cards: [], ...extra })
@@ -113,5 +113,37 @@ describe('按层分带布局', () => {
     const { bands } = bandLayout(nodes, () => 'network', ['network'], 400, { colW: 70, rowH: 40 })
     const one = bandLayout(nodes.slice(0, 3), () => 'network', ['network'], 400, { colW: 70, rowH: 40 }).bands[0]
     expect(bands[0].h).toBeGreaterThan(one.h)
+  })
+})
+
+describe('合并相似（REQ-034 评审修改）', () => {
+  const label = (id: string) => id.replace(/^[a-z]+:/, '')
+  const isObj = (id: string) => !id.startsWith('attr:')
+  it('键只差末尾编号的对象至少 3 个才合并，按编号排序，放在第一个成员的位置', () => {
+    const items = ['if:LoopBack0', 'if:GigabitEthernet0/2/3', 'if:GigabitEthernet0/2/1', 'if:GigabitEthernet0/2/2', 'if:Eth-Trunk1', 'if:Eth-Trunk2']
+    const out = mergeSimilar(items, label, isObj)
+    expect(out.map((e) => (e.merged ? `${mergedText(e)}(${e.members.length})` : label(e.id)))).toEqual(['LoopBack0', 'GE0/2/1–3(3)', 'Eth-Trunk1', 'Eth-Trunk2'])
+    const m = out[1]!
+    expect(m.merged && m.members).toEqual(['if:GigabitEthernet0/2/1', 'if:GigabitEthernet0/2/2', 'if:GigabitEthernet0/2/3'])
+  })
+  it('子接口成簇；地址（对等体等）、属性格子与没有编号的对象不合并；阈值可调', () => {
+    const items = ['s:GigabitEthernet0/2/1.101', 's:GigabitEthernet0/2/1.102', 's:GigabitEthernet0/2/1.103', 'p:10.255.0.101', 'p:10.255.0.102', 'p:10.255.0.103', 'p:RR', 'attr:a1', 'attr:a2', 'attr:a3']
+    const out = mergeSimilar(items, label, isObj)
+    expect(out.filter((e) => e.merged).map((e) => e.merged && mergedText(e))).toEqual(['GE0/2/1.101–103'])
+    expect(out.filter((e) => !e.merged).length).toBe(7)
+    expect(mergeSimilar(['p:a1', 'p:a2'], label, isObj, 2)[0]).toMatchObject({ merged: true, from: 1, to: 2 })
+    expect(mergeSimilar(['p:a1', 'p:a2'], label, isObj).every((e) => !e.merged)).toBe(true)
+  })
+})
+
+describe('mergeSimilar：地址不合并', () => {
+  it('IPv4 / IPv6 地址末尾的数字不当作编号', () => {
+    const ids = ['a1', 'a2', 'a3', 'b1', 'b2', 'b3']
+    const label: Record<string, string> = { a1: 'ip address 10.0.149.40', a2: 'ip address 10.0.149.41', a3: 'ip address 10.0.149.141', b1: 'GigabitEthernet0/2/1', b2: 'GigabitEthernet0/2/2', b3: 'GigabitEthernet0/2/3' }
+    const out = mergeSimilar(ids, (id) => label[id]!, () => true)
+    expect(out.filter((e) => e.merged)).toHaveLength(1)
+    expect(out.filter((e) => !e.merged)).toHaveLength(3)
+    const v6 = mergeSimilar(['x', 'y', 'z'], (id) => ({ x: '2001:db8::1', y: '2001:db8::2', z: '2001:db8::3' })[id]!, () => true)
+    expect(v6.every((e) => !e.merged)).toBe(true)
   })
 })

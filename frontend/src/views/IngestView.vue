@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ApiError, download, errorText, get, post, waitTask, type Task } from '@/api'
 import Icon from '@/components/Icon.vue'
+import AiOffHint from '@/components/ai-off-hint.vue'
 import { useStatus } from '@/stores/status'
 import { useAuth } from '@/stores/auth'
 import KbRoRibbon from '@/components/kb-ro-ribbon.vue'
@@ -314,14 +315,12 @@ onBeforeUnmount(() => {
                         <div class="rc-t">{{ $t('ingest.chAi') }}</div>
                         <div class="rc-d">
                           <template v-if="aiOn">{{ $t('ingest.chAiOn', { m: ai?.models.extract || '—' }) }}</template>
-                          <template v-else>
-                            {{ $t('ingest.chAiOff') }}
-                            <router-link :to="{ name: 'ai-settings' }" data-testid="ingest-goto-ai">{{ $t('ingest.chAiLink') }}</router-link>
-                          </template>
+                          <template v-else>{{ $t('ingest.chAiOff') }}</template>
                         </div>
                       </div>
                     </label>
                   </div>
+                  <AiOffHint v-if="!aiOn" compact class="mt8" :reason="ai?.reason ?? undefined" data-testid="ingest-goto-ai" />
                 </div>
 
                 <div class="field mt16">

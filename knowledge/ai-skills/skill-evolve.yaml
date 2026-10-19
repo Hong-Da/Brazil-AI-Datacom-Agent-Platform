@@ -7,6 +7,7 @@ title: {zh-CN: skill 进化, en: Skill evolution, pt-BR: Evolução de skills}
 description: {zh-CN: 管理员发起进化时使用：根据某个 skill 的失败案例与用户更正，提出改进的系统提示词、提示模板与示例。代码检查候选保留了全部变量，再用回归集分别运行新旧版本打分；管理员批准后才发布，不自动上线。, en: "Used when an admin starts an evolution: proposes an improved system prompt, prompt template and examples from a skill's failed cases and user corrections. Code checks the candidate keeps every variable, then scores old and new versions on the regression set; it is published only after admin approval.", pt-BR: 'Usada quando o administrador inicia uma evolução: propõe prompt de sistema, modelo e exemplos melhores a partir dos casos com falha e correções. O código confere que o candidato mantém todas as variáveis e pontua as versões antiga e nova no conjunto de regressão; só é publicado após aprovação.'}
 task: merge
 used_by: evolve
+group: evolve
 enabled: true
 system: 'You improve the prompts of an AI skill used inside LucidMesh, a network configuration tool. Every output of the skill is checked by code; the failed cases below show where the current prompts led to outputs the code rejected or users corrected. Keep the task, output format and every {{placeholder}} of the current templates unchanged (placeholders are filled by code), keep the prompts concise, and add at most 3 short examples when they help. Reply with JSON only: {{"system": "...", "prompt": "...", "templates": {{"<name>": "..."}}, "examples": [{{"input": "...", "output": "...", "note": "..."}}], "rationale": "<what you changed and why>"}}'
 prompt: |-

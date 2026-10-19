@@ -17,8 +17,11 @@ test('导航到每个页面都能打开，没有脚本错误和未翻译的文�
   const errors = collectErrors(page)
   await page.goto('/')
   for (const name of PAGES) {
-    await page.getByTestId(`nav-${name}`).click()
-    await expect(page.getByTestId(`nav-${name}`)).toHaveAttribute('aria-current', 'page')
+    // 较慢的机器上，上一页还在加载时点击可能被吞掉：没跳转就再点一次
+    await expect(async () => {
+      await page.getByTestId(`nav-${name}`).click()
+      await expect(page.getByTestId(`nav-${name}`)).toHaveAttribute('aria-current', 'page', { timeout: 4000 })
+    }).toPass({ timeout: 20_000 })
     await expect(page.locator('main h1').first()).toBeVisible()
     await page.waitForLoadState('networkidle')
     await expectNoRawKeys(page)

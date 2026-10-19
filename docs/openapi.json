@@ -1452,7 +1452,7 @@
         "tags": [
           "tasks-ai"
         ],
-        "summary": "AI 是否已配置、各任务使用的模型",
+        "summary": "AI 是否可用（按当前账号的选择）、生效来源与未配置的原因、各任务使用的模型",
         "operationId": "ai_status_api_v1_ai_status_get",
         "responses": {
           "200": {
@@ -1475,7 +1475,7 @@
         "tags": [
           "tasks-ai"
         ],
-        "summary": "AI 调用记录",
+        "summary": "AI 调用记录（管理员看全部，可按账号过滤；其他账号只看自己的）",
         "operationId": "ai_calls_api_v1_ai_calls_get",
         "parameters": [
           {
@@ -1486,6 +1486,58 @@
               "type": "integer",
               "default": 100,
               "title": "Limit"
+            }
+          },
+          {
+            "name": "user",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "只看这个账号的（管理员）；全局令牌为 api-token",
+              "title": "User"
+            },
+            "description": "只看这个账号的（管理员）；全局令牌为 api-token"
+          },
+          {
+            "name": "connection_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "只看这个管理员接口的",
+              "title": "Connection Id"
+            },
+            "description": "只看这个管理员接口的"
+          },
+          {
+            "name": "task",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Task"
             }
           }
         ],
@@ -1606,7 +1658,7 @@
         "tags": [
           "tasks-ai"
         ],
-        "summary": "测试 AI 接口是否可用（管理员）",
+        "summary": "（已弃用，改用 /ai/connections/{id}/test 或 /me/ai/test）测试调用者当前生效的 AI 接口（管理员）",
         "operationId": "ai_test_api_v1_ai_test_post",
         "responses": {
           "200": {
@@ -1617,6 +1669,590 @@
                   "additionalProperties": true,
                   "type": "object",
                   "title": "Response Ai Test Api V1 Ai Test Post"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": true
+      }
+    },
+    "/api/v1/me/ai": {
+      "get": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "我的 AI：选择（auto / connection / personal / none）、个人接口（不含 Key）、可选的管理员接口、当前生效来源",
+        "operationId": "get_mine_api_v1_me_ai_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Mine Api V1 Me Ai Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "修改我的 AI：选择与个人接口（全局 API 令牌没有账号：409）；个人接口只有本人可见，管理员也看不到",
+        "operationId": "put_mine_api_v1_me_ai_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MineBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Put Mine Api V1 Me Ai Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/usage": {
+      "get": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "AI 用量统计：范围内按天、账号、接口、功能、模型汇总调用次数、失败与 token（管理员看全部，其他账号只看自己的）",
+        "operationId": "get_usage_api_v1_ai_usage_get",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "起始日期（UTC，含），默认结束日期前 29 天",
+              "title": "From"
+            },
+            "description": "起始日期（UTC，含），默认结束日期前 29 天"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "结束日期（UTC，含），默认今天",
+              "title": "To"
+            },
+            "description": "结束日期（UTC，含），默认今天"
+          },
+          {
+            "name": "user",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "只统计这个账号（管理员）",
+              "title": "User"
+            },
+            "description": "只统计这个账号（管理员）"
+          },
+          {
+            "name": "connection_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "只统计这个管理员接口",
+              "title": "Connection Id"
+            },
+            "description": "只统计这个管理员接口"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Usage Api V1 Ai Usage Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/usage/export": {
+      "get": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "导出用量统计的一组为 CSV（UTF-8 带 BOM；列 key,calls,errors,tokens_in,tokens_out）",
+        "operationId": "export_usage_api_v1_ai_usage_export_get",
+        "parameters": [
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "day",
+                "user",
+                "connection",
+                "feature",
+                "model"
+              ],
+              "type": "string",
+              "default": "day",
+              "title": "Group"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "name": "user",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User"
+            }
+          },
+          {
+            "name": "connection_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Connection Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/ai/test": {
+      "post": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "测试我的个人接口（target = personal）或当前生效的接口（effective）",
+        "operationId": "test_mine_api_v1_me_ai_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/MineTestBody"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Test Mine Api V1 Me Ai Test Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/connections": {
+      "get": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "管理员 AI 接口列表：类型、地址、各用途模型、允许公共使用、启用、默认、选用人数、本月用量（不含 API Key）",
+        "operationId": "list_connections_api_v1_ai_connections_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response List Connections Api V1 Ai Connections Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "新建管理员 AI 接口（名称唯一；API Key 加密保存）",
+        "operationId": "create_connection_api_v1_ai_connections_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Create Connection Api V1 Ai Connections Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/connections/{cid}": {
+      "get": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "一个管理员 AI 接口的设置（不含 API Key）",
+        "operationId": "get_connection_api_v1_ai_connections__cid__get",
+        "parameters": [
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Cid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Connection Api V1 Ai Connections  Cid  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "修改管理员 AI 接口：各字段可选，不传 api_key 时保留原值，clear_api_key 清除；关闭 public 后选了它的普通账号提示改选",
+        "operationId": "update_connection_api_v1_ai_connections__cid__put",
+        "parameters": [
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Cid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Update Connection Api V1 Ai Connections  Cid  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "删除管理员 AI 接口；返回选了它的账号数（他们会看到改选提示）",
+        "operationId": "delete_connection_api_v1_ai_connections__cid__delete",
+        "parameters": [
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Cid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Connection Api V1 Ai Connections  Cid  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/connections/{cid}/test": {
+      "post": {
+        "tags": [
+          "ai"
+        ],
+        "summary": "测试管理员 AI 接口（不论是否启用、是否公共）；记入调用记录",
+        "operationId": "test_connection_api_v1_ai_connections__cid__test_post",
+        "parameters": [
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Cid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Test Connection Api V1 Ai Connections  Cid  Test Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -6536,7 +7172,7 @@
         "tags": [
           "workbench"
         ],
-        "summary": "AI 接口设置（API Key 只显示是否已设置；管理员）",
+        "summary": "（已弃用，改用 /ai/connections）第一个管理员 AI 接口的设置（API Key 只显示是否已设置；管理员）",
         "operationId": "ai_settings_api_v1_ai_settings_get",
         "responses": {
           "200": {
@@ -6551,13 +7187,14 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       },
       "put": {
         "tags": [
           "workbench"
         ],
-        "summary": "保存 AI 接口设置（写入配置文件，API Key 加密保存；管理员）",
+        "summary": "（已弃用，改用 /ai/connections）保存第一个管理员 AI 接口（API Key 加密保存）；超时与 max_tokens 写入配置文件（管理员）",
         "operationId": "ai_settings_put_api_v1_ai_settings_put",
         "requestBody": {
           "content": {
@@ -6592,7 +7229,8 @@
               }
             }
           }
-        }
+        },
+        "deprecated": true
       }
     },
     "/api/v1/kb/schema/nodes/{node_id}": {
@@ -10909,6 +11547,24 @@
               "default": 30,
               "title": "Days"
             }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "只列这个功能分组的 skill（groups[].id）",
+              "title": "Group"
+            },
+            "description": "只列这个功能分组的 skill（groups[].id）"
           }
         ],
         "responses": {
@@ -14775,6 +15431,152 @@
         ],
         "title": "ConfigText"
       },
+      "ConnBody": {
+        "properties": {
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "anthropic",
+                  "openai",
+                  "local"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key",
+            "description": "只写不读；不传时保留原值"
+          },
+          "clear_api_key": {
+            "type": "boolean",
+            "title": "Clear Api Key",
+            "default": false
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "model_extract": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Extract"
+          },
+          "model_merge": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Merge"
+          },
+          "model_ask": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Ask"
+          },
+          "model_generate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Generate"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "public": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Public",
+            "description": "允许公共使用（普通账号可以选用）"
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled"
+          }
+        },
+        "type": "object",
+        "title": "ConnBody"
+      },
       "ConsistencyBody": {
         "properties": {
           "configs": {
@@ -15881,6 +16683,72 @@
         ],
         "title": "MigrateBody"
       },
+      "MineBody": {
+        "properties": {
+          "choice": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "connection",
+                  "personal",
+                  "none"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Choice"
+          },
+          "connection_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Connection Id",
+            "description": "choice = connection 时必填：可选的管理员接口编号"
+          },
+          "personal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonalBody"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "个人接口（新建或修改；不传 api_key 时保留原值）"
+          },
+          "remove_personal": {
+            "type": "boolean",
+            "title": "Remove Personal",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "MineBody"
+      },
+      "MineTestBody": {
+        "properties": {
+          "target": {
+            "type": "string",
+            "enum": [
+              "personal",
+              "effective"
+            ],
+            "title": "Target",
+            "default": "personal"
+          }
+        },
+        "type": "object",
+        "title": "MineTestBody"
+      },
       "NewScriptBody": {
         "properties": {
           "name": {
@@ -16162,6 +17030,117 @@
           "patterns"
         ],
         "title": "PatternsBody"
+      },
+      "PersonalBody": {
+        "properties": {
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "anthropic",
+                  "openai",
+                  "local"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "base_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Url"
+          },
+          "api_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Api Key",
+            "description": "只写不读；不传时保留原值"
+          },
+          "clear_api_key": {
+            "type": "boolean",
+            "title": "Clear Api Key",
+            "default": false
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "model_extract": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Extract"
+          },
+          "model_merge": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Merge"
+          },
+          "model_ask": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Ask"
+          },
+          "model_generate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model Generate"
+          }
+        },
+        "type": "object",
+        "title": "PersonalBody"
       },
       "PinBody": {
         "properties": {

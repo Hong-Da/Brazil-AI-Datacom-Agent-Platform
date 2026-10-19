@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import AiOffHint from '@/components/ai-off-hint.vue'
 import { errorText, get, post } from '@/api'
 import { useStatus } from '@/stores/status'
 import type { Device } from './devices/logic'
@@ -234,10 +235,7 @@ function stateClass(s: PatState): string {
                     <router-link class="btn btn-sm" :to="{ name: 'ingest' }">{{ $t('unknown-lines.toIngest') }}</router-link>
                   </div>
                 </div>
-                <div v-if="!aiConfigured" class="ai-off" data-testid="ai-off">
-                  <Icon name="info" small />
-                  <span>{{ $t('unknown-lines.aiOff') }} <router-link :to="{ name: 'ai-settings' }">{{ $t('unknown-lines.aiSettings') }}</router-link></span>
-                </div>
+                <AiOffHint v-if="!aiConfigured" compact data-testid="ai-off"><div class="small muted">{{ $t('unknown-lines.aiOff') }}</div></AiOffHint>
                 <div v-else class="ai-off" data-testid="ai-on">
                   <Icon name="spark" small />
                   <span>{{ $t('unknown-lines.aiOn') }}</span>

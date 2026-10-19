@@ -4,7 +4,7 @@ export type L3 = Record<string, string>
 export type RunStatus = 'passed' | 'corrected' | 'rejected' | 'unverifiable' | 'error'
 export type Source = 'builtin' | 'edit' | 'example' | 'evolution'
 
-export interface AiState { configured: boolean; provider: string | null; status: string }
+export interface AiState { configured: boolean; provider: string | null; status: string; reason?: string | null }
 
 export interface Counts {
   calls: number
@@ -44,6 +44,7 @@ export interface SkillInfo {
   checks: string[]
   examples: number
   stats: Stats
+  group?: string // 功能分组（REQ-033 评审修改）
 }
 
 export interface Example { input: string; output: string; note?: string }
@@ -70,7 +71,7 @@ export interface SkillDetail extends SkillInfo {
   ai: AiState
 }
 
-export interface ListResult { ai: AiState; days: number; skills: SkillInfo[] }
+export interface ListResult { ai: AiState; days: number; skills: SkillInfo[]; groups?: { id: string; title: L3; count: number }[] }
 
 export interface Issue { field: string; key: string; params?: Record<string, unknown> }
 

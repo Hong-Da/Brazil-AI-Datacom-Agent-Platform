@@ -1,5 +1,6 @@
 /** Schema 管理的节点表单：节点 ↔ 表单、表单校验、提交体、删除前检查的分组。 */
 import type { SchemaNode } from './model'
+import { fieldsFor, TYPE_FIELD_ORDER, type TypeField } from './typefields'
 
 export const NODE_ID = /^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$/
 export const STATUSES = ['draft', 'reviewed', 'verified'] as const
@@ -11,8 +12,11 @@ export interface NodeForm {
   type: string
   key: string
   semantic: Record<string, string>
-  range: string
-  choices: string
+  /** integer 的取值范围两端（输入框文字）；两端都空表示不限 */
+  rangeMin: string
+  rangeMax: string
+  /** enum 的可选值（标签式输入，保持顺序） */
+  choices: string[]
   ordered: boolean
   ref: string
   deprecated: boolean
@@ -35,19 +39,14 @@ export interface NodeBody {
   status: string
 }
 
-export function formatRange(r: number[] | null | undefined): string {
-  return r && r.length === 2 ? `[${r[0]}, ${r[1]}]` : ''
-}
-
-/** 解析取值范围：空 → null；"[a, b]"、"a, b"、"a..b" → [a, b]；a 不能大于 b。 */
-export function parseRange(text: string): { ok: boolean; value: number[] | null } {
-  const s = text.trim()
-  if (!s) return { ok: true, value: null }
-  const m = /^\[?\s*(-?\d+)\s*(?:,|\.\.)\s*(-?\d+)\s*\]?$/.exec(s)
-  if (!m) return { ok: false, value: null }
-  const a = Number(m[1]), b = Number(m[2])
-  if (a > b) return { ok: false, value: null }
-  return { ok: true, value: [a, b] }
+/** 取值范围两端：都空 → null；必须都是整数且最小值不大于最大值。 */
+export function rangeOf(min: string, max: string): { ok: boolean; value: number[] | null; error?: 'err.rangeNum' | 'err.rangeBoth' | 'err.range' } {
+  const a = min.trim(), b = max.trim()
+  if (!a && !b) return { ok: true, value: null }
+  if (!a || !b) return { ok: false, value: null, error: 'err.rangeBoth' }
+  if (!/^-?\d+$/.test(a) || !/^-?\d+$/.test(b)) return { ok: false, value: null, error: 'err.rangeNum' }
+  if (Number(a) > Number(b)) return { ok: false, value: null, error: 'err.range' }
+  return { ok: true, value: [Number(a), Number(b)] }
 }
 
 /** 列表输入：逗号、竖线或换行分隔，去空白与空项，保持顺序去重。 */
@@ -67,8 +66,9 @@ export function nodeToForm(n: SchemaNode): NodeForm {
     type: n.type,
     key: (n.key ?? []).join(', '),
     semantic: { ...n.semantic },
-    range: formatRange(n.range),
-    choices: (n.choices ?? []).join(' | '),
+    rangeMin: n.range && n.range.length === 2 ? String(n.range[0]) : '',
+    rangeMax: n.range && n.range.length === 2 ? String(n.range[1]) : '',
+    choices: [...(n.choices ?? [])],
     ordered: !!n.ordered,
     ref: n.ref ?? '',
     deprecated: !!n.deprecated,
@@ -85,8 +85,9 @@ export function newForm(parent: SchemaNode | null): NodeForm {
     type: 'string',
     key: '',
     semantic: {},
-    range: '',
-    choices: '',
+    rangeMin: '',
+    rangeMax: '',
+    choices: [],
     ordered: false,
     ref: '',
     deprecated: false,
@@ -95,19 +96,34 @@ export function newForm(parent: SchemaNode | null): NodeForm {
   }
 }
 
+/** 类型不适用、但表单里还有内容的设置项（换类型后提示，保存时清掉）。 */
+export function staleFields(f: NodeForm): TypeField[] {
+  const keep = fieldsFor(f.type)
+  const filled: Record<TypeField, boolean> = {
+    range: !!(f.rangeMin.trim() || f.rangeMax.trim()),
+    choices: f.choices.length > 0,
+    key: splitList(f.key).length > 0,
+    ordered: f.ordered,
+    ref: !!f.ref,
+  }
+  return TYPE_FIELD_ORDER.filter((k) => !keep.includes(k) && filled[k])
+}
+
+/** 提交体只带当前类型适用的设置项：integer → range；enum → choices；object → key、ordered；ref → ref。 */
 export function formToBody(f: NodeForm): NodeBody {
   const semantic: Record<string, string> = {}
   for (const [k, v] of Object.entries(f.semantic)) if (v && v.trim()) semantic[k] = v.trim()
-  const choices = splitList(f.choices)
+  const use = fieldsFor(f.type)
+  const choices = [...new Set(f.choices.map((c) => c.trim()).filter(Boolean))]
   return {
     parent: f.parent || null,
     type: f.type,
-    key: splitList(f.key),
+    key: use.includes('key') ? splitList(f.key) : [],
     semantic,
-    range: parseRange(f.range).value,
-    choices: choices.length ? choices : null,
-    ordered: f.ordered,
-    ref: f.type === 'ref' && f.ref ? f.ref : null,
+    range: use.includes('range') ? rangeOf(f.rangeMin, f.rangeMax).value : null,
+    choices: use.includes('choices') && choices.length ? choices : null,
+    ordered: use.includes('ordered') ? f.ordered : false,
+    ref: use.includes('ref') && f.ref ? f.ref : null,
     deprecated: f.deprecated,
     replaced_by: f.deprecated && f.replaced_by ? f.replaced_by : null,
     status: f.status,
@@ -143,9 +159,24 @@ export function validateForm(f: NodeForm, nodes: SchemaNode[], types: string[], 
     else if (!creating && descendants(nodes, f.id).has(f.parent)) err.parent = 'err.parentCycle'
   }
   if (!types.includes(f.type)) err.type = 'err.type'
-  if (!parseRange(f.range).ok) err.range = 'err.range'
   if (!SEM_LANGS.some((l) => (f.semantic[l] ?? '').trim())) err.semantic = 'err.semantic'
-  if (f.type === 'ref' && f.ref && !ids.has(f.ref)) err.ref = 'err.refMissing'
+  // 按类型的设置项（M6-9）：只校验当前类型适用的项
+  const use = fieldsFor(f.type)
+  if (use.includes('range')) {
+    const r = rangeOf(f.rangeMin, f.rangeMax)
+    if (!r.ok) err.range = r.error ?? 'err.range'
+  }
+  if (use.includes('choices')) {
+    const vals = f.choices.map((c) => c.trim()).filter(Boolean)
+    if (!vals.length) err.choices = 'err.choicesEmpty'
+    else if (new Set(vals).size !== vals.length) err.choices = 'err.choicesDup'
+  }
+  if (use.includes('ref')) {
+    const target = nodes.find((n) => n.id === f.ref)
+    if (!f.ref) err.ref = 'err.refRequired'
+    else if (!target) err.ref = 'err.refMissing'
+    else if (target.type !== 'object') err.ref = 'err.refNotObject'
+  }
   if (f.deprecated && f.replaced_by) {
     if (f.replaced_by === f.id) err.replaced_by = 'err.replacedSelf'
     else if (!ids.has(f.replaced_by)) err.replaced_by = 'err.refMissing'

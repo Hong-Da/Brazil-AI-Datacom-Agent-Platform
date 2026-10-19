@@ -450,3 +450,18 @@ def test_case_to_example(ai_on, kb) -> None:  # type: ignore[no-untyped-def]
     ex = skills.current("card-extract").examples
     assert r["version"] == "1" and ex[0]["output"] == "t <v>" and ex[0]["input"].startswith("Command: t")
     assert skills.versions("card-extract")[1]["source"] == "example"
+
+
+def test_groups_defined_once_and_every_skill_grouped() -> None:
+    """功能分组（REQ-033 评审修改）：组名三语都有、编号不重复；每个内置 skill 的 group 都是已定义的组（不落到 other）。"""
+    gs = skills.groups()
+    ids = [g["id"] for g in gs]
+    assert ids[:8] == ["qa", "generate", "analysis", "change", "compliance", "kb", "report", "evolve"]
+    assert ids[-1] == "other" and len(set(ids)) == len(ids)
+    assert all(all(g["title"][k] for k in ("zh-CN", "en", "pt-BR")) for g in gs)
+    assert "_groups" not in skills.list_ids()
+    got = {i: skills.group_of(skills.builtin(i), gs) for i in skills.list_ids()}
+    assert "other" not in got.values() and got["card-extract"] == "kb" and got["ask-query"] == "qa"
+    bad = skills.builtin("ask-query")
+    bad.group = "nope"
+    assert skills.group_of(bad, gs) == "other"

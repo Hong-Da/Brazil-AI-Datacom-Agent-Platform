@@ -1,0 +1,136 @@
+# AI 接口：公共与个人（REQ-040）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-ai：管理员 admin、普通用户 alice / bob；管理员接口 shared（#1，公共）与 internal（#2，不公开）；
+# alice 用个人接口。
+
+[[case]]
+id = "ai-connections-list"
+title = { zh-CN = "管理员 AI 接口列表", en = "List admin AI connections", pt-BR = "Listar conexões de IA do administrador" }
+method = "GET"
+path = "/api/v1/ai/connections"
+setup = "configured-ai"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.connections.0.name" = "shared", "data.connections.0.public" = true, "data.connections.0.api_key_set" = true }
+in_docs = true
+
+[[case]]
+id = "ai-connections-create"
+title = { zh-CN = "新建管理员 AI 接口", en = "Create an admin AI connection", pt-BR = "Criar conexão de IA do administrador" }
+method = "POST"
+path = "/api/v1/ai/connections"
+setup = "configured-ai"
+auth = true
+body = { name = "lab", provider = "local", base_url = "http://127.0.0.1:11434/v1", model = "qwen2.5", public = true }
+expect_status = 200
+expect_json = { "code" = 0, "data.name" = "lab", "data.public" = true, "data.api_key_set" = false }
+in_docs = true
+
+[[case]]
+id = "ai-connections-update"
+title = { zh-CN = "关闭接口的公共使用", en = "Stop sharing a connection", pt-BR = "Deixar de compartilhar uma conexão" }
+method = "PUT"
+path = "/api/v1/ai/connections/1"
+setup = "configured-ai"
+auth = true
+body = { public = false }
+expect_status = 200
+expect_json = { "code" = 0, "data.public" = false }
+in_docs = true
+
+[[case]]
+id = "ai-connections-user-forbidden"
+title = { zh-CN = "普通用户管理 AI 接口：403", en = "A user managing AI connections: 403", pt-BR = "Usuário gerenciando conexões de IA: 403" }
+method = "GET"
+path = "/api/v1/ai/connections"
+setup = "configured-ai"
+login = ["alice", "Alice-pass-1"]
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "ai-connections-duplicate"
+title = { zh-CN = "接口重名：409", en = "Duplicate connection name: 409", pt-BR = "Nome de conexão duplicado: 409" }
+method = "POST"
+path = "/api/v1/ai/connections"
+setup = "configured-ai"
+auth = true
+body = { name = "shared", provider = "openai", base_url = "http://127.0.0.1:9/v1", model = "m" }
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "me-ai-get"
+title = { zh-CN = "我的 AI：选择、个人接口（不含 Key）、可选接口与生效来源", en = "My AI: choice, personal connection (no key), options and effective source", pt-BR = "Minha IA: escolha, conexão pessoal (sem chave), opções e fonte efetiva" }
+method = "GET"
+path = "/api/v1/me/ai"
+setup = "configured-ai"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.choice" = "personal", "data.personal.api_key_set" = true, "data.options.0.name" = "shared", "data.effective.source" = "personal" }
+in_docs = true
+
+[[case]]
+id = "me-ai-put"
+title = { zh-CN = "改用公共接口", en = "Switch to a shared connection", pt-BR = "Passar a usar uma conexão compartilhada" }
+method = "PUT"
+path = "/api/v1/me/ai"
+setup = "configured-ai"
+login = ["alice", "Alice-pass-1"]
+body = { choice = "connection", connection_id = 1 }
+expect_status = 200
+expect_json = { "code" = 0, "data.choice" = "connection", "data.effective.connection.name" = "shared" }
+in_docs = true
+
+[[case]]
+id = "me-ai-put-private"
+title = { zh-CN = "普通用户选不公开的接口：422", en = "A user choosing a private connection: 422", pt-BR = "Usuário escolhendo conexão privada: 422" }
+method = "PUT"
+path = "/api/v1/me/ai"
+setup = "configured-ai"
+login = ["alice", "Alice-pass-1"]
+body = { choice = "connection", connection_id = 2 }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "me-ai-put-global-token"
+title = { zh-CN = "全局 API 令牌没有账号，不能设置我的 AI：409", en = "The global API token has no account: 409", pt-BR = "O token global não tem conta: 409" }
+method = "PUT"
+path = "/api/v1/me/ai"
+setup = "configured-ai"
+auth = true
+body = { choice = "none" }
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "ai-status-effective"
+title = { zh-CN = "AI 状态带生效来源", en = "AI status with the effective source", pt-BR = "Status da IA com a fonte efetiva" }
+method = "GET"
+path = "/api/v1/ai/status"
+setup = "configured-ai"
+login = ["bob", "Bob-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.configured" = true, "data.effective.source" = "connection", "data.effective.connection.name" = "shared" }
+in_docs = true
+
+[[case]]
+id = "ai-calls-mine"
+title = { zh-CN = "普通用户只看自己的调用记录", en = "Users only see their own calls", pt-BR = "Usuários só veem as próprias chamadas" }
+method = "GET"
+path = "/api/v1/ai/calls"
+setup = "configured-ai"
+login = ["bob", "Bob-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.scope" = "mine" }
+
+[[case]]
+id = "ai-usage"
+title = { zh-CN = "AI 用量统计", en = "AI usage statistics", pt-BR = "Estatísticas de uso de IA" }
+method = "GET"
+path = "/api/v1/ai/usage?from=2026-10-01&to=2026-10-19"
+setup = "configured-ai"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.scope" = "all", "data.from" = "2026-10-01", "data.totals.calls" = 0 }
+in_docs = true

@@ -225,7 +225,7 @@ def summary(settings: config.Settings) -> dict[str, Any]:
             "recent": sorted(devices, key=lambda d: d.get("collected_at") or "", reverse=True)[:5],
         },
         "regression": last_regression(),
-        "ai": {"configured": ai.is_configured(settings)},
+        "ai": {"configured": (res := ai.resolve(settings)).configured, "reason": res.reason},
     }
 
 
@@ -251,26 +251,54 @@ AI_KEYS = (
     "ai.timeout",
     "ai.max_tokens",
 )
+_CONN_KEYS = ("provider", "base_url", "model", "model_extract", "model_merge")
 
 
 def ai_settings(settings: config.Settings) -> dict[str, Any]:
-    out: dict[str, Any] = {k.split(".", 1)[1]: settings.get(k) for k in AI_KEYS}
-    out["api_key_set"] = bool(settings.get("ai.api_key"))
-    out["sources"] = {k.split(".", 1)[1]: settings.sources.get(k, "default") for k in (*AI_KEYS, "ai.api_key")}
+    """旧接口 GET /ai/settings（deprecated，REQ-040）：第一个管理员 AI 接口的内容，加全局的超时与 max_tokens。"""
+    from lmesh.core import ai_connections
+
+    cid = ai_connections.first_admin_id(settings)
+    conn = ai_connections.get_connection(settings, cid) if cid is not None else None
+    out: dict[str, Any] = {k: (conn[k] if conn and conn["enabled"] else "") for k in _CONN_KEYS}
+    out["timeout"], out["max_tokens"] = settings.get("ai.timeout"), settings.get("ai.max_tokens")
+    out["api_key_set"] = bool(conn and conn["api_key_set"])
+    src = "db" if conn else "default"
+    out["sources"] = {
+        **{k: src for k in (*_CONN_KEYS, "api_key")},
+        **{k: settings.sources.get(f"ai.{k}", "default") for k in ("timeout", "max_tokens")},
+    }
+    out["connection_id"] = cid
+    out["deprecated"] = True
     return out
 
 
-def save_ai_settings(body: dict[str, Any], lang: str) -> config.Settings:
-    """写回配置文件：只改 AI 分组；API Key 为空表示保持原值，`clear_api_key` 为 true 时清除。"""
-    current = config.load()
-    values = {k: v for k, v in current.values.items() if current.sources.get(k) == "file"}
-    for k in AI_KEYS:
-        name = k.split(".", 1)[1]
-        if name in body and body[name] is not None:
-            values[k] = config.validate(k, body[name])
-    if body.get("clear_api_key"):
-        values["ai.api_key"] = ""
-    elif body.get("api_key"):
-        values["ai.api_key"] = config.encrypt_secret(str(body["api_key"]))
-    config.write(values, lang)
-    return config.load()
+def save_ai_settings(settings: config.Settings, body: dict[str, Any], lang: str) -> config.Settings | None:
+    """旧接口 PUT /ai/settings（deprecated）：接口字段写入第一个管理员 AI 接口（没有时新建 default，允许公共使用；
+    provider 为空表示停用它）；timeout / max_tokens 仍写配置文件（改了时返回重新读取的配置，否则 None）。
+    校验失败抛 config.ConfigError。"""
+    from lmesh.core import ai_connections
+
+    limits = {k: body[k] for k in ("timeout", "max_tokens") if body.get(k) is not None}
+    for k, v in limits.items():
+        config.validate(f"ai.{k}", v)
+    fields = {k: body[k] for k in (*_CONN_KEYS, "api_key", "clear_api_key") if body.get(k) not in (None, False)}
+    cid = ai_connections.first_admin_id(settings)
+    try:
+        if body.get("provider") == "":
+            if cid is not None:
+                ai_connections.update_connection(settings, cid, {"enabled": False})
+        elif fields:
+            if body.get("provider") is not None:
+                config.validate("ai.provider", body["provider"])
+            if cid is None:
+                ai_connections.create_connection(
+                    settings, {"name": ai_connections.SEED_NAME, "public": True, "enabled": True, **fields}
+                )
+            else:
+                ai_connections.update_connection(settings, cid, {**fields, "enabled": True})
+    except ai_connections.ConnError as e:
+        raise config.ConfigError(str((e.data or {}).get("error") or e.key)) from e
+    if limits:
+        return config.update_file({f"ai.{k}": v for k, v in limits.items()}, lang)
+    return None

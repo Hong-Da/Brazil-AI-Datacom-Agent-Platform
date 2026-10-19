@@ -23,11 +23,19 @@ def _update(db_url: str, task_id: str, **fields: Any) -> None:
                 setattr(t, k, v)
 
 
-def submit(db_url: str, kind: str, fn: Callable[[Progress], dict[str, Any]], wait: bool = False) -> str:
-    """提交任务；wait=True 时在当前线程执行（测试与 CLI 用）。"""
+def submit(
+    db_url: str, kind: str, fn: Callable[[Progress], dict[str, Any]], wait: bool = False, created_by: str | None = None
+) -> str:
+    """提交任务；wait=True 时在当前线程执行（测试与 CLI 用）。created_by：发起人，不给时取当前请求的调用者
+    （REQ-040：任务里调用 AI 时按发起人的选择——由提交时绑定了发起人的 settings 决定，这里只做记录）。"""
     task_id = uuid.uuid4().hex[:16]
+    if created_by is None:
+        from lmesh.core import projects
+
+        who = projects.identity()
+        created_by = who.username if who is not None else ""
     with store.session(db_url) as s:
-        s.add(Task(id=task_id, kind=kind, status="queued", progress=0))
+        s.add(Task(id=task_id, kind=kind, status="queued", progress=0, created_by=created_by))
 
     def progress(pct: int, message: str) -> None:
         _update(db_url, task_id, progress=max(0, min(100, pct)), message=message)
@@ -60,6 +68,7 @@ def get(db_url: str, task_id: str) -> dict[str, Any] | None:
             "progress": t.progress,
             "message": t.message,
             "result": t.result,
+            "created_by": t.created_by,
             "created_at": iso(t.created_at),
             "updated_at": iso(t.updated_at),
         }

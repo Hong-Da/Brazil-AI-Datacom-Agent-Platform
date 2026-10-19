@@ -9,6 +9,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import AiOffHint from '@/components/ai-off-hint.vue'
 import DevChip from '@/components/m4-dev.vue'
 import { ApiError, errorText, get, post } from '@/api'
 import { pickLang } from '@/i18n'
@@ -221,7 +222,7 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
             <span class="it"><Icon name="cpu" small />{{ $t('ask.mAsk') }} <b class="mono">{{ st.models.ask }}</b></span>
             <span class="it"><Icon name="cpu" small />{{ $t('ask.mGen') }} <b class="mono">{{ st.models.generate }}</b></span>
             <span class="it"><Icon name="sanitize" small />{{ $t('ask.sanitize') }} <span class="tag t-teal">{{ $t('ask.alwaysOn') }}</span></span>
-            <router-link class="ml-auto small" :to="{ name: 'ai-settings' }">{{ $t('ask.aiSettings') }} →</router-link>
+            <router-link class="ml-auto small" :to="{ name: 'my-ai' }">{{ $t('my-ai.title') }} →</router-link>
           </div>
           <div class="rule">
             <div><span class="n ai">AI</span><div><b>{{ $t('ask.r1') }}</b><span>{{ $t('ask.r1d') }}</span></div></div>
@@ -382,10 +383,7 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
             <span class="offbadge"><i /><span>{{ $t('ask.offBadge') }}</span></span>
             <h2>{{ $t('ask.offTitle') }}</h2>
             <p>{{ $t('ask.offText') }}</p>
-            <div class="row wrap mt16" style="gap: 8px">
-              <router-link class="btn btn-primary" :to="{ name: 'ai-settings' }" data-testid="ask-setup-ai"><Icon name="spark" small /><span>{{ $t('ask.setupAi') }}</span></router-link>
-              <span class="small faint">{{ $t('ask.offNote') }}</span>
-            </div>
+            <AiOffHint class="mt16" data-testid="ask-setup-ai" />
           </div>
           <div>
             <h3>{{ $t('ask.altTitle') }}</h3>

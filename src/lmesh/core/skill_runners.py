@@ -345,12 +345,10 @@ def run(
     info: dict[str, Any] = {"model": "", "tokens_in": 0, "tokens_out": 0, "ms": 0, "calls": 0}
     if mode == "ai":
         if not ai.is_configured(ctx.settings):
-            raise skills.SkillError(
-                "ai.not_configured", "state", data={"status": "not_configured", "configured": False}
-            )
+            raise skills.SkillError("ai.not_configured", "state", data=ai.not_configured_data(ctx.settings))
         sess = ask._Session(ctx.settings, skill.task)
         try:
-            reply = sess.call("test", system, prompt)
+            reply = sess.call("test", system, prompt, skill.id)
         except ask.AskError as e:
             skills.log_run(ctx.settings, skill, source, "error", inp, "", {}, sess.info(), actor)
             return {
@@ -441,7 +439,7 @@ def evolve(
     """发起一次进化：AI 提出候选版本 → 回归集上新旧版本对比打分 → 存为待批准的进化（不自动发布）。"""
     prog = progress or (lambda pct, msg: None)
     if not ai.is_configured(ctx.settings):
-        raise skills.SkillError("ai.not_configured", "state", data={"status": "not_configured", "configured": False})
+        raise skills.SkillError("ai.not_configured", "state", data=ai.not_configured_data(ctx.settings))
     if sid == "skill-evolve":
         raise skills.SkillError("skills.evolve_self", "state", id=sid)
     target = skills.current(sid)

@@ -3,6 +3,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import AiOffHint from '@/components/ai-off-hint.vue'
 import AiFeedback from '@/components/ai-feedback.vue'
 import { pickLang } from '@/i18n'
 import { aiStats, categoriesFor, countByCat, countBySev, filterIssues, SEVERITIES, sortIssues } from './logic'
@@ -91,7 +92,7 @@ watch(() => props.sel, (id) => {
         <div>
           <template v-if="aiInfo.status === 'error'">{{ T('ai.error', { e: aiInfo.error || '' }) }}</template>
           <template v-else-if="aiInfo.status === 'no_rules'">{{ T('ai.noRules') }}</template>
-          <template v-else-if="aiInfo.status === 'not_configured'">{{ T('ai.notConfigured') }}</template>
+          <AiOffHint v-else-if="aiInfo.status === 'not_configured'" compact />
           <template v-else>
             {{ T('ai.summary', { r: aiInfo.rules?.length ?? 0, p: stats.proposed, s: stats.shown, ok: stats.passed, na: stats.unverifiable }) }}
             <details v-if="stats.rejected" style="display: inline" data-testid="cp-ai-rejected">

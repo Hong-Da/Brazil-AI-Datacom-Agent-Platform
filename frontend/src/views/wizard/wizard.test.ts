@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { blocksOf, coerce, displayHost, displayValue, initialValues, isChanged, labelKey, pickErrors, visibleGroups, type WField, type WGroup } from './wizard'
+import { blocksOf, coerce, confirmRows, confirmStats, groupErrors, needsRestart, displayHost, displayValue, initialValues, isChanged, labelKey, pickErrors, visibleGroups, type WField, type WGroup } from './wizard'
 
 function f(key: string, kind: string, def: string | number = '', extra: Partial<WField> = {}): WField {
   return { key, kind, default: def, choices: [], min: null, max: null, secret: false, desc: key, ...extra }
@@ -65,5 +65,41 @@ describe('向导逻辑', () => {
     expect(labelKey('server.host')).toBe('wizard.lbl.server_host')
     expect(displayHost('0.0.0.0')).toBe('127.0.0.1')
     expect(displayHost('10.0.0.5')).toBe('10.0.0.5')
+  })
+})
+
+describe('确认页（M6-9）', () => {
+  const groups = visibleGroups([
+    ...GROUPS,
+    { id: 'security', title: 'Sec', fields: [f('security.api_token', 'token', '', { secret: true })] },
+  ])
+  const running = { 'server.host': '0.0.0.0', 'server.port': 9000 }
+
+  it('改过的项、敏感值只给已设置 / 未设置、与运行中不同的监听地址需要重启', () => {
+    const values = { ...initialValues(groups, {}), 'server.port': 9100, 'security.api_token': 'secret-token' }
+    const net = confirmRows(groups[0]!, values, {}, running)
+    expect(net.map((r) => [r.field.key, r.changed, r.restart])).toEqual([['server.host', false, false], ['server.port', true, true]])
+    const sec = confirmRows(groups[3]!, values, {}, running)
+    expect(sec[0]).toMatchObject({ secretState: 'set', changed: true })
+    expect(confirmRows(groups[3]!, { ...values, 'security.api_token': '' }, {}, running)[0]!.secretState).toBe('unset')
+    // 数据库地址不是“已设置 / 未设置”，而是遮住密码后显示
+    expect(confirmRows(groups[1]!, values, {}, running)[0]!.secretState).toBeNull()
+    expect(needsRestart('server.port', 9000, running)).toBe(false)
+    expect(needsRestart('log.level', 'debug', running)).toBe(false)
+  })
+
+  it('只看已修改时保留出错的项；AI 未配置时只显示“未配置”', () => {
+    const values = initialValues(groups, {})
+    expect(confirmRows(groups[0]!, values, { 'server.host': 'bad' }, running, true).map((r) => r.field.key)).toEqual(['server.host'])
+    expect(confirmRows(groups[2]!, values, {}, running)).toEqual([])
+    expect(confirmRows(groups[2]!, { ...values, 'ai.provider': 'anthropic' }, {}, running).length).toBe(3)
+  })
+
+  it('汇总：改动数、默认数、需重启项与问题数（含管理员）', () => {
+    const values = { ...initialValues(groups, {}), 'server.port': 9100 }
+    const errs = { 'server.port': 'busy', 'admin.password': 'short', 'other.key': 'x' }
+    const st = confirmStats(groups, values, errs, running)
+    expect(st).toEqual({ changed: 1, unchanged: 4, restart: ['server.port'], errors: 2 })
+    expect(groupErrors(groups[0]!, errs)).toBe(1)
   })
 })

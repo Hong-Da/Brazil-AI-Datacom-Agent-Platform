@@ -68,18 +68,33 @@ def register(app: typer.Typer) -> None:
     sapp = typer.Typer(no_args_is_help=True, help="内置 AI skill：查看、试运行、版本、回滚、进化 / built-in AI skills")
     app.add_typer(sapp, name="skill")
 
-    @sapp.command("list", help="skill 列表与近 N 天统计 / list skills with statistics")
-    def s_list(ctx: typer.Context, days: Annotated[int, typer.Option("--days", min=1, max=3650)] = 30) -> None:
+    @sapp.command("list", help="skill 列表（按功能分组）与近 N 天统计 / list skills by group with statistics")
+    def s_list(
+        ctx: typer.Context,
+        days: Annotated[int, typer.Option("--days", min=1, max=3650)] = 30,
+        group: Annotated[
+            str | None, typer.Option("--group", help="只列这个功能分组（qa、generate、analysis …）")
+        ] = None,
+    ) -> None:
         c = output.get(ctx)
         url = require_db(c)
         settings = config.load()
         st = skills.stats(url, days)
+        groups = skills.groups()
+        if group and group not in {g["id"] for g in groups}:
+            fail(c, output.EXIT_USAGE, c.t("skill.bad_group", groups=", ".join(g["id"] for g in groups)))
         items = [{**skills.info(skills.current(i), settings), "stats": st.get(i)} for i in skills.list_ids()]
+        order = [g["id"] for g in groups]
+        items.sort(key=lambda it: order.index(it["group"]))  # 稳定排序：组内保持原顺序
+        if group:
+            items = [it for it in items if it["group"] == group]
+        names = {g["id"]: i18n.pick(g["title"], c.lang) for g in groups}
         rows = []
         for it in items:
             s = it["stats"] or {}
             rows.append(
                 [
+                    names[it["group"]],
                     it["id"],
                     i18n.pick(it["title"], c.lang),
                     c.t("common.yes") if it["enabled"] else c.t("common.no"),
@@ -93,9 +108,10 @@ def register(app: typer.Typer) -> None:
             )
         header = [
             c.t(f"skill.col.{k}")
-            for k in ("id", "title", "enabled", "version", "calls", "pass", "reject", "rating", "cases")
+            for k in ("group", "id", "title", "enabled", "version", "calls", "pass", "reject", "rating", "cases")
         ]
-        emit(c, {"days": days, "skills": items}, output.table(rows, header))
+        counted = [{**g, "count": sum(1 for it in items if it["group"] == g["id"])} for g in groups]
+        emit(c, {"days": days, "groups": counted, "skills": items}, output.table(rows, header))
 
     @sapp.command("show", help="显示 skill 的生效定义（提示词、示例、工具、校验）/ show a skill")
     def s_show(

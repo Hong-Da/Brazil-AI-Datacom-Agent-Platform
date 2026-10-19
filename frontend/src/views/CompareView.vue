@@ -4,6 +4,8 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import FullscreenPane from '@/components/FullscreenPane.vue'
+import FullscreenButton from '@/components/FullscreenButton.vue'
 import HiddenLegend from '@/components/hidden-legend.vue'
 import ShowDefaultToggle from '@/components/show-default-toggle.vue'
 import { rememberedFlag } from '@/stores/prefs'
@@ -403,7 +405,7 @@ onMounted(async () => {
           </div>
         </section>
 
-        <template v-else>
+        <FullscreenPane v-else class="cmp-fs" :title="`${sideName('a')} ⇢ ${sideName('b')}`" data-testid="compare-fs">
           <div class="tally" role="group" aria-label="Summary" data-testid="tally">
             <button
               v-for="tp in ROW_TYPES" :key="tp" type="button" :class="{ eqv: tp === 'na' }" :aria-pressed="filter.type === tp"
@@ -434,6 +436,7 @@ onMounted(async () => {
             </select>
             <label class="input-wrap"><Icon name="search" small /><input v-model="filter.q" class="input" type="search" :placeholder="$t('compare.search')" data-testid="filter-q"></label>
             <button v-if="filter.type" class="btn btn-ghost btn-sm" @click="filter.type = ''"><Icon name="x" small />{{ $t('compare.clearType') }}</button>
+            <FullscreenButton class="ml-auto" />
           </div>
 
           <div class="work">
@@ -470,7 +473,7 @@ onMounted(async () => {
               />
             </section>
           </div>
-        </template>
+        </FullscreenPane>
 
         <section v-if="nUnknown" class="panel mt12" data-testid="unknown-block">
           <div class="panel-h">
@@ -540,6 +543,8 @@ onMounted(async () => {
 .unk-line { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 8px; padding: 3px 6px; font-size: 12px; border-radius: 4px; cursor: pointer; align-items: center; }
 .unk-line:hover { background: var(--surface-2); }
 .unk-line .trunc { max-width: 200px; }
+.cmp-fs.is-fs .fold, .cmp-fs.is-fs .rbar { margin: 0; }
+.cmp-fs.is-fs .work { flex: 1; min-height: 0; overflow: auto; grid-template-rows: minmax(0, 1fr) 34vh; }
 @media (max-width: 1300px) { .work { grid-template-columns: minmax(0, 1fr) 320px; } }
 @media (max-width: 1100px) {
   .work { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(360px, 56vh) auto 300px; grid-template-areas: "main" "detail" "raw"; }

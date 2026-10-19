@@ -1,148 +1,68 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+/** AI 接口（管理员，REQ-040）：接口概览（名称、类型、公共使用与启用开关、状态、本月用量），点进 /ai/connections/:id 单独设置；
+ *  另有“用量统计”（全部用户）与“调用记录”（带用户与接口列）两个分区。超时与 max_tokens 是全局配置，只读展示。 */
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ApiError, errorText, get, post, put } from '@/api'
+import { errorText, get, put } from '@/api'
 import Icon from '@/components/Icon.vue'
 import { useStatus } from '@/stores/status'
-import {
-  LIMITS, PROVIDERS, buildPayload, effectiveModel, envName, fmtTokens, formFrom, isEnv, monthStart, needsBaseUrl,
-  payloadIsEmpty, usageByTask, usesKey, validateAi, type AiCall, type AiForm, type AiSettings, type AiStatus, type Provider,
-} from './ai/logic'
-import { fmtTime } from './ingest/logic'
+import CallsPanel from './ai/CallsPanel.vue'
+import UsagePanel from './ai/UsagePanel.vue'
+import { fmtTokens, taskModels, type Connection, type ConnectionList } from './ai/logic'
 
 const { t } = useI18n()
+const T = (k: string, p?: Record<string, unknown>) => t(`ai-settings.${k}`, p ?? {})
 const status = useStatus()
+const route = useRoute()
+const router = useRouter()
 
-const settings = ref<AiSettings | null>(null)
-const aiStatus = ref<AiStatus | null>(null)
-const form = reactive<AiForm>({ provider: '', base_url: '', model: '', model_extract: '', model_merge: '', timeout: 60, max_tokens: 4096 })
-const keyInput = ref('')
-const clearKey = ref(false)
+type Tab = 'conns' | 'usage' | 'calls'
+const tab = computed<Tab>(() => (route.query.tab === 'usage' || route.query.tab === 'calls' ? route.query.tab : 'conns'))
+function goTab(v: Tab): void { void router.replace({ query: { ...route.query, tab: v === 'conns' ? undefined : v } }) }
+
+const data = ref<ConnectionList | null>(null)
 const loading = ref(true)
 const loadErr = ref('')
+const conns = computed(() => data.value?.connections ?? [])
+const publicN = computed(() => conns.value.filter((c) => c.public && c.enabled).length)
+const maxTok = computed(() => Math.max(1, ...conns.value.map((c) => c.usage.tokens_in + c.usage.tokens_out)))
 
 async function load(): Promise<void> {
   loading.value = true
   loadErr.value = ''
   try {
-    const [s, st] = await Promise.all([get<AiSettings>('/ai/settings'), get<AiStatus>('/ai/status')])
-    apply(s)
-    aiStatus.value = st
-    void loadCalls()
+    data.value = await get<ConnectionList>('/ai/connections')
   } catch (e) {
     loadErr.value = errorText(e)
   } finally {
     loading.value = false
   }
 }
-
-function apply(s: AiSettings): void {
-  settings.value = s
-  Object.assign(form, formFrom(s))
-  keyInput.value = ''
-  clearKey.value = false
+async function reload(): Promise<void> {
+  try { data.value = await get<ConnectionList>('/ai/connections') } catch (e) { flash(errorText(e)) }
+  void status.refresh()
 }
 
-const env = (k: string) => isEnv(settings.value?.sources, k)
-const anyEnv = computed(() => Object.values(settings.value?.sources ?? {}).includes('env'))
-const configured = computed(() => !!aiStatus.value?.configured)
-const keySet = computed(() => !!settings.value?.api_key_set)
+const toast = ref('')
+let toastTimer = 0
+function flash(s: string): void { toast.value = s; window.clearTimeout(toastTimer); toastTimer = window.setTimeout(() => { toast.value = '' }, 2800) }
 
-// ---------- 保存 ----------
-const problems = computed(() => validateAi(form, keySet.value, keyInput.value, clearKey.value))
-const showProblems = ref(false)
-const payload = computed(() => (settings.value ? buildPayload(settings.value, form, keyInput.value, clearKey.value) : null))
-const dirty = computed(() => !!payload.value && !payloadIsEmpty(payload.value))
-const saving = ref(false)
-const saveErr = ref('')
-const savedMsg = ref(false)
-
-function errOf(k: keyof typeof problems.value): string {
-  const p = problems.value[k]
-  if (!showProblems.value || !p) return ''
-  if (p === 'errRange') { const [lo, hi] = LIMITS[k as 'timeout' | 'max_tokens']; return t('ai-settings.errRange', { lo, hi }) }
-  return t(`ai-settings.${p}`)
-}
-
-async function save(): Promise<void> {
-  showProblems.value = true
-  saveErr.value = ''
-  savedMsg.value = false
-  if (Object.keys(problems.value).length || !payload.value || !dirty.value) return
-  saving.value = true
+// 列表里直接切换公共使用与启用；其余设置在单独的设置页
+const busy = ref<number | null>(null)
+async function toggle(c: Connection, key: 'public' | 'enabled', v: boolean): Promise<void> {
+  busy.value = c.id
   try {
-    apply(await put<AiSettings>('/ai/settings', payload.value))
-    aiStatus.value = await get<AiStatus>('/ai/status')
-    showProblems.value = false
-    savedMsg.value = true
-    testRes.value = null
-    testErr.value = ''
-    void status.refresh()
+    await put<Connection>(`/ai/connections/${c.id}`, { [key]: v })
+    if (key === 'public' && !v && c.chosen_by) flash(T('closedToast', { n: c.chosen_by }))
   } catch (e) {
-    const d = e instanceof ApiError ? (e.data as { error?: string } | null) : null
-    saveErr.value = d?.error ? `${errorText(e)}：${d.error}` : errorText(e)
+    flash(errorText(e))
   } finally {
-    saving.value = false
+    busy.value = null
+    await reload()
   }
 }
-
-function discard(): void {
-  if (settings.value) apply(settings.value)
-  showProblems.value = false
-  saveErr.value = ''
-}
-
-function pickProvider(p: Provider): void {
-  if (!env('provider')) form.provider = p
-}
-
-// ---------- 测试连接 ----------
-interface TestResult { model: string; reply: string; tokens_in: number; tokens_out: number }
-const testing = ref(false)
-const testRes = ref<(TestResult & { ms: number }) | null>(null)
-const testErr = ref('')
-
-async function test(): Promise<void> {
-  testing.value = true
-  testRes.value = null
-  testErr.value = ''
-  const t0 = performance.now()
-  try {
-    const r = await post<TestResult>('/ai/test')
-    testRes.value = { ...r, ms: Math.round(performance.now() - t0) }
-  } catch (e) {
-    testErr.value = errorText(e)
-  } finally {
-    testing.value = false
-    void loadCalls()
-  }
-}
-
-// ---------- 调用记录 ----------
-const calls = ref<AiCall[]>([])
-const callsErr = ref('')
-const callsLoading = ref(false)
-const taskFilter = ref('')
-
-async function loadCalls(): Promise<void> {
-  callsLoading.value = true
-  callsErr.value = ''
-  try {
-    calls.value = (await get<{ calls: AiCall[] }>('/ai/calls?limit=1000')).calls
-  } catch (e) {
-    callsErr.value = errorText(e)
-  } finally {
-    callsLoading.value = false
-  }
-}
-
-const taskNames = computed(() => [...new Set(calls.value.map((c) => c.task))].sort())
-const shownCalls = computed(() => calls.value.filter((c) => !taskFilter.value || c.task === taskFilter.value).slice(0, 200))
-const usage = computed(() => usageByTask(calls.value, monthStart()))
-const usageTotal = computed(() => usage.value.reduce((s, u) => s + u.tokensIn + u.tokensOut, 0))
-const usageMax = computed(() => Math.max(1, ...usage.value.map((u) => u.tokensIn + u.tokensOut)))
-const taskLabel = (k: string) => (['extract', 'merge', 'test'].includes(k) ? t(`ai-settings.task_${k}`) : k)
-
+function open(c: Connection): void { void router.push({ name: 'ai-connection', params: { id: String(c.id) } }) }
 const LOGO: Record<string, string> = { anthropic: 'A', openai: 'OA', local: 'L' }
 
 onMounted(load)
@@ -154,289 +74,140 @@ onMounted(load)
       <div class="ph">
         <div class="ph-text">
           <h1>{{ $t('nav.ai-settings') }}</h1>
-          <p class="ph-sub">{{ $t('ai-settings.sub') }}</p>
+          <p class="ph-sub">{{ T('sub') }}</p>
         </div>
-        <div v-if="settings" class="ph-actions">
-          <span v-if="dirty" class="small" style="color: var(--amber-ink)" data-testid="ai-dirty">{{ $t('ai-settings.unsaved') }}</span>
-          <span v-else-if="savedMsg" class="small" style="color: var(--teal-ink)">{{ $t('c.saved') }}</span>
-          <button class="btn" :disabled="!dirty || saving" data-testid="ai-discard" @click="discard">{{ $t('ai-settings.discard') }}</button>
-          <button class="btn btn-primary" :disabled="!dirty || saving" data-testid="ai-save" @click="save">{{ $t('c.save') }}</button>
+        <div class="ph-actions">
+          <router-link class="btn btn-primary" :to="{ name: 'ai-connection', params: { id: 'new' } }" data-testid="ai-add"><Icon name="plus" small />{{ T('add') }}</router-link>
         </div>
       </div>
 
-      <div v-if="loading" class="panel"><div class="empty">{{ $t('c.loading') }}</div></div>
-      <div v-else-if="loadErr || !settings" class="panel">
-        <div class="empty">
-          <p>{{ loadErr }}</p>
-          <button class="btn" data-testid="ai-retry" @click="load"><Icon name="refresh" small />{{ $t('c.retry') }}</button>
-        </div>
+      <div class="tabs" role="tablist" data-testid="ai-tabs">
+        <button type="button" role="tab" :aria-selected="tab === 'conns'" data-testid="ai-tab-conns" @click="goTab('conns')">{{ T('tabConns') }}</button>
+        <button type="button" role="tab" :aria-selected="tab === 'usage'" data-testid="ai-tab-usage" @click="goTab('usage')">{{ T('tabUsage') }}</button>
+        <button type="button" role="tab" :aria-selected="tab === 'calls'" data-testid="ai-tab-calls" @click="goTab('calls')">{{ T('tabCalls') }}</button>
       </div>
 
-      <div v-else class="grid g-side collapse">
-        <div class="stack">
-          <!-- 降级模式说明 -->
-          <div v-if="!configured" class="panel" data-testid="ai-degraded">
-            <div class="panel-h"><h2>{{ $t('ai-settings.offT') }}</h2><span class="tag">{{ $t('ai-settings.degraded') }}</span></div>
-            <div class="off-hero">
-              <div class="yes">
-                <h3><Icon name="ok" small style="color: var(--teal-ink)" /><span>{{ $t('ai-settings.worksT') }}</span></h3>
-                <ul>
-                  <li v-for="i in 4" :key="i"><Icon name="check" small /><span>{{ $t(`ai-settings.works${i}`) }}</span></li>
-                </ul>
-              </div>
-              <div class="no">
-                <h3><Icon name="eyeOff" small style="color: var(--ink-3)" /><span>{{ $t('ai-settings.hiddenT') }}</span></h3>
-                <ul>
-                  <li><Icon name="minus" small /><span>{{ $t('ai-settings.hidden1') }}</span></li>
-                </ul>
-              </div>
+      <template v-if="tab === 'conns'">
+        <section class="panel rule-strip">
+          <div><Icon name="globe" /><div><b>{{ T('ruleP') }}</b><span>{{ T('ruleP_d') }}</span></div></div>
+          <div><Icon name="shield" /><div><b>{{ T('ruleA') }}</b><span>{{ T('ruleA_d') }}</span></div></div>
+          <div><Icon name="lock" /><div><b>{{ T('ruleK') }}</b><span>{{ T('ruleK_d') }}</span></div></div>
+        </section>
+
+        <div class="grid g-side collapse mt16">
+          <section class="panel" data-testid="ai-connections">
+            <div class="panel-h"><h2>{{ T('listT') }}</h2><span v-if="conns.length" class="meta">{{ T('listMeta', { n: conns.length, p: publicN }) }}</span></div>
+            <div v-if="loading" class="empty">{{ $t('c.loading') }}</div>
+            <div v-else-if="loadErr" class="empty">
+              <p>{{ loadErr }}</p>
+              <button class="btn" data-testid="ai-retry" @click="load"><Icon name="refresh" small />{{ $t('c.retry') }}</button>
             </div>
-          </div>
-
-          <!-- 接口 -->
-          <div class="panel" data-testid="ai-interface">
-            <div class="panel-h">
-              <h2>{{ $t('ai-settings.ifT') }}</h2>
-              <span v-if="configured" class="tag pass"><Icon name="check" small />{{ $t('ai-settings.configured') }}</span>
-              <span v-else class="tag">{{ $t('ai-settings.notConfigured') }}</span>
+            <div v-else-if="!conns.length" class="empty" data-testid="ai-empty">
+              <Icon name="spark" />
+              <h3>{{ T('emptyT') }}</h3>
+              <p>{{ T('emptyD') }}</p>
+              <router-link class="btn btn-primary" :to="{ name: 'ai-connection', params: { id: 'new' } }"><Icon name="plus" small />{{ T('add') }}</router-link>
             </div>
-            <div class="panel-b">
-              <span class="field-label">{{ $t('ai-settings.type') }}</span>
-              <div class="types mt8" data-testid="ai-provider">
-                <label v-for="p in PROVIDERS" :key="p" class="radio-card" :class="{ ro: env('provider') }">
-                  <span class="head">
-                    <input type="radio" name="provider" :checked="form.provider === p" :disabled="env('provider')" @change="pickProvider(p)">
-                    <span class="lg" :class="p">{{ LOGO[p] }}</span>
-                    <span class="rc-t">{{ $t(`ai-settings.p_${p}`) }}</span>
-                  </span>
-                  <span class="rc-d">{{ $t(`ai-settings.p_${p}_d`) }}</span>
-                </label>
-                <label class="radio-card" :class="{ ro: env('provider') }">
-                  <span class="head">
-                    <input type="radio" name="provider" :checked="form.provider === ''" :disabled="env('provider')" @change="pickProvider('')">
-                    <span class="lg none"><Icon name="minus" small /></span>
-                    <span class="rc-t">{{ $t('ai-settings.p_none') }}</span>
-                  </span>
-                  <span class="rc-d">{{ $t('ai-settings.p_none_d') }}</span>
-                </label>
-              </div>
-              <span v-if="env('provider')" class="hint envhint"><Icon name="lock" small />{{ $t('ai-settings.envSet', { v: envName('provider') }) }}</span>
-
-              <div v-if="form.provider" class="form-grid mt16">
-                <div class="field span2">
-                  <label for="ai-url">{{ $t('ai-settings.baseUrl') }}</label>
-                  <input
-                    id="ai-url" v-model="form.base_url" class="input mono" :class="{ 'is-error': errOf('base_url') }" :disabled="env('base_url')"
-                    :placeholder="form.provider === 'local' ? 'http://127.0.0.1:11434/v1' : form.provider === 'openai' ? 'https://…/v1' : 'https://api.anthropic.com'"
-                    spellcheck="false" data-testid="ai-base-url"
-                  >
-                  <span v-if="env('base_url')" class="hint envhint"><Icon name="lock" small />{{ $t('ai-settings.envSet', { v: envName('base_url') }) }}</span>
-                  <span v-else-if="errOf('base_url')" class="err"><Icon name="err" small />{{ errOf('base_url') }}</span>
-                  <span v-else class="hint">{{ needsBaseUrl(form.provider) ? $t('ai-settings.baseUrlNeed') : $t('ai-settings.baseUrlOpt') }}</span>
-                </div>
-
-                <div class="field span2">
-                  <label for="ai-key">API Key</label>
-                  <div class="keyrow">
-                    <input
-                      id="ai-key" v-model="keyInput" type="password" autocomplete="new-password" class="input" :class="{ 'is-error': errOf('api_key') }"
-                      :disabled="env('api_key')" :placeholder="keySet && !clearKey ? $t('ai-settings.keySetPh') : usesKey(form.provider) ? $t('ai-settings.keyPh') : $t('ai-settings.keyLocalPh')"
-                      data-testid="ai-api-key" @input="clearKey = false"
-                    >
-                    <span v-if="keySet && !clearKey" class="tag pass nowrap" data-testid="ai-key-set"><Icon name="lock" small />{{ $t('ai-settings.keySet') }}</span>
-                    <span v-else-if="clearKey" class="tag t-amber nowrap">{{ $t('ai-settings.keyWillClear') }}</span>
-                    <button v-if="keySet && !env('api_key')" class="btn" data-testid="ai-key-clear" @click="clearKey = !clearKey; keyInput = ''">
-                      {{ clearKey ? $t('ai-settings.keyKeep') : $t('ai-settings.keyClear') }}
-                    </button>
+            <div v-else class="conn-list">
+              <div v-for="c in conns" :key="c.id" class="conn" :class="{ 'is-off': !c.enabled }" :data-testid="`ai-conn-${c.name}`">
+                <span class="lg clickable" :class="c.provider" @click="open(c)">{{ LOGO[c.provider] ?? '?' }}</span>
+                <div class="cn clickable" @click="open(c)">
+                  <div class="t">
+                    <router-link :to="{ name: 'ai-connection', params: { id: String(c.id) } }" class="nm" :title="T('openTip')" :data-testid="`ai-conn-open-${c.name}`" @click.stop>{{ c.name }}</router-link>
+                    <span v-if="c.is_default" class="tag t-teal small-tag" :title="T('defaultTip')" data-testid="ai-conn-default">{{ T('default') }}</span>
+                    <span v-if="!c.enabled" class="tag small-tag">{{ T('disabled') }}</span>
                   </div>
-                  <span v-if="env('api_key')" class="hint envhint"><Icon name="lock" small />{{ $t('ai-settings.envSet', { v: envName('api_key') }) }}</span>
-                  <span v-else-if="errOf('api_key')" class="err"><Icon name="err" small />{{ errOf('api_key') }}</span>
-                  <span class="enc"><Icon name="lock" small />{{ $t('ai-settings.keyNote') }}</span>
-                </div>
-
-                <div class="field">
-                  <label for="ai-model">{{ $t('ai-settings.model') }}</label>
-                  <input id="ai-model" v-model="form.model" class="input mono" :class="{ 'is-error': errOf('model') }" :disabled="env('model')" spellcheck="false" data-testid="ai-model">
-                  <span v-if="env('model')" class="hint envhint"><Icon name="lock" small />{{ $t('ai-settings.envSet', { v: envName('model') }) }}</span>
-                  <span v-else-if="errOf('model')" class="err"><Icon name="err" small />{{ errOf('model') }}</span>
-                  <span v-else class="hint">{{ $t('ai-settings.modelHint') }}</span>
-                </div>
-                <div class="field">
-                  <label>{{ $t('ai-settings.limits') }}</label>
-                  <div class="row">
-                    <label class="mini">
-                      <span class="small muted">{{ $t('ai-settings.timeout') }}</span>
-                      <input v-model.number="form.timeout" type="number" :min="LIMITS.timeout[0]" :max="LIMITS.timeout[1]" class="input" :class="{ 'is-error': errOf('timeout') }" :disabled="env('timeout')" data-testid="ai-timeout">
-                    </label>
-                    <label class="mini">
-                      <span class="small muted">{{ $t('ai-settings.maxTokens') }}</span>
-                      <input v-model.number="form.max_tokens" type="number" :min="LIMITS.max_tokens[0]" :max="LIMITS.max_tokens[1]" class="input" :class="{ 'is-error': errOf('max_tokens') }" :disabled="env('max_tokens')" data-testid="ai-max-tokens">
-                    </label>
+                  <div class="cm"><span class="faint">{{ T(`p_${c.provider}`) }}</span> · {{ c.model }}</div>
+                  <div v-if="taskModels(c).length" class="models">
+                    <span v-for="[k, m] in taskModels(c)" :key="k" class="m"><i>{{ T(`short_${k}`) }}</i>{{ m }}</span>
                   </div>
-                  <span v-if="env('timeout') || env('max_tokens')" class="hint envhint"><Icon name="lock" small />{{ $t('ai-settings.envSetSome') }}</span>
-                  <span v-else-if="errOf('timeout') || errOf('max_tokens')" class="err"><Icon name="err" small />{{ errOf('timeout') || errOf('max_tokens') }}</span>
-                  <span v-else class="hint">{{ $t('ai-settings.limitsHint') }}</span>
                 </div>
+                <div class="sw" :class="{ 'pub-on': c.public && c.enabled }">
+                  <label><span class="switch"><input type="checkbox" :checked="c.public" :disabled="busy === c.id" :data-testid="`ai-conn-public-${c.name}`" @change="toggle(c, 'public', ($event.target as HTMLInputElement).checked)"><span /></span>{{ T('public') }}</label>
+                  <span class="k">{{ c.public ? T('publicOn') : T('publicOff') }}</span>
+                </div>
+                <div class="sw">
+                  <label><span class="switch"><input type="checkbox" :checked="c.enabled" :disabled="busy === c.id" :data-testid="`ai-conn-enabled-${c.name}`" @change="toggle(c, 'enabled', ($event.target as HTMLInputElement).checked)"><span /></span>{{ T('enabled') }}</label>
+                  <span class="k">{{ T('chosenBy', { n: c.chosen_by }) }}</span>
+                </div>
+                <div class="use clickable" @click="open(c)">
+                  <div class="n">
+                    <span>{{ T('calls', { n: c.usage.calls }) }}<template v-if="c.usage.errors"> · <span class="bad">{{ T('callsErr', { n: c.usage.errors }) }}</span></template></span>
+                    <b>{{ fmtTokens(c.usage.tokens_in + c.usage.tokens_out) }}</b>
+                  </div>
+                  <div class="meter"><div class="bar"><i :style="{ width: `${Math.round(((c.usage.tokens_in + c.usage.tokens_out) / maxTok) * 100)}%` }" /></div></div>
+                </div>
+                <router-link class="btn btn-sm" :to="{ name: 'ai-connection', params: { id: String(c.id) } }" :data-testid="`ai-conn-edit-${c.name}`">{{ T('open') }}<Icon name="chevR" small /></router-link>
               </div>
-              <p v-else class="small muted mt12">{{ $t('ai-settings.noneNote') }}</p>
-
-              <div v-if="saveErr" class="notice err mt12" data-testid="ai-save-error"><Icon name="err" /><div class="grow small">{{ saveErr }}</div></div>
-
-              <div class="row wrap mt16">
-                <button class="btn" :disabled="!configured || dirty || testing" data-testid="ai-test" @click="test">
-                  <Icon name="refresh" small />{{ testing ? $t('ai-settings.testing') : $t('ai-settings.test') }}
-                </button>
-                <span v-if="testRes" class="small" style="color: var(--teal-ink)" data-testid="ai-test-ok">
-                  {{ $t('ai-settings.testOk', { m: testRes.model, ms: testRes.ms, i: testRes.tokens_in, o: testRes.tokens_out }) }}
-                  <span class="mono faint">“{{ testRes.reply }}”</span>
-                </span>
-                <span v-else-if="testErr" class="small" style="color: var(--red-ink)" data-testid="ai-test-err">{{ $t('ai-settings.testFail', { e: testErr }) }}</span>
-                <span v-else-if="dirty" class="small faint">{{ $t('ai-settings.testAfterSave') }}</span>
-                <span v-else-if="!configured" class="small faint">{{ $t('ai-settings.testNeedConfig') }}</span>
+            </div>
+          </section>
+          <div class="stack">
+            <section class="panel" data-testid="ai-limits">
+              <div class="panel-h"><h2>{{ T('limitsT') }}</h2><span class="tag">{{ T('limitsTag') }}</span></div>
+              <div class="panel-b">
+                <dl class="kv">
+                  <dt>{{ T('timeout') }}</dt><dd>{{ data?.limits.timeout ?? '—' }} s</dd>
+                  <dt>{{ T('maxTokens') }}</dt><dd>{{ data?.limits.max_tokens ?? '—' }}</dd>
+                </dl>
+                <p class="small faint mt8">{{ T('limitsNote') }}</p>
               </div>
-            </div>
-          </div>
-
-          <!-- 按任务选模型 -->
-          <div v-if="form.provider" class="panel" data-testid="ai-task-models">
-            <div class="panel-h"><h2>{{ $t('ai-settings.perTaskT') }}</h2><span class="meta">{{ $t('ai-settings.perTaskMeta') }}</span></div>
-            <div class="tbl-wrap">
-              <table class="tbl task-tbl">
-                <thead><tr><th>{{ $t('ai-settings.task') }}</th><th>{{ $t('ai-settings.taskModel') }}</th><th>{{ $t('ai-settings.effective') }}</th></tr></thead>
-                <tbody>
-                  <tr v-for="k in (['extract', 'merge'] as const)" :key="k">
-                    <td><div class="tn">{{ $t(`ai-settings.task_${k}`) }}</div><div class="td">{{ $t(`ai-settings.task_${k}_d`) }}</div></td>
-                    <td>
-                      <input
-                        v-model="form[k === 'extract' ? 'model_extract' : 'model_merge']" class="input mono" :disabled="env(`model_${k}`)"
-                        :placeholder="$t('ai-settings.useDefault')" spellcheck="false" :data-testid="`ai-model-${k}`"
-                      >
-                      <div v-if="env(`model_${k}`)" class="td">{{ $t('ai-settings.envSet', { v: envName(`model_${k}`) }) }}</div>
-                    </td>
-                    <td class="mono small">{{ effectiveModel(form, k) || '—' }}</td>
-                  </tr>
-                  <tr>
-                    <td><div class="tn">{{ $t('ai-settings.task_test') }}</div><div class="td">{{ $t('ai-settings.task_test_d') }}</div></td>
-                    <td class="small faint">{{ $t('ai-settings.useDefaultFixed') }}</td>
-                    <td class="mono small">{{ form.model.trim() || '—' }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- 调用记录 -->
-          <div class="panel" data-testid="ai-calls">
-            <div class="panel-h">
-              <h2>{{ $t('ai-settings.callsT') }}</h2>
-              <select v-model="taskFilter" class="select hsel" data-testid="ai-calls-filter">
-                <option value="">{{ $t('ai-settings.allTasks') }}</option>
-                <option v-for="k in taskNames" :key="k" :value="k">{{ taskLabel(k) }}</option>
-              </select>
-              <button class="btn btn-sm btn-icon" :title="$t('c.refresh')" :aria-label="$t('c.refresh')" data-testid="ai-calls-refresh" @click="loadCalls"><Icon name="refresh" small /></button>
-            </div>
-            <div v-if="callsErr" class="empty small"><p>{{ callsErr }}</p><button class="btn btn-sm" @click="loadCalls">{{ $t('c.retry') }}</button></div>
-            <div v-else-if="callsLoading && !calls.length" class="empty small">{{ $t('c.loading') }}</div>
-            <div v-else-if="!calls.length" class="empty small">{{ $t('ai-settings.noCalls') }}</div>
-            <div v-else class="tbl-wrap" style="max-height: 360px">
-              <table class="tbl compact" data-testid="ai-calls-table">
-                <thead>
-                  <tr>
-                    <th>{{ $t('ai-settings.time') }}</th><th>{{ $t('ai-settings.task') }}</th><th>{{ $t('ai-settings.ifModel') }}</th>
-                    <th class="num">{{ $t('ai-settings.in') }}</th><th class="num">{{ $t('ai-settings.out') }}</th><th>{{ $t('ai-settings.result') }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="c in shownCalls" :key="c.id">
-                    <td class="nowrap faint">{{ fmtTime(c.created_at) }}</td>
-                    <td>{{ taskLabel(c.task) }}</td>
-                    <td class="nowrap"><span class="small">{{ c.provider }}</span> <span class="mono small faint">{{ c.model }}</span></td>
-                    <td class="num">{{ (c.tokens_in ?? 0).toLocaleString('en-US') }}</td>
-                    <td class="num">{{ (c.tokens_out ?? 0).toLocaleString('en-US') }}</td>
-                    <td class="nowrap">
-                      <span v-if="c.status === 'ok'" class="tag pass">{{ $t('ai-settings.callOk') }}</span>
-                      <span v-else class="tag error" :title="c.error ?? ''">{{ $t('ai-settings.callErr') }}</span>
-                      <router-link v-if="c.review_item_id" class="mono small" :to="{ name: 'review' }"> #{{ c.review_item_id }}</router-link>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            </section>
+            <section class="panel">
+              <div class="panel-h"><h2>{{ T('safetyT') }}</h2><Icon name="shield" small style="color: var(--teal-ink)" /></div>
+              <div class="panel-b safety"><span v-for="i in 3" :key="i">{{ T(`safe${i}`) }}</span></div>
+            </section>
           </div>
         </div>
+      </template>
 
-        <!-- 右栏 -->
-        <div class="stack">
-          <div class="panel">
-            <div class="panel-h"><h2>{{ $t('ai-settings.safetyT') }}</h2><Icon name="shield" small style="color: var(--teal-ink)" /></div>
-            <div class="panel-b safety">
-              <div v-for="i in 4" :key="i" class="sw-row"><span class="t">{{ $t(`ai-settings.safe${i}`) }}</span><span class="d">{{ $t(`ai-settings.safe${i}_d`) }}</span></div>
-            </div>
-            <div class="panel-f small faint"><Icon name="key" small /><span>{{ $t('ai-settings.keyFoot') }}</span></div>
-          </div>
-
-          <div v-if="anyEnv" class="notice warn" data-testid="ai-env-notice">
-            <Icon name="lock" /><div class="grow small">{{ $t('ai-settings.envNotice') }}</div>
-          </div>
-
-          <div class="panel usage" data-testid="ai-usage">
-            <div class="panel-h"><h2>{{ $t('ai-settings.usageT') }}</h2><span class="meta">{{ fmtTokens(usageTotal) }} tokens</span></div>
-            <div class="panel-b">
-              <div v-if="!usage.length" class="small faint">{{ $t('ai-settings.noUsage') }}</div>
-              <div v-for="u in usage" :key="u.task" class="r">
-                <span>{{ taskLabel(u.task) }} <span class="faint">· {{ $t('ai-settings.usageCalls', { n: u.calls, e: u.errors }) }}</span></span>
-                <b>{{ fmtTokens(u.tokensIn + u.tokensOut) }}</b>
-                <div class="meter"><div class="bar"><i :style="{ width: `${Math.round(((u.tokensIn + u.tokensOut) / usageMax) * 100)}%` }" /></div></div>
-              </div>
-              <p class="small faint mt8">{{ $t('ai-settings.usageNote') }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <UsagePanel v-else-if="tab === 'usage'" />
+      <CallsPanel v-else :title="T('callsT')" :foot="T('callsFoot')" />
     </div>
+    <div v-if="toast" class="toast" role="status" data-testid="ai-toast">{{ toast }}</div>
   </main>
 </template>
 
 <style scoped>
-.keyrow { display: flex; gap: 6px; align-items: center; }
-.keyrow .input { flex: 1; min-width: 0; font-family: var(--font-mono); letter-spacing: .04em; }
-.enc { display: flex; gap: 6px; align-items: center; font-size: 12px; color: var(--teal-ink); }
-.envhint { display: inline-flex; gap: 5px; align-items: center; color: var(--amber-ink) !important; margin-top: 6px; }
-.task-tbl td { vertical-align: middle; }
-.task-tbl .input { height: 28px; font-size: 12px; }
-.task-tbl .tn { font-weight: 600; }
-.task-tbl .td { font-size: 12px; color: var(--ink-3); }
-.hsel { width: auto; height: 28px; }
-.mini { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
-.sw-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--line); }
-.sw-row:last-child { border-bottom: 0; }
-.sw-row .t { font-weight: 600; }
-.sw-row .d { font-size: 12px; color: var(--ink-2); }
-.safety { padding-top: 4px; padding-bottom: 4px; }
-.off-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-.off-hero > div { padding: 18px 20px; }
-.off-hero > div + div { border-left: 1px solid var(--line); }
-.off-hero h3 { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
-.off-hero ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
-.off-hero li { display: flex; gap: 8px; align-items: flex-start; }
-.off-hero li .ico { margin-top: 2px; flex: none; }
-.off-hero .yes li .ico { color: var(--teal-ink); }
-.off-hero .no li .ico { color: var(--ink-3); }
-.types { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-.types .radio-card { flex-direction: column; gap: 6px; }
-.types .radio-card.ro { cursor: not-allowed; opacity: .75; }
-.types .head { display: flex; gap: 8px; align-items: center; }
-.lg { width: 24px; height: 24px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; font: 700 10px var(--font-ui); color: var(--surface); flex: none; }
+.rule-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.rule-strip > div { padding: 12px 16px; border-left: 1px solid var(--line); font-size: 12.5px; color: var(--ink-2); display: flex; gap: 10px; align-items: flex-start; }
+.rule-strip > div:first-child { border-left: 0; }
+.rule-strip b { color: var(--ink); display: block; margin-bottom: 2px; font-size: 13px; }
+.rule-strip .ico { color: var(--teal-ink); flex: none; margin-top: 2px; }
+.conn-list { display: flex; flex-direction: column; }
+.conn { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto auto minmax(110px, .6fr) auto; gap: 14px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+.conn:first-child { border-top: 0; }
+.conn:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+.conn.is-off { background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+.conn.is-off .nm, .conn.is-off .cm { color: var(--ink-3); }
+.clickable { cursor: pointer; }
+.lg { width: 30px; height: 30px; border-radius: 7px; display: inline-flex; align-items: center; justify-content: center; font: 700 11px var(--font-ui); color: var(--surface); flex: none; }
 .lg.anthropic { background: var(--amber-ink); }
 .lg.openai { background: var(--blue-ink); }
 .lg.local { background: var(--ink-2); }
-.lg.none { background: transparent; color: var(--ink-3); border: 1px dashed var(--line-strong); }
-.usage .r { display: grid; grid-template-columns: minmax(0, 1fr) auto; font-size: 12px; padding: 5px 0; }
-.usage .meter { margin-top: 4px; grid-column: 1 / -1; }
+.cn { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cn .t { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.nm { font-size: 14px; font-weight: 600; color: var(--ink); }
+.cm { font: 12px var(--font-mono); color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cm .faint { font-family: var(--font-ui); }
+.small-tag { font-size: 11px; height: 19px; }
+.models { display: flex; flex-wrap: wrap; gap: 4px; }
+.models .m { font: 11px var(--font-mono); color: var(--ink-2); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; background: var(--surface-2); white-space: nowrap; }
+.models .m i { font-style: normal; color: var(--ink-3); font-family: var(--font-ui); margin-right: 3px; }
+.sw { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; min-width: 92px; }
+.sw label { display: flex; gap: 7px; align-items: center; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+.sw .k { font-size: 11px; color: var(--ink-3); }
+.sw.pub-on .k { color: var(--teal-ink); }
+.use { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink-2); }
+.use .n { display: flex; justify-content: space-between; gap: 8px; }
+.use b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.use .bad { color: var(--red-ink); }
+.safety { display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; color: var(--ink-2); }
 @media (max-width: 1100px) {
+  .rule-strip { grid-template-columns: minmax(0, 1fr); }
+  .rule-strip > div { border-left: 0; border-top: 1px solid var(--line); }
+  .rule-strip > div:first-child { border-top: 0; }
+  .conn { grid-template-columns: 34px minmax(0, 1fr) auto; }
+  .conn > .use { grid-column: 2 / -1; }
   .g-side.collapse { grid-template-columns: minmax(0, 1fr); }
-  .types { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .off-hero { grid-template-columns: minmax(0, 1fr); }
-  .off-hero > div + div { border-left: 0; border-top: 1px solid var(--line); }
 }
 </style>

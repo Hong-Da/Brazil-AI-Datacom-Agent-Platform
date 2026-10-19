@@ -9,7 +9,7 @@ export interface Summary {
   unknown: { patterns: number; total: number }
   devices: { count: number; stale: number; roundtrip_failed: number; recent: unknown[] }
   regression: unknown | null
-  ai: { configured: boolean }
+  ai: { configured: boolean; reason?: string | null } // reason：按当前账号没有可用 AI 的原因（REQ-040）
 }
 
 export const useStatus = defineStore('status', () => {

@@ -298,7 +298,9 @@ def test_personal_tokens(url: str) -> None:
     with store.session(url) as s:
         row = s.scalar(select(ApiToken))
         assert row is not None and row.token_hash != t["token"] and row.last_used_ip == "10.0.0.1"
-    assert tokens.authenticate(url, t["token"][:-1] + "x", "") is None
+    # 改掉最后一个字符（一定换成不同的字符，避免随机令牌本来就以该字符结尾）
+    last = t["token"][-1]
+    assert tokens.authenticate(url, t["token"][:-1] + ("y" if last == "x" else "x"), "") is None
     # 过期
     with store.session(url) as s:
         row = s.scalar(select(ApiToken))

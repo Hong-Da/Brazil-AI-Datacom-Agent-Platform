@@ -1,3 +1,4 @@
+import { checkDefault, defaultKind, parseTyped } from './defaults'
 import { describe, expect, it } from 'vitest'
 import { toCsv } from './csv'
 import { credPercents, formatDefault, parseDefault, shortId, treeOrder, vendorBadge } from './format'
@@ -167,5 +168,35 @@ describe('覆盖矩阵', () => {
     const lines = coverageCsv(filterCoverage(rows, { ...f, gapsOnly: true }), cov.profiles).replace('﻿', '').trim().split('\r\n')
     expect(lines[0]).toBe('node,domain,type,deprecated,cs,hw1,hw2,support_diff,default_diff')
     expect(lines[1]).toBe('bgp.log,bgp,string,false,supported draft,unfilled,unfilled,false,')
+  })
+})
+
+describe('默认值按类型输入与校验（M6-9）', () => {
+  it('输入方式', () => {
+    expect(defaultKind({ type: 'boolean' })).toBe('bool')
+    expect(defaultKind({ type: 'enum', choices: ['a', 'b'] })).toBe('enum')
+    expect(defaultKind({ type: 'enum' })).toBe('text') // 没有可选值的枚举退回文本框
+    expect(defaultKind({ type: 'integer', range: [1, 5] })).toBe('int')
+    expect(defaultKind({ type: 'ipv4' })).toBe('text')
+  })
+  it('校验', () => {
+    expect(checkDefault('', { type: 'integer', range: [1, 5] })).toBe('')
+    expect(checkDefault('3', { type: 'integer', range: [1, 5] })).toBe('')
+    expect(checkDefault('9', { type: 'integer', range: [1, 5] })).toBe('range')
+    expect(checkDefault('x', { type: 'integer' })).toBe('int')
+    expect(checkDefault('c', { type: 'enum', choices: ['a', 'b'] })).toBe('choice')
+    expect(checkDefault('yes', { type: 'boolean' })).toBe('bool')
+    expect(checkDefault('10.0.0.300', { type: 'ipv4' })).toBe('format')
+    expect(checkDefault('10.0.0.0/8', { type: 'prefix' })).toBe('')
+    expect(checkDefault('system', { type: 'interface' })).toBe('')
+    expect(checkDefault('any text', { type: 'string' })).toBe('')
+  })
+  it('转成 YAML 标量', () => {
+    expect(parseTyped('true', { type: 'boolean' })).toBe(true)
+    expect(parseTyped('false', { type: 'boolean' })).toBe(false)
+    expect(parseTyped('', { type: 'boolean' })).toBeNull()
+    expect(parseTyped('42', { type: 'integer' })).toBe(42)
+    expect(parseTyped('1', { type: 'enum', choices: ['1', '2'] })).toBe('1')
+    expect(parseTyped('100', { type: 'string' }, '30')).toBe('100')
   })
 })

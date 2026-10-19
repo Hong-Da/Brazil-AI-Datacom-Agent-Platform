@@ -7,7 +7,7 @@ from typing import Annotated
 
 import typer
 
-from lmesh.cli import output
+from lmesh.cli import cmd_ai, output
 from lmesh.cli.cmd_configs import require_db
 from lmesh.cli.cmd_kb import _root
 from lmesh.cli.output import emit, fail
@@ -41,7 +41,7 @@ def register(app: typer.Typer) -> None:
         settings = config.load()
         root = _root(c)
         if use_ai and not ai.is_configured(settings):
-            fail(c, output.EXIT_CONFIG, c.t("ai.not_configured"))
+            fail(c, output.EXIT_CONFIG, c.t("ai.not_configured"), ai.not_configured_data(settings))
 
         def progress(pct: int, msg: str) -> None:
             if not c.quiet and c.output == "text" and c.verbose:
@@ -84,31 +84,52 @@ def register(app: typer.Typer) -> None:
         res = approve_matching(require_db(c), _root(c), kind, contains, rules)
         emit(c, res, c.t("review.approved_n", n=res["approved"], failed=res["failed"]))
 
-    @ai_app.command("test", help="测试 AI 接口是否可用 / test the AI interface")
+    cmd_ai.register(ai_app)
+
+    @ai_app.command("test", help="测试当前生效的 AI 接口（按 --as 账号的选择）/ test the effective AI connection")
     def ai_test(ctx: typer.Context) -> None:
         c = output.get(ctx)
         settings = config.load()
-        if not ai.is_configured(settings):
-            fail(c, output.EXIT_CONFIG, c.t("ai.not_configured"))
         require_db(c)
+        if not ai.is_configured(settings):
+            fail(c, output.EXIT_CONFIG, c.t("ai.not_configured"), ai.not_configured_data(settings))
         try:
             res = ai.test(settings)
         except ai.AIError as e:
             fail(c, output.EXIT_EXTERNAL, c.t(str(e)))
         emit(c, res, c.t("ai.test_ok", model=res["model"], reply=res["reply"]))
 
-    @ai_app.command("calls", help="最近的 AI 调用记录 / recent AI calls")
-    def ai_calls(ctx: typer.Context, limit: Annotated[int, typer.Option()] = 20) -> None:
+    @ai_app.command("calls", help="最近的 AI 调用记录（发起人、接口）/ recent AI calls")
+    def ai_calls(
+        ctx: typer.Context,
+        limit: Annotated[int, typer.Option()] = 20,
+        user: Annotated[str | None, typer.Option("--user", help="只看这个账号的")] = None,
+    ) -> None:
         c = output.get(ctx)
-        calls = ai.recent_calls(require_db(c), limit)
+        calls = ai.recent_calls(require_db(c), limit, actor=user)
         rows = [
-            [str(x["id"]), str(x["task"]), str(x["model"]), f"{x['tokens_in']}/{x['tokens_out']}", str(x["status"])]
+            [
+                str(x["id"]),
+                str(x["user"] or "—"),
+                str(x["connection"] or "—"),
+                str(x["feature"]),
+                str(x["model"]),
+                f"{x['tokens_in']}/{x['tokens_out']}",
+                str(x["status"]),
+            ]
             for x in calls
+        ]
+        head = [
+            "#",
+            c.t("ai.col.user"),
+            c.t("ai.col.connection"),
+            c.t("ai.task"),
+            c.t("ai.model"),
+            "tokens",
+            c.t("review.status"),
         ]
         emit(
             c,
             {"calls": calls},
-            output.table(rows, ["#", c.t("ai.task"), c.t("ai.model"), "tokens", c.t("review.status")])
-            if rows
-            else c.t("ai.no_calls"),
+            output.table(rows, head) if rows else c.t("ai.no_calls"),
         )

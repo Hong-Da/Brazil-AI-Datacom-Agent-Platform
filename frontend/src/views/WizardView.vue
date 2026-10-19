@@ -13,8 +13,8 @@ import { LOGO_SVG } from '@/components/icons'
 import BareTopbar from '@/components/wizard-bare-topbar.vue'
 import WizardField from './wizard/WizardField.vue'
 import {
-  blocksOf, displayHost, displayValue, initialValues, isChanged, labelKey, LANG_NOTES, pickErrors, visibleGroups,
-  type Values, type WField, type WGroup,
+  blocksOf, confirmRows, confirmStats, displayHost, displayValue, groupErrors, initialValues, labelKey, LANG_NOTES, pickErrors,
+  visibleGroups, type Running, type Values, type WField, type WGroup,
 } from './wizard/wizard'
 
 interface SetupResult {
@@ -47,6 +47,12 @@ const result = ref<SetupResult | null>(null)
 const dbPg = ref(false) // 数据库选了 PostgreSQL（地址可能还没填）
 const aiOn = ref(false)
 const copied = ref(false)
+// 确认页（M6-9）：将写入的配置文件、运行中的监听地址、统一校验状态、只看已修改
+const configPath = ref('')
+const running = ref<Running>({})
+const checking = ref(false)
+const checked = ref(false)
+const onlyChanged = ref(false)
 // 第一个管理员（REQ-030）：在确认页之前单独一步
 const admin = reactive({ username: 'admin', password: '', password2: '' })
 const adminProblems = computed(() => passwordProblems(admin.password, admin.password2))
@@ -64,9 +70,11 @@ async function load(): Promise<void> {
   loading.value = true
   loadError.value = ''
   try {
-    const data = await api<{ groups: WGroup[]; addresses: string[] }>('/setup')
+    const data = await api<{ groups: WGroup[]; addresses: string[]; config_path?: string; running?: Running }>('/setup')
     groups.value = data.groups
     addresses.value = data.addresses
+    configPath.value = data.config_path ?? ''
+    running.value = data.running ?? {}
     Object.assign(values, initialValues(data.groups, { ...values }))
     values['ui.language'] = prefs.lang
     dbPg.value = dbPg.value || !!values['database.url']
@@ -127,7 +135,8 @@ async function checkAdmin(): Promise<boolean> {
   return validate(['admin.username', 'admin.password'])
 }
 
-async function next(): Promise<void> {
+/** 下一步；toConfirm 为真时校验本步后直接回到确认页（从确认页“返回修改”过来时用）。 */
+async function next(toConfirm = false): Promise<void> {
   if (step.value === adminStep.value) {
     if (await checkAdmin()) step.value = lastStep.value
     return
@@ -141,7 +150,7 @@ async function next(): Promise<void> {
     }
     if (!(await validate(g.fields.map((f) => f.key)))) return
   }
-  step.value = Math.min(step.value + 1, lastStep.value)
+  step.value = toConfirm ? lastStep.value : Math.min(step.value + 1, lastStep.value)
 }
 
 function back(): void {
@@ -150,6 +159,7 @@ function back(): void {
 }
 
 async function submit(): Promise<void> {
+  if (!canSubmit.value) return
   submitting.value = true
   submitError.value = ''
   try {
@@ -207,10 +217,46 @@ function summaryText(f: WField): string {
   return t('wizard.notSet')
 }
 
-function summaryFields(g: WGroup): WField[] {
-  if (g.fields.some((f) => f.key === 'ai.provider') && !values['ai.provider']) return []
-  return g.fields
+/** 默认值的显示文字（“默认：9090”）。 */
+function defaultText(f: WField): string {
+  if (f.key === 'ai.provider') return providerLabel(String(f.default ?? ''))
+  if (f.kind === 'bool') return t(String(f.default) === 'true' ? 'wizard.on' : 'wizard.off')
+  if (f.kind === 'dburl' && !f.default) return t('wizard.dbSqliteValue')
+  return String(f.default ?? '') || t('wizard.notSet')
 }
+
+const langField = computed(() => groups.value.flatMap((g) => g.fields).find((f) => f.key === 'ui.language'))
+const langChanged = computed(() => !!langField.value && prefs.lang !== String(langField.value.default))
+const stats = computed(() => confirmStats(shown.value, values, errors, running.value))
+const adminErrors = computed(() => ['admin.username', 'admin.password'].filter((k) => errors[k]).length)
+const restartLabels = computed(() => stats.value.restart.map((k) => {
+  const f = shown.value.flatMap((g) => g.fields).find((x) => x.key === k)
+  return f ? label(f) : k
+}))
+const canSubmit = computed(() => checked.value && !checking.value && !submitting.value && stats.value.errors === 0)
+
+/** 进入确认页时把全部取值（含管理员）交给服务端统一校验一次。 */
+async function checkAll(): Promise<void> {
+  checking.value = true
+  checked.value = false
+  try {
+    const keys = [...shown.value.flatMap((g) => g.fields.map((f) => f.key)), 'admin.username', 'admin.password']
+    await validate(keys)
+    if (dbPg.value) {
+      const f = shown.value.flatMap((g) => g.fields).find((x) => x.kind === 'dburl')
+      if (f && !String(values[f.key] ?? '').trim()) errors[f.key] = t('wizard.dbRequired')
+    }
+    checked.value = !submitError.value
+  } finally {
+    checking.value = false
+  }
+}
+const seenConfirm = ref(false)
+watch(step, (s) => {
+  if (s !== lastStep.value || result.value) return
+  seenConfirm.value = true
+  void checkAll()
+})
 
 const usageHost = computed(() => {
   const host = String(values['server.host'] ?? '')
@@ -404,39 +450,87 @@ async function copyToken(): Promise<void> {
                 </div>
               </template>
 
-              <!-- 确认 -->
+              <!-- 确认（M6-9）：按组汇总、突出改动、统一校验、写入路径与需重启的项 -->
               <template v-else>
                 <h2>{{ $t('wizard.confirmTitle') }}</h2>
-                <p class="lead">{{ $t('wizard.confirmLead') }}</p>
-                <div class="sum" data-testid="wizard-summary">
-                  <section class="panel">
-                    <div class="panel-h"><h3>{{ $t('wizard.stepLanguage') }}</h3><button type="button" class="btn btn-xs btn-ghost" @click="step = 0">{{ $t('c.edit') }}</button></div>
-                    <div class="panel-b"><dl class="kv"><dt>{{ $t('wizard.language') }}</dt><dd>{{ langLabel }}</dd></dl></div>
-                  </section>
-                  <section v-for="(g, gi) in shown" :key="g.id" class="panel" :data-testid="`wizard-sum-${g.id}`">
-                    <div class="panel-h"><h3>{{ g.title }}</h3><button type="button" class="btn btn-xs btn-ghost" @click="step = gi + 1">{{ $t('c.edit') }}</button></div>
-                    <div class="panel-b">
-                      <dl class="kv">
-                        <template v-if="summaryFields(g).length">
-                          <template v-for="f in summaryFields(g)" :key="f.key">
-                            <dt>{{ label(f) }}</dt>
-                            <dd>
-                              <span :class="{ mono: f.kind !== 'choice' && displayValue(f, values[f.key]) !== null, faint: displayValue(f, values[f.key]) === null }">{{ summaryText(f) }}</span>
-                              <span v-if="isChanged(f, values[f.key]) && !f.secret" class="tag t-amber chg">{{ $t('wizard.changed') }}</span>
-                            </dd>
-                          </template>
-                        </template>
-                        <template v-else>
-                          <dt>{{ label(g.fields[0]) }}</dt>
-                          <dd><span class="tag">{{ $t('wizard.aiOff') }}</span></dd>
-                        </template>
-                      </dl>
+                <p class="lead">{{ $t('wizard.cfLead') }}</p>
+                <div :class="['cf-strip', { bad: checked && stats.errors > 0 }]" data-testid="wizard-cf-strip">
+                  <span class="cf-verdict" data-testid="wizard-cf-verdict">
+                    <span class="dot"><Icon :name="checking || !checked ? 'refresh' : stats.errors ? 'err' : 'check'" small /></span>
+                    <template v-if="checking || !checked">{{ $t('wizard.cfChecking') }}</template>
+                    <template v-else-if="stats.errors">{{ $t('wizard.cfProblems', { n: stats.errors }) }}</template>
+                    <template v-else>{{ $t('wizard.cfOk') }}</template>
+                  </span>
+                  <span v-if="configPath" class="cf-path">{{ $t('wizard.cfWritesTo') }} <code data-testid="wizard-cf-path">{{ configPath }}</code></span>
+                  <div class="cf-facts">
+                    <span>{{ $t('wizard.cfChangedN', { n: stats.changed }) }}</span>
+                    <span>{{ $t('wizard.cfDefaultN', { n: stats.unchanged }) }}</span>
+                    <span v-if="stats.restart.length" data-testid="wizard-cf-restart-n">{{ $t('wizard.cfRestartN', { n: stats.restart.length }) }}</span>
+                    <button v-if="checked && !checking" type="button" class="btn btn-xs btn-ghost" data-testid="wizard-cf-recheck" @click="checkAll"><Icon name="refresh" small />{{ $t('wizard.cfRecheck') }}</button>
+                    <span class="seg" role="group">
+                      <button type="button" :aria-pressed="!onlyChanged" @click="onlyChanged = false">{{ $t('wizard.cfAll') }}</button>
+                      <button type="button" :aria-pressed="onlyChanged" data-testid="wizard-cf-only" @click="onlyChanged = true">{{ $t('wizard.cfOnlyChanged') }}</button>
+                    </span>
+                  </div>
+                </div>
+                <div class="cf-groups" data-testid="wizard-summary">
+                  <section v-if="!onlyChanged || langChanged" class="cf-g">
+                    <div class="cf-gh">
+                      <h3>{{ $t('wizard.stepLanguage') }}</h3>
+                      <button type="button" class="btn btn-xs" @click="step = 0"><Icon name="chevL" small />{{ $t('wizard.cfEdit') }}</button>
+                    </div>
+                    <div :class="['cf-r', langChanged ? 'is-chg' : 'is-def']">
+                      <span class="k">{{ $t('wizard.language') }}</span>
+                      <span class="v">{{ langLabel }}</span>
+                      <span class="b"><span v-if="langChanged" class="tag t-teal">{{ $t('wizard.changed') }}</span><span v-else class="tag default">{{ $t('wizard.cfDefault') }}</span></span>
                     </div>
                   </section>
-                  <section class="panel" data-testid="wizard-sum-admin">
-                    <div class="panel-h"><h3>{{ $t('wizard.stepAdmin') }}</h3><button type="button" class="btn btn-xs btn-ghost" @click="step = adminStep">{{ $t('c.edit') }}</button></div>
-                    <div class="panel-b"><dl class="kv"><dt>{{ $t('wizard.adminName') }}</dt><dd class="mono">{{ admin.username }}</dd><dt>{{ $t('wizard.adminPassword') }}</dt><dd>••••••••</dd></dl></div>
+                  <template v-for="(g, gi) in shown" :key="g.id">
+                    <section v-if="!onlyChanged || confirmRows(g, values, errors, running, true).length"
+                      :class="['cf-g', { 'has-err': groupErrors(g, errors) }]" :data-testid="`wizard-sum-${g.id}`">
+                      <div class="cf-gh">
+                        <h3>{{ g.title }}</h3>
+                        <span v-if="groupErrors(g, errors)" class="tag t-red">{{ $t('wizard.cfGroupProblems', { n: groupErrors(g, errors) }) }}</span>
+                        <span v-else-if="confirmRows(g, values, errors, running, true).length" class="cnt">{{ $t('wizard.cfGroupChanged', { n: confirmRows(g, values, errors, running, true).length }) }}</span>
+                        <button type="button" class="btn btn-xs" :data-testid="`wizard-cf-edit-${g.id}`" @click="step = gi + 1"><Icon name="chevL" small />{{ $t('wizard.cfEdit') }}</button>
+                      </div>
+                      <div v-if="!values['ai.provider'] && g.fields.some((f) => f.key === 'ai.provider')" class="cf-empty"><span class="tag">{{ $t('wizard.aiOff') }}</span></div>
+                      <div v-for="r in confirmRows(g, values, errors, running, onlyChanged)" :key="r.field.key"
+                        :class="['cf-r', r.error ? 'is-err' : r.changed ? 'is-chg' : 'is-def']" :data-testid="`wizard-cf-row-${r.field.key}`">
+                        <span class="k">{{ label(r.field) }}</span>
+                        <span :class="['v', { mono: !r.secretState && r.field.kind !== 'choice' && r.field.kind !== 'bool' && displayValue(r.field, values[r.field.key]) !== null }]">
+                          <template v-if="r.secretState === 'set'">{{ $t('wizard.cfSet') }}</template>
+                          <template v-else-if="r.secretState === 'unset'">{{ r.field.kind === 'token' ? $t('wizard.tokenAutoValue') : $t('wizard.cfUnset') }}</template>
+                          <template v-else>{{ summaryText(r.field) }}</template>
+                          <span v-if="r.changed && !r.secretState" class="was">{{ $t('wizard.cfWas', { v: defaultText(r.field) }) }}</span>
+                        </span>
+                        <span class="b">
+                          <span v-if="r.changed" class="tag t-teal">{{ $t('wizard.changed') }}</span>
+                          <span v-else-if="!r.secretState" class="tag default">{{ $t('wizard.cfDefault') }}</span>
+                          <span v-if="r.restart" class="tag t-amber" data-testid="wizard-cf-restart">{{ $t('wizard.cfRestart') }}</span>
+                        </span>
+                        <span v-if="r.error" class="e" role="alert"><Icon name="err" small />{{ r.error }}</span>
+                      </div>
+                    </section>
+                  </template>
+                  <section v-if="!onlyChanged || adminErrors" :class="['cf-g', { 'has-err': adminErrors }]" data-testid="wizard-sum-admin">
+                    <div class="cf-gh">
+                      <h3>{{ $t('wizard.stepAdmin') }}</h3>
+                      <span v-if="adminErrors" class="tag t-red">{{ $t('wizard.cfGroupProblems', { n: adminErrors }) }}</span>
+                      <button type="button" class="btn btn-xs" data-testid="wizard-cf-edit-admin" @click="step = adminStep"><Icon name="chevL" small />{{ $t('wizard.cfEdit') }}</button>
+                    </div>
+                    <div :class="['cf-r', errors['admin.username'] ? 'is-err' : 'is-def']">
+                      <span class="k">{{ $t('wizard.adminName') }}</span><span class="v mono">{{ admin.username }}</span><span class="b"></span>
+                      <span v-if="errors['admin.username']" class="e" role="alert"><Icon name="err" small />{{ errors['admin.username'] }}</span>
+                    </div>
+                    <div :class="['cf-r', errors['admin.password'] ? 'is-err' : 'is-def']">
+                      <span class="k">{{ $t('wizard.adminPassword') }}</span><span class="v">{{ admin.password ? $t('wizard.cfSet') : $t('wizard.cfUnset') }}</span><span class="b"></span>
+                      <span v-if="errors['admin.password']" class="e" role="alert"><Icon name="err" small />{{ errors['admin.password'] }}</span>
+                    </div>
                   </section>
+                </div>
+                <div v-if="restartLabels.length" class="notice warn cf-restart" data-testid="wizard-cf-restart-note">
+                  <Icon name="warn" /><div class="grow small">{{ $t('wizard.cfRestartList') }}<b>{{ restartLabels.join($t('wizard.cfSep')) }}</b></div>
                 </div>
               </template>
 
@@ -445,11 +539,13 @@ async function copyToken(): Promise<void> {
 
             <div class="wz-foot">
               <button v-if="step > 0" type="button" class="btn" data-testid="wizard-back" @click="back">{{ $t('c.back') }}</button>
-              <span class="grow small faint">{{ step < lastStep ? $t('wizard.stepOf', { n: step + 1, total: lastStep + 1 }) : '' }}</span>
-              <button v-if="step === lastStep" type="button" class="btn btn-primary" :disabled="submitting" data-testid="wizard-submit" @click="submit">
+              <span v-if="step === lastStep && checked && stats.errors" class="grow small fix-first" data-testid="wizard-fix-first">{{ $t('wizard.cfFixFirst', { n: stats.errors }) }}</span>
+              <span v-else class="grow small faint">{{ step < lastStep ? $t('wizard.stepOf', { n: step + 1, total: lastStep + 1 }) : '' }}</span>
+              <button v-if="seenConfirm && step < lastStep" type="button" class="btn" data-testid="wizard-to-confirm" @click="next(true)">{{ $t('wizard.cfBackToConfirm') }}</button>
+              <button v-if="step === lastStep" type="button" class="btn btn-primary" :disabled="!canSubmit" data-testid="wizard-submit" @click="submit">
                 <Icon name="check" small />{{ submitting ? $t('c.loading') : $t('wizard.save') }}
               </button>
-              <button v-else type="button" class="btn btn-primary" data-testid="wizard-next" @click="next">
+              <button v-else type="button" class="btn btn-primary" data-testid="wizard-next" @click="next()">
                 {{ isAiStep && !aiOn ? $t('wizard.skipAi') : $t('c.next') }}
               </button>
             </div>
@@ -489,18 +585,52 @@ async function copyToken(): Promise<void> {
 .hostport { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 12px; }
 .token { display: flex; gap: 8px; align-items: center; }
 .token code { flex: 1; padding: 8px 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 5px; font-size: 13px; overflow-wrap: anywhere; }
-.sum { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.sum .panel-h { min-height: 38px; padding: 8px 12px; }
-.sum .panel-b { padding: 10px 12px; }
-.chg { margin-left: 6px; }
+/* 确认页（M6-9） */
+.cf-strip { border: 1px solid var(--line); border-radius: 8px; background: var(--surface-2); padding: 12px 14px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 6px 14px; align-items: center; margin-bottom: 14px; }
+.cf-strip.bad { border-color: var(--red-line); background: color-mix(in srgb, var(--red-soft) 55%, var(--surface)); }
+.cf-verdict { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; white-space: nowrap; }
+.cf-verdict .dot { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--teal-soft); color: var(--teal-ink); }
+.cf-strip.bad .cf-verdict .dot { background: var(--red-soft); color: var(--red-ink); }
+.cf-path { display: flex; gap: 8px; align-items: center; min-width: 0; font-size: 12.5px; color: var(--ink-2); }
+.cf-path code { font: 12px var(--font-mono); color: var(--ink); overflow-wrap: anywhere; min-width: 0; }
+.cf-facts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; font-size: 12.5px; color: var(--ink-2); }
+.cf-facts .seg { margin-left: auto; }
+.cf-groups { display: flex; flex-direction: column; gap: 10px; }
+.cf-g { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.cf-g.has-err { border-color: var(--red-line); }
+.cf-gh { display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+.cf-gh h3 { font-size: 13px; }
+.cf-gh .cnt { font-size: 12px; color: var(--ink-3); }
+.cf-gh .btn { margin-left: auto; }
+.cf-r { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; gap: 4px 14px; padding: 8px 12px; border-top: 1px solid var(--line); align-items: baseline; position: relative; }
+.cf-gh + .cf-r { border-top: 0; }
+.cf-r .k { color: var(--ink-2); font-size: 12.5px; }
+.cf-r .v { min-width: 0; overflow-wrap: anywhere; }
+.cf-r .v .was { display: block; font: 11.5px var(--font-ui); color: var(--ink-3); margin-top: 2px; }
+.cf-r .b { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+.cf-r.is-def .v { color: var(--ink-2); }
+.cf-r.is-chg { background: color-mix(in srgb, var(--teal-soft) 40%, transparent); }
+.cf-r.is-chg::before, .cf-r.is-err::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--teal); }
+.cf-r.is-err { background: color-mix(in srgb, var(--red-soft) 55%, transparent); }
+.cf-r.is-err::before { background: var(--red); }
+.cf-r .e { grid-column: 2 / -1; color: var(--red-ink); font-size: 12px; display: flex; gap: 6px; align-items: center; }
+.cf-empty { padding: 10px 12px; font-size: 12.5px; color: var(--ink-3); }
+.cf-restart { margin-top: 12px; }
+.fix-first { color: var(--red-ink); }
 .done { padding: 20px 0 16px; }
 .done-art { width: 64px; height: 64px; border-radius: 50%; background: var(--teal-soft); color: var(--teal-ink); display: flex; align-items: center; justify-content: center; }
 .done-art :deep(.ico) { width: 30px; height: 30px; stroke-width: 2; }
 .done-kv { max-width: 560px; margin: 0 auto; }
 .done-actions { justify-content: center; margin-top: 20px; }
 @media (max-width: 900px) {
-  .lang-cards, .sum, .radio-cards.two, .db-cards { grid-template-columns: 1fr; }
+  .lang-cards, .radio-cards.two, .db-cards { grid-template-columns: 1fr; }
   .wz-card .steps .st span:last-child { display: none; }
+}
+@media (max-width: 620px) {
+  .cf-strip { grid-template-columns: 1fr; }
+  .cf-facts .seg { margin-left: 0; }
+  .cf-r { grid-template-columns: minmax(0, 1fr) auto; }
+  .cf-r .k, .cf-r .e { grid-column: 1 / -1; }
 }
 @media (max-width: 520px) {
   .hostport { grid-template-columns: 1fr; }

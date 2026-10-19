@@ -7,6 +7,7 @@
 import { computed, provide, ref, watch } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import Icon from '@/components/Icon.vue'
+import AiOffHint from '@/components/ai-off-hint.vue'
 import { errorText, get, put } from '@/api'
 import Bits from './ai-skills/Bits.vue'
 import DefPane from './ai-skills/DefPane.vue'
@@ -131,11 +132,7 @@ function offText(id: string): string {
             </span>
           </div>
         </div>
-        <div v-if="!detail.ai.configured" class="notice warn" style="margin-bottom: 14px" data-testid="sk-ai-off">
-          <Icon name="info" />
-          <div class="grow"><b>{{ T('aiOff.title') }}</b>{{ T('aiOff.detail') }}</div>
-          <router-link class="btn btn-sm" :to="{ name: 'ai-settings' }"><Icon name="plug" small />{{ T('aiOff.setup') }}</router-link>
-        </div>
+        <AiOffHint v-if="!detail.ai.configured" style="margin-bottom: 14px" data-testid="sk-ai-off"><div class="small muted">{{ T('aiOff.detail') }}</div></AiOffHint>
         <div class="tabs" role="tablist" data-testid="sk-tabs">
           <button v-for="t in TABS" :key="t" type="button" role="tab" :aria-selected="tab === t" :data-testid="`sk-tab-${t}`" @click="goTab(t)">
             {{ T(`tab.${t}`) }}

@@ -55,8 +55,14 @@ def _ctx(request: Request) -> skill_runners.Ctx:
 
 def _ai_state(request: Request) -> dict[str, Any]:
     s = settings_of(request)
-    on = ai.is_configured(s)
-    return {"configured": on, "provider": s.get("ai.provider") or None, "status": "ready" if on else "not_configured"}
+    res = ai.resolve(s)
+    on = res.configured
+    return {
+        "configured": on,
+        "provider": res.conn.provider if res.conn else None,
+        "status": "ready" if on else "not_configured",
+        "reason": res.reason,
+    }
 
 
 class FeedbackBody(BaseModel):
@@ -81,11 +87,18 @@ def post_feedback(request: Request, body: FeedbackBody) -> dict[str, Any]:
 @admin.get(
     "/ai/skills", summary="skill 列表：启用状态、当前版本、近 N 天的调用数、代码校验通过率、被拦截比例、评价、回归集"
 )
-def list_skills(request: Request, days: int = Query(30, ge=1, le=3650)) -> dict[str, Any]:
+def list_skills(
+    request: Request,
+    days: int = Query(30, ge=1, le=3650),
+    group: str | None = Query(None, description="只列这个功能分组的 skill（groups[].id）"),
+) -> dict[str, Any]:
     settings = settings_of(request)
     st = skills.stats(db_of(request), days)
     items = [{**skills.info(skills.current(i), settings), "stats": st.get(i)} for i in skills.list_ids()]
-    return ok(request, {"ai": _ai_state(request), "days": days, "skills": items})
+    groups = [{**g, "count": sum(1 for it in items if it["group"] == g["id"])} for g in skills.groups()]
+    if group:
+        items = [it for it in items if it["group"] == group]
+    return ok(request, {"ai": _ai_state(request), "days": days, "groups": groups, "skills": items})
 
 
 @admin.get("/ai/skills/{sid}", summary="skill 详情：生效定义、内置定义、变量说明、试运行样例、可选工具、代码校验")
@@ -203,7 +216,7 @@ class TestBody(BaseModel):
 def post_test(request: Request, sid: str, body: TestBody) -> dict[str, Any]:
     ctx = _ctx(request)
     if body.mode == "ai" and not ai.is_configured(ctx.settings):
-        raise ApiError(E_STATE, 409, "ai.not_configured", data={"status": "not_configured", "configured": False})
+        raise ApiError(E_STATE, 409, "ai.not_configured", data=ai.not_configured_data(ctx.settings))
     try:
         r = skill_runners.test(
             ctx,
@@ -316,7 +329,7 @@ class EvolveBody(BaseModel):
 def post_evolve(request: Request, sid: str, body: EvolveBody) -> dict[str, Any]:
     ctx = _ctx(request)
     if not ai.is_configured(ctx.settings):
-        raise ApiError(E_STATE, 409, "ai.not_configured", data={"status": "not_configured", "configured": False})
+        raise ApiError(E_STATE, 409, "ai.not_configured", data=ai.not_configured_data(ctx.settings))
     actor = skill_actor(request)
     try:
         skills.builtin(sid)

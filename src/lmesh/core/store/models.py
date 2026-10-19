@@ -146,6 +146,7 @@ class Task(Base):
     progress: Mapped[int] = mapped_column(Integer, default=0)
     message: Mapped[str] = mapped_column(Text, default="")
     result: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    created_by: Mapped[str] = mapped_column(String(200), default="")  # 发起人（REQ-040：AI 按发起人的选择）
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
 
@@ -165,7 +166,68 @@ class AICall(Base):
     review_item_id: Mapped[int | None] = mapped_column(
         ForeignKey("review_items.id", ondelete="SET NULL"), nullable=True
     )
+    # REQ-040：谁发起（账号；全局令牌与命令行为空）、用的哪个接口（名称留存，接口删除后仍可读）
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    actor: Mapped[str] = mapped_column(String(200), default="")
+    connection_id: Mapped[int | None] = mapped_column(
+        ForeignKey("ai_connections.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    connection_name: Mapped[str] = mapped_column(String(64), default="")
+    source: Mapped[str] = mapped_column(String(16), default="")  # connection / personal
+    feature: Mapped[str] = mapped_column(String(60), default="")  # 功能：skill 编号；不经 skill 时为空（统计时用 task）
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class AIConnection(Base):
+    """AI 接口（REQ-040）：owner_id 为空是管理员接口（可多个，public 决定普通账号能否选用）；
+    不为空是该账号的个人接口（每人最多一个，只有本人可见）。API Key 用 config.encrypt_secret 加密保存。"""
+
+    __tablename__ = "ai_connections"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(64))
+    provider: Mapped[str] = mapped_column(String(20))  # anthropic / openai / local
+    base_url: Mapped[str] = mapped_column(String(500), default="")
+    api_key: Mapped[str] = mapped_column(Text, default="")
+    model: Mapped[str] = mapped_column(String(120), default="")
+    model_extract: Mapped[str] = mapped_column(String(120), default="")
+    model_merge: Mapped[str] = mapped_column(String(120), default="")
+    model_ask: Mapped[str] = mapped_column(String(120), default="")
+    model_generate: Mapped[str] = mapped_column(String(120), default="")
+    public: Mapped[bool] = mapped_column(default=False)
+    enabled: Mapped[bool] = mapped_column(default=True)
+    owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+    __table_args__ = (
+        UniqueConstraint("owner_id", name="uq_ai_connections_owner"),
+        Index(
+            "uq_ai_connections_admin_name",
+            "name",
+            unique=True,
+            sqlite_where=sql_text("owner_id IS NULL"),
+            postgresql_where=sql_text("owner_id IS NULL"),
+        ),
+    )
+
+
+class AIChoice(Base):
+    """账号的 AI 来源选择（REQ-040）：auto（默认）/ connection（某个管理员接口）/ personal / none。"""
+
+    __tablename__ = "ai_choices"
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    choice: Mapped[str] = mapped_column(String(16), default="auto")
+    connection_id: Mapped[int | None] = mapped_column(
+        ForeignKey("ai_connections.id", ondelete="SET NULL"), nullable=True
+    )
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+
+class AppMeta(Base):
+    """少量系统标记（键值）：例如 ai.seeded（[ai] 配置已导入为第一个管理员接口）。"""
+
+    __tablename__ = "app_meta"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    value: Mapped[str] = mapped_column(Text, default="")
 
 
 class CheckIgnore(Base):

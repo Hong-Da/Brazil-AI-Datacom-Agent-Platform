@@ -21,6 +21,17 @@ test('AI skill：列表、编辑保存为新版本、回滚与恢复内置、未
   await page.getByTestId('nav-ai-skills').click()
   await expect(page).toHaveURL(/\/ai-skills$/)
   await expect(page.getByTestId('sk-row')).toHaveCount(6)
+  // 按功能分组（REQ-033 评审修改）：问答组 2 个；按组筛选、跨组搜索、折叠
+  await expect(page.locator('[data-group="qa"] [data-testid="sk-row"]')).toHaveCount(2)
+  await page.getByTestId('sk-group-kb').click()
+  await expect(page.getByTestId('sk-row')).toHaveCount(1)
+  await page.getByTestId('sk-group-all').click()
+  await page.getByTestId('sk-filter').fill('ask-')
+  await expect(page.getByTestId('sk-group-block')).toHaveCount(1)
+  await page.getByTestId('sk-filter').fill('')
+  await page.getByTestId('sk-group-toggle-qa').click()
+  await expect(page.getByTestId('sk-row')).toHaveCount(4)
+  await page.getByTestId('sk-group-toggle-qa').click()
   await expect(page.getByTestId('sk-ai-off')).toBeVisible()
   await expectNoKeys(page)
 

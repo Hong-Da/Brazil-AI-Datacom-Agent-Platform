@@ -6,6 +6,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Icon from '@/components/Icon.vue'
+import FullscreenPane from '@/components/FullscreenPane.vue'
+import FullscreenButton from '@/components/FullscreenButton.vue'
 import DevChip from '@/components/m4-dev.vue'
 import { errorText, get, post } from '@/api'
 import { useTerms } from '@/stores/terms'
@@ -199,7 +201,7 @@ onMounted(async () => {
       <div v-if="runError" class="notice err mt12" data-testid="imp-error"><Icon name="err" /><div class="grow">{{ runError }}</div><button class="btn btn-sm" type="button" @click="run">{{ $t('c.retry') }}</button></div>
       <div v-if="!result && !runError" class="empty mt16" data-testid="imp-empty"><Icon name="target" /><h3>{{ running ? $t('c.loading') : $t('impact.emptyTitle') }}</h3><p v-if="!running">{{ $t('impact.emptyText') }}</p></div>
 
-      <template v-if="result">
+      <FullscreenPane v-if="result" class="imp-fs" :title="$t('impact.title')" data-testid="imp-fs">
         <div class="istrip" data-testid="imp-strip">
           <div><div class="v">{{ strip.objects }}</div><div class="k">{{ $t(`impact.s.objects.${result.direction}`) }}</div></div>
           <div v-for="k in ['peer', 'vrf', 'interface', 'l2vpn', 'domains']" :key="k"><div class="v">{{ strip[k] }}</div><div class="k">{{ $t(`impact.s.${k}`) }}</div></div>
@@ -215,6 +217,7 @@ onMounted(async () => {
                 <button type="button" :aria-pressed="layout === 'layer'" @click="layout = 'layer'">{{ $t('impact.lay.layer') }}</button>
               </div>
               <button class="btn btn-xs btn-ghost ml-auto" type="button" @click="graph?.fit()"><Icon name="expand" small />{{ $t('impact.fit') }}</button>
+              <FullscreenButton size="xs" />
             </div>
             <ImpactGraph ref="graph" :nodes="graphView" :label="label" :path="path" :layout="layout" @tap="onTap" />
             <div class="gfoot">
@@ -251,7 +254,7 @@ onMounted(async () => {
             </div>
           </section>
         </div>
-      </template>
+      </FullscreenPane>
     </div>
   </main>
 </template>
@@ -301,6 +304,8 @@ onMounted(async () => {
 .ii .kd { font-size: 11.5px; color: var(--ink-3); }
 .ii .chain, .ii .note { grid-column: 2; }
 .ii .note { font-size: 12px; }
+.imp-fs.is-fs .istrip, .imp-fs.is-fs .iw { margin-top: 0; }
+.imp-fs.is-fs .iw { flex: 1; height: auto; min-height: 0; }
 @media (max-width: 1300px) {
   .iw { grid-template-columns: minmax(0, 1fr); height: auto; grid-template-rows: 560px 560px; }
   .istrip { grid-template-columns: repeat(3, minmax(0, 1fr)); }

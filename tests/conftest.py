@@ -312,7 +312,8 @@ def full_kb_root(tmp_root: Path) -> Path:
 
 def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
     """用例的准备方式：fresh / configured / fresh-fullkb / configured-fullkb / configured-fullkb-history / configured-users /
-    configured-notoken / configured-fullkb-checkproj / configured-projects / configured-samename / configured-pending。"""
+    configured-notoken / configured-fullkb-checkproj / configured-projects / configured-samename / configured-pending /
+    configured-ai。"""
     if setup and "fullkb" in setup:
         request.getfixturevalue("full_kb_root")
     if setup and setup.startswith("configured"):
@@ -329,6 +330,8 @@ def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
         request.getfixturevalue("samename_root")
     if setup and setup.endswith("-pending"):
         request.getfixturevalue("pending_root")
+    if setup and setup.endswith("-ai"):
+        request.getfixturevalue("ai_root")
     if setup and setup.endswith("-notoken"):  # 实例没有设置 API 令牌（环境变量覆盖为空）
         request.getfixturevalue("monkeypatch").setenv("LMESH_SECURITY__API_TOKEN", "")
 
@@ -426,6 +429,24 @@ def pending_root(users_root: Path) -> Path:
     url = config.load().database_url
     users.register(url, "dave", "Dave-pass-12", approval=True)
     users.register(url, "erin", "Erin-pass-12", approval=True)
+    return users_root
+
+
+@pytest.fixture
+def ai_root(users_root: Path) -> Path:
+    """AI 接口用例（REQ-040）：在账号用例之上加普通用户 bob；管理员接口 shared（允许公共使用）与 internal（不公开），
+    地址指向本机不存在的端口（不会调用外部服务）；alice 有个人接口（Key alice-secret-key）并选用它。"""
+    from lmesh.core import ai_connections, config, projects, users
+
+    s = config.load()
+    users.create_user(s.database_url, "bob", "Bob-pass-12", "user")
+    base = {"provider": "openai", "base_url": "http://127.0.0.1:9/v1", "model": "fake-model"}
+    ai_connections.create_connection(s, {"name": "shared", "public": True, "api_key": "shared-secret-key", **base})
+    ai_connections.create_connection(s, {"name": "internal", "public": False, **base, "model": "fake-big"})
+    alice = projects.cli_identity(s.database_url, "alice")
+    ai_connections.save_mine(
+        s, alice, {"personal": {**base, "model": "alice-model", "api_key": "alice-secret-key"}, "choice": "personal"}
+    )
     return users_root
 
 

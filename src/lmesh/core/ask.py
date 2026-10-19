@@ -38,11 +38,13 @@ class AskError(ValueError):
 
 def status(settings: config.Settings) -> dict[str, Any]:
     """AI 查询入口是否可用（界面据此显示或隐藏）。"""
-    on = ai.is_configured(settings)
+    res = ai.resolve(settings)
+    on = res.configured
     return {
         "configured": on,
         "status": "ready" if on else "not_configured",
-        "provider": settings.get("ai.provider") or None,
+        "reason": res.reason,
+        "provider": ai.provider_of(settings),
         "models": {
             "ask": ai.model_for(settings, "ask") if on else None,
             "generate": ai.model_for(settings, "generate") if on else None,
@@ -54,7 +56,7 @@ def status(settings: config.Settings) -> dict[str, Any]:
 
 def _require(settings: config.Settings) -> None:
     if not ai.is_configured(settings):
-        raise AskError("ai.not_configured", "state", data={"status": "not_configured", "configured": False})
+        raise AskError("ai.not_configured", "state", data=ai.not_configured_data(settings))
 
 
 def sanitize_text(text: str) -> str:
@@ -72,12 +74,12 @@ class _Session:
         self.tokens_in = self.tokens_out = 0
         self.ms = 0
 
-    def call(self, step: str, system: str, prompt: str) -> str:
+    def call(self, step: str, system: str, prompt: str, feature: str = "") -> str:
         system, prompt = sanitize_text(system), sanitize_text(prompt)
         self.sent.append({"step": step, "system": system, "prompt": prompt})
         t0 = time.monotonic()
         try:
-            reply = ai.complete(self.settings, self.task, prompt, system=system)
+            reply = ai.complete(self.settings, self.task, prompt, system=system, feature=feature)
         except ai.AIError as e:
             raise AskError(str(e), "external", data={"status": "ai_error", "sent": self.sent}) from e
         finally:
@@ -118,7 +120,7 @@ def call_logged(
 ) -> str:
     """调用 AI；调用失败时记一条 error 的 skill 调用记录再抛出。"""
     try:
-        return sess.call(step, system, prompt)
+        return sess.call(step, system, prompt, skill.id)
     except AskError:
         skills.log_run(sess.settings, skill, source, "error", inp, "", {"step": step}, sess.info(), actor)
         raise

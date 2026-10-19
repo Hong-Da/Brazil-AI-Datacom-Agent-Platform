@@ -2,13 +2,16 @@
 /**
  * AI skill 列表（REQ-033，预览 DevelopDocs/ui-preview/REQ-033/skills.html）：每个调用 AI 的地方一个 skill，
  * 显示启用、当前版本、近 30 天调用、代码校验通过率、被拦截比例、评价与回归集；停用前确认影响。仅管理员。
+ * 按功能分组（REQ-033 评审修改）：组可折叠、标题带个数、可按组筛选；搜索跨组匹配编号、名称、说明，只显示有匹配的组。
  */
 import { computed, onMounted, ref } from 'vue'
 import Icon from '@/components/Icon.vue'
+import AiOffHint from '@/components/ai-off-hint.vue'
 import { errorText, get, put } from '@/api'
 import Bits from './ai-skills/Bits.vue'
 import { useT } from './ai-skills/ctx'
 import { pct, pctOf, sumCounts } from './ai-skills/logic'
+import { groupChips, groupSkills } from './ai-skills/groups'
 import type { ListResult, SkillInfo } from './ai-skills/types'
 import '@/styles/req033.css'
 
@@ -36,11 +39,22 @@ function flash(s: string): void {
 
 const skills = computed(() => data.value?.skills ?? [])
 const users = computed(() => [...new Set(skills.value.map((s) => s.used_by))])
-const shown = computed(() => skills.value.filter((s) => {
-  if (use.value && s.used_by !== use.value) return false
-  const k = q.value.trim().toLowerCase()
-  return !k || `${L(s.title)} ${s.id}`.toLowerCase().includes(k)
-}))
+const grp = ref('')
+const showEmpty = ref(false)
+const collapsed = ref<Set<string>>(new Set())
+const groups = computed(() => data.value?.groups ?? [])
+const chips = computed(() => groupChips(groups.value, skills.value))
+const blocks = computed(() => groupSkills(groups.value, skills.value, { group: grp.value, q: q.value, use: use.value, showEmpty: showEmpty.value }))
+const shownN = computed(() => blocks.value.reduce((n, b) => n + b.skills.length, 0))
+// 搜索时自动展开有匹配的组
+const isOpen = (id: string) => !!q.value.trim() || !collapsed.value.has(id)
+function toggle(id: string): void {
+  const n = new Set(collapsed.value)
+  if (n.has(id)) n.delete(id)
+  else n.add(id)
+  collapsed.value = n
+}
+const gName = (b: { id: string; title: Record<string, string> }) => L(b.title) || (b.id === 'other' ? T('grp.other') : b.id)
 const tot = computed(() => sumCounts(skills.value.map((s) => s.stats)))
 const onN = computed(() => skills.value.filter((s) => s.enabled).length)
 const evo = computed(() => skills.value.filter((s) => s.stats.pending_evolutions > 0))
@@ -86,11 +100,7 @@ function offText(id: string): string {
       <div v-if="loading && !data" class="panel"><div class="empty">{{ $t('c.loading') }}</div></div>
       <div v-else-if="loadError" class="notice err" data-testid="sk-error"><Icon name="err" /><div class="grow">{{ loadError }}</div><button class="btn btn-sm" type="button" @click="load">{{ $t('c.retry') }}</button></div>
       <template v-else-if="data">
-        <div v-if="!data.ai.configured" class="notice warn" style="margin-bottom: 14px" data-testid="sk-ai-off">
-          <Icon name="info" />
-          <div class="grow"><b>{{ T('aiOff.title') }}</b>{{ T('aiOff.list') }}</div>
-          <router-link class="btn btn-sm" :to="{ name: 'ai-settings' }"><Icon name="plug" small />{{ T('aiOff.setup') }}</router-link>
-        </div>
+        <AiOffHint v-if="!data.ai.configured" :reason="data.ai.reason ?? undefined" style="margin-bottom: 14px" data-testid="sk-ai-off"><div class="small muted">{{ T('aiOff.list') }}</div></AiOffHint>
 
         <div class="strip sk-strip" data-testid="sk-kpi">
           <div><div class="k">{{ T('kpi.skills') }}</div><div class="v">{{ skills.length }}</div><div class="s">{{ T('kpi.onOff', { on: onN, off: skills.length - onN }) }}</div></div>
@@ -115,8 +125,13 @@ function offText(id: string): string {
               <option value="">{{ T('list.allUsers') }}</option>
               <option v-for="u in users" :key="u" :value="u">{{ usedBy(u) }}</option>
             </select>
+            <label class="check small"><input v-model="showEmpty" type="checkbox" data-testid="sk-show-empty"><span>{{ T('grp.showEmpty') }}</span></label>
             <span class="grow" />
             <Bits kind="legend" />
+          </div>
+          <div v-if="chips.length > 1" class="grp-chips" role="group" :aria-label="T('grp.label')" data-testid="sk-groups">
+            <button type="button" class="gchip" :aria-pressed="!grp" data-testid="sk-group-all" @click="grp = ''">{{ T('grp.all') }} <b>{{ skills.length }}</b></button>
+            <button v-for="c in chips" :key="c.id" type="button" class="gchip" :aria-pressed="grp === c.id" :data-testid="`sk-group-${c.id}`" @click="grp = grp === c.id ? '' : c.id">{{ gName(c) }} <b>{{ c.n }}</b></button>
           </div>
           <div class="tbl-wrap">
             <table class="tbl sk-tbl" data-testid="sk-table">
@@ -124,8 +139,17 @@ function offText(id: string): string {
                 <th>{{ T('col.skill') }}</th><th>{{ T('col.users') }}</th><th>{{ T('col.model') }}</th><th>{{ T('col.on') }}</th><th>{{ T('col.ver') }}</th>
                 <th class="num">{{ T('col.calls') }}</th><th>{{ T('col.rate') }}</th><th class="num">{{ T('col.blocked') }}</th><th>{{ T('col.feedback') }}</th><th class="num">{{ T('col.reg') }}</th><th />
               </tr></thead>
-              <tbody>
-                <tr v-for="s in shown" :key="s.id" :class="{ 'is-off': !s.enabled }" :data-skill="s.id" data-testid="sk-row">
+              <tbody v-for="b in blocks" :key="b.group.id" class="grp" :data-group="b.group.id" data-testid="sk-group-block">
+                <tr class="grp-h">
+                  <td colspan="11">
+                    <button type="button" class="grp-t" :aria-expanded="isOpen(b.group.id)" :title="isOpen(b.group.id) ? T('grp.collapse') : T('grp.expand')" :data-testid="`sk-group-toggle-${b.group.id}`" @click="toggle(b.group.id)">
+                      <Icon :name="isOpen(b.group.id) ? 'chevD' : 'chevR'" small /><span>{{ gName(b.group) }}</span><span class="grp-n">{{ b.skills.length === b.total ? T('grp.n', { n: b.total }) : `${b.skills.length} / ${b.total}` }}</span>
+                    </button>
+                  </td>
+                </tr>
+                <tr v-if="isOpen(b.group.id) && !b.total"><td colspan="11" class="faint small grp-empty">{{ T('grp.empty') }}</td></tr>
+                <template v-if="isOpen(b.group.id)">
+                <tr v-for="s in b.skills" :key="s.id" :class="{ 'is-off': !s.enabled }" :data-skill="s.id" data-testid="sk-row">
                   <td class="sk-name">
                     <div class="h"><router-link :to="{ name: 'ai-skill', params: { id: s.id } }" data-testid="sk-open-name">{{ L(s.title) }}</router-link><span class="sk-id">{{ s.id }}</span></div>
                     <div class="d">{{ L(s.description) }}</div>
@@ -149,8 +173,9 @@ function offText(id: string): string {
                     {{ ' ' }}<router-link class="btn btn-sm" :to="{ name: 'ai-skill', params: { id: s.id } }" :data-testid="`sk-open-${s.id}`">{{ T('list.open') }}</router-link>
                   </td>
                 </tr>
-                <tr v-if="!shown.length"><td colspan="11" class="muted" style="text-align: center; padding: 24px">{{ T('list.none') }}</td></tr>
+                </template>
               </tbody>
+              <tbody v-if="!shownN && !blocks.length"><tr><td colspan="11" class="muted" style="text-align: center; padding: 24px" data-testid="sk-none">{{ T('list.none') }}</td></tr></tbody>
             </table>
           </div>
           <div class="panel-f small faint">{{ T('list.foot') }}</div>
@@ -168,3 +193,18 @@ function offText(id: string): string {
     <div v-if="toast" class="toast" role="status">{{ toast }}</div>
   </main>
 </template>
+
+<style scoped>
+.grp-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.gchip { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 10px; border-radius: 13px; border: 1px solid var(--line); background: var(--surface); font: 12px var(--font-ui); color: var(--ink-2); cursor: pointer; white-space: nowrap; }
+.gchip b { font-weight: 600; color: var(--ink); }
+.gchip:hover { border-color: var(--line-strong); }
+.gchip[aria-pressed="true"] { background: var(--teal-soft); border-color: var(--teal-line); color: var(--teal-ink); }
+.gchip[aria-pressed="true"] b { color: var(--teal-ink); }
+.grp-h td { background: var(--surface-2); padding: 0; border-top: 1px solid var(--line); }
+.grp-t { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 12px; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 600; font-size: 12.5px; cursor: pointer; text-align: left; }
+.grp-t:hover { background: var(--surface-3); }
+.grp-t:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.grp-n { font-weight: 500; color: var(--ink-3); font-size: 12px; }
+.grp-empty { padding: 10px 12px 10px 34px; }
+</style>

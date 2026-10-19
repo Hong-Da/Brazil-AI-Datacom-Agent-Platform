@@ -15,7 +15,8 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: [['list'], ['html', { outputFolder: '../tests/output/e2e-report', open: 'never' }]],
-  outputDir: '../tests/output/e2e-results',
+  // 并行跑多份 e2e 时用 LMESH_E2E_OUT 指定各自的输出目录，避免互相清掉
+  outputDir: process.env.LMESH_E2E_OUT || '../tests/output/e2e-results',
   use: {
     baseURL: `http://127.0.0.1:${PORT}`,
     trace: 'retain-on-failure',

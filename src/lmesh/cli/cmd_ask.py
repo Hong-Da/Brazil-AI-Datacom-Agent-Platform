@@ -15,7 +15,7 @@ from lmesh.cli.cmd_configs import require_db
 from lmesh.cli.cmd_export import load_targets
 from lmesh.cli.cmd_graph import _kb
 from lmesh.cli.output import Ctx, emit, fail
-from lmesh.core import ask, config, gquery, guard, history, importer, template
+from lmesh.core import ai, ask, config, gquery, guard, history, importer, template
 from lmesh.core.kb import KnowledgeBase
 from lmesh.core.objtable import display
 
@@ -122,7 +122,7 @@ def register(app: typer.Typer) -> None:
         s = _settings()
         st = ask.status(s)
         if not st["configured"]:
-            fail(c, output.EXIT_CONFIG, c.t("ai.not_configured"), {"status": "not_configured", "configured": False})
+            fail(c, output.EXIT_CONFIG, c.t("ai.not_configured"), ai.not_configured_data(s))
         kb, _ = _kb(c)
         devices = load_targets(c, kb, targets or [], not targets, None)
         try:
@@ -204,7 +204,7 @@ def register(app: typer.Typer) -> None:
         c = output.get(ctx)
         s = _settings()
         if not ask.status(s)["configured"]:
-            fail(c, output.EXIT_CONFIG, c.t("ai.not_configured"), {"status": "not_configured", "configured": False})
+            fail(c, output.EXIT_CONFIG, c.t("ai.not_configured"), ai.not_configured_data(s))
         kb, root = _kb(c)
         base, name, dev_profile = _base(c, device)
         others = []

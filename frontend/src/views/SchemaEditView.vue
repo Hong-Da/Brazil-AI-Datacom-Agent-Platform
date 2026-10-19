@@ -14,8 +14,9 @@ import { styleForm } from './schema/styles'
 import { useTerms } from '@/stores/terms'
 import { useAuth } from '@/stores/auth'
 import KbRoRibbon from '@/components/kb-ro-ribbon.vue'
+import TypeParams from './schema/TypeParams.vue'
 import {
-  errorDetails, formToBody, isDirty, newForm, nodeToForm, parseRange, SEM_LANGS, STATUSES, usageGroups, validateForm,
+  errorDetails, formToBody, isDirty, newForm, nodeToForm, SEM_LANGS, STATUSES, usageGroups, validateForm,
   descendants, type NodeForm, type NodeUsage,
 } from './schema/form'
 
@@ -74,7 +75,6 @@ const draftGroups = computed(() =>
 const errors = computed(() => (form.value ? validateForm(form.value, nodes.value, types.value, creating.value) : {}))
 const dirty = computed(() => !!form.value && (creating.value || isDirty(form.value, current.value)))
 const canSave = computed(() => dirty.value && !saving.value && Object.keys(errors.value).length === 0)
-const rangeState = computed(() => (form.value ? parseRange(form.value.range) : { ok: true, value: null }))
 
 const parentOptions = computed(() => {
   const banned = !creating.value && sel.value ? descendants(nodes.value, sel.value) : new Set<string>()
@@ -460,38 +460,15 @@ function semLabel(l: string): string {
                       <option v-for="ty in typeOptions" :key="ty" :value="ty">{{ ty }}</option>
                     </select>
                     <span v-if="err('type')" class="err">{{ err('type') }}</span>
+                    <span v-else class="hint">{{ $t('schema-edit.typeHint') }}</span>
                   </div>
                   <div class="field">
                     <label>{{ $t('schema-edit.domain') }}</label>
                     <input class="input mono" :value="creating && !form.parent ? $t('schema-edit.domainNew') : formDomain" disabled />
                   </div>
-                  <div class="field">
-                    <label>{{ $t('schema-edit.key') }}</label>
-                    <input v-model="form.key" class="input mono" placeholder="name" data-testid="se-f-key" />
-                    <span class="hint">{{ $t('schema-edit.keyHint') }}</span>
-                  </div>
-                  <div class="field">
-                    <label>{{ $t('schema-edit.range') }}</label>
-                    <input
-                      v-model="form.range" :class="['input', 'mono', form.range.trim() ? (rangeState.ok ? 'is-ok' : 'is-error') : '']"
-                      :placeholder="$t('schema-edit.rangePh')" data-testid="se-f-range"
-                    />
-                    <span v-if="err('range')" class="err"><Icon name="err" small />{{ err('range') }}</span>
-                    <span v-else-if="form.range.trim()" class="okmsg"><Icon name="check" small />{{ $t('schema-edit.rangeOk') }}</span>
-                  </div>
-                  <div class="field span2">
-                    <label>{{ $t('schema-edit.choices') }}</label>
-                    <input v-model="form.choices" class="input mono" placeholder="permit | deny" data-testid="se-f-choices" />
-                    <span class="hint">{{ $t('schema-edit.choicesHint') }}</span>
-                  </div>
-                  <div v-if="form.type === 'ref'" class="field">
-                    <label>{{ $t('schema-edit.ref') }}</label>
-                    <select v-model="form.ref" class="select mono" data-testid="se-f-ref">
-                      <option value="">{{ $t('schema-edit.refNone') }}</option>
-                      <option v-for="id in refOptions" :key="id" :value="id">{{ id }}</option>
-                    </select>
-                    <span v-if="err('ref')" class="err">{{ err('ref') }}</span>
-                  </div>
+                  <!-- 随数据类型变化的设置项（M6-9） -->
+                  <TypeParams v-model:form="form" class="span2" :errors="errors" :ref-options="refOptions"
+                    :orig-type="creating ? null : current?.type ?? null" @undo="form.type = current?.type ?? form.type" />
                   <div class="field">
                     <label>{{ $t('schema-edit.status') }}</label>
                     <select v-model="form.status" class="select mono" data-testid="se-f-status">
@@ -501,7 +478,6 @@ function semLabel(l: string): string {
                   </div>
                   <div class="field span2">
                     <div class="row" style="gap: 24px; flex-wrap: wrap">
-                      <label class="check"><span class="switch"><input v-model="form.ordered" type="checkbox" data-testid="se-f-ordered" /><span></span></span>{{ $t('schema-edit.ordered') }}</label>
                       <label class="check"><span class="switch"><input v-model="form.deprecated" type="checkbox" data-testid="se-f-deprecated" /><span></span></span>{{ $t('schema-edit.deprecated') }}</label>
                     </div>
                   </div>

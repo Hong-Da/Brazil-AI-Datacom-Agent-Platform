@@ -8,10 +8,13 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
+from contextvars import ContextVar
 from dataclasses import dataclass
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
-from lmesh.core import config, store
+from lmesh.core import ai_connections, config, store
 from lmesh.core.store.models import AICall, iso
 
 _log = logging.getLogger("lmesh.ai")
@@ -35,22 +38,34 @@ class Reply:
     tokens_out: int = 0
 
 
+def resolve(settings: config.Settings) -> ai_connections.Resolution:
+    """当前请求用哪个接口（REQ-040）：按 settings.actor（发起人）的选择，见 ai_connections.resolve。"""
+    return ai_connections.resolve(settings)
+
+
 def is_configured(settings: config.Settings) -> bool:
-    provider = settings.get("ai.provider")
-    if not provider:
-        return False
-    if provider == "anthropic":
-        return bool(settings.ai_api_key()) and bool(settings.get("ai.model"))
-    return bool(settings.get("ai.base_url")) and bool(settings.get("ai.model"))
+    return resolve(settings).configured
+
+
+def not_configured_data(settings: config.Settings) -> dict[str, Any]:
+    """“未配置”时返回给界面的状态：带原因（管理员未开放公共接口 / 所选接口已关闭 / 你还没设置个人接口……）。"""
+    return {"status": "not_configured", "configured": False, "reason": resolve(settings).reason}
 
 
 def model_for(settings: config.Settings, task: str) -> str:
-    key = TASK_MODEL_KEYS.get(task)
-    return str((settings.get(key) if key else "") or settings.get("ai.model"))
+    conn = resolve(settings).conn
+    if conn is None:
+        return ""
+    return conn.model_for(task)
 
 
-def _call_provider(settings: config.Settings, model: str, system: str, prompt: str) -> Reply:
-    provider = settings.get("ai.provider")
+def provider_of(settings: config.Settings) -> str | None:
+    conn = resolve(settings).conn
+    return conn.provider if conn else None
+
+
+def _call_provider(conn: ai_connections.Conn, settings: config.Settings, model: str, system: str, prompt: str) -> Reply:
+    provider = conn.provider
     timeout = float(settings.get("ai.timeout"))
     max_tokens = int(settings.get("ai.max_tokens"))
     if provider == "anthropic":
@@ -58,9 +73,9 @@ def _call_provider(settings: config.Settings, model: str, system: str, prompt: s
             import anthropic
         except ImportError as e:
             raise AIError("ai.sdk_missing") from e
-        kwargs: dict[str, Any] = {"api_key": settings.ai_api_key(), "timeout": timeout}
-        if settings.get("ai.base_url"):
-            kwargs["base_url"] = settings.get("ai.base_url")
+        kwargs: dict[str, Any] = {"api_key": conn.api_key(), "timeout": timeout}
+        if conn.base_url:
+            kwargs["base_url"] = conn.base_url
         client = anthropic.Anthropic(**kwargs)
         msg = client.messages.create(
             model=model, max_tokens=max_tokens, system=system, messages=[{"role": "user", "content": prompt}]
@@ -71,9 +86,7 @@ def _call_provider(settings: config.Settings, model: str, system: str, prompt: s
         import openai
     except ImportError as e:
         raise AIError("ai.sdk_missing") from e
-    client_o = openai.OpenAI(
-        api_key=settings.ai_api_key() or "not-needed", base_url=settings.get("ai.base_url"), timeout=timeout
-    )
+    client_o = openai.OpenAI(api_key=conn.api_key() or "not-needed", base_url=conn.base_url, timeout=timeout)
     resp = client_o.chat.completions.create(
         model=model,
         max_tokens=max_tokens,
@@ -88,20 +101,47 @@ def _call_provider(settings: config.Settings, model: str, system: str, prompt: s
     )
 
 
-# 测试时替换成假的实现：provider_hook(settings, model, system, prompt) -> Reply
-provider_hook = _call_provider
+# 测试时替换成假的实现：provider_hook(conn, model, system, prompt) -> Reply（conn 是 ai_connections.Conn）
+def _default_hook(conn: ai_connections.Conn, model: str, system: str, prompt: str) -> Reply:
+    return _call_provider(conn, _HOOK_SETTINGS.get(), model, system, prompt)
+
+
+provider_hook: Callable[[Any, str, str, str], Reply] = _default_hook
+_HOOK_SETTINGS: ContextVar[config.Settings] = ContextVar("lmesh_ai_settings")
 
 
 def complete(
-    settings: config.Settings, task: str, prompt: str, system: str = "", review_item_id: int | None = None
+    settings: config.Settings,
+    task: str,
+    prompt: str,
+    system: str = "",
+    review_item_id: int | None = None,
+    feature: str = "",
+    conn: ai_connections.Conn | None = None,
 ) -> Reply:
-    """调用 AI 并记录：任务、模型、token 用量、成功与否。失败抛出 AIError。"""
-    if not is_configured(settings):
+    """调用 AI 并记录：发起人、接口、任务、功能（skill）、模型、token 用量、成功与否。失败抛出 AIError。
+    conn 给出时直接用它（测试连接），否则按发起人的选择解析。"""
+    res = resolve(settings) if conn is None else None
+    conn = conn if conn is not None else (res.conn if res else None)
+    if conn is None:
         raise AIError("ai.not_configured")
-    model = model_for(settings, task)
-    call = AICall(task=task, provider=str(settings.get("ai.provider")), model=model, review_item_id=review_item_id)
+    who = settings.actor if settings.actor is not None else ai_connections.cli_actor()
+    model = conn.model_for(task)
+    call = AICall(
+        task=task,
+        provider=conn.provider,
+        model=model,
+        review_item_id=review_item_id,
+        user_id=getattr(who, "user_id", None),
+        actor=str(getattr(who, "username", "") or ("cli" if who is None else "")),
+        connection_id=None if conn.personal else conn.id,
+        connection_name=conn.name,
+        source="personal" if conn.personal else "connection",
+        feature=feature[:60],
+    )
+    token = _HOOK_SETTINGS.set(settings)
     try:
-        reply = provider_hook(settings, model, system, prompt)
+        reply = provider_hook(conn, model, system, prompt)
         call.tokens_in, call.tokens_out, call.status = reply.tokens_in, reply.tokens_out, "ok"
         return reply
     except AIError:
@@ -112,6 +152,7 @@ def complete(
         _log.warning("AI 调用失败（%s，%s）：%s", task, model, type(e).__name__)
         raise AIError("ai.call_failed") from e
     finally:
+        _HOOK_SETTINGS.reset(token)
         try:
             with store.session(settings.database_url) as s:
                 s.add(call)
@@ -119,8 +160,8 @@ def complete(
             _log.debug("AI 调用记录写入失败", exc_info=True)
 
 
-def test(settings: config.Settings) -> dict[str, Any]:
-    reply = complete(settings, "test", "Reply with exactly: OK", system="You are a connectivity check.")
+def test(settings: config.Settings, conn: ai_connections.Conn | None = None) -> dict[str, Any]:
+    reply = complete(settings, "test", "Reply with exactly: OK", system="You are a connectivity check.", conn=conn)
     return {
         "model": reply.model,
         "reply": reply.text.strip()[:100],
@@ -129,15 +170,39 @@ def test(settings: config.Settings) -> dict[str, Any]:
     }
 
 
-def recent_calls(db_url: str, limit: int = 100) -> list[dict[str, Any]]:
+def _call_filters(user_id: int | None, connection_id: int | None, task: str | None, actor: str | None) -> list[Any]:
+    conds: list[Any] = []
+    if user_id is not None:
+        conds.append(AICall.user_id == user_id)
+    if actor:
+        conds.append(AICall.actor == actor)
+    if connection_id is not None:
+        conds.append(AICall.connection_id == connection_id)
+        conds.append(AICall.source == "connection")
+    if task:
+        conds.append(AICall.task == task)
+    return conds
+
+
+def recent_calls(
+    db_url: str,
+    limit: int = 100,
+    user_id: int | None = None,
+    connection_id: int | None = None,
+    task: str | None = None,
+    actor: str | None = None,
+) -> list[dict[str, Any]]:
+    """最近的调用记录（新的在前）。user_id：只看某个账号的（普通账号只能看自己的）；actor：按账号名过滤（管理员）。"""
     from sqlalchemy import select
 
     with store.session(db_url) as s:
-        rows = s.scalars(select(AICall).order_by(AICall.id.desc()).limit(limit))
+        q = select(AICall).where(*_call_filters(user_id, connection_id, task, actor))
+        rows = s.scalars(q.order_by(AICall.id.desc()).limit(limit))
         return [
             {
                 "id": c.id,
                 "task": c.task,
+                "feature": c.feature or c.task,
                 "provider": c.provider,
                 "model": c.model,
                 "tokens_in": c.tokens_in,
@@ -145,7 +210,113 @@ def recent_calls(db_url: str, limit: int = 100) -> list[dict[str, Any]]:
                 "status": c.status,
                 "error": c.error,
                 "review_item_id": c.review_item_id,
+                "user": c.actor,
+                "connection": c.connection_name,
+                "connection_id": c.connection_id if c.source == "connection" else None,
+                "source": c.source,
                 "created_at": iso(c.created_at),
             }
             for c in rows
         ]
+
+
+USAGE_GROUPS = ("day", "user", "connection", "feature", "model")
+
+
+def _day(v: Any) -> date:
+    if isinstance(v, datetime):
+        return (v if v.tzinfo is None else v.astimezone(UTC)).date()
+    return date.fromisoformat(str(v)[:10])
+
+
+def usage(
+    db_url: str,
+    start: date | None = None,
+    end: date | None = None,
+    user_id: int | None = None,
+    connection_id: int | None = None,
+    actor: str | None = None,
+) -> dict[str, Any]:
+    """用量统计：范围内（UTC 日期，含两端；默认最近 30 天）按天、账号、接口、功能、模型汇总调用次数、失败与 token。
+    个人接口统一记为 personal（不暴露别人的个人接口编号）。"""
+    from sqlalchemy import select
+
+    end = end or datetime.now(UTC).date()
+    start = start or (end - timedelta(days=29))
+    if start > end:
+        start, end = end, start
+    lo = datetime(start.year, start.month, start.day, tzinfo=UTC)
+    hi = datetime(end.year, end.month, end.day, tzinfo=UTC) + timedelta(days=1)
+    cols = (
+        AICall.created_at,
+        AICall.actor,
+        AICall.connection_id,
+        AICall.connection_name,
+        AICall.source,
+        AICall.feature,
+        AICall.task,
+        AICall.model,
+        AICall.status,
+        AICall.tokens_in,
+        AICall.tokens_out,
+    )
+    groups: dict[str, dict[str, dict[str, Any]]] = {g: {} for g in USAGE_GROUPS}
+    total = {"calls": 0, "errors": 0, "tokens_in": 0, "tokens_out": 0}
+
+    def add(group: str, key: str, row: dict[str, int], extra: dict[str, Any] | None = None) -> None:
+        g = groups[group].setdefault(
+            key, {"key": key, **(extra or {}), "calls": 0, "errors": 0, "tokens_in": 0, "tokens_out": 0}
+        )
+        for k, v in row.items():
+            g[k] += v
+
+    d = start
+    while d <= end:
+        add("day", d.isoformat(), {})
+        d += timedelta(days=1)
+    with store.session(db_url) as s:
+        q = select(*cols).where(
+            AICall.created_at >= lo, AICall.created_at < hi, *_call_filters(user_id, connection_id, None, actor)
+        )
+        for at, who, cid, cname, source, feature, task, model, status, tin, tout in s.execute(q):
+            row = {"calls": 1, "errors": int(status != "ok"), "tokens_in": int(tin or 0), "tokens_out": int(tout or 0)}
+            for k, v in row.items():
+                total[k] += v
+            add("day", _day(at).isoformat(), row)
+            add("user", who or "cli", row)
+            if source == "personal":
+                add("connection", "personal", row, {"id": None})
+            else:
+                add("connection", cname or "—", row, {"id": cid})
+            add("feature", feature or task, row)
+            add("model", model or "—", row)
+
+    def ordered(g: str) -> list[dict[str, Any]]:
+        rows = list(groups[g].values())
+        if g == "day":
+            return sorted(rows, key=lambda r: r["key"])
+        return sorted(rows, key=lambda r: (-(r["tokens_in"] + r["tokens_out"]), -r["calls"], r["key"]))
+
+    return {
+        "from": start.isoformat(),
+        "to": end.isoformat(),
+        "totals": total,
+        **{f"by_{g}": ordered(g) for g in USAGE_GROUPS},
+    }
+
+
+def usage_csv(data: dict[str, Any], group: str) -> str:
+    """一组统计导出为 CSV（UTF-8 带 BOM，Excel 直接打开不乱码）。"""
+    import csv
+    import io
+
+    buf = io.StringIO()
+    w = csv.writer(buf, lineterminator=CRLF)
+    w.writerow(["key", "calls", "errors", "tokens_in", "tokens_out"])
+    for r in data[f"by_{group}"]:
+        w.writerow([r["key"], r["calls"], r["errors"], r["tokens_in"], r["tokens_out"]])
+    return BOM + buf.getvalue()
+
+
+CRLF = chr(13) + chr(10)
+BOM = chr(0xFEFF)

@@ -119,6 +119,7 @@ class Skill:
     checks: list[str] = field(default_factory=list)
     samples: list[dict[str, Any]] = field(default_factory=list)
     active: str = "builtin"  # 生效版本：builtin 或版本号（文本）
+    group: str = "other"  # 功能分组（_groups.yaml 的编号；REQ-033 评审修改）
 
     def definition(self) -> dict[str, Any]:
         """可编辑的部分（保存、对比、进化都用它）。"""
@@ -233,12 +234,33 @@ def _parse_builtin(path: Path) -> Skill:
         output={str(k): str(v) for k, v in (data.get("output") or {}).items()},
         checks=[str(x) for x in data.get("checks") or []],
         samples=list(data.get("samples") or []),
+        group=str(data.get("group") or "other"),
     )
+
+
+OTHER_GROUP = {"id": "other", "title": {"zh-CN": "其他", "en": "Other", "pt-BR": "Outros"}}
+
+
+def groups() -> list[dict[str, Any]]:
+    """功能分组（knowledge/ai-skills/_groups.yaml，顺序即界面顺序），末尾是 other（没有写或写错 group 的 skill）。"""
+    from ruamel.yaml import YAML
+
+    path = builtin_dir() / "_groups.yaml"
+    out: list[dict[str, Any]] = []
+    if path.is_file():
+        data = _plain(YAML(typ="safe", pure=True).load(path.read_text(encoding="utf-8"))) or {}
+        out = [{"id": str(g["id"]), "title": _texts(g.get("title"))} for g in data.get("groups") or [] if g.get("id")]
+    return [*out, OTHER_GROUP]
+
+
+def group_of(s: Skill, known: list[dict[str, Any]] | None = None) -> str:
+    ids = {g["id"] for g in (known if known is not None else groups())}
+    return s.group if s.group in ids else "other"
 
 
 def list_ids() -> list[str]:
     d = builtin_dir()
-    ids = [f.stem for f in d.glob("*.yaml")] if d.is_dir() else []
+    ids = [f.stem for f in d.glob("*.yaml") if not f.stem.startswith("_")] if d.is_dir() else []
     return sorted(ids, key=lambda x: (ORDER.index(x) if x in ORDER else len(ORDER), x))
 
 
@@ -582,6 +604,7 @@ def info(s: Skill, settings: config.Settings | None = None) -> dict[str, Any]:
         "description": s.description,
         "task": s.task,
         "used_by": s.used_by,
+        "group": group_of(s),
         "model_key": key,
         "model": ai.model_for(settings, s.task) if on and settings is not None else None,
         "enabled": s.enabled,

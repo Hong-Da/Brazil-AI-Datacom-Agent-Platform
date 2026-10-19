@@ -10,6 +10,8 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import FullscreenPane from '@/components/FullscreenPane.vue'
+import FullscreenButton from '@/components/FullscreenButton.vue'
 import DevChip from '@/components/m4-dev.vue'
 import { errorText, get, post } from '@/api'
 import { pickLang } from '@/i18n'
@@ -364,12 +366,13 @@ onMounted(async () => {
             </div>
           </section>
 
-          <section class="panel" aria-label="Preview">
+          <FullscreenPane class="panel pv-fs" aria-label="Preview" data-testid="exp-fs">
             <div class="pv-h">
               <h2>{{ $t('export.preview') }}</h2>
               <span class="small faint" data-testid="exp-count">{{ $t('export.count', { rows: rows.length, cols: table?.columns.length ?? 0 }) }}</span>
               <span v-if="loading" class="small faint">{{ $t('c.loading') }}</span>
               <div class="subt"><span v-for="[n, k] in devCounts" :key="n"><DevChip :name="n" :vendor="vendorOf(n)" /><b>{{ k }}</b></span></div>
+              <FullscreenButton size="xs" />
             </div>
             <div v-if="unsupCols.length && table" class="notice warn" style="margin: 10px 14px 0"><Icon name="warn" /><div class="grow">{{ $t('export.unsupNote', { cols: unsupCols.map((u) => L(table!.columns[u.i].label)).join('、'), devs: [...new Set(unsupCols.flatMap((u) => u.devs))].join('、') }) }} <router-link :to="{ name: 'features' }">{{ $t('export.toFeatures') }}</router-link></div></div>
             <div v-if="tblError" class="notice err" style="margin: 10px 14px"><Icon name="err" /><div class="grow">{{ tblError }}</div><button class="btn btn-sm" type="button" @click="run">{{ $t('c.retry') }}</button></div>
@@ -424,7 +427,7 @@ onMounted(async () => {
                 <div v-else class="hint">{{ selRow.lines.length ? $t('export.linesOnly', { lines: selRow.lines.join(', ') }) : $t('export.noLines') }}</div>
               </template>
             </div>
-          </section>
+          </FullscreenPane>
         </div>
 
         <aside class="panel xpanel" aria-label="Export">
@@ -523,6 +526,8 @@ onMounted(async () => {
 .subt span { display: inline-flex; gap: 5px; align-items: center; font-size: 11.5px; color: var(--ink-2); height: 22px; padding: 0 7px 0 4px; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-2); }
 .subt span b { color: var(--ink); }
 .pvwrap { overflow: auto; max-height: 560px; }
+.pv-fs.is-fs { padding: 0; gap: 0; }
+.pv-fs.is-fs .pvwrap { flex: 1; min-height: 0; max-height: none; }
 .pv td { cursor: pointer; white-space: nowrap; }
 .pv td.c-sel { box-shadow: inset 0 0 0 2px var(--amber); background: var(--hl-line) !important; }
 .pv td .none { color: var(--ink-3); }

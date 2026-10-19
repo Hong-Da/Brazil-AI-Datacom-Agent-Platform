@@ -30,6 +30,9 @@ export interface Entry {
   type: string
   semantic: Record<string, string>
   deprecated: boolean
+  /** Schema 定义的可选值（enum）与取值范围（integer）；默认值输入按类型变化（M6-9） */
+  choices?: string[]
+  range?: number[]
   state: EntryState
   default?: Scalar
   show_rule?: string

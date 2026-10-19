@@ -48,7 +48,7 @@
 | 接口 | 认证 | 作用 |
 |---|---|---|
 | `GET /health` | 否 | 健康检查：版本、是否已配置、数据库、知识库、AI 接口 |
-| `GET /setup` | 否（仅未配置时） | 首次运行向导的参数定义 |
+| `GET /setup` | 否（仅未配置时） | 首次运行向导的参数定义（`groups`、`addresses`、`languages`）；`config_path` 是将写入的配置文件，`running` 是当前运行的 `server.host`、`server.port`（与它不同的项需要重启才生效） |
 | `POST /setup` | 否（仅未配置时） | 提交向导结果；`dry_run: true` 时只校验；`admin: {"username", "password"}` 同时创建第一个管理员并登录（设置会话 Cookie），错误键为 `admin.username` / `admin.password` |
 | `GET /auth/status` | 否 | 登录页需要的状态：`configured`、`has_users`（还没有账号时登录页改为用 API 令牌创建管理员）、`session_hours`、`registration`（自助注册，REQ-039：`open` 是否开放（还没有任何账号时不开放），`approval` 注册后是否需要管理员审核）；已配置且还没有账号时另返回 `config_file`（实例实际读取的配置文件绝对路径）与 `token_set`（是否设置了 API 令牌，布尔，不返回令牌内容），有账号后不返回这两项 |
 | `POST /auth/login` | 否 | 用户名 + 密码登录：`{"username", "password"}`；成功返回 `user` 与 `expires_at` 并设置会话 Cookie；用户名或密码错误 401（不区分用户不存在），账号停用 403，自助注册后待审核 403（`data.reason = pending`，只在密码正确时这样提示），连续失败 `security.login_max_failures` 次（默认 5）锁定 `security.login_lock_minutes` 分钟（默认 15），锁定期间 429 |
@@ -83,9 +83,17 @@
 | `GET /review?status=pending&kind=…` | 是 | 审核队列（含各类型待审数量） |
 | `GET /review/{id}` | 是 | 审核条目详情 |
 | `POST /review/batch` | 是 | 批量通过：`{"kind": "card", "contains": null, "rules": null}` |
-| `GET /ai/status` | 是 | AI 是否已配置、各任务使用的模型 |
-| `POST /ai/test` | 管理员 | 测试 AI 接口（未配置时 409） |
-| `GET /ai/calls?limit=100` | 是 | AI 调用记录 |
+| `GET /ai/status` | 是 | 当前账号的 AI 是否可用（REQ-040：按账号的选择）：`configured`、`provider`、`models`、`effective`（`source` connection / personal、`choice`、`connection`（`id`、`name`、`public`）、`model`、`reason`）、`reason`（不可用的原因：`no_connection` 没有可用的管理员接口、`no_public` 管理员未开放公共接口、`public_closed` 所选接口已关闭或删除、`personal_missing` 个人接口未填写完整、`disabled_by_user` 选择了不使用） |
+| `POST /ai/test` | 管理员 | （已弃用，改用下面两个测试接口）测试调用者当前生效的 AI 接口（不可用时 409） |
+| `GET /ai/calls?limit=100&user=&connection_id=&task=` | 是 | AI 调用记录：每条带 `user`（发起人；全局令牌为 `api-token`，没有账号的命令行为 `cli`）、`connection`（接口名，个人接口为 `personal`）、`connection_id`（个人接口为空）、`source`、`feature`（skill 编号或任务）；管理员看全部（`scope: all`，可按 `user` 过滤），其他账号只看自己的（`scope: mine`） |
+| `GET /ai/connections` | 管理员 | 管理员 AI 接口列表（REQ-040）：`connections`（`id`、`name`、`provider`、`base_url`、`api_key_set`、`model`、`model_extract`、`model_merge`、`model_ask`、`model_generate`、`public` 允许公共使用、`enabled`、`complete`、`is_default`（全局令牌与管理员默认用它）、`chosen_by`（明确选用它的账号数）、`usage`（本月 `calls`、`errors`、`tokens_in`、`tokens_out`））、`limits`（全局的 `timeout`、`max_tokens`，在配置文件中修改）；个人接口不在其中 |
+| `POST /ai/connections` / `GET /ai/connections/{id}` / `PUT /ai/connections/{id}` / `DELETE /ai/connections/{id}` | 管理员 | 新建 / 查看 / 修改 / 删除：`{"name", "provider": "anthropic"\|"openai"\|"local", "base_url", "api_key", "clear_api_key", "model", "model_extract", "model_merge", "model_ask", "model_generate", "public": false, "enabled": true}`；修改时各字段可选，不传 `api_key` 保留原值；名称重复 409，填写不完整（Anthropic 需要 Key，其他需要地址；都需要模型）422；删除返回 `affected_users`（选用它的账号随后提示改选） |
+| `POST /ai/connections/{id}/test` | 管理员 | 测试一个管理员接口（不论是否启用、是否公共），记入调用记录；AI 出错 502 |
+| `GET /me/ai` | 是 | 我的 AI：`choice`（auto 默认 / connection / personal / none；全局令牌为 system）、`connection_id`、`personal`（个人接口，不含 Key，只有 `api_key_set`；只有本人能看到，管理员也看不到）、`options`（可选的管理员接口：普通账号只有启用且允许公共使用的，管理员为全部启用的）、`effective`、`is_admin`、`has_account` |
+| `PUT /me/ai` | 是 | 修改：`{"choice", "connection_id", "personal": {…同接口字段}, "remove_personal": false}`；选不可用的接口或没有完整的个人接口时 422；全局令牌没有账号 409；只读令牌 403 |
+| `POST /me/ai/test` | 是 | `{"target": "personal"\|"effective"}`：测试我的个人接口或当前生效的接口；不可用时 409（`data.reason`） |
+| `GET /ai/usage?from=&to=&user=&connection_id=` | 是 | 用量统计（UTC 日期，含两端，默认最近 30 天）：`totals` 与 `by_day`（每天一行，没有调用补 0）、`by_user`、`by_connection`（个人接口统一记为 `personal`）、`by_feature`、`by_model`，每行 `key`、`calls`、`errors`、`tokens_in`、`tokens_out`；管理员看全部，其他账号只统计自己的（`scope`） |
+| `GET /ai/usage/export?group=day\|user\|connection\|feature\|model&from=&to=` | 是 | 导出一组为 CSV（UTF-8 带 BOM；列 `key,calls,errors,tokens_in,tokens_out`），范围与权限同上 |
 | `POST /review/{id}` | 是 | `{"action": "approve" \| "reject", "note": "", "edited": {…}}` |
 | `POST /parse` | 是 | 解析配置文本：`{"text": "…", "profile": null}`；返回 Profile、各类行数、覆盖率与每一行的结果 |
 | `POST /render` | 是 | 解析建图后渲染回文本：`{"text": "…", "profile": null, "canonical": false, "with_defaults": false}`；默认往返模式（`mode: roundtrip`）；`canonical: true` 规范模式，`with_defaults: true` 含默认值的完整配置（默认值行前有 `! default` 注释），返回 `text`、`lines`（`no`、`text`、`kind`、`origin` explicit / default、`nodes`、`card`）、`default_lines`、`uncovered`、`skipped_extras` |
@@ -187,14 +195,14 @@
 | `DELETE /kb/schema/nodes/{id}` | 是 | 删除节点；仍被使用时 409，`data` 为使用情况（可改为标记 `deprecated`） |
 | `GET /kb/profiles` | 是 | Profile 列表：继承、条目数、覆盖率、可信度分布、设备数 |
 | `POST /kb/profiles` | 是 | 新建 Profile：`{"id", "title", "family", "inherits", "version", "platform", "software"}`，继承时只写差异 |
-| `GET /kb/profiles/{id}` | 是 | 继承展开后的全部条目（每个 Schema 节点一行，含来源 Profile 与可信度） |
+| `GET /kb/profiles/{id}` | 是 | 继承展开后的全部条目（每个 Schema 节点一行，含来源 Profile 与可信度；enum 节点带 `choices`、有取值范围的 integer 节点带 `range`，供默认值输入使用） |
 | `PUT /kb/profiles/{id}/entries/{node}` | 是 | 人工修改条目：`{"supported", "default", "show_rule", "source", "verified", "note"}`，标记 `manual`，重新汇总时保留 |
 | `DELETE /kb/profiles/{id}/entries/{node}` | 是 | 删除 Profile 自己的条目（继承来的条目在父 Profile 中修改） |
 | `GET /kb/profile-compare?a=A&b=B` | 是 | 两个 Profile 逐节点对比：same / only_a / only_b / default（默认值不同）/ unfilled |
 | `GET /kb/draft` | 是 | 草稿区：上次发布以来的修改（与 `/kb/diff` 相同结构）与提交记录 |
 | `GET /kb/extractors` | 是 | 可用的命令卡抽取规则 |
-| `GET /ai/settings` | 管理员 | AI 接口设置；API Key 只返回是否已设置；`sources` 标出各项来自配置文件还是环境变量 |
-| `PUT /ai/settings` | 管理员 | 保存 AI 设置（只改配置文件的 AI 分组）：`{"provider", "base_url", "api_key", "clear_api_key", "model", "model_extract", "model_merge", "timeout", "max_tokens"}`；`api_key` 留空保持原值，加密保存 |
+| `GET /ai/settings` | 管理员 | （已弃用，改用 `/ai/connections`）第一个管理员 AI 接口的内容与全局的 `timeout`、`max_tokens`；API Key 只返回是否已设置 |
+| `PUT /ai/settings` | 管理员 | （已弃用）`{"provider", "base_url", "api_key", "clear_api_key", "model", "model_extract", "model_merge", "timeout", "max_tokens"}`：接口字段写入第一个管理员 AI 接口（没有时新建 `default`，允许公共使用；`provider` 为空表示停用它），`timeout`、`max_tokens` 写入配置文件 |
 | `GET /projects?all=false&owner=U` | 是 | 我的项目（`mine`，属主）与共享给我的（`shared`，成员）；管理员 `all=true` 时另列出其他人的项目（`others`）。每个项目：`slug`、`name`、`owner`、`role`、`members`、`settings`（`style` 显示风格、`rule_set` 翻译规则集、`baseline` 安全基线）、`counts`（`devices`、`private`、`refs`、`scripts`、`scripts_with_errors`）、`last_activity`、`migrated_from`；`default_project` 为我的默认项目 |
 | `POST /projects` | 是 | 新建项目：`{"name", "slug", "description", "settings"}`；`slug` 全站唯一（2–64 个小写字母、数字、短横线），不给时由名称生成；已被使用 409，不合法 422；还没有默认项目时它成为默认项目 |
 | `GET /workspace` | 是 | 我的工作空间：默认项目、项目数、私有模板与规则集数、有效的个人令牌数 |
@@ -902,6 +910,189 @@ HTTP 状态：`200`；返回中的关键字段：
 
 - `code` = `0`
 - `data.patterns` = `[]`
+
+### 管理员 AI 接口列表
+
+`GET /api/v1/ai/connections`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/ai/connections' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/ai/connections' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/ai/connections', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.connections.0.name` = `"shared"`
+- `data.connections.0.public` = `true`
+- `data.connections.0.api_key_set` = `true`
+
+### 新建管理员 AI 接口
+
+`POST /api/v1/ai/connections`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/ai/connections' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "lab", "provider": "local", "base_url": "http://127.0.0.1:11434/v1", "model": "qwen2.5", "public": true}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/ai/connections' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"name": "lab", "provider": "local", "base_url": "http://127.0.0.1:11434/v1", "model": "qwen2.5", "public": true}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/ai/connections', headers={'Authorization': 'Bearer <令牌>'}, json={'name': 'lab', 'provider': 'local', 'base_url': 'http://127.0.0.1:11434/v1', 'model': 'qwen2.5', 'public': True})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.name` = `"lab"`
+- `data.public` = `true`
+- `data.api_key_set` = `false`
+
+### 关闭接口的公共使用
+
+`PUT /api/v1/ai/connections/1`（需要令牌）
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/ai/connections/1' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"public": false}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/ai/connections/1' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"public": false}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/ai/connections/1', headers={'Authorization': 'Bearer <令牌>'}, json={'public': False})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.public` = `false`
+
+### 我的 AI：选择、个人接口（不含 Key）、可选接口与生效来源
+
+`GET /api/v1/me/ai`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/me/ai'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/me/ai'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/me/ai')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.choice` = `"personal"`
+- `data.personal.api_key_set` = `true`
+- `data.options.0.name` = `"shared"`
+- `data.effective.source` = `"personal"`
+
+### 改用公共接口
+
+`PUT /api/v1/me/ai`
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/me/ai' \
+  -H 'Content-Type: application/json' \
+  -d '{"choice": "connection", "connection_id": 1}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/me/ai' -ContentType 'application/json; charset=utf-8' -Body '{"choice": "connection", "connection_id": 1}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/me/ai', json={'choice': 'connection', 'connection_id': 1})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.choice` = `"connection"`
+- `data.effective.connection.name` = `"shared"`
+
+### AI 状态带生效来源
+
+`GET /api/v1/ai/status`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/ai/status'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/ai/status'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/ai/status')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.configured` = `true`
+- `data.effective.source` = `"connection"`
+- `data.effective.connection.name` = `"shared"`
+
+### AI 用量统计
+
+`GET /api/v1/ai/usage?from=2026-10-01&to=2026-10-19`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/ai/usage?from=2026-10-01&to=2026-10-19' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/ai/usage?from=2026-10-01&to=2026-10-19' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/ai/usage?from=2026-10-01&to=2026-10-19', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.scope` = `"all"`
+- `data.from` = `"2026-10-01"`
+- `data.totals.calls` = `0`
 
 ### 设备的分析摘要（含与上一版本的变化、安全基线得分）
 
@@ -3360,9 +3551,13 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.ai.configured` = `false`
 - `data.days` = `30`
 - `data.skills.0.id` = `"card-extract"`
+- `data.skills.0.group` = `"kb"`
 - `data.skills.2.id` = `"ask-answer"`
 - `data.skills.2.active` = `"builtin"`
 - `data.skills.2.stats.calls` = `0`
+- `data.groups.0.id` = `"qa"`
+- `data.groups.0.count` = `2`
+- `data.groups.0.title.en` = `"Q&A"`
 
 ### 普通账号不能管理 skill（403）
 

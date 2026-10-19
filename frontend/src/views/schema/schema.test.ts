@@ -5,8 +5,9 @@ import {
 } from './model'
 import { assignColumns, edgePath, fitText, layoutGroups, CW, PH } from './layout'
 import {
-  descendants, errorDetails, formToBody, isDirty, newForm, nodeToForm, parseRange, splitList, usageGroups, validateForm,
+  descendants, errorDetails, formToBody, isDirty, newForm, nodeToForm, rangeOf, splitList, staleFields, usageGroups, validateForm,
 } from './form'
+import { fieldsFor, formatOk, isAsn, isCommunity, isMask, isPrefix, isRd } from './typefields'
 
 function node(id: string, parent: string | null, extra: Partial<SchemaNode> = {}): SchemaNode {
   return {
@@ -146,24 +147,24 @@ describe('布局', () => {
 describe('节点表单', () => {
   const nodes = DOMAINS.flatMap((d) => d.nodes)
   const types = ['object', 'string', 'integer', 'ref', 'enum']
-  it('取值范围解析', () => {
-    expect(parseRange('')).toEqual({ ok: true, value: null })
-    expect(parseRange('[1, 4094]')).toEqual({ ok: true, value: [1, 4094] })
-    expect(parseRange('0..32')).toEqual({ ok: true, value: [0, 32] })
-    expect(parseRange('-5,5').value).toEqual([-5, 5])
-    expect(parseRange('[9, 1]').ok).toBe(false)
-    expect(parseRange('abc').ok).toBe(false)
+  it('取值范围两端', () => {
+    expect(rangeOf('', ' ')).toEqual({ ok: true, value: null })
+    expect(rangeOf('1', '4094')).toEqual({ ok: true, value: [1, 4094] })
+    expect(rangeOf('-5', '5').value).toEqual([-5, 5])
+    expect(rangeOf('9', '1')).toMatchObject({ ok: false, error: 'err.range' })
+    expect(rangeOf('1', '')).toMatchObject({ ok: false, error: 'err.rangeBoth' })
+    expect(rangeOf('a', '3')).toMatchObject({ ok: false, error: 'err.rangeNum' })
   })
   it('列表输入去重去空', () => {
     expect(splitList(' a | b,a\n\nc ')).toEqual(['a', 'b', 'c'])
   })
   it('节点 → 表单 → 提交体往返不变', () => {
-    const n = node('vrf.label_mode', 'vrf', { type: 'enum', choices: ['per-route', 'per-instance'], key: ['x', 'y'], range: [1, 2], status: 'reviewed' })
+    const n = node('vrf.label_mode', 'vrf', { type: 'enum', choices: ['per-route', 'per-instance'], status: 'reviewed' })
     const f = nodeToForm(n)
-    expect(f.choices).toBe('per-route | per-instance')
+    expect(f.choices).toEqual(['per-route', 'per-instance'])
     expect(isDirty(f, n)).toBe(false)
     expect(formToBody(f)).toEqual({
-      parent: 'vrf', type: 'enum', key: ['x', 'y'], semantic: { 'zh-CN': 'vrf.label_mode', en: 'vrf.label_mode' }, range: [1, 2],
+      parent: 'vrf', type: 'enum', key: [], semantic: { 'zh-CN': 'vrf.label_mode', en: 'vrf.label_mode' }, range: null,
       choices: ['per-route', 'per-instance'], ordered: false, ref: null, deprecated: false, replaced_by: null, status: 'reviewed',
     })
     f.semantic['pt-BR'] = '  modo '
@@ -194,8 +195,12 @@ describe('节点表单', () => {
     expect(validateForm(f, nodes, types, true).id).toBe('err.idExists')
     f.id = 'bgp.instance.timer'
     f.semantic.en = 'Timer'
-    f.range = '[5, 1]'
+    f.type = 'integer'
+    f.rangeMin = '5'
+    f.rangeMax = '1'
     expect(validateForm(f, nodes, types, true)).toEqual({ range: 'err.range' })
+    f.type = 'string' // 不适用的取值范围不再校验
+    expect(validateForm(f, nodes, types, true)).toEqual({})
     const e = nodeToForm(nodes[2]!)
     e.parent = 'bgp.peer'
     e.type = 'nope'
@@ -213,5 +218,72 @@ describe('节点表单', () => {
     expect(usageGroups(null)).toEqual([])
     expect(errorDetails(['e1', { a: 1 }])).toEqual(['e1', '{"a":1}'])
     expect(errorDetails(null)).toEqual([])
+  })
+})
+
+describe('按类型的设置项（M6-9）', () => {
+  const nodes = DOMAINS.flatMap((d) => d.nodes)
+  const types = ['object', 'string', 'integer', 'ref', 'enum', 'ipv4', 'boolean']
+
+  it('各类型适用的设置项', () => {
+    expect(fieldsFor('integer')).toEqual(['range'])
+    expect(fieldsFor('enum')).toEqual(['choices'])
+    expect(fieldsFor('object')).toEqual(['key', 'ordered'])
+    expect(fieldsFor('ref')).toEqual(['ref'])
+    for (const t of ['ipv4', 'prefix', 'rd', 'asn', 'interface', 'boolean', 'string', 'text']) expect(fieldsFor(t)).toEqual([])
+  })
+
+  it('换类型：提示不再适用的已填内容，提交体清掉它们', () => {
+    const f = nodeToForm(nodes[4]!) // integer，range [0, 21845]
+    expect(staleFields(f)).toEqual([])
+    f.type = 'enum'
+    f.choices = ['a']
+    expect(staleFields(f)).toEqual(['range'])
+    expect(formToBody(f)).toMatchObject({ type: 'enum', range: null, choices: ['a'], key: [], ordered: false, ref: null })
+    const o = nodeToForm(node('x', null, { type: 'object', key: ['name'], ordered: true }))
+    o.type = 'ipv4'
+    expect(staleFields(o)).toEqual(['key', 'ordered'])
+    expect(formToBody(o)).toMatchObject({ key: [], ordered: false })
+    o.type = 'object'
+    expect(formToBody(o)).toMatchObject({ key: ['name'], ordered: true })
+  })
+
+  it('enum 至少一个、不能重复；ref 必填且只能指向 object', () => {
+    const f = nodeToForm(node('bgp.peer.mode', 'bgp.peer', { semantic: { en: 'm' } }))
+    f.type = 'enum'
+    expect(validateForm(f, nodes, types, false)).toEqual({ choices: 'err.choicesEmpty' })
+    f.choices = ['a', 'a']
+    expect(validateForm(f, nodes, types, false)).toEqual({ choices: 'err.choicesDup' })
+    f.choices = ['a', 'b']
+    expect(validateForm(f, nodes, types, false)).toEqual({})
+    f.type = 'ref'
+    expect(validateForm(f, nodes, types, false)).toEqual({ ref: 'err.refRequired' })
+    f.ref = 'bgp.peer.keepalive'
+    expect(validateForm(f, nodes, types, false)).toEqual({ ref: 'err.refNotObject' })
+    f.ref = 'bgp.peer'
+    expect(validateForm(f, nodes, types, false)).toEqual({})
+  })
+
+  it('格式校验', () => {
+    expect(formatOk('ipv4', '10.0.0.1')).toBe(true)
+    expect(formatOk('ipv4', '10.0.0.256')).toBe(false)
+    expect(formatOk('ipv4', '')).toBe(true)
+    expect(isMask('255.255.255.0')).toBe(true)
+    expect(isMask('255.0.255.0')).toBe(false)
+    expect(isPrefix('10.1.0.0/16')).toBe(true)
+    expect(isPrefix('10.1.0.0/33')).toBe(false)
+    expect(isPrefix('2001:db8::/32')).toBe(true)
+    expect(isRd('65000:100')).toBe(true)
+    expect(isRd('10.0.0.1:1')).toBe(true)
+    expect(isRd('65000')).toBe(false)
+    expect(isAsn('65001')).toBe(true)
+    expect(isAsn('1.10')).toBe(true)
+    expect(isAsn('0')).toBe(false)
+    expect(isAsn('4294967296')).toBe(false)
+    expect(isCommunity('no-export')).toBe(true)
+    expect(isCommunity('65000:70000')).toBe(false)
+    expect(formatOk('interface', 'system')).toBe(true)
+    expect(formatOk('interface', 'Gi 0/0/1')).toBe(false)
+    expect(formatOk('string', 'any thing')).toBe(true)
   })
 })

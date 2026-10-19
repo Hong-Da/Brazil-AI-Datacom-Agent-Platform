@@ -3,12 +3,15 @@
  * TCP/IP 模型视图（REQ-034）：六条横带自上而下（应用 → 物理，2.5 层斜纹缩进），每层按对象类型分组列出实例；
  * 作用层与所属对象不同的属性单独成组；橙色细曲线按对象类型汇总跨层依赖，选中对象后画出它自己的跨层连线；
  * 右侧竖条是跨层特性（QoS、时钟同步）。层的归类全部来自后端（layers.nodes）。
+ * 合并相似（评审修改）：同组内键只差末尾编号的对象合并成一个范围格子（GE0/2/1–8 与成员数），点开逐个查看；
+ * 选中、相关高亮与跨层连线落在合并格子上（它代表全部成员）。开关记在浏览器里，默认打开。
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import type { Model } from '@/views/device-graph/model'
 import { formatValue } from '@/views/device-graph/model'
-import { bandGroups, chipOf, crossOf, groupLinks, ownerObject, type BandGroup } from './layers'
+import { rememberedFlag } from '@/stores/prefs'
+import { bandGroups, chipOf, crossOf, groupLinks, mergedText, mergeSimilar, ownerObject, type BandGroup, type ChipEntry } from './layers'
 import { BAND_ORDER, type FeatureInfo, type LayerInfo, type LayersData } from './types'
 
 const props = defineProps<{
@@ -27,6 +30,8 @@ const { t } = useI18n()
 
 const LIMIT = 12
 const open = ref(new Set<string>())
+const merge = rememberedFlag('analysis-tcp-merge', true)
+const mOpen = ref(new Set<string>())
 const grid = ref<HTMLDivElement>()
 const svg = ref<{ w: number; h: number; agg: { d: string; w: number }[]; hot: { d: string; kind: string }[] }>({ w: 0, h: 0, agg: [], hot: [] })
 const rails = ref<{ id: string; top: number; height: number; name: string; desc: string; on: boolean }[]>([])
@@ -67,18 +72,42 @@ function chipText(id: string): string {
   }
   return props.labelOf(id)
 }
-function shown(g: BandGroup): string[] {
-  if (open.value.has(g.key)) return g.items
-  const first = g.items.slice(0, LIMIT)
+const isObject = (id: string) => props.model.nodes.get(id)?.kind === 'object'
+function entriesOf(g: BandGroup): ChipEntry[] {
+  return merge.value && !g.attr ? mergeSimilar(g.items, props.labelOf, isObject) : g.items.map((id) => ({ merged: false as const, id }))
+}
+const entries = computed(() => {
+  const out = new Map<string, ChipEntry[]>()
+  for (const list of groups.value.values()) for (const g of list) out.set(g.key, entriesOf(g))
+  return out
+})
+function hits(e: ChipEntry, pred: (id: string) => boolean): boolean {
+  return e.merged ? e.members.some(pred) : pred(e.id)
+}
+const isSel = (id: string) => id === selChip.value
+const isRel = (id: string) => relChips.value.has(id)
+function shown(g: BandGroup): ChipEntry[] {
+  const all = entries.value.get(g.key) ?? []
+  if (open.value.has(g.key)) return all
+  const first = all.slice(0, LIMIT)
   // 选中或相关的格子即使在折叠部分也显示出来
-  const extra = g.items.slice(LIMIT).filter((id) => id === selChip.value || relChips.value.has(id))
+  const extra = all.slice(LIMIT).filter((e) => hits(e, (id) => isSel(id) || isRel(id)))
   return [...first, ...extra]
 }
-function toggle(key: string): void {
-  const s = new Set(open.value)
+function mKey(g: BandGroup, e: { key: string }): string {
+  return `${g.key}|${e.key}`
+}
+function flip(set: typeof open, key: string): void {
+  const s = new Set(set.value)
   if (s.has(key)) s.delete(key)
   else s.add(key)
-  open.value = s
+  set.value = s
+}
+function toggle(key: string): void {
+  flip(open, key)
+}
+function toggleMerged(key: string): void {
+  flip(mOpen, key)
 }
 function featName(id: string | undefined): string {
   const f = props.info.features.find((x) => x.id === id)
@@ -88,6 +117,10 @@ function featName(id: string | undefined): string {
 // ---------- 连线与竖条（按渲染后的位置画） ----------
 function esc(s: string): string {
   return typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(s) : s.replace(/["\\]/g, '\\$&')
+}
+/** 格子所在的元素：自己的格子，或代表它的合并格子。 */
+function anchorEl(root: HTMLElement, chip: string): Element | null {
+  return root.querySelector(`[data-chip="${esc(chip)}"]`) || root.querySelector(`[data-members~="${esc(chip)}"]`)
 }
 function draw(): void {
   const g = grid.value
@@ -114,12 +147,17 @@ function draw(): void {
   const hot: { d: string; kind: string }[] = []
   const anchorOf = (id: string): Element | null => {
     const c = chipOf(props.model, layerOf.value, id)
-    return (c && g.querySelector(`[data-chip="${esc(c)}"]`)) || null
+    return (c && anchorEl(g, c)) || null
   }
+  const seen = new Set<string>()
   for (const x of mine.value) {
     const a = anchorOf(x.edge.from)
     const b = anchorOf(x.edge.to)
-    if (a && b && a !== b) hot.push({ d: curve(pt(a), pt(b)), kind: x.edge.kind })
+    if (!a || !b || a === b) continue
+    const d = curve(pt(a), pt(b))
+    if (seen.has(d)) continue // 合并格子：同一对格子之间的连线只画一条
+    seen.add(d)
+    hot.push({ d, kind: x.edge.kind })
   }
   svg.value = { w: gr.width, h: gr.height, agg, hot }
   const out: typeof rails.value = []
@@ -148,7 +186,7 @@ function schedule(): void {
 function focus(): void {
   nextTick(() => {
     const c = selChip.value
-    const el = c && grid.value?.querySelector(`[data-chip="${esc(c)}"]`)
+    const el = c && grid.value && anchorEl(grid.value, c)
     if (el) (el as HTMLElement).scrollIntoView({ block: 'nearest', inline: 'nearest' })
     schedule()
   })
@@ -162,11 +200,16 @@ onMounted(() => {
   focus()
 })
 onBeforeUnmount(() => { ro?.disconnect(); cancelAnimationFrame(raf) })
-watch(() => [props.selected, props.showDefault, open.value, props.layers, props.labelOf], schedule)
+watch(() => [props.selected, props.showDefault, open.value, mOpen.value, merge.value, props.layers, props.labelOf], schedule)
 </script>
 
 <template>
   <div class="tcp" data-testid="tcpip-view">
+    <div class="tcp-tools">
+      <label class="check small" :title="$t('device-analysis.mergeTip')">
+        <span class="switch"><input v-model="merge" type="checkbox" data-testid="tcp-merge" /><span></span></span>{{ $t('device-analysis.mergeSimilar') }}
+      </label>
+    </div>
     <div ref="grid" class="tcp-grid">
       <div class="bands">
         <section v-for="b in bands" :key="b.id" class="band" :class="{ mpls: b.id === 'mpls' }" :data-ly="b.id" :data-band="b.id">
@@ -183,12 +226,29 @@ watch(() => [props.selected, props.showDefault, open.value, props.layers, props.
                 <span v-if="layers.features_of[g.items[0]]" class="tag ft">{{ featName(layers.features_of[g.items[0]]) }}</span>
               </button>
               <div class="chips">
-                <button
-                  v-for="id in shown(g)" :key="id" type="button" class="chip-o"
-                  :class="{ 'is-sel': id === selChip, 'is-rel': relChips.has(id), 's-derived': model.nodes.get(id)?.origin === 'derived', 's-default': model.nodes.get(id)?.origin === 'default' }"
-                  :data-chip="id" :title="id" data-testid="tcp-chip" @click="emit('tap', id)"
-                >{{ chipText(id) }}</button>
-                <button v-if="g.items.length > LIMIT" type="button" class="chip-more" @click="toggle(g.key)">{{ open.has(g.key) ? $t('device-analysis.less') : `+${g.items.length - shown(g).length}` }}</button>
+                <template v-for="e in shown(g)" :key="e.merged ? `m:${e.key}` : e.id">
+                  <button
+                    v-if="!e.merged" type="button" class="chip-o"
+                    :class="{ 'is-sel': e.id === selChip, 'is-rel': relChips.has(e.id), 's-derived': model.nodes.get(e.id)?.origin === 'derived', 's-default': model.nodes.get(e.id)?.origin === 'default' }"
+                    :data-chip="e.id" :title="e.id" data-testid="tcp-chip" @click="emit('tap', e.id)"
+                  >{{ chipText(e.id) }}</button>
+                  <span v-else-if="mOpen.has(mKey(g, e))" class="chip-grp" data-testid="tcp-merged-open">
+                    <button
+                      v-for="id in e.members" :key="id" type="button" class="chip-o"
+                      :class="{ 'is-sel': id === selChip, 'is-rel': relChips.has(id), 's-derived': model.nodes.get(id)?.origin === 'derived', 's-default': model.nodes.get(id)?.origin === 'default' }"
+                      :data-chip="id" :title="id" data-testid="tcp-chip" @click="emit('tap', id)"
+                    >{{ chipText(id) }}</button>
+                    <button type="button" class="chip-fold" :title="$t('device-analysis.mergeFold')" :aria-label="$t('device-analysis.mergeFold')" data-testid="tcp-merged-fold" @click="toggleMerged(mKey(g, e))">⟨ {{ e.members.length }}</button>
+                  </span>
+                  <button
+                    v-else type="button" class="chip-o chip-m"
+                    :class="{ 'is-sel': hits(e, isSel), 'is-rel': hits(e, isRel) }"
+                    :data-chip="`m:${mKey(g, e)}`" :data-members="e.members.join(' ')" :title="e.members.map(chipText).join('\n')"
+                    :aria-label="$t('device-analysis.mergeAria', { name: mergedText(e), n: e.members.length })" data-testid="tcp-merged"
+                    @click="toggleMerged(mKey(g, e))"
+                  >{{ mergedText(e) }}<b class="n">{{ e.members.length }}</b></button>
+                </template>
+                <button v-if="(entries.get(g.key)?.length ?? 0) > LIMIT" type="button" class="chip-more" @click="toggle(g.key)">{{ open.has(g.key) ? $t('device-analysis.less') : `+${(entries.get(g.key)?.length ?? 0) - shown(g).length}` }}</button>
               </div>
             </div>
           </div>
@@ -231,6 +291,14 @@ watch(() => [props.selected, props.showDefault, open.value, props.layers, props.
 .chip-o.s-derived { outline: 1.2px dotted var(--violet); outline-offset: -2px; }
 .chip-o.s-default { outline: 1.2px dashed var(--ink-3); outline-offset: -2px; color: var(--ink-2); }
 .chip-more { all: unset; font-size: 11px; color: var(--blue-ink); cursor: pointer; padding: 0 4px; }
+.tcp-tools { position: sticky; top: -10px; z-index: 3; display: flex; justify-content: flex-end; margin: -4px 0 6px; pointer-events: none; }
+.tcp-tools label { pointer-events: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 2px 10px 2px 4px; }
+.chip-o.chip-m { display: inline-flex; align-items: center; gap: 5px; border-color: var(--line-strong); background: color-mix(in srgb, var(--blue-soft) 55%, var(--surface)); }
+.chip-o.chip-m .n { font: 600 10px/14px var(--font-ui); padding: 0 4px; border-radius: 7px; background: var(--surface); color: var(--ink-2); border: 1px solid var(--line); }
+.chip-o.chip-m.is-sel { background: var(--amber-soft); border-color: var(--amber); }
+.chip-grp { display: inline-flex; flex-wrap: wrap; gap: 3px; padding: 2px; border: 1px dashed var(--line-strong); border-radius: 4px; }
+.chip-fold { all: unset; font: 11px/18px var(--font-ui); color: var(--blue-ink); cursor: pointer; padding: 0 4px; }
+.chip-fold:focus-visible { outline: 2px solid var(--focus); }
 .rails { position: relative; }
 .rail { position: absolute; width: 22px; border-radius: 11px; border: 1px solid var(--line-strong); background: var(--surface-2); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 8px; }
 .rail span { writing-mode: vertical-rl; transform: rotate(180deg); font-size: 11px; color: var(--ink-2); white-space: nowrap; }

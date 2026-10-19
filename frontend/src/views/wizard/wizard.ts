@@ -93,3 +93,68 @@ export const LANG_NOTES: Record<string, string> = {
   en: 'Interface and default report language',
   'pt-BR': 'Idioma da interface e dos relatórios',
 }
+
+/* ---------- 确认页（M6-9）：按组汇总、突出改动、统一校验、需重启的项 ---------- */
+
+/** 当前运行实例的监听地址（GET /setup 的 running）；与新取值不同的项需要重启才生效。 */
+export type Running = Record<string, string | number>
+
+export interface ConfirmRow {
+  field: WField
+  changed: boolean
+  /** 敏感值只显示“已设置 / 未设置”（数据库地址除外：它显示遮住密码的地址） */
+  secretState: 'set' | 'unset' | null
+  restart: boolean
+  error: string
+}
+
+export interface ConfirmStats { changed: number; unchanged: number; restart: string[]; errors: number }
+
+export function needsRestart(key: string, v: string | number | undefined, running: Running): boolean {
+  return key in running && String(v ?? '') !== String(running[key] ?? '')
+}
+
+export function confirmRow(f: WField, values: Values, errors: Record<string, string>, running: Running): ConfirmRow {
+  const v = values[f.key]
+  const opaque = f.secret && f.kind !== 'dburl'
+  return {
+    field: f,
+    changed: isChanged(f, v),
+    secretState: opaque ? (String(v ?? '') ? 'set' : 'unset') : null,
+    restart: needsRestart(f.key, v, running),
+    error: errors[f.key] ?? '',
+  }
+}
+
+/** AI 分组在没有选接口时只显示“未配置”，不列其余字段。 */
+export function confirmFields(g: WGroup, values: Values): WField[] {
+  if (g.fields.some((f) => f.key === 'ai.provider') && !values['ai.provider']) return []
+  return g.fields
+}
+
+export function confirmRows(g: WGroup, values: Values, errors: Record<string, string>, running: Running, onlyChanged = false): ConfirmRow[] {
+  return confirmFields(g, values)
+    .map((f) => confirmRow(f, values, errors, running))
+    .filter((r) => !onlyChanged || r.changed || r.error)
+}
+
+/** 全部分组的汇总：改了几项、保持默认几项、需要重启的字段、问题数（含管理员一步的 admin.* 错误）。 */
+export function confirmStats(groups: WGroup[], values: Values, errors: Record<string, string>, running: Running): ConfirmStats {
+  let changed = 0, unchanged = 0
+  const restart: string[] = []
+  for (const g of groups) {
+    for (const r of confirmRows(g, values, errors, running)) {
+      if (r.changed) changed++
+      else unchanged++
+      if (r.restart) restart.push(r.field.key)
+    }
+  }
+  const keys = new Set(groups.flatMap((g) => g.fields.map((f) => f.key)))
+  const errorCount = Object.keys(errors).filter((k) => errors[k] && (keys.has(k) || k.startsWith('admin.'))).length
+  return { changed, unchanged, restart, errors: errorCount }
+}
+
+/** 某一组里的问题数。 */
+export function groupErrors(g: WGroup, errors: Record<string, string>): number {
+  return g.fields.filter((f) => errors[f.key]).length
+}
