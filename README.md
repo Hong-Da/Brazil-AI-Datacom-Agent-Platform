@@ -107,5 +107,7 @@ lmesh/
 ## 测试
 
 - Windows：`test.bat`；Linux：`./test.sh`
+- 后端测试默认并行（pytest-xdist，进程数 = CPU 核数，上限 16）；`--serial` 串行，`-n N` 指定进程数
+- 开发中的增量测试：`--changed`（只跑与未提交改动相关的类别，`--changed main` 对比分支），会打印选了哪些
 - 只运行某一类：`--unit` / `--cli` / `--api` / `--docs` / `--roundtrip` / `--frontend`；端到端测试 `--e2e` 单独运行（需要浏览器：Windows 用系统 Edge，Linux 先在 frontend 目录运行 `corepack pnpm exec playwright install chromium`，浏览器装在项目内）
 - 规则见 [tests/README.md](tests/README.md)

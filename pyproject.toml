@@ -34,6 +34,7 @@ lmesh = "lmesh.cli:main"
 dev = [
     "pytest>=8.2",
     "pytest-html>=4.1",
+    "pytest-xdist>=3.6",
     "httpx>=0.27",
     "ruff>=0.6",
     "mypy>=1.11",
@@ -51,7 +52,7 @@ packages = ["src/lmesh"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
-# 只保留最近一轮、且只保留失败用例的临时目录（每个用例会复制整个知识库）
+# 只保留最近一轮、且只保留失败用例的临时目录
 tmp_path_retention_count = 1
 tmp_path_retention_policy = "failed"
 markers = [
@@ -62,6 +63,7 @@ markers = [
     "docs: 文档与代码一致性",
     "live: 对运行中的实例执行",
     "pg: 需要 PostgreSQL",
+    "kb_write: 会写入程序自带知识库（tmp_root/knowledge）的用例，复制一份自己的而不用共用的只读副本",
 ]
 
 [tool.ruff]

@@ -58,8 +58,48 @@ tests/
 | `test.bat` / `./test.sh` | 全部离线测试（后端 + 前端单元） |
 | `--unit` / `--cli` / `--api` / `--docs` / `--roundtrip` / `--e2e` | 只运行某一类 |
 | `--live --base-url <地址> --token <令牌>` | 在线 API 测试 |
+| `--changed [REF]` | 增量测试：按改动的文件挑选类别（默认对比 HEAD，即未提交的改动；`--changed main` 对比分支分叉点），逐个文件打印去向 |
+| `-n N` / `--serial` / `--max-workers N` | 后端测试的并行进程数；默认 CPU 核数、上限 16（也可用环境变量 `LMESH_TEST_MAX_WORKERS`）；`--serial` 即 `-n 0` |
 
-结束时输出每类通过 / 失败数量，有失败时退出码非 0；报告写入 `tests/output/report.html`。
+结束时输出每类通过 / 失败 / 跳过数量，有失败时退出码非 0；报告写入 `tests/output/report.html` 与 `tests/output/junit.xml`（并行时由主进程汇总，统计与串行相同）。
+
+**测试时机**：开发阶段完成后跑增量测试（`--changed`）；提交前加跑 `--e2e`；里程碑验收与打版本前在 Windows 与 Linux 上跑全量。
+
+### 并行
+
+- 后端用 pytest-xdist（`--dist worksteal`）。每个 worker 有自己的临时目录（`tmp/os/pytest-of-*/pytest-N/popen-gwK/`）。
+- PostgreSQL：每个用例一个 schema，名字是 `t_<worker>_<随机串>`；SSH 隧道由主进程建一次、所有 worker 共用。
+- 测试不监听端口（API 用 TestClient）；需要写文件的都写各自的 `tmp_root`，不写 `tests/output/`（只有主进程写报告）。
+- 直接用 pytest 时：`python -m pytest -n 16 --dist worksteal`；串行就不加 `-n`。
+
+### 增量测试的映射
+
+`scripts/run_tests.py` 里的 `CHANGE_RULES`，按顺序取第一条匹配的规则，宁宽勿窄：
+
+| 改动的路径 | 选中的类别 |
+|---|---|
+| `frontend/src/i18n/` | frontend、docs |
+| `frontend/` | frontend（前端单元） |
+| `src/lmesh/api/` | api、cli、docs |
+| `src/lmesh/cli/` | cli、docs |
+| `src/lmesh/core/` 的 parser、graph、canon、translate、change | unit、roundtrip（含翻译与变更回归） |
+| `src/lmesh/core/` 的 kb、kbservice、renderer、roundtrip、graphstore、analysis、compare、migration、topology、sanitize、features、layers | unit、roundtrip、cli、api |
+| `src/lmesh/core/` 的其他模块 | unit、cli、api |
+| `src/lmesh/locales/` | unit、docs |
+| `knowledge/` | unit、roundtrip |
+| `tests/cases/` | cli、api、docs |
+| `tests/<类别>/` | 该类别 |
+| `scripts/gen_docs.py`、`docs/`、`*.md` | docs |
+| 其他（`tests/conftest.py`、`pyproject.toml`、`uv.lock`、`src/lmesh/paths.py` 等） | 全部离线测试 |
+
+另外有新增或删除的文件时加 docs（README 目录结构检查）。
+
+### 知识库副本
+
+- `tmp_root/knowledge`（程序自带的知识库）默认是链接，指向每个测试进程共用的只读副本（不带命令卡、带全部命令卡各一份，在 `tmp/os/pytest-of-*/…/kb-shared/`）。Windows 用目录联接，其他系统用符号链接；建不了链接时退回复制。
+- 会写入 `tmp_root/knowledge` 的用例加 `@pytest.mark.kb_write`（CLI / API 用例在 toml 里写 `kb_write = true`），改为复制一份自己的。运行时知识库（`data/knowledge`，首次配置时复制）每个用例本来就是自己的，不受影响。
+- 每个用例结束时比对共用副本的快照：被改动就恢复，并让该用例报错、提示加标记，后面的用例不受影响。
+- `LMESH_TEST_KB_COPY=1` 时每个用例都复制（排查问题时用）。
 
 ## Linux 开发与测试
 

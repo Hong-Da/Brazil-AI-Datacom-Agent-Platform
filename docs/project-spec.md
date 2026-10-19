@@ -888,6 +888,10 @@ REQ-021～REQ-024。界面在 M5 界面阶段单独做；后端返回结构按 `
 - T2 测试范围：单元、CLI、API、文档；另加“往返回归”（全部样本的 roundtrip）【默认】
 - T3 一键测试脚本：`test.bat` / `test.sh`【默认】
 - T4 在线测试：需要【默认】
+- 测试时机【用户 2026-10-19】：开发阶段完成后跑增量测试（按改动范围挑选：只改前端 / 项目权限时跑前端单元与相关 API、CLI 用例；动了解析器、建图、渲染、翻译或知识库时再加往返与翻译 / 变更回归）；提交前加跑 e2e；里程碑验收与打版本前在 Windows 与 Linux 上跑全量。全量测试并行执行提速（pytest-xdist）。
+  - 实现：`test.bat` / `test.sh --changed [REF]` 是增量入口，`scripts/run_tests.py` 用 `git diff`（相对 REF 与 HEAD 的分叉点，默认 HEAD，含未提交与未跟踪的文件）列出改动，按其中的映射表 `CHANGE_RULES` 选类别并逐个打印去向；规则宁宽勿窄，未登记的路径跑全部离线测试，有新增或删除文件时加 docs。
+  - 实现：后端测试默认用 pytest-xdist 并行（`-n` = CPU 核数，上限 16，可用 `--max-workers` 或 `LMESH_TEST_MAX_WORKERS` 改；`--dist worksteal`），`--serial` 或 `-n 0` 串行。并行时 SSH 隧道由主进程建一次、各 worker 共用；PostgreSQL 用例的 schema 名带 worker 名；junit 与 HTML 报告由主进程汇总，分类统计不变。
+  - 实现：每个测试进程共用一份只读的程序自带知识库（不带命令卡、带全部命令卡各一份），用例的 `tmp_root/knowledge` 是指向它的链接（Windows 目录联接，其他系统符号链接）；会写入它的用例加 `@pytest.mark.kb_write`（CLI / API 用例在 toml 里写 `kb_write = true`）改为自己复制。每个用例结束时比对共用副本的快照，被改动就恢复并让该用例报错，用例之间不会互相污染；`LMESH_TEST_KB_COPY=1` 恢复为每个用例都复制。
 - 规则见 `tests/README.md`。
 
 ## L Linux 开发与测试环境

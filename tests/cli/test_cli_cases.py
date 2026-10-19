@@ -7,14 +7,14 @@ from pathlib import Path
 
 import pytest
 
-from tests.conftest import INPUTS, SAMPLES, prepare, run_cli
+from tests.conftest import INPUTS, SAMPLES, kb_params, prepare, run_cli
 from tests.helpers import check_json, load_cases
 
 CASES = load_cases("cli_cases.toml")
 
 
 @pytest.mark.cli
-@pytest.mark.parametrize("case", CASES, ids=[c["id"] for c in CASES])
+@pytest.mark.parametrize("case", kb_params(CASES), ids=[c["id"] for c in CASES])
 def test_cli_case(case: dict, tmp_root: Path, request: pytest.FixtureRequest) -> None:
     prepare(case.get("setup"), request)
     out = tmp_root / "out"
