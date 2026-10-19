@@ -4,7 +4,7 @@
  * 把选择整理成逐条要调用的操作（没有批量接口）、底部汇总、导入结果分类。
  */
 
-export interface PubRef { project: string; name: string; owner: string | null; policy: 'follow' | 'pin'; version_id: number | null; seq: number | null }
+export interface PubRef { project: string; full_ref?: string; name: string; owner: string | null; policy: 'follow' | 'pin'; version_id: number | null; seq: number | null }
 export interface PubDevice {
   id: number
   name: string

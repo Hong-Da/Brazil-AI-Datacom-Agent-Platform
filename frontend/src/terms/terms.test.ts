@@ -9,9 +9,11 @@ import { Terms, splitNodeId, toStyle, type SchemaIndex, type TermsData } from '.
 const g = golden as unknown as {
   terms: TermsData
   schema: { ids: string[]; keyNames: Record<string, string[]> }
-  labels: { schema: string; key: unknown; huawei: string; cisco: string }[]
-  describes: { id: string; huawei: string; cisco: string }[]
+  labels: { schema: string; key: unknown; huawei: string; cisco: string; nokia: string }[]
+  describes: { id: string; huawei: string; cisco: string; nokia: string }[]
+  contexts: { schema: string; key: unknown; attrs: Record<string, unknown>; huawei: string[]; cisco: string[]; nokia: string[] }[]
 }
+const STY = ['huawei', 'cisco', 'nokia'] as const
 const idx: SchemaIndex = { ids: new Set(g.schema.ids), keyNames: new Map(Object.entries(g.schema.keyNames)), semantic: new Map() }
 const t = new Terms(g.terms, idx)
 
@@ -49,11 +51,30 @@ describe('术语渲染（与 tests/unit/test_terms.py 相同的例子）', () =>
 
 describe('与 Python 版逐条一致（知识库样本建图的全部节点）', () => {
   it(`对象命令写法 ${g.labels.length} 条`, () => {
-    const bad = g.labels.filter((c) => t.label(c.schema, c.key, 'huawei') !== c.huawei || t.label(c.schema, c.key, 'cisco') !== c.cisco)
+    const bad = g.labels.filter((c) => STY.some((s) => t.label(c.schema, c.key, s) !== c[s]))
     expect(bad.slice(0, 5)).toEqual([])
   })
   it(`命令路径 ${g.describes.length} 条`, () => {
-    const bad = g.describes.filter((c) => t.describe(c.id, 'huawei') !== c.huawei || t.describe(c.id, 'cisco') !== c.cisco)
+    const bad = g.describes.filter((c) => STY.some((s) => t.describe(c.id, s) !== c[s]))
     expect(bad.slice(0, 5)).toEqual([])
+  })
+  it(`顶层对象的配置上下文 ${g.contexts.length} 条（M7-5）`, () => {
+    const bad = g.contexts.filter((c) => STY.some((s) => JSON.stringify(t.context(c.schema, c.key, c.attrs, s)) !== JSON.stringify(c[s])))
+    expect(bad.slice(0, 5)).toEqual([])
+    expect(g.contexts.some((c) => c.nokia.join(' › ') === 'service › vprn VPRN-3001')).toBe(true)
+  })
+})
+
+describe('Nokia 风格（M7-5）', () => {
+  it('端口、LAG、路由器接口的写法不同；未登记的属性按华为显示', () => {
+    expect(t.label('interface', '1/1/4', 'nokia')).toBe('port 1/1/4')
+    expect(t.label('interface', 'lag-1', 'nokia')).toBe('lag-1')
+    expect(t.label('interface', 'to-CE1', 'nokia')).toBe('interface "to-CE1"')
+    expect(t.label('vrf.instance.af.rt', { value: '1:1', direction: 'both' }, 'nokia')).toBe('vrf-target target:1:1')
+    expect(t.label('vrf.instance.af.rt', { value: '1:1', direction: 'import' }, 'nokia')).toBe('vrf-target import target:1:1')
+    expect(toStyle('nokia')).toBe('nokia')
+    expect(t.attr('interface.access.qos_in', 'nokia')).toBe('ingress qos')
+    expect(t.context('interface', 'system', {}, 'nokia')).toEqual(['router Base'])
+    expect(t.context('interface', 'system', {}, 'huawei')).toEqual([])
   })
 })

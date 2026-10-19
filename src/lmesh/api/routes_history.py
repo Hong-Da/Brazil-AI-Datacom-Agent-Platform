@@ -110,7 +110,7 @@ def delete_tag(request: Request, device_id: int, version_id: int) -> dict[str, A
 class RestoreBody(BaseModel):
     to: str = Field(..., description="要回到的快照（例如上一个 prev、#3、版本编号）")
     from_: str | None = Field(None, alias="from", description="当前快照（默认最新）")
-    style: Literal["huawei", "cisco"] | None = Field(None, description="说明文字中对象的显示风格")
+    style: Literal["huawei", "cisco", "nokia"] | None = Field(None, description="说明文字中对象的显示风格")
     lang: Literal["zh-CN", "en", "pt-BR"] | None = Field(None, description="脚本说明行的语言；不填时按请求的语言")
 
 
@@ -136,7 +136,7 @@ class HistoryReportBody(BaseModel):
     domain: str | None = None
     lang: Literal["zh-CN", "en"] = Field("zh-CN", description="报告语言（界面是 pt-BR 时用 en）")
     format: Literal["html", "md"] = "html"
-    style: Literal["huawei", "cisco"] | None = None
+    style: Literal["huawei", "cisco", "nokia"] | None = None
 
 
 @router.post(

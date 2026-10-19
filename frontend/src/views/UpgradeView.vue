@@ -37,7 +37,7 @@ async function load(): Promise<void> {
     const up = migrated.value.find((p) => p.migrated_from?.type === 'upgrade')
     if (up) {
       try {
-        preview.value = (await get<{ counts: { versions: number; check_ignores: number } }>(`/projects/${encodeURIComponent(up.slug)}/delete-preview`)).counts
+        preview.value = (await get<{ counts: { versions: number; check_ignores: number } }>(`/projects/${encodeURIComponent(up.ref)}/delete-preview`)).counts
       } catch { preview.value = null }
     }
   } catch (e) {
@@ -50,7 +50,7 @@ onMounted(load)
 
 function done(to: 'dashboard' | 'open'): void {
   if (dontShow.value && auth.me) markUpgradeSeen(auth.me.username)
-  if (to === 'open' && fromUpgrade.value) void router.push({ name: 'devices', params: { project: fromUpgrade.value.slug } })
+  if (to === 'open' && fromUpgrade.value) void router.push({ name: 'devices', params: { project: fromUpgrade.value.ref } })
   else if (to === 'open') void router.push({ name: 'projects' })
   else void router.push({ name: 'dashboard' })
 }

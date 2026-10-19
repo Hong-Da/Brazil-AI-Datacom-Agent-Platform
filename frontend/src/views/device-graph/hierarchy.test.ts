@@ -163,3 +163,67 @@ describe('关系图谱数据', () => {
     expect(performance.now() - t0).toBeLessThan(1500)
   })
 })
+
+describe('Nokia 配置上下文分组（M7-5）', () => {
+  const ctx = (a: ApiNode, attrs: Record<string, unknown>) => (a.schema ? terms.context(a.schema, a.key, attrs, 'nokia') : [])
+  const build = (extra: Partial<Parameters<typeof buildModel>[2]> = {}) =>
+    buildModel(sample(), domainOf, { domainOrder: ORDER, byDomain: false, groupRaw: true, labeler: labeler('nokia'), contextOf: ctx, ...extra })
+
+  it('顶层对象挂到上下文分组下：VRF → service；BGP → router Base；接口绑定 VRF 时并到同名的 vprn A 下', () => {
+    const m = build()
+    expect(m.nodes.get('vrf.instance[A]')!.label).toBe('vprn A')
+    expect(m.nodes.get('vrf.instance[A]')!.parent).toBe('ctx:service')
+    // service › vprn A 分组与 vprn A 对象同名：不单独成组，接口挂到 vprn A 下
+    expect(m.nodes.has('ctx:service › vprn A')).toBe(false)
+    expect(m.nodes.get('interface[Lo0]')!.parent).toBe('vrf.instance[A]')
+    expect(m.nodes.get(B)!.parent).toBe('ctx:router Base')
+    expect(m.nodes.get(AF)!.parent).toBe(B)
+    const g = m.nodes.get('ctx:service')!
+    expect(g.kind).toBe('domain')
+    expect(g.label).toBe('service')
+    expect([...g.ctxDomains!].sort()).toEqual(['interface', 'vrf'])
+    // 设备下：原文分组、service（首行 3）、router Base（首行 8），按最早的配置行排序
+    expect(m.nodes.get('device')!.children).toEqual(['rawgroup:device', 'ctx:service', 'ctx:router Base'])
+    expect(m.nodes.get('interface[Lo0]')!.depth).toBe(3)
+  })
+
+  it('没有同名对象时保留 service › vprn X 分组', () => {
+    const d = sample()
+    d.nodes = d.nodes.filter((x) => x.id !== 'vrf.instance[A]')
+    d.edges = d.edges.filter((e) => e.to !== 'vrf.instance[A]' && e.from !== 'vrf.instance[A]')
+    const m = buildModel(d, domainOf, { byDomain: false, labeler: labeler('nokia'), contextOf: ctx })
+    expect(m.nodes.get('interface[Lo0]')!.parent).toBe('ctx:service › vprn A')
+    expect(m.nodes.get('ctx:service › vprn A')!.parent).toBe('ctx:service')
+  })
+
+  it('功能域筛选：分组看子树里的功能域，分组下的顶层对象按自身功能域', () => {
+    const m = build()
+    const o = { showDefault: true, domain: 'bgp', expanded: new Set(['device', 'ctx:service', 'ctx:router Base']) }
+    const ids = visibleTree(m, o).map((v) => v.id)
+    expect(ids).toContain('ctx:router Base')
+    expect(ids).toContain(B)
+    expect(ids).not.toContain('ctx:service')
+    const o2 = { ...o, domain: 'vrf', expanded: new Set(['device', 'ctx:service', 'vrf.instance[A]']) }
+    const ids2 = visibleTree(m, o2).map((v) => v.id)
+    expect(ids2).toContain('vrf.instance[A]')
+    expect(ids2).not.toContain('interface[Lo0]')
+  })
+
+  it('不给 contextOf、按功能域组织或上下文为空时不插入分组', () => {
+    const none = (m: ReturnType<typeof build>) => [...m.nodes.keys()].filter((k) => k.startsWith('ctx:'))
+    expect(none(build({ contextOf: undefined }))).toEqual([])
+    expect(none(build({ byDomain: true }))).toEqual([])
+    const m = build({ contextOf: () => [] })
+    expect(none(m)).toEqual([])
+    expect(m.nodes.get(B)!.parent).toBe('device')
+  })
+
+  it('Nokia 写法：接口 1/1/4 显示为 port，挂在 port 分组下', () => {
+    const d = sample()
+    d.nodes.push(n('interface[1/1/4]', 'object', { schema: 'interface', key: '1/1/4', lines: [20] }))
+    d.edges.push(c('device', 'interface[1/1/4]'))
+    const m = buildModel(d, domainOf, { byDomain: false, labeler: labeler('nokia'), contextOf: ctx })
+    expect(m.nodes.get('interface[1/1/4]')!.label).toBe('port 1/1/4')
+    expect(m.nodes.get('interface[1/1/4]')!.parent).toBe('ctx:port')
+  })
+})

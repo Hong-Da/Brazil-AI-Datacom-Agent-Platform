@@ -225,6 +225,49 @@
         }
       }
     },
+    "/api/v1/auth/register": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "自助注册（REQ-039，不需要登录）：关闭时 403；同一来源地址超过频率 429；需要审核时账号待审核，否则直接登录",
+        "operationId": "auth_register_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Auth Register Api V1 Auth Register Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/logout": {
       "post": {
         "tags": [
@@ -319,17 +362,48 @@
         "tags": [
           "auth"
         ],
-        "summary": "账号列表（管理员）：另附拥有的项目数与有效的个人令牌数",
+        "summary": "账号列表（管理员）：另附拥有的项目数与有效的个人令牌数；status=pending 只看待审核的自助注册账号",
         "operationId": "users_list_api_v1_users_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(active|pending)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "active | pending",
+              "title": "Status"
+            },
+            "description": "active | pending"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "type": "object",
+                  "additionalProperties": true,
                   "title": "Response Users List Api V1 Users Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -343,14 +417,14 @@
         "summary": "新建账号（管理员）",
         "operationId": "users_create_api_v1_users_post",
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/NewUserBody"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -358,8 +432,8 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "type": "object",
+                  "additionalProperties": true,
                   "title": "Response Users Create Api V1 Users Post"
                 }
               }
@@ -405,6 +479,70 @@
                   "type": "object",
                   "additionalProperties": true,
                   "title": "Response User Projects Api V1 Users  Username  Projects Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/settings": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "自助注册设置（管理员）：是否开放、是否需要审核、每个地址每小时次数",
+        "operationId": "auth_settings_api_v1_auth_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Auth Settings Api V1 Auth Settings Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "保存自助注册设置（管理员；写入配置文件 [auth]，立即生效）",
+        "operationId": "auth_settings_put_api_v1_auth_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegSettingsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Auth Settings Put Api V1 Auth Settings Put"
                 }
               }
             }
@@ -598,6 +736,94 @@
         }
       }
     },
+    "/api/v1/users/{username}/approve": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "批准自助注册的待审核账号（管理员）：可以登录，并建好默认项目",
+        "operationId": "users_approve_api_v1_users__username__approve_post",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Users Approve Api V1 Users  Username  Approve Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/users/{username}/reject": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "拒绝自助注册的待审核账号（管理员）：删除该账号，用户名可以再注册",
+        "operationId": "users_reject_api_v1_users__username__reject_post",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Username"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Users Reject Api V1 Users  Username  Reject Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/sanitize": {
       "post": {
         "tags": [
@@ -655,10 +881,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -755,10 +981,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -834,10 +1060,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -934,10 +1160,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           },
           {
             "name": "force",
@@ -1010,10 +1236,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           },
           {
             "name": "force",
@@ -2038,10 +2264,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           },
           {
             "name": "domain",
@@ -2130,10 +2356,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           },
           {
             "name": "limit",
@@ -2334,10 +2560,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           },
           {
             "name": "parts",
@@ -2564,10 +2790,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -2673,10 +2899,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -2737,10 +2963,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -2882,10 +3108,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -2938,10 +3164,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -3091,10 +3317,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           },
           {
             "name": "severity",
@@ -3353,10 +3579,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           },
           {
             "name": "device_id",
@@ -3413,10 +3639,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -3572,10 +3798,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -3663,10 +3889,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -3707,10 +3933,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -3763,10 +3989,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -3818,10 +4044,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -3871,10 +4097,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -3934,10 +4160,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -3998,10 +4224,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -4060,10 +4286,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -4132,10 +4358,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -4196,10 +4422,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -4269,10 +4495,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -4840,10 +5066,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -4914,10 +5140,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -4997,10 +5223,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -5225,10 +5451,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -5281,10 +5507,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -5346,10 +5572,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -5545,10 +5771,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -5627,10 +5853,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -5673,10 +5899,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -5767,10 +5993,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -5822,10 +6048,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -6593,10 +6819,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -6908,10 +7134,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -6964,10 +7190,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -7194,10 +7420,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -7576,10 +7802,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -7676,10 +7902,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           },
           {
             "name": "devices",
@@ -7736,10 +7962,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -7886,10 +8112,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -7986,10 +8212,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -8042,10 +8268,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -8186,10 +8412,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -8242,10 +8468,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -8419,10 +8645,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -8475,10 +8701,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -8522,10 +8748,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -8710,10 +8936,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -8765,10 +8991,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           },
           {
             "name": "a",
@@ -8924,10 +9150,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           },
           {
             "name": "node",
@@ -9269,10 +9495,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -9341,10 +9567,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -9512,10 +9738,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -9577,10 +9803,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -9726,7 +9952,8 @@
             "schema": {
               "enum": [
                 "huawei",
-                "cisco"
+                "cisco",
+                "nokia"
               ],
               "type": "string",
               "default": "huawei",
@@ -9827,10 +10054,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -10234,10 +10461,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -10290,10 +10517,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -10346,10 +10573,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -10402,10 +10629,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -12479,10 +12706,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -12523,10 +12750,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -12577,10 +12804,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           },
           {
             "name": "confirm",
@@ -12634,10 +12861,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -12680,10 +12907,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -12726,10 +12953,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -12770,10 +12997,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -12826,10 +13053,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -12872,10 +13099,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           },
           {
             "name": "kind",
@@ -12952,10 +13179,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -13017,10 +13244,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -13080,10 +13307,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -13126,10 +13353,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -13191,10 +13418,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -13254,10 +13481,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -13309,10 +13536,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -13372,10 +13599,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "responses": {
@@ -13409,7 +13636,7 @@
         "tags": [
           "projects"
         ],
-        "summary": "转交项目（属主与管理员）；项目用到的原属主私有规则集复制一份给新属主",
+        "summary": "转交项目（属主与管理员）；项目用到的原属主私有规则集复制一份给新属主；新属主已有同名标识时 409，可用 slug 改名",
         "operationId": "transfer_api_v1_projects__project__transfer_post",
         "parameters": [
           {
@@ -13418,10 +13645,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -13474,10 +13701,10 @@
             "required": true,
             "schema": {
               "type": "string",
-              "description": "项目标识（也可以写属主/标识或项目编号）",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
               "title": "Project"
             },
-            "description": "项目标识（也可以写属主/标识或项目编号）"
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
           }
         ],
         "requestBody": {
@@ -14016,7 +14243,8 @@
                 "type": "string",
                 "enum": [
                   "huawei",
-                  "cisco"
+                  "cisco",
+                  "nokia"
                 ]
               },
               {
@@ -14238,7 +14466,8 @@
                 "type": "string",
                 "enum": [
                   "huawei",
-                  "cisco"
+                  "cisco",
+                  "nokia"
                 ]
               },
               {
@@ -14306,7 +14535,8 @@
                 "type": "string",
                 "enum": [
                   "huawei",
-                  "cisco"
+                  "cisco",
+                  "nokia"
                 ]
               },
               {
@@ -14658,7 +14888,8 @@
                 "type": "string",
                 "enum": [
                   "huawei",
-                  "cisco"
+                  "cisco",
+                  "nokia"
                 ]
               },
               {
@@ -14701,7 +14932,8 @@
                 "type": "string",
                 "enum": [
                   "huawei",
-                  "cisco"
+                  "cisco",
+                  "nokia"
                 ]
               },
               {
@@ -15210,7 +15442,8 @@
                 "type": "string",
                 "enum": [
                   "huawei",
-                  "cisco"
+                  "cisco",
+                  "nokia"
                 ]
               },
               {
@@ -16082,6 +16315,67 @@
         ],
         "title": "RefBody"
       },
+      "RegSettingsBody": {
+        "properties": {
+          "registration": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration"
+          },
+          "approval": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approval"
+          },
+          "rate_per_hour": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 1000.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rate Per Hour"
+          }
+        },
+        "type": "object",
+        "title": "RegSettingsBody"
+      },
+      "RegisterBody": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "maxLength": 64,
+            "title": "Username"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "RegisterBody"
+      },
       "ReleaseBody": {
         "properties": {
           "version": {
@@ -16166,7 +16460,8 @@
                 "type": "string",
                 "enum": [
                   "huawei",
-                  "cisco"
+                  "cisco",
+                  "nokia"
                 ]
               },
               {
@@ -16253,7 +16548,8 @@
                 "type": "string",
                 "enum": [
                   "huawei",
-                  "cisco"
+                  "cisco",
+                  "nokia"
                 ]
               },
               {
@@ -16308,7 +16604,8 @@
                 "type": "string",
                 "enum": [
                   "huawei",
-                  "cisco"
+                  "cisco",
+                  "nokia"
                 ]
               },
               {
@@ -16947,7 +17244,8 @@
             "type": "string",
             "enum": [
               "huawei",
-              "cisco"
+              "cisco",
+              "nokia"
             ],
             "title": "Style",
             "default": "huawei"
@@ -17235,6 +17533,19 @@
             "title": "Keep As",
             "description": "原属主留作成员的角色；null 表示退出",
             "default": "edit"
+          },
+          "slug": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Slug",
+            "description": "同时改标识：新属主已有同名项目时必须给（409 的 data.suggested 是可用的标识）"
           }
         },
         "type": "object",
@@ -17639,7 +17950,8 @@
                 "type": "string",
                 "enum": [
                   "huawei",
-                  "cisco"
+                  "cisco",
+                  "nokia"
                 ]
               },
               {
@@ -17980,7 +18292,7 @@
               }
             ],
             "title": "Slug",
-            "description": "项目标识（全站唯一，小写字母、数字、短横线）；不给时由名称生成"
+            "description": "项目标识（在自己的项目里唯一，小写字母、数字、短横线；别人可以有同名项目）；不给时由名称生成"
           },
           "description": {
             "anyOf": [

@@ -12,16 +12,17 @@ const t: TermsLike = {
   attr: (id, s) => raw.attr(id, s),
 }
 
-describe('Schema 节点的两种风格写法', () => {
+describe('Schema 节点在各显示风格下的写法', () => {
   it('对象：模板与叫法，当前风格排在前面', () => {
     const rows = styleRows(t, 'vrf.instance', 'object', 'cisco')
     expect(rows.map((r) => [r.style, r.form, r.name, r.current])).toEqual([
       ['cisco', 'vrf definition {name}', 'VRF', true],
       ['huawei', 'ip vpn-instance {name}', 'VPN 实例', false],
+      ['nokia', 'vprn {name}', 'VPRN 业务', false],
     ])
   })
   it('属性：关键字；没有登记时不列出', () => {
-    expect(styleRows(t, 'bgp.peer.remote_as', 'asn', 'huawei').map((r) => r.form)).toEqual(['as-number', 'remote-as'])
+    expect(styleRows(t, 'bgp.peer.remote_as', 'asn', 'huawei').map((r) => r.form)).toEqual(['as-number', 'remote-as', 'peer-as'])
     expect(styleRows(t, 'interface.description', 'text', 'huawei')).toEqual([])
   })
   it('列表小字：当前风格的写法', () => {

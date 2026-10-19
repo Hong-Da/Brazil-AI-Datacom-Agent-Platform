@@ -38,7 +38,18 @@ from lmesh.core.kb.model import Note
 LINK_TYPES = ("subnet", "ospf", "isis", "ldp", "ldp_remote", "bgp", "pw", "bfd")
 CONFIDENCE = ("high", "medium", "low")
 _HOST = re.compile(r"^\s*(?:sysname|hostname)\s+(\S+)", re.M)
+# Nokia（M7-5）：configure > system > name "PE1"（Classic 与 MD-CLI 花括号格式缩进 8 格；info flat 写作 system name "PE1"）
+_NOKIA_HOST = re.compile(r'^(?: {8}|(?:/configure )?system )name\s+"?([^"\s]+)"?\s*$', re.M)
 _LOOPBACK = re.compile(r"^loopback", re.I)
+# Nokia 的 BGP family 取值 → 统一 Schema 的地址族 afi（与 translate._FAMILY 相反方向，M7-5）
+_NOKIA_AFI = {
+    "ipv4": "ipv4",
+    "ipv6": "ipv6",
+    "vpn-ipv4": "vpnv4",
+    "vpn-ipv6": "vpnv6",
+    "evpn": "evpn",
+    "l2-vpn": "l2vpn",
+}
 _MAX_HOSTS = 1024  # 网段内逐个查找对端地址的上限（更大的网段只按相同网段配对）
 
 
@@ -55,7 +66,14 @@ class Device:
 
 def hostname(text: str) -> str | None:
     m = _HOST.search(text)
-    return m.group(1) if m else None
+    if m:
+        return m.group(1)
+    from lmesh.core.sanitize import detect_vendor
+
+    if detect_vendor(text) == "nokia":
+        m = _NOKIA_HOST.search(text)
+        return m.group(1) if m else None
+    return None
 
 
 def unique_names(names: list[str]) -> list[str]:
@@ -208,8 +226,8 @@ class DevFacts:
                 name,
                 n,
                 str(vrf),
-                bool(_LOOPBACK.match(name)),
-                self.ix.val(n, "interface.shutdown") is True,
+                bool(_LOOPBACK.match(name)) or self._nokia_loopback(n, name),
+                self.ix.val(n, "interface.shutdown") is True or self._port_down(n),
             )
             for a in self.ix.kids(n, "interface.ipv4"):
                 addr_node = self.ix.kid(a, "interface.ipv4.address")
@@ -229,6 +247,20 @@ class DevFacts:
                     continue
             self.ifaces[name] = itf
         self.lsr_id = self._lsr_id()
+
+    def _nokia_loopback(self, n: str, name: str) -> bool:
+        """Nokia 的 system 接口与 loopback 接口（M7-5）：相当于华为 / Cisco 的 Loopback。"""
+        if self.ix.val(n, "interface.loopback") is True:
+            return True
+        return name == "system" and self.ix.val(n, "interface.bind_port") is None
+
+    def _port_down(self, n: str) -> bool:
+        """Nokia 路由器接口绑定的端口 / LAG 处于关闭状态（端口缺省关闭，M7-5）：接口实际不通。"""
+        port = self.ix.val(n, "interface.bind_port")
+        if port in (None, ""):
+            return False
+        node = f"interface[{port}]"
+        return node in self.ix.g and self.ix.val(node, "interface.shutdown") is True
 
     # ----- 地址 -----
 
@@ -274,6 +306,14 @@ class DevFacts:
             a = self.iface_addr(ix.val(n, "mpls.ldp.router_id_interface"))
             if a:
                 return a
+        # Nokia（M7-5）：LSR ID 是 system 接口地址，其次 router-id
+        sys_if = self.ifaces.get("system")
+        if sys_if is not None and sys_if.loopback and sys_if.primary is not None:
+            return str(sys_if.primary.ip)
+        for n in ix.objects("mgmt.system"):
+            v = ix.val(n, "mgmt.system.router_id")
+            if v:
+                return str(v)
         return None
 
     # ----- OSPF -----
@@ -352,6 +392,8 @@ class DevFacts:
         areas = sorted(
             {".".join(ix.key(net).split(".")[:-4]) for net in (ix.kids(proc, "isis.process.net") if proc else [])}
         )
+        if not areas and proc is not None and ix.val(proc, "isis.process.area_id"):
+            areas = [str(ix.val(proc, "isis.process.area_id"))]  # Nokia 的 area-id（M7-5）
         return {
             "process": str(process or ""),
             "levels": levels,
@@ -420,7 +462,17 @@ class DevFacts:
                 auth = ix.val(p, "bgp.peer.password") not in (None, "") or (
                     ix.val(gn, "bgp.peer_group.password") not in (None, "")
                 )
-                enabled = set()
+                enabled: set[str] = set()
+                unknown_afs = False
+                # Nokia 在 bgp / group 下写 family（M7-5）：组的 family 优先，其次全局 family。MD-CLI 的 family 是逐个布尔叶子、
+                # 还没有归并（图里只有缺省值），这时地址族记为未知，不参与比较
+                fam_node = ix.kid(gn, "bgp.peer_group.family") if gn else None
+                fam_node = fam_node or ix.kid(inst, "bgp.instance.family")
+                if fam_node is not None and not any(not key.get("vrf") for _, key in afs):
+                    if ix.d(fam_node).get("origin") == "default" and self.dev.g.graph.get("family") == "nokia-sros-md":
+                        unknown_afs = True
+                    fam = ix.d(fam_node).get("value") or ""
+                    enabled |= {_NOKIA_AFI[f] for f in str(fam).split() if f in _NOKIA_AFI}
                 for af, key in afs:
                     if key.get("vrf"):
                         continue
@@ -431,6 +483,8 @@ class DevFacts:
                         ) is not False:
                             enabled.add(str(key.get("afi") or ""))
                 local = self.iface_addr(str(upd)) if upd else None
+                if local is None and upd and _ipv4(upd):
+                    local = str(upd)  # Nokia local-address 直接写地址（M7-5）
                 if local is None:
                     c = self.connected(addr)
                     local = str(c.primary.ip) if c and c.primary else None
@@ -443,7 +497,7 @@ class DevFacts:
                         "update_source": str(upd) if upd else None,
                         "local_address": local,
                         "auth": auth,
-                        "afs": sorted(enabled),
+                        "afs": None if unknown_afs else sorted(enabled),
                         "vrf": "",
                     }
                 )

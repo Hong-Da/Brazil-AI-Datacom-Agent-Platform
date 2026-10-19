@@ -36,7 +36,7 @@
 
 ## 项目、权限与兼容别名（M6）
 
-- 项目路径：设备相关接口（导入、设备列表、配置图、对比、检查、清理、忽略项、翻译、变更、影响分析、拓扑与一致性、割接迁移、基线、版本历史、表格导出、报告、图查询与 AI 查询、配置检查项目与脚本、首页概况）写成 `/api/v1/projects/{project}/…`，例如 `GET /api/v1/projects/oam-vpn/devices`。`{project}` 是项目标识（全站唯一），也可以写 `属主/标识` 或项目编号。下表中“项目”一栏为“是”的接口都有项目路径版本
+- 项目路径：设备相关接口（导入、设备列表、配置图、对比、检查、清理、忽略项、翻译、变更、影响分析、拓扑与一致性、割接迁移、基线、版本历史、表格导出、报告、图查询与 AI 查询、配置检查项目与脚本、首页概况）写成 `/api/v1/projects/{project}/…`，例如 `GET /api/v1/projects/oam-vpn/devices`。`{project}` 是项目标识（在属主的项目里唯一，不同的人可以有同名项目；用户 2026-10-19 评审改选），也可以写 `属主/标识`（路径里写成 `属主%2F标识`，即 URL 编码后的样子，或 `属主~标识`）或项目编号。只写标识时先找调用者自己的项目（全局令牌为第一个管理员的）；自己没有时在调用者能访问的项目（成员；管理员为全部项目）里找，唯一匹配就用它，有多个时返回 409（code 1003，`data.candidates` 列出 `属主/标识`，提示“请写成 属主/标识”），不会静默挑一个。项目返回体的 `ref` 是规范引用：自己的项目写标识，别人的写 `属主/标识`；`full_ref` 总是 `属主/标识`。下表中“项目”一栏为“是”的接口都有项目路径版本
 - 兼容别名（已弃用）：旧的无项目路径（例如 `GET /api/v1/devices`）仍然可用，落到调用者的默认项目（全局令牌为第一个管理员的默认项目）；响应头带 `Deprecation: true` 与 `Link: </api/v1/projects/<默认项目>/…>; rel="successor-version"`，OpenAPI 中标为 deprecated
 - 项目里的设备：项目私有设备（导入或复制而来）与引用的公共设备（`source`：`private` / `public`）。引用的公共设备跟随公共库最新版本（`policy: follow`）或固定在某个版本（`policy: pin`，`pinned_version_id`，固定版本的序号 `pinned_seq`（第几版），公共库有更新版本时 `newer_available: true`）；设备列表、对比、检查等用到“最新版本”的地方都按项目的版本策略取当前版本
 - 项目角色：属主（owner）、可编辑成员（edit）、只读成员（read）；管理员访问不是自己参与的项目时角色为 admin，拥有完全权限，访问写入审计（`GET /admin/audit`、`logs/audit.log`）
@@ -50,15 +50,20 @@
 | `GET /health` | 否 | 健康检查：版本、是否已配置、数据库、知识库、AI 接口 |
 | `GET /setup` | 否（仅未配置时） | 首次运行向导的参数定义 |
 | `POST /setup` | 否（仅未配置时） | 提交向导结果；`dry_run: true` 时只校验；`admin: {"username", "password"}` 同时创建第一个管理员并登录（设置会话 Cookie），错误键为 `admin.username` / `admin.password` |
-| `GET /auth/status` | 否 | 登录页需要的状态：`configured`、`has_users`（还没有账号时登录页改为用 API 令牌创建管理员）、`session_hours`；已配置且还没有账号时另返回 `config_file`（实例实际读取的配置文件绝对路径）与 `token_set`（是否设置了 API 令牌，布尔，不返回令牌内容），有账号后不返回这两项 |
-| `POST /auth/login` | 否 | 用户名 + 密码登录：`{"username", "password"}`；成功返回 `user` 与 `expires_at` 并设置会话 Cookie；用户名或密码错误 401（不区分用户不存在），账号停用 403，连续失败 `security.login_max_failures` 次（默认 5）锁定 `security.login_lock_minutes` 分钟（默认 15），锁定期间 429 |
+| `GET /auth/status` | 否 | 登录页需要的状态：`configured`、`has_users`（还没有账号时登录页改为用 API 令牌创建管理员）、`session_hours`、`registration`（自助注册，REQ-039：`open` 是否开放（还没有任何账号时不开放），`approval` 注册后是否需要管理员审核）；已配置且还没有账号时另返回 `config_file`（实例实际读取的配置文件绝对路径）与 `token_set`（是否设置了 API 令牌，布尔，不返回令牌内容），有账号后不返回这两项 |
+| `POST /auth/login` | 否 | 用户名 + 密码登录：`{"username", "password"}`；成功返回 `user` 与 `expires_at` 并设置会话 Cookie；用户名或密码错误 401（不区分用户不存在），账号停用 403，自助注册后待审核 403（`data.reason = pending`，只在密码正确时这样提示），连续失败 `security.login_max_failures` 次（默认 5）锁定 `security.login_lock_minutes` 分钟（默认 15），锁定期间 429 |
 | `POST /auth/bootstrap` | 否（仅没有任何账号时） | 用 API 令牌创建第一个管理员并登录：`{"token", "username", "password"}`；已有账号时 409，令牌不对 401 |
+| `POST /auth/register` | 否 | 自助注册（REQ-039）：`{"username", "password"}`，规则同账号管理；新账号为普通用户（`origin = register`）。注册关闭（`auth.registration = false`，默认）或还没有任何账号时 403（code 1006，“注册未开放，请联系管理员”）；同一来源地址每小时超过 `auth.registration_rate_per_hour` 次（默认 5）429（`data.per_hour`）；用户名已存在 409；需要审核（`auth.registration_approval = true`，默认）时 `data.status = pending`，不发会话；不需审核时 `status = active`，同时登录（设置会话 Cookie，返回 `user` 与 `expires_at`）并建好默认项目。注册记入审计（不含密码） |
 | `POST /auth/logout` | 否 | 登出：删除会话、清除 Cookie；`data.logged_out` 表示是否确实结束了一个会话 |
 | `GET /auth/me` | 是 | 当前调用者：`username`、`role`（admin / maintainer / user）、`via`（session / token / pat；全局令牌调用时 username 为 `api-token`，个人令牌为本人账号）、`expires_at`、`read_only`（只读的个人令牌）、`token_prefix`（个人令牌的前 8 个字符） |
 | `POST /auth/password` | 是（会话） | 修改自己的密码：`{"old_password", "new_password"}`（至少 8 个字符）；当前会话保留，其他会话失效（`sessions_closed`）；旧密码不对 422；用令牌调用 409 |
-| `GET /users` | 管理员 | 账号列表：`username`、`role`（admin / maintainer / user）、`projects`（拥有的非空项目数）、`tokens`（有效的个人令牌数）、`disabled`、`locked`、`locked_until`、`last_login_at`、`password_changed_at`、`created_at`（不含密码哈希） |
+| `GET /users?status=` | 管理员 | 账号列表：`username`、`role`（admin / maintainer / user）、`status`（active / pending 待审核）、`origin`（admin 管理员建 / register 自助注册）、`projects`（拥有的非空项目数）、`tokens`（有效的个人令牌数）、`disabled`、`locked`、`locked_until`、`last_login_at`、`password_changed_at`、`created_at`（不含密码哈希） |
 | `POST /users` | 管理员 | 新建账号：`{"username", "password", "role": "user\|maintainer\|admin"}`；用户名 2–64 个字符（字母、数字、点、下划线、短横线），不区分大小写唯一 |
 | `PUT /users/{username}` | 管理员 | 改角色、停用 / 启用、解除锁定：`{"role", "disabled", "unlock"}`；停用时会话立即失效；最后一个启用的管理员不能停用或降级、不能停用或降级自己（409） |
+| `POST /users/{username}/approve` | 管理员 | 批准自助注册的待审核账号（REQ-039）：可以登录，并建好工作空间与默认项目；不是待审核时 409；记入审计 |
+| `POST /users/{username}/reject` | 管理员 | 拒绝待审核账号：删除它（用户名可以再注册）；不是待审核时 409；记入审计 |
+| `GET /auth/settings` | 管理员 | 自助注册设置：`registration`、`approval`、`rate_per_hour` 与各项来源（`sources`：default / file / env） |
+| `PUT /auth/settings` | 管理员 | 保存自助注册设置：`{"registration", "approval", "rate_per_hour"}`（只给要改的项，`rate_per_hour` 1–1000）；写入配置文件 `[auth]` 分组，立即生效；记入审计 |
 | `POST /users/{username}/password` | 管理员 | 重置密码：`{"password"}`；同时解除锁定，该账号的会话全部失效 |
 | `DELETE /users/{username}?transfer_to=&delete_projects=false` | 管理员 | 删除账号；不能删除自己和最后一个启用的管理员（409）；拥有非空项目时必须 `transfer_to`（项目、私有模板与规则集转交给该账号）或 `delete_projects=true`（一并删除），否则 409（`data.projects`）；自动建的空默认项目直接删除 |
 | `GET /config` | 管理员 | 当前生效的配置，敏感值只显示是否已设置 |
@@ -1192,7 +1197,7 @@ HTTP 状态：`200`；返回中的关键字段：
 
 - `code` = `0`
 - `data.profile` = `"strict"`
-- `data.total` = `30`
+- `data.total` = `34`
 - `data.profiles.0.id` = `"basic"`
 - `data.profiles.1.includes` = `["basic"]`
 - `data.rules.0.id` = `"sec.telnet_disabled"`
@@ -2618,6 +2623,36 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.verify.unexplained` = `0`
 - `data.lines.0.text` = `"exit all"`
 
+### 检查 Nokia 配置：路由器接口绑定的端口缺省关闭（修复参考命令按平台族给出）
+
+`POST /api/v1/check`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/check' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "# TiMOS-B-25.10.R1 both/x86_64 Nokia 7750 SR\nexit all\nconfigure\n    port 1/1/2\n        ethernet\n            mode network\n        exit\n    exit\n    router Base\n        interface \"to-SIDE\"\n            address 10.8.2.1/30\n            port 1/1/2\n            no shutdown\n        exit\n    exit\nexit all\n"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/check' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "# TiMOS-B-25.10.R1 both/x86_64 Nokia 7750 SR\nexit all\nconfigure\n    port 1/1/2\n        ethernet\n            mode network\n        exit\n    exit\n    router Base\n        interface \"to-SIDE\"\n            address 10.8.2.1/30\n            port 1/1/2\n            no shutdown\n        exit\n    exit\nexit all\n"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/check', headers={'Authorization': 'Bearer <令牌>'}, json={'text': '# TiMOS-B-25.10.R1 both/x86_64 Nokia 7750 SR\nexit all\nconfigure\n    port 1/1/2\n        ethernet\n            mode network\n        exit\n    exit\n    router Base\n        interface "to-SIDE"\n            address 10.8.2.1/30\n            port 1/1/2\n            no shutdown\n        exit\n    exit\nexit all\n'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.profile` = `"nokia-sros-classic-7750-25.10"`
+- `data.summary.total` = `1`
+- `data.findings.0.rule` = `"port.shutdown_bound"`
+- `data.findings.0.node` = `"interface[to-SIDE]"`
+- `data.findings.0.remedy` = `["configure port <PORT> no shutdown", "configure lag <LAG-ID> no shutdown"]`
+
 ### 我的项目与共享给我的（属主的视角）
 
 `GET /api/v1/projects`
@@ -2646,7 +2681,7 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.mine.0.counts.refs` = `1`
 - `data.default_project` = `"lab"`
 
-### 新建项目（标识全站唯一）
+### 新建项目（标识在自己的项目里唯一）
 
 `POST /api/v1/projects`
 
@@ -3105,6 +3140,83 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.deleted` = `"alice"`
 - `data.projects.action` = `"transfer"`
 - `data.projects.to` = `"bob"`
+
+### 别人已有同名项目也可以新建（标识按属主唯一）
+
+`POST /api/v1/projects`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects' \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "carol 的实验局", "slug": "lab"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects' -ContentType 'application/json; charset=utf-8' -Body '{"name": "carol 的实验局", "slug": "lab"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects', json={'name': 'carol 的实验局', 'slug': 'lab'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.slug` = `"lab"`
+- `data.ref` = `"lab"`
+- `data.full_ref` = `"carol/lab"`
+- `data.owner` = `"carol"`
+
+### 写成 属主/标识（路径里编码为 %2F）访问别人的同名项目
+
+`GET /api/v1/projects/carol%2Flab`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/carol%2Flab'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/carol%2Flab'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/carol%2Flab')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.owner` = `"carol"`
+- `data.ref` = `"carol/lab"`
+- `data.role` = `"read"`
+
+### 只写标识而能访问的同名项目有多个：409，列出候选
+
+`GET /api/v1/projects/lab/devices`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/lab/devices'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/devices'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/lab/devices')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`409`；返回中的关键字段：
+
+- `code` = `1003`
+- `data.candidates.0` = `"alice/lab"`
+- `data.candidates.1` = `"carol/lab"`
 
 ### 对比时隐藏设备身份差异（Router ID 不同不算差异）
 
@@ -3640,7 +3752,7 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.file` = `"api-demo.yaml"`
 - `data.blocks.0.name` = `"shut"`
 
-### 显示风格的术语表（华为 / Cisco）
+### 显示风格的术语表（华为 / Cisco / Nokia）
 
 `GET /api/v1/kb/terms`（需要令牌）
 
@@ -3665,6 +3777,8 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.default` = `"huawei"`
 - `data.objects.vrf.instance.huawei.label.0` = `"ip vpn-instance {name}"`
 - `data.objects.vrf.instance.cisco.label.0` = `"vrf definition {name}"`
+- `data.objects.vrf.instance.nokia.label.0` = `"vprn {name}"`
+- `data.contexts.nokia.0.path` = `["port"]`
 
 ### 上传两台设备的配置还原拓扑
 
@@ -4108,5 +4222,133 @@ HTTP 状态：`200`；返回中的关键字段：
 - `code` = `0`
 - `data.user.username` = `"admin"`
 - `data.user.role` = `"admin"`
+
+### 注册未开放（默认关闭）：403
+
+`POST /api/v1/auth/register`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/auth/register' \
+  -H 'Content-Type: application/json' \
+  -d '{"username": "newbie", "password": "Newbie-pass-1"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/auth/register' -ContentType 'application/json; charset=utf-8' -Body '{"username": "newbie", "password": "Newbie-pass-1"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/auth/register', json={'username': 'newbie', 'password': 'Newbie-pass-1'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`403`；返回中的关键字段：
+
+- `code` = `1006`
+
+### 待审核的自助注册账号（管理员）
+
+`GET /api/v1/users?status=pending`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/users?status=pending' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/users?status=pending' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/users?status=pending', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.count` = `2`
+- `data.pending` = `2`
+- `data.users.0.username` = `"dave"`
+- `data.users.0.status` = `"pending"`
+- `data.users.0.origin` = `"register"`
+
+### 批准待审核账号（建好默认项目）
+
+`POST /api/v1/users/dave/approve`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/users/dave/approve' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/users/dave/approve' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/users/dave/approve', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.user.username` = `"dave"`
+- `data.user.status` = `"active"`
+
+### 拒绝待审核账号（删除，用户名可再注册）
+
+`POST /api/v1/users/erin/reject`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/users/erin/reject' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/users/erin/reject' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/users/erin/reject', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.rejected` = `"erin"`
+- `data.deleted` = `true`
+
+### 自助注册设置（管理员）
+
+`GET /api/v1/auth/settings`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/auth/settings' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/auth/settings' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/auth/settings', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.registration` = `false`
+- `data.approval` = `true`
+- `data.rate_per_hour` = `5`
 
 <!-- examples:end -->

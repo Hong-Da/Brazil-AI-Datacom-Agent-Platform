@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import VendorBadge from '@/components/vendor-badge.vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import Icon from '@/components/Icon.vue'
 import { errorText, post } from '@/api'
@@ -196,7 +197,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
                     <td v-if="!r.ok" colspan="5"><span class="tag fail">{{ $t('c.failed') }}</span> <span class="small">{{ r.error }}</span></td>
                     <template v-else>
                       <td class="nowrap">
-                        <span v-if="r.vendor" class="vendor"><i :class="r.vendor === 'huawei' ? 'hw' : r.vendor === 'cisco' ? 'cs' : ''">{{ r.vendor === 'huawei' ? 'HW' : r.vendor === 'cisco' ? 'CS' : '?' }}</i>{{ vendorLabel(r.vendor) }}</span>
+                        <VendorBadge v-if="r.vendor" :of="r.vendor">{{ vendorLabel(r.vendor) }}</VendorBadge>
                         <span v-else class="tag warn">{{ $t('devices.vendorUnknown') }}</span>
                         <div class="mono faint small">{{ r.version || $t('devices.noVersion') }}</div>
                       </td>

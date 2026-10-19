@@ -3,9 +3,20 @@
  * 设备 × 规则矩阵、得分档、不符合项的证据行、参考命令合并、矩阵 CSV。
  */
 
+import { commentPrefix } from '@/vendor'
+
 export type Cell = 'pass' | 'fail' | 'na'
 export type Severity = 'error' | 'warning' | 'info'
 export type I18n = Record<string, string>
+
+/** 规则信息里参考命令的键与标题（按显示顺序）：nokia 是 Classic CLI 写法，nokia-sros-md 是 MD-CLI 写法。 */
+export const REMEDY_KEYS = [
+  { key: 'huawei', label: 'baseline.remedyHw' },
+  { key: 'cisco', label: 'baseline.remedyCs' },
+  { key: 'nokia', label: 'baseline.remedyNk' },
+  { key: 'nokia-sros-md', label: 'baseline.remedyNkMd' },
+] as const
+export type RemedyKey = (typeof REMEDY_KEYS)[number]['key']
 
 export interface Rule {
   id: string
@@ -18,7 +29,8 @@ export interface Rule {
   title: I18n
   message: I18n
   suggestion: I18n
-  remedy: { huawei?: string[]; cisco?: string[] }
+  /** 参考命令：huawei、cisco、nokia（Classic CLI）、nokia-sros-md（MD-CLI） */
+  remedy: Partial<Record<RemedyKey, string[]>>
   source: string
 }
 export interface Failure {
@@ -93,7 +105,7 @@ export function failuresByRule(d: DeviceResult, order: string[]): { rule: string
  * 只是参考命令，不是可直接下发的脚本（基线修复由人确认后走增量变更）。
  */
 export function remedyText(d: DeviceResult, title: (rule: string) => string): string {
-  const comment = d.family.startsWith('huawei') ? '#' : '!'
+  const comment = commentPrefix(d.family)
   const seen = new Set<string>()
   const out: string[] = []
   for (const f of d.failures) {

@@ -265,7 +265,7 @@ const profileList = computed(() => profiles.value.map(profileView))
               <div v-if="!profileList.length" class="empty"><p>{{ $t('c.empty') }}</p></div>
               <div v-for="p in profileList" :key="p.id" class="prof">
                 <span class="vendor" style="min-width: 0">
-                  <i v-if="p.vendor" :class="p.vendor">{{ p.vendor === 'hw' ? 'HW' : 'CS' }}</i>
+                  <i v-if="p.vendor" :class="p.vendor">{{ p.vendor.toUpperCase() }}</i>
                   <router-link class="pn" :to="{ name: 'profiles', query: { id: p.id } }" :title="p.id">{{ p.id }}</router-link>
                 </span>
                 <div v-if="!p.unfilled" class="meter"><div class="bar"><i :style="{ width: p.pct + '%' }" /></div><span class="val">{{ p.pct }}%</span></div>

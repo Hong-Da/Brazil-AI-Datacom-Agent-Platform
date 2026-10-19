@@ -172,7 +172,9 @@ class _Index:
             if c.id in style["avoid"]:
                 continue
             ct = _CardT(c, targets, bool(c.enters_view))
-            if any(a.dynamic() for _, alts, _ in targets for a in alts):
+            # 同类对象另有按上下文建立的目标时，固定键取自参数的那个是同一行的另一个实例（vrf-target … import，M7-5），不算写别处的对象
+            plain_objs = {a.node for _, alts, _ in targets for a in alts if a.node not in a.dynamic()}
+            if any(set(a.dynamic()) - plain_objs for _, alts, _ in targets for a in alts):
                 self.foreign[c.view].append(ct)
             objs_here = {
                 alts[0].node
@@ -1243,9 +1245,20 @@ class _Renderer:
             must: list[list[_Sol]] = []
             optional: list[tuple[list[_Sol], list[_Sol]]] = []
             ok = True
+            # 同一张卡另有目标按上下文建立同类对象时，固定键取自参数的同类对象是这一行的另一个实例（Nokia
+            # vrf-target export X import Y 的 import RT，M7-5）：不在 anchor 的链上，按“这一行不写它”处理
+            static_objs = {
+                t.node
+                for t, _ in chosen
+                if t.node not in t.dynamic() and (n := self.kb.nodes.get(t.node)) is not None and n.type == "object"
+            }
             for t, expr in chosen:
                 sn = self.kb.nodes.get(t.node)
                 if sn is None:
+                    continue
+                if any(p in static_objs for p in t.dynamic()):
+                    if expr != "auto":
+                        must.append(inv.run(expr, None, "string"))
                     continue
                 if sn.type == "object":
                     inst = chain.get(sn.id)
@@ -1529,7 +1542,22 @@ class _Renderer:
                 return None
             objects[sn.id] = inst
             matched.add(inst)
-        for t, _sn, _v in produced:
+        # 同一行的另一个同类实例（vrf-target export X import Y 的 import RT，M7-5）：取不到键时这一行没写它，跳过；
+        # 取到时不在这里核对（生成时每个实例单写一行，见 try_card），整行不算
+        plain = {t.node for t, _sn, _v in produced if t.node not in t.dynamic()}
+        other: set[int] = set()
+        for i, (t, _sn, _v) in enumerate(produced):
+            selfdyn = {p: kv for p, kv in t.dynamic().items() if p in plain}
+            if not selfdyn:
+                continue
+            for kv in selfdyn.values():
+                vals = [mapping.evaluate(x, values, tokens, neg, ctx=ctxv) for x in kv.values()]
+                if all(x not in (None, "") for x in vals):
+                    return None
+            other.add(i)
+        for i, (t, _sn, _v) in enumerate(produced):
+            if i in other:
+                continue
             for path, fixed in t.fixed.items():
                 finst, fsn = chain.get(path), self.kb.nodes.get(path)
                 if finst is None or fsn is None:
@@ -1553,8 +1581,8 @@ class _Renderer:
         for inst in list(objects.values()):
             if not self.placed(inst, ctx, objects):
                 return None
-        for _t, sn, v in produced:
-            if sn.type == "object":
+        for i, (_t, sn, v) in enumerate(produced):
+            if sn.type == "object" or i in other:
                 continue
             osn = self.owner_schema(sn)
             if osn is None:

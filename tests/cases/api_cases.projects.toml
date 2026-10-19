@@ -25,7 +25,7 @@ expect_json = { "code" = 0, "data.shared.0.slug" = "lab", "data.shared.0.role" =
 
 [[case]]
 id = "projects-create"
-title = { zh-CN = "新建项目（标识全站唯一）", en = "Create a project (slug unique site-wide)", pt-BR = "Criar projeto (identificador único no site)" }
+title = { zh-CN = "新建项目（标识在自己的项目里唯一）", en = "Create a project (slug unique among your own projects)", pt-BR = "Criar projeto (identificador único entre os seus projetos)" }
 method = "POST"
 path = "/api/v1/projects"
 setup = "configured-projects"
@@ -37,11 +37,11 @@ in_docs = true
 
 [[case]]
 id = "projects-create-taken"
-title = { zh-CN = "标识已被使用：409", en = "Slug already in use: 409", pt-BR = "Identificador em uso: 409" }
+title = { zh-CN = "你已有同名项目：409", en = "You already have a project with this slug: 409", pt-BR = "Você já tem um projeto com este identificador: 409" }
 method = "POST"
 path = "/api/v1/projects"
 setup = "configured-projects"
-login = ["carol", "Carol-pass-1"]
+login = ["alice", "Alice-pass-1"]
 body = { name = "x", slug = "lab" }
 expect_status = 409
 expect_json = { "code" = 1003 }
@@ -330,7 +330,7 @@ path = "/api/v1/public-devices/2"
 setup = "configured-projects"
 auth = true
 expect_status = 409
-expect_json = { "code" = 1003, "data.projects" = ["lab"] }
+expect_json = { "code" = 1003, "data.projects" = ["alice/lab"] }
 
 [[case]]
 id = "admin-projects"
@@ -447,4 +447,41 @@ setup = "configured-projects"
 auth = true
 expect_status = 200
 expect_json = { "code" = 0, "data.deleted" = "alice", "data.projects.action" = "transfer", "data.projects.to" = "bob" }
+in_docs = true
+
+# ---------------------------------------------------------------- 标识按属主唯一（用户 2026-10-19 评审改选）
+# 准备方式 configured-samename：在 configured-projects 之上，carol 也有项目 lab，bob 是两个 lab 的只读成员。
+
+[[case]]
+id = "projects-create-same-slug-other-owner"
+title = { zh-CN = "别人已有同名项目也可以新建（标识按属主唯一）", en = "Another owner's project may use the same slug (slugs are unique per owner)", pt-BR = "Outro dono pode usar o mesmo identificador (único por dono)" }
+method = "POST"
+path = "/api/v1/projects"
+setup = "configured-projects"
+login = ["carol", "Carol-pass-1"]
+body = { name = "carol 的实验局", slug = "lab" }
+expect_status = 200
+expect_json = { "code" = 0, "data.slug" = "lab", "data.ref" = "lab", "data.full_ref" = "carol/lab", "data.owner" = "carol" }
+in_docs = true
+
+[[case]]
+id = "projects-get-owner-ref"
+title = { zh-CN = "写成 属主/标识（路径里编码为 %2F）访问别人的同名项目", en = "owner/slug (encoded as %2F in the path) reaches the other owner's project", pt-BR = "dono/identificador (codificado como %2F no caminho) acessa o projeto do outro dono" }
+method = "GET"
+path = "/api/v1/projects/carol%2Flab"
+setup = "configured-samename"
+login = ["bob", "Bob-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.owner" = "carol", "data.ref" = "carol/lab", "data.role" = "read" }
+in_docs = true
+
+[[case]]
+id = "projects-get-ambiguous"
+title = { zh-CN = "只写标识而能访问的同名项目有多个：409，列出候选", en = "Bare slug matching several accessible projects: 409 with candidates", pt-BR = "Identificador ambíguo: 409 com os candidatos" }
+method = "GET"
+path = "/api/v1/projects/lab/devices"
+setup = "configured-samename"
+login = ["bob", "Bob-pass-12"]
+expect_status = 409
+expect_json = { "code" = 1003, "data.candidates.0" = "alice/lab", "data.candidates.1" = "carol/lab" }
 in_docs = true

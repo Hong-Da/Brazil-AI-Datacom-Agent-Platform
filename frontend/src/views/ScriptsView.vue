@@ -48,7 +48,7 @@ const baseDevices = computed(() => {
 
 async function load(): Promise<void> {
   loadErr.value = ''
-  const slug = project.slug
+  const slug = project.ref
   if (!slug) return
   try {
     const [s, d, a] = await Promise.all([
@@ -131,14 +131,14 @@ watch(nsDev, async (id) => {
 async function createScript(): Promise<void> {
   const name = nsName.value.trim()
   if (!name) { nsErr.value = T('nameRequired'); return }
-  const slug = project.slug
+  const slug = project.ref
   if (!slug) return
   nsBusy.value = true
   nsErr.value = ''
   try {
     const d = nsDevice.value
     let content = ''
-    if (nsKind.value === 'change') content = starterChange(d?.vendor || d?.profile || '')
+    if (nsKind.value === 'change') content = starterChange(d?.vendor, d?.profile)
     else if (d) {
       // 完整配置从基线版本的配置复制一份（不指定版本时为项目中的当前版本）
       const vid = nsVer.value ?? d.latest_version_id
@@ -154,7 +154,7 @@ async function createScript(): Promise<void> {
 }
 
 onMounted(load)
-watch(() => project.slug, (v, old) => { if (v && v !== old) { rows.value = null; f.value = { kind: '', device: null }; void load() } })
+watch(() => project.ref, (v, old) => { if (v && v !== old) { rows.value = null; f.value = { kind: '', device: null }; void load() } })
 </script>
 
 <template>

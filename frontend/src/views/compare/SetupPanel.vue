@@ -7,6 +7,7 @@ import InterfaceMap from './InterfaceMap.vue'
 import type { MapRow } from './ifmap'
 import type { Mode, Setup, SideSel } from './setup'
 import type { VersionInfo } from './types'
+import VendorBadge from '@/components/vendor-badge.vue'
 
 const props = defineProps<{
   setup: Setup
@@ -84,9 +85,7 @@ const mapLabel = (k: 'a' | 'b') => (props.setup.mode === 'paste' ? (k === 'a' ? 
           <div class="side" :data-testid="'side-' + k">
             <div class="side-h">
               <span class="badge">{{ k.toUpperCase() }}</span><b>{{ $t(k === 'a' ? 'compare.sideA' : 'compare.sideB') }}</b>
-              <span v-if="setup.mode !== 'paste' && sideDevice(k)" class="ml-auto vendor">
-                <i :class="sideDevice(k)!.vendor === 'huawei' ? 'hw' : 'cs'">{{ sideDevice(k)!.vendor === 'huawei' ? 'HW' : 'CS' }}</i>{{ vendorLabel(sideDevice(k)!.vendor) }}
-              </span>
+              <VendorBadge v-if="setup.mode !== 'paste' && sideDevice(k)" class="ml-auto" :of="sideDevice(k)!.vendor">{{ vendorLabel(sideDevice(k)!.vendor) }}</VendorBadge>
             </div>
 
             <template v-if="setup.mode === 'paste'">

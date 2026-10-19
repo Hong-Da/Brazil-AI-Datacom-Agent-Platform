@@ -7,6 +7,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import cytoscape, { type Core, type ElementDefinition, type StylesheetJson } from 'cytoscape'
 import { protocols, shortIf, type Group, type TopoNode } from './topology'
+import { vendorMark } from '@/vendor'
 
 const props = defineProps<{
   nodes: TopoNode[]
@@ -39,6 +40,7 @@ function style(): StylesheetJson {
     },
     { selector: 'node.hw', style: { 'border-color': '#C7000B', 'border-width': 1.4 } },
     { selector: 'node.cs', style: { 'border-color': '#1BA0D7', 'border-width': 1.4 } },
+    { selector: 'node.nk', style: { 'border-color': '#3563C9', 'border-width': 1.4 } },
     { selector: 'node.bad', style: { 'background-color': v('red-soft') } },
     { selector: 'node.is-sel', style: { 'border-color': v('ink'), 'border-width': 2.6 } },
     { selector: 'node.is-end', style: { 'border-color': v('amber'), 'border-width': 2.6 } },
@@ -64,7 +66,7 @@ function elements(): ElementDefinition[] {
   const out: ElementDefinition[] = []
   const ids = new Set(props.nodes.map((n) => n.id))
   for (const n of props.nodes) {
-    const fam = n.family.startsWith('huawei') ? 'hw' : n.family.startsWith('cisco') ? 'cs' : ''
+    const fam = vendorMark(n.family).cls
     out.push({ group: 'nodes', data: { id: n.id, label: `${n.id}\n${n.loopbacks[0] ?? n.lsr_id ?? ''}`, tip: `${n.id} · ${n.profile}` }, classes: [fam, n.issues ? 'bad' : ''].join(' ') })
   }
   for (const g of props.groups) {

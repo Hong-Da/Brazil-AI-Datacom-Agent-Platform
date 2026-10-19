@@ -216,6 +216,19 @@ export function reportMd(r: TranslateResult, ws: Warn[], lang: 'zh-CN' | 'en', w
   return md.join('\n')
 }
 
+/**
+ * 从配置图列出顶层接口对象的名字（interface[X] 的键），用于 Nokia 等不以 `interface X` 开头声明端口的平台
+ * （端口、LAG、路由器接口分在 port / lag / router 等上下文里）。
+ */
+export function interfacesInGraph(nodes: { id: string; kind: string; schema: string | null; key?: unknown }[]): string[] {
+  const out = new Set<string>()
+  for (const n of nodes) {
+    if (n.kind !== 'object' || n.schema !== 'interface' || typeof n.key !== 'string' || !n.key) continue
+    if (n.id === `interface[${n.key}]`) out.add(n.key)
+  }
+  return [...out]
+}
+
 /** 从配置文本中列出接口名（`interface X` 行），用于接口映射表。 */
 export function interfacesIn(text: string): string[] {
   const out = new Set<string>()

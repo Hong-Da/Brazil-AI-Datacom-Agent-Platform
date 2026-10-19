@@ -5,7 +5,7 @@
 [ui]
 # 界面与 CLI 的默认语言；浏览器里可随时切换  可选：zh-CN / en / pt-BR
 language = "zh-CN"
-# 配置图、对比、检查与报告的默认显示风格（华为或 Cisco 的叫法与命令写法）；浏览器里可随时切换  可选：huawei / cisco
+# 配置图、对比、检查与报告的默认显示风格（华为、Cisco 或 Nokia 的叫法与命令写法）；浏览器里可随时切换  可选：huawei / cisco / nokia
 term_style = "huawei"
 
 # ---- 网络 ----
@@ -40,6 +40,15 @@ session_hours = 12
 login_max_failures = 5
 # 账号锁定时长（分钟）
 login_lock_minutes = 15
+
+# ---- 安全 ----
+[auth]
+# 允许用户在登录页自助注册账号（新账号为普通用户）；关闭时登录页不显示注册入口
+registration = false
+# 自助注册的账号需要管理员在账号管理中批准后才能登录
+registration_approval = true
+# 同一来源地址每小时最多注册几次（防止批量注册）
+registration_rate_per_hour = 5
 
 # ---- 日志 ----
 [log]

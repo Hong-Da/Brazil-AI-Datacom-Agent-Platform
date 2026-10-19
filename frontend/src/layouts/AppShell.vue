@@ -75,7 +75,7 @@ const nav = computed(() => NAV.filter((g) => !g.admin || auth.isAdmin).map((g) =
 function navTo(name: string, proj?: boolean): RouteLocationRaw {
   if (!proj) return { name }
   // 还不知道当前项目时给名称即可：路由会改用旧网址，守卫再跳到当前项目
-  return project.slug ? { name, params: { project: project.slug } } : { name }
+  return project.ref ? { name, params: { project: project.ref } } : { name }
 }
 // 同一项导航对应的其他页面（清理属于检查、脚本编辑器属于项目脚本、单个 skill 属于 skill 列表）
 const ALIAS: Record<string, string> = { cleanup: 'check', 'check-project': 'scripts', 'ai-skill': 'ai-skills', 'add-device': 'devices' }
@@ -98,7 +98,7 @@ async function leave(): Promise<void> {
   else { await project.enter(d); void status.refresh() }
 }
 // 换了项目：外壳计数（/summary 按项目）跟着变
-watch(() => project.slug, (v, old) => { if (old !== undefined && v !== old) void status.refresh() })
+watch(() => project.ref, (v, old) => { if (old !== undefined && v !== old) void status.refresh() })
 
 const menuOpen = ref(false)
 const initial = computed(() => (auth.me?.username ?? '?').charAt(0).toUpperCase())
@@ -185,7 +185,7 @@ watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void
         <div class="npb-n" :title="project.info?.name">{{ project.info?.name ?? $t('proj.none') }}</div>
         <div class="npb-m">
           <ProjRole :role="project.role" />
-          <router-link v-if="project.slug" :to="{ name: 'project-settings', params: { project: project.slug } }" class="npb-set" :title="$t('proj.settingsTip')" data-testid="band-settings"><Icon name="gear" small /></router-link>
+          <router-link v-if="project.ref" :to="{ name: 'project-settings', params: { project: project.ref } }" class="npb-set" :title="$t('proj.settingsTip')" data-testid="band-settings"><Icon name="gear" small /></router-link>
         </div>
         <div class="npb-h">{{ $t('proj.bandHint') }}</div>
       </div>

@@ -192,7 +192,7 @@ def test_refs_pins_copy_and_delete(url: str, kb) -> None:  # type: ignore[no-unt
     assert pub_refs[0]["project"] == "pc" and pub_refs[0]["policy"] == "follow"
     with pytest.raises(projects.ProjectError) as e:
         projects.delete_public(url, pub)
-    assert e.value.kind == "state" and e.value.data == {"projects": ["pc"]}
+    assert e.value.kind == "state" and e.value.data == {"projects": ["liwei/pc"]}  # 属主/标识
     # 删除项目：私有设备（复制出的）删除，公共设备只解除引用
     res = projects.delete_project(url, sc, "pc")
     assert res["counts"]["private_devices"] == 1 and res["counts"]["refs"] == 1
@@ -252,13 +252,17 @@ def test_default_project_and_first_admin_adoption(url: str) -> None:
     assert projects.default_project(url, boss)["slug"] == "default"
     users.create_user(url, "liwei", PW, "user")
     d = projects.default_project(url, _ident(url, "liwei"))
-    assert d["slug"] == "liwei-default"
+    # 标识按属主唯一：每个人的默认项目都叫 default；自己看是 default，别人看是 liwei/default
+    assert d["slug"] == "default" and d["ref"] == "default"
+    with store.session(url) as s:
+        p = s.get(Project, d["id"])
+        assert p is not None and projects.ref_of(s, p, boss) == "liwei/default"
     # 全局令牌（SYSTEM）的默认项目是第一个管理员的
     assert projects.default_project(url, projects.SYSTEM)["slug"] == "default"
     # 删除账号：空的默认项目自动删除，不要求选择
     users.delete_user(url, "liwei")
     with store.session(url) as s:
-        assert s.scalar(select(Project).where(Project.slug == "liwei-default")) is None
+        assert s.get(Project, d["id"]) is None
 
 
 def test_check_projects_belong_to_project(url: str) -> None:

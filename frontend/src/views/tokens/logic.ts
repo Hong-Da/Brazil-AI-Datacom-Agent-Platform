@@ -40,7 +40,7 @@ const TOKEN_VAR = '$LMESH_TOKEN'
  * host：服务地址（例如 location.origin）；slug：当前项目标识；deviceId：示例里检查的设备编号（没有时用 1）。
  */
 export function apiExample(host: string, slug: string, deviceId: number | null): { comment: string | null; line: string }[] {
-  const p = `/api/v1/projects/${slug}`
+  const p = `/api/v1/projects/${encodeURIComponent(slug)}` // 别人的项目写 属主/标识，路径里编码成 %2F
   return [
     { comment: 'devices', line: `curl -H "Authorization: Bearer ${TOKEN_VAR}" \\\n  ${host}${p}/devices` },
     { comment: 'check', line: `curl -X POST -H "Authorization: Bearer ${TOKEN_VAR}" -H "Content-Type: application/json" \\\n  ${host}${p}/check -d '{"device_id": ${deviceId ?? 1}}'` },

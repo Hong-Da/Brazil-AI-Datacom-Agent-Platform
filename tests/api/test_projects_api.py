@@ -99,11 +99,11 @@ def test_project_flow(full_kb_root: Path, team: Path) -> None:
     app = _app()
     liwei, zhang, wang, chen, boss = (Client(app, u) for u in ("liwei", "zhang", "wang", "chen", "boss"))
 
-    # 新建项目：标识全站唯一
+    # 新建项目：标识在属主自己的项目里唯一（不同属主同名见 test_project_refs_api.py）
     r = liwei.post("/projects", json={"name": "城域 OAM", "slug": "oam-vpn", "settings": {"style": "huawei"}})
     assert r.status_code == 200, r.text
     assert r.json()["data"]["role"] == "owner" and r.json()["data"]["settings"]["style"] == "huawei"
-    assert zhang.post("/projects", json={"name": "x", "slug": "oam-vpn"}).status_code == 409
+    assert liwei.post("/projects", json={"name": "x", "slug": "oam-vpn"}).status_code == 409
     assert liwei.post("/projects", json={"name": "x", "slug": "Bad Slug"}).status_code == 422
 
     # 项目内导入：设备是项目私有的
@@ -216,7 +216,7 @@ def test_public_library_refs_and_pins(full_kb_root: Path, team: Path) -> None:
     assert r.status_code == 200 and r.json()["data"]["renamed"]
     # 还有引用：管理员删除被拒，列出项目
     r = boss.delete(f"/public-devices/{pid}")
-    assert r.status_code == 409 and set(r.json()["data"]["projects"]) == {"cutover", "patrol"}
+    assert r.status_code == 409 and set(r.json()["data"]["projects"]) == {"liwei/cutover", "liwei/patrol"}
     # 项目里“删除”引用的公共设备 = 解除引用
     r = liwei.delete(f"/projects/patrol/devices/{pid}")
     assert r.status_code == 200 and r.json()["data"]["unreferenced"] is True
@@ -224,7 +224,7 @@ def test_public_library_refs_and_pins(full_kb_root: Path, team: Path) -> None:
     assert liwei.put(f"/projects/cutover/refs/{pid}", json={"version_id": None}).status_code == 200
     assert liwei.get("/projects/cutover/refs").json()["data"]["refs"][0]["policy"] == "follow"
     r = boss.delete(f"/public-devices/{pid}", params={"force": True})
-    assert r.status_code == 200 and r.json()["data"]["unreferenced"] == ["cutover"]
+    assert r.status_code == 200 and r.json()["data"]["unreferenced"] == ["liwei/cutover"]
 
 
 def test_legacy_alias_and_default_project(full_kb_root: Path, team: Path) -> None:

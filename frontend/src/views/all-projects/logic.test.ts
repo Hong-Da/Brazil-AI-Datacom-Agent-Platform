@@ -4,7 +4,7 @@ import { auditAction, auditDetail, groupByOwner, isIdle, projectsCsv } from './l
 
 const NOW = Date.parse('2026-10-19T12:00:00Z')
 const p = (slug: string, owner: string | null, extra: Partial<ProjectRow> = {}): ProjectRow => ({
-  id: 1, slug, name: slug.toUpperCase(), description: '', owner, role: 'admin', members: 1, member_names: owner ? [owner] : [],
+  id: 1, slug, ref: owner ? `${owner}/${slug}` : slug, full_ref: owner ? `${owner}/${slug}` : slug, name: slug.toUpperCase(), description: '', owner, role: 'admin', members: 1, member_names: owner ? [owner] : [],
   settings: {}, last_activity: null, counts: { devices: 0, private: 0, refs: 0, scripts: 0, scripts_with_errors: 0, check_projects: 0 },
   created_at: '2026-10-01T00:00:00Z', updated_at: '2026-10-18T00:00:00Z', ...extra,
 })

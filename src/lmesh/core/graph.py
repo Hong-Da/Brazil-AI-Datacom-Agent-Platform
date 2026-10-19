@@ -290,9 +290,11 @@ class Builder:
             ),
         )
         skipped: set[str] = set()
+        dyn_nodes: dict[str, list[str]] = {}  # 固定键取自参数的对象：路径 → 本行按它建立的节点
         # 固定键取自参数的对象（interface{name=$port-id}.lag）：先按取值找到 / 建立该对象，本行用它而不是上下文中的同类对象
         for _, alts, _expr in targets:
             t = alts[min(branch, len(alts) - 1)]
+            static_fixed = {p: kv for p, kv in t.fixed.items() if p not in t.dynamic()}
             for path, kv in t.dynamic().items():
                 dsn = self.kb.nodes.get(path)
                 dkeys = {k: mapping.evaluate(v, values, tokens, ln.negated, ctx=ctxv) for k, v in kv.items()}
@@ -310,9 +312,13 @@ class Builder:
                 )  # 重复组（lag 下 port 1/1/2 1/1/3）：每个取值一个对象
                 for k in expanded:
                     key = dict(k) if len(dsn.key) > 1 else mapping.normalize("string", dsn.id, next(iter(k.values())))
-                    nid = self._object(dsn, key, scope, {}, ln, card, raw=key)
+                    # 上级对象的固定键（vrf.instance.af{afi=ipv4}.rt{…}，M7-5）照常生效
+                    nid = self._object(dsn, key, scope, static_fixed, ln, card, raw=key)
                     if nid not in st.nodes:
                         st.nodes.append(nid)
+                    dyn_nodes.setdefault(path, [])
+                    if nid not in dyn_nodes[path]:
+                        dyn_nodes[path].append(nid)
         for _, alts, expr in ordered:
             t = alts[min(branch, len(alts) - 1)]
             schema = self.kb.nodes.get(t.node)
@@ -385,14 +391,23 @@ class Builder:
                 else:
                     owner = self._ensure_ancestor(owner_schema, scope, ln, card)
             rel = _short(schema.id, owner_schema.id)
-            # 重复对象（同一行展开了多个）时，属性写到这一行产生的每个对象上
-            owners = [n for n in st.nodes if self.g.nodes[n].get("schema") == owner_schema.id] or [owner]
+            # 重复对象（同一行展开了多个）时，属性写到这一行产生的每个对象上；所属对象的固定键取自参数时只写到按它建立的对象，
+            # 其他属性不写到这类对象上（vrf-target export X import Y：import 的 RT 对象只取自己的属性，M7-5）
+            if owner_schema.id in t.dynamic() and dyn_nodes.get(owner_schema.id):
+                owners = list(dyn_nodes[owner_schema.id])
+            else:
+                dyn_all = {n for ns in dyn_nodes.values() for n in ns}
+                owners = [
+                    n for n in st.nodes if self.g.nodes[n].get("schema") == owner_schema.id and n not in dyn_all
+                ] or [owner]
+            # !flag（Nokia no shutdown → 启用）已把取消形式折算进取值，节点本身不是取消形式（M7-5：检查、拓扑按有效值判断）
+            neg = ln.negated and not (isinstance(expr, str) and expr.startswith("!"))
             for i, ow in enumerate(owners):
                 v = value[i] if isinstance(value, list) and len(owners) > 1 and i < len(value) else value
                 nid = f"{ow}/{rel}"
                 norm = mapping.normalize(schema.type, schema.id, v)
-                self._node(nid, ow, schema.id, "attr", value=norm, raw=v, negated=ln.negated)
-                self.g.nodes[nid].update(value=norm, raw=v, origin="explicit", negated=ln.negated)
+                self._node(nid, ow, schema.id, "attr", value=norm, raw=v, negated=neg)
+                self.g.nodes[nid].update(value=norm, raw=v, origin="explicit", negated=neg)
                 self._touch(nid, ln, card)
                 if nid not in st.nodes:
                     st.nodes.append(nid)

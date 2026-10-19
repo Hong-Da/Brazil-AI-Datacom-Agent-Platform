@@ -1,5 +1,7 @@
 /** 首页的纯逻辑：样本往返结果的状态、筛选、差异行，Profile 覆盖与可信度。 */
 
+import { vendorMark } from '@/vendor'
+
 export interface RtDiff { line: number; original: string[]; rendered: string[] }
 export interface RtResult {
   file: string
@@ -62,7 +64,7 @@ export interface ProfileRow {
 
 export interface ProfileView {
   id: string
-  vendor: 'hw' | 'cs' | ''
+  vendor: 'hw' | 'cs' | 'nk' | ''
   inherits: string | null
   unfilled: boolean
   pct: number
@@ -73,11 +75,8 @@ export function pct(x: number): number {
   return Math.round((x || 0) * 100)
 }
 
-export function vendorCode(v: string): 'hw' | 'cs' | '' {
-  const s = (v || '').toLowerCase()
-  if (s.startsWith('huawei')) return 'hw'
-  if (s.startsWith('cisco')) return 'cs'
-  return ''
+export function vendorCode(v: string): 'hw' | 'cs' | 'nk' | '' {
+  return vendorMark(v).cls
 }
 
 /** 可信度三段占比（按条目数），合计 100；没有条目时全为 0。 */

@@ -1,4 +1,5 @@
 /** 项目脚本页（M6，原“配置检查项目”并入项目）的数据结构与纯逻辑：筛选、基线设备的来源与版本、新脚本的初始内容。 */
+import { starterScript } from '@/vendor'
 
 export type Kind = 'change' | 'full'
 
@@ -73,9 +74,9 @@ export function checkState(c: ScriptRow['last_check']): 'never' | 'ok' | 'issues
   return c.errors || c.warnings || c.infos ? 'issues' : 'ok'
 }
 
-/** 新建变更脚本的初始内容：按平台给出进入 / 提交配置的框架。 */
-export function starterChange(vendorOrProfile: string): string {
-  return vendorOrProfile.toLowerCase().startsWith('cisco') ? 'configure terminal\n\nend\n' : 'system-view\n\ncommit\n'
+/** 新建变更脚本的初始内容：按平台给出进入 / 提交配置的框架（厂商、平台族、Profile 任意给几个）。 */
+export function starterChange(...hints: (string | null | undefined)[]): string {
+  return starterScript(...hints)
 }
 
 /** 默认文件名：script-<n>.txt，避开已有的名称。 */

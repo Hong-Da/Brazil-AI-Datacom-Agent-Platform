@@ -64,7 +64,8 @@ def test_projects_belong_to_their_user(full_kb_root: Path, users_root: Path) -> 
     assert bob.get(f"/api/v1/check-projects/{pid}").status_code == 404
     slug = alice.get("/api/v1/workspace").json()["data"]["default_project"]
     assert admin.get("/api/v1/check-projects").json()["data"]["projects"] == []
-    assert len(admin.get(f"/api/v1/projects/{slug}/check-projects").json()["data"]["projects"]) == 1
+    # 标识按属主唯一：管理员也有叫 default 的默认项目，访问 alice 的要写 属主/标识
+    assert len(admin.get(f"/api/v1/projects/alice%2F{slug}/check-projects").json()["data"]["projects"]) == 1
     sc = alice.post(f"/api/v1/check-projects/{pid}/scripts", json={"name": "s", "content": "system-view\n"}).json()
     revs = alice.get(f"/api/v1/check-projects/{pid}/scripts/{sc['data']['id']}/revisions").json()["data"]["revisions"]
     assert revs[0]["author"] == "alice"

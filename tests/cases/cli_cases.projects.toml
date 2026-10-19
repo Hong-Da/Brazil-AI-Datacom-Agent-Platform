@@ -87,8 +87,8 @@ expect_stderr = ["Bad Slug"]
 
 [[case]]
 id = "project-create-taken"
-title = { zh-CN = "标识已被使用：退出码 1", en = "Slug taken: exit 1", pt-BR = "Identificador em uso: saída 1" }
-args = ["project", "create", "x", "--slug", "lab"]
+title = { zh-CN = "自己已有同名项目：退出码 1（标识按属主唯一）", en = "You already have this slug: exit 1 (slugs are unique per owner)", pt-BR = "Você já tem este identificador: saída 1" }
+args = ["--as", "alice", "project", "create", "x", "--slug", "lab"]
 setup = "configured-projects"
 expect_exit = 1
 expect_stderr = ["lab"]
@@ -228,3 +228,40 @@ stdin = "Kbm-pass-1234\n"
 setup = "configured-users"
 expect_exit = 0
 expect_json = { "ok" = true, "data.user.role" = "maintainer" }
+
+# ---------------------------------------------------------------- 标识按属主唯一（用户 2026-10-19 评审改选）
+# 准备方式 configured-samename：在 configured-projects 之上，carol 也有项目 lab，bob 是两个 lab 的只读成员。
+
+[[case]]
+id = "project-same-slug-ambiguous"
+title = { zh-CN = "只写标识而能访问的同名项目有多个：退出码 2，列出 属主/标识", en = "Slug matches several accessible projects: exit 2 with owner/slug candidates", pt-BR = "Identificador ambíguo: saída 2 com os candidatos dono/identificador" }
+args = ["--output", "json", "--as", "bob", "--project", "lab", "config", "list"]
+setup = "configured-samename"
+expect_exit = 2
+expect_json = { "ok" = false, "error.data.candidates.0" = "alice/lab", "error.data.candidates.1" = "carol/lab" }
+in_docs = true
+
+[[case]]
+id = "project-same-slug-owner-ref"
+title = { zh-CN = "写成 属主/标识：精确找到别人的同名项目", en = "owner/slug picks the other owner's project exactly", pt-BR = "dono/identificador escolhe exatamente o projeto do outro dono" }
+args = ["--output", "json", "--as", "bob", "project", "show", "carol/lab"]
+setup = "configured-samename"
+expect_exit = 0
+expect_json = { "ok" = true, "data.owner" = "carol", "data.ref" = "carol/lab", "data.role" = "read" }
+in_docs = true
+
+[[case]]
+id = "project-same-slug-own-first"
+title = { zh-CN = "只写标识时先找自己的项目", en = "A bare slug resolves to your own project first", pt-BR = "Só o identificador encontra primeiro o seu projeto" }
+args = ["--output", "json", "--as", "carol", "project", "show", "lab"]
+setup = "configured-samename"
+expect_exit = 0
+expect_json = { "ok" = true, "data.owner" = "carol", "data.ref" = "lab" }
+
+[[case]]
+id = "project-list-refs"
+title = { zh-CN = "项目列表显示规范引用：别人的写 属主/标识", en = "Project list shows canonical refs: owner/slug for others", pt-BR = "A lista mostra referências canônicas: dono/identificador para os outros" }
+args = ["--lang", "en", "--as", "bob", "project", "list"]
+setup = "configured-samename"
+expect_exit = 0
+expect_stdout = ["alice/lab", "carol/lab"]

@@ -385,6 +385,9 @@ cards:
       line: 178
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.system: _
+      mgmt.system.idle_timeout: $minutes||kw:disable
   - id: nokia-sros-classic.login-banner
     syntax: login-banner
     view: login-control
@@ -736,6 +739,8 @@ cards:
       line: 702
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.aaa.password_aging: $days
   - id: nokia-sros-classic.attempts
     syntax: attempts [ <count> ] [ time <minutes1> ] [ lockout <minutes2> ]
     view: security-snmp
@@ -1164,6 +1169,8 @@ cards:
       line: 8486
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.maf.ipv4: 'true'
   - id: nokia-sros-classic.ipv6-filter
     syntax: ipv6-filter
     view: security-maf
@@ -1267,6 +1274,8 @@ cards:
       line: 9783
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.maf: _
   - id: nokia-sros-classic.management-interface~2
     syntax: management-interface
     view: system-security
@@ -1340,6 +1349,8 @@ cards:
       line: 11151
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.password~2
     syntax: password [ <password> ]
     view: security-user
@@ -2245,6 +2256,8 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.ntp.authentication: flag
   - id: nokia-sros-classic.authentication-key
     syntax: authentication-key <key-id> key <key> [ hash | hash2 | custom ] type { des | message-digest }
     view: system-ntp
@@ -3210,6 +3223,9 @@ cards:
       line: 1133
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.aaa.login_attempts: $count
+      mgmt.aaa.lockout_time: $minutes2
   - id: nokia-sros-classic.system
     syntax: system
     view: configure

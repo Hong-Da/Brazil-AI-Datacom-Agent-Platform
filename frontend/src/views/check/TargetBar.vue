@@ -3,16 +3,15 @@
 import { computed } from 'vue'
 import type { Device } from '../devices/logic'
 import { target } from './report'
+import { vendorMark } from '@/vendor'
 
 const props = defineProps<{ devices: Device[]; profile?: string | null; kbVersion?: string | null; family?: string | null }>()
 const emit = defineEmits<{ change: [] }>()
 
 const dev = computed(() => props.devices.find((d) => d.id === target.deviceId) ?? null)
 const vendor = computed(() => {
-  const v = (dev.value?.vendor || props.family || props.profile || '').toLowerCase()
-  if (v.startsWith('huawei')) return { cls: 'hw', abbr: 'HW', name: 'Huawei' }
-  if (v.startsWith('cisco')) return { cls: 'cs', abbr: 'CS', name: 'Cisco' }
-  return null
+  const m = vendorMark(dev.value?.vendor || props.family || props.profile || '')
+  return m.key ? m : null
 })
 
 function setMode(m: 'device' | 'text'): void {

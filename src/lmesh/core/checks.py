@@ -492,7 +492,12 @@ def check(
         params = {"node": n, "key": rulesmod.key_text(g.nodes[n].get("key"))}
         mk, sk = f"rules.{r.id}.message", f"rules.{r.id}.suggestion"
         texts[mk], texts[sk] = r.message, r.suggestion
-        findings.append(_finding(kb, g, r.id, r.severity, n, [n], params, mk, sk))
+        f = _finding(kb, g, r.id, r.severity, n, [n], params, mk, sk)
+        if r.remedy:  # M7-5：规则给了修复参考命令时按设备的平台族选写法（没有写 remedy 的规则结果不变）
+            from lmesh.core.baseline import _format, remedy_for
+
+            f["remedy"] = [_format(c, params) for c in remedy_for(r, g.graph.get("family"))]
+        findings.append(f)
 
     disabled = {rid for rid, ov in (overrides or {}).items() if not ov.get("enabled", True)}
     findings = [f for f in findings if f["rule"] not in disabled]

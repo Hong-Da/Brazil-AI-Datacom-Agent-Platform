@@ -1,6 +1,7 @@
 /**
  * 设备配置图的数据整理：把接口返回的扁平节点 / 边整理成树（按功能域：设备 → 功能域 → 对象 → 属性；
- * 按视图层级：设备 → 对象 → 子对象 → 属性，不插入功能域这一层），
+ * 按视图层级：设备 → 对象 → 子对象 → 属性，不插入功能域这一层；给了 contextOf 时（Nokia）在设备下插入配置上下文分组，
+ * 如 router Base、service › vprn X），
  * 计算收起 / 展开后的可见部分、依赖边聚合到可见祖先、配置行与节点的对应关系。
  * 纯函数，不依赖 DOM，便于测试；大图（约 2500 节点）只渲染可见部分。
  */
@@ -26,6 +27,10 @@ export interface TNode {
   /** 子树内有未识别行 */
   hasUnknown: boolean
   api?: ApiNode
+  /** 配置上下文分组（kind 为 domain，按视图层级时由 contextOf 插入）：子树里顶层对象的功能域，用于功能域筛选 */
+  ctxDomains?: Set<string>
+  /** 挂在配置上下文分组下的顶层对象 */
+  top?: boolean
 }
 
 export interface Model {
@@ -42,6 +47,8 @@ export interface Model {
 }
 
 export const RAW_DOMAIN = 'raw'
+/** 配置上下文分组节点的 id 前缀（ctx:service › vprn X） */
+export const CTX_PREFIX = 'ctx:'
 export const DEP_KINDS = ['reference', 'prerequisite', 'side_effect', 'mutex'] as const
 export const EDGE_KINDS = ['contains', ...DEP_KINDS] as const
 /** 接口的边类型 → 样式用的短名（与设计系统 --e-ref 等变量一致） */
@@ -149,7 +156,15 @@ export interface BuildOptions {
   byDomain?: boolean
   /** 节点名（显示风格的命令写法）；返回 null 时用默认名 */
   labeler?: (n: ApiNode) => string | null | undefined
+  /**
+   * 按视图层级时顶层对象所在的配置上下文路径（例如 ['service', 'vprn X']，Terms.context）；attrs 是对象的直接子属性
+   * {短名: 取值}。返回空数组时直接挂在设备下。默认不启用；按功能域组织时不使用。
+   */
+  contextOf?: (n: ApiNode, attrs: Record<string, unknown>) => string[]
 }
+
+/** 组织方式“自动”时按视图层级显示的风格（华为、Nokia 的配置本身是层级的）；其他风格按功能域。 */
+export const VIEW_TREE_STYLES: readonly string[] = ['huawei', 'nokia']
 
 export function buildModel(data: GraphData, domainOf: (schema: string) => string | null, opts: BuildOptions = {}): Model {
   const nodes = new Map<string, TNode>()
@@ -222,6 +237,53 @@ export function buildModel(data: GraphData, domainOf: (schema: string) => string
   }
   if (byDomain) for (const n of nodes.values()) if (n.parent === root && n.kind !== 'domain') n.parent = `domain:${n.domain}`
 
+  // 配置上下文分组（按视图层级 + contextOf）：顶层对象挂到 ctx:路径 下，分组按其中最早的配置行排序
+  const ctxFirst = new Map<string, number>()
+  if (!byDomain && opts.contextOf) {
+    const attrsOf = new Map<string, Record<string, unknown>>()
+    for (const n of nodes.values()) {
+      const p = n.kind === 'attr' && n.parent ? nodes.get(n.parent) : undefined
+      if (!p || p.parent !== root) continue
+      const a = attrsOf.get(p.id) ?? {}
+      a[idLeaf(n.id)] = n.api?.value
+      attrsOf.set(p.id, a)
+    }
+    const tops = [...nodes.values()].filter((n) => n.parent === root && n.kind === 'object' && n.api)
+    for (const n of tops) {
+      const path = opts.contextOf(n.api!, attrsOf.get(n.id) ?? {}).filter((x) => x)
+      let parent = root
+      path.forEach((seg, i) => {
+        const id = `${CTX_PREFIX}${path.slice(0, i + 1).join(' › ')}`
+        let g = nodes.get(id)
+        if (!g) {
+          g = {
+            id, kind: 'domain', label: seg, value: '', schema: null, origin: 'explicit', lines: [], domain: '',
+            parent, children: [], depth: 0, size: 0, hasUnknown: false, ctxDomains: new Set(),
+          }
+          nodes.set(id, g)
+        }
+        g.ctxDomains!.add(n.domain)
+        ctxFirst.set(id, Math.min(ctxFirst.get(id) ?? Number.MAX_SAFE_INTEGER, firstLine(n)))
+        parent = id
+      })
+      if (parent !== root) {
+        n.parent = parent
+        n.top = true
+      }
+    }
+    // 分组与同一层的对象同名时（service › vprn X 分组与 vprn X 业务本身），分组内容并到该对象下，不重复显示
+    const byName = new Map<string, TNode>()
+    for (const n of tops) if (n.top) byName.set(`${n.parent}\n${n.label}`, n)
+    for (const g of [...nodes.values()]) {
+      const host = g.ctxDomains ? byName.get(`${g.parent}\n${g.label}`) : undefined
+      if (!host) continue
+      for (const n of nodes.values()) if (n.parent === g.id) n.parent = host.id
+      nodes.delete(g.id)
+      ctxFirst.delete(g.id)
+    }
+  }
+  const sortLine = (n: TNode): number => ctxFirst.get(n.id) ?? firstLine(n)
+
   // 原文节点分组（在对象下；按功能域时顶层原文已由 raw 功能域收起，按视图层级时设备下的原文也收成一组）
   if (opts.groupRaw) {
     const byParent = new Map<string, TNode[]>()
@@ -249,8 +311,8 @@ export function buildModel(data: GraphData, domainOf: (schema: string) => string
       n.children.sort((a, b) => {
         const na = nodes.get(a)!
         const nb = nodes.get(b)!
-        if (na.kind === 'domain' && nb.kind === 'domain') return domains.indexOf(na.domain) - domains.indexOf(nb.domain)
-        return firstLine(na) - firstLine(nb) || a.localeCompare(b)
+        if (na.kind === 'domain' && nb.kind === 'domain' && !na.ctxDomains && !nb.ctxDomains) return domains.indexOf(na.domain) - domains.indexOf(nb.domain)
+        return sortLine(na) - sortLine(nb) || a.localeCompare(b)
       })
     }
   }
@@ -322,8 +384,11 @@ export const MORE_PREFIX = 'more:'
 
 function isShown(m: Model, n: TNode, o: ViewOptions): boolean {
   if (!o.showDefault && n.origin === 'default') return false
-  // 只看一个功能域：设备下一层（功能域分组，或按视图层级时的顶层对象）按功能域筛选
-  if (o.domain && n.parent === m.root && n.domain !== o.domain) return false
+  // 只看一个功能域：设备下一层（功能域分组，或按视图层级时的顶层对象）按功能域筛选；配置上下文分组看子树里有没有该功能域
+  if (o.domain) {
+    if (n.ctxDomains) return n.ctxDomains.has(o.domain)
+    if ((n.parent === m.root || n.top) && n.domain !== o.domain) return false
+  }
   return true
 }
 

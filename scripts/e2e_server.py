@@ -57,7 +57,7 @@ def prepare(root: Path) -> None:
     url = settings.database_url
     scope = projects.default_scope(url, projects.cli_identity(url, "e2e-admin"))
     projects.set_member(url, scope, "e2e-user", "edit")
-    projects.set_default(url, projects.cli_identity(url, "e2e-user"), scope.slug)
+    projects.set_default(url, projects.cli_identity(url, "e2e-user"), scope.project_id)
 
 
 def main() -> int:
@@ -67,7 +67,8 @@ def main() -> int:
     if not (ROOT / "src" / "lmesh" / "web" / "static" / "index.html").exists():
         print("前端尚未构建：先运行 scripts/build_frontend.py", file=sys.stderr)
         return 1
-    prepare(ROOT / "tests" / "output" / "e2e-root")
+    # LMESH_E2E_ROOT：另一个 e2e 服务正在用默认目录时（例如并行开发），换一个临时项目目录
+    prepare(Path(os.environ.get("LMESH_E2E_ROOT") or ROOT / "tests" / "output" / "e2e-root"))
     import uvicorn
 
     from lmesh.api import create_app

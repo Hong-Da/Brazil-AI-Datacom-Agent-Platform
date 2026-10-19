@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** Schema 节点卡片：两种显示风格的写法（当前风格在前并高亮）。 */
+/** Schema 节点卡片：各显示风格的写法（当前风格在前并高亮）。 */
 import { computed } from 'vue'
 import { useTerms } from '@/stores/terms'
 import { styleRows } from './styles'

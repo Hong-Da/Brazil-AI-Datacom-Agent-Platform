@@ -64,7 +64,9 @@ def list_projects(
 class ProjectBody(BaseModel):
     name: str = Field(..., max_length=200)
     slug: str | None = Field(
-        None, max_length=64, description="项目标识（全站唯一，小写字母、数字、短横线）；不给时由名称生成"
+        None,
+        max_length=64,
+        description="项目标识（在自己的项目里唯一，小写字母、数字、短横线；别人可以有同名项目）；不给时由名称生成",
     )
     description: str | None = Field(None, max_length=4000)
     settings: dict[str, Any] | None = Field(None, description="style 显示风格、rule_set 翻译规则集、baseline 安全基线")
@@ -94,7 +96,7 @@ def workspace(request: Request) -> dict[str, Any]:
         request,
         {
             "user": {"username": p.username, "role": p.role, "via": p.via, "read_only": p.read_only},
-            "default_project": default["slug"],
+            "default_project": default["ref"],
             "projects": {"mine": len(lists["mine"]), "shared": len(lists["shared"])},
             "templates": mine["template"],
             "rule_sets": mine["ruleset"],
@@ -190,12 +192,18 @@ def remove_member(request: Request, username: str) -> dict[str, Any]:
 class TransferBody(BaseModel):
     to: str = Field(..., max_length=64, description="新属主账号")
     keep_as: Literal["edit", "read"] | None = Field("edit", description="原属主留作成员的角色；null 表示退出")
+    slug: str | None = Field(
+        None, max_length=64, description="同时改标识：新属主已有同名项目时必须给（409 的 data.suggested 是可用的标识）"
+    )
 
 
-@project.post("/transfer", summary="转交项目（属主与管理员）；项目用到的原属主私有规则集复制一份给新属主")
+@project.post(
+    "/transfer",
+    summary="转交项目（属主与管理员）；项目用到的原属主私有规则集复制一份给新属主；新属主已有同名标识时 409，可用 slug 改名",
+)
 def transfer(request: Request, body: TransferBody) -> dict[str, Any]:
     try:
-        return ok(request, projects.transfer(db_of(request), _scope(request), body.to, body.keep_as))
+        return ok(request, projects.transfer(db_of(request), _scope(request), body.to, body.keep_as, body.slug))
     except projects.ProjectError as e:
         raise project_error(e) from e
 
@@ -279,7 +287,7 @@ def copy_in(request: Request, body: CopyInBody) -> dict[str, Any]:
     with store.session(db) as s:
         dev = s.get(Device, body.device_id)
         src = s.get(Project, dev.project_id) if dev is not None and dev.project_id else None
-        src_ref = src.slug if src is not None else None
+        src_ref = src.id if src is not None else None
     if dev is None:
         raise ApiError(E_NOT_FOUND, 404, "projects.device_not_found", device=body.device_id)
     label = "public"
@@ -288,7 +296,7 @@ def copy_in(request: Request, body: CopyInBody) -> dict[str, Any]:
             src_scope = projects.resolve(db, sc.identity, src_ref)  # 来源项目必须能查看
         except projects.ProjectError as e:
             raise ApiError(E_NOT_FOUND, 404, "projects.device_not_found", device=body.device_id) from e
-        label = src_scope.slug
+        label = src_scope.label
         if body.version_id is None:
             with projects.use(src_scope, sc.identity), store.session(db) as s:
                 body.version_id = projects.current_version_id(s, body.device_id)

@@ -25,9 +25,10 @@ import ConfigText from './device-graph/ConfigText.vue'
 import {
   DEP_KINDS, EDGE_KINDS, EDGE_SHORT, RAW_DOMAIN, aggregateEdges, ancestors, autoExpand, buildModel, collapseSubtree,
   domainResolver, expandSubtree, highlightLines, searchNodes, shownChildren, splitLines, stepLine, visibleRep, visibleTree,
-  type Model,
+  VIEW_TREE_STYLES, type Model,
 } from './device-graph/model'
 import type { ApiNode, DeviceRow, GraphData, RoundtripResult, SchemaNodeInfo, SchemaTree } from './device-graph/types'
+import VendorBadge from '@/components/vendor-badge.vue'
 
 const project = useProject() // 只读成员不显示修改操作（REQ-036）
 const route = useRoute()
@@ -102,9 +103,9 @@ const showDefault = rememberedFlag('graph-default')
 const showRaw = rememberedFlag('graph-raw')
 /** 视图：树状图 / 关系图谱 */
 const view = rememberedChoice<'tree' | 'force'>('graph-view', 'tree')
-/** 树状图的组织方式：auto = 华为风格按视图层级、Cisco 风格按功能域 */
+/** 树状图的组织方式：auto = 华为 / Nokia 风格按视图层级、Cisco 风格按功能域 */
 const orgPref = rememberedChoice<'auto' | 'tree' | 'domain'>('graph-org', 'auto')
-const org = computed<'tree' | 'domain'>(() => (orgPref.value === 'auto' ? (terms.style === 'huawei' ? 'tree' : 'domain') : orgPref.value))
+const org = computed<'tree' | 'domain'>(() => (orgPref.value === 'auto' ? (VIEW_TREE_STYLES.includes(terms.style) ? 'tree' : 'domain') : orgPref.value))
 const hiddenDomains = ref(new Set<string>())
 const domain = ref('')
 const query = ref('')
@@ -139,9 +140,15 @@ const labeler = computed(() => {
     return null
   }
 })
+/** Nokia 风格按视图层级时，顶层对象挂到配置上下文分组下（port、router Base、service › vprn X…） */
+const contextOf = computed(() => {
+  const t = terms.terms
+  if (terms.style !== 'nokia') return undefined
+  return (a: ApiNode, attrs: Record<string, unknown>) => (a.schema ? t.context(a.schema, a.key, attrs, 'nokia') : [])
+})
 const model = computed<Model | null>(() =>
   graph.value
-    ? buildModel(graph.value, domainOf.value, { domainOrder: domainOrder.value, groupRaw: groupRaw.value, byDomain: org.value === 'domain', labeler: labeler.value })
+    ? buildModel(graph.value, domainOf.value, { domainOrder: domainOrder.value, groupRaw: groupRaw.value, byDomain: org.value === 'domain', labeler: labeler.value, contextOf: contextOf.value })
     : null,
 )
 const force = computed(() => (model.value && view.value === 'force' ? buildForce(model.value, { showDefault: showDefault.value, showRaw: showRaw.value }) : null))
@@ -229,8 +236,9 @@ function reveal(id: string): void {
   const e = new Set(expanded.value)
   for (const a of ancestors(m, id)) e.add(a)
   const n = m.nodes.get(id)
-  if (n && n.kind === 'domain' && domain.value && n.domain !== domain.value) domain.value = ''
-  if (n && domain.value && n.domain !== domain.value && n.kind !== 'device') domain.value = ''
+  if (n && n.ctxDomains) {
+    if (domain.value && !n.ctxDomains.has(domain.value)) domain.value = ''
+  } else if (n && domain.value && n.domain !== domain.value && n.kind !== 'device') domain.value = ''
   expanded.value = e
 }
 
@@ -448,7 +456,7 @@ onMounted(async () => {
           <tbody>
             <tr v-for="d in devices" :key="d.id" class="clickable" @click="router.push({ name: 'device-graph', params: { id: d.id } })">
               <td><router-link class="mono" :to="{ name: 'device-graph', params: { id: d.id } }">{{ d.name }}</router-link></td>
-              <td><span class="vendor"><i :class="d.vendor === 'huawei' ? 'hw' : 'cs'">{{ d.vendor === 'huawei' ? 'HW' : 'CS' }}</i>{{ d.vendor }}</span></td>
+              <td><VendorBadge :of="d.vendor">{{ d.vendor }}</VendorBadge></td>
               <td class="mono">{{ d.profile }}</td>
               <td class="num">{{ d.lines }}</td>
               <td class="num">{{ d.unknown }}</td>
@@ -471,7 +479,7 @@ onMounted(async () => {
       <div class="dg-head">
         <div class="dg-title"><h1>{{ device?.name ?? graph?.device ?? `#${deviceId}` }}</h1></div>
         <div class="dg-meta">
-          <span v-if="device" class="vendor"><i :class="device.vendor === 'huawei' ? 'hw' : 'cs'">{{ device.vendor === 'huawei' ? 'HW' : 'CS' }}</i>{{ device.vendor }}</span>
+          <VendorBadge v-if="device" :of="device.vendor || device.profile">{{ device.vendor }}</VendorBadge>
           <span v-if="device?.sw_version" class="tag mono">{{ device.sw_version }}</span>
           <span v-if="graph?.profile" class="tag t-teal mono" title="Profile">{{ graph.profile }}</span>
           <span v-if="graph?.kb_version" class="tag mono" :title="$t('device-graph.kbTip')">KB {{ graph.kb_version }}</span>

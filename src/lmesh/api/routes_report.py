@@ -21,7 +21,9 @@ class ReportBody(BaseModel):
     format: Literal["html", "md"] = Field("html", description="html：自包含单文件、可打印；md：贴进工单")
     compare: routes_compare.CompareBody | None = Field(None, description="kind=compare 时必填，与 POST /compare 相同")
     check: routes_check.CheckBody | None = Field(None, description="kind=check 时必填，与 POST /check 相同")
-    style: Literal["huawei", "cisco"] | None = Field(None, description="节点的显示风格；不填时用配置 ui.term_style")
+    style: Literal["huawei", "cisco", "nokia"] | None = Field(
+        None, description="节点的显示风格；不填时用配置 ui.term_style"
+    )
 
 
 @router.post(

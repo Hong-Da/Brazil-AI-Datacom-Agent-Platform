@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import JSON, DateTime, ForeignKey, Index, Integer, LargeBinary, String, Text, UniqueConstraint
+from sqlalchemy import text as sql_text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -208,6 +209,8 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(64), unique=True)
     role: Mapped[str] = mapped_column(String(20), default="user")  # admin / maintainer（知识库维护员）/ user
     disabled: Mapped[bool] = mapped_column(default=False)
+    status: Mapped[str] = mapped_column(String(16), default="active")  # active / pending 待审核（REQ-039 自助注册）
+    origin: Mapped[str] = mapped_column(String(16), default="admin")  # admin 管理员建 / register 自助注册
     password_hash: Mapped[str] = mapped_column(String(255))
     failed_count: Mapped[int] = mapped_column(Integer, default=0)
     locked_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -357,13 +360,25 @@ class SkillEvolution(Base):
 
 
 class Project(Base):
-    """项目：设备（私有设备与对公共设备的引用）、脚本、检查忽略项、规则调整、项目设置。标识（slug）全站唯一。
+    """项目：设备（私有设备与对公共设备的引用）、脚本、检查忽略项、规则调整、项目设置。标识（slug）在同一属主内唯一
+    （用户 2026-10-19 评审改选；跨属主写成“属主/标识”）。
 
-    owner_id 为空只出现在没有任何账号的旧安装（升级时的默认项目），第一个管理员创建后由他接管。"""
+    owner_id 为空只出现在没有任何账号的旧安装（升级时的默认项目），第一个管理员创建后由他接管；属主为空的项目之间
+    标识也不能重复（部分唯一索引）。"""
 
     __tablename__ = "projects"
+    __table_args__ = (
+        UniqueConstraint("owner_id", "slug", name="uq_projects_owner_slug"),
+        Index(
+            "uq_projects_ownerless_slug",
+            "slug",
+            unique=True,
+            sqlite_where=sql_text("owner_id IS NULL"),
+            postgresql_where=sql_text("owner_id IS NULL"),
+        ),
+    )
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    slug: Mapped[str] = mapped_column(String(64), unique=True)
+    slug: Mapped[str] = mapped_column(String(64))
     name: Mapped[str] = mapped_column(String(200))
     description: Mapped[str] = mapped_column(Text, default="")
     owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)

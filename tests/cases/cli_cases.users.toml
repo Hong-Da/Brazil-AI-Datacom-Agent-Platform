@@ -137,3 +137,47 @@ id = "user-not-configured"
 title = { zh-CN = "未完成首次配置：退出码 3", en = "Not configured yet: exit 3", pt-BR = "Ainda não configurado: saída 3" }
 args = ["user", "list"]
 expect_exit = 3
+
+# ---------------------------------------------------------------- 自助注册（REQ-039）
+# 准备方式 configured-pending：在账号用例之上，dave 与 erin 自助注册后待审核。
+
+[[case]]
+id = "user-list-pending"
+title = { zh-CN = "只看待审核的自助注册账号", en = "List only sign-ups waiting for approval", pt-BR = "Listar só os cadastros aguardando aprovação" }
+args = ["--output", "json", "user", "list", "--pending"]
+setup = "configured-pending"
+expect_exit = 0
+expect_json = { "ok" = true, "data.count" = 2, "data.users.0.username" = "dave", "data.users.0.status" = "pending", "data.users.0.origin" = "register" }
+in_docs = true
+
+[[case]]
+id = "user-approve"
+title = { zh-CN = "批准待审核账号（建好默认项目）", en = "Approve a pending sign-up (default project created)", pt-BR = "Aprovar um cadastro pendente (projeto padrão criado)" }
+args = ["--output", "json", "user", "approve", "dave"]
+setup = "configured-pending"
+expect_exit = 0
+expect_json = { "ok" = true, "data.user.username" = "dave", "data.user.status" = "active" }
+in_docs = true
+
+[[case]]
+id = "user-reject"
+title = { zh-CN = "拒绝待审核账号（删除）", en = "Reject a pending sign-up (deleted)", pt-BR = "Recusar um cadastro pendente (excluído)" }
+args = ["--output", "json", "user", "reject", "erin"]
+setup = "configured-pending"
+expect_exit = 0
+expect_json = { "ok" = true, "data.rejected" = "erin", "data.deleted" = true }
+
+[[case]]
+id = "user-approve-not-pending"
+title = { zh-CN = "批准不是待审核的账号：退出码 1", en = "Approving an account that is not pending: exit 1", pt-BR = "Aprovar conta que não está pendente: saída 1" }
+args = ["user", "approve", "admin"]
+setup = "configured-pending"
+expect_exit = 1
+expect_stderr = ["admin"]
+
+[[case]]
+id = "user-reject-missing"
+title = { zh-CN = "拒绝不存在的账号：退出码 4", en = "Rejecting an unknown account: exit 4", pt-BR = "Recusar conta inexistente: saída 4" }
+args = ["user", "reject", "nobody"]
+setup = "configured-pending"
+expect_exit = 4

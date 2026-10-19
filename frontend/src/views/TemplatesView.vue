@@ -21,6 +21,7 @@ import CheckTab from './templates/CheckTab.vue'
 import DraftTab from './templates/DraftTab.vue'
 import { skeleton } from './templates/logic'
 import type { TemplateDetail, TemplateInfo, TemplateIssue } from './templates/types'
+import VendorBadge from '@/components/vendor-badge.vue'
 
 type Tab = 'text' | 'check' | 'draft'
 interface ProfileLite { id: string; family: string; vendor: string }
@@ -289,7 +290,7 @@ onMounted(async () => {
                 <div class="id">{{ x.id }}</div>
                 <div class="mt">
                   <span class="tag" :class="x.valid ? 'reviewed' : 'error'">v{{ x.version }}{{ x.valid ? '' : ` · ${$t('templates.invalid')}` }}</span>
-                  <span class="vendor"><i :class="x.family.startsWith('huawei') ? 'hw' : 'cs'">{{ x.family.startsWith('huawei') ? 'HW' : 'CS' }}</i></span>
+                  <VendorBadge :of="x.family" />
                   <span>{{ $t('templates.varsN', { n: x.vars }) }}</span>
                   <span v-if="x.blocks">{{ $t('templates.blocksN', { n: x.blocks }) }}</span>
                   <span v-if="x.scope === 'user'" class="tag" :title="$t('templates.ownerTip')">{{ $t('templates.ownerIs', { u: x.owner ?? '—' }) }}</span>

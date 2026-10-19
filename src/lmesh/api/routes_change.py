@@ -24,7 +24,7 @@ class ChangeBody(BaseModel):
     rollback: bool = Field(True, description="同时生成回滚脚本（目标 → 当前）")
     verify: bool = Field(True, description="在当前配置上模拟执行脚本，与目标按有效值对比")
     impact: bool = Field(True, description="附上变更的影响范围（受影响的业务对象）")
-    style: Literal["huawei", "cisco"] | None = Field(
+    style: Literal["huawei", "cisco", "nokia"] | None = Field(
         None, description="说明文字中对象的显示风格（label 字段）；不填时用配置 ui.term_style"
     )
     lang: Literal["zh-CN", "en", "pt-BR"] | None = Field(None, description="脚本说明行的语言；不填时按请求的语言")

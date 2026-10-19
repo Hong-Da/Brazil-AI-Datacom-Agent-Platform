@@ -10,6 +10,10 @@
 | `configs/bad/notes.txt` | 不是路由器配置（错误输入：无法识别厂商） | CLI 用例 `import-dir`；API 用例 `import-upload` |
 | `configs/check/huawei-issues.cfg` | 华为配置，故意包含各类检查问题：悬空引用、孤儿与级联孤儿、名称只出现在未映射行中的策略、互斥（二层口配地址）、违反规则（对等体缺对端 AS、VRF 有 RD 无 RT / 有 RT 无 RD、绑定 VRF 无地址、聚合成员口有地址），以及不应误报的对象（只在 BGP 地址族中使用的 VRF、有 Vbdif 的桥域） | 单元测试 `test_checks.py`；CLI 用例 `check-*`、`cleanup-script` |
 | `configs/check/cisco-issues.cfg` | Cisco 配置，同类问题的 Cisco 写法；route-map 的删除命令走兜底；被引用的前缀列表只有未映射的 description 行 | 单元测试 `test_checks.py`；CLI 用例 `check-filter`、`cleanup-out-file`；API 测试 `test_check_api.py` |
+| `configs/check/nokia-classic-issues.cfg` | Nokia Classic CLI 合成配置（M7-5），故意包含端口与业务问题：路由器接口绑定的端口缺省关闭、SAP 所在端口未配置（缺省关闭）、LAG 成员口关闭、SDP 没有 far-end 与保活、SDP 未启用而被伪线使用、业务与 SAP 关闭、VPLS 没有客户、VPRN 没有 RD / vrf-target、SAP 引用不存在的 QoS 策略与过滤器、VPRN 引用不存在的客户；含葡语描述 | 单元测试 `test_nokia_m75.py`；CLI 用例 `nokia-check-services` |
+| `configs/check/nokia-md-issues.cfg` | 同一组问题的 Nokia MD-CLI 写法（按名称引用不存在的过滤器、QoS 策略、客户），检查结论与 Classic 版相同 | 单元测试 `test_nokia_m75.py`；CLI 用例 `nokia-terms-style` |
+| `configs/nokia/baseline-classic-hardened.cfg`、`baseline-md-hardened.cfg` | Nokia 管理面加固后的合成配置（Classic / MD-CLI）：关闭 Telnet / FTP、管理访问过滤器、口令策略、登录空闲超时、NTP 认证、TACACS+、日志服务器；基础基线 100 分 | 单元测试 `test_nokia_m75.py` |
+| `configs/nokia/topo-pe-a.cfg`、`topo-pe-b.cfg` | 两台相连的 Nokia 合成配置（A 为 Classic、B 为 MD-CLI）：OSPF、LDP、IBGP、Epipe 伪线，故意放了 OSPF hello / dead 不一致、伪线 VC ID 不一致 | 单元测试 `test_nokia_m75.py`；CLI 用例 `nokia-consistency` |
 | `rules/bad/bad.yaml` | 故意写错的检查规则文件（路径不存在、级别不合法） | CLI 用例 `check-bad-rules`；API 测试 `test_check_api.py` |
 | `rules/cross-device-bad.yaml` | 故意写错的跨设备一致性规则文件（链路类型不存在、伪线链路用了 Schema 路径） | CLI 用例 `consistency-bad-rules` |
 | `compare/hw-pe.cfg`、`compare/cs-pe.cfg` | 内容相同的华为与 Cisco 小配置（VRF + RT、接口、环回口、VRF 静态路由），跨厂商对比时只有接口名不同；Cisco 侧显式写 `mpls label mode … per-vrf`，与华为缺省的 per-instance 标签分配一致（0.3.0 起两侧 Profile 都有这个缺省值，Cisco 缺省 per-prefix） | CLI 用例 `compare-cross-vendor`、`compare-profile-override` 等 |

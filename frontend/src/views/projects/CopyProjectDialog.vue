@@ -7,7 +7,7 @@ import { errorText, post } from '@/api'
 import type { ProjectRow } from '@/stores/project'
 import { projectBody, validSlug } from './logic'
 
-const props = defineProps<{ project: { slug: string; name: string } }>()
+const props = defineProps<{ project: { slug: string; ref: string; name: string } }>()
 const emit = defineEmits<{ (e: 'close'): void; (e: 'copied', p: ProjectRow & { copied?: { devices: number; scripts: number } }): void }>()
 const { t } = useI18n()
 
@@ -25,7 +25,7 @@ async function ok(): Promise<void> {
   error.value = ''
   try {
     const r = await post<ProjectRow & { copied?: { devices: number; scripts: number } }>(
-      `/projects/${encodeURIComponent(props.project.slug)}/copy`,
+      `/projects/${encodeURIComponent(props.project.ref)}/copy`,
       projectBody(name.value, slug.value, { devices: devices.value, scripts: scripts.value }),
     )
     emit('copied', r)

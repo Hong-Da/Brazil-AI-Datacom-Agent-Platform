@@ -16,7 +16,7 @@ import { useTerms } from '@/stores/terms'
 import { rememberedChoice, rememberedFlag } from '@/stores/prefs'
 import ForceGraph from './device-graph/ForceGraph.vue'
 import { buildForce, type FNode } from './device-graph/force'
-import { EDGE_SHORT, buildModel, domainResolver, formatValue, type Model } from './device-graph/model'
+import { EDGE_SHORT, VIEW_TREE_STYLES, buildModel, domainResolver, formatValue, type Model } from './device-graph/model'
 import type { ApiNode, DeviceRow, SchemaTree } from './device-graph/types'
 import AnalysisTree from './device-analysis/AnalysisTree.vue'
 import ScriptView from './device-analysis/ScriptView.vue'
@@ -26,6 +26,7 @@ import TcpipView from './device-analysis/TcpipView.vue'
 import { ownerObject } from './device-analysis/layers'
 import { indexScript } from './device-analysis/script'
 import { BAND_ORDER, VIEWS, type AnalysisData, type SummaryData, type ViewName } from './device-analysis/types'
+import VendorBadge from '@/components/vendor-badge.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -119,10 +120,15 @@ const labeler = computed(() => {
     return null
   }
 })
-/** 树：华为风格按视图层级，Cisco 风格按功能域（与设备配置图的“自动”一致）。 */
+/** 树：华为 / Nokia 风格按视图层级（Nokia 带配置上下文分组），Cisco 风格按功能域（与设备配置图的“自动”一致）。 */
+const contextOf = computed(() => {
+  const t = terms.terms
+  if (style.value !== 'nokia') return undefined
+  return (a: ApiNode, attrs: Record<string, unknown>) => (a.schema ? t.context(a.schema, a.key, attrs, 'nokia') : [])
+})
 const model = computed<Model | null>(() =>
   data.value?.graph
-    ? buildModel(data.value.graph, domainOf.value, { domainOrder: domainOrder.value, groupRaw: true, byDomain: style.value !== 'huawei', labeler: labeler.value })
+    ? buildModel(data.value.graph, domainOf.value, { domainOrder: domainOrder.value, groupRaw: true, byDomain: !VIEW_TREE_STYLES.includes(style.value), labeler: labeler.value, contextOf: contextOf.value })
     : null,
 )
 const ix = computed(() => (data.value?.script ? indexScript(data.value.script) : null))
@@ -332,7 +338,7 @@ onMounted(async () => {
           <tbody>
             <tr v-for="d in devices" :key="d.id" class="clickable" @click="router.push({ name: 'device-analysis', params: { id: d.id } })">
               <td><router-link class="mono" :to="{ name: 'device-analysis', params: { id: d.id } }">{{ d.name }}</router-link></td>
-              <td><span class="vendor"><i :class="d.vendor === 'huawei' ? 'hw' : 'cs'">{{ d.vendor === 'huawei' ? 'HW' : 'CS' }}</i>{{ d.vendor }}</span></td>
+              <td><VendorBadge :of="d.vendor">{{ d.vendor }}</VendorBadge></td>
               <td class="mono">{{ d.profile }}</td>
               <td class="num">{{ d.lines }}</td>
               <td class="num">{{ d.unknown }}</td>
@@ -350,7 +356,7 @@ onMounted(async () => {
       <div class="an-head">
         <h1 data-testid="analysis-device">{{ device?.name ?? data?.device ?? `#${deviceId}` }}</h1>
         <div class="an-meta">
-          <span v-if="device" class="vendor"><i :class="device.vendor === 'huawei' ? 'hw' : 'cs'">{{ device.vendor === 'huawei' ? 'HW' : 'CS' }}</i>{{ device.vendor }}</span>
+          <VendorBadge v-if="device" :of="device.vendor || device.profile">{{ device.vendor }}</VendorBadge>
           <span v-if="data?.profile" class="tag t-teal mono" title="Profile">{{ data.profile }}</span>
           <span v-if="data?.kb_version" class="tag mono">KB {{ data.kb_version }}</span>
           <span v-if="summary?.history" class="tag mono">{{ $t('device-analysis.versionN', { n: summary.history.current.seq }) }}</span>
@@ -419,7 +425,7 @@ onMounted(async () => {
           <!-- 2 配置分层 -->
           <template v-else-if="view === 'tree'">
             <div class="an-bar">
-              <span class="meta">{{ style === 'huawei' ? $t('device-analysis.treeByView') : $t('device-analysis.treeByDomain') }}</span>
+              <span class="meta">{{ VIEW_TREE_STYLES.includes(style) ? $t('device-analysis.treeByView') : $t('device-analysis.treeByDomain') }}</span>
               <button class="btn btn-sm ml-auto" @click="treeRef?.collapseAll()"><Icon name="collapse" small /><span>{{ $t('device-graph.collapseAll') }}</span></button>
               <button class="btn btn-sm" @click="treeRef?.expandSel()"><Icon name="expand" small /><span>{{ $t('device-graph.expandSel') }}</span></button>
               <button class="btn btn-sm btn-icon" :title="$t('device-graph.fit')" @click="treeRef?.fit()"><Icon name="target" small /></button>

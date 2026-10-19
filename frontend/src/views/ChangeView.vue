@@ -19,6 +19,7 @@ import ScriptPane from './m4/ScriptPane.vue'
 import { msg } from './m4/texts'
 import { noteText } from '@/i18n/note'
 import { stamp } from './m4/common'
+import { isNokiaMd, vendorKey } from '@/vendor'
 import { takeHandoff } from './m5/ask'
 import {
   ACTIONS, EDGE_VAR, REASON, chainOf, changeBody, contextBlock, dependents, edgeOf, fileName, fromQuery, opMap,
@@ -64,6 +65,11 @@ const devById = (id: number | null) => devices.value.find((d) => d.id === id) ??
 const setup = ref(fromQuery(route.query))
 const curDev = computed(() => devById(setup.value.device))
 const curFamily = computed(() => familyOf(curDev.value?.profile))
+/** 生效规则的文案键：按平台族（Nokia 区分 Classic / MD-CLI） */
+function changeRuleKey(f: string): string {
+  const v = vendorKey(f)
+  return v === 'cisco' ? 'ruleCs' : v === 'nokia' ? (isNokiaMd(f) ? 'ruleNkMd' : 'ruleNk') : 'ruleHw'
+}
 const tgtDevId = computed(() => setup.value.tdevice ?? setup.value.device)
 const vers = (id: number | null) => (id === null ? [] : versions.value[id] ?? [])
 
@@ -125,7 +131,6 @@ const rbMap = computed(() => opMap(rbOps.value))
 const fwdRows = computed(() => rowsOf(result.value))
 const rbRows = computed(() => rowsOf(result.value?.rollback))
 const pairs = computed(() => pairRollback(ops.value, rbOps.value))
-const hw = computed(() => (result.value?.family ?? curFamily.value).startsWith('huawei'))
 const counts = computed(() => result.value?.summary.by_action ?? { add: 0, modify: 0, delete: 0, side_effect: 0, mutex: 0 })
 const highRisk = computed(() => ops.value.filter((o) => o.risk === 'high').length)
 const checks = computed(() => verifyChecks(result.value?.verify, ops.value.length))
@@ -302,7 +307,7 @@ onMounted(async () => {
             </div>
           </div>
           <div class="opts">
-            <span v-if="curFamily" class="fixed-rule"><Icon name="check" small />{{ curFamily.startsWith('huawei') ? $t('change.ruleHw') : $t('change.ruleCs') }}</span>
+            <span v-if="curFamily" class="fixed-rule"><Icon name="check" small />{{ $t(`change.${changeRuleKey(curFamily)}`) }}</span>
             <span class="fixed-rule"><Icon name="check" small />{{ $t('change.ruleBlocks') }}</span>
             <label class="check"><input v-model="setup.rollback" type="checkbox" data-testid="chg-opt-rollback"><span>{{ $t('change.optRollback') }}</span></label>
             <label class="check"><input v-model="setup.verify" type="checkbox"><span>{{ $t('change.optVerify') }}</span></label>

@@ -80,7 +80,7 @@ const collapsed = ref<Set<string>>(new Set())
 function toggleGroup(d: string): void { const s = new Set(collapsed.value); if (s.has(d)) s.delete(d); else s.add(d); collapsed.value = s }
 const answer = computed(() => (q.value.trim() && rows.value.length ? quickAnswer(rows.value, visible.value) : null))
 const profById = (id: string) => allProfiles.value.find((p) => p.id === id)
-const shortId = (id: string) => id.replace(/^(huawei-atn-|cisco-iosxe-asr920-)/, '')
+const shortId = (id: string) => id.replace(/^(huawei-atn-|cisco-iosxe-asr920-|nokia-sros-)/, '')
 
 // ---------------------------------------------------------------- 详情
 const sel = ref<{ node: string; pid: string } | null>(null)

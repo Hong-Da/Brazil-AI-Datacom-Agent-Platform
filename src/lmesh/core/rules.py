@@ -23,6 +23,8 @@
     remote_as          子节点（编号中的一段，例如 interface 下的 vrf、ipv4，vrf.instance.af 下的 rt）
     af/rt              逐层往下
     group->remote_as   沿引用边到被引用的对象，再取它的子节点；group-> 表示被引用的对象本身
+    bind_port=>shutdown  M7-5：按属性的取值找到同类对象（Schema 类型为 interface 的属性找接口，ref 属性找被引用的对象类型），
+                       用于没有引用边的属性（Nokia 路由器接口绑定的端口）
     ^                  所属的上一级对象
     /mgmt.aaa          以 / 开头：从设备根节点出发（第一段写顶层对象的完整编号）
 路径在加载时按 Schema 校验，写错时给出文件、规则编号与出错的位置。
@@ -36,6 +38,8 @@
                                      实例的键（给出 path 时为路径上节点的键）在列表中 / 能被正则搜索到
     family: [平台族…]                设备的平台族在列表中（例如 huawei-vrp8）。只用于 Profile 还缺少缺省值、
                                      不得不按平台区分“没有配置时的实际行为”的情况，知识库补齐缺省值后应去掉
+    default: {node: Schema 节点, value: V}  M7-5：设备的 Profile 中该节点的缺省值等于 V（不看图里有没有这个对象）。
+                                     用于“没有配置时的实际行为”，例如 Nokia 不写 ssh 块时 SSH 服务缺省开启
     supported: Schema 节点            设备的 Profile 支持该节点（有条目且没有标 supported: false）。用于平台能力
                                      不同的情况（M4-2）：例如 Cisco 没有 Telnet 服务开关（mgmt.telnet.enabled 不支持），
                                      Telnet 是否可用只由登录线路决定——按 Profile 判断，不写死平台族
@@ -44,8 +48,9 @@
     ai: true                         REQ-031：可交给 AI 参与校验的规则（配置检查项目中可勾选），AI 的发现先经代码校验再显示；
                                      ai 规则可以不写 assert（代码不求值，只由 AI 判断）
     规则可选字段：tags（分类标签）、profiles（所属基线，见 core/baseline.py）、
-                  remedy（修复参考命令：{huawei: [命令…], cisco: [命令…]}，风格名与 knowledge/terms.yaml 一致，
-                  命令里可用 {node}、{key}）
+                  remedy（修复参考命令：{huawei: [命令…], cisco: [命令…], nokia: [命令…]}，键是显示风格名
+                  （与 knowledge/terms.yaml 一致）或平台族名（M7-5：同一风格有两种写法时，例如 nokia-sros-md 的 MD-CLI；
+                  按设备的平台族优先、再按风格选），命令里可用 {node}、{key}）
 文件级字段：kind（check 缺省 / baseline：基线文件只由 lmesh baseline 加载，lmesh check 不加载）、vars、profiles。
 """
 
@@ -65,11 +70,25 @@ from lmesh.core.kb import KnowledgeBase, read_yaml
 SEVERITIES = ("error", "warning", "info")
 SEVERITY_RANK = {"error": 3, "warning": 2, "info": 1}
 _ID = re.compile(r"^[a-z0-9][a-z0-9_.\-]*$")
-_PATH_TOKEN = re.compile(r"->|/|\^|[A-Za-z0-9_.]+")
+_PATH_TOKEN = re.compile(r"->|=>|/|\^|[A-Za-z0-9_.]+")
 _PLACEHOLDER = re.compile(r"\{([^{}]*)\}")
 PLACEHOLDERS = ("node", "key")
 TEXT_FIELDS = ("title", "message", "suggestion")
-OPS = ("exists", "count", "equals", "in", "match", "range", "key", "family", "supported", "all", "any", "not")
+OPS = (
+    "exists",
+    "count",
+    "equals",
+    "in",
+    "match",
+    "range",
+    "key",
+    "family",
+    "supported",
+    "default",
+    "all",
+    "any",
+    "not",
+)
 DEVICE_TARGET = "device"  # 设备级规则的 target
 DEVICE_NODE = "device"  # 图的设备根节点编号（与 graph.DEVICE 一致）
 KINDS = ("check", "baseline")
@@ -109,6 +128,7 @@ class Rule:
     enabled: bool = True
     paths: dict[str, list[Step]] = field(default_factory=dict)  # 条件里出现的路径 → 编译结果
     support: dict[str, set[str]] = field(default_factory=dict)  # supported 条件：Schema 节点 → 支持它的 Profile
+    defaults: dict[str, dict[str, Any]] = field(default_factory=dict)  # default 条件：Schema 节点 → {Profile: 缺省值}
     tags: list[str] = field(default_factory=list)
     profiles: list[str] = field(default_factory=list)  # 所属基线（kind=baseline 的文件）
     remedy: dict[str, list[str]] = field(default_factory=dict)  # 显示风格 → 修复参考命令
@@ -165,6 +185,16 @@ def ref_target(kb: KnowledgeBase, schema_id: str) -> str | None:
     return next((d.dst for d in kb.deps if d.kind == "reference" and d.src == schema_id), None)
 
 
+def lookup_target(kb: KnowledgeBase, schema_id: str) -> str | None:
+    """=> 按取值找对象的目标类型：Schema 类型为 interface 的属性找接口，ref 属性找被引用的对象类型（M7-5）。"""
+    node = kb.nodes.get(schema_id)
+    if node is None or node.type == "object":
+        return None
+    if node.type == "interface":
+        return "interface" if "interface" in kb.nodes else None
+    return ref_target(kb, schema_id)
+
+
 def compile_path(kb: KnowledgeBase, start: str, text: str) -> list[Step]:
     """把路径编译成步骤并按 Schema 校验；出错时抛出 ValueError(文案键, 参数)。"""
     if not isinstance(text, str) or not text.strip():
@@ -191,6 +221,12 @@ def compile_path(kb: KnowledgeBase, start: str, text: str) -> list[Step]:
                 raise ValueError("rules.err.path_not_ref", {"path": text, "segment": cur})
             steps.append(Step("deref", target))
             cur, expect_name = target, False
+        elif tok == "=>":
+            target = lookup_target(kb, cur)
+            if target is None:
+                raise ValueError("rules.err.path_not_ref", {"path": text, "segment": cur})
+            steps.append(Step("lookup", target))
+            cur, expect_name = target, False
         elif tok == "^":
             parent = owner_object(kb, cur) if cur != DEVICE_TARGET else None
             if parent is None:
@@ -198,7 +234,7 @@ def compile_path(kb: KnowledgeBase, start: str, text: str) -> list[Step]:
             steps.append(Step("parent", parent))
             cur, expect_name = parent, False
         else:
-            if steps and steps[-1].op == "deref" and not expect_name:
+            if steps and steps[-1].op in ("deref", "lookup") and not expect_name:
                 pass  # group->remote_as：-> 之后直接跟名称
             elif not expect_name:
                 raise ValueError("rules.err.path_syntax", {"path": text})
@@ -288,6 +324,16 @@ def _check_cond(
         for x in arg:
             if x not in families:
                 bad("rules.err.unknown_family", value=x, allowed=", ".join(families))
+        return
+    if op == "default":
+        if not isinstance(arg, dict) or set(arg) != {"node", "value"} or str(arg.get("node")) not in kb.nodes:
+            bad("rules.err.cond_args", op=op, need="{node: <schema node>, value}")
+            return
+        rule.defaults[str(arg["node"])] = {}
+        for pid in kb.profiles:
+            e = kb.resolve_profile(pid).entries.get(str(arg["node"]))
+            if e is not None and e.default is not None:  # 不支持配置的节点也可以登记“没有配置时的行为”
+                rule.defaults[str(arg["node"])][pid] = e.default
         return
     if op == "supported":
         if not isinstance(arg, str) or arg not in kb.nodes:
@@ -464,7 +510,7 @@ def parse_rules(kb: KnowledgeBase, docs: list[tuple[str, Any]]) -> list[Rule]:
                     bad("profiles", "rules.err.unknown_profile", name=name, allowed=", ".join(profiles) or "-")
             if kind == "baseline" and not rule.profiles:
                 bad("profiles", "rules.err.missing_field", name="profiles")
-            rule.remedy = _remedy(raw.get("remedy"), bad)
+            rule.remedy = _remedy(raw.get("remedy"), bad, {p.family for p in kb.profiles.values()})
             enabled = raw.get("enabled", True)
             if not isinstance(enabled, bool):
                 bad("enabled", "rules.err.bad_bool")
@@ -500,19 +546,21 @@ def _str_list(v: Any, name: str, bad: Any) -> list[str]:
     return list(v)
 
 
-def _remedy(v: Any, bad: Any) -> dict[str, list[str]]:
-    """修复参考命令：{显示风格: [命令…]}，风格名与 knowledge/terms.yaml 的 styles 一致。"""
+def _remedy(v: Any, bad: Any, families: set[str] | None = None) -> dict[str, list[str]]:
+    """修复参考命令：{显示风格或平台族: [命令…]}，风格名与 knowledge/terms.yaml 的 styles 一致；
+    平台族名（M7-5，例如 nokia-sros-md）用于同一风格下写法不同的平台族，选用时优先于风格。"""
     if v is None:
         return {}
     from lmesh.core.terms import STYLES
 
+    allowed = [*STYLES, *sorted(families or ())]
     if not isinstance(v, dict):
-        bad("remedy", "rules.err.bad_remedy", allowed=", ".join(STYLES))
+        bad("remedy", "rules.err.bad_remedy", allowed=", ".join(allowed))
         return {}
     out: dict[str, list[str]] = {}
     for style, cmds in v.items():
-        if style not in STYLES or not isinstance(cmds, list) or not all(isinstance(c, str) and c for c in cmds):
-            bad(f"remedy.{style}", "rules.err.bad_remedy", allowed=", ".join(STYLES))
+        if style not in allowed or not isinstance(cmds, list) or not all(isinstance(c, str) and c for c in cmds):
+            bad(f"remedy.{style}", "rules.err.bad_remedy", allowed=", ".join(allowed))
             continue
         for c in cmds:
             for ph in _PLACEHOLDER.findall(c):
@@ -647,6 +695,7 @@ class Evaluator:
         self.children: dict[str, list[str]] = {}
         self.parent: dict[str, str] = {}
         self.refs: dict[str, list[str]] = {}
+        self._by_key: dict[tuple[str, str], list[str]] | None = None  # => 用：(类型, 键文本) → 对象节点
         for a, b, d in g.edges(data=True):
             kind = d.get("kind")
             if kind == "contains":
@@ -667,6 +716,9 @@ class Evaluator:
                     nxt += [c for c in self.children.get(n, []) if self.g.nodes[c].get("schema") == st.schema]
                 elif st.op == "deref":
                     nxt += [t for t in self.refs.get(n, []) if self.g.nodes[t].get("schema") == st.schema]
+                elif st.op == "lookup":
+                    v = self.g.nodes[n].get("value")
+                    nxt += self.by_key().get((st.schema, _text(v)), []) if v not in (None, "") else []
                 else:
                     p = self.parent.get(n)
                     while p is not None and self.g.nodes[p].get("schema") != st.schema:
@@ -675,6 +727,14 @@ class Evaluator:
                         nxt.append(p)
             cur = list(dict.fromkeys(nxt))
         return [n for n in cur if live(self.g.nodes[n])]
+
+    def by_key(self) -> dict[tuple[str, str], list[str]]:
+        if self._by_key is None:
+            self._by_key = {}
+            for n, d in self.g.nodes(data=True):
+                if d.get("kind") == "object" and not d.get("negated"):
+                    self._by_key.setdefault((str(d.get("schema")), key_text(d.get("key"))), []).append(n)
+        return self._by_key
 
     def test(self, rule: Rule, node: str, cond: Any, neg: bool = False) -> bool:
         """neg：条件处在奇数层 not 之下。证据（trace）：正向条件记路径上找到的节点（取值不符或缺少时看它们），
@@ -690,6 +750,10 @@ class Evaluator:
             return str(self.g.graph.get("family") or "") in arg
         if op == "supported":
             return str(self.g.graph.get("profile") or "") in rule.support.get(str(arg), set())
+        if op == "default":
+            have = rule.defaults.get(str(arg["node"]), {})
+            pid = str(self.g.graph.get("profile") or "")
+            return pid in have and _text(have[pid]) == _text(resolve(arg["value"], rule.vars))
         variables = {**rule.vars, **{k: v for k, v in self.variables.items() if k in rule.vars}}
 
         def val(k: str, default: Any = None) -> Any:

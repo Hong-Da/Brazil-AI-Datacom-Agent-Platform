@@ -22,7 +22,7 @@ _SHOW = 40
 def _namer(c: Ctx, style: str | None) -> Any:
     if style is None:
         return None
-    if style not in ("huawei", "cisco"):
+    if style not in terms.STYLES:
         fail(c, output.EXIT_USAGE, c.t("change.bad_style"))
     kb, root = _kb(c)
     return terms.namer(root, kb, style)
@@ -106,7 +106,7 @@ def register(app: typer.Typer) -> None:
         ] = None,
         rollback: Annotated[Path | None, typer.Option("--rollback", help="把回滚脚本写到文件")] = None,
         style: Annotated[
-            str | None, typer.Option("--style", help="说明文字中对象的显示风格：huawei | cisco（不影响命令）")
+            str | None, typer.Option("--style", help="说明文字中对象的显示风格：huawei | cisco | nokia（不影响命令）")
         ] = None,
         plain: Annotated[bool, typer.Option("--plain", help="脚本不带说明行（直接粘贴到设备）")] = False,
         profile: Annotated[str | None, typer.Option(help="两份配置使用的 Profile（不给时自动识别）")] = None,

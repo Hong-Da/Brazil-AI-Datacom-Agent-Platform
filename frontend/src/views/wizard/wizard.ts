@@ -2,7 +2,7 @@
 
 export interface WField {
   key: string
-  kind: string // str / int / choice / host / port / dburl / token / secret / path
+  kind: string // str / int / bool / choice / host / port / dburl / token / secret / path（bool 的 choices 是 true / false）
   default: string | number
   choices: string[]
   min: number | null

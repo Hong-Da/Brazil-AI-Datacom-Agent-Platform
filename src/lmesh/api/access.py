@@ -20,6 +20,7 @@ PUBLIC: set[str] = {
     "/auth/status",
     "/auth/login",
     "/auth/bootstrap",
+    "/auth/register",
     "/auth/logout",
 }
 

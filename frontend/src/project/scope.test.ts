@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activityKey, isProjectApi, legacyPath, legacyTarget, PROJECT_PAGE_NAMES, scopedPath, withProject } from './scope'
+import { activityKey, isProjectApi, legacyPath, legacyTarget, PROJECT_PAGE_NAMES, refFromParam, refParam, refPath, scopedPath, withProject } from './scope'
 
 describe('项目路径改写', () => {
   it('设备相关接口改走 /projects/<项目>/…，查询参数保留', () => {
@@ -7,6 +7,8 @@ describe('项目路径改写', () => {
     expect(scopedPath('/devices/12/graph?raw=true', 'oam')).toBe('/projects/oam/devices/12/graph?raw=true')
     expect(scopedPath('/check-projects/3/scripts/9/revisions/2/restore', 'oam')).toBe('/projects/oam/check-projects/3/scripts/9/revisions/2/restore')
     expect(scopedPath('/summary', 'a-b')).toBe('/projects/a-b/summary')
+    // 别人的项目（属主/标识）：编码成 %2F，后端在路由前还原
+    expect(scopedPath('/devices', 'liwei/oam')).toBe('/projects/liwei%2Foam/devices')
   })
   it('全局接口、已带项目的路径、没有当前项目时原样返回', () => {
     expect(scopedPath('/kb/schema', 'oam')).toBe('/kb/schema')
@@ -29,11 +31,25 @@ describe('页面路由', () => {
     expect(legacyTarget('/check-projects', 'oam')).toBe('/p/oam/scripts')
     expect(legacyTarget('/check-projects/4?script=2', 'oam')).toBe('/p/oam/scripts/4?script=2')
     expect(legacyTarget('/check?device=1', 'oam')).toBe('/p/oam/check?device=1')
+    expect(legacyTarget('/graph/12', 'liwei/oam')).toBe('/p/liwei/oam/graph/12')
+  })
+  it('项目引用与路由参数（标识按属主唯一）', () => {
+    expect(refParam('oam')).toEqual(['oam'])
+    expect(refParam('liwei/oam')).toEqual(['liwei', 'oam'])
+    expect(refPath('li wei/oam')).toBe('li%20wei/oam')
+    expect(refFromParam(['liwei', 'oam'])).toBe('liwei/oam')
+    expect(refFromParam('oam')).toBe('oam')
+    expect(refFromParam(['a', 'b', 'c'])).toBeNull()
+    expect(refFromParam([])).toBeNull()
   })
   it('去项目页面时补上当前项目，已有或不是项目页面时不变', () => {
-    expect(withProject({ name: 'devices' }, 'oam')).toEqual({ name: 'devices', params: { project: 'oam' } })
-    expect(withProject({ name: 'device-graph', params: { id: 3 } }, 'oam')).toEqual({ name: 'device-graph', params: { id: 3, project: 'oam' } })
-    expect(withProject({ name: 'devices', params: { project: 'x' } }, 'oam')).toEqual({ name: 'devices', params: { project: 'x' } })
+    expect(withProject({ name: 'devices' }, 'oam')).toEqual({ name: 'devices', params: { project: ['oam'] } })
+    expect(withProject({ name: 'device-graph', params: { id: 3 } }, 'oam')).toEqual({ name: 'device-graph', params: { id: 3, project: ['oam'] } })
+    expect(withProject({ name: 'devices', params: { project: 'x' } }, 'oam')).toEqual({ name: 'devices', params: { project: ['x'] } })
+    // 别人的项目：网址是 /p/属主/标识/…
+    expect(withProject({ name: 'devices' }, 'liwei/oam')).toEqual({ name: 'devices', params: { project: ['liwei', 'oam'] } })
+    expect(withProject({ name: 'devices', params: { project: 'zhang/oam' } }, 'oam')).toEqual({ name: 'devices', params: { project: ['zhang', 'oam'] } })
+    expect(withProject({ name: 'devices', params: { project: ['zhang', 'oam'] } }, 'oam')).toEqual({ name: 'devices', params: { project: ['zhang', 'oam'] } })
     expect(withProject({ name: 'templates' }, 'oam')).toEqual({ name: 'templates' })
     expect(withProject('/devices', 'oam')).toBe('/devices')
     // 还没有当前项目：改用旧网址（守卫再跳到当前项目）

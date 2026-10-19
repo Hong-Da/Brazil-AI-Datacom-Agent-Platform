@@ -48,7 +48,7 @@
 | REQ-023 | 特性能力查询 | 任务文档“功能需求” | M5 | `core/features.py`、`lmesh feature` / `feature-diff`、`GET /features` | 后端与界面完成（M5-4） | 界面完成（见“M5 界面结果”），待用户评审 |
 | REQ-024 | AI 查询与护栏 | 任务文档“功能需求” | M5 | `core/gquery.py`、`core/guard.py`、`core/ask.py`、`lmesh query / guard / ask / generate`、`POST /query`、`/guard`、`/ask`、`/generate` | 后端与界面完成（M5-5） | 界面完成（见“M5 界面结果”），待用户评审 |
 | REQ-025 | 报告导出：对比与检查结果导出（中英双语） | 任务文档“里程碑与版本规划”0.2.0 | M2 | `core/report.py`、`lmesh report`、`POST /reports` | 已完成（v0.2.0） | 中文 / English × HTML / Markdown（决策 D-0016） |
-| REQ-026 | 显示风格：华为 / Cisco 两套叫法与命令写法，统一 Schema 以华为为基准，图按视图层级展示，界面、报告随时切换（默认华为） | 用户 2026-10-18 | M2 补充（0.2.1） | `knowledge/terms.yaml`、`core/terms.py`、`GET /kb/terms`、配置 `ui.term_style`、报告 `style` | 已完成（v0.2.1） | |
+| REQ-026 | 显示风格：华为 / Cisco 两套叫法与命令写法，统一 Schema 以华为为基准，图按视图层级展示，界面、报告随时切换（默认华为） | 用户 2026-10-18 | M2 补充（0.2.1） | `knowledge/terms.yaml`、`core/terms.py`、`GET /kb/terms`、配置 `ui.term_style`、报告 `style` | 已完成（v0.2.1） | M7-5 加第三种风格 Nokia（REQ-037） |
 | REQ-027 | 关系图谱视图：类似笔记软件的关系图，每个对象一个圆点、连线表示引用与依赖、力导向布局、可拖动缩放 | 用户 2026-10-18 | M2 补充（0.2.1） | Web 设备配置图 | 已完成（v0.2.1） | |
 | REQ-028 | 隐藏配置的区分：默认值、派生值在各处有统一的样式与图例，可开关显示；配置翻译时处理不同厂商的默认值差异 | 用户 2026-10-18 | M2 补充（0.2.1）；翻译部分 M3 | Web 各视图；M3 翻译 | 已完成（v0.2.1） | 含默认值的完整配置文本随 M3 渲染器实现 |
 | REQ-029 | 默认监听端口改为 9090（先由 9000 改为 9080，用户随后再改为 9090） | 用户 2026-10-18 | M4 补充 | `core/config.py` 的 `server.port`、config.example、文档 | 已完成 | Linux 测试机 9090 被其他 Docker 服务占用，在 Linux 上测试时临时用 9091 |
@@ -62,6 +62,10 @@
 | REQ-037 | 接入 Nokia 7750 SR（SR OS）：Classic CLI 与 MD-CLI 两种格式，映射到统一 Schema，支持解析、往返、对比、检查、翻译等 | 用户 2026-10-19 | M7（0.7.0） | `knowledge/` 新平台族、解析器 MD-CLI 分块扩展、Profile | 进行中 | 文档与知识准备先行，与 M6 并行 |
 | REQ-038 | 删除设备与单个配置版本（确认对话列出连带删除的内容；被配置检查项目作基线时提示；最后一个版本不能单独删除）；CLI `lmesh device delete`、`DELETE /api/v1/devices/{id}`；所有登录账号都可删除（删除记入日志），M6 起项目属主与“可编辑”成员可删除项目内的设备与配置（只读成员不可，公共设备库仅管理员，引用的公共设备为解除引用） | 用户 2026-10-19 | M5 补充（问题修复） | 设备接口、设备列表与版本历史页 | 已完成 | 用户确认现在做；用户随后要求每个用户都可以删除项目下的配置；现阶段所有登录账号都可删除，M6 项目权限另做；实现见“删除设备与配置版本（REQ-038）”一节 |
 | REQ-039 | 用户自助注册：设置中开启 / 关闭注册（默认关闭）；可选注册后直接生效或需管理员审核（默认需审核）；注册频率限制 | 用户 2026-10-19 | M6（0.6.0） | 设置项、登录页注册入口、注册接口、账号管理“待审核”、注册后自动建工作空间与默认项目 | 待开发 | 设计见“用户自助注册（REQ-039）”一节，经用户确认 |
+| REQ-040 | AI 接口：管理员配置一个或多个 AI 接口并设定是否允许公共使用；每个用户可选用个人 API 或允许的公共 API | 用户 2026-10-19 | M6（0.6.0） | AI 接口表、设置页、账号设置“我的 AI”、AI 调用按用户选择的接口 | 待开发 | 设计见“AI 接口：公共与个人（REQ-040）”一节 |
+| REQ-041 | AI 增强：为各功能新增内置 AI skill（日常分析、变更与割接、规范与合规、知识库构建、报告共 21 个），AI 只给建议，代码验证后由用户确认生效 | 用户 2026-10-19 | M8（0.8.0） | `knowledge/ai-skills/`、各功能页的 AI 入口、审核与采纳流程 | 待开发 | 设计见“AI 增强（REQ-041）”一节 |
+| REQ-042 | 网元拓扑视图的设备图标：按设备角色与类型设计图标，显示厂商与平台 | 用户 2026-10-19 | M8（0.8.0） | 拓扑视图、关系图谱、图标资源 | 待开发 | 设计见“拓扑设备图标（REQ-042）”一节；先做预览 |
+| REQ-043 | 所有视图可以全屏显示与操作（配置图、关系图谱、拓扑、设备分析各视图、对比、脚本编辑器等） | 用户 2026-10-19 | M7（0.7.0） | 前端通用全屏组件 | 待开发 | 设计见“视图全屏（REQ-043）”一节 |
 
 ## 待确认
 
@@ -81,7 +85,7 @@
 - A4 文本编码：UTF-8（bat 文件 UTF-8 无 BOM + chcp 65001 + CRLF）【默认】
 - A5 编码行为准则：Karpathy guidelines（已安装）【默认】
 - A6 一键运行脚本：`start.bat` / `start.sh`【默认】
-- A7 版本号：语义化版本（用户已确认）。M1 开发期间用 `0.0.x`，M1 验收打 `0.1.0`，M2–M7 依次对应 `0.2.0`–`0.7.0`（M6、M7 为用户 2026-10-19 新增）；开发阶段完成、新需求、问题修复升修订号【默认 + 第二轮 Q8】
+- A7 版本号：语义化版本（用户已确认）。M1 开发期间用 `0.0.x`，M1 验收打 `0.1.0`，M2–M8 依次对应 `0.2.0`–`0.8.0`（M6、M7、M8 为用户 2026-10-19 新增）；开发阶段完成、新需求、问题修复升修订号【默认 + 第二轮 Q8】
 - A8 文档语言：中文【用户修改】
 
 ## 技术栈
@@ -888,6 +892,7 @@ REQ-021～REQ-024。界面在 M5 界面阶段单独做；后端返回结构按 `
 - T2 测试范围：单元、CLI、API、文档；另加“往返回归”（全部样本的 roundtrip）【默认】
 - T3 一键测试脚本：`test.bat` / `test.sh`【默认】
 - T4 在线测试：需要【默认】
+- 测试时机【用户 2026-10-19】：开发阶段完成后跑增量测试（按改动范围挑选：只改前端 / 项目权限时跑前端单元与相关 API、CLI 用例；动了解析器、建图、渲染、翻译或知识库时再加往返与翻译 / 变更回归）；提交前加跑 e2e；里程碑验收与打版本前在 Windows 与 Linux 上跑全量。全量测试并行执行提速（pytest-xdist）。
 - 规则见 `tests/README.md`。
 
 ## L Linux 开发与测试环境
@@ -1262,7 +1267,7 @@ ports:                       # 端口映射：按顺序，第一条命中生效
 
 M6-2（用户工作空间与项目）与 M6-4（个人 API 令牌）的后端；界面在 M6-5 做。决策 D-0195～D-0206（另有设计阶段的 D-0172～D-0179）。
 
-- 数据（迁移 `0007_projects`，接在 `0006` 之后，SQLite 与 PostgreSQL 都测过从 0006 样本数据升级）：`projects`（标识 `slug` 全站唯一、属主、设置 `settings`：`style` 显示风格 / `rule_set` 翻译规则集 / `baseline` 安全基线、`migrated_from`、`last_activity`）、`project_members`（edit / read）、`workspaces`（每个账号一个，记录默认项目）、`project_device_refs`（引用公共设备，`version_id` 为空表示跟随最新）、`project_rule_overrides`、`api_tokens`、`audit_events`、`user_assets`（我的模板 / 我的规则集的归属）；`devices` 增加 `project_id`（为空 = 公共设备库）、`origin`（import / copy / migrated）、`origin_note`，名称由全局唯一改为项目内唯一；`check_ignores` 增加 `project_id`（同一台公共设备在不同项目里的忽略互不影响）；`check_projects` 增加 `project_id`。SQLite 重建被引用的表时会级联删除子表，`store.upgrade` 在迁移期间关闭外键。
+- 数据（迁移 `0007_projects`，接在 `0006` 之后，SQLite 与 PostgreSQL 都测过从 0006 样本数据升级）：`projects`（标识 `slug`，原为全站唯一，M6-7 起按属主唯一，见下文“标识按属主唯一”、属主、设置 `settings`：`style` 显示风格 / `rule_set` 翻译规则集 / `baseline` 安全基线、`migrated_from`、`last_activity`）、`project_members`（edit / read）、`workspaces`（每个账号一个，记录默认项目）、`project_device_refs`（引用公共设备，`version_id` 为空表示跟随最新）、`project_rule_overrides`、`api_tokens`、`audit_events`、`user_assets`（我的模板 / 我的规则集的归属）；`devices` 增加 `project_id`（为空 = 公共设备库）、`origin`（import / copy / migrated）、`origin_note`，名称由全局唯一改为项目内唯一；`check_ignores` 增加 `project_id`（同一台公共设备在不同项目里的忽略互不影响）；`check_projects` 增加 `project_id`。SQLite 重建被引用的表时会级联删除子表，`store.upgrade` 在迁移期间关闭外键。
 - 升级（用户确认的做法，D-0204）：每个账号建工作空间；有账号或有设备时建默认项目（标识 `default`、名称“默认项目”，属于第一个启用的管理员；没有账号时属主为空，第一个管理员创建后接管所有没有属主的项目），现有设备、配置版本、导入记录、检查忽略项移入（`origin = migrated`）；已有的配置检查项目各自转为项目（标识由名称生成，属主为空的归第一个管理员），基线设备只复制作为基线的那一个版本为该项目的私有设备（D-0175），固定的基线版本对应到复制出的版本；属主的默认项目设为他的第一个转出的项目。
 - 当前项目（D-0197）：`core/projects.py` 用上下文变量保存当前项目与调用者；`importer.list_devices`、`workbench.device_rows`、`graphstore.latest_version / build_for_version`、`compare.versions / side_from_*`、`history` 的时间线与标签、`ignores`、`device_delete`、`checkproj`、`report.version_meta`、`script_check.baseline_from_db`、未识别行汇总都按它过滤；不在项目里的设备与版本一律按“不存在”处理（404）。没有当前项目时不过滤（单元测试直接调用 core、管理员的全局操作）；普通账号调用全局接口时当前项目为其默认项目（延迟解析）。引用并固定了版本的公共设备，“最新版本”取固定的版本（设备列表的 `latest_version_id`、对比 / 检查 / 拓扑 / 导出用的当前版本），版本列表另标 `current`。
 - 设备归属（D-0200）：导入落到当前项目（没有当前项目时为默认项目），同名设备在项目内作为新版本；`public=True`（管理员的公共设备库导入）时落到公共设备库。项目里引用了同名公共设备时导入拒绝（`import.name_is_public_ref`）；引用时已有同名设备 409；复制为私有（`copy_device`）只复制一个版本，同名时自动加 `-2`、`-3`，`origin_note` 记录来源项目、设备与版本序号。项目里对公共设备只能查看、计算、解除引用（“删除”= 解除引用，本项目对它的忽略项一并删除、以它为基线的检查项目基线置空）；贴标签与删除版本只限管理员。公共设备还有项目引用时不能删除（409 列出项目，`force` 一并解除引用）。
@@ -1275,6 +1280,24 @@ M6-2（用户工作空间与项目）与 M6-4（个人 API 令牌）的后端；
 - 命令行（D-0196）：全局 `--project <项目>`（`-P`，立即解析，不存在退出码 4；不带时默认项目）与 `--as <账号>`（默认第一个启用的管理员）；`lmesh project list|show|create|delete|members|transfer|copy|default|ref`、`lmesh token create|list|revoke`、`lmesh public-device list|import|delete`；`lmesh user add/set-role` 接受 `maintainer`，`lmesh user delete --transfer-to / --delete-projects`。命令行直接操作本机数据库，权限等同管理员。
 - 测试：单元 `tests/unit/test_projects.py`（迁移 0007 从 0006 样本升级、项目内可见性、引用与固定版本、复制、删除项目、成员与转交、规则调整、默认项目与第一个管理员接管、检查项目归属、个人令牌；SQLite 与 PostgreSQL 各一次）；API 用例 `tests/cases/api_cases.projects.toml`（新准备方式 `configured-projects`）与流程用例 `tests/api/test_projects_api.py`（项目流程、公共设备库与固定版本、兼容别名与响应头、个人令牌、知识库权限与建议、私有模板与规则集、删除账号、权限矩阵）；CLI 用例 `tests/cases/cli_cases.projects.toml`。
 - 留给 M6-5（界面）：项目切换器与 `/p/<项目>/…` 路由（D-0172）调用项目路径接口；设备列表行的 `source` / `policy` / `newer_available` / `origin_note` 支撑“添加设备”“公共 · 跟随最新 / 固定”等标记；`GET /projects` 的 `counts` 与 `last_activity`（`action` 为“方法 路由”，界面按路由给出三语说明）支撑“我的项目”卡片；`GET /admin/projects`、`GET /admin/audit`、`GET /public-devices` 支撑管理员页面；`GET /workspace` 支撑顶栏。
+
+- 标识按属主唯一（用户 2026-10-19 评审 M6 预览时改选“每个属主内唯一”，原先按推荐的“全站唯一”实现，决策 D-0174 已标为改回；
+  M6-7 实现，决策 D-0230～D-0234）：
+  - 数据：迁移 `0008`（接在 `0007` 之后，不改 0007）把 `projects` 的唯一约束从 `slug` 改为 `(owner_id, slug)`；属主为空的项目（没有账号时迁移出的默认项目）
+    之间标识也不能重复（部分唯一索引 `uq_projects_ownerless_slug`）；第一个管理员接管它们时与他已有的标识重名就加编号。SQLite 与 PostgreSQL 都测过从 0007 样本数据升级。
+  - 解析 `{p}` / `--project`（`core/projects._find`）：`属主/标识`（接口路径里写 `属主%2F标识` 或 `属主~标识`）精确；只写标识时先找调用者自己的
+    （全局令牌与没有账号的命令行为第一个管理员的），没有时在调用者能访问的项目（成员；管理员为全部）里找，唯一匹配就用它，多个时报错
+    （API 409 / code 1003，命令行退出码 2，键 `projects.ambiguous`，`data.candidates` 列出 `属主/标识`），不静默挑一个；编号仍可用。
+  - 新建、复制、改标识时只在属主自己的项目里查重（“你已有同名项目”）；转交时新属主已有同名标识返回 409 并在 `data.suggested` 给出可用的标识，
+    可以用 `slug`（命令行 `--slug`）同时改名；删除账号整批转交时遇到重名自动加编号。新账号的默认项目标识由 `<用户名>-default` 改为 `default`。
+  - 规范引用：项目返回体增加 `ref`（自己的项目与属主为空的项目写标识，别人的写 `属主/标识`）与 `full_ref`（总是 `属主/标识`）；
+    前端网址、最近用过的项目、旧路径的 `Link` 头、命令行 `project list` 都用 `ref`；公共设备库的引用列表、复制设备的来源说明用 `full_ref`。
+  - 前端：项目路由改为 `/p/:project+/…`，自己的项目 `/p/<标识>/…`，别人的 `/p/<属主>/<标识>/…`（页面路径里的编号段只接受数字，两种写法不会混淆）；
+    网址不是规范写法时换成规范网址；只写标识而有歧义时回到“我的项目”并列出候选；接口路径把 `属主/标识` 编码成 `%2F`（服务端在路由前还原，
+    `api/scoping.add_project_ref_rewrite`）；新建项目重名提示“你已有同名项目”，转交时新属主重名在对话框里改用新标识。
+  - 测试：单元 `tests/unit/test_project_refs.py`（迁移 0008、解析与歧义、改标识与转交、删除账号批量转交、属主为空的项目）；API `tests/api/test_project_refs_api.py`
+    （两个用户同名项目互不影响、成员访问别人的同名项目、歧义 409、管理员与全局令牌、转交重名、Link 头）；CLI 用例 `project-same-slug-*`、`project-list-refs`
+    （准备方式 `configured-samename`）；vitest（路由参数、规范引用、歧义候选）；e2e `m6.spec.ts` 的同名项目用例。
 
 ### 实现结果（M6 前端）
 
@@ -1323,6 +1346,85 @@ M6-3（权限模型）的后端。决策 D-0178、D-0197、D-0198、D-0205、D-0
 - 新账号：角色为普通用户；首次登录（或批准时）自动建工作空间与默认项目（与 REQ-035 一致）。
 - 关闭注册时：登录页不显示注册入口，注册接口返回明确错误；已注册的待审核账号仍可由管理员处理。
 - 审计：注册、批准、拒绝都记入审计日志（不记录密码）。
+
+### 实现结果（REQ-039）
+
+M6-7 实现。预览 `DevelopDocs/ui-preview/REQ-039/`（登录与注册、账号管理，`index.html` 评审入口）做好后未等评审先编码（决策 D-0235），实现中的取舍见 D-0236。
+
+- 配置项（`[auth]`，首次运行向导放在“安全”一步，`config/config.example.toml` 同步；配置项新增开关类型 `bool`）：`registration = false`、
+  `registration_approval = true`、`registration_rate_per_hour = 5`（1–1000）。管理员在账号管理页的“自助注册”面板修改（`GET / PUT /auth/settings`，
+  写入配置文件并立即生效）。
+- 数据：迁移 `0008`（与项目标识的修改同一个迁移）给 `users` 增加 `status`（active / pending）与 `origin`（admin / register），已有账号为 active / admin。
+- 接口：`GET /auth/status` 返回 `registration: {open, approval}`（还没有任何账号时不开放）；`POST /auth/register`（不需登录）：关闭时 403
+  （“注册未开放，请联系管理员”），同一来源地址超过频率 429，用户名规则与重名沿用账号管理；需要审核时账号为待审核、不能登录（登录返回 403，
+  `data.reason = pending`，只在密码正确时这样提示），不需审核时直接登录并建好默认项目；管理员 `GET /users?status=pending`、
+  `POST /users/{u}/approve`（批准时建工作空间与默认项目）、`POST /users/{u}/reject`（删除该账号，用户名可再注册）。
+- 频率限制：按来源地址在进程内存里滑动计数（一小时窗口，被拒的尝试不计入，重启后清零）。
+- 审计：注册、批准、拒绝、修改注册设置写入 `audit_events` 与 `logs/audit.log`（不含密码）。
+- 命令行：`lmesh user list --pending`、`lmesh user approve|reject <名称>`（不是待审核退出码 1，不存在退出码 4）。
+- 网页：登录页在注册开放时显示“没有账号？注册”，待审核账号登录时说明“正在等待管理员审核”；注册页 `/register`（规则逐条打勾、结果页：等待审核 /
+  已登录进入首页 / 注册未开放）；账号管理：待审核提示条、统计里的“待审核”、“全部 / 待审核”筛选、“自助注册”来源标记、批准 / 拒绝（拒绝前确认）、
+  “自助注册”设置面板。与预览的差异：导航“账号管理”旁的待审核数字没有做（需要改共享的外壳并在每页查询，改为账号管理页里的提示条与统计）。
+- 测试：单元 `tests/unit/test_registration.py`；API `tests/api/test_registration_api.py`（开关、审核、频率限制、待审核不能登录、批准后能登录并有默认项目、
+  拒绝、关闭时注册被拒、不需审核时注册即登录、审计）；CLI 用例 `user-list-pending`、`user-approve`、`user-reject`、`user-approve-not-pending`、
+  `user-reject-missing`（准备方式 `configured-pending`）；vitest（注册表单检查、设置面板、待审核状态与计数）；e2e `frontend/e2e/req039.spec.ts`
+  （管理员开启注册 → 新用户注册 → 待审核 → 管理员批准 → 新用户登录看到自己的默认项目）。
+
+## AI 接口：公共与个人（REQ-040）
+
+用户 2026-10-19 提出：管理员配置 API，但可以设定是否开启公共使用；每个用户可以选择使用个人 API，也可以使用允许的公共 API。做法（用户原话为准，细节为 Claude 按推荐定下，记入决策记录）：
+
+- 管理员可配置一个或多个 AI 接口（类型、地址、API Key、各用途模型），每个接口有“允许公共使用”开关；现有 `[ai]` 配置升级后成为第一个接口，默认允许公共使用（保持现有行为）。
+- 用户在账号设置中选择 AI 来源：个人 API（自己填写地址、Key、模型）或某个允许公共使用的接口；管理员关闭公共使用后，选了它的用户提示改选；都不可用时 AI 功能按“未配置”降级，核心功能照常。
+- 个人 Key 加密保存，只显示是否已设置，管理员也看不到；个人接口只用于本人发起的请求（含本人发起的后台任务）。
+- AI 调用记录标明用户与接口（不含 Key）；AI 设置页的连接测试对个人接口同样可用。
+- 先做预览页 `DevelopDocs/ui-preview/REQ-040/` 再编码。
+
+## AI 增强（REQ-041）
+
+用户 2026-10-19 要求梳理内置 AI 在各功能中的用法。经用户确认：五组全部做、P1～P3 全部做、AI 结果一律先作为建议（代码验证通过后由用户逐条或批量采纳）、排期新里程碑 M8（0.8.0），M7 之后。原则：确定性结论由代码在图上计算，AI 只给建议与文字；AI 输出先入图或进审核队列，经代码校验后展示。
+
+| 组 | skill | 应用场景 | 代码把关 | 优先级 |
+|---|---|---|---|---|
+| 日常分析 | 拓扑整理 | 按设备名、接口描述、角色特征推断角色（核心 / 汇聚 / 接入 / PE / P / CE）、按站点分组分层排版、推测未解析对端 | 只改视图分组、标签、布局；推测对端标“AI 推测”，代码核对地址与接口后才连线 | P1 |
+| 日常分析 | 设备摘要 | 交接、巡检时一段话说明设备的角色、业务、上下联、特殊配置 | 数字与对象由代码提供，出现图中没有的对象则拒绝 | P1 |
+| 日常分析 | 变化解读 | 对比、版本历史的差异归纳成变更意图并按风险排序 | 每个意图必须挂上对应差异条目 | P1 |
+| 日常分析 | 问题解读与修复 | 检查、一致性问题的原因、优先级、修复脚本草稿，判断哪端更可能出错 | 修复脚本过脚本检查，在模拟图上复检问题消失 | P1 |
+| 日常分析 | 影响说明 | 依赖链转为运维语言：影响业务、操作顺序、观察点 | 影响范围由代码计算 | P2 |
+| 日常分析 | 能力对比说明 | 选型、迁移前解释两家特性差异与替代写法 | 写法来自命令卡 | P3 |
+| 变更与割接 | 变更意图转脚本 | 对现网设备用自然语言描述变更 | AI 只改目标图，脚本由代码生成，经影响分析与模拟执行 | P1 |
+| 变更与割接 | 割接方案文档 | 割接步骤、检查点、回退条件、时间窗口，中英双语 | 命令全部引用代码生成的脚本 | P2 |
+| 变更与割接 | 翻译未支持项处理 | 不支持或原文保留的行给出目标平台等价写法 | 用目标平台命令卡解析验证，逐条确认 | P1 |
+| 变更与割接 | 命名映射建议 | 新旧设备接口名、VPN 名风格不同时建议映射规则（REQ-032） | 应用后列出映射表，冲突与遗漏由代码报出 | P2 |
+| 变更与割接 | 模板提取 | 从同类设备提取公共模板与变量 | 用各设备取值渲染须与原配置等价 | P2 |
+| 规范与合规 | 规范转规则（含规则编写助手） | 公司配置规范或安全要求文字转为检查规则草稿；维护员一句话描述生成规则 | 知识库校验、样本试跑列出命中，进审核队列 | P1 |
+| 规范与合规 | 基线例外说明 | 起草例外理由与补偿措施 | 只生成文字 | P3 |
+| 规范与合规 | 脱敏复核 | 找出代码规则漏掉的敏感信息（描述中的客户名、电话等） | 只允许本地模型 | P2 |
+| 知识库构建 | 未识别行归因 | 判断缺命令卡、版本差异或写法变体，起草命令卡 | 进审核队列，重新解析后未识别行须减少 | P1 |
+| 知识库构建 | 命令卡审核助手 | 对照文档指出参数类型、默认值、取消写法可疑的卡 | 只标注，人工决定 | P2 |
+| 知识库构建 | 映射建议 | 新厂商命令卡建议映射到 Schema 节点 | 知识库校验、往返、翻译回归通过才发布 | P2 |
+| 报告 | 报告摘要 | 检查、基线、对比、割接报告开头的中英文摘要 | 数字由代码填入 | P2 |
+
+另有已存在的 6 个 skill（问答 2 个、配置生成、脚本审查、命令卡语法修正、skill 进化）。每个新 skill 走 REQ-033 的管理与进化机制，使用 REQ-040 的用户 AI 接口选择。
+
+## 拓扑设备图标（REQ-042）
+
+用户 2026-10-19 提出：网元拓扑视图需要设计设备的图标。做法（Claude 按推荐，等预览评审）：
+
+- 图标按设备角色区分：核心、汇聚、接入、PE、P、CE、未解析对端、外部网络；角色未知时按平台类型给出默认图标（例如 ATN 为接入路由器、7750 为核心 / 边缘路由器）。
+- 图标上叠加厂商标识（HW / CS / NK）与状态角标（有检查问题、一致性问题、配置过期）。
+- 线条风格统一、单色可着色，明暗主题两套，72 / 32 / 16 像素都可辨认；用于拓扑视图、关系图谱、设备列表。
+- 角色来源：用户手工标注优先，其次 M8 的“拓扑整理”AI 建议（采纳后），最后按平台默认。
+- 先在 `DevelopDocs/ui-preview/REQ-042/` 做预览页，评审后随 M8 实现。
+
+## 视图全屏（REQ-043）
+
+用户 2026-10-19 提出：所有视图可以全屏显示操作。做法（Claude 按推荐）：
+
+- 前端通用全屏组件：每个图形视图、视图页签、编辑与对比区域右上角有“全屏”按钮（快捷键 F，Esc 退出），用浏览器全屏；浏览器不支持时退回页面内最大化。
+- 全屏时保留该视图的工具栏、图例、选中对象面板与右键菜单，操作与非全屏一致；退出后保持缩放、选中与滚动位置。
+- 范围：设备配置图、关系图谱、拓扑与一致性、设备配置分析五个页签、依赖分析、影响分析、配置对比、翻译两侧原文、配置检查项目的脚本编辑器、版本历史、表格导出预览。
+- 文案三语，明暗主题；e2e 覆盖进入、操作、退出。
 
 ## 接入 Nokia 7750 SR（REQ-037）
 
@@ -1581,3 +1683,69 @@ M6-3（权限模型）的后端。决策 D-0178、D-0197、D-0198、D-0205、D-0
 - 规范渲染里同一对象的属性行先后按图中的顺序，不完全是 info 的字母序（不影响解析与执行）。
 
 **待真机核实**：info / info flat / full-context 的细节（空列表项写 `{ }` 还是换行的 `{` `}`、叶子列表单个取值是否总带括号、字符串取值什么时候加引号）、`edit-config private` 脚本在 `[pr:/configure]` 下按相对路径粘贴的写法、删除业务前是否必须 `admin-state disable`、VRRP message-interval 的单位（文档缺省值 10 推断为 0.1 秒）。
+
+## 接入 Nokia 7750 SR（REQ-037）（M7-5 结果）
+
+2026-10-19 完成 M7-5（第三种显示风格 Nokia、Nokia 的检查规则与安全基线、跨设备一致性适配、补齐写法）。决策 D-0237～D-0243。
+
+**显示风格 Nokia**（D-0237）：`terms.yaml` 为全部 119 类对象登记 nokia 写法（以 Classic CLI 为准；MD-CLI 元素名相同、层级用花括号；Nokia 没有对应对象的写成全角括号说明，例如 HQoS 模板、1588 ACR），97 个属性中 82 个补了 nokia 关键字，另为 Nokia 特有属性（SAP 的 ingress qos / filter、spoke-sdp、far-end、keep-alive、family 等）单独登记；`core/terms.py` 的 `REQUIRED_STYLES` 加入 nokia（`terms.check` 要求三种都登记），属性没有 nokia 关键字时按华为写法显示。label 候选的条件支持 `字段~正则`（接口：端口写 `port 1/1/4`、LAG 写 `lag-1`、路由器接口写 `interface "to-CE1"`）。新增 `contexts` 段：按视图层级显示时 Nokia 的顶层对象按配置上下文分组（port、lag、router Base、router Base › policy-options、service、service › vprn X、filter、qos、log、system），`Terms.context()` 与前端 `terms.ts` 逐条一致（`scripts/terms_golden.py` 加了 4 份 Nokia 样本与上下文，golden 测试覆盖三种风格）。后端各接口的 `style` 参数、配置项 `ui.term_style`（向导与 `config.example.toml` 同步）、CLI 的 `--style` 都接受 nokia；特性查询的关键词也匹配 Nokia 写法。
+
+**检查规则**（D-0238，`knowledge/rules/service.yaml`，17 条，Classic 与 MD-CLI 共用节点）：
+
+| 规则 | 级别 | 判断 |
+|---|---|---|
+| `port.shutdown_with_sap` | error | 接入点（SAP）所在的端口 / LAG 关闭（按有效值：Nokia 端口缺省关闭，只因 SAP 出现的端口也按关闭） |
+| `port.shutdown_bound` | error | 路由器接口绑定的端口 / LAG 关闭（路径 `bind_port=>shutdown`） |
+| `port.lag_member_shutdown` | warning | LAG 成员口关闭（通用语义，华为 / Cisco 样本没有命中） |
+| `sdp.far_end_missing`、`sdp.keep_alive_disabled` | error / warning | SDP 没有 far-end；启用的 SDP 没有开保活（缺省关闭） |
+| `service.pw_sdp_shutdown`、`service.vpls_sdp_shutdown` | error | Epipe 伪线、VPLS mesh / spoke-sdp 使用的 SDP 关闭（SDP 缺省关闭） |
+| `service.{epipe,vpls,vprn,ies}_shutdown` | warning | 业务关闭（缺省关闭，没写 no shutdown / admin-state enable 也算） |
+| `service.sap_shutdown` | warning | SAP 被关闭（新节点 `interface.access.shutdown`，SAP 缺省启用） |
+| `service.{epipe,vpls,vprn,ies}_customer_missing` | error | 业务没有客户 |
+| `vprn.no_rd_rt` | warning | VPRN 既没有 RD 也没有 vrf-target（有一缺一由 common.yaml 原有两条报出） |
+
+SAP 引用的过滤器 / QoS 策略、业务引用的客户不存在由内置 `ref.dangling` 报出（Schema 的 reference 依赖），不另写规则，避免同一问题两条发现。规则引擎扩展（`core/rules.py`，向后兼容）：路径 `属性=>`（按取值找同类对象：Schema 类型为 interface 的属性找接口、ref 属性找被引用类型，用于没有引用边的 bind_port）；条件 `default: {node, value}`（设备 Profile 中该节点的缺省值，`supported: false` 的条目也可登记，只用于“没有配置时的行为”）；`remedy` 的键可以是风格名或平台族名（`nokia-sros-md` 为 MD-CLI 写法，按设备平台族优先、再按风格选，`baseline.remedy_for`）。检查规则写了 remedy 时，发现带 `remedy`（按平台族选好写法；没写 remedy 的规则发现结构不变）。
+
+缺省值（D-0239，Classic Profile 人工条目，MD-CLI 经 `defaults_from` 复用）：Epipe / VPLS / VPRN / IES 与 SDP 缺省 shutdown（业务另写 `assume: false`）、SDP keep-alive 缺省关闭、SAP 缺省启用（`assume: false`，翻译到华为时省略）。
+
+**安全基线**（D-0240，`baseline-security.yaml`）：原有 30 条中 Nokia 适用的 20 条都补了 `nokia`（Classic）与 `nokia-sros-md`（MD-CLI）两种修复命令；VTY / 登录线路类规则对 Nokia 不适用（na）。按 Nokia 的“没有配置时的行为”补分支（都用 `not supported` 限定，华为 / Cisco 结论不变）：不写 ssh 块时 SSH 缺省开启、SSH 只支持 v2、AAA（本地认证）恒开启、NTP / syslog / SNMP 告警缺省以 system 地址为源（`supported: false` + `default` 条目，不生成默认节点）；SNMP 团体字 ACL 接受管理访问过滤器。新增 4 条（基线共 34 条，basic 26 条）：`sec.mgmt_access_filter`（基础）、`sec.password_lockout`（基础，锁定前失败次数 ≤ 5，缺省 3）、`sec.password_aging`（严格，≤ 90 天）、`sec.login_idle_timeout`（基础，≤ 15 分钟，Nokia 缺省 30）。新 Schema 节点 `mgmt.maf`（对象，含 `ipv4`）、`mgmt.aaa.password_aging` / `login_attempts` / `lockout_time`、`mgmt.system.idle_timeout`；Classic 映射 `management-access-filter`、`ip-filter`、`authentication-check`、`password aging` / `attempts`、`login-control idle-timeout`，MD-CLI 映射 `management-access-filter`（块内为范围外原文，只记已配置）、`authentication-check`、`idle-timeout`（MD 的口令策略在 user-params 下、命令卡范围外：口令有效期不适用，失败次数按缺省值）。
+
+样本结论：加固后的合成配置（`tests/inputs/configs/nokia/baseline-*-hardened.cfg`）基础基线 Classic / MD 都是 100 分，严格基线只剩 SNMPv2c 团体字；`classic-pe-routing-mgmt` 基础 70 分（Telnet、FTP、团体字无 ACL 且无管理访问过滤器、用户允许 FTP、NTP 未认证），MD 版 74 分（用户 access 布尔叶子未归并）。
+
+**跨设备一致性**（D-0241）：`cross-device.yaml` 的 28 条链路规则对 Nokia 全部适用（没有被跳过的），只补了 `core/topology.py` 的事实提取：设备名取 `system name`、`system` 与 loopback 接口当 Loopback、LSR ID 取 system 地址（其次 router-id）、路由器接口绑定的端口关闭视为接口关闭、BGP `local-address` 直接写地址、BGP 地址族取 family（MD-CLI 的 family 未归并时记为未知、不比较）、IS-IS 区域取 area-id。合成样本 `tests/inputs/configs/nokia/topo-pe-{a,b}.cfg`（Classic + MD-CLI）推出 subnet / ospf / ldp / bgp / pw 五条链路，报出故意放的 OSPF hello、dead、伪线 VC ID 三处不一致，没有多报。华为 / Cisco 拓扑样本的链路与发现逐字节不变。
+
+**补齐写法**（D-0242）：
+- `vrf-target export X import Y`：Classic 映射另建 import 的 RT 对象（目标写法 `rt{value=…,direction=…}`，固定键取自参数的对象与本行另一个同类对象并存）；`core/graph.py` 只把属性写给各自的对象，`core/canon.py` 把这类对象当作“本行的另一个实例”，规范渲染时每个 RT 单写一行。Classic 与 MD-CLI 的图对照测试去掉了这一项允许差异。
+- BGP 地址族 ↔ Nokia family（`translate.reshape_bgp_family`，只换公网地址族）：华为 / Cisco → Nokia 时全局地址族写成 `family ipv4 vpn-ipv4`，组启用的地址族与全局不同时写组的 family，已表达的 `peer … enable` / `activate` 不再报不支持；Nokia → 华为 / Cisco 时 family 换成地址族视图与组的 `peer … enable`。MD-CLI 的 family 布尔叶子仍未归并。
+- `!flag`（`no shutdown` 表示启用）的节点不再标为取消形式（原来 LDP 接口、SDP 保活、SSH 服务等节点取值为 true 却标了 negated，检查与拓扑按“未生效”处理）。
+
+翻译回归（未解释差异都是 0）：
+
+| 用例 | M7-4 | M7-5 | 下限 |
+|---|---|---|---|
+| nokia-basic-to-atn | 81 / 102 | 81 / 103（登录空闲超时华为无对应） | 0.78 |
+| nokia-routing-mgmt-to-atn | 91 / 122 | 97 / 131（family 互译；口令策略与空闲超时无对应） | 0.74 |
+| nokia-services-to-atn | 79 / 155 | 85 / 155 | 0.54 |
+| asr920-to-nokia | 90 / 137 | 93 / 131 | 0.70 |
+| asr920-igp-mgmt-to-nokia | 64 / 132 | 66 / 128 | 0.51 |
+| nokia-md-services-to-classic | 152 / 153 | 150 / 151 | 0.99 |
+| nokia-classic-routing-mgmt-to-md | 117 / 122 | 118 / 125（MD 口令策略在范围外） | 0.94 |
+| nokia-md-routing-mgmt-to-atn | 91 / 120 | 91 / 121 | 0.75 |
+| nokia-md-services-to-atn | 82 / 157 | 82 / 152 | 0.53 |
+| asr920-to-nokia-md | 88 / 137 | 90 / 131 | 0.68 |
+
+**华为 / Cisco 结果不变**：改动前后对 20 份样本（解析、图 JSON、往返、规范渲染与含默认值的规范渲染、检查）、拓扑样本（拓扑与一致性）、两套基线、15 个翻译用例、16 个变更用例共 150 项做比较（`tmp/os/m75/baseline.py`、`cmp.py`）：除检查结果里的已加载规则数（8 → 25，新规则文件）与基线的规则清单（新增 4 条、对华为 / Cisco 都是 na）外逐字节相同；原有规则的结论、不符合项、修复命令、分数完全一致。
+
+**界面**：顶栏的显示风格切换多了 Nokia（三语）；项目设置、Schema 查看、导出、特性查询、检查项目的平台筛选都列出 Nokia。厂商标识统一成 `frontend/src/vendor.ts` + `components/vendor-badge.vue`（NK，明暗两套 Nokia 蓝），设备列表、导入、添加设备、公共设备库、配置图、设备分析、检查目标条、首页、Profile、拓扑图、回归面板等不再把 Nokia 显示成 CS / ?。项目脚本与检查项目的空脚本骨架按格式给出 Nokia 写法（Classic `exit all` / `configure` … `exit all`，MD-CLI `edit-config private` … `commit` / `quit-config`）。配置图组织方式“自动”时华为与 Nokia 都按视图层级，Nokia 风格下顶层对象按 `contexts` 插入配置上下文分组（`buildModel` 的 `contextOf`；同名的 `service › vprn X` 分组并到该 VPRN 对象下），设备分析的配置分层树同样生效。检查页的发现带 `remedy` 时显示修复参考命令（可复制）；基线页的规则信息列出华为、Cisco、Nokia Classic、Nokia MD-CLI 四种修复命令，复制全部时注释前缀按平台族。翻译页在配置原文里找不到 `interface` 行时按配置图列出接口（Nokia）。端到端 `frontend/e2e/m7.spec.ts`：上传 Nokia Classic 样本 → 检查页报出端口关闭与修复参考命令 → 切到 Nokia 风格，配置图显示 `port 1/1/4` 并按 router Base / service 分组（暗色截图）→ 翻译到华为 ATN。
+
+**测试**：单元 `tests/unit/test_nokia_m75.py`（三种风格登记、Nokia 写法与上下文、`=>` / `default` / 平台族 remedy、Classic 与 MD 的检查结论相同、干净样本不误报、新规则对华为 / Cisco 样本不产生发现、加固 / 未加固的基线结论与修复命令写法、Classic + MD 的拓扑与一致性、vrf-target、`!flag`、BGP family 双向翻译）；`test_nokia_md.py` 的允许差异收紧（去掉 import RT，加上 MD 口令策略两项）；`test_nokia_m73.py` 的风格断言按新行为更新；CLI 用例 `nokia-check-services`、`nokia-baseline-md`、`nokia-consistency`、`nokia-terms-style`；API 用例 `nokia-check-port`、`kb-terms`（加 nokia 与 contexts）、`baseline-rules`（规则数 34）。
+
+**遗留**：
+- VPRN 下的 BGP / OSPF（仍进 opaque）：要扩大命令卡范围、在 Schema 中表达 VRF 内的协议实例并补翻译，工作量超出本阶段（D-0242）。
+- vrf-target 的 export 与 import 两个方向在规范渲染时各写一行（设备上后一条可能覆盖前一条），没有合成一行；MD-CLI 的 BGP family、用户 access 仍是未归并的布尔叶子；MD-CLI 的口令策略（user-params）在命令卡范围外。
+- `source-address`（NTP / syslog / SNMP 告警源地址）、SSH 算法列表（server-cipher-list 等）、SNMP src-access-list 未建模：基线按缺省值或管理访问过滤器判断。
+- 检查规则的修复命令里端口、业务编号用尖括号占位（SAP 的键不是端口），报告（`lmesh report check`）还没有列出修复参考命令；发现说明里的节点是规范编号，界面按显示风格另行显示。
+- Nokia 风格的部分对象写法带上下文前缀（`router Base bgp …`、`qos sap-ingress …`），放在上下文分组下略显重复；模板（REQ-024）的新模板骨架对 Nokia 仍写 `hostname`。
+- 路由器接口的 ip-mtu 与端口 MTU 没有区分，链路 MTU 一致性对 Nokia 只比较接口上写了的值。
+
+**待真机核实**：SAP / 端口 / 业务 / SDP 的缺省管理状态（以命令参考为准）、SR OS 25.x SSH 只支持 v2、不配置 source-address 时 NTP / syslog 以 system 地址为源、`vrf-target export X` 与随后单独的 `vrf-target import Y` 是否互相覆盖、Classic `password attempts` 的缺省值（3 / 5 / 10）、MD-CLI 的 `management-access-filter` 与 `authentication-check` 写法、修复命令的 MD-CLI 绝对路径写法（`/configure …`、`delete /configure …`）能否直接粘贴执行。

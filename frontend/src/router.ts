@@ -3,7 +3,7 @@ import { defineComponent } from 'vue'
 import { api, ApiError } from '@/api'
 import { useAuth } from '@/stores/auth'
 import { useProject } from '@/stores/project'
-import { legacyTarget, PROJECT_PAGES, withProject } from '@/project/scope'
+import { legacyTarget, PROJECT_PAGES, refFromParam, refParam, withProject } from '@/project/scope'
 import { shouldShowUpgrade, upgradeSeen } from '@/project/upgrade'
 
 /** 项目页面（/p/<项目>/…，REQ-035）的组件；consistency 是拓扑页的另一个视图。 */
@@ -34,7 +34,7 @@ const PROJECT_VIEWS: Record<string, () => Promise<RouteComponent | { default: Ro
 const Legacy = defineComponent({ render: () => null })
 
 const projectRoutes: RouteRecordRaw[] = PROJECT_PAGES.map((p) => ({
-  path: `/p/:project/${p.path}`,
+  path: `/p/:project+/${p.path}`, // /p/<标识>/… 或 /p/<属主>/<标识>/…（标识按属主唯一）
   name: p.name,
   component: PROJECT_VIEWS[p.name],
   meta: { project: true, ...(p.name === 'consistency' ? { view: 'consistency' } : {}) },
@@ -51,6 +51,7 @@ export const router = createRouter({
   routes: [
     { path: '/setup', name: 'setup', component: () => import('@/views/WizardView.vue'), meta: { bare: true } },
     { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue'), meta: { bare: true } },
+    { path: '/register', name: 'register', component: () => import('@/views/RegisterView.vue'), meta: { bare: true } },
     { path: '/', name: 'dashboard', component: () => import('@/views/DashboardView.vue') },
     { path: '/ask', name: 'ask', component: () => import('@/views/AskView.vue') },
     ...projectRoutes,
@@ -82,9 +83,9 @@ export const router = createRouter({
 
 // 从非项目页面按名称跳到项目页面（{ name: 'devices' }）时补上当前项目；在项目页面之间跳转时 vue-router 自己沿用
 const { resolve, push, replace } = router
-router.resolve = ((to: RouteLocationRaw, current?: Parameters<typeof resolve>[1]) => resolve(withProject(to, useProject().slug), current)) as typeof resolve
-router.push = ((to: RouteLocationRaw) => push(withProject(to, useProject().slug))) as typeof push
-router.replace = ((to: RouteLocationRaw) => replace(withProject(to, useProject().slug))) as typeof replace
+router.resolve = ((to: RouteLocationRaw, current?: Parameters<typeof resolve>[1]) => resolve(withProject(to, useProject().ref), current)) as typeof resolve
+router.push = ((to: RouteLocationRaw) => push(withProject(to, useProject().ref))) as typeof push
+router.replace = ((to: RouteLocationRaw) => replace(withProject(to, useProject().ref))) as typeof replace
 
 let configured: boolean | null = null
 let upgradeChecked = false
@@ -101,7 +102,7 @@ router.beforeEach(async (to) => {
   }
   if (configured === false && to.name !== 'setup') return { name: 'setup' }
   if (configured && to.name === 'setup') return { name: 'dashboard' }
-  if (!configured || to.name === 'login') return true
+  if (!configured || to.name === 'login' || to.name === 'register') return true
   const auth = useAuth()
   const me = await auth.load()
   if (!me) return { name: 'login', query: { next: to.fullPath } }
@@ -113,17 +114,28 @@ router.beforeEach(async (to) => {
     return slug ? legacyTarget(to.fullPath, slug) : { name: 'projects' }
   }
   if (to.meta.project) {
-    const want = String(to.params.project)
+    const want = refFromParam(to.params.project)
+    if (!want) return { name: 'projects', query: { missing: refParam(String(to.params.project ?? '')).join('/') } }
+    let detail
     try {
-      await project.enter(want)
+      detail = await project.enter(want)
     } catch (e) {
       // 不存在或不是成员（后端 404 不区分）：回到“我的项目”并说明
       if (e instanceof ApiError && (e.status === 404 || e.status === 403)) {
         project.missing = want
         return { name: 'projects', query: { missing: want } }
       }
+      // 只写标识而能访问的同名项目有多个：回到“我的项目”列出候选（属主/标识）
+      const cands = e instanceof ApiError && e.status === 409 ? (e.data as { candidates?: string[] } | null)?.candidates : null
+      if (cands?.length) {
+        project.missing = want
+        project.candidates = cands
+        return { name: 'projects', query: { ambiguous: want } }
+      }
       throw e
     }
+    // 网址里的写法不是规范引用（例如别人的项目只写了标识、或写了编号）：换成规范的网址
+    if (detail.ref !== want) return { name: to.name as string, params: { ...to.params, project: refParam(detail.ref) }, query: to.query, hash: to.hash, replace: true }
     return true
   }
   // 其他页面（首页、AI 查询、模板……）的设备数据也来自当前项目

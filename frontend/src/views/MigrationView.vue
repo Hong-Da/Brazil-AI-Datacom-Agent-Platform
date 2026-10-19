@@ -4,6 +4,7 @@
  * POST /migrate → 五步：翻译告警（与旧配置行联动）、接口映射表（建议 + 依据 + 置信度，可改写、导入导出 CSV，改后重新生成）、
  * 新设备配置（完整 / 增量 / 增量下发脚本 / 回滚）、割接步骤（执行与回退）、验证与割接包导出（与 CLI 输出目录相同的文件）。
  */
+import VendorBadge from '@/components/vendor-badge.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -285,7 +286,7 @@ onMounted(async () => {
                 </select>
                 <input v-model="model" class="input mono" :placeholder="$t('migration.model')" :title="$t('migration.model')">
               </div>
-              <div class="end-meta"><span v-if="profileOf(target)" class="vendor"><i :class="profileOf(target)!.vendor === 'huawei' ? 'hw' : 'cs'">{{ profileOf(target)!.vendor === 'huawei' ? 'HW' : 'CS' }}</i>{{ profileOf(target)!.family }}</span><span>{{ $t('migration.targetProfile') }}</span></div>
+              <div class="end-meta"><VendorBadge v-if="profileOf(target)" :of="profileOf(target)!.vendor">{{ profileOf(target)!.family }}</VendorBadge><span>{{ $t('migration.targetProfile') }}</span></div>
             </div>
             <div class="end opts">
               <div class="end-h"><Icon name="sliders" small /><span>{{ $t('migration.existing') }}</span></div>
@@ -329,7 +330,7 @@ onMounted(async () => {
           <div class="tw">
             <div class="panel pane"><div class="tbar"><DevChip :name="result.source.device ?? ''" :vendor="result.source.family" /><span class="fn">{{ $t('migration.srcPane') }}</span></div>
               <M3Code ref="srcPane" :lines="srcCode" side="s" testid="mig-src" @pick="pickSrcLine" /></div>
-            <div class="panel pane"><div class="tbar"><span class="vendor"><i :class="result.target.family.startsWith('huawei') ? 'hw' : 'cs'">{{ result.target.family.startsWith('huawei') ? 'HW' : 'CS' }}</i>{{ result.target.profile }}</span><span class="fn">{{ $t('migration.dstPane') }}</span></div>
+            <div class="panel pane"><div class="tbar"><VendorBadge :of="result.target.family">{{ result.target.profile }}</VendorBadge><span class="fn">{{ $t('migration.dstPane') }}</span></div>
               <M3Code :lines="splitLines(result.text).map((text, k) => ({ no: k + 1, text }))" side="d" testid="mig-dst" /></div>
             <div class="panel warns"><div class="wlist" data-testid="mig-warns">
               <p v-if="!shownItems.length" class="small muted" style="padding: 12px">{{ $t('migration.noWarns') }}</p>

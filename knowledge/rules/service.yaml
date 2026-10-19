@@ -1,0 +1,375 @@
+# 端口与业务的检查规则（M7-5，REQ-037）：写在统一 Schema 上，Nokia Classic CLI 与 MD-CLI 共用（两种格式映射到同一套节点）。
+# 业务编号 service_id、端口绑定 bind_port、SAP 的管理状态等只有 Nokia 有，规则以它们为条件，对华为 / Cisco 的配置不产生发现；
+# 端口关闭、LAG 成员口关闭两条按通用语义写，所有平台族都适用。
+# 管理状态取有效值：Nokia 端口、LAG、业务、SDP 缺省关闭（Profile 的缺省值），没有写 no shutdown / admin-state enable 也按关闭判断。
+# SAP 引用的过滤器、QoS 策略，业务引用的客户不存在时由内置检查 ref.dangling 报出（Schema 的 reference 依赖），这里不重复。
+# remedy：nokia 是 Classic CLI 写法，nokia-sros-md 是 MD-CLI 写法（平台族名优先于风格名，见 core/rules.py）。
+rules:
+  # ---------- 端口与 LAG ----------
+  - id: port.shutdown_with_sap
+    target: interface.access
+    when: {not: {equals: {path: shutdown, value: true}}}
+    assert: {not: {equals: {path: ^/shutdown, value: true}}}
+    severity: error
+    title:
+      zh-CN: 接入点所在的端口处于关闭状态
+      en: Access point on a port that is shut down
+      pt-BR: Ponto de acesso em uma porta desativada
+    message:
+      zh-CN: 接入点 {node} 所在的端口或 LAG 处于管理关闭状态（Nokia 端口与 LAG 缺省关闭，需要 no shutdown），业务流量不通
+      en: The port or LAG of access point {node} is administratively down (Nokia ports and LAGs are down by default and need no shutdown); traffic cannot pass
+      pt-BR: A porta ou LAG do ponto de acesso {node} está desativada administrativamente (portas e LAGs Nokia vêm desativadas e precisam de no shutdown); o tráfego não passa
+    suggestion:
+      zh-CN: 启用端口或 LAG（Nokia Classic：port … no shutdown；MD-CLI：admin-state enable）；端口确实不用时删除这个接入点
+      en: Enable the port or LAG (Nokia Classic port … no shutdown; MD-CLI admin-state enable); remove the access point if the port is not used
+      pt-BR: Ative a porta ou o LAG (Nokia Classic port … no shutdown; MD-CLI admin-state enable); remova o ponto de acesso se a porta não for usada
+    remedy:
+      huawei: ["interface <INTERFACE>", " undo shutdown"]
+      cisco: ["interface <INTERFACE>", " no shutdown"]
+      nokia: ["configure port <PORT> no shutdown", "configure lag <LAG-ID> no shutdown"]
+      nokia-sros-md: ["configure port <PORT> admin-state enable", "configure lag <LAG-NAME> admin-state enable"]
+
+  - id: port.shutdown_bound
+    target: interface
+    when:
+      all:
+        - exists: bind_port
+        - not: {equals: {path: shutdown, value: true}}
+    assert: {not: {equals: {path: bind_port=>shutdown, value: true}}}
+    severity: error
+    title:
+      zh-CN: 三层接口绑定的端口处于关闭状态
+      en: Layer-3 interface bound to a port that is shut down
+      pt-BR: Interface de camada 3 vinculada a uma porta desativada
+    message:
+      zh-CN: 接口 {key} 绑定的端口或 LAG 处于管理关闭状态（Nokia 端口与 LAG 缺省关闭），接口不会起来
+      en: The port or LAG bound to interface {key} is administratively down (Nokia ports and LAGs are down by default); the interface will not come up
+      pt-BR: A porta ou LAG vinculada à interface {key} está desativada administrativamente (portas e LAGs Nokia vêm desativadas); a interface não sobe
+    suggestion:
+      zh-CN: 启用接口绑定的端口或 LAG（Classic：port … no shutdown；MD-CLI：admin-state enable）
+      en: Enable the port or LAG bound to the interface (Classic port … no shutdown; MD-CLI admin-state enable)
+      pt-BR: Ative a porta ou o LAG vinculado à interface (Classic port … no shutdown; MD-CLI admin-state enable)
+    remedy:
+      nokia: ["configure port <PORT> no shutdown", "configure lag <LAG-ID> no shutdown"]
+      nokia-sros-md: ["configure port <PORT> admin-state enable", "configure lag <LAG-NAME> admin-state enable"]
+
+  - id: port.lag_member_shutdown
+    target: interface
+    when: {exists: lag}
+    assert: {not: {equals: {path: shutdown, value: true}}}
+    severity: warning
+    title:
+      zh-CN: LAG 成员口处于关闭状态
+      en: LAG member port shut down
+      pt-BR: Porta membro de LAG desativada
+    message:
+      zh-CN: 端口 {key} 加入了 LAG，却处于管理关闭状态（Nokia 端口缺省关闭），LAG 少了一条成员链路
+      en: Port {key} is a LAG member but administratively down (Nokia ports are down by default); the LAG loses a member link
+      pt-BR: A porta {key} é membro de LAG, mas está desativada administrativamente (portas Nokia vêm desativadas); o LAG perde um enlace
+    suggestion:
+      zh-CN: 启用成员口；不再使用时把它从 LAG 中移除
+      en: Enable the member port, or remove it from the LAG if it is no longer used
+      pt-BR: Ative a porta membro ou remova-a do LAG se não for mais usada
+    remedy:
+      huawei: ["interface {key}", " undo shutdown"]
+      cisco: ["interface {key}", " no shutdown"]
+      nokia: ["configure port {key} no shutdown"]
+      nokia-sros-md: ["configure port {key} admin-state enable"]
+
+  # ---------- SDP ----------
+  - id: sdp.far_end_missing
+    target: service.sdp
+    assert: {exists: far_end}
+    severity: error
+    title:
+      zh-CN: SDP 没有对端地址
+      en: SDP without a far-end address
+      pt-BR: SDP sem endereço remoto
+    message:
+      zh-CN: SDP {key} 没有配置 far-end，引用它的伪线没有对端
+      en: SDP {key} has no far-end; the pseudowires that use it have no peer
+      pt-BR: O SDP {key} não tem far-end; os pseudowires que o usam ficam sem par
+    suggestion:
+      zh-CN: 为 SDP 配置对端的 system 地址
+      en: Set the far-end to the system address of the peer
+      pt-BR: Configure o far-end com o endereço system do par
+    remedy:
+      nokia: ["configure service sdp {key} far-end <SYSTEM-IP>"]
+      nokia-sros-md: ["configure service sdp {key} far-end ip-address <SYSTEM-IP>"]
+
+  - id: sdp.keep_alive_disabled
+    target: service.sdp
+    when: {not: {equals: {path: shutdown, value: true}}}
+    assert: {exists: keep_alive}
+    severity: warning
+    title:
+      zh-CN: SDP 没有启用保活
+      en: SDP keep-alive disabled
+      pt-BR: Keep-alive do SDP desativado
+    message:
+      zh-CN: SDP {key} 没有启用 keep-alive（缺省关闭）：对端不可达时 SDP 仍保持 up，业务不会切换
+      en: SDP {key} has keep-alive disabled (the default); the SDP stays up when the far end is unreachable and services do not switch over
+      pt-BR: O SDP {key} está com keep-alive desativado (padrão); o SDP continua ativo quando o par está inacessível e os serviços não comutam
+    suggestion:
+      zh-CN: 在 SDP 的 keep-alive 下 no shutdown（MD-CLI：keep-alive admin-state enable）
+      en: Enable keep-alive on the SDP (Classic keep-alive no shutdown; MD-CLI keep-alive admin-state enable)
+      pt-BR: Ative o keep-alive no SDP (Classic keep-alive no shutdown; MD-CLI keep-alive admin-state enable)
+    remedy:
+      nokia: ["configure service sdp {key} keep-alive no shutdown"]
+      nokia-sros-md: ["configure service sdp {key} keep-alive admin-state enable"]
+
+  - id: service.pw_sdp_shutdown
+    target: l2vpn.xconnect.pw
+    when: {exists: sdp}
+    assert: {not: {equals: {path: sdp->shutdown, value: true}}}
+    severity: error
+    title:
+      zh-CN: Epipe 伪线使用的 SDP 处于关闭状态
+      en: Epipe pseudowire uses an SDP that is shut down
+      pt-BR: Pseudowire do Epipe usa um SDP desativado
+    message:
+      zh-CN: 伪线 {node} 使用的 SDP 处于管理关闭状态（Nokia SDP 缺省关闭），伪线不会起来
+      en: The SDP used by pseudowire {node} is administratively down (Nokia SDPs are down by default); the pseudowire will not come up
+      pt-BR: O SDP usado pelo pseudowire {node} está desativado administrativamente (SDPs Nokia vêm desativados); o pseudowire não sobe
+    suggestion:
+      zh-CN: 启用 SDP（Classic：sdp … no shutdown；MD-CLI：admin-state enable）
+      en: Enable the SDP (Classic sdp … no shutdown; MD-CLI admin-state enable)
+      pt-BR: Ative o SDP (Classic sdp … no shutdown; MD-CLI admin-state enable)
+    remedy:
+      nokia: ["configure service sdp <SDP-ID> no shutdown"]
+      nokia-sros-md: ["configure service sdp <SDP-ID> admin-state enable"]
+
+  - id: service.vpls_sdp_shutdown
+    target: l2vpn.vsi.peer
+    when: {exists: sdp}
+    assert: {not: {equals: {path: sdp->shutdown, value: true}}}
+    severity: error
+    title:
+      zh-CN: VPLS 伪线使用的 SDP 处于关闭状态
+      en: VPLS pseudowire uses an SDP that is shut down
+      pt-BR: Pseudowire do VPLS usa um SDP desativado
+    message:
+      zh-CN: VPLS 的 mesh / spoke-sdp {node} 使用的 SDP 处于管理关闭状态（Nokia SDP 缺省关闭）
+      en: The SDP used by VPLS mesh / spoke SDP {node} is administratively down (Nokia SDPs are down by default)
+      pt-BR: O SDP usado pelo mesh / spoke SDP do VPLS {node} está desativado administrativamente (SDPs Nokia vêm desativados)
+    suggestion:
+      zh-CN: 启用 SDP（Classic：sdp … no shutdown；MD-CLI：admin-state enable）
+      en: Enable the SDP (Classic sdp … no shutdown; MD-CLI admin-state enable)
+      pt-BR: Ative o SDP (Classic sdp … no shutdown; MD-CLI admin-state enable)
+    remedy:
+      nokia: ["configure service sdp <SDP-ID> no shutdown"]
+      nokia-sros-md: ["configure service sdp <SDP-ID> admin-state enable"]
+
+  # ---------- 业务与 SAP 的管理状态 ----------
+  - id: service.epipe_shutdown
+    target: l2vpn.xconnect
+    when: {exists: service_id}
+    assert: {not: {equals: {path: shutdown, value: true}}}
+    severity: warning
+    title:
+      zh-CN: Epipe 业务处于关闭状态
+      en: Epipe service shut down
+      pt-BR: Serviço Epipe desativado
+    message:
+      zh-CN: Epipe {key} 处于管理关闭状态（Nokia 业务缺省关闭，创建后要 no shutdown）
+      en: Epipe {key} is administratively down (Nokia services are down by default and need no shutdown after creation)
+      pt-BR: O Epipe {key} está desativado administrativamente (serviços Nokia vêm desativados e precisam de no shutdown)
+    suggestion:
+      zh-CN: 启用业务；确实停用的业务可以在检查中忽略这条
+      en: Enable the service; ignore this finding for services that are intentionally disabled
+      pt-BR: Ative o serviço; ignore este achado para serviços desativados de propósito
+    remedy:
+      nokia: ["configure service epipe <SERVICE-ID> no shutdown"]
+      nokia-sros-md: ["configure service epipe \"{key}\" admin-state enable"]
+
+  - id: service.vpls_shutdown
+    target: l2vpn.vsi
+    when: {exists: service_id}
+    assert: {not: {equals: {path: shutdown, value: true}}}
+    severity: warning
+    title:
+      zh-CN: VPLS 业务处于关闭状态
+      en: VPLS service shut down
+      pt-BR: Serviço VPLS desativado
+    message:
+      zh-CN: VPLS {key} 处于管理关闭状态（Nokia 业务缺省关闭，创建后要 no shutdown）
+      en: VPLS {key} is administratively down (Nokia services are down by default and need no shutdown after creation)
+      pt-BR: O VPLS {key} está desativado administrativamente (serviços Nokia vêm desativados e precisam de no shutdown)
+    suggestion:
+      zh-CN: 启用业务；确实停用的业务可以在检查中忽略这条
+      en: Enable the service; ignore this finding for services that are intentionally disabled
+      pt-BR: Ative o serviço; ignore este achado para serviços desativados de propósito
+    remedy:
+      nokia: ["configure service vpls <SERVICE-ID> no shutdown"]
+      nokia-sros-md: ["configure service vpls \"{key}\" admin-state enable"]
+
+  - id: service.vprn_shutdown
+    target: vrf.instance
+    when: {exists: service_id}
+    assert: {not: {equals: {path: shutdown, value: true}}}
+    severity: warning
+    title:
+      zh-CN: VPRN 业务处于关闭状态
+      en: VPRN service shut down
+      pt-BR: Serviço VPRN desativado
+    message:
+      zh-CN: VPRN {key} 处于管理关闭状态（Nokia 业务缺省关闭，创建后要 no shutdown）
+      en: VPRN {key} is administratively down (Nokia services are down by default and need no shutdown after creation)
+      pt-BR: O VPRN {key} está desativado administrativamente (serviços Nokia vêm desativados e precisam de no shutdown)
+    suggestion:
+      zh-CN: 启用业务；确实停用的业务可以在检查中忽略这条
+      en: Enable the service; ignore this finding for services that are intentionally disabled
+      pt-BR: Ative o serviço; ignore este achado para serviços desativados de propósito
+    remedy:
+      nokia: ["configure service vprn <SERVICE-ID> no shutdown"]
+      nokia-sros-md: ["configure service vprn \"{key}\" admin-state enable"]
+
+  - id: service.ies_shutdown
+    target: service.ies
+    assert: {not: {equals: {path: shutdown, value: true}}}
+    severity: warning
+    title:
+      zh-CN: IES 业务处于关闭状态
+      en: IES service shut down
+      pt-BR: Serviço IES desativado
+    message:
+      zh-CN: IES {key} 处于管理关闭状态（Nokia 业务缺省关闭，创建后要 no shutdown）
+      en: IES {key} is administratively down (Nokia services are down by default and need no shutdown after creation)
+      pt-BR: O IES {key} está desativado administrativamente (serviços Nokia vêm desativados e precisam de no shutdown)
+    suggestion:
+      zh-CN: 启用业务；确实停用的业务可以在检查中忽略这条
+      en: Enable the service; ignore this finding for services that are intentionally disabled
+      pt-BR: Ative o serviço; ignore este achado para serviços desativados de propósito
+    remedy:
+      nokia: ["configure service ies <SERVICE-ID> no shutdown"]
+      nokia-sros-md: ["configure service ies \"{key}\" admin-state enable"]
+
+  - id: service.sap_shutdown
+    target: interface.access
+    assert: {not: {equals: {path: shutdown, value: true}}}
+    severity: warning
+    title:
+      zh-CN: SAP 处于关闭状态
+      en: SAP shut down
+      pt-BR: SAP desativado
+    message:
+      zh-CN: 接入点（SAP）{node} 被管理关闭，这个接入点上的业务不通
+      en: Access point (SAP) {node} is administratively down; the service does not pass on it
+      pt-BR: O ponto de acesso (SAP) {node} está desativado administrativamente; o serviço não passa por ele
+    suggestion:
+      zh-CN: 启用 SAP（Classic：sap … no shutdown；MD-CLI：admin-state enable）；确实停用的可以忽略这条
+      en: Enable the SAP (Classic sap … no shutdown; MD-CLI admin-state enable), or ignore the finding if it is intentional
+      pt-BR: Ative o SAP (Classic sap … no shutdown; MD-CLI admin-state enable) ou ignore o achado se for intencional
+    remedy:
+      nokia: ["configure service <SERVICE-TYPE> <SERVICE-ID> sap <SAP-ID> no shutdown"]
+      nokia-sros-md: ["configure service <SERVICE-TYPE> \"<SERVICE-NAME>\" sap <SAP-ID> admin-state enable"]
+
+  # ---------- 客户 ----------
+  - id: service.epipe_customer_missing
+    target: l2vpn.xconnect
+    when: {exists: service_id}
+    assert: {exists: customer}
+    severity: error
+    title:
+      zh-CN: Epipe 没有所属客户
+      en: Epipe without a customer
+      pt-BR: Epipe sem cliente
+    message:
+      zh-CN: Epipe {key} 没有指定客户（Nokia 业务必须属于某个客户）
+      en: Epipe {key} has no customer (Nokia services must belong to a customer)
+      pt-BR: O Epipe {key} não tem cliente (serviços Nokia precisam pertencer a um cliente)
+    suggestion:
+      zh-CN: 先建客户，再在业务上指定（Classic：epipe … customer <编号> create；MD-CLI：customer "<名称>"）
+      en: Create the customer and assign it to the service (Classic epipe … customer <id> create; MD-CLI customer "<name>")
+      pt-BR: Crie o cliente e atribua-o ao serviço (Classic epipe … customer <id> create; MD-CLI customer "<nome>")
+    remedy:
+      nokia: ["configure service customer <CUSTOMER-ID> create", "configure service epipe <SERVICE-ID> customer <CUSTOMER-ID> create"]
+      nokia-sros-md: ["configure service customer \"<CUSTOMER>\" customer-id <CUSTOMER-ID>", "configure service epipe \"{key}\" customer \"<CUSTOMER>\""]
+
+  - id: service.vpls_customer_missing
+    target: l2vpn.vsi
+    when: {exists: service_id}
+    assert: {exists: customer}
+    severity: error
+    title:
+      zh-CN: VPLS 没有所属客户
+      en: VPLS without a customer
+      pt-BR: VPLS sem cliente
+    message:
+      zh-CN: VPLS {key} 没有指定客户（Nokia 业务必须属于某个客户）
+      en: VPLS {key} has no customer (Nokia services must belong to a customer)
+      pt-BR: O VPLS {key} não tem cliente (serviços Nokia precisam pertencer a um cliente)
+    suggestion:
+      zh-CN: 先建客户，再在业务上指定（Classic：vpls … customer <编号> create；MD-CLI：customer "<名称>"）
+      en: Create the customer and assign it to the service (Classic vpls … customer <id> create; MD-CLI customer "<name>")
+      pt-BR: Crie o cliente e atribua-o ao serviço (Classic vpls … customer <id> create; MD-CLI customer "<nome>")
+    remedy:
+      nokia: ["configure service customer <CUSTOMER-ID> create", "configure service vpls <SERVICE-ID> customer <CUSTOMER-ID> create"]
+      nokia-sros-md: ["configure service customer \"<CUSTOMER>\" customer-id <CUSTOMER-ID>", "configure service vpls \"{key}\" customer \"<CUSTOMER>\""]
+
+  - id: service.vprn_customer_missing
+    target: vrf.instance
+    when: {exists: service_id}
+    assert: {exists: customer}
+    severity: error
+    title:
+      zh-CN: VPRN 没有所属客户
+      en: VPRN without a customer
+      pt-BR: VPRN sem cliente
+    message:
+      zh-CN: VPRN {key} 没有指定客户（Nokia 业务必须属于某个客户）
+      en: VPRN {key} has no customer (Nokia services must belong to a customer)
+      pt-BR: O VPRN {key} não tem cliente (serviços Nokia precisam pertencer a um cliente)
+    suggestion:
+      zh-CN: 先建客户，再在业务上指定（Classic：vprn … customer <编号> create；MD-CLI：customer "<名称>"）
+      en: Create the customer and assign it to the service (Classic vprn … customer <id> create; MD-CLI customer "<name>")
+      pt-BR: Crie o cliente e atribua-o ao serviço (Classic vprn … customer <id> create; MD-CLI customer "<nome>")
+    remedy:
+      nokia: ["configure service customer <CUSTOMER-ID> create", "configure service vprn <SERVICE-ID> customer <CUSTOMER-ID> create"]
+      nokia-sros-md: ["configure service customer \"<CUSTOMER>\" customer-id <CUSTOMER-ID>", "configure service vprn \"{key}\" customer \"<CUSTOMER>\""]
+
+  - id: service.ies_customer_missing
+    target: service.ies
+    assert: {exists: customer}
+    severity: error
+    title:
+      zh-CN: IES 没有所属客户
+      en: IES without a customer
+      pt-BR: IES sem cliente
+    message:
+      zh-CN: IES {key} 没有指定客户（Nokia 业务必须属于某个客户）
+      en: IES {key} has no customer (Nokia services must belong to a customer)
+      pt-BR: O IES {key} não tem cliente (serviços Nokia precisam pertencer a um cliente)
+    suggestion:
+      zh-CN: 先建客户，再在业务上指定（Classic：ies … customer <编号> create；MD-CLI：customer "<名称>"）
+      en: Create the customer and assign it to the service (Classic ies … customer <id> create; MD-CLI customer "<name>")
+      pt-BR: Crie o cliente e atribua-o ao serviço (Classic ies … customer <id> create; MD-CLI customer "<nome>")
+    remedy:
+      nokia: ["configure service customer <CUSTOMER-ID> create", "configure service ies <SERVICE-ID> customer <CUSTOMER-ID> create"]
+      nokia-sros-md: ["configure service customer \"<CUSTOMER>\" customer-id <CUSTOMER-ID>", "configure service ies \"{key}\" customer \"<CUSTOMER>\""]
+
+  # ---------- VPRN 的 RD / vrf-target ----------
+  - id: vprn.no_rd_rt
+    target: vrf.instance
+    when: {exists: service_id}
+    # 有 RD 没 RT、有 RT 没 RD 由 common.yaml 的 vrf.rd_without_rt / vrf.rt_without_rd 报出；这里只报两者都没有的 VPRN
+    assert:
+      any:
+        - exists: af/rd
+        - count: {path: af/rt, min: 1}
+    severity: warning
+    title:
+      zh-CN: VPRN 没有 RD 与 vrf-target
+      en: VPRN without a route distinguisher or VRF target
+      pt-BR: VPRN sem route distinguisher nem VRF target
+    message:
+      zh-CN: VPRN {key} 既没有 route-distinguisher 也没有 vrf-target：路由不会作为 VPN 路由发布或引入（只做本地转发时可以忽略）
+      en: VPRN {key} has neither a route-distinguisher nor a vrf-target; its routes are not exported or imported as VPN routes (ignore for local-only VPRNs)
+      pt-BR: O VPRN {key} não tem route-distinguisher nem vrf-target; as rotas não são exportadas nem importadas como rotas VPN (ignore em VPRNs apenas locais)
+    suggestion:
+      zh-CN: 按规划配置 RD 与 vrf-target（25.x 也可写在 bgp-ipvpn mpls 下）
+      en: Configure the RD and vrf-target as planned (in 25.x they can also go under bgp-ipvpn mpls)
+      pt-BR: Configure o RD e o vrf-target conforme o planejamento (no 25.x também em bgp-ipvpn mpls)
+    remedy:
+      nokia: ["configure service vprn <SERVICE-ID> route-distinguisher <RD>", "configure service vprn <SERVICE-ID> vrf-target target:<RT>"]
+      nokia-sros-md: ["configure service vprn \"{key}\" bgp-ipvpn mpls route-distinguisher \"<RD>\"", "configure service vprn \"{key}\" bgp-ipvpn mpls vrf-target community \"target:<RT>\""]

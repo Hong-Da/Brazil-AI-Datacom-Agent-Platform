@@ -37,11 +37,13 @@ ALLOWED = {
         ("added", "acl.instance[10]/filter_name"),
         ("removed", "acl.instance[10]/rule[20]/destination_port"),
         ("changed", "bgp.instance[64500]/family"),
-        ("added", "vrf.instance[VPRN-3002]/af[ipv4]/rt[value=64500:3002,direction=import]"),
     },
     "routing-mgmt": {
         ("changed", "bgp.instance[64500]/family"),
         ("removed", "mgmt.aaa[_]/user[operator1]/service_type"),
+        # MD-CLI 的口令策略在 system security user-params 下，命令卡范围外（M7-5）：MD 版只有缺省值
+        ("removed", "mgmt.aaa[_]/password_aging"),
+        ("changed", "mgmt.aaa[_]/login_attempts"),
     },
 }
 

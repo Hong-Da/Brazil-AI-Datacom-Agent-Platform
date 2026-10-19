@@ -111,7 +111,8 @@ def register(app: typer.Typer) -> None:
             str | None, typer.Option("--report-lang", help="报告语言 zh-CN | en（默认跟随界面语言，pt-BR 用 en）")
         ] = None,
         style: Annotated[
-            str | None, typer.Option("--style", help="报告中节点的显示风格 huawei | cisco（默认取配置 ui.term_style）")
+            str | None,
+            typer.Option("--style", help="报告中节点的显示风格 huawei | cisco | nokia（默认取配置 ui.term_style）"),
         ] = None,
     ) -> None:
         c = output.get(ctx)

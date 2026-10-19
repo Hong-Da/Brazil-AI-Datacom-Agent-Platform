@@ -25,7 +25,7 @@ from lmesh.api.routes_skills import skill_actor
 from lmesh.core import ai, analysis, checkproj, i18n, kbservice, script_check, terms, textdiff
 
 router = APIRouter(dependencies=[Depends(require_token)])
-StyleT = Literal["huawei", "cisco"] | None
+StyleT = Literal["huawei", "cisco", "nokia"] | None
 LangT = Literal["zh-CN", "en", "pt-BR"] | None
 
 

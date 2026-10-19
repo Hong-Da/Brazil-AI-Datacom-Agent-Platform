@@ -26,7 +26,9 @@ public_app = typer.Typer(no_args_is_help=True, help="公共设备库（管理员
 
 def _fail(c: Ctx, e: Exception) -> NoReturn:
     kind = getattr(e, "kind", "param")
-    code = {"param": output.EXIT_USAGE, "not_found": output.EXIT_NOT_FOUND}.get(kind, output.EXIT_ERROR)
+    code = {"param": output.EXIT_USAGE, "ambiguous": output.EXIT_USAGE, "not_found": output.EXIT_NOT_FOUND}.get(
+        kind, output.EXIT_ERROR
+    )
     fail(c, code, c.t(getattr(e, "key", str(e)), **getattr(e, "fmt", {})), getattr(e, "data", None))
 
 
@@ -55,7 +57,7 @@ def _rows_text(c: Ctx, rows: list[dict[str, Any]]) -> str:
     head = [c.t(f"project.col.{k}") for k in ("slug", "name", "owner", "role", "devices", "scripts", "members")]
     body = [
         [
-            r["slug"] + (" *" if r.get("default") else ""),
+            r["ref"] + (" *" if r.get("default") else ""),
             r["name"],
             r["owner"] or "-",
             _role(c, r["role"]),
@@ -92,7 +94,7 @@ def cmd_show(ctx: typer.Context, project: Annotated[str | None, typer.Argument(h
     sc = _scope(c, db, project or c.project)
     d = projects.get_project(db, sc)
     lines = [
-        f"{d['name']} ({d['slug']})",
+        f"{d['name']} ({d['full_ref']})",
         f"{c.t('project.col.owner')}: {d['owner'] or '-'}  {c.t('project.col.role')}: {_role(c, d['role'])}",
         c.t(
             "project.counts",
@@ -110,7 +112,9 @@ def cmd_show(ctx: typer.Context, project: Annotated[str | None, typer.Argument(h
 def cmd_create(
     ctx: typer.Context,
     name: Annotated[str, typer.Argument(help="项目名称")],
-    slug: Annotated[str | None, typer.Option("--slug", help="项目标识（全站唯一）；不给时由名称生成")] = None,
+    slug: Annotated[
+        str | None, typer.Option("--slug", help="项目标识（在属主自己的项目里唯一）；不给时由名称生成")
+    ] = None,
     description: Annotated[str | None, typer.Option("--description", help="说明")] = None,
 ) -> None:
     c = output.get(ctx)
@@ -119,7 +123,7 @@ def cmd_create(
         d = projects.create_project(db, _who(c, db), {"name": name, "slug": slug, "description": description})
     except projects.ProjectError as e:
         _fail(c, e)
-    emit(c, d, c.t("project.created", slug=d["slug"]))
+    emit(c, d, c.t("project.created", slug=d["ref"]))
 
 
 @project_app.command("delete", help="删除项目：私有设备一起删除，引用只解除（需要确认，--yes 跳过）/ delete a project")
@@ -145,7 +149,7 @@ def cmd_delete(ctx: typer.Context, project: Annotated[str, typer.Argument(help="
         d = projects.delete_project(db, sc, sc.slug)
     except projects.ProjectError as e:
         _fail(c, e)
-    emit(c, d, c.t("project.deleted", slug=sc.slug))
+    emit(c, d, c.t("project.deleted", slug=sc.label))
 
 
 @project_app.command("members", help="成员列表；--add 邀请或改角色、--remove 移除 / project members")
@@ -171,7 +175,7 @@ def cmd_members(
         [[m["username"], _role(c, m["role"]), (m["since"] or "")[:10]] for m in rows],
         [c.t("project.col.user"), c.t("project.col.role"), c.t("project.col.since")],
     )
-    emit(c, {"project": sc.slug, "members": rows}, text)
+    emit(c, {"project": sc.label, "members": rows}, text)
 
 
 @project_app.command("transfer", help="转交项目给其他账号；原属主默认留作可编辑成员 / transfer a project")
@@ -180,15 +184,16 @@ def cmd_transfer(
     project: Annotated[str, typer.Argument(help="项目")],
     to: Annotated[str, typer.Argument(help="新属主账号")],
     keep_as: Annotated[str, typer.Option("--keep-as", help="原属主留作成员的角色：edit | read | none")] = "edit",
+    slug: Annotated[str | None, typer.Option("--slug", help="同时改标识（新属主已有同名项目时必须给）")] = None,
 ) -> None:
     c = output.get(ctx)
     db = require_db(c)
     sc = _scope(c, db, project)
     try:
-        d = projects.transfer(db, sc, to, None if keep_as == "none" else keep_as)
+        d = projects.transfer(db, sc, to, None if keep_as == "none" else keep_as, slug)
     except projects.ProjectError as e:
         _fail(c, e)
-    emit(c, d, c.t("project.transferred", slug=sc.slug, owner=to))
+    emit(c, d, c.t("project.transferred", slug=d["full_ref"], owner=to))
 
 
 @project_app.command("copy", help="复制为新项目（属主为 --as 账号）/ copy a project")
@@ -209,7 +214,7 @@ def cmd_copy(
         )
     except projects.ProjectError as e:
         _fail(c, e)
-    emit(c, d, c.t("project.copied", slug=d["slug"], devices=d["copied"]["devices"], scripts=d["copied"]["scripts"]))
+    emit(c, d, c.t("project.copied", slug=d["ref"], devices=d["copied"]["devices"], scripts=d["copied"]["scripts"]))
 
 
 @project_app.command("default", help="设置 --as 账号的默认项目 / set the default project")
@@ -241,7 +246,7 @@ def cmd_ref(
     except projects.ProjectError as e:
         _fail(c, e)
     key = "project.unreferenced" if remove else "project.referenced"
-    emit(c, d, c.t(key, device=dev["name"], slug=sc.slug))
+    emit(c, d, c.t(key, device=dev["name"], slug=sc.label))
 
 
 # ---------------------------------------------------------------- 个人令牌

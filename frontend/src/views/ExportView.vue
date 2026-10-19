@@ -2,8 +2,10 @@
 /**
  * 审计表格导出（预览 DevelopDocs/ui-preview/M5/export.html，REQ-022）：预置模板 / 自定义对象 → 选设备、字段（勾选与拖动排序）、筛选 →
  * 预览（POST /export/table，每格可追溯节点与配置行）→ CSV / XLSX 下载（中文、English、Português 表头）。
- * 格子取值由后端在图上计算；表头叫法按显示风格（华为 / Cisco）。
+ * 格子取值由后端在图上计算；表头叫法按显示风格（华为 / Cisco / Nokia）。
  */
+import { STYLES } from '@/terms/terms'
+import { vendorKey } from '@/vendor'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -105,8 +107,10 @@ const semantic = (path: string) => { const f = fieldInfo.value.find((x) => x.pat
 function toggleCol(k: string): void { cols.value = cols.value.map((c) => (c.key === k ? { ...c, on: !c.on } : c)); void refresh() }
 function toggleWhere(id: string): void { where.value = where.value.includes(id) ? where.value.filter((x) => x !== id) : [...where.value, id]; void refresh() }
 function toggleDev(n: string): void { selDevs.value = selDevs.value.includes(n) ? selDevs.value.filter((x) => x !== n) : [...selDevs.value, n]; void refresh() }
-function quick(k: 'all' | 'hw' | 'cs' | 'none'): void {
-  selDevs.value = devices.value.filter((d) => k === 'all' || (k === 'hw' && d.vendor === 'huawei') || (k === 'cs' && d.vendor === 'cisco')).map((d) => d.name)
+/** 快捷选择：全部 / 全不选 / 某个厂商的设备（只列出现有设备的厂商）。 */
+const quickVendors = computed(() => STYLES.filter((v) => devices.value.some((d) => vendorKey(d.vendor) === v)))
+function quick(k: 'all' | 'none' | string): void {
+  selDevs.value = devices.value.filter((d) => k === 'all' || (k !== 'none' && vendorKey(d.vendor) === k)).map((d) => d.name)
   void refresh()
 }
 const newFilter = ref<AdHoc>({ field: '', op: '=', value: '' })
@@ -302,8 +306,7 @@ onMounted(async () => {
                 </button>
                 <span class="quick">
                   <button type="button" @click="quick('all')">{{ $t('export.qAll') }}</button>
-                  <button type="button" @click="quick('hw')">{{ $t('style.huawei') }}</button>
-                  <button type="button" @click="quick('cs')">{{ $t('style.cisco') }}</button>
+                  <button v-for="v in quickVendors" :key="v" type="button" :data-vendor="v" @click="quick(v)">{{ $t(`style.${v}`) }}</button>
                   <button type="button" @click="quick('none')">{{ $t('export.qNone') }}</button>
                 </span>
                 <span v-if="!devices.length" class="small faint">{{ $t('export.noDevices') }}</span>

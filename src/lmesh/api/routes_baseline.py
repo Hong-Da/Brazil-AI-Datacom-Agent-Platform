@@ -90,7 +90,9 @@ def baseline_rules(request: Request, baseline: str | None = None) -> dict[str, A
 class BaselineReportBody(BaselineBody):
     lang: Literal["zh-CN", "en"] = Field("zh-CN", description="报告语言（界面是 pt-BR 时用 en）")
     format: Literal["html", "md"] = Field("html", description="html：自包含单文件、可打印；md：贴进工单")
-    style: Literal["huawei", "cisco"] | None = Field(None, description="节点的显示风格；不填时用配置 ui.term_style")
+    style: Literal["huawei", "cisco", "nokia"] | None = Field(
+        None, description="节点的显示风格；不填时用配置 ui.term_style"
+    )
 
 
 @router.post(

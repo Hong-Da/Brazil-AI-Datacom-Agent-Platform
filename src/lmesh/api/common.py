@@ -156,11 +156,11 @@ def principal_of(request: Request) -> Principal:
 
 
 def project_error(e: projects.ProjectError) -> ApiError:
-    """项目与权限错误 → 接口错误（not_found 404、forbidden 403、state 409、param 422）。"""
+    """项目与权限错误 → 接口错误（not_found 404、forbidden 403、state / ambiguous 409、param 422）。"""
     if e.kind == "not_found":
         return ApiError(E_NOT_FOUND, 404, e.key, data=e.data, **e.fmt)
     if e.kind == "forbidden":
         return ApiError(E_FORBIDDEN, 403, e.key, data=e.data, **e.fmt)
-    if e.kind == "state":
+    if e.kind in ("state", "ambiguous"):  # ambiguous：只写标识却匹配到多个项目，data.candidates 列出“属主/标识”
         return ApiError(E_STATE, 409, e.key, data=e.data, **e.fmt)
     return ApiError(E_PARAM, 422, e.key, data=e.data, **e.fmt)

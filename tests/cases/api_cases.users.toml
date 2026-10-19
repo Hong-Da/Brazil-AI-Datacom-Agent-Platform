@@ -353,3 +353,80 @@ setup = "configured-users"
 login = ["alice", "Alice-pass-1"]
 expect_status = 200
 expect_json = { "code" = 0, "data.logged_out" = true }
+
+# ---------------------------------------------------------------- 自助注册（REQ-039）
+# 准备方式 configured-pending：在 configured-users 之上，dave 与 erin 自助注册后待审核（注册开关默认关闭）。
+
+[[case]]
+id = "auth-register-closed"
+title = { zh-CN = "注册未开放（默认关闭）：403", en = "Sign-up not open (off by default): 403", pt-BR = "Cadastro fechado (padrão): 403" }
+method = "POST"
+path = "/api/v1/auth/register"
+setup = "configured-users"
+body = { username = "newbie", password = "Newbie-pass-1" }
+expect_status = 403
+expect_json = { "code" = 1006 }
+in_docs = true
+
+[[case]]
+id = "auth-status-registration"
+title = { zh-CN = "登录页状态里的注册开关", en = "Sign-up switch in the sign-in status", pt-BR = "Chave de cadastro no estado do login" }
+method = "GET"
+path = "/api/v1/auth/status"
+setup = "configured-users"
+expect_status = 200
+expect_json = { "code" = 0, "data.registration.open" = false, "data.registration.approval" = true }
+
+[[case]]
+id = "users-list-pending"
+title = { zh-CN = "待审核的自助注册账号（管理员）", en = "Self sign-ups waiting for approval (admin)", pt-BR = "Cadastros aguardando aprovação (administrador)" }
+method = "GET"
+path = "/api/v1/users?status=pending"
+setup = "configured-pending"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.count" = 2, "data.pending" = 2, "data.users.0.username" = "dave", "data.users.0.status" = "pending", "data.users.0.origin" = "register" }
+in_docs = true
+
+[[case]]
+id = "users-approve"
+title = { zh-CN = "批准待审核账号（建好默认项目）", en = "Approve a pending sign-up (default project created)", pt-BR = "Aprovar cadastro pendente (projeto padrão criado)" }
+method = "POST"
+path = "/api/v1/users/dave/approve"
+setup = "configured-pending"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.user.username" = "dave", "data.user.status" = "active" }
+in_docs = true
+
+[[case]]
+id = "users-reject"
+title = { zh-CN = "拒绝待审核账号（删除，用户名可再注册）", en = "Reject a pending sign-up (deleted; the name can sign up again)", pt-BR = "Recusar cadastro pendente (excluído)" }
+method = "POST"
+path = "/api/v1/users/erin/reject"
+setup = "configured-pending"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.rejected" = "erin", "data.deleted" = true }
+in_docs = true
+
+[[case]]
+id = "users-approve-active"
+title = { zh-CN = "批准不是待审核的账号：409", en = "Approving an account that is not pending: 409", pt-BR = "Aprovar conta não pendente: 409" }
+method = "POST"
+path = "/api/v1/users/alice/approve"
+setup = "configured-pending"
+auth = true
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "auth-settings"
+title = { zh-CN = "自助注册设置（管理员）", en = "Self sign-up settings (admin)", pt-BR = "Configurações de cadastro (administrador)" }
+method = "GET"
+path = "/api/v1/auth/settings"
+setup = "configured-users"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.registration" = false, "data.approval" = true, "data.rate_per_hour" = 5 }
+in_docs = true

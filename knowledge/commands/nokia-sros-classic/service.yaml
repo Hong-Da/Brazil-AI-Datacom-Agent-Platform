@@ -1591,6 +1591,8 @@ cards:
       line: 5956
       version: 25.10.R1
     status: draft
+    maps:
+      interface.access.shutdown: flag
   - id: nokia-sros-classic.transit-policy.1
     syntax: transit-policy ip <ip-aasub-policy-id>
     view: epipe-sap
@@ -4757,6 +4759,8 @@ cards:
       line: 12956
       version: 25.10.R1
     status: draft
+    maps:
+      interface.access.shutdown: flag
   - id: nokia-sros-classic.spb
     syntax: spb [ <isis-instance> ] [ fid <fid> ] [ create ]
     view: vpls-sap
@@ -6790,6 +6794,8 @@ cards:
         direction: if:$ext-community:both||kw:export|import
       vrf.instance.af{afi=ipv4}.rt.value: pre:target:$ext-community||pre:target:$export-community||pre:target:$import-community
       vrf.instance.af{afi=ipv4}.rt.direction: if:$ext-community:both||kw:export|import
+      vrf.instance.af{afi=ipv4}.rt{value=pre:target:$import-community,direction=if:$export-community:import}.value: pre:target:$import-community
+      vrf.instance.af{afi=ipv4}.rt{value=pre:target:$import-community,direction=if:$export-community:import}.direction: if:$export-community:import
   - id: nokia-sros-classic.weighted-ecmp~3
     syntax: weighted-ecmp
     view: vprn-ipvpn-abt
@@ -10085,6 +10091,8 @@ cards:
       vrf.instance.af{afi=ipv4}.rt: *id037
       vrf.instance.af{afi=ipv4}.rt.value: pre:target:$ext-community||pre:target:$export-community||pre:target:$import-community
       vrf.instance.af{afi=ipv4}.rt.direction: if:$ext-community:both||kw:export|import
+      vrf.instance.af{afi=ipv4}.rt{value=pre:target:$import-community,direction=if:$export-community:import}.value: pre:target:$import-community
+      vrf.instance.af{afi=ipv4}.rt{value=pre:target:$import-community,direction=if:$export-community:import}.direction: if:$export-community:import
   - id: nokia-sros-classic.vxlan~3
     syntax: vxlan
     view: vprn

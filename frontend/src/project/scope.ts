@@ -79,18 +79,22 @@ export function isProjectApi(path: string): boolean {
  * 把旧的无项目路径改写为当前项目的路径；已经是 /projects/… 的、不属于项目的、没有当前项目的原样返回。
  * 例：scopedPath('/devices?x=1', 'oam') → '/projects/oam/devices?x=1'。
  */
-export function scopedPath(path: string, slug: string | null | undefined): string {
-  if (!slug || path.startsWith('/projects/') || !isProjectApi(path)) return path
-  return `/projects/${encodeURIComponent(slug)}${path}`
+export function scopedPath(path: string, ref: string | null | undefined): string {
+  if (!ref || path.startsWith('/projects/') || !isProjectApi(path)) return path
+  // “属主/标识”编码成 属主%2F标识，后端在路由前把这一段还原（api/scoping.py）
+  return `/projects/${encodeURIComponent(ref)}${path}`
 }
 
-/** 带项目前缀 /p/<项目>/… 的页面：旧路径 → 路由名（旧路径用于兼容重定向）。 */
+/**
+ * 带项目前缀的页面：/p/<标识>/…（自己的项目）或 /p/<属主>/<标识>/…（别人的项目），路由里是可重复参数 :project+。
+ * 页面路径的第二段只有数字编号（:id(\d+)），所以“标识/页面”与“属主/标识/页面”不会混淆。旧路径用于兼容重定向。
+ */
 export const PROJECT_PAGES: readonly { name: string; path: string; legacy?: string }[] = [
   { name: 'devices', path: 'devices', legacy: '/devices' },
   { name: 'add-device', path: 'devices/add' },
-  { name: 'device-graph', path: 'graph/:id?', legacy: '/graph/:id?' },
-  { name: 'device-analysis', path: 'analysis/:id?', legacy: '/analysis/:id?' },
-  { name: 'history', path: 'history/:id?', legacy: '/history/:id?' },
+  { name: 'device-graph', path: 'graph/:id(\\d+)?', legacy: '/graph/:id?' },
+  { name: 'device-analysis', path: 'analysis/:id(\\d+)?', legacy: '/analysis/:id?' },
+  { name: 'history', path: 'history/:id(\\d+)?', legacy: '/history/:id?' },
   { name: 'unknown-lines', path: 'unknown-lines', legacy: '/unknown-lines' },
   { name: 'compare', path: 'compare', legacy: '/compare' },
   { name: 'check', path: 'check', legacy: '/check' },
@@ -98,7 +102,7 @@ export const PROJECT_PAGES: readonly { name: string; path: string; legacy?: stri
   { name: 'translate', path: 'translate', legacy: '/translate' },
   { name: 'change', path: 'change', legacy: '/change' },
   { name: 'scripts', path: 'scripts', legacy: '/check-projects' },
-  { name: 'check-project', path: 'scripts/:id', legacy: '/check-projects/:id' },
+  { name: 'check-project', path: 'scripts/:id(\\d+)', legacy: '/check-projects/:id' },
   { name: 'migration', path: 'migration', legacy: '/migration' },
   { name: 'impact', path: 'impact', legacy: '/impact' },
   { name: 'topology', path: 'topology', legacy: '/topology' },
@@ -110,11 +114,27 @@ export const PROJECT_PAGES: readonly { name: string; path: string; legacy?: stri
 
 export const PROJECT_PAGE_NAMES: ReadonlySet<string> = new Set(PROJECT_PAGES.map((p) => p.name))
 
+/** 项目引用 → 网址里的项目段：oam → oam，liwei/oam → liwei/oam（各段分别编码）。 */
+export function refPath(ref: string): string {
+  return ref.split('/').map(encodeURIComponent).join('/')
+}
+
+/** 项目引用 → 路由参数 :project+（数组）。 */
+export function refParam(ref: string): string[] {
+  return ref.split('/').filter(Boolean)
+}
+
+/** 路由参数 :project+ → 项目引用；不是一段（标识）或两段（属主/标识）时返回 null。 */
+export function refFromParam(p: unknown): string | null {
+  const parts = (Array.isArray(p) ? p : [p]).map((x) => String(x ?? '')).filter(Boolean)
+  return parts.length >= 1 && parts.length <= 2 ? parts.join('/') : null
+}
+
 /** 旧网址（例如 /graph/12?node=x）对应的新网址：/p/<项目>/graph/12?node=x。 */
-export function legacyTarget(fullPath: string, slug: string): string {
+export function legacyTarget(fullPath: string, ref: string): string {
   // 配置检查项目并入项目脚本（D-0199）
   const path = fullPath.replace(/^\/check-projects(?=$|[/?#])/, '/scripts')
-  return `/p/${encodeURIComponent(slug)}${path}`
+  return `/p/${refPath(ref)}${path}`
 }
 
 /** 最近用过的项目：放在浏览器本地（只是方便，取不到时用默认项目）。 */
@@ -147,11 +167,15 @@ export function activityKey(action: string | null | undefined): string | null {
 }
 
 /** 路由跳转目标：去带项目前缀的页面却没给项目时补上当前项目（从非项目页面跳过去，例如首页 → 设备）。 */
-export function withProject<T>(to: T, slug: string | null): T {
+export function withProject<T>(to: T, ref: string | null): T {
   if (!to || typeof to !== 'object') return to
   const loc = to as unknown as { name?: unknown; params?: Record<string, unknown>; query?: unknown; hash?: unknown }
-  if (typeof loc.name !== 'string' || !PROJECT_PAGE_NAMES.has(loc.name) || loc.params?.project) return to
-  if (slug) return { ...(to as object), params: { ...(loc.params ?? {}), project: slug } } as T
+  if (typeof loc.name !== 'string' || !PROJECT_PAGE_NAMES.has(loc.name)) return to
+  const given = loc.params?.project
+  // 给了项目引用（字符串，可能是“属主/标识”）：换成路由参数数组，网址才是 /p/属主/标识/…（而不是 %2F）
+  if (typeof given === 'string' && given) return { ...(to as object), params: { ...loc.params, project: refParam(given) } } as T
+  if (given) return to
+  if (ref) return { ...(to as object), params: { ...(loc.params ?? {}), project: refParam(ref) } } as T
   // 还不知道当前项目（刚打开网页、路由守卫还没确定项目时外壳已经渲染）：用旧网址，守卫会跳到当前项目的对应页
   return { path: legacyPath(loc.name, loc.params ?? {}), query: loc.query, hash: loc.hash } as T
 }

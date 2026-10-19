@@ -61,7 +61,8 @@ _audit_log = logging.getLogger("lmesh.audit")
 
 class ProjectError(ValueError):
     """kind：param 参数不合格（422 / 退出码 2）、not_found 不存在或无权查看（404 / 4）、
-    state 状态不允许（409 / 1）、forbidden 没有权限（403 / 1）。"""
+    state 状态不允许（409 / 1）、forbidden 没有权限（403 / 1）、ambiguous 只写标识却匹配到多个项目（409 / 2，
+    data.candidates 列出“属主/标识”）。"""
 
     def __init__(self, key: str, kind: str = "param", data: Any = None, **fmt: Any):
         super().__init__(key)
@@ -97,6 +98,11 @@ class Scope:
     role: str
     identity: Identity = SYSTEM
     overrides: dict[str, dict[str, Any]] = field(default_factory=dict)
+    ref: str = ""  # 规范引用：调用者自己的（或属主为空的）项目写“标识”，别人的写“属主/标识”
+
+    @property
+    def label(self) -> str:
+        return self.ref or self.slug
 
     @property
     def can_write(self) -> bool:
@@ -300,19 +306,75 @@ def role_of(s: Any, p: Project, ident: Identity) -> str | None:
     return None
 
 
-def _find(s: Any, ref: str | int) -> Project | None:
+# 属主与标识之间的分隔：“/”；网址路径里一段放不下“/”，也可以写“~”（API 把路径里的 %2F 转成它，见 api/scoping.py）
+REF_SEPARATORS = ("/", "~")
+
+
+def _home_owner(s: Any, ident: Identity) -> int | None:
+    """只写标识时先找谁的项目：调用者自己；全局令牌与没有账号的命令行（user_id 为空）为第一个管理员。"""
+    if ident.user_id is not None:
+        return ident.user_id
+    admin = _first_admin(s)
+    return admin.id if admin is not None else None
+
+
+def full_ref(s: Any, p: Project) -> str:
+    """“属主/标识”；属主为空的项目只有标识。"""
+    owner = s.get(User, p.owner_id) if p.owner_id else None
+    return f"{owner.username}/{p.slug}" if owner is not None else p.slug
+
+
+def ref_of(s: Any, p: Project, ident: Identity | None) -> str:
+    """规范引用（项目返回体的 ref、网址里的项目段、命令行输出）：调用者自己的项目与属主为空的项目写“标识”，
+    别人的写“属主/标识”。只写标识时解析先找自己的，所以这样写总能解析回同一个项目。"""
+    if p.owner_id is None or (ident is not None and p.owner_id == _home_owner(s, ident)):
+        return p.slug
+    return full_ref(s, p)
+
+
+def split_ref(ref: str | int) -> tuple[str | None, str]:
+    """“属主/标识”→（属主，标识）；只有标识时属主为 None。"""
     text = str(ref).strip()
-    if "/" in text:  # 属主/标识
-        owner, _, slug = text.partition("/")
-        p = s.scalar(select(Project).where(Project.slug == slug.lower()))
-        if p is None:
+    for sep in REF_SEPARATORS:
+        if sep in text:
+            owner, _, slug = text.partition(sep)
+            return owner.strip(), slug.strip().lower()
+    return None, text.lower()
+
+
+def _find(s: Any, ref: str | int, ident: Identity = SYSTEM) -> Project | None:
+    """解析项目引用（标识按属主唯一，用户 2026-10-19 评审改选）：
+    - “属主/标识”（或“属主~标识”）：精确；
+    - 只写标识：先找调用者自己的（全局令牌与没有账号的命令行为第一个管理员的）；没有时在调用者能访问的项目
+      （成员；管理员为全部）中找，唯一匹配就用它，多个时报 ambiguous（data.candidates 列出“属主/标识”），
+      不静默挑一个；
+    - 都没有且是数字：项目编号。
+    找不到时返回 None（调用方按“不存在”处理，权限另查）。整数（不是字符串）直接按编号找。"""
+    if isinstance(ref, int):
+        return s.get(Project, ref)  # type: ignore[no-any-return]
+    owner, slug = split_ref(ref)
+    if owner is not None:
+        u = s.scalar(select(User).where(func.lower(User.username) == owner.lower()))
+        if u is None:
             return None
-        o = s.get(User, p.owner_id) if p.owner_id else None
-        return p if o is not None and o.username.lower() == owner.lower() else None
-    p = s.scalar(select(Project).where(Project.slug == text.lower()))
-    if p is None and text.isdigit():
-        p = s.get(Project, int(text))
-    return p
+        return s.scalar(select(Project).where(Project.owner_id == u.id, Project.slug == slug))  # type: ignore[no-any-return]
+    rows = list(s.scalars(select(Project).where(Project.slug == slug).order_by(Project.id)))
+    home = _home_owner(s, ident)
+    mine = [p for p in rows if home is not None and p.owner_id == home]
+    if mine:
+        return mine[0]
+    reachable = [p for p in rows if role_of(s, p, ident) is not None]
+    if len(reachable) == 1:
+        return reachable[0]
+    if len(reachable) > 1:
+        cands = sorted(full_ref(s, p) for p in reachable)
+        raise ProjectError(
+            "projects.ambiguous", "ambiguous", data={"candidates": cands}, project=slug, candidates=", ".join(cands)
+        )
+    text = str(ref).strip()
+    if text.isdigit():
+        return s.get(Project, int(text))  # type: ignore[no-any-return]
+    return None
 
 
 def _load_overrides(s: Any, project_id: int) -> dict[str, dict[str, Any]]:
@@ -321,13 +383,13 @@ def _load_overrides(s: Any, project_id: int) -> dict[str, dict[str, Any]]:
 
 
 def _scope(s: Any, p: Project, ident: Identity, role: str) -> Scope:
-    return Scope(p.id, p.slug, role, ident, _load_overrides(s, p.id))
+    return Scope(p.id, p.slug, role, ident, _load_overrides(s, p.id), ref_of(s, p, ident))
 
 
 def resolve(db_url: str, ident: Identity, ref: str | int) -> Scope:
-    """项目引用（标识、属主/标识或编号）→ Scope；不存在或没有权限查看时 not_found。"""
+    """项目引用（标识、属主/标识或编号）→ Scope；不存在或没有权限查看时 not_found；只写标识而匹配到多个时 ambiguous。"""
     with store.session(db_url) as s:
-        p = _find(s, ref)
+        p = _find(s, ref, ident)
         role = role_of(s, p, ident) if p is not None else None
         if p is None or role is None:
             raise ProjectError("projects.not_found", "not_found", project=str(ref))
@@ -344,12 +406,12 @@ def scope_by_id(db_url: str, project_id: int, ident: Identity = SYSTEM) -> Scope
 
 def require_write(scope: Scope) -> None:
     if not scope.can_write:
-        raise ProjectError("projects.read_only", "forbidden", project=scope.slug)
+        raise ProjectError("projects.read_only", "forbidden", project=scope.label)
 
 
 def require_manage(scope: Scope) -> None:
     if not scope.can_manage:
-        raise ProjectError("projects.owner_only", "forbidden", project=scope.slug)
+        raise ProjectError("projects.owner_only", "forbidden", project=scope.label)
 
 
 # ---------------------------------------------------------------- 默认项目与工作空间
@@ -369,14 +431,33 @@ def _workspace(s: Any, user_id: int) -> Workspace:
     return ws
 
 
-def _free_slug(s: Any, base: str) -> str:
+def _owner_clause(owner_id: int | None) -> Any:
+    return Project.owner_id.is_(None) if owner_id is None else Project.owner_id == owner_id
+
+
+def slug_taken(s: Any, owner_id: int | None, slug: str, ignore: int | None = None) -> bool:
+    """标识在该属主的项目里是否已被使用（属主为空的项目之间也不能重复）。"""
+    q = select(Project.id).where(_owner_clause(owner_id), Project.slug == slug)
+    if ignore is not None:
+        q = q.where(Project.id != ignore)
+    return s.scalar(q) is not None
+
+
+def _free_slug(s: Any, base: str, owner_id: int | None) -> str:
     b = re.sub(r"[^a-z0-9]+", "-", base.lower()).strip("-")[:56]
     if len(b) < 2 or not b[0].isalnum():
         b = "project"
     cand, n = b, 2
-    while s.scalar(select(Project.id).where(Project.slug == cand)) is not None:
+    while slug_taken(s, owner_id, cand):
         cand, n = f"{b}-{n}", n + 1
     return cand
+
+
+def _adopt(s: Any, p: Project, owner_id: int) -> None:
+    """把属主为空的项目交给 owner_id；他已有同名标识时加编号。"""
+    if slug_taken(s, owner_id, p.slug, ignore=p.id):
+        p.slug = _free_slug(s, p.slug, owner_id)
+    p.owner_id = owner_id
 
 
 def _ensure_default(s: Any, ident: Identity) -> Project:
@@ -386,7 +467,9 @@ def _ensure_default(s: Any, ident: Identity) -> Project:
             return _ensure_default(s, Identity(admin.id, admin.username, "admin"))
         p = s.scalar(select(Project).where(Project.owner_id.is_(None), Project.slug == "default"))
         if p is None:
-            p = Project(slug=_free_slug(s, "default"), name=DEFAULT_NAME, description="", owner_id=None, settings={})
+            p = Project(
+                slug=_free_slug(s, "default", None), name=DEFAULT_NAME, description="", owner_id=None, settings={}
+            )
             s.add(p)
             s.flush()
         return p
@@ -400,7 +483,7 @@ def _ensure_default(s: Any, ident: Identity) -> Project:
         if first is not None and first.id == ident.user_id:  # 第一个管理员接管没有属主的默认项目
             adopt = s.scalar(select(Project).where(Project.owner_id.is_(None), Project.slug == "default"))
     if adopt is not None:
-        adopt.owner_id = ident.user_id
+        _adopt(s, adopt, ident.user_id)
         p = adopt
     else:
         p = s.scalar(
@@ -408,7 +491,7 @@ def _ensure_default(s: Any, ident: Identity) -> Project:
         )
         if p is None:
             p = Project(
-                slug=_free_slug(s, f"{ident.username}-default"),
+                slug=_free_slug(s, "default", ident.user_id),  # 标识按属主唯一：每个人的默认项目都可以叫 default
                 name=DEFAULT_NAME,
                 description="",
                 owner_id=ident.user_id,
@@ -433,7 +516,7 @@ def default_project(db_url: str, ident: Identity) -> dict[str, Any]:
     """调用者的默认项目（不存在时自动创建）：命令行不带 --project、旧的无项目接口都用它。"""
     with store.session(db_url) as s:
         p = _ensure_default(s, ident)
-        return {"id": p.id, "slug": p.slug}
+        return {"id": p.id, "slug": p.slug, "ref": ref_of(s, p, ident)}
 
 
 def default_scope(db_url: str, ident: Identity) -> Scope:
@@ -448,7 +531,7 @@ def set_default(db_url: str, ident: Identity, ref: str | int) -> dict[str, Any]:
     sc = resolve(db_url, ident, ref)
     with store.session(db_url) as s:
         _workspace(s, ident.user_id).default_project_id = sc.project_id
-    return {"default_project": sc.slug}
+    return {"default_project": sc.label}
 
 
 def on_user_created(db_url: str, user_id: int) -> None:
@@ -464,7 +547,9 @@ def on_user_created(db_url: str, user_id: int) -> None:
             if first is not None and first.id == u.id:
                 if orphan is not None:
                     _workspace(s, u.id).default_project_id = orphan.id
-                s.execute(update(Project).where(Project.owner_id.is_(None)).values(owner_id=u.id))
+                for p in list(s.scalars(select(Project).where(Project.owner_id.is_(None)).order_by(Project.id))):
+                    _adopt(s, p, u.id)
+                    s.flush()
 
 
 # ---------------------------------------------------------------- 项目信息
@@ -511,12 +596,18 @@ def _member_rows(s: Any, p: Project) -> list[dict[str, Any]]:
     return out
 
 
-def project_dict(s: Any, p: Project, role: str | None, full: bool = False) -> dict[str, Any]:
+def project_dict(
+    s: Any, p: Project, role: str | None, full: bool = False, ident: Identity | None = None
+) -> dict[str, Any]:
+    """项目返回体。ref：规范引用（自己的写标识，别人的写“属主/标识”；前端网址与命令行输出用它）；
+    full_ref：总是“属主/标识”（属主为空时只有标识），分享给别人时用。"""
     owner = s.get(User, p.owner_id) if p.owner_id else None
     members = _member_rows(s, p)
     out: dict[str, Any] = {
         "id": p.id,
         "slug": p.slug,
+        "ref": ref_of(s, p, ident),
+        "full_ref": full_ref(s, p),
         "name": p.name,
         "description": p.description,
         "owner": owner.username if owner else None,
@@ -554,14 +645,14 @@ def list_projects(
             role = role_of(s, p, ident)
             if role is None or (role == "admin" and not include_all):
                 continue
-            d = project_dict(s, p, role)
+            d = project_dict(s, p, role, ident=ident)
             d["default"] = p.id == default_id
             rows.append(d)
         return {
             "mine": [r for r in rows if r["role"] == "owner"],
             "shared": [r for r in rows if r["role"] in MEMBER_ROLES],
             "others": [r for r in rows if r["role"] == "admin"],
-            "default_project": next((r["slug"] for r in rows if r["default"]), None),
+            "default_project": next((r["ref"] for r in rows if r["default"]), None),
         }
 
 
@@ -569,8 +660,8 @@ def get_project(db_url: str, scope: Scope) -> dict[str, Any]:
     with store.session(db_url) as s:
         p = s.get(Project, scope.project_id)
         if p is None:
-            raise ProjectError("projects.not_found", "not_found", project=scope.slug)
-        return project_dict(s, p, scope.role, full=True)
+            raise ProjectError("projects.not_found", "not_found", project=scope.label)
+        return project_dict(s, p, scope.role, full=True, ident=scope.identity)
 
 
 def _validate_slug(slug: str) -> str:
@@ -602,16 +693,13 @@ def _validate_settings(data: dict[str, Any] | None) -> dict[str, Any]:
 
 
 def create_project(db_url: str, ident: Identity, data: dict[str, Any]) -> dict[str, Any]:
-    """新建项目：标识全站唯一；属主是调用者（全局令牌与没有账号的命令行建的项目属于第一个管理员）。"""
+    """新建项目：属主是调用者（全局令牌与没有账号的命令行建的项目属于第一个管理员）；标识在属主的项目里唯一。"""
     name = _validate_name(data.get("name"))
     with store.session(db_url) as s:
-        slug = _validate_slug(data["slug"]) if data.get("slug") else _free_slug(s, name)
-        if s.scalar(select(Project.id).where(Project.slug == slug)) is not None:
+        owner_id = _home_owner(s, ident)
+        slug = _validate_slug(data["slug"]) if data.get("slug") else _free_slug(s, name, owner_id)
+        if slug_taken(s, owner_id, slug):
             raise ProjectError("projects.slug_taken", "state", slug=slug)
-        owner_id = ident.user_id
-        if owner_id is None:
-            admin = _first_admin(s)
-            owner_id = admin.id if admin is not None else None
         p = Project(
             slug=slug,
             name=name,
@@ -627,7 +715,7 @@ def create_project(db_url: str, ident: Identity, data: dict[str, Any]) -> dict[s
             if ws.default_project_id is None:
                 ws.default_project_id = p.id
         _log.info("项目已创建：%s（%s，属主 %s）", p.slug, p.id, ident.username)
-        return project_dict(s, p, role_of(s, p, ident))
+        return project_dict(s, p, role_of(s, p, ident), ident=ident)
 
 
 def update_project(db_url: str, scope: Scope, data: dict[str, Any]) -> dict[str, Any]:
@@ -639,8 +727,17 @@ def update_project(db_url: str, scope: Scope, data: dict[str, Any]) -> dict[str,
         if "slug" in data and data["slug"] and data["slug"] != p.slug:
             require_manage(scope)
             slug = _validate_slug(data["slug"])
-            if s.scalar(select(Project.id).where(Project.slug == slug)) is not None:
-                raise ProjectError("projects.slug_taken", "state", slug=slug)
+            if slug_taken(s, p.owner_id, slug, ignore=p.id):
+                owner = s.get(User, p.owner_id) if p.owner_id else None
+                if owner is None or p.owner_id == _home_owner(s, scope.identity):
+                    raise ProjectError("projects.slug_taken", "state", slug=slug)
+                raise ProjectError(
+                    "projects.slug_taken_owner",
+                    "state",
+                    data={"suggested": _free_slug(s, slug, p.owner_id)},
+                    slug=slug,
+                    owner=owner.username,
+                )
             p.slug = slug
         if "name" in data and data["name"] is not None:
             p.name = _validate_name(data["name"])
@@ -650,7 +747,7 @@ def update_project(db_url: str, scope: Scope, data: dict[str, Any]) -> dict[str,
             p.settings = {**(p.settings or {}), **_validate_settings(data["settings"])}
         p.updated_at = _now()
         s.flush()
-        return project_dict(s, p, scope.role, full=True)
+        return project_dict(s, p, scope.role, full=True, ident=scope.identity)
 
 
 # ---------------------------------------------------------------- 删除项目
@@ -691,7 +788,7 @@ def delete_preview(db_url: str, scope: Scope) -> dict[str, Any]:
             s.scalar(select(func.count()).select_from(CheckIgnore).where(CheckIgnore.project_id == p.id)) or 0
         )
         return {
-            "project": {"id": p.id, "slug": p.slug, "name": p.name},
+            "project": {"id": p.id, "slug": p.slug, "ref": ref_of(s, p, scope.identity), "name": p.name},
             "counts": {
                 "private_devices": c["private"],
                 "versions": versions,
@@ -790,9 +887,17 @@ def remove_member(db_url: str, scope: Scope, username: str) -> dict[str, Any]:
         return {"members": _member_rows(s, p)}
 
 
-def transfer(db_url: str, scope: Scope, username: str, keep_as: str | None = "edit") -> dict[str, Any]:
+def transfer(
+    db_url: str,
+    scope: Scope,
+    username: str,
+    keep_as: str | None = "edit",
+    new_slug: str | None = None,
+    auto_rename: bool = False,
+) -> dict[str, Any]:
     """把项目转交给其他账号（属主与管理员）。原属主默认留作可编辑成员（keep_as 为空时退出）；
-    项目设置里用到的、原属主私有的翻译规则集复制一份给新属主（D-0179）。"""
+    项目设置里用到的、原属主私有的翻译规则集复制一份给新属主（D-0179）。标识按属主唯一：新属主已有同名项目时
+    拒绝（409，data.suggested 给出他那里可用的标识），可以用 new_slug 同时改标识。"""
     require_manage(scope)
     if keep_as is not None and keep_as not in MEMBER_ROLES:
         raise ProjectError("projects.bad_member_role", role=keep_as)
@@ -805,6 +910,18 @@ def transfer(db_url: str, scope: Scope, username: str, keep_as: str | None = "ed
         old = p.owner_id
         if old == u.id:
             raise ProjectError("projects.already_owner", "state", name=u.username)
+        slug = _validate_slug(new_slug) if new_slug else p.slug
+        if slug_taken(s, u.id, slug, ignore=p.id) and auto_rename:  # 删除账号时整批转交：自动加编号
+            slug = _free_slug(s, slug, u.id)
+        if slug_taken(s, u.id, slug, ignore=p.id):
+            raise ProjectError(
+                "projects.slug_taken_owner",
+                "state",
+                data={"suggested": _free_slug(s, slug, u.id)},
+                slug=slug,
+                owner=u.username,
+            )
+        p.slug = slug
         s.execute(delete(ProjectMember).where(ProjectMember.project_id == p.id, ProjectMember.user_id == u.id))
         if old is not None and keep_as:
             s.add(ProjectMember(project_id=p.id, user_id=old, role=keep_as))
@@ -833,9 +950,10 @@ def transfer(db_url: str, scope: Scope, username: str, keep_as: str | None = "ed
                 p = s.get(Project, scope.project_id)
                 assert p is not None
                 p.settings = {**(p.settings or {}), "rule_set": copied}
-    audit(db_url, scope.identity, scope.project_id, scope.slug, "transfer", {"from": old_name, "to": new_owner})
+    audit(db_url, scope.identity, scope.project_id, slug, "transfer", {"from": old_name, "to": new_owner, "slug": slug})
     return {
-        "project": scope.slug,
+        "project": slug,
+        "full_ref": f"{new_owner}/{slug}",
         "owner": new_owner,
         "previous_owner": old_name,
         "kept_as": keep_as,
@@ -954,7 +1072,7 @@ def copy_device(
         src_proj = s.get(Project, src.project_id) if src.project_id else None
         note = {
             "type": "copy",
-            "project": src_proj.slug if src_proj else None,
+            "project": full_ref(s, src_proj) if src_proj else None,
             "public": src.project_id is None,
             "device": src.name,
             "device_id": src.id,
@@ -1040,7 +1158,7 @@ def copy_project(db_url: str, scope: Scope, ident: Identity, data: dict[str, Any
             "description": data.get("description"),
         },
     )
-    target = resolve(db_url, ident, created["slug"])
+    target = resolve(db_url, ident, int(created["id"]))
     if ident.user_id is None:
         target = Scope(target.project_id, target.slug, "admin", ident, {})
     id_map: dict[int, int] = {}
@@ -1066,7 +1184,7 @@ def copy_project(db_url: str, scope: Scope, ident: Identity, data: dict[str, Any
         private = list(s.scalars(select(Device.id).where(Device.project_id == src.id).order_by(Device.id)))
     if data.get("devices", True):
         for dev_id in private:
-            res = copy_device(db_url, target, dev_id, _version_of(db_url, dev_id), source_label=scope.slug)
+            res = copy_device(db_url, target, dev_id, _version_of(db_url, dev_id), source_label=scope.label)
             id_map[dev_id] = res["device_id"]
     scripts = 0
     if data.get("scripts", True):
@@ -1154,6 +1272,7 @@ def list_public(db_url: str) -> list[dict[str, Any]]:
                 refs.append(
                     {
                         "project": p.slug,
+                        "full_ref": full_ref(s, p),
                         "name": p.name,
                         "owner": owner.username if owner else None,
                         "policy": "pin" if r.version_id else "follow",
@@ -1184,7 +1303,7 @@ def delete_public(db_url: str, device_id: int, force: bool = False, actor: str =
     with store.session(db_url) as s:
         dev = _public_device(s, device_id)
         refs = [
-            p.slug
+            full_ref(s, p)
             for p in s.scalars(
                 select(Project)
                 .join(ProjectDeviceRef, ProjectDeviceRef.project_id == Project.id)
@@ -1309,7 +1428,7 @@ def apply_overrides(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------- 审计与最近活动
 
 
-_ENTER_SEEN: dict[tuple[str, int], float] = {}
+_ENTER_SEEN: dict[tuple[str, str, int], float] = {}
 ENTER_EVERY_S = 1800.0
 
 
@@ -1337,7 +1456,7 @@ def admin_access(db_url: str, scope: Scope, method: str, path: str, write: bool)
         return
     import time
 
-    key = (scope.identity.username, scope.project_id)
+    key = (db_url, scope.identity.username, scope.project_id)
     now = time.monotonic()
     if not write:
         last = _ENTER_SEEN.get(key)
@@ -1407,7 +1526,7 @@ def dispose_user_projects(db_url: str, username: str, transfer_to: str | None, a
         sc = scope_by_id(db_url, p["id"], actor)
         sc = Scope(sc.project_id, sc.slug, "admin", actor, sc.overrides)
         if transfer_to and not p["empty"]:
-            transfer(db_url, sc, transfer_to, keep_as=None)
+            transfer(db_url, sc, transfer_to, keep_as=None, auto_rename=True)
         else:
             delete_project(db_url, sc)
             audit(db_url, actor, None, sc.slug, "delete", {"reason": "account_deleted", "owner": username})

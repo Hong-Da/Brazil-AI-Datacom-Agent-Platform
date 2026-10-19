@@ -27,7 +27,7 @@ class Field:
     key: str  # 分组.名称
     default: Any
     group: str
-    kind: str  # str / int / choice / host / port / dburl / token / secret / path
+    kind: str  # str / int / bool / choice / host / port / dburl / token / secret / path
     desc: dict[str, str]
     choices: tuple[str, ...] = ()
     minimum: int | None = None
@@ -59,11 +59,11 @@ FIELDS: tuple[Field, ...] = (
         "ui",
         "choice",
         _d(
-            "配置图、对比、检查与报告的默认显示风格（华为或 Cisco 的叫法与命令写法）；浏览器里可随时切换",
-            "Default display style for graphs, comparisons, checks and reports (Huawei or Cisco terms and commands); switchable in the browser",
-            "Estilo de exibição padrão para grafos, comparações, verificações e relatórios (termos e comandos Huawei ou Cisco); pode ser trocado no navegador",
+            "配置图、对比、检查与报告的默认显示风格（华为、Cisco 或 Nokia 的叫法与命令写法）；浏览器里可随时切换",
+            "Default display style for graphs, comparisons, checks and reports (Huawei, Cisco or Nokia terms and commands); switchable in the browser",
+            "Estilo de exibição padrão para grafos, comparações, verificações e relatórios (termos e comandos Huawei, Cisco ou Nokia); pode ser trocado no navegador",
         ),
-        choices=("huawei", "cisco"),
+        choices=("huawei", "cisco", "nokia"),
     ),
     Field(
         "server.host",
@@ -171,6 +171,41 @@ FIELDS: tuple[Field, ...] = (
         ),
         minimum=1,
         maximum=1440,
+    ),
+    Field(
+        "auth.registration",
+        False,
+        "security",  # 向导里放在“安全”一步；配置文件里是 [auth] 分组
+        "bool",
+        _d(
+            "允许用户在登录页自助注册账号（新账号为普通用户）；关闭时登录页不显示注册入口",
+            "Let people sign up on the sign-in page (new accounts are regular users); when off, the sign-up link is hidden",
+            "Permitir que as pessoas se cadastrem na página de login (contas novas são usuários comuns); desligado, o link some",
+        ),
+    ),
+    Field(
+        "auth.registration_approval",
+        True,
+        "security",  # 向导里放在“安全”一步；配置文件里是 [auth] 分组
+        "bool",
+        _d(
+            "自助注册的账号需要管理员在账号管理中批准后才能登录",
+            "Self-registered accounts can sign in only after an administrator approves them in Accounts",
+            "Contas cadastradas só podem entrar depois que um administrador aprovar em Contas",
+        ),
+    ),
+    Field(
+        "auth.registration_rate_per_hour",
+        5,
+        "security",
+        "int",
+        _d(
+            "同一来源地址每小时最多注册几次（防止批量注册）",
+            "Sign-ups allowed per source address per hour (stops bulk sign-ups)",
+            "Cadastros permitidos por endereço de origem por hora (evita cadastros em massa)",
+        ),
+        minimum=1,
+        maximum=1000,
     ),
     Field(
         "log.level",
@@ -354,6 +389,15 @@ def validate(key: str, value: Any) -> Any:
         if (f.minimum is not None and value < f.minimum) or (f.maximum is not None and value > f.maximum):
             raise ConfigError("range")
         return value
+    if f.kind == "bool":
+        if isinstance(value, bool):
+            return value
+        text = "" if value is None else str(value).strip().lower()
+        if text in ("true", "1", "yes", "on"):
+            return True
+        if text in ("false", "0", "no", "off", ""):
+            return False
+        raise ConfigError("bool")
     value = "" if value is None else str(value).strip()
     if f.kind == "choice" and value not in f.choices:
         raise ConfigError("choice")
@@ -492,6 +536,16 @@ def write(values: dict[str, Any], lang: str = "zh-CN", path: Path | None = None)
     }[lang if lang in LANGS else "zh-CN"]
     path.write_text(render_toml(clean, lang, header), encoding="utf-8")
     return path
+
+
+def update_file(updates: dict[str, Any], lang: str = "zh-CN") -> Settings:
+    """改配置文件里的几项（校验后写回，其余保持文件里的值），返回重新读取的配置。"""
+    current = load()
+    values = {k: v for k, v in current.values.items() if current.sources.get(k) == "file"}
+    for k, v in updates.items():
+        values[k] = validate(k, v)
+    write(values, lang)
+    return load()
 
 
 def example_text() -> str:

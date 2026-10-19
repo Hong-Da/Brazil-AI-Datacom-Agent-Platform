@@ -74,6 +74,11 @@ function showToast(msg: string, err = false): void {
   toastTimer = setTimeout(() => (toast.value = null), 2800)
 }
 onBeforeUnmount(() => clearTimeout(toastTimer))
+function copyRemedy(lines: string[]): void {
+  const done = () => showToast(t('c.copied'))
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(lines.join('\n')).then(done, done)
+  else done()
+}
 
 const msgOf = (f: Finding) => renderText(f.message, lang.value, result.value?.texts ?? {}, rulesMap.value)
 const sugOf = (f: Finding) => renderText(f.suggestion, lang.value, result.value?.texts ?? {}, rulesMap.value)
@@ -436,6 +441,13 @@ onMounted(async () => {
 
                   <div class="section-t">{{ $t('check.fix') }}</div>
                   <div class="fixbox"><p>{{ sugOf(selected) }}</p><p class="small faint mt8">{{ $t('check.fixNote') }}</p></div>
+                  <template v-if="selected.remedy?.length">
+                    <div class="section-t">{{ $t('check.remedy') }}</div>
+                    <div class="remedy" data-testid="detail-remedy">
+                      <pre class="block">{{ selected.remedy.join('\n') }}</pre>
+                      <button class="btn btn-xs" type="button" data-testid="copy-remedy" @click="copyRemedy(selected.remedy)"><Icon name="copy" small />{{ $t('check.copyRemedy') }}</button>
+                    </div>
+                  </template>
                 </div>
 
                 <div v-if="ignoreOpen" class="ignore-box" data-testid="ignore-box">
@@ -509,6 +521,8 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.remedy { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.remedy pre.block { width: 100%; margin: 0; font-size: 11.5px; max-height: 260px; }
 .ck-head { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
 .ck-head .ph-text { flex: 1; min-width: 300px; }
 .ck-meta { display: flex; gap: 14px; color: var(--ink-3); font-size: 12px; flex-wrap: wrap; margin-top: 6px; }

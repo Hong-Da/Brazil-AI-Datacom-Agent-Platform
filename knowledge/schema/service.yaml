@@ -149,6 +149,10 @@ nodes:
     type: ref
     ref: l2vpn.vsi
     semantic: {zh-CN: 接入点绑定的 VSI（Nokia VPLS 下的 SAP；华为二层子接口 l2 binding vsi 记在接口上 interface.vsi，有对应）, en: VSI bound to the access point (Nokia VPLS SAP), pt-BR: VSI vinculada ao ponto de acesso (SAP VPLS Nokia)}
+  interface.access.shutdown:
+    parent: interface.access
+    type: boolean
+    semantic: {zh-CN: 接入点管理关闭（Nokia SAP shutdown / admin-state disable；SAP 缺省启用；华为 / Cisco 的子接口 / 业务实例没有单独的管理状态，平台特有）, en: Access point administratively down (Nokia SAP), pt-BR: Ponto de acesso desativado administrativamente (SAP Nokia)}
   # ---------- SAP 的 QoS 策略（Nokia sap-ingress / sap-egress）----------
   qos.sap_ingress:
     type: object

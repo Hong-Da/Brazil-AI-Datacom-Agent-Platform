@@ -483,6 +483,26 @@ rules:
   - view: ^system-ntp$
     syntax: '^shutdown$'
     maps: {mgmt.ntp.shutdown: flag}
+  # M7-5：NTP 认证、管理访问过滤器、口令策略、登录空闲超时（安全基线用）
+  - view: ^system-ntp$
+    syntax: '^authentication-check$'
+    maps: {mgmt.ntp.authentication: flag}
+  - view: ^system-security$
+    syntax: '^management-access-filter$'
+    maps: {mgmt.maf: "_"}
+  - view: ^security-maf$
+    syntax: '^ip-filter$'
+    maps: {mgmt.maf.ipv4: "true"}
+  - {view: ^system-security$, syntax: '^password$', maps: {"@container": ""}}
+  - view: ^security-password$
+    syntax: '^aging <days>$'
+    maps: {mgmt.aaa.password_aging: $days}
+  - view: ^security-password$
+    syntax: '^attempts <count>'
+    maps: {mgmt.aaa.login_attempts: $count, mgmt.aaa.lockout_time: $minutes2}
+  - view: ^login-control$
+    syntax: '^idle-timeout '
+    maps: {mgmt.system: "_", mgmt.system.idle_timeout: "$minutes||kw:disable"}
   - view: ^system-security$
     syntax: '^telnet-server$'
     maps: {mgmt.telnet: "_", mgmt.telnet.enabled: flag}
@@ -728,6 +748,9 @@ rules:
   - view: ^(epipe|vpls)-sap$
     syntax: '^description '
     maps: {interface.access.description: *desc}
+  - view: ^(epipe|vpls)-sap$
+    syntax: '^shutdown$'
+    maps: {interface.access.shutdown: flag}
   - view: ^(epipe|vpls)-sap-ingress$
     syntax: '^qos <policy-id>'
     maps: {interface.access.qos_in: $policy-id}
@@ -772,6 +795,9 @@ rules:
       "vrf.instance.af{afi=ipv4}.rt": {value: "pre:target:$ext-community||pre:target:$export-community||pre:target:$import-community", direction: "if:$ext-community:both||kw:export|import"}
       "vrf.instance.af{afi=ipv4}.rt.value": "pre:target:$ext-community||pre:target:$export-community||pre:target:$import-community"
       "vrf.instance.af{afi=ipv4}.rt.direction": "if:$ext-community:both||kw:export|import"
+      # export X import Y（M7-5）：同一行的 import 另建一个 RT 对象（与 MD-CLI 的 import-community 相同）
+      "vrf.instance.af{afi=ipv4}.rt{value=pre:target:$import-community,direction=if:$export-community:import}.value": "pre:target:$import-community"
+      "vrf.instance.af{afi=ipv4}.rt{value=pre:target:$import-community,direction=if:$export-community:import}.direction": "if:$export-community:import"
   - view: ^vprn(-ipvpn-mpls)?$
     syntax: '^vrf-import <plcy'
     maps:

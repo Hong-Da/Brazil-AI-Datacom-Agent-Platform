@@ -504,6 +504,16 @@ rules:
   - view: ^system\.time\.ntp$
     syntax: '^admin-state '
     maps: {mgmt.ntp.shutdown: *down}
+  # M7-5：NTP 认证、管理访问过滤器（块内为范围外原文，只记录已配置）、登录空闲超时；口令策略在 user-params 下，命令卡范围外
+  - view: ^system\.time\.ntp$
+    syntax: '^authentication-check '
+    maps: {mgmt.ntp.authentication: *tf}
+  - view: ^system\.security$
+    syntax: '^management-access-filter$'
+    maps: {mgmt.maf: "_"}
+  - view: ^system\.login-control$
+    syntax: '^idle-timeout '
+    maps: {mgmt.system: "_", mgmt.system.idle_timeout: $idle-timeout}
   - view: ^system\.security$
     syntax: '^telnet-server '
     maps: {mgmt.telnet: "_", mgmt.telnet.enabled: *tf}
@@ -756,6 +766,9 @@ rules:
   - view: ^service\.(epipe|vpls)\.sap$
     syntax: '^description '
     maps: {interface.access.description: $description}
+  - view: ^service\.(epipe|vpls)\.sap$
+    syntax: '^admin-state '
+    maps: {interface.access.shutdown: *down}
   - view: ^service\.(epipe|vpls)\.sap\.ingress\.qos\.sap-ingress$
     syntax: '^policy-name '
     maps: {interface.access.qos_in: "by:qos.sap_ingress:name:$policy-name"}

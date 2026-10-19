@@ -483,6 +483,32 @@ nodes:
     parent: mgmt.ntp
     type: boolean
     semantic: {zh-CN: NTP 管理关闭（Nokia 缺省关闭）（Nokia shutdown / no shutdown；华为 / Cisco 配置了服务器即启用，平台特有）, en: NTP administratively down, pt-BR: NTP desativado administrativamente}
+  # ---------- M7-5（Nokia SR OS）：管理访问过滤器、口令策略、登录空闲超时 ----------
+  mgmt.maf:
+    type: object
+    key: [id]
+    semantic: {zh-CN: 管理访问过滤器（Nokia system security management-access-filter：限制访问管理面的来源；华为 / Cisco 用 VTY / SNMP 的 ACL 表达，平台特有）, en: Management access filter (Nokia), pt-BR: Filtro de acesso de gerência (Nokia)}
+    status: reviewed
+  mgmt.maf.ipv4:
+    parent: mgmt.maf
+    type: boolean
+    semantic: {zh-CN: 配置了 IPv4 过滤条目（ip-filter）, en: IPv4 filter configured, pt-BR: Filtro IPv4 configurado}
+  mgmt.aaa.password_aging:
+    parent: mgmt.aaa
+    type: integer
+    semantic: {zh-CN: 本地用户口令有效期（天，Nokia password aging；华为 local-aaa password policy 有对应写法，未归并）, en: Local password aging (days), pt-BR: Validade da senha local (dias)}
+  mgmt.aaa.login_attempts:
+    parent: mgmt.aaa
+    type: integer
+    semantic: {zh-CN: 登录失败锁定前允许的次数（Nokia password attempts）, en: Failed login attempts before lockout, pt-BR: Tentativas de login antes do bloqueio}
+  mgmt.aaa.lockout_time:
+    parent: mgmt.aaa
+    type: integer
+    semantic: {zh-CN: 登录失败后的锁定时间（分钟，Nokia attempts … lockout）, en: Lockout time (minutes), pt-BR: Tempo de bloqueio (minutos)}
+  mgmt.system.idle_timeout:
+    parent: mgmt.system
+    type: string
+    semantic: {zh-CN: 登录会话空闲超时（分钟，disable 表示不超时；Nokia login-control idle-timeout；华为 / Cisco 写在登录线路上）, en: Login session idle timeout (minutes), pt-BR: Timeout de inatividade da sessão (minutos)}
 deps:
   - {kind: reference, from: mgmt.aaa.domain.tacacs, to: mgmt.tacacs}
   - {kind: reference, from: mgmt.ntp.server.vrf, to: vrf.instance}

@@ -71,3 +71,18 @@ export function activity(a: { actor?: string | null; action: string; at: string 
   if (!a) return null
   return { key: activityKey(a.action), raw: a.action, actor: a.actor ?? '', at: a.at }
 }
+
+/**
+ * 只写标识而能访问的同名项目有多个时的候选（属主/标识）：优先用后端 409 给出的 data.candidates，
+ * 没有时（例如刷新了“我的项目”页）从项目列表里按标识找。
+ */
+export function ambiguousCandidates(
+  slug: string,
+  given: readonly string[],
+  lists: { mine: { slug: string; full_ref: string }[]; shared: { slug: string; full_ref: string }[]; others: { slug: string; full_ref: string }[] } | null,
+): string[] {
+  if (!slug) return []
+  if (given.length) return [...given]
+  if (!lists) return []
+  return [...lists.mine, ...lists.shared, ...lists.others].filter((p) => p.slug === slug).map((p) => p.full_ref).sort()
+}

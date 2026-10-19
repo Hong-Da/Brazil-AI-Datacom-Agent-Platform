@@ -16,6 +16,10 @@ export interface UserRow {
   projects?: number
   /** 有效的个人 API 令牌数（M6） */
   tokens?: number
+  /** active 正常 / pending 自助注册后待审核（REQ-039） */
+  status?: 'active' | 'pending'
+  /** admin 管理员建 / register 自助注册（REQ-039） */
+  origin?: 'admin' | 'register'
 }
 
 export type Problem = 'short' | 'mismatch' | 'same'
@@ -48,6 +52,8 @@ export interface AuthStatus {
   session_hours: number
   config_file?: string
   token_set?: boolean
+  /** 自助注册（REQ-039）：open 登录页显示注册入口；approval 注册后需要管理员审核 */
+  registration?: { open: boolean; approval: boolean }
 }
 
 /** 还没有账号时怎样创建第一个管理员：token = 网页上用 API 令牌创建；cli = 令牌未设置，只能用命令行或先设置令牌。 */
@@ -56,10 +62,11 @@ export function bootMode(s: AuthStatus | null): 'token' | 'cli' | null {
   return s.token_set === false ? 'cli' : 'token'
 }
 
-export type UserState = 'enabled' | 'locked' | 'disabled'
+export type UserState = 'enabled' | 'locked' | 'disabled' | 'pending'
 
 export function stateOf(u: UserRow): UserState {
   if (u.disabled) return 'disabled'
+  if (u.status === 'pending') return 'pending'
   if (u.locked) return 'locked'
   return 'enabled'
 }
@@ -83,9 +90,10 @@ export function shortTime(iso: string | null): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-export function counts(rows: UserRow[]): { all: number; admin: number; maint: number; locked: number; disabled: number } {
+export function counts(rows: UserRow[]): { all: number; admin: number; maint: number; pending: number; locked: number; disabled: number } {
   return {
-    all: rows.length,
+    all: rows.filter((u) => u.status !== 'pending').length,
+    pending: rows.filter((u) => u.status === 'pending').length,
     admin: rows.filter((u) => u.role === 'admin').length,
     maint: rows.filter((u) => u.role === 'maintainer').length,
     locked: rows.filter((u) => stateOf(u) === 'locked').length,
@@ -130,3 +138,32 @@ export const PERM_MATRIX: { key: string; cells: [Perm, Perm, Perm, Perm] }[] = [
   { key: 'public', cells: ['y', 'r', 'r', 'r'] },
   { key: 'system', cells: ['y', 'n', 'n', 'n'] },
 ]
+
+/** 注册表单的检查项（REQ-039，与后端规则一致）：用户名长度、用户名字符、密码长度、两次一致；值为 null 表示还没填。 */
+export function signUpChecks(name: string, pw: string, pw2: string): { nameLen: boolean | null; nameChars: boolean | null; pwLen: boolean | null; same: boolean | null } {
+  const n = name.trim()
+  return {
+    nameLen: n ? n.length >= 2 && n.length <= 64 : null,
+    nameChars: n ? /^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(n) : null,
+    pwLen: pw ? pw.length >= MIN_PASSWORD : null,
+    same: pw2 ? pw === pw2 : null,
+  }
+}
+
+/** 自助注册设置（GET / PUT /auth/settings）。 */
+export interface RegSettings { registration: boolean; approval: boolean; rate_per_hour: number }
+
+/** 每小时次数是否合格（1–1000 的整数）。 */
+export function validRate(v: unknown): boolean {
+  const n = Number(v)
+  return Number.isInteger(n) && n >= 1 && n <= 1000
+}
+
+/** 设置面板里改了哪些项（PUT 的请求体）；没有改动时为空对象。 */
+export function regPatch(saved: RegSettings, draft: RegSettings): Partial<RegSettings> {
+  const out: Partial<RegSettings> = {}
+  if (draft.registration !== saved.registration) out.registration = draft.registration
+  if (draft.approval !== saved.approval) out.approval = draft.approval
+  if (Number(draft.rate_per_hour) !== saved.rate_per_hour) out.rate_per_hour = Number(draft.rate_per_hour)
+  return out
+}

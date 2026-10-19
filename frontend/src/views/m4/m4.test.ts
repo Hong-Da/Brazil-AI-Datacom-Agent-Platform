@@ -182,6 +182,9 @@ describe('安全基线', () => {
     const d = r.devices[1]
     expect(bl.failuresByRule(d, ['a', 'b']).map((g) => [g.rule, g.items.length])).toEqual([['a', 2], ['b', 1]])
     expect(bl.remedyText(d, (x) => x.toUpperCase()).split('\n')).toEqual(['! b B', 'ntp server <IP>', '! a A', 'line vty 0 4', ' transport input ssh'])
+    // Nokia 的注释与华为一样用 #
+    expect(bl.remedyText({ ...d, family: 'nokia-sros-md' }, (x) => x).split('\n')[0]).toBe('# b b')
+    expect(bl.REMEDY_KEYS.map((k) => k.key)).toEqual(['huawei', 'cisco', 'nokia', 'nokia-sros-md'])
     const csv = bl.matrixCsv(r, (x) => x)
     expect(csv[1]).toEqual(['a', 'error', 'a', 'pass', 'fail'])
     expect(csv[csv.length - 1]).toEqual(['score', '', '', 100, 40])

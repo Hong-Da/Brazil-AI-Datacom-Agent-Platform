@@ -1,7 +1,10 @@
-# 安全基线（REQ-020，M4-7）：写在统一 Schema 上，华为与 Cisco 两个平台族共用；由 lmesh baseline 加载，lmesh check 不加载。
+# 安全基线（REQ-020，M4-7）：写在统一 Schema 上，华为、Cisco 与 Nokia（M7-5，Classic CLI 与 MD-CLI 共用节点）共用；
+# 由 lmesh baseline 加载，lmesh check 不加载。
 # 条件写法见 src/lmesh/core/rules.py 开头；基线的分组、变量覆盖与结果结构见 src/lmesh/core/baseline.py。
 # 团体字、密码等在样本里已经脱敏：规则只按名称 / 别名、版本、是否设置判断，不看密文。
 # remedy 是修复参考命令（不是可直接下发的脚本），风格名与 knowledge/terms.yaml 一致；{key} 是实例的键。
+# M7-5：nokia 是 Classic CLI 写法，nokia-sros-md 是 MD-CLI 写法（平台族名优先于风格名）。没有登录线路、某些管理命令不建模的平台
+# （Nokia）在“没有配置时的行为”上按 Profile 的缺省值判断（条件 default，并用 not supported 限定，华为 / Cisco 的结论不变）。
 kind: baseline
 
 vars:
@@ -12,6 +15,10 @@ vars:
   max_idle_seconds: 900
   # SSH 认证重试次数上限
   max_ssh_retries: 3
+  # 登录失败锁定前允许的次数上限（M7-5，Nokia password attempts）
+  max_login_attempts: 5
+  # 本地口令有效期上限（天，M7-5，Nokia password aging）
+  max_password_age_days: 90
   # SSH 弱算法（正则，按设备写法：华为下划线、Cisco 连字符；不区分大小写）
   weak_ssh_ciphers: '(cbc|arcfour|blowfish|rc4|(^|\s)3?des(\s|$))'
   weak_ssh_hmacs: '(md5|(^|\s)(hmac-)?sha1([_-]96|-etm@openssh\.com)?(\s|$))'
@@ -66,6 +73,8 @@ rules:
     remedy:
       huawei: [undo telnet server enable, undo telnet ipv6 server enable]
       cisco: [line vty 0 15, " transport input ssh"]
+      nokia: ['configure system security no telnet-server', 'configure system security no telnet6-server']
+      nokia-sros-md: ['/configure system security telnet-server false', '/configure system security telnet6-server false']
 
   - id: sec.ftp_disabled
     profiles: [basic]
@@ -88,6 +97,8 @@ rules:
     remedy:
       huawei: [undo ftp server enable, sftp server enable]
       cisco: [no ftp-server enable, ip scp server enable]
+      nokia: ['configure system security no ftp-server']
+      nokia-sros-md: ['/configure system security ftp-server false']
 
   # ---------- SSH ----------
   - id: sec.ssh_enabled
@@ -101,6 +112,11 @@ rules:
         - all:
             - not: {supported: mgmt.ssh.enabled}
             - match: {path: mgmt.line/protocols, pattern: '\bssh\b'}
+        # M7-5：没有登录线路的平台（Nokia）不写 ssh 配置时 SSH 服务按缺省值（缺省开启）
+        - all:
+            - not: {supported: mgmt.line.protocols}
+            - not: {exists: mgmt.ssh}
+            - default: {node: mgmt.ssh.enabled, value: true}
     severity: error
     title:
       zh-CN: 启用 SSH 登录
@@ -117,6 +133,8 @@ rules:
     remedy:
       huawei: [stelnet server enable]
       cisco: [ip ssh version 2, crypto key generate rsa modulus 3072]
+      nokia: ['configure system security ssh no server-shutdown']
+      nokia-sros-md: ['/configure system security ssh server-admin-state enable']
 
   - id: sec.ssh_v2
     profiles: [basic]
@@ -129,11 +147,20 @@ rules:
         - all:
             - not: {supported: mgmt.ssh.enabled}
             - match: {path: mgmt.line/protocols, pattern: '\bssh\b'}
-    # 版本按有效值判断（M4-2 补了缺省值：华为 2；Cisco 不写 ip ssh version 时为兼容模式 1.99），华为另看 SSHv1 兼容开关
+        - all:
+            - not: {supported: mgmt.line.protocols}
+            - not: {exists: mgmt.ssh}
+            - default: {node: mgmt.ssh.enabled, value: true}
+    # 版本按有效值判断（M4-2 补了缺省值：华为 2；Cisco 不写 ip ssh version 时为兼容模式 1.99），华为另看 SSHv1 兼容开关；
+    # Nokia 没有版本命令（25.x 只支持 SSHv2），按 Profile 的缺省值（M7-5）
     assert:
-      all:
-        - equals: {path: mgmt.ssh/version, value: "2"}
-        - not: {equals: {path: mgmt.ssh/compat_v1, value: true}}
+      any:
+        - all:
+            - equals: {path: mgmt.ssh/version, value: "2"}
+            - not: {equals: {path: mgmt.ssh/compat_v1, value: true}}
+        - all:
+            - not: {supported: mgmt.ssh.version}
+            - default: {node: mgmt.ssh.version, value: "2"}
     severity: error
     title:
       zh-CN: SSH 只用版本 2
@@ -341,12 +368,18 @@ rules:
     remedy:
       huawei: ["undo snmp-agent community {key}", "snmp-agent community read cipher <COMPLEX> acl <ACL>"]
       cisco: ["no snmp-server community {key}", "snmp-server community <COMPLEX> RO <ACL>"]
+      nokia: ['configure system security snmp no community "{key}"', 'configure system security snmp community "<COMPLEX>" r version v2c']
+      nokia-sros-md: ['delete /configure system security snmp community "{key}"', '/configure system security snmp community "<COMPLEX>" access-permissions r version v2c']
 
   - id: sec.snmp_community_acl
     profiles: [basic]
     tags: [snmp, acl]
     target: mgmt.snmp.community
-    assert: {exists: acl}
+    # M7-5：配置了管理访问过滤器（Nokia management-access-filter）时同样限定了来源
+    assert:
+      any:
+        - exists: acl
+        - exists: /mgmt.maf
     severity: warning
     title:
       zh-CN: SNMP 团体字绑定 ACL
@@ -363,6 +396,8 @@ rules:
     remedy:
       huawei: ["snmp-agent community read cipher <COMMUNITY> acl <ACL>"]
       cisco: ["snmp-server community <COMMUNITY> RO <ACL>"]
+      nokia: ['configure system security snmp community "<COMMUNITY>" r src-access-list "<LIST>"', 'configure system security management-access-filter ip-filter default-action deny']
+      nokia-sros-md: ['/configure system security snmp community "<COMMUNITY>" src-access-list "<LIST>"', '/configure system security management-access-filter ip-filter default-action deny']
 
   - id: sec.snmp_community_read_only
     profiles: [basic]
@@ -385,6 +420,8 @@ rules:
     remedy:
       huawei: ["snmp-agent community read cipher <COMMUNITY> acl <ACL>"]
       cisco: ["snmp-server community <COMMUNITY> RO <ACL>"]
+      nokia: ['configure system security snmp community "{key}" r']
+      nokia-sros-md: ['/configure system security snmp community "{key}" access-permissions r']
 
   - id: sec.snmp_v3_only
     profiles: [strict]
@@ -411,6 +448,8 @@ rules:
     remedy:
       huawei: [snmp-agent sys-info version v3, "undo snmp-agent community <COMMUNITY>"]
       cisco: ["snmp-server group <GROUP> v3 priv", "no snmp-server community <COMMUNITY>"]
+      nokia: ['configure system security snmp no community "<COMMUNITY>"', 'configure system security user "<USER>" snmp authentication hash2 sha256 <KEY> privacy aes128-cfb-key <KEY>']
+      nokia-sros-md: ['delete /configure system security snmp community "<COMMUNITY>"', '/configure system security user-params local-user user "<USER>" snmp authentication sha256 <KEY> privacy aes128-cfb <KEY>']
 
   - id: sec.snmp_v3_priv
     profiles: [strict]
@@ -475,6 +514,10 @@ rules:
       any:
         - match: {path: trap_source, pattern: '^loop', ignore_case: true}
         - match: {path: host/source_interface, pattern: '^loop', ignore_case: true}
+        # M7-5：不能单独配置源地址的平台（Nokia source-address 未建模）缺省用 system 接口（相当于 Loopback）
+        - all:
+            - not: {supported: mgmt.snmp.trap_source}
+            - default: {node: mgmt.snmp.trap_source, value: system}
     severity: info
     title:
       zh-CN: SNMP 告警源接口为 Loopback
@@ -491,6 +534,8 @@ rules:
     remedy:
       huawei: [snmp-agent trap source LoopBack0]
       cisco: [snmp-server trap-source Loopback0]
+      nokia: ['configure system security source-address application snmptrap "system"']
+      nokia-sros-md: ['/configure system security source-address ipv4 snmptrap interface-name "system"']
 
   # ---------- AAA ----------
   - id: sec.aaa_enabled
@@ -498,10 +543,15 @@ rules:
     tags: [aaa]
     target: device
     # AAA 已开启（M4-2：Cisco no aaa new-model 记为 enabled = false，华为恒开启）且有认证方案 / 方法列表
+    # Nokia 没有 AAA 开关与认证方案对象，本地认证恒开启、认证顺序缺省为 radius tacplus local（M7-5：按 Profile 的缺省值）
     assert:
-      all:
-        - equals: {path: mgmt.aaa/enabled, value: true}
-        - count: {path: mgmt.aaa/scheme, min: 1}
+      any:
+        - all:
+            - equals: {path: mgmt.aaa/enabled, value: true}
+            - count: {path: mgmt.aaa/scheme, min: 1}
+        - all:
+            - not: {supported: mgmt.aaa.enabled}
+            - default: {node: mgmt.aaa.enabled, value: true}
     severity: warning
     title:
       zh-CN: 配置 AAA
@@ -518,6 +568,8 @@ rules:
     remedy:
       huawei: [aaa, " authentication-scheme <NAME>", "  authentication-mode hwtacacs local"]
       cisco: [aaa new-model, aaa authentication login default group tacacs+ local]
+      nokia: ['configure system security password authentication-order tacplus local']
+      nokia-sros-md: ['/configure system security password authentication-order [tacplus local]']
 
   - id: sec.aaa_server
     profiles: [basic]
@@ -544,6 +596,8 @@ rules:
     remedy:
       huawei: ["hwtacacs-server template <NAME>", " hwtacacs-server authentication <IP>", " hwtacacs-server shared-key cipher <KEY>"]
       cisco: ["tacacs server <NAME>", " address ipv4 <IP>", " key <KEY>"]
+      nokia: ['configure system security tacplus server 1 address <IP> secret "<KEY>"']
+      nokia-sros-md: ['/configure system security aaa remote-servers tacplus server 1 address <IP> secret "<KEY>"']
 
   - id: sec.tacacs_key
     profiles: [basic]
@@ -566,6 +620,8 @@ rules:
     remedy:
       huawei: ["hwtacacs-server template {key}", " hwtacacs-server shared-key cipher <KEY>"]
       cisco: ["tacacs server {key}", " key <KEY>"]
+      nokia: ['configure system security tacplus server <INDEX> address <IP> secret "<KEY>"']
+      nokia-sros-md: ['/configure system security aaa remote-servers tacplus server <INDEX> secret "<KEY>"']
 
   - id: sec.radius_key
     profiles: [basic]
@@ -589,6 +645,8 @@ rules:
     remedy:
       huawei: ["radius-server group {key}", " radius-server shared-key-cipher <KEY>"]
       cisco: ["radius server {key}", " key <KEY>"]
+      nokia: ['configure system security radius server <INDEX> address <IP> secret "<KEY>"']
+      nokia-sros-md: ['/configure system security aaa remote-servers radius server <INDEX> secret "<KEY>"']
 
   - id: sec.local_user_password
     profiles: [basic]
@@ -611,6 +669,8 @@ rules:
     remedy:
       huawei: [aaa, " local-user {key} password irreversible-cipher <PASSWORD>"]
       cisco: ["username {key} privilege 15 algorithm-type scrypt secret <PASSWORD>"]
+      nokia: ['configure system security user "{key}" password "<PASSWORD>"']
+      nokia-sros-md: ['/configure system security user-params local-user user "{key}" password "<PASSWORD>"']
 
   - id: sec.local_user_secure_service
     profiles: [basic]
@@ -634,6 +694,8 @@ rules:
     remedy:
       huawei: [aaa, " local-user {key} service-type ssh terminal"]
       cisco: ["line vty 0 15", " transport input ssh"]
+      nokia: ['configure system security user "{key}" no access ftp', 'configure system security user "{key}" access console']
+      nokia-sros-md: ['/configure system security user-params local-user user "{key}" access ftp false', '/configure system security user-params local-user user "{key}" access console true']
 
   - id: sec.local_user_top_level
     profiles: [strict]
@@ -679,6 +741,8 @@ rules:
     remedy:
       huawei: [ntp-service unicast-server <IP> source-interface LoopBack0]
       cisco: [ntp server <IP>, ntp source Loopback0]
+      nokia: ['configure system time ntp server <IP>', 'configure system time ntp no shutdown']
+      nokia-sros-md: ['/configure system time ntp server <IP> router-instance "Base"', '/configure system time ntp admin-state enable']
 
   - id: sec.ntp_auth
     profiles: [basic]
@@ -702,6 +766,8 @@ rules:
     remedy:
       huawei: [ntp-service authentication enable, "ntp-service authentication-keyid 1 authentication-mode hmac-sha256 cipher <KEY>", ntp-service reliable authentication-keyid 1]
       cisco: [ntp authenticate, "ntp authentication-key 1 hmac-sha2-256 <KEY>", ntp trusted-key 1]
+      nokia: ['configure system time ntp authentication-key 1 key "<KEY>" type message-digest', 'configure system time ntp authentication-check']
+      nokia-sros-md: ['/configure system time ntp authentication-key 1 key "<KEY>" type message-digest', '/configure system time ntp authentication-check true']
 
   - id: sec.ntp_server_key
     profiles: [strict]
@@ -725,6 +791,8 @@ rules:
     remedy:
       huawei: ["ntp-service unicast-server {key} authentication-keyid 1"]
       cisco: ["ntp server {key} key 1"]
+      nokia: ['configure system time ntp server {key} key-id 1']
+      nokia-sros-md: ['/configure system time ntp server {key} router-instance "Base" key-id 1']
 
   - id: sec.ntp_source_loopback
     profiles: [basic]
@@ -734,6 +802,10 @@ rules:
       any:
         - match: {path: source_interface, pattern: '^loop', ignore_case: true}
         - match: {path: ^/source_interface, pattern: '^loop', ignore_case: true}
+        # M7-5：不能单独配置源地址的平台（Nokia source-address 未建模）缺省用 system 接口（相当于 Loopback）
+        - all:
+            - not: {supported: mgmt.ntp.source_interface}
+            - default: {node: mgmt.ntp.source_interface, value: system}
     severity: info
     title:
       zh-CN: NTP 源接口为 Loopback
@@ -750,6 +822,8 @@ rules:
     remedy:
       huawei: ["ntp-service unicast-server {key} source-interface LoopBack0"]
       cisco: [ntp source Loopback0]
+      nokia: ['configure system security source-address application ntp "system"']
+      nokia-sros-md: ['/configure system security source-address ipv4 ntp interface-name "system"']
 
   # ---------- 日志 ----------
   - id: sec.syslog_server
@@ -773,13 +847,21 @@ rules:
     remedy:
       huawei: [info-center loghost <IP>, info-center loghost source LoopBack0]
       cisco: [logging host <IP>, logging source-interface Loopback0]
+      nokia: ['configure log syslog 1 address <IP>', 'configure log log-id 20 from main security to syslog 1']
+      nokia-sros-md: ['/configure log syslog "1" address <IP>', '/configure log log-id "20" source main true', '/configure log log-id "20" destination syslog "1"']
 
   - id: sec.syslog_source_loopback
     profiles: [basic]
     tags: [logging, source]
     target: mgmt.syslog
     when: {count: {path: host, min: 1}}
-    assert: {match: {path: source_interface, pattern: '^loop', ignore_case: true}}
+    assert:
+      any:
+        - match: {path: source_interface, pattern: '^loop', ignore_case: true}
+        # M7-5：Nokia 缺省用 system 接口（相当于 Loopback）
+        - all:
+            - not: {supported: mgmt.syslog.source_interface}
+            - default: {node: mgmt.syslog.source_interface, value: system}
     severity: info
     title:
       zh-CN: 日志源接口为 Loopback
@@ -796,3 +878,105 @@ rules:
     remedy:
       huawei: [info-center loghost source LoopBack0]
       cisco: [logging source-interface Loopback0]
+      nokia: ['configure system security source-address application syslog "system"']
+      nokia-sros-md: ['/configure system security source-address ipv4 syslog interface-name "system"']
+
+  # ---------- M7-5：Nokia 的管理访问过滤器、口令策略、登录空闲超时（华为 / Cisco 写在登录线路与 ACL 上，这几条对它们不适用）----------
+  - id: sec.mgmt_access_filter
+    profiles: [basic]
+    tags: [acl]
+    target: device
+    when: {supported: mgmt.maf}
+    assert: {exists: mgmt.maf}
+    severity: warning
+    title:
+      zh-CN: 配置管理访问过滤器
+      en: Management access filter configured
+      pt-BR: Filtro de acesso de gerência configurado
+    message:
+      zh-CN: 没有配置管理访问过滤器（management-access-filter），任何地址都能访问 SSH、SNMP 等管理协议
+      en: No management access filter is configured; any address can reach SSH, SNMP and other management protocols
+      pt-BR: Nenhum filtro de acesso de gerência está configurado; qualquer endereço alcança SSH, SNMP e outros protocolos de gerência
+    suggestion:
+      zh-CN: 配置管理访问过滤器，只放行网管网段，缺省动作为丢弃
+      en: Configure a management access filter that permits only the management networks with a default action of deny
+      pt-BR: Configure um filtro de acesso de gerência que permita apenas as redes de gerência, com ação padrão deny
+    remedy:
+      nokia: [configure system security management-access-filter ip-filter default-action deny, 'configure system security management-access-filter ip-filter entry 10 src-ip <NMS-PREFIX> action permit']
+      nokia-sros-md: [/configure system security management-access-filter ip-filter default-action drop, '/configure system security management-access-filter ip-filter entry 10 match src-ip <NMS-PREFIX>', '/configure system security management-access-filter ip-filter entry 10 action accept']
+
+  - id: sec.password_lockout
+    profiles: [basic]
+    tags: [aaa]
+    target: device
+    when: {supported: mgmt.aaa.login_attempts}
+    # 没有 password 配置时按缺省值（Nokia attempts 3 time 5 lockout 10）
+    assert:
+      any:
+        - range: {path: mgmt.aaa/login_attempts, min: 1, max: $max_login_attempts}
+        - all:
+            - not: {exists: mgmt.aaa}
+            - default: {node: mgmt.aaa.login_attempts, value: 3}
+    severity: warning
+    title:
+      zh-CN: 登录失败次数受限
+      en: Failed login attempts limited
+      pt-BR: Tentativas de login com falha limitadas
+    message:
+      zh-CN: 登录失败锁定前允许的次数超过基线上限，口令容易被暴力破解
+      en: More failed login attempts are allowed before lockout than the baseline permits; passwords are exposed to brute force
+      pt-BR: São permitidas mais tentativas de login antes do bloqueio do que a baseline aceita; as senhas ficam expostas a força bruta
+    suggestion:
+      zh-CN: 把锁定前允许的失败次数设为不超过基线上限（基础 5 次），并设置锁定时间
+      en: Allow at most the baseline limit of failed attempts (5 in the basic baseline) and set a lockout time
+      pt-BR: Permita no máximo o limite da baseline (5 na básica) e defina um tempo de bloqueio
+    remedy:
+      nokia: [configure system security password attempts 3 time 5 lockout 10]
+      nokia-sros-md: [/configure system security user-params attempts count 3 time 5 lockout 10]
+
+  - id: sec.password_aging
+    profiles: [strict]
+    tags: [aaa]
+    target: device
+    when: {supported: mgmt.aaa.password_aging}
+    assert: {range: {path: mgmt.aaa/password_aging, min: 1, max: $max_password_age_days}}
+    severity: info
+    title:
+      zh-CN: 本地口令定期更换
+      en: Local passwords expire
+      pt-BR: Senhas locais expiram
+    message:
+      zh-CN: 本地用户口令没有设置有效期，或有效期超过基线上限
+      en: Local passwords have no expiry or expire later than the baseline limit
+      pt-BR: As senhas locais não expiram ou expiram depois do limite da baseline
+    suggestion:
+      zh-CN: 设置本地口令有效期（严格基线不超过 90 天）
+      en: Set a password expiry (at most 90 days in the strict baseline)
+      pt-BR: Defina a validade da senha (no máximo 90 dias na baseline estrita)
+    remedy:
+      nokia: [configure system security password aging 90]
+      nokia-sros-md: [/configure system security user-params local-user password aging 90]
+
+  - id: sec.login_idle_timeout
+    profiles: [basic]
+    tags: [line]
+    target: mgmt.system
+    when: {supported: mgmt.system.idle_timeout}
+    # Nokia 的登录空闲超时是全局设置（login-control idle-timeout，缺省 30 分钟），对应华为 / Cisco 登录线路的超时
+    assert: {range: {path: idle_timeout, min: 1, max: $max_idle_seconds, unit: min_sec}}
+    severity: warning
+    title:
+      zh-CN: 登录会话空闲超时不超过上限
+      en: Login session idle timeout within the limit
+      pt-BR: Timeout de inatividade da sessão dentro do limite
+    message:
+      zh-CN: 登录会话的空闲超时关闭或超过基线上限（Nokia 缺省 30 分钟）
+      en: The login session idle timeout is disabled or above the baseline limit (Nokia default 30 minutes)
+      pt-BR: O timeout de inatividade da sessão está desativado ou acima do limite da baseline (padrão Nokia 30 minutos)
+    suggestion:
+      zh-CN: 把空闲超时设为不超过基线上限（基础 15 分钟，严格 10 分钟）
+      en: Set the idle timeout within the baseline limit (basic 15 minutes, strict 10 minutes)
+      pt-BR: Defina o timeout dentro do limite (básica 15 minutos, estrita 10 minutos)
+    remedy:
+      nokia: [configure system login-control idle-timeout 10]
+      nokia-sros-md: [/configure system login-control idle-timeout 10]

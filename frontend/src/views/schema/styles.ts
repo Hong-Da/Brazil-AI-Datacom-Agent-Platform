@@ -1,4 +1,6 @@
-/** Schema 节点在两种显示风格下的写法（REQ-026）：对象给命令模板与叫法，属性给命令关键字。 */
+import { STYLES } from '@/terms/terms'
+
+/** Schema 节点在各显示风格下的写法（REQ-026）：对象给命令模板与叫法，属性给命令关键字。 */
 
 export interface TermsLike {
   template(schema: string, style: string): string | null
@@ -15,8 +17,8 @@ export interface StyleRow {
   current: boolean
 }
 
-/** 节点卡片用：两种风格各一行，当前风格排在前面；没有登记写法的风格不列出。 */
-export function styleRows(t: TermsLike, id: string, type: string, current: string, styles: readonly string[] = ['huawei', 'cisco']): StyleRow[] {
+/** 节点卡片用：每种风格一行，当前风格排在前面；没有登记写法的风格不列出。 */
+export function styleRows(t: TermsLike, id: string, type: string, current: string, styles: readonly string[] = STYLES): StyleRow[] {
   const rows: StyleRow[] = []
   for (const s of styles) {
     const form = type === 'object' ? t.template(id, s) : t.attr(id, s)

@@ -143,6 +143,11 @@ def style_of(family: str | None) -> str:
     return head if head in STYLES else STYLES[0]
 
 
+def remedy_for(r: rulesmod.Rule, family: str | None) -> list[str]:
+    """规则在该平台族上的修复参考命令：先找平台族名（nokia-sros-md 的 MD-CLI 写法，M7-5），再找显示风格。"""
+    return list(r.remedy.get(str(family or "")) or r.remedy.get(style_of(family)) or [])
+
+
 def _format(cmd: str, params: dict[str, Any]) -> str:
     out = cmd
     for k, v in params.items():
@@ -187,7 +192,7 @@ def audit_device(
                     "evidence": evidence,
                     "message": {"key": f"baseline.{r.id}.message", "params": params},
                     "suggestion": {"key": f"baseline.{r.id}.suggestion", "params": params},
-                    "remedy": [_format(c, params) for c in r.remedy.get(style, [])],
+                    "remedy": [_format(c, params) for c in remedy_for(r, g.graph.get("family"))],
                 }
             )
         results[r.id] = "na" if applicable == 0 else ("fail" if failed else "pass")

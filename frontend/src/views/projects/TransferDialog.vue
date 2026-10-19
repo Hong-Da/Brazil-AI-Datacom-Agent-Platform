@@ -5,11 +5,12 @@
  */
 import { computed, onMounted, ref } from 'vue'
 import Icon from '@/components/Icon.vue'
-import { errorText, get, post } from '@/api'
+import { ApiError, errorText, get, post } from '@/api'
+import { validSlug } from './logic'
 import { useAuth } from '@/stores/auth'
 
-const props = defineProps<{ project: { slug: string; name: string; owner: string | null } }>()
-const emit = defineEmits<{ (e: 'close'): void; (e: 'transferred', r: { project: string; owner: string; kept_as: string | null; rule_set_copied: unknown }): void }>()
+const props = defineProps<{ project: { slug: string; ref: string; name: string; owner: string | null } }>()
+const emit = defineEmits<{ (e: 'close'): void; (e: 'transferred', r: { project: string; owner: string; kept_as: string | null; rule_set_copied: unknown; full_ref: string }): void }>()
 const auth = useAuth()
 
 const to = ref('')
@@ -17,6 +18,9 @@ const keep = ref<'edit' | 'read' | ''>('edit')
 const busy = ref(false)
 const error = ref('')
 const accounts = ref<string[]>([])
+/** 新属主已有同名标识（409，data.suggested）：转交时改用的新标识 */
+const taken = ref<{ owner: string; slug: string } | null>(null)
+const newSlug = ref('')
 const iAmOwner = computed(() => auth.me?.username === props.project.owner)
 
 onMounted(async () => {
@@ -28,17 +32,21 @@ onMounted(async () => {
 })
 
 async function ok(): Promise<void> {
-  if (!to.value.trim() || busy.value) return
+  if (!to.value.trim() || busy.value || (taken.value && !validSlug(newSlug.value.trim()))) return
   busy.value = true
   error.value = ''
   try {
-    const r = await post<{ project: string; owner: string; kept_as: string | null; rule_set_copied: unknown }>(
-      `/projects/${encodeURIComponent(props.project.slug)}/transfer`,
-      { to: to.value.trim(), keep_as: keep.value || null },
+    const r = await post<{ project: string; owner: string; kept_as: string | null; rule_set_copied: unknown; full_ref: string }>(
+      `/projects/${encodeURIComponent(props.project.ref)}/transfer`,
+      { to: to.value.trim(), keep_as: keep.value || null, ...(taken.value ? { slug: newSlug.value.trim() } : {}) },
     )
     emit('transferred', r)
   } catch (e) {
-    error.value = errorText(e)
+    const sug = e instanceof ApiError && e.status === 409 ? (e.data as { suggested?: string } | null)?.suggested : undefined
+    if (sug && !taken.value) {
+      taken.value = { owner: to.value.trim(), slug: props.project.slug }
+      newSlug.value = sug
+    } else error.value = errorText(e)
   } finally {
     busy.value = false
   }
@@ -69,6 +77,11 @@ async function ok(): Promise<void> {
           </select>
         </div>
         <div class="notice warn"><Icon name="warn" /><div>{{ $t('projects.dlg.trWarn') }}</div></div>
+        <div v-if="taken" class="field" data-testid="tr-taken">
+          <div class="notice warn"><Icon name="warn" /><div>{{ $t('projects.dlg.transferTaken', { owner: taken.owner, s: taken.slug }) }}</div></div>
+          <label for="trSlug">{{ $t('projects.dlg.transferSlug') }}</label>
+          <input id="trSlug" v-model="newSlug" :class="['input mono', { 'is-error': !validSlug(newSlug.trim()) }]" maxlength="64" data-testid="tr-slug" @keydown.enter="ok">
+        </div>
         <div v-if="error" class="notice err" data-testid="tr-error"><Icon name="err" /><div>{{ error }}</div></div>
       </div>
       <div class="modal-f">

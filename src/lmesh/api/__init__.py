@@ -124,6 +124,7 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     scoping.mount(app, project_router, API_PREFIX, "projects", project_only=True)
     scoping.mount(app, tokens_router, API_PREFIX, "tokens")
     scoping.add_deprecation_headers(app, API_PREFIX)
+    scoping.add_project_ref_rewrite(app, API_PREFIX)
     _mount_web(app)
     return app
 

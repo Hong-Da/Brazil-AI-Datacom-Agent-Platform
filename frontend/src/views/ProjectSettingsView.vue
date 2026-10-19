@@ -71,11 +71,11 @@ async function save(): Promise<void> {
   saveError.value = ''
   const oldSlug = orig.value.slug
   try {
-    const r = await put<{ slug: string }>(`/projects/${encodeURIComponent(oldSlug)}`, patch.value)
+    const r = await put<{ slug: string; ref: string }>(`/projects/${encodeURIComponent(project.ref ?? '')}`, patch.value)
     flash(t('project-settings.saved'))
     if (r.slug !== oldSlug) {
       project.forget()
-      await router.replace({ name: 'project-settings', params: { project: r.slug } })
+      await router.replace({ name: 'project-settings', params: { project: r.ref } })
     } else {
       await project.reload()
       fillForm()
@@ -104,7 +104,7 @@ async function loadRules(): Promise<void> {
   rulesLoading.value = true
   rulesError.value = ''
   try {
-    rules.value = (await get<{ rules: RuleRow[] }>(`/projects/${encodeURIComponent(info.value.slug)}/rules`)).rules
+    rules.value = (await get<{ rules: RuleRow[] }>(`/projects/${encodeURIComponent(project.ref ?? '')}/rules`)).rules
     for (const r of rules.value) drafts[r.id] = draftOf(r)
   } catch (e) {
     rulesError.value = errorText(e)
@@ -120,7 +120,7 @@ async function saveRule(r: RuleRow): Promise<void> {
   if (!d.reason.trim()) { ruleErr[r.id] = t('project-settings.reasonRequired'); return }
   ruleBusy.value = r.id
   try {
-    await put(`/projects/${encodeURIComponent(info.value!.slug)}/rules/${encodeURIComponent(r.id)}`, overrideBody(r, d))
+    await put(`/projects/${encodeURIComponent(project.ref ?? '')}/rules/${encodeURIComponent(r.id)}`, overrideBody(r, d))
     flash(t('project-settings.ruleSaved', { r: r.id }))
     await loadRules()
   } catch (e) {
@@ -133,7 +133,7 @@ async function resetRule(r: RuleRow): Promise<void> {
   ruleBusy.value = r.id
   ruleErr[r.id] = ''
   try {
-    await del(`/projects/${encodeURIComponent(info.value!.slug)}/rules/${encodeURIComponent(r.id)}`)
+    await del(`/projects/${encodeURIComponent(project.ref ?? '')}/rules/${encodeURIComponent(r.id)}`)
     flash(t('project-settings.ruleReset', { r: r.id }))
     await loadRules()
   } catch (e) {
@@ -157,7 +157,7 @@ async function setMember(u: string, role: 'edit' | 'read', invite = false): Prom
   memBusy.value = u
   memError.value = ''
   try {
-    await put(`/projects/${encodeURIComponent(info.value!.slug)}/members/${encodeURIComponent(u)}`, { role })
+    await put(`/projects/${encodeURIComponent(project.ref ?? '')}/members/${encodeURIComponent(u)}`, { role })
     await project.reload()
     flash(invite ? t('project-settings.invited', { u }) : t('project-settings.roleChanged', { u, r: t(`proj.role.${role}`) }))
     if (invite) inviteName.value = ''
@@ -177,7 +177,7 @@ async function removeMember(u: string): Promise<void> {
   memBusy.value = u
   memError.value = ''
   try {
-    await del(`/projects/${encodeURIComponent(info.value!.slug)}/members/${encodeURIComponent(u)}`)
+    await del(`/projects/${encodeURIComponent(project.ref ?? '')}/members/${encodeURIComponent(u)}`)
     await project.reload()
     flash(t('project-settings.removed', { u }))
   } catch (e) {
@@ -190,10 +190,14 @@ async function removeMember(u: string): Promise<void> {
 /* ---------------- 转交、复制、删除、退出 ---------------- */
 type Dlg = 'copy' | 'transfer' | 'delete' | 'leave'
 const dlg = ref<Dlg | null>(null)
-async function onTransferred(r: { owner: string; kept_as: string | null }): Promise<void> {
+async function onTransferred(r: { owner: string; kept_as: string | null; full_ref?: string }): Promise<void> {
   dlg.value = null
   flash(t('project-settings.transferred', { u: r.owner }))
-  if (r.kept_as || auth.isAdmin) { await project.reload(); fillForm() } else { project.forget(); await router.push({ name: 'projects' }) }
+  // 转交后项目属于新属主：规范引用变成“新属主/标识”，换到新网址
+  if ((r.kept_as || auth.isAdmin) && r.full_ref) {
+    project.forget()
+    await router.replace({ name: 'project-settings', params: { project: r.full_ref } })
+  } else { project.forget(); await router.push({ name: 'projects' }) }
 }
 async function onGone(): Promise<void> {
   dlg.value = null
@@ -201,10 +205,10 @@ async function onGone(): Promise<void> {
   void status.refresh()
   await router.push({ name: 'projects' })
 }
-async function onCopied(p: { slug: string; name: string }): Promise<void> {
+async function onCopied(p: { ref: string; name: string }): Promise<void> {
   dlg.value = null
   flash(t('project-settings.copied', { p: p.name }))
-  await router.push({ name: 'project-settings', params: { project: p.slug } })
+  await router.push({ name: 'project-settings', params: { project: p.ref } })
 }
 
 /* ---------------- 载入与目录 ---------------- */
@@ -220,7 +224,7 @@ onMounted(async () => {
     try { accounts.value = (await get<{ users: { username: string; disabled: boolean }[] }>('/users')).users.filter((u) => !u.disabled).map((u) => u.username) } catch { /* 手动输入 */ }
   }
 })
-watch(() => project.slug, (v, old) => { if (v && v !== old) void init() })
+watch(() => project.ref, (v, old) => { if (v && v !== old) void init() })
 
 const SECTIONS = [
   { id: 's-general', icon: 'gear', key: 'general' },

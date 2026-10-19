@@ -8,9 +8,11 @@ import {
   counts, deleteUserPath, isLastAdmin, passwordProblems, PERM_MATRIX, ROLES, shortTime, stateOf, transferTargets, validName,
   type AccountRole, type OwnedProject, type Perm, type UserRow,
 } from './account/account'
+import RegistrationPanel from './users/RegistrationPanel.vue'
 
 type Dialog =
   | { kind: 'new' }
+  | { kind: 'reject'; user: UserRow }
   | { kind: 'role'; user: UserRow }
   | { kind: 'reset'; user: UserRow }
   | { kind: 'disable'; user: UserRow }
@@ -39,7 +41,9 @@ const PERM_KEYS: Perm[] = ['y', 'c', 'r', 's', 'n']
 const targets = computed(() => (dialog.value?.kind === 'delete' ? transferTargets(rows.value, dialog.value.user.username) : []))
 const reveal = ref(false)
 
-const shown = computed(() => rows.value.filter((u) => showOff.value || !u.disabled))
+// 自助注册（REQ-039）：全部 / 只看待审核
+const filter = ref<'all' | 'pending'>('all')
+const shown = computed(() => rows.value.filter((u) => (filter.value === 'pending' ? u.status === 'pending' : showOff.value || !u.disabled)))
 const n = computed(() => counts(rows.value))
 const pwProblems = computed(() => passwordProblems(form.value.password, dialog.value?.kind === 'reset' ? form.value.password2 : undefined))
 const dlgOk = computed(() => {
@@ -76,6 +80,20 @@ function blocked(u: UserRow, _action: 'demote' | 'disable' | 'delete'): string {
   if (isMe(u)) return t('users.self')
   if (isLastAdmin(u, rows.value)) return t('users.lastAdmin')
   return ''
+}
+
+/** 批准待审核账号：对方可以登录，并自动建好默认项目。 */
+async function approve(u: UserRow): Promise<void> {
+  busy.value = u.username
+  try {
+    replace((await post<{ user: UserRow }>(`/users/${encodeURIComponent(u.username)}/approve`)).user)
+    flash(t('users.approved', { name: u.username }))
+    if (filter.value === 'pending' && !n.value.pending) filter.value = 'all'
+  } catch (e) {
+    flash(errorText(e))
+  } finally {
+    busy.value = ''
+  }
 }
 
 function replace(u: UserRow): void {
@@ -129,6 +147,11 @@ async function confirm(): Promise<void> {
     } else if (d.kind === 'role') {
       replace((await put<{ user: UserRow }>(`/users/${encodeURIComponent(d.user.username)}`, { role: form.value.role })).user)
       flash(t('users.roleSaved'))
+    } else if (d.kind === 'reject') {
+      await post(`/users/${encodeURIComponent(d.user.username)}/reject`)
+      rows.value = rows.value.filter((r) => r.username !== d.user.username)
+      flash(t('users.rejected', { name: d.user.username }))
+      if (filter.value === 'pending' && !n.value.pending) filter.value = 'all'
     } else if (d.kind === 'disable') {
       replace((await put<{ user: UserRow }>(`/users/${encodeURIComponent(d.user.username)}`, { disabled: true })).user)
       flash(t('users.saved'))
@@ -164,18 +187,31 @@ async function confirm(): Promise<void> {
         </div>
       </div>
 
-      <div class="acct-strip" data-testid="users-strip">
+      <div v-if="n.pending" class="pending-bar" role="status" data-testid="users-pending-bar">
+        <Icon name="clock" />
+        <div class="grow">{{ $t('users.pendingBar', { n: n.pending }) }}</div>
+        <button v-if="filter !== 'pending'" class="btn btn-sm" type="button" data-testid="users-show-pending" @click="filter = 'pending'">{{ $t('users.showPending') }}</button>
+      </div>
+
+      <div class="acct-strip six" data-testid="users-strip">
         <div><div class="v">{{ n.all }}</div><div class="k">{{ $t('users.kAll') }}</div></div>
         <div><div class="v">{{ n.admin }}</div><div class="k">{{ $t('users.kAdmin') }}</div></div>
         <div><div class="v">{{ n.maint }}</div><div class="k">{{ $t('users.kMaint') }}</div></div>
+        <button type="button" :class="['cell', { 'is-pending': n.pending }]" data-testid="users-k-pending" @click="filter = 'pending'"><div class="v">{{ n.pending }}</div><div class="k">{{ $t('users.kPending') }}</div></button>
         <div><div class="v">{{ n.locked }}</div><div class="k">{{ $t('users.kLocked') }}</div></div>
         <div><div class="v">{{ n.disabled }}</div><div class="k">{{ $t('users.kDisabled') }}</div></div>
       </div>
 
+      <RegistrationPanel />
+
       <section class="panel">
         <div class="panel-h">
           <h2>{{ $t('users.list') }}</h2>
-          <label class="check ml-auto small"><input v-model="showOff" type="checkbox" data-testid="users-show-off" /> {{ $t('users.showOff') }}</label>
+          <div class="filt" role="group" :aria-label="$t('users.filter')" data-testid="users-filter">
+            <button type="button" :aria-pressed="filter === 'all'" data-testid="users-filter-all" @click="filter = 'all'">{{ $t('users.fAll') }}</button>
+            <button type="button" :aria-pressed="filter === 'pending'" data-testid="users-filter-pending" @click="filter = 'pending'">{{ $t('users.fPending') }}<span :class="['n', { amber: n.pending }]">{{ n.pending }}</span></button>
+          </div>
+          <label v-if="filter !== 'pending'" class="check ml-auto small"><input v-model="showOff" type="checkbox" data-testid="users-show-off" /> {{ $t('users.showOff') }}</label>
         </div>
         <div v-if="loading && !rows.length" class="empty">{{ $t('c.loading') }}</div>
         <div v-else-if="loadError" class="panel-b">
@@ -183,24 +219,26 @@ async function confirm(): Promise<void> {
             <button type="button" class="btn btn-sm" @click="load"><Icon name="refresh" small />{{ $t('c.retry') }}</button></div>
         </div>
         <div v-else-if="!rows.length" class="empty">{{ $t('users.empty') }}</div>
+        <div v-else-if="filter === 'pending' && !shown.length" class="empty" data-testid="users-no-pending">{{ $t('users.noPending') }}</div>
         <div v-else class="tbl-wrap">
           <table class="tbl" data-testid="users-table">
             <thead><tr>
               <th>{{ $t('users.colName') }}</th><th>{{ $t('users.colRole') }}</th><th>{{ $t('users.colState') }}</th>
               <th>{{ $t('users.colProjects') }}</th><th>{{ $t('users.colTokens') }}</th>
-              <th>{{ $t('users.colLast') }}</th><th>{{ $t('users.colCreated') }}</th><th class="right">{{ $t('users.colActions') }}</th>
+              <th>{{ $t('users.colLast') }}</th><th>{{ filter === 'pending' ? $t('users.colSignedUp') : $t('users.colCreated') }}</th><th class="right">{{ $t('users.colActions') }}</th>
             </tr></thead>
             <tbody>
-              <tr v-for="u in shown" :key="u.id" :class="{ 'row-off': u.disabled }" :data-testid="`user-row-${u.username}`">
+              <tr v-for="u in shown" :key="u.id" :class="{ 'row-off': u.disabled, 'row-pend': u.status === 'pending' }" :data-testid="`user-row-${u.username}`">
                 <td>
                   <div class="who">
                     <span :class="['av', { admin: u.role === 'admin' }]" aria-hidden="true">{{ u.username.charAt(0).toUpperCase() }}</span>
                     <b>{{ u.username }}</b><span v-if="isMe(u)" class="me-tag">{{ $t('users.you') }}</span>
+                    <span v-if="u.origin === 'register'" class="origin" :title="$t('users.originTip')" data-testid="user-origin-register"><Icon name="user" small />{{ $t('users.originRegister') }}</span>
                   </div>
                 </td>
                 <td><span :class="['rolechip', ROLE_CHIP[u.role] ?? 'r-read']" :data-testid="`user-role-${u.role}`"><Icon :name="ROLE_ICON[u.role] ?? 'user'" small />{{ $t(`users.role.${u.role}`) }}</span></td>
                 <td>
-                  <span :class="['st-dot', stateOf(u) === 'locked' ? 'lock' : stateOf(u) === 'disabled' ? 'off' : '']">
+                  <span :class="['st-dot', stateOf(u) === 'locked' ? 'lock' : stateOf(u) === 'disabled' ? 'off' : stateOf(u) === 'pending' ? 'pend' : '']">
                     <i />{{ stateOf(u) === 'locked' ? $t('users.st.locked', { t: shortTime(u.locked_until) }) : $t(`users.st.${stateOf(u)}`) }}
                   </span>
                 </td>
@@ -209,7 +247,11 @@ async function confirm(): Promise<void> {
                 <td class="mono"><span v-if="u.last_login_at">{{ shortTime(u.last_login_at) }}</span><span v-else class="faint">{{ $t('users.never') }}</span></td>
                 <td class="mono">{{ shortTime(u.created_at).slice(0, 10) }}</td>
                 <td>
-                  <div class="acts">
+                  <div v-if="u.status === 'pending'" class="acts">
+                    <button type="button" class="btn btn-xs btn-approve" :disabled="busy === u.username" data-testid="user-approve" @click="approve(u)"><Icon name="check" small />{{ $t('users.approve') }}</button>
+                    <button type="button" class="btn btn-xs" :disabled="busy === u.username" data-testid="user-reject" @click="open({ kind: 'reject', user: u })"><Icon name="x" small />{{ $t('users.reject') }}</button>
+                  </div>
+                  <div v-else class="acts">
                     <button type="button" class="btn btn-xs" :disabled="(u.role === 'admin' && !!blocked(u, 'demote')) || busy === u.username"
                       :title="u.role === 'admin' ? blocked(u, 'demote') : ''" data-testid="user-role" @click="open({ kind: 'role', user: u })">{{ $t('users.changeRole') }}</button>
                     <button type="button" class="btn btn-xs" data-testid="user-reset" @click="open({ kind: 'reset', user: u })"><Icon name="key" small />{{ $t('users.reset') }}</button>
@@ -261,6 +303,7 @@ async function confirm(): Promise<void> {
             <template v-else-if="dialog.kind === 'reset'">{{ $t('users.resetTitle', { name: dialog.user.username }) }}</template>
             <template v-else-if="dialog.kind === 'role'">{{ $t('users.roleTitle', { name: dialog.user.username }) }}</template>
             <template v-else-if="dialog.kind === 'disable'">{{ $t('users.disableTitle') }}</template>
+            <template v-else-if="dialog.kind === 'reject'">{{ $t('users.rejectTitle', { name: dialog.user.username }) }}</template>
             <template v-else>{{ $t('users.deleteTitle') }}</template>
           </h2>
           <button type="button" class="btn btn-sm btn-ghost btn-icon" :aria-label="$t('c.cancel')" @click="close"><Icon name="x" small /></button>
@@ -308,6 +351,9 @@ async function confirm(): Promise<void> {
             </div>
             <p class="small faint">{{ $t('users.roleNote') }}</p>
           </div>
+          <template v-else-if="dialog.kind === 'reject'">
+            <p data-testid="reject-note">{{ $t('users.rejectNote') }}</p>
+          </template>
           <template v-else-if="dialog.kind === 'disable'">
             <p>{{ $t('users.disableNote') }}</p>
             <p class="mt8"><b class="mono">{{ dialog.user.username }}</b></p>
@@ -343,9 +389,10 @@ async function confirm(): Promise<void> {
         </div>
         <div class="modal-f">
           <button type="button" class="btn" @click="close">{{ $t('c.cancel') }}</button>
-          <button type="submit" data-ok :class="['btn', dialog.kind === 'disable' || dialog.kind === 'delete' ? 'btn-danger-solid' : 'btn-primary']"
+          <button type="submit" data-ok :class="['btn', dialog.kind === 'disable' || dialog.kind === 'delete' || dialog.kind === 'reject' ? 'btn-danger-solid' : 'btn-primary']"
             :disabled="!dlgOk || dlgBusy" data-testid="users-dialog-ok">
             <template v-if="dialog.kind === 'new'">{{ $t('users.create') }}</template>
+            <template v-else-if="dialog.kind === 'reject'">{{ $t('users.reject') }}</template>
             <template v-else-if="dialog.kind === 'reset'">{{ $t('users.reset') }}</template>
             <template v-else-if="dialog.kind === 'role'">{{ $t('c.save') }}</template>
             <template v-else-if="dialog.kind === 'disable'">{{ $t('users.disable') }}</template>
@@ -377,6 +424,27 @@ async function confirm(): Promise<void> {
 .st-dot.lock i { background: var(--amber); }
 .row-off td { color: var(--ink-3); }
 .acts { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
+/* 自助注册（REQ-039）：待审核提示条、统计里的待审核格、筛选、来源标记、待审核行 */
+.pending-bar { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--amber-line); background: var(--amber-soft); border-radius: var(--r-panel); margin-bottom: 12px; }
+.pending-bar > .ico { color: var(--amber-ink); flex: none; }
+.pending-bar .grow { flex: 1; min-width: 0; font-size: 13px; }
+.acct-strip.six { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.acct-strip button.cell { border: 0; border-left: 1px solid var(--line); background: transparent; text-align: left; font: inherit; color: inherit; cursor: pointer; padding: 10px 14px; min-width: 0; }
+.acct-strip button.cell:hover { background: var(--surface-2); }
+.acct-strip .is-pending { background: color-mix(in srgb, var(--amber-soft) 55%, transparent); }
+.acct-strip .is-pending .v { color: var(--amber-ink); }
+.filt { display: inline-flex; border: 1px solid var(--line); border-radius: var(--r-ctl); overflow: hidden; background: var(--surface); margin-left: 12px; }
+.filt button { border: 0; background: transparent; font: inherit; font-size: 12.5px; height: 28px; padding: 0 12px; cursor: pointer; color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; }
+.filt button + button { border-left: 1px solid var(--line); }
+.filt button[aria-pressed="true"] { background: var(--blue-soft); color: var(--blue-ink); font-weight: 600; }
+.filt .n { font-size: 11px; min-width: 18px; height: 16px; padding: 0 5px; border-radius: 8px; background: var(--surface-3); color: var(--ink-2); display: inline-flex; align-items: center; justify-content: center; font-weight: 600; }
+.filt .n.amber { background: var(--amber-soft); color: var(--amber-ink); border: 1px solid var(--amber-line); }
+.origin { display: inline-flex; align-items: center; gap: 4px; height: 18px; padding: 0 6px; border-radius: 4px; font-size: 11px; color: var(--violet); border: 1px dashed color-mix(in srgb, var(--violet) 45%, transparent); white-space: nowrap; }
+.st-dot.pend { color: var(--amber-ink); }
+.st-dot.pend i { background: transparent; border: 2px solid var(--amber); width: 8px; height: 8px; }
+.row-pend td { background: color-mix(in srgb, var(--amber-soft) 40%, transparent); }
+.btn-approve { border-color: var(--teal-line); color: var(--teal-ink); }
+.btn-approve:hover:not(:disabled) { background: var(--teal-soft); }
 .modal.narrow { width: min(640px, 100%); }
 .radio-cards { display: flex; flex-direction: column; gap: 8px; }
 .radio-cards .radio-card { align-items: flex-start; gap: 10px; }
@@ -392,8 +460,8 @@ async function confirm(): Promise<void> {
 .pw .reveal { position: absolute; right: 3px; }
 .pw .reveal[aria-pressed="true"] { color: var(--teal-ink); }
 @media (max-width: 900px) {
-  .acct-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .acct-strip > div:nth-child(3) { border-left: 0; }
+  .acct-strip, .acct-strip.six { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .acct-strip > :nth-child(odd) { border-left: 0; }
   .role-cards { grid-template-columns: 1fr; }
 }
 </style>

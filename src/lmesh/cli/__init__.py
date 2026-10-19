@@ -103,7 +103,9 @@ def _setup_project(c: Ctx, settings: config.Settings) -> None:
             who = ident()
             scope = projects.resolve(db, who, c.project) if c.project else projects.default_scope(db, who)
         except projects.ProjectError as e:
-            fail(c, output.EXIT_NOT_FOUND, c.t(e.key, **e.fmt))
+            # 只写标识却匹配到多个项目：参数不够明确（退出码 2，data.candidates 列出“属主/标识”）；其余为不存在（4）
+            code = output.EXIT_USAGE if e.kind == "ambiguous" else output.EXIT_NOT_FOUND
+            fail(c, code, c.t(e.key, **e.fmt), e.data)
         projects.set_identity(who)
         projects.set_scope(scope)
         return
@@ -171,6 +173,13 @@ def cmd_serve(
     uvicorn.run(create_app(settings, listen_host=h), host=h, port=p, log_level="warning")
 
 
+def _answer_text(v: Any) -> str:
+    """命令行向导里显示的默认值：开关写成 true / false。"""
+    if isinstance(v, bool):
+        return "true" if v else "false"
+    return str(v or "")
+
+
 @app.command("setup", help="首次运行向导（命令行）/ setup wizard")
 def cmd_setup(
     ctx: typer.Context,
@@ -198,7 +207,7 @@ def cmd_setup(
                     choices = f" ({' / '.join(x or '-' for x in f['choices'])})" if f["choices"] else ""
                     v = typer.prompt(
                         f"  {f['key']}{choices}",
-                        default=str(answers.get(f["key"]) or ""),
+                        default=_answer_text(answers.get(f["key"])),
                         hide_input=f["kind"] in ("secret", "token"),
                         show_default=f["kind"] not in ("secret", "token"),
                     )

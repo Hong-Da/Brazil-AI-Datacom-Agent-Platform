@@ -192,8 +192,14 @@ def test_baseline_file(bl: blmod.Baseline) -> None:
     assert len(basic) >= 15 and {r.id for r in basic} < {r.id for r in strict}
     assert blmod.expand(bl, "strict") == ["basic", "strict"]
     assert over["baseline-security.yaml"]["max_idle_seconds"] == 600
-    for r in strict:  # 每条规则：三语说明、两种写法的参考命令
-        assert set(r.remedy) == {"huawei", "cisco"}, r.id
+    for (
+        r
+    ) in strict:  # 每条规则：三语说明；参考命令有华为、Cisco 两种写法，Nokia 适用的另有 Classic 与 MD-CLI 两种（M7-5）
+        assert set(r.remedy) in (
+            {"huawei", "cisco"},
+            {"huawei", "cisco", "nokia", "nokia-sros-md"},
+            {"nokia", "nokia-sros-md"},
+        ), r.id
         assert all(r.title[lang] and r.suggestion[lang] for lang in ("zh-CN", "en", "pt-BR"))
     with pytest.raises(blmod.BaselineError):
         blmod.select(bl, "nope")

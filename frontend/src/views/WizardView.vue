@@ -200,6 +200,7 @@ function label(f: WField): string {
 function summaryText(f: WField): string {
   const v = displayValue(f, values[f.key])
   if (f.key === 'ai.provider') return providerLabel(String(values[f.key] ?? ''))
+  if (f.kind === 'bool') return t(String(values[f.key]) === 'true' ? 'wizard.on' : 'wizard.off')
   if (v !== null) return v
   if (f.kind === 'dburl') return t('wizard.dbSqliteValue')
   if (f.kind === 'token') return t('wizard.tokenAutoValue')

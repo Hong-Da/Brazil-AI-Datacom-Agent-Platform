@@ -15,6 +15,7 @@ import {
   allPicked, exitWord, filterCommands, isLocked, orphanTree, removedLines, scriptFile, scriptRows, scriptText, togglePick,
 } from './check/cleanup'
 import type { CleanupObject, CleanupResult } from './check/types'
+import VendorBadge from '@/components/vendor-badge.vue'
 
 const { t } = useI18n()
 const terms = useTerms()
@@ -250,7 +251,7 @@ onMounted(async () => {
                 <span class="meta mono">{{ fileName }}</span>
               </div>
               <div class="sc-note"><Icon name="branch" small /><span>{{ $t('cleanup.scriptNote') }}</span></div>
-              <div class="sc-note"><span class="vendor" v-if="result.family"><i :class="result.family.startsWith('huawei') ? 'hw' : 'cs'">{{ result.family.startsWith('huawei') ? 'HW' : 'CS' }}</i>{{ $t('cleanup.family') }}</span><span class="tag mono">{{ result.family }}</span></div>
+              <div class="sc-note"><VendorBadge v-if="result.family" :of="result.family">{{ $t('cleanup.family') }}</VendorBadge><span class="tag mono">{{ result.family }}</span></div>
               <div class="script">
                 <div v-if="!rows.length" class="empty"><p>{{ $t('cleanup.emptyScript') }}</p></div>
                 <div v-for="(s, i) in rows" :key="i" class="sl" :class="s.type === 'frame' ? 'frame' : s.cmd.fallback ? 'fallback' : 'card'" data-testid="script-line">

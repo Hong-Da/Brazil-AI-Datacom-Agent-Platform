@@ -379,6 +379,113 @@ def reshape_isis_net(g: nx.MultiDiGraph, to_net: bool) -> dict[str, str]:
     return ren
 
 
+# BGP 地址族：统一 Schema 的 afi（华为 / Cisco 地址族视图）↔ Nokia bgp / group 下的 family 取值（M7-5）
+_FAMILY = {"ipv4": "ipv4", "ipv6": "ipv6", "vpnv4": "vpn-ipv4", "vpnv6": "vpn-ipv6", "evpn": "evpn", "l2vpn": "l2-vpn"}
+_AFI = {v: k for k, v in _FAMILY.items()}
+
+
+def _af_id(inst: str, afi: str) -> str:
+    return f"{inst}/bgp.af[afi={afi},vrf=]"
+
+
+def reshape_bgp_family(g: nx.MultiDiGraph, to_family: bool) -> dict[str, str]:
+    """BGP 地址族的两种写法（M7-5）：华为 / Cisco 在地址族视图里逐个对等体（组）启用（bgp.af / bgp.af.peer.enabled），
+    Nokia 在 bgp 与 group 下写 family（bgp.instance.family、bgp.peer_group.family）。只换公网地址族（VRF 内的不动）。
+    to_family：地址族视图 → family；否则 family → 地址族视图。就地修改，返回 {旧编号: 新编号}。"""
+    ren: dict[str, str] = {}
+    insts = [n for n, d in g.nodes(data=True) if d.get("schema") == "bgp.instance" and d.get("kind") == "object"]
+    for inst in insts:
+        kids = _children(g, inst)
+        groups = [c for c in kids if g.nodes[c].get("schema") == "bgp.peer_group"]
+        peers = [c for c in kids if g.nodes[c].get("schema") == "bgp.peer"]
+        if to_family:
+            if _attr(g, f"{inst}/family") is not None:
+                continue
+            afs = [
+                c
+                for c in kids
+                if g.nodes[c].get("schema") == "bgp.af"
+                and isinstance(g.nodes[c].get("key"), dict)
+                and not g.nodes[c]["key"].get("vrf")
+                and str(g.nodes[c]["key"].get("afi")) in _FAMILY
+            ]
+            if not afs:
+                continue
+            fams = [_FAMILY[str(g.nodes[a]["key"]["afi"])] for a in afs]
+            lines = sorted({x for a in afs for x in g.nodes[a].get("lines") or []})
+            fam_node = _set_attr(g, inst, "family", "bgp.instance.family", " ".join(fams), lines, afs[0])
+            member = {
+                str(g.nodes[p].get("key")): str(_attr(g, f"{p}/group").get("value"))  # type: ignore[union-attr]
+                for p in peers
+                if _attr(g, f"{p}/group") is not None
+            }
+            by_group: dict[str, list[str]] = {str(g.nodes[gr].get("key")): [] for gr in groups}
+            for a, fam in zip(afs, fams, strict=True):
+                for ap in [c for c in _children(g, a) if g.nodes[c].get("schema") == "bgp.af.peer"]:
+                    en = _attr(g, f"{ap}/enabled")
+                    if en is None or en.get("value") is not True:
+                        continue
+                    k = str(g.nodes[ap].get("key"))
+                    grp = k if k in by_group else member.get(k)
+                    if grp in by_group and fam not in by_group[grp]:
+                        by_group[grp].append(fam)
+                    ren[f"{ap}/enabled"] = fam_node
+                    g.remove_node(f"{ap}/enabled")
+                    if not _children(g, ap):
+                        ren[ap] = fam_node
+                        g.remove_node(ap)
+                if not _children(g, a):
+                    ren[a] = fam_node
+                    g.remove_node(a)
+            for gr in groups:
+                got = by_group[str(g.nodes[gr].get("key"))]
+                if got and sorted(got) != sorted(fams) and _attr(g, f"{gr}/family") is None:
+                    _set_attr(
+                        g, gr, "family", "bgp.peer_group.family", " ".join(f for f in fams if f in got), lines, afs[0]
+                    )
+        else:
+            fam_attr = _attr(g, f"{inst}/family")
+            if fam_attr is None or fam_attr.get("origin") == "default":
+                continue
+            fams = [f for f in str(fam_attr.get("value") or "").split() if f in _AFI]
+            if not fams:
+                continue
+            lines = list(fam_attr.get("lines") or [])
+            for f in fams:
+                af = _af_id(inst, _AFI[f])
+                if af not in g:
+                    key = {"afi": _AFI[f], "vrf": ""}
+                    _add(g, inst, af, "object", "bgp.af", lines, key=key, raw=key, reshaped_from=f"{inst}/family")
+            for gr in groups:
+                gf = _attr(g, f"{gr}/family")
+                gfams = [f for f in str(gf.get("value") or "").split() if f in _AFI] if gf else fams
+                for f in gfams:
+                    af = _af_id(inst, _AFI[f])
+                    if af not in g:
+                        continue
+                    name = str(g.nodes[gr].get("key"))
+                    ap = f"{af}/peer[{name}]"
+                    if ap not in g:
+                        _add(
+                            g,
+                            af,
+                            ap,
+                            "object",
+                            "bgp.af.peer",
+                            lines,
+                            key=name,
+                            raw=name,
+                            reshaped_from=f"{inst}/family",
+                        )
+                    _set_attr(g, ap, "enabled", "bgp.af.peer.enabled", True, lines, f"{inst}/family")
+                if gf is not None:
+                    ren[f"{gr}/family"] = _af_id(inst, _AFI[gfams[0]]) if gfams else inst
+                    g.remove_node(f"{gr}/family")
+            ren[f"{inst}/family"] = _af_id(inst, _AFI[fams[0]])
+            g.remove_node(f"{inst}/family")
+    return ren
+
+
 class TranslateError(ValueError):
     """翻译参数错误（文案键 + 参数）。"""
 
@@ -945,6 +1052,7 @@ class _Translator:
                 orig = {n: str(self.g.nodes[self.to_src[n]].get("key")) for n in g if self.to_src.get(n) in self.g}
                 step(reshape_l3(g, self.kb, d3, None, lambda n: orig.get(n, str(g.nodes[n].get("key")))))
             step(reshape_isis_net(g, d3 == "physical"))
+            step(reshape_bgp_family(g, d3 == "logical"))
         return ren
 
     def rekey_instances(self, g: nx.MultiDiGraph) -> dict[str, str]:

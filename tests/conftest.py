@@ -148,7 +148,7 @@ def full_kb_root(tmp_root: Path) -> Path:
 
 def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
     """用例的准备方式：fresh / configured / fresh-fullkb / configured-fullkb / configured-fullkb-history / configured-users /
-    configured-notoken / configured-fullkb-checkproj / configured-projects。"""
+    configured-notoken / configured-fullkb-checkproj / configured-projects / configured-samename / configured-pending。"""
     if setup and "fullkb" in setup:
         request.getfixturevalue("full_kb_root")
     if setup and setup.startswith("configured"):
@@ -161,6 +161,10 @@ def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
         request.getfixturevalue("checkproj_root")
     if setup and setup.endswith("-projects"):
         request.getfixturevalue("projects_root")
+    if setup and setup.endswith("-samename"):
+        request.getfixturevalue("samename_root")
+    if setup and setup.endswith("-pending"):
+        request.getfixturevalue("pending_root")
     if setup and setup.endswith("-notoken"):  # 实例没有设置 API 令牌（环境变量覆盖为空）
         request.getfixturevalue("monkeypatch").setenv("LMESH_SECURITY__API_TOKEN", "")
 
@@ -235,6 +239,29 @@ def projects_root(users_root: Path) -> Path:
     importer.import_sources([("asr.cfg", other)], url, "basic", kb_root, actor="admin", public=True)
     pub = projects.list_public(url)[0]["id"]
     projects.add_ref(url, scope, pub)
+    return users_root
+
+
+@pytest.fixture
+def samename_root(projects_root: Path) -> Path:
+    """标识按属主唯一（M6 评审改选）：在项目用例之上，carol 也有一个 lab，bob 是两个 lab 的只读成员（只写 lab 会歧义）。"""
+    from lmesh.core import config, projects
+
+    url = config.load().database_url
+    carol = projects.cli_identity(url, "carol")
+    projects.create_project(url, carol, {"name": "carol 的实验局", "slug": "lab"})
+    projects.set_member(url, projects.resolve(url, carol, "lab"), "bob", "read")
+    return projects_root
+
+
+@pytest.fixture
+def pending_root(users_root: Path) -> Path:
+    """自助注册（REQ-039）：在账号用例之上，dave 与 erin 自助注册后待审核。"""
+    from lmesh.core import config, users
+
+    url = config.load().database_url
+    users.register(url, "dave", "Dave-pass-12", approval=True)
+    users.register(url, "erin", "Erin-pass-12", approval=True)
     return users_root
 
 

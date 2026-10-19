@@ -14,7 +14,7 @@ import { useProject, type ProjectRow } from '@/stores/project'
 import { rememberedChoice } from '@/stores/prefs'
 import { useStatus } from '@/stores/status'
 import { shortTime } from '@/views/account/account'
-import { activity, avatars, matchProject, projectAbilities, sortProjects, type SortKey } from './projects/logic'
+import { activity, ambiguousCandidates, avatars, matchProject, projectAbilities, sortProjects, type SortKey } from './projects/logic'
 import NewProjectDialog from './projects/NewProjectDialog.vue'
 import CopyProjectDialog from './projects/CopyProjectDialog.vue'
 import TransferDialog from './projects/TransferDialog.vue'
@@ -43,6 +43,9 @@ const toast = ref('')
 
 const lists = computed(() => project.lists)
 const missing = computed(() => (typeof route.query.missing === 'string' ? route.query.missing : ''))
+/** 网址里只写了标识、而能访问的同名项目有多个（标识按属主唯一）：列出候选让用户选 */
+const ambiguous = computed(() => (typeof route.query.ambiguous === 'string' ? route.query.ambiguous : ''))
+const candidates = computed(() => ambiguousCandidates(ambiguous.value, project.candidates, lists.value))
 const tabs = computed<Tab[]>(() => (auth.isAdmin && lists.value?.others.length ? ['mine', 'shared', 'others'] : ['mine', 'shared']))
 const rows = computed(() => sortProjects((lists.value?.[tab.value] ?? []).filter((p) => matchProject(p, q.value)), sort.value))
 const total = computed(() => (lists.value ? lists.value.mine.length + lists.value.shared.length : 0))
@@ -74,21 +77,21 @@ function actText(p: ProjectRow): string {
 }
 const abil = (p: ProjectRow) => projectAbilities(p.role, ro.value)
 
-function open(p: ProjectRow): void { void router.push({ name: 'devices', params: { project: p.slug } }) }
-function settings(p: ProjectRow): void { void router.push({ name: 'project-settings', params: { project: p.slug } }) }
+function open(p: ProjectRow): void { void router.push({ name: 'devices', params: { project: p.ref } }) }
+function settings(p: ProjectRow): void { void router.push({ name: 'project-settings', params: { project: p.ref } }) }
 function act(kind: 'copy' | 'transfer' | 'delete' | 'leave', p: ProjectRow): void { menu.value = null; dlg.value = { kind, p } }
 
 async function afterGone(slug: string, msg: string): Promise<void> {
   dlg.value = null
-  if (project.slug === slug) { project.forget(); void status.refresh() }
+  if (project.ref === slug) { project.forget(); void status.refresh() }
   flash(msg)
   await load()
 }
 async function onCreated(p: ProjectRow): Promise<void> {
   dlg.value = null
-  try { await project.enter(p.slug) } catch { /* 进不去时留在列表 */ }
+  try { await project.enter(p.ref) } catch { /* 进不去时留在列表 */ }
   flash(t('projects.created', { p: p.name }))
-  void router.push({ name: 'add-device', params: { project: p.slug } })
+  void router.push({ name: 'add-device', params: { project: p.ref } })
 }
 async function onCopied(p: ProjectRow & { copied?: { devices: number; scripts: number } }): Promise<void> {
   dlg.value = null
@@ -96,12 +99,13 @@ async function onCopied(p: ProjectRow & { copied?: { devices: number; scripts: n
   tab.value = 'mine'
   await load()
 }
-async function onTransferred(r: { owner: string; kept_as: string | null; rule_set_copied: unknown }, p: ProjectRow | null): Promise<void> {
+async function onTransferred(r: { owner: string; kept_as: string | null; rule_set_copied: unknown; full_ref?: string }, p: ProjectRow | null): Promise<void> {
   dlg.value = null
   if (!p) return
-  if (project.slug === p.slug) {
-    if (r.kept_as) await project.reload()
-    else project.forget()
+  if (project.ref === p.ref) {
+    // 转交后规范引用变成“新属主/标识”
+    project.forget()
+    if (r.kept_as && r.full_ref) { try { await project.enter(r.full_ref) } catch { /* 进不去时下次用默认项目 */ } }
   }
   flash(t('projects.transferred', { p: p.name, u: r.owner }) + (r.rule_set_copied ? t('projects.ruleSetCopied') : ''))
   await load()
@@ -138,6 +142,13 @@ function closeNew(): void {
       </div>
 
       <div v-if="missing" class="notice warn mb12" data-testid="projects-missing"><Icon name="warn" /><div>{{ $t('projects.missing', { p: missing }) }}</div></div>
+      <div v-if="ambiguous" class="notice warn mb12" data-testid="projects-ambiguous">
+        <Icon name="warn" />
+        <div>
+          {{ $t('projects.ambiguous', { p: ambiguous }) }}
+          <span v-for="c in candidates" :key="c" class="amb-c"><router-link class="mono" :to="{ name: 'devices', params: { project: c } }" :data-testid="`projects-ambiguous-${c}`">{{ c }}</router-link></span>
+        </div>
+      </div>
 
       <div v-if="loadError" class="notice err" data-testid="projects-error"><Icon name="err" /><div class="grow">{{ loadError }}</div><button class="btn btn-sm" type="button" @click="load">{{ $t('c.retry') }}</button></div>
       <p v-else-if="loading && !lists" class="faint">{{ $t('c.loading') }}</p>
@@ -180,16 +191,16 @@ function closeNew(): void {
         <div v-if="!rows.length" class="panel"><div class="empty"><h3>{{ q ? $t('projects.noMatch') : tab === 'shared' ? $t('projects.emptyShared') : $t('projects.noMatch') }}</h3></div></div>
 
         <div v-else-if="view === 'cards'" class="pcards" data-testid="projects-cards">
-          <article v-for="p in rows" :key="p.slug" :class="['pcard', { 'is-cur': p.slug === project.slug }]" :data-testid="`project-card-${p.slug}`">
+          <article v-for="p in rows" :key="p.ref" :class="['pcard', { 'is-cur': p.ref === project.ref }]" :data-testid="`project-card-${p.ref}`">
             <div class="pc-h">
               <div class="ttl">
-                <router-link :to="{ name: 'devices', params: { project: p.slug } }">{{ p.name }}</router-link>
-                <span class="slug">{{ p.slug }}<template v-if="p.slug === project.slug"> · {{ $t('projects.current') }}</template><template v-if="p.default"> · {{ $t('projects.default') }}</template></span>
+                <router-link :to="{ name: 'devices', params: { project: p.ref } }">{{ p.name }}</router-link>
+                <span class="slug">{{ p.ref }}<template v-if="p.ref === project.ref"> · {{ $t('projects.current') }}</template><template v-if="p.default"> · {{ $t('projects.default') }}</template></span>
               </div>
               <ProjRole v-if="p.role !== 'owner'" :role="p.role" />
               <span class="kebab">
-                <button class="btn btn-sm btn-icon btn-ghost" type="button" :aria-label="$t('projects.more')" :aria-expanded="menu === p.slug" :data-testid="`project-menu-${p.slug}`" @click.stop="menu = menu === p.slug ? null : p.slug"><Icon name="more" /></button>
-                <div v-if="menu === p.slug" class="kebab-pop" role="menu">
+                <button class="btn btn-sm btn-icon btn-ghost" type="button" :aria-label="$t('projects.more')" :aria-expanded="menu === p.ref" :data-testid="`project-menu-${p.ref}`" @click.stop="menu = menu === p.ref ? null : p.ref"><Icon name="more" /></button>
+                <div v-if="menu === p.ref" class="kebab-pop" role="menu">
                   <button type="button" role="menuitem" @click="open(p)"><Icon name="enter" small />{{ $t('projects.open') }}</button>
                   <button type="button" role="menuitem" data-testid="pm-settings" @click="settings(p)"><Icon name="gear" small />{{ $t(abil(p).manage ? 'projects.settings' : 'projects.viewSettings') }}</button>
                   <button v-if="!ro" type="button" role="menuitem" data-testid="pm-copy" @click="act('copy', p)"><Icon name="copy" small />{{ $t('projects.copy') }}</button>
@@ -230,8 +241,8 @@ function closeNew(): void {
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="p in rows" :key="p.slug" :class="{ 'is-cur-row': p.slug === project.slug }" :data-testid="`project-row-${p.slug}`">
-                  <td><router-link class="pname" :to="{ name: 'devices', params: { project: p.slug } }">{{ p.name }}</router-link><div class="small faint mono">{{ p.slug }}</div></td>
+                <tr v-for="p in rows" :key="p.ref" :class="{ 'is-cur-row': p.ref === project.ref }" :data-testid="`project-row-${p.ref}`">
+                  <td><router-link class="pname" :to="{ name: 'devices', params: { project: p.ref } }">{{ p.name }}</router-link><div class="small faint mono">{{ p.ref }}</div></td>
                   <td><ProjRole :role="p.role" /></td>
                   <td class="num">{{ p.counts.devices }}</td>
                   <td class="small muted">{{ $t('projects.privRef', { p: p.counts.private, r: p.counts.refs }) }}</td>
@@ -240,8 +251,8 @@ function closeNew(): void {
                   <td class="small muted" style="max-width: 360px">{{ actText(p) }}</td>
                   <td class="right">
                     <span class="kebab">
-                      <button class="btn btn-sm btn-icon btn-ghost" type="button" :aria-label="$t('projects.more')" @click.stop="menu = menu === p.slug ? null : p.slug"><Icon name="more" /></button>
-                      <div v-if="menu === p.slug" class="kebab-pop" role="menu">
+                      <button class="btn btn-sm btn-icon btn-ghost" type="button" :aria-label="$t('projects.more')" @click.stop="menu = menu === p.ref ? null : p.ref"><Icon name="more" /></button>
+                      <div v-if="menu === p.ref" class="kebab-pop" role="menu">
                         <button type="button" role="menuitem" @click="open(p)"><Icon name="enter" small />{{ $t('projects.open') }}</button>
                         <button type="button" role="menuitem" @click="settings(p)"><Icon name="gear" small />{{ $t(abil(p).manage ? 'projects.settings' : 'projects.viewSettings') }}</button>
                         <button v-if="!ro" type="button" role="menuitem" @click="act('copy', p)"><Icon name="copy" small />{{ $t('projects.copy') }}</button>
@@ -263,14 +274,15 @@ function closeNew(): void {
     <NewProjectDialog v-if="dlg?.kind === 'new'" @close="closeNew" @created="onCreated" />
     <CopyProjectDialog v-else-if="dlg?.kind === 'copy'" :project="dlg.p" @close="dlg = null" @copied="onCopied" />
     <TransferDialog v-else-if="dlg?.kind === 'transfer'" :project="dlg.p" @close="dlg = null" @transferred="(r) => onTransferred(r, dlg?.kind === 'transfer' ? dlg.p : null)" />
-    <DeleteProjectDialog v-else-if="dlg?.kind === 'delete'" :project="dlg.p" @close="dlg = null" @deleted="afterGone(dlg.p.slug, $t('projects.deleted', { p: dlg.p.name }))" />
-    <LeaveDialog v-else-if="dlg?.kind === 'leave'" :project="dlg.p" @close="dlg = null" @left="afterGone(dlg.p.slug, $t('projects.left', { p: dlg.p.name }))" />
+    <DeleteProjectDialog v-else-if="dlg?.kind === 'delete'" :project="dlg.p" @close="dlg = null" @deleted="afterGone(dlg.p.ref, $t('projects.deleted', { p: dlg.p.name }))" />
+    <LeaveDialog v-else-if="dlg?.kind === 'leave'" :project="dlg.p" @close="dlg = null" @left="afterGone(dlg.p.ref, $t('projects.left', { p: dlg.p.name }))" />
     <div v-if="toast" class="toast" role="status" data-testid="projects-toast"><Icon name="check" small /><span>{{ toast }}</span></div>
   </main>
 </template>
 
 <style scoped>
 .mb12 { margin-bottom: 12px; }
+.amb-c { margin-left: 8px; }
 .errs { font: 600 11.5px var(--font-ui); color: var(--red-ink); }
 .pname { font-weight: 600; color: var(--ink); }
 .is-cur-row td:first-child { box-shadow: inset 3px 0 0 var(--blue); }

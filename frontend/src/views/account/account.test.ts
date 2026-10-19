@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bootMode, counts, deleteUserPath, PERM_MATRIX, transferTargets, isLastAdmin, passwordProblems, safeNext, shortTime, stateOf, validName, type UserRow } from './account'
+import { bootMode, counts, regPatch, signUpChecks, validRate, deleteUserPath, PERM_MATRIX, transferTargets, isLastAdmin, passwordProblems, safeNext, shortTime, stateOf, validName, type UserRow } from './account'
 
 const row = (p: Partial<UserRow>): UserRow => ({
   id: 1, username: 'u', role: 'user', disabled: false, locked: false, locked_until: null,
@@ -34,7 +34,7 @@ describe('账号逻辑', () => {
     expect(isLastAdmin(rows[0], rows)).toBe(true)
     expect(isLastAdmin(rows[1], rows)).toBe(false)
     expect(isLastAdmin(rows[0], [...rows, row({ id: 4, role: 'admin' })])).toBe(false)
-    expect(counts(rows)).toEqual({ all: 3, admin: 2, maint: 0, locked: 1, disabled: 1 })
+    expect(counts(rows)).toEqual({ all: 3, pending: 0, admin: 2, maint: 0, locked: 1, disabled: 1 })
   })
   it('时间显示', () => {
     expect(shortTime(null)).toBe('')
@@ -64,5 +64,30 @@ describe('账号逻辑', () => {
     expect(m.kb[2]).toBe('s')
     expect(m.release[1]).toBe('y')
     expect(m.rebuildProject[3]).toBe('n')
+  })
+})
+
+describe('自助注册（REQ-039）', () => {
+  it('注册表单逐条检查：没填时为 null', () => {
+    expect(signUpChecks('', '', '')).toEqual({ nameLen: null, nameChars: null, pwLen: null, same: null })
+    expect(signUpChecks('a', 'short', 'x')).toEqual({ nameLen: false, nameChars: true, pwLen: false, same: false })
+    expect(signUpChecks('-bad', 'Pass-word-1', 'Pass-word-1')).toEqual({ nameLen: true, nameChars: false, pwLen: true, same: true })
+    expect(signUpChecks('ana.souza', 'Pass-word-1', 'Pass-word-1')).toEqual({ nameLen: true, nameChars: true, pwLen: true, same: true })
+  })
+  it('设置面板：频率 1–1000 的整数；只提交改动的项', () => {
+    expect(validRate(5)).toBe(true)
+    expect(validRate(0)).toBe(false)
+    expect(validRate(1001)).toBe(false)
+    expect(validRate(2.5)).toBe(false)
+    expect(validRate('')).toBe(false)
+    const saved = { registration: false, approval: true, rate_per_hour: 5 }
+    expect(regPatch(saved, { ...saved })).toEqual({})
+    expect(regPatch(saved, { registration: true, approval: true, rate_per_hour: 10 })).toEqual({ registration: true, rate_per_hour: 10 })
+  })
+  it('待审核账号的状态与计数', () => {
+    const base = { id: 1, role: 'user' as const, disabled: false, locked: false, locked_until: null, last_login_at: null, password_changed_at: null, created_at: null }
+    const rows = [{ ...base, username: 'a' }, { ...base, id: 2, username: 'p', status: 'pending' as const, origin: 'register' as const }]
+    expect(stateOf(rows[1])).toBe('pending')
+    expect(counts(rows)).toMatchObject({ all: 1, pending: 1 })
   })
 })

@@ -25,10 +25,11 @@ import RuleSetPicker from '@/components/rule-set-picker.vue'
 import NamingReportPanel from './translate-rules/NamingReportPanel.vue'
 import { renamedLines } from './translate-rules/logic'
 import {
-  appendRaw, buildWarns, groupCounts, interfacesIn, isVerifyItem, linesText, linkFromDst, linkFromSrc, outIndex,
+  appendRaw, buildWarns, groupCounts, interfacesIn, interfacesInGraph, isVerifyItem, linesText, linkFromDst, linkFromSrc, outIndex,
   reportMd, srcIndex, warnCsvRows, warnDst, warnText, type ShownLine,
 } from './translate/logic'
 import { GROUPS, type Group, type RenderResult, type TranslateResult, type Warn } from './translate/types'
+import VendorBadge from '@/components/vendor-badge.vue'
 
 interface ProfileLite { id: string; title: string; vendor: string; family: string }
 
@@ -106,7 +107,12 @@ watch([srcFamily, profiles], () => {
 // ---------------------------------------------------------------- 接口映射表
 const mapRows = ref<MapRow[]>([])
 const mapDirty = ref(false)
-const srcInterfaces = computed(() => mainInterfaces(interfacesIn(mode.value === 'device' ? srcGraph.value?.text ?? '' : pasteText.value)))
+const srcInterfaces = computed(() => {
+  const g = mode.value === 'device' ? srcGraph.value : null
+  const fromText = interfacesIn(g ? g.text ?? '' : pasteText.value)
+  // Nokia 的端口不以 `interface X` 声明：文本里找不到时取配置图的顶层接口对象
+  return mainInterfaces(fromText.length || !g ? fromText : interfacesInGraph(g.nodes ?? []))
+})
 function resetMap(): void {
   mapRows.value = srcInterfaces.value.map((a) => ({ a, b: '', how: 'none' }))
 }
@@ -421,7 +427,7 @@ onMounted(async () => {
             <div class="end">
               <div class="end-h">
                 <span>{{ $t('translate.source') }}</span>
-                <span v-if="vendorOf(srcProfileId)" class="vendor"><i :class="vendorOf(srcProfileId) === 'huawei' ? 'hw' : 'cs'">{{ vendorOf(srcProfileId) === 'huawei' ? 'HW' : 'CS' }}</i>{{ srcProfileId }}</span>
+                <VendorBadge v-if="vendorOf(srcProfileId)" :of="vendorOf(srcProfileId)">{{ srcProfileId }}</VendorBadge>
               </div>
               <template v-if="mode === 'device'">
                 <div class="end-sel">
@@ -455,7 +461,7 @@ onMounted(async () => {
             <div class="end">
               <div class="end-h">
                 <span>{{ $t('translate.target') }}</span>
-                <span v-if="vendorOf(target)" class="vendor"><i :class="vendorOf(target) === 'huawei' ? 'hw' : 'cs'">{{ vendorOf(target) === 'huawei' ? 'HW' : 'CS' }}</i>{{ profileOf(target)?.family }}</span>
+                <VendorBadge v-if="vendorOf(target)" :of="vendorOf(target)">{{ profileOf(target)?.family }}</VendorBadge>
               </div>
               <div class="end-sel one">
                 <select v-model="target" class="select" :aria-label="$t('translate.target')" data-testid="tr-target">
@@ -537,7 +543,7 @@ onMounted(async () => {
           <section class="panel pane src" aria-label="Source">
             <div class="tbar">
               <span class="side-b">{{ $t('translate.sideS') }}</span>
-              <span class="vendor"><i :class="vendorOf(result.source.profile) === 'huawei' ? 'hw' : 'cs'">{{ vendorOf(result.source.profile) === 'huawei' ? 'HW' : 'CS' }}</i>{{ result.source.profile }}</span>
+              <VendorBadge :of="vendorOf(result.source.profile) || result.source.profile">{{ result.source.profile }}</VendorBadge>
               <span class="fn">{{ result.source.device }}</span>
             </div>
             <M3Code ref="srcPane" :lines="srcCode" side="s" testid="tr-src" @pick="pickSrc" @scroll="drawBridge" />
@@ -553,7 +559,7 @@ onMounted(async () => {
           <section class="panel pane dst" aria-label="Output">
             <div class="tbar">
               <span class="side-b">{{ $t('translate.sideT') }}</span>
-              <span class="vendor"><i :class="vendorOf(result.target.profile) === 'huawei' ? 'hw' : 'cs'">{{ vendorOf(result.target.profile) === 'huawei' ? 'HW' : 'CS' }}</i>{{ result.target.profile }}</span>
+              <VendorBadge :of="vendorOf(result.target.profile) || result.target.profile">{{ result.target.profile }}</VendorBadge>
               <span class="fn">{{ outFile }}</span>
               <span class="ml-auto" />
               <button class="btn btn-ghost btn-xs" type="button" data-testid="tr-copy" @click="copyText(linesText(plainOut))"><Icon name="copy" small />{{ $t('c.copy') }}</button>

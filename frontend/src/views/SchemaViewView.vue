@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { get, errorText } from '@/api'
 import { pickLang } from '@/i18n'
+import { stripVendor } from '@/vendor'
 import { noteText } from '@/i18n/note'
 import Icon from '@/components/Icon.vue'
 import {
@@ -20,6 +21,7 @@ import { useAuth } from '@/stores/auth'
 import KbRoRibbon from '@/components/kb-ro-ribbon.vue'
 import KbSuggest from '@/components/kb-suggest.vue'
 import type { SuggestKind } from '@/views/kbsugg/logic'
+import VendorBadge from '@/components/vendor-badge.vue'
 
 type Mode = 'one' | 'cmp' | 'all'
 
@@ -255,11 +257,8 @@ const noMatch = computed(() => {
   return !!s && !nodes.value.some((n) => n.id.toLowerCase().includes(s))
 })
 
-function vendorCls(v: string | undefined): string {
-  return v === 'cisco' ? 'cs' : 'hw'
-}
 function shortProfile(id: string): string {
-  return id.replace(/^(huawei|cisco)-/, '')
+  return stripVendor(id)
 }
 function cmpValue(r: CompareRow): string {
   return `${fmtValue(r.a.default) || '—'} / ${fmtValue(r.b.default) || '—'}`
@@ -454,7 +453,7 @@ function cmpValue(r: CompareRow): string {
               <template v-if="mode === 'one' || mode === 'all'">
                 <template v-if="mode === 'one' && covA">
                   <div class="row" style="gap: 8px">
-                    <span class="vendor"><i :class="vendorCls(profA?.vendor)">{{ vendorCls(profA?.vendor) === 'cs' ? 'CS' : 'HW' }}</i></span>
+                    <VendorBadge :of="profA?.vendor" />
                     <span class="mono" style="font-weight: 600">{{ pa }}</span>
                   </div>
                   <p v-if="profA" class="small faint mt8">

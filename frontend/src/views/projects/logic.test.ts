@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { activity, avatars, confirmMatches, matchProject, projectAbilities, projectBody, sortProjects, suggestSlug, validSlug } from './logic'
+import { activity, ambiguousCandidates, avatars, confirmMatches, matchProject, projectAbilities, projectBody, sortProjects, suggestSlug, validSlug } from './logic'
 import { draftOf, isDirty, isShared, overrideBody, overrideMark, settingsPatch, type RuleRow } from '../project-settings/logic'
 import { markUpgradeSeen, migratedProjects, shouldShowUpgrade } from '@/project/upgrade'
 
@@ -91,5 +91,16 @@ describe('升级说明', () => {
     expect(shouldShowUpgrade('u', lists, s)).toBe(false)
     expect(shouldShowUpgrade('v', lists, s)).toBe(true)
     expect(shouldShowUpgrade(null, lists, s)).toBe(false)
+  })
+})
+
+describe('同名项目的候选（标识按属主唯一）', () => {
+  const row = (slug: string, full_ref: string) => ({ slug, full_ref })
+  it('优先用后端给出的候选，没有时从项目列表按标识找', () => {
+    expect(ambiguousCandidates('oam', ['a/oam', 'b/oam'], null)).toEqual(['a/oam', 'b/oam'])
+    const lists = { mine: [row('x', 'me/x')], shared: [row('oam', 'zhang/oam')], others: [row('oam', 'liwei/oam')] }
+    expect(ambiguousCandidates('oam', [], lists)).toEqual(['liwei/oam', 'zhang/oam'])
+    expect(ambiguousCandidates('', ['a/oam'], lists)).toEqual([])
+    expect(ambiguousCandidates('oam', [], null)).toEqual([])
   })
 })

@@ -66,7 +66,7 @@ def _cell(kb: KnowledgeBase, resolved: Any, pid: str, nid: str) -> dict[str, Any
 def _texts(kb: KnowledgeBase, n: SchemaNode, terms: Any = None) -> list[str]:
     out = [n.id, n.id.rsplit(".", 1)[-1].replace("_", " "), *[str(v) for v in n.semantic.values()]]
     if terms is not None:
-        for style in ("huawei", "cisco"):
+        for style in ("huawei", "cisco", "nokia"):
             kw = terms.attr(n.id, style)
             if kw:
                 out.append(kw)

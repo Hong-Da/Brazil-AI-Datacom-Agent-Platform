@@ -13,6 +13,7 @@ import CopyToDialog from './devices/CopyToDialog.vue'
 import DevDelDialog from '@/components/devdel-dialog.vue'
 import { filterDevices, fmtTime, vendorCounts, vendorLabel, type DevFilter } from './devices/logic'
 import { bySource, currentSeq, newerRefs, rowActions, stats, type ProjectDevice, type RowAction, type SrcFilter } from './devices/project'
+import VendorBadge from '@/components/vendor-badge.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -171,14 +172,14 @@ async function act(d: ProjectDevice, a: RowAction): Promise<void> {
     if (a === 'unlink') { unlinkFor.value = d; return }
     if (a === 'delete') { delId.value = d.id; return }
     if (a === 'follow') {
-      await put(`/projects/${project.slug}/refs/${d.id}`, { version_id: null })
+      await put(`/projects/${encodeURIComponent(project.ref ?? "")}/refs/${d.id}`, { version_id: null })
       okMsg.value = t('devices.nowFollow', { d: d.name })
     } else if (a === 'pinLatest') {
       const vid = d.public_latest_version_id ?? d.latest_version_id
-      await put(`/projects/${project.slug}/refs/${d.id}`, { version_id: vid })
+      await put(`/projects/${encodeURIComponent(project.ref ?? "")}/refs/${d.id}`, { version_id: vid })
       okMsg.value = t('devices.nowPinned', { d: d.name, n: d.versions })
     } else if (a === 'copyPrivate') {
-      const r = await post<{ name: string }>(`/projects/${project.slug}/devices/copy-in`, { device_id: d.id })
+      const r = await post<{ name: string }>(`/projects/${encodeURIComponent(project.ref ?? "")}/devices/copy-in`, { device_id: d.id })
       okMsg.value = t('devices.copiedPrivate', { d: r.name })
     } else if (a === 'rebuild') {
       await post(`/devices/${d.id}/rebuild`)
@@ -192,7 +193,7 @@ async function act(d: ProjectDevice, a: RowAction): Promise<void> {
 async function pinAll(on: 'latest' | 'follow'): Promise<void> {
   actError.value = ''
   try {
-    for (const d of newer.value) await put(`/projects/${project.slug}/refs/${d.id}`, { version_id: on === 'follow' ? null : d.public_latest_version_id })
+    for (const d of newer.value) await put(`/projects/${encodeURIComponent(project.ref ?? "")}/refs/${d.id}`, { version_id: on === 'follow' ? null : d.public_latest_version_id })
     okMsg.value = t(on === 'follow' ? 'devices.allFollow' : 'devices.allPinned', { n: newer.value.length })
     await load()
   } catch (e) {
@@ -204,7 +205,7 @@ async function unlink(): Promise<void> {
   if (!d) return
   unlinkFor.value = null
   try {
-    await del(`/projects/${project.slug}/refs/${d.id}`)
+    await del(`/projects/${encodeURIComponent(project.ref ?? "")}/refs/${d.id}`)
     okMsg.value = t('devices.unlinked', { d: d.name })
     await Promise.all([load(), status.refresh()])
   } catch (e) {
@@ -363,7 +364,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
                   <ProjSource :source="d.source" :policy="d.policy" :seq="currentSeq(d)" :latest-seq="d.versions" :newer="d.newer_available" />
                 </td>
                 <td class="nowrap">
-                  <span v-if="d.vendor" class="vendor"><i :class="d.vendor === 'huawei' ? 'hw' : d.vendor === 'cisco' ? 'cs' : ''">{{ d.vendor === 'huawei' ? 'HW' : d.vendor === 'cisco' ? 'CS' : '?' }}</i>{{ vendorLabel(d.vendor) }}</span>
+                  <VendorBadge v-if="d.vendor" :of="d.vendor">{{ vendorLabel(d.vendor) }}</VendorBadge>
                   <span v-else class="tag warn">{{ $t('devices.vendorUnknown') }}</span>
                 </td>
                 <td class="nowrap">

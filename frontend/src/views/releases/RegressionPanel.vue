@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { post, waitTask, errorText } from '@/api'
 import Icon from '@/components/Icon.vue'
+import { vendorMark } from '@/vendor'
 import { fmtTime, samplePassed, sortSamples, type Regression, type SampleResult } from './logic'
 
 const props = defineProps<{ regression: Regression | null; stale: boolean; loading: boolean }>()
@@ -21,7 +22,7 @@ function toggle(f: string): void {
   else s.add(f)
   open.value = s
 }
-function vendor(p?: string): string { return p?.startsWith('cisco') ? 'cs' : p?.startsWith('huawei') ? 'hw' : '' }
+function vendor(p?: string): string { return vendorMark(p).cls }
 function pct(c?: number): string { return c == null ? '—' : `${(c * 100).toFixed(c >= 0.9995 ? 0 : 1)}%` }
 
 async function run(): Promise<void> {
@@ -98,7 +99,7 @@ function failLabel(r: SampleResult): string {
         <tbody>
           <template v-for="r in rows" :key="r.file">
             <tr :class="{ 'is-sel': !samplePassed(r) && r.gate !== false }">
-              <td><span class="vendor"><i v-if="vendor(r.profile)" :class="vendor(r.profile)">{{ vendor(r.profile) === 'cs' ? 'C' : 'HW' }}</i><span class="mono small">{{ r.file }}</span></span></td>
+              <td><span class="vendor"><i v-if="vendor(r.profile)" :class="vendor(r.profile)">{{ vendorMark(r.profile).abbr }}</i><span class="mono small">{{ r.file }}</span></span></td>
               <td class="mono small nowrap">{{ r.profile ?? '—' }}</td>
               <td class="num">{{ r.lines?.toLocaleString('en-US') ?? '—' }}</td>
               <td>

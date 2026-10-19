@@ -22,8 +22,9 @@ def wizard_schema(lang: str) -> list[dict[str, Any]]:
             {
                 "key": f.key,
                 "kind": f.kind,
-                "default": f.default,
-                "choices": list(f.choices),
+                # 开关（bool）在向导里按两个选项给出：true / false
+                "default": ("true" if f.default else "false") if f.kind == "bool" else f.default,
+                "choices": ["true", "false"] if f.kind == "bool" else list(f.choices),
                 "min": f.minimum,
                 "max": f.maximum,
                 "secret": f.secret,

@@ -20,7 +20,7 @@ LangOpt = Annotated[str | None, typer.Option("--lang", help="报告语言 zh-CN 
 FormatOpt = Annotated[str, typer.Option("--format", help="html（自包含、可打印）| md（贴进工单）")]
 OutOpt = Annotated[Path | None, typer.Option("-o", "--out", help="写到文件；不给时把报告写到 stdout")]
 StyleOpt = Annotated[
-    str | None, typer.Option("--style", help="节点的显示风格 huawei | cisco（默认取配置 ui.term_style）")
+    str | None, typer.Option("--style", help="节点的显示风格 huawei | cisco | nokia（默认取配置 ui.term_style）")
 ]
 
 

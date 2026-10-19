@@ -202,6 +202,8 @@ onMounted(() => {
     boxSelectionEnabled: false,
     autounselectify: true,
   })
+  // e2e 用：在容器元素上留一个 cytoscape 实例的引用（检查画出的节点）
+  ;(box.value as unknown as { __cy?: Core }).__cy = cy
   cy.on('tap', 'node', (ev) => {
     const id = ev.target.id() as string
     if (id.startsWith('more:')) emit('more', id.slice(5))

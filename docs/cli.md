@@ -22,7 +22,7 @@
 | `--quiet` / `-q` | 只输出结果 |
 | `--verbose` / `-v` | 同时把日志打印到 stderr |
 | `--yes` / `-y` | 跳过所有确认提示（非终端调用时自动开启） |
-| `--project <项目>` / `-P` | 命令作用于哪个项目（M6）：项目标识、`属主/标识` 或项目编号；不给时用默认项目；项目不存在退出码 4 |
+| `--project <项目>` / `-P` | 命令作用于哪个项目（M6）：项目标识、`属主/标识` 或项目编号；不给时用默认项目；项目不存在退出码 4。标识只在属主内唯一：只写标识时先找 `--as` 账号自己的项目，没有时在他能访问的项目里找，有多个同名时退出码 2（提示写成 `属主/标识`，`--output json` 的 `error.data.candidates` 列出候选） |
 | `--as <账号>` | 以哪个账号的身份：默认项目、新建项目与个人令牌的属主；默认第一个启用的管理员（还没有账号时等同全局令牌） |
 | `--version` | 显示版本 |
 
@@ -64,7 +64,8 @@
 | `lmesh status` | 运行状态：版本、是否已配置、数据库、知识库、AI 接口 |
 | `lmesh serve [--host] [--port]` | 启动 Web 界面与远程 API；`--host`、`--port` 只临时覆盖，不改配置文件 |
 | `lmesh setup [--defaults] [--force]` | 命令行版首次运行向导；`--defaults` 不提问，采用默认值与环境变量（Docker、自动化部署用） |
-| `lmesh user list` | 网页登录账号列表：用户名、角色、状态（启用 / 锁定至 / 已停用）、最后登录（REQ-030） |
+| `lmesh user list [--pending]` | 网页登录账号列表：用户名、角色、状态（启用 / 待审核 / 锁定至 / 已停用）、最后登录（REQ-030）；`--pending` 只列自助注册后待审核的账号（REQ-039） |
+| `lmesh user approve <名称>` / `lmesh user reject <名称>` | 批准（可以登录，建好默认项目）/ 拒绝（删除，用户名可再注册）自助注册的待审核账号；不是待审核退出码 1，账号不存在退出码 4；记入审计。注册开关等设置项见配置文件 `[auth]`（`auth.registration`、`auth.registration_approval`、`auth.registration_rate_per_hour`），也可以在网页账号管理里改 |
 | `lmesh user add <名称> [--role admin\|maintainer\|user] [--password-stdin]` | 新建账号（默认普通用户）；密码从提示读取（不回显、输入两次），或用 `--password-stdin` 从标准输入读第一行，不接受命令行明文；没有终端又没给 `--password-stdin` 时退出码 2；用户名已存在退出码 1 |
 | `lmesh user disable <名称>` / `lmesh user enable <名称>` | 停用（该账号的会话立即失效）/ 启用（同时解除锁定）；最后一个启用的管理员不能停用（退出码 1） |
 | `lmesh user reset-password <名称> [--password-stdin]` | 重置密码：同时解除锁定，该账号的会话全部失效 |
@@ -144,12 +145,12 @@
 | `lmesh skill approve <skill> <进化编号> [--reject] [--note 说明]` | 批准进化的候选版本并发布为新版本（`--reject` 放弃）；不存在退出码 4，已处理过退出码 1 |
 | `lmesh script-check <脚本> [--device 设备名[@版本]\|配置文件] [--version N] [--kind change\|full] [--order/--no-order] [--reorder [-o 文件]] [--rules 目录] [--profile P]` | 检查变更脚本 / 完整配置（REQ-031）：变更脚本逐行跟踪视图、在基线上模拟执行（取消匹配、覆盖、副作用），执行后的配置跑配置检查规则并查地址 / RD 冲突；顺序核查开启时报出“引用了后面才创建的对象”“删除时引用方在后面才处理”“先配的值被后面命令的副作用删除”，并附按依赖重排的建议；`--no-order` 只看按依赖顺序执行后的结果；完整配置检查未识别行、规则并与基线按有效值对比；`--reorder` 输出重排后的脚本与每条命令移动的原因；有 error 时退出码 1，变更脚本没有基线退出码 2 |
 | `lmesh script-diff <a> <b> [--ignore-order] [--kind full\|change] [--device 基线] [--format text\|unified\|html] [--report-lang zh-CN\|en] [--no-semantic] [-o 文件]` | 脚本 / 配置的文本差异：逐行对比、行内字符级标记，位置变化识别为移动（第几行 → 第几行），`--ignore-order` 按视图路径 + 内容只看内容差异；同时给出语义差异（按有效值比较；`--kind change` 时比较两份脚本在基线上执行后的结果）；可输出统一 diff 或中 / 英 HTML 报告 |
-| `lmesh project list [--all] [--owner 账号]` | 项目列表（M6）：我的项目与共享给我的（`--as` 账号的视角，`*` 为默认项目）；`--all` 同时列出不是自己参与的项目（管理员） |
+| `lmesh project list [--all] [--owner 账号]` | 项目列表（M6）：我的项目与共享给我的（`--as` 账号的视角，`*` 为默认项目；第一列是规范引用：自己的项目写标识，别人的写 `属主/标识`）；`--all` 同时列出不是自己参与的项目（管理员） |
 | `lmesh project show [项目]` | 项目详情：属主、我的角色、成员、设备（私有 / 引用）与脚本计数；不给项目时为当前项目 |
-| `lmesh project create <名称> [--slug 标识] [--description 说明]` | 新建项目，属主为 `--as` 账号；标识不合法退出码 2，已被使用退出码 1 |
+| `lmesh project create <名称> [--slug 标识] [--description 说明]` | 新建项目，属主为 `--as` 账号；标识在属主自己的项目里唯一（别人可以有同名项目）；标识不合法退出码 2，自己已有同名项目退出码 1 |
 | `lmesh project delete <项目>` | 删除项目：私有设备与它们的全部版本一起删除，引用的公共设备只解除引用；终端里要输入项目标识确认，`--yes` 跳过 |
 | `lmesh project members <项目> [--add 账号 --role edit\|read] [--remove 账号]` | 成员列表；邀请或改角色、移除（只限属主与管理员，否则退出码 1） |
-| `lmesh project transfer <项目> <新属主> [--keep-as edit\|read\|none]` | 转交项目；原属主默认留作可编辑成员；项目用到的原属主私有规则集复制一份给新属主 |
+| `lmesh project transfer <项目> <新属主> [--keep-as edit\|read\|none] [--slug 新标识]` | 转交项目；原属主默认留作可编辑成员；项目用到的原属主私有规则集复制一份给新属主；新属主已有同名标识时退出码 1（`error.data.suggested` 给出可用的标识），用 `--slug` 同时改名 |
 | `lmesh project copy <项目> <新名称> [--slug 标识] [--no-devices] [--no-scripts]` | 复制为新项目（属主为 `--as` 账号）：设置、规则调整、私有设备（当前版本）、引用、脚本 |
 | `lmesh project default <项目>` | 设置 `--as` 账号的默认项目 |
 | `lmesh project ref <公共设备> [--pin 版本编号] [--remove]` | 在当前项目（`--project`）引用公共设备（跟随最新，或 `--pin` 固定版本），`--remove` 解除引用 |
@@ -622,7 +623,7 @@ lmesh --lang en baseline knowledge/samples/huawei-atn-v800r023/atn-access-01.cfg
 
 退出码：`0`
 
-输出包含：`Baseline strict: 2 device(s), 30 rule(s), score 86`、`sec.snmp_v3_only               ✗              ✗`、`pe-asr920-02-igp-mgmt (cisco-iosxe) score 91`、`Reference commands: line con 0 | exec-timeout 10 0`
+输出包含：`Baseline strict: 2 device(s), 34 rule(s), score 86`、`sec.snmp_v3_only               ✗              ✗`、`pe-asr920-02-igp-mgmt (cisco-iosxe) score 91`、`Reference commands: line con 0 | exec-timeout 10 0`
 
 ### 同时导出 Markdown 基线报告
 
@@ -1314,7 +1315,7 @@ JSON 输出中的关键字段：
 
 - `ok` = `true`
 - `data.families.nokia-sros-classic.unused_rules` = `[]`
-- `data.profiles.nokia-sros-classic-7750-25.10.manual` = `40`
+- `data.profiles.nokia-sros-classic-7750-25.10.manual` = `55`
 
 ### Nokia MD-CLI 规范模式渲染（configure { 开头，块写成 name { … }，字符串加引号，叶子列表写成 [ … ]）
 
@@ -1348,6 +1349,60 @@ JSON 输出中的关键字段：
 - `data.target.family` = `"nokia-sros-classic"`
 - `data.verify.checked` = `true`
 - `data.verify.unexplained` = `0`
+
+### 检查 Nokia 配置：端口缺省关闭、SDP、业务与 SAP 的管理状态、客户、VPRN 的 RD / vrf-target
+
+```bash
+lmesh --output json check tests/inputs/configs/check/nokia-classic-issues.cfg
+```
+
+退出码：`1`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.summary.total` = `14`
+- `data.summary.has_errors` = `true`
+- `data.summary.by_rule.port.shutdown_bound` = `1`
+- `data.summary.by_rule.sdp.far_end_missing` = `1`
+- `data.summary.by_rule.service.epipe_shutdown` = `1`
+- `data.summary.by_rule.ref.dangling` = `3`
+
+### 对 Nokia MD-CLI 配置跑基础基线（修复参考命令是 MD-CLI 写法）
+
+```bash
+lmesh --output json baseline knowledge/samples/nokia-sros-md-synthetic/md-pe-routing-mgmt.cfg
+```
+
+退出码：`1`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.baseline` = `"basic"`
+- `data.devices.0.family` = `"nokia-sros-md"`
+- `data.devices.0.results.sec.telnet_disabled` = `"fail"`
+- `data.devices.0.results.sec.ssh_v2` = `"pass"`
+- `data.devices.0.results.sec.vty_ssh_only` = `"na"`
+- `data.devices.0.results.sec.mgmt_access_filter` = `"fail"`
+- `data.devices.0.failures.0.rule` = `"sec.telnet_disabled"`
+- `data.devices.0.failures.0.remedy` = `["/configure system security telnet-server false", "/configure system security telnet6-server false"]`
+
+### Nokia Classic 与 MD-CLI 两台设备的跨设备一致性（OSPF 计时器、伪线 VC ID）
+
+```bash
+lmesh --output json consistency tests/inputs/configs/nokia/topo-pe-a.cfg tests/inputs/configs/nokia/topo-pe-b.cfg
+```
+
+退出码：`1`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.summary.topology.devices` = `2`
+- `data.summary.topology.links` = `5`
+- `data.summary.total` = `3`
+- `data.summary.by_rule.xd.pw.vc_id` = `1`
 
 ### 项目列表（--as 账号的视角）
 
@@ -1494,6 +1549,35 @@ JSON 输出中的关键字段：
 - `ok` = `true`
 - `data.files.0.ok` = `true`
 - `data.files.0.device` = `"ce-rio-01"`
+
+### 只写标识而能访问的同名项目有多个：退出码 2，列出 属主/标识
+
+```bash
+lmesh --output json --as bob --project lab config list
+```
+
+退出码：`2`
+
+JSON 输出中的关键字段：
+
+- `ok` = `false`
+- `error.data.candidates.0` = `"alice/lab"`
+- `error.data.candidates.1` = `"carol/lab"`
+
+### 写成 属主/标识：精确找到别人的同名项目
+
+```bash
+lmesh --output json --as bob project show carol/lab
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.owner` = `"carol"`
+- `data.ref` = `"carol/lab"`
+- `data.role` = `"read"`
 
 ### 同角色设备对比时隐藏身份差异（主机名、Router ID、环回地址、对等体地址）
 
@@ -1994,5 +2078,35 @@ JSON 输出中的关键字段：
 
 - `ok` = `true`
 - `data.deleted` = `"alice"`
+
+### 只看待审核的自助注册账号
+
+```bash
+lmesh --output json user list --pending
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.count` = `2`
+- `data.users.0.username` = `"dave"`
+- `data.users.0.status` = `"pending"`
+- `data.users.0.origin` = `"register"`
+
+### 批准待审核账号（建好默认项目）
+
+```bash
+lmesh --output json user approve dave
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.user.username` = `"dave"`
+- `data.user.status` = `"active"`
 
 <!-- examples:end -->

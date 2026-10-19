@@ -35,7 +35,7 @@ async function loadSample(): Promise<void> {
   } catch { /* 示例里用占位 */ }
 }
 
-const slug = computed(() => project.slug ?? 'default')
+const slug = computed(() => project.ref ?? 'default')
 const host = location.origin
 const api = computed(() => apiExample(host, slug.value, sample.value?.id ?? null))
 const cli = computed(() => cliExample(slug.value, sample.value?.name ?? null, T('devicePh')))

@@ -1,3 +1,4 @@
+import { stripVendor, vendorMark } from '@/vendor'
 import type { Cred, ProfileRow, Scalar } from './types'
 
 /** 默认值显示：null → 空串（界面显示占位），布尔与数字转成文字。 */
@@ -20,19 +21,15 @@ export function parseDefault(text: string, previous?: Scalar): Scalar {
   return t
 }
 
-/** 厂商徽标：华为 HW、思科 CS，其他取前两个字母。 */
+/** 厂商徽标：华为 HW、思科 CS、Nokia NK，其他取前两个字母。 */
 export function vendorBadge(vendor: string): { cls: string; text: string } {
-  const v = vendor.toLowerCase()
-  if (v === 'huawei') return { cls: 'hw', text: 'HW' }
-  if (v === 'cisco') return { cls: 'cs', text: 'CS' }
-  return { cls: '', text: vendor.slice(0, 2).toUpperCase() }
+  const m = vendorMark(vendor)
+  return m.cls && m.key === vendor.toLowerCase() ? { cls: m.cls, text: m.abbr } : { cls: '', text: vendor.slice(0, 2).toUpperCase() }
 }
 
 export function vendorName(vendor: string): string {
-  const v = vendor.toLowerCase()
-  if (v === 'huawei') return 'Huawei'
-  if (v === 'cisco') return 'Cisco'
-  return vendor
+  const m = vendorMark(vendor)
+  return m.key && m.key === vendor.toLowerCase() ? m.name : vendor
 }
 
 /** 可信度分布换算成占 Schema 节点总数的百分比（未填写的部分留空）。 */
@@ -44,7 +41,7 @@ export function credPercents(p: Pick<ProfileRow, 'credibility' | 'entries' | 'un
 
 /** 列头等窄处显示的简称：去掉开头的厂商名。 */
 export function shortId(id: string): string {
-  return id.replace(/^(huawei|cisco)-/, '')
+  return stripVendor(id)
 }
 
 export function pct(ratio: number): number {

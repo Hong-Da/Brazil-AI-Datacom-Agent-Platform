@@ -1,11 +1,10 @@
 /** M4 页面共用的小工具：设备厂商标记、文件名、文本块截取。 */
 
-/** 平台族 / 厂商 / Profile → 设备标记（hw 华为、cs Cisco）。 */
-export function vendorMark(s: string | null | undefined): 'hw' | 'cs' | '' {
-  const v = (s ?? '').toLowerCase()
-  if (v.startsWith('huawei')) return 'hw'
-  if (v.startsWith('cisco')) return 'cs'
-  return ''
+import { vendorMark as mark } from '@/vendor'
+
+/** 平台族 / 厂商 / Profile → 设备标记（hw 华为、cs Cisco、nk Nokia）。 */
+export function vendorMark(s: string | null | undefined): 'hw' | 'cs' | 'nk' | '' {
+  return mark(s).cls
 }
 
 /** 文件名里不能出现的字符换成下划线。 */

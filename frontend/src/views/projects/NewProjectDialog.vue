@@ -3,7 +3,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
-import { errorText, get, post } from '@/api'
+import { ApiError, errorText, get, post } from '@/api'
 import { pickLang } from '@/i18n'
 import { usePrefs } from '@/stores/prefs'
 import { useTerms } from '@/stores/terms'
@@ -53,7 +53,9 @@ async function create(): Promise<void> {
     const body = projectBody(name.value, slug.value, { description: desc.value, settings })
     emit('created', await post<ProjectRow>('/projects', body))
   } catch (e) {
-    error.value = errorText(e)
+    // 标识按属主唯一：409 表示自己已有同名项目（别人有同名的不影响）
+    const s = slug.value.trim().toLowerCase()
+    error.value = e instanceof ApiError && e.status === 409 && s ? t('projects.dlg.slugTaken', { s }) : errorText(e)
   } finally {
     busy.value = false
   }

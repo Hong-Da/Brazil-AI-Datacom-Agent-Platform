@@ -55,7 +55,7 @@ def targets_of(configs: list[ConfigText], devices: list[str | int] | str | None)
 
 
 @router.get("/export/presets", summary="审计表格的预置模板：对象类型、列（三语表头、Schema 路径）、命名筛选条件")
-def get_presets(request: Request, style: Literal["huawei", "cisco"] = Query("huawei")) -> dict[str, Any]:
+def get_presets(request: Request, style: Literal["huawei", "cisco", "nokia"] = Query("huawei")) -> dict[str, Any]:
     kb, root = _kb(request)
     try:
         return ok(
@@ -100,7 +100,7 @@ class TableBody(BaseModel):
     configs: list[ConfigText] = Field(default_factory=list, max_length=MAX_CONFIGS)
     defaults: bool = Field(True, description="填 Profile 默认值（格子来源标为 default）")
     canonical_names: bool = Field(False, description="接口名统一写成全称")
-    style: Literal["huawei", "cisco"] = "huawei"
+    style: Literal["huawei", "cisco", "nokia"] = "huawei"
     format: Literal["json", "csv", "xlsx"] = "json"
     lang: Literal["zh-CN", "en", "pt-BR"] = Field("zh-CN", description="表头语言（CSV / XLSX）")
     sheets: Literal["per-device", "single"] = Field("per-device", description="XLSX：每台设备一个工作表或全部一张表")

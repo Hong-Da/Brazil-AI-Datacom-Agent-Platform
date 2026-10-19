@@ -229,7 +229,7 @@ def test_terms_nokia_style(kb) -> None:  # type: ignore[no-untyped-def]
     t = terms.load(KB_ROOT, kb)
     assert terms.check(kb, t) == []
     assert t.label("vrf.instance", "RAN", "nokia") == "vprn RAN"
-    assert t.label("rp.community_list", "X", "nokia") == t.label(
-        "rp.community_list", "X", "huawei"
-    )  # 没登记时用华为风格
+    assert t.label("rp.community_list", "X", "nokia") == 'community "X"'  # M7-5 起每个对象都登记了 nokia 写法
+    assert t.attr("interface.ospf.cost", "nokia") == "metric"
+    assert t.attr("bgp.af.nexthop_policy", "nokia") == "next-hop-resolution policy"
     assert "nokia" in t.styles

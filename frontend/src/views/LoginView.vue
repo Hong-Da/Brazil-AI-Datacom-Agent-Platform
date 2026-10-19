@@ -26,6 +26,7 @@ const reveal = ref(false)
 const error = ref('')
 const locked = ref(false)
 const busy = ref(false)
+const pending = ref(false) // 自助注册的账号还在等管理员审核（REQ-039）
 
 const expired = computed(() => route.query.expired === '1')
 const bootstrap = computed(() => status.value !== null && !status.value.has_users)
@@ -40,7 +41,8 @@ const canSubmit = computed(() => {
 })
 
 // 错误提示是服务端按当时语言返回的，换语言后清掉
-watch(() => prefs.lang, () => { error.value = '' })
+watch(() => prefs.lang, () => { error.value = ''; pending.value = false })
+const regOpen = computed(() => !bootstrap.value && !!status.value?.registration?.open)
 
 async function loadStatus(): Promise<void> {
   loadError.value = ''
@@ -56,6 +58,7 @@ async function submit(): Promise<void> {
   if (!canSubmit.value) return
   error.value = ''
   locked.value = false
+  pending.value = false
   busy.value = true
   try {
     const path = bootstrap.value ? '/auth/bootstrap' : '/auth/login'
@@ -69,6 +72,7 @@ async function submit(): Promise<void> {
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e)
     locked.value = e instanceof ApiError && e.status === 429
+    pending.value = e instanceof ApiError && e.status === 403 && (e.data as { reason?: string } | null)?.reason === 'pending'
     if (e instanceof ApiError && e.status === 409) await loadStatus() // 别人刚创建了管理员
   } finally {
     busy.value = false
@@ -89,7 +93,7 @@ async function submit(): Promise<void> {
         </template>
         <template v-else>
           <h1>{{ $t('login.title') }}</h1>
-          <p class="muted">{{ $t('login.hint') }}</p>
+          <p class="muted">{{ regOpen ? $t('login.hintOpen') : $t('login.hint') }}</p>
         </template>
 
         <div v-if="loadError" class="notice err" role="alert">
@@ -98,6 +102,9 @@ async function submit(): Promise<void> {
         </div>
         <div v-if="expired && !bootstrap" class="notice info" data-testid="login-expired">
           <Icon name="clock" /><div class="grow small">{{ $t('login.expired', { h: status?.session_hours ?? 12 }) }}</div>
+        </div>
+        <div v-if="pending" class="notice warn" role="alert" data-testid="login-pending">
+          <Icon name="clock" /><div class="grow small"><b>{{ $t('login.pendingTitle') }}</b><br />{{ $t('login.pendingHint') }}</div>
         </div>
         <div v-if="locked" class="notice warn" role="alert" data-testid="login-locked">
           <Icon name="lock" /><div class="grow small"><b>{{ $t('login.lockedTitle') }}</b><br />{{ error }}</div>
@@ -135,7 +142,7 @@ async function submit(): Promise<void> {
               <Icon name="eye" small />
             </button>
           </div>
-          <span v-if="error && !locked" class="err" role="alert" data-testid="login-error"><Icon name="err" small />{{ error }}</span>
+          <span v-if="error && !locked && !pending" class="err" role="alert" data-testid="login-error"><Icon name="err" small />{{ error }}</span>
         </div>
         <div v-if="bootstrap" class="field">
           <label for="login-password2">{{ $t('account.repeat') }}</label>
@@ -146,6 +153,7 @@ async function submit(): Promise<void> {
         <button type="submit" class="btn btn-primary go" :disabled="!canSubmit || locked" data-testid="login">
           {{ busy ? $t('login.checking') : bootstrap ? $t('login.bootSubmit') : $t('login.submit') }}
         </button>
+        <div v-if="regOpen" class="auth-alt" data-testid="login-register"><span>{{ $t('login.noAccount') }}</span><router-link :to="{ name: 'register' }" data-testid="login-to-register">{{ $t('login.signUp') }}</router-link></div>
         <div class="foot">{{ bootstrap ? $t('login.bootFoot') : $t('login.foot') }}</div>
         </template>
       </form>
@@ -178,6 +186,8 @@ async function submit(): Promise<void> {
   display: block; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg);
   color: var(--ink); font-size: 12px; overflow-wrap: anywhere; user-select: all;
 }
+.auth-alt { display: flex; justify-content: center; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.auth-alt a { color: var(--teal-ink); font-weight: 600; }
 .foot { font-size: 12px; color: var(--ink-3); text-align: center; overflow-wrap: anywhere; }
 @media (max-width: 520px) { .login-card { padding: 22px 18px 20px; } }
 </style>

@@ -24,7 +24,7 @@ title = { zh-CN = "只为一个平台族套用映射规则并汇总 Profile（�
 args = ["--output", "json", "kb", "map", "--family", "nokia-sros-classic"]
 setup = "configured-fullkb"
 expect_exit = 0
-expect_json = { "ok" = true, "data.families.nokia-sros-classic.unused_rules" = [], "data.profiles.nokia-sros-classic-7750-25.10.manual" = 40 }
+expect_json = { "ok" = true, "data.families.nokia-sros-classic.unused_rules" = [], "data.profiles.nokia-sros-classic-7750-25.10.manual" = 55 }
 in_docs = true
 
 [[case]]
@@ -44,3 +44,41 @@ setup = "fresh-fullkb"
 expect_exit = 0
 expect_json = { "ok" = true, "data.source.profile" = "nokia-sros-md-7750-25.10", "data.target.family" = "nokia-sros-classic", "data.verify.checked" = true, "data.verify.unexplained" = 0 }
 in_docs = true
+
+# ---------- M7-5：端口与业务检查、安全基线、跨设备一致性、Nokia 显示风格 ----------
+
+[[case]]
+id = "nokia-check-services"
+title = { zh-CN = "检查 Nokia 配置：端口缺省关闭、SDP、业务与 SAP 的管理状态、客户、VPRN 的 RD / vrf-target", en = "Check a Nokia configuration: ports down by default, SDPs, service / SAP admin state, customers, VPRN RD / vrf-target", pt-BR = "Verificar uma configuração Nokia: portas desativadas por padrão, SDPs, estado administrativo de serviços / SAPs, clientes, RD / vrf-target do VPRN" }
+args = ["--output", "json", "check", "{inputs}/configs/check/nokia-classic-issues.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "ok" = true, "data.summary.total" = 14, "data.summary.has_errors" = true, "data.summary.by_rule.port.shutdown_bound" = 1, "data.summary.by_rule.sdp.far_end_missing" = 1, "data.summary.by_rule.service.epipe_shutdown" = 1, "data.summary.by_rule.ref.dangling" = 3 }
+in_docs = true
+
+[[case]]
+id = "nokia-baseline-md"
+title = { zh-CN = "对 Nokia MD-CLI 配置跑基础基线（修复参考命令是 MD-CLI 写法）", en = "Run the basic baseline on a Nokia MD-CLI configuration (reference commands in MD-CLI form)", pt-BR = "Executar a baseline básica em uma configuração Nokia MD-CLI (comandos de referência no formato MD-CLI)" }
+args = ["--output", "json", "baseline", "{samples}/nokia-sros-md-synthetic/md-pe-routing-mgmt.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "ok" = true, "data.baseline" = "basic", "data.devices.0.family" = "nokia-sros-md", "data.devices.0.results.sec.telnet_disabled" = "fail", "data.devices.0.results.sec.ssh_v2" = "pass", "data.devices.0.results.sec.vty_ssh_only" = "na", "data.devices.0.results.sec.mgmt_access_filter" = "fail", "data.devices.0.failures.0.rule" = "sec.telnet_disabled", "data.devices.0.failures.0.remedy" = ["/configure system security telnet-server false", "/configure system security telnet6-server false"] }
+in_docs = true
+
+[[case]]
+id = "nokia-consistency"
+title = { zh-CN = "Nokia Classic 与 MD-CLI 两台设备的跨设备一致性（OSPF 计时器、伪线 VC ID）", en = "Cross-device consistency between a Nokia Classic and an MD-CLI device", pt-BR = "Consistência entre um equipamento Nokia Classic e um MD-CLI" }
+args = ["--output", "json", "consistency", "{inputs}/configs/nokia/topo-pe-a.cfg", "{inputs}/configs/nokia/topo-pe-b.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 1
+expect_json = { "ok" = true, "data.summary.topology.devices" = 2, "data.summary.topology.links" = 5, "data.summary.total" = 3, "data.summary.by_rule.xd.pw.vc_id" = 1 }
+in_docs = true
+
+[[case]]
+id = "nokia-terms-style"
+title = { zh-CN = "按 Nokia 风格出检查报告", en = "Check report in the Nokia display style", pt-BR = "Relatório de verificação no estilo Nokia" }
+args = ["report", "check", "{inputs}/configs/check/nokia-md-issues.cfg", "--lang", "en", "--format", "md", "--style", "nokia"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_stdout = ["port 1/1/5 › sap :200", "epipe EPIPE-100"]
+in_docs = false

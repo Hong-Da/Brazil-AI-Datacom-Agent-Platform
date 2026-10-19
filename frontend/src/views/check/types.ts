@@ -17,6 +17,8 @@ export interface Finding {
   lines: number[]
   message: TextRef
   suggestion: TextRef
+  /** M7-5：修复参考命令（已按设备平台族选好写法；规则没写时没有这个字段） */
+  remedy?: string[]
   /** M2-5：被忽略的发现 */
   ignored?: boolean
   ignore_reason?: string

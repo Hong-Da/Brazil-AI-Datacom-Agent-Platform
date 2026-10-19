@@ -25,6 +25,7 @@ import {
 } from './check-projects/logic'
 import type { AiRules, Category, CheckResult, Issue, Kind, Project, Revision, ScriptInfo, Severity } from './check-projects/types'
 import '@/styles/req031.css'
+import { starterScript } from '@/vendor'
 
 const { t, locale } = useI18n()
 const T = (k: string, p?: Record<string, unknown>) => t(`check-projects.${k}`, p ?? {})
@@ -277,7 +278,7 @@ async function createScript(): Promise<void> {
       }
       if (vid !== null) content = (await get<{ text: string }>(`/devices/${p.device_id}/versions/${vid}/text`)).text ?? ''
     } else if (nsKind.value === 'change') {
-      content = (p?.device?.vendor || p?.device?.profile || '').toLowerCase().startsWith('cisco') ? 'configure terminal\n\nend\n' : 'system-view\n\ncommit\n'
+      content = starterScript(p?.device?.vendor, p?.device?.profile, p?.profile)
     }
     const s = await post<ScriptInfo>(`/check-projects/${pid.value}/scripts`, { name: nsName.value.trim(), kind: nsKind.value, content })
     project.value?.script_list?.push({ ...s, content: undefined })

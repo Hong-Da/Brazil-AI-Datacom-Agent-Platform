@@ -19,7 +19,7 @@ const media = window.matchMedia('(prefers-color-scheme: dark)')
 export const usePrefs = defineStore('prefs', () => {
   const lang = ref<Lang>(i18n.global.locale.value as Lang)
   const theme = ref<Theme>(read(THEME_KEY, 'auto') as Theme)
-  /** 显示风格（huawei / cisco）；空表示还没选过，跟随系统默认（/kb/terms 的 default） */
+  /** 显示风格（huawei / cisco / nokia）；空表示还没选过，跟随系统默认（/kb/terms 的 default） */
   const termStyle = ref<string>(read(STYLE_KEY, ''))
 
   function applyTheme(): void {

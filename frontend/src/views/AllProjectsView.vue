@@ -57,7 +57,8 @@ onMounted(() => { void load(); void loadAudit() })
 const me = computed(() => auth.me?.username ?? null)
 const groups = computed(() => groupByOwner(rows.value, me.value, q.value, f.value))
 const idle = computed(() => rows.value.filter((p) => isIdle(p)).length)
-const ownerOf = (slug: string | null) => rows.value.find((p) => p.slug === slug)?.owner ?? ''
+// 审计事件按项目编号找属主（标识按属主唯一，不同人的项目可以同名）
+const ownerOf = (id: number | null) => (id == null ? '' : rows.value.find((p) => p.id === id)?.owner ?? '')
 function toggleAll(): void {
   const any = groups.value.some((g) => closed[g.owner])
   for (const g of groups.value) closed[g.owner] = !any
@@ -68,7 +69,7 @@ const confirmFor = ref<ProjectRow | null>(null)
 function enter(p: ProjectRow, confirmed = false): void {
   if (p.role === 'admin' && !confirmed) { confirmFor.value = p; return }
   confirmFor.value = null
-  void router.push({ name: 'devices', params: { project: p.slug } })
+  void router.push({ name: 'devices', params: { project: p.ref } })
 }
 
 const transferFor = ref<ProjectRow | null>(null)
@@ -147,8 +148,8 @@ function actText(p: ProjectRow): string {
               <table class="tbl">
                 <thead><tr><th>{{ T('colProject') }}</th><th class="num">{{ T('colDevices') }}</th><th class="num">{{ T('colScripts') }}</th><th>{{ T('colMembers') }}</th><th>{{ T('colActivity') }}</th><th /></tr></thead>
                 <tbody>
-                  <tr v-for="p in g.projects" :key="p.slug" :data-testid="`allp-row-${p.slug}`">
-                    <td><b>{{ p.name }}</b><div class="small faint mono">{{ p.slug }}</div></td>
+                  <tr v-for="p in g.projects" :key="p.ref" :data-testid="`allp-row-${p.ref}`">
+                    <td><b>{{ p.name }}</b><div class="small faint mono">{{ p.ref }}</div></td>
                     <td class="num">{{ p.counts.devices }}<div class="small faint">{{ T('private', { n: p.counts.private }) }}</div></td>
                     <td class="num">{{ p.counts.scripts }}</td>
                     <td>
@@ -162,9 +163,9 @@ function actText(p: ProjectRow): string {
                       <div v-if="p.last_activity" class="faint">{{ fmtTime(p.last_activity.at, true) }}</div>
                     </td>
                     <td class="right nowrap">
-                      <button v-if="p.role === 'admin'" class="btn btn-sm" type="button" :data-testid="`allp-enter-${p.slug}`" @click="enter(p)"><Icon name="enter" small />{{ T('enter') }}</button>
-                      <button v-else class="btn btn-sm" type="button" :data-testid="`allp-open-${p.slug}`" @click="enter(p)">{{ T('open') }}</button>
-                      <button class="btn btn-sm btn-ghost" type="button" :data-testid="`allp-transfer-${p.slug}`" @click="transferFor = p"><Icon name="transfer" small />{{ T('transfer') }}</button>
+                      <button v-if="p.role === 'admin'" class="btn btn-sm" type="button" :data-testid="`allp-enter-${p.ref}`" @click="enter(p)"><Icon name="enter" small />{{ T('enter') }}</button>
+                      <button v-else class="btn btn-sm" type="button" :data-testid="`allp-open-${p.ref}`" @click="enter(p)">{{ T('open') }}</button>
+                      <button class="btn btn-sm btn-ghost" type="button" :data-testid="`allp-transfer-${p.ref}`" @click="transferFor = p"><Icon name="transfer" small />{{ T('transfer') }}</button>
                     </td>
                   </tr>
                 </tbody>
@@ -186,7 +187,7 @@ function actText(p: ProjectRow): string {
                 <td class="nowrap">{{ fmtTime(a.at, true) }}</td>
                 <td>{{ a.actor }}</td>
                 <td class="mono">{{ a.project ?? '—' }}</td>
-                <td>{{ ownerOf(a.project) || '—' }}</td>
+                <td>{{ ownerOf(a.project_id) || '—' }}</td>
                 <td>
                   {{ auditAction(a.action) ? T(`act.${a.action}`) : a.action }}
                   <span v-if="auditDetail(a.detail)" class="small faint mono"> · {{ auditDetail(a.detail) }}</span>

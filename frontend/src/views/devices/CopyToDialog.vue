@@ -24,8 +24,8 @@ const loading = ref(true)
 onMounted(async () => {
   try {
     const l = await project.loadLists()
-    targets.value = [...l.mine, ...l.shared].filter((p) => p.slug !== project.slug && (p.role === 'owner' || p.role === 'edit'))
-    target.value = targets.value[0]?.slug ?? ''
+    targets.value = [...l.mine, ...l.shared].filter((p) => p.ref !== project.ref && (p.role === 'owner' || p.role === 'edit'))
+    target.value = targets.value[0]?.ref ?? ''
   } catch (e) {
     error.value = errorText(e)
   } finally {
@@ -44,7 +44,7 @@ async function submit(): Promise<void> {
       name: name.value.trim() || null,
     })
     const newName = r.name ?? props.deviceName
-    const p = targets.value.find((x) => x.slug === target.value)
+    const p = targets.value.find((x) => x.ref === target.value)
     emit('done', t('devices.copiedTo', { d: newName, p: p?.name ?? target.value }))
   } catch (e) {
     error.value = errorText(e)
@@ -68,7 +68,7 @@ async function submit(): Promise<void> {
           <label class="field">
             <span class="field-label">{{ $t('devices.copyToProject') }}</span>
             <select v-model="target" class="select" data-testid="copyto-target">
-              <option v-for="p in targets" :key="p.slug" :value="p.slug">{{ p.name }} ({{ p.slug }})</option>
+              <option v-for="p in targets" :key="p.ref" :value="p.ref">{{ p.name }} ({{ p.ref }})</option>
             </select>
           </label>
           <label class="field">

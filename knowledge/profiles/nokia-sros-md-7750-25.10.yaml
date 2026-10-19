@@ -233,6 +233,11 @@ entries:
     cards:
       - nokia-sros-md.service-epipe-sap-egress-qos-sap-egress-policy-name
       - nokia-sros-md.service-vpls-sap-egress-qos-sap-egress-policy-name
+  interface.access.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-sap-admin-state
+      - nokia-sros-md.service-vpls-sap-admin-state
   interface.access.vlan:
     supported: true
     cards:
@@ -646,10 +651,18 @@ entries:
     supported: true
     cards:
       - nokia-sros-md.system-security-ftp-server
+  mgmt.maf:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-management-access-filter
   mgmt.ntp:
     supported: true
     cards:
       - nokia-sros-md.system-time-ntp
+  mgmt.ntp.authentication:
+    supported: true
+    cards:
+      - nokia-sros-md.system-time-ntp-authentication-check
   mgmt.ntp.server:
     supported: true
     cards:
@@ -725,7 +738,12 @@ entries:
     supported: true
     cards:
       - nokia-sros-md.router-router-id
+      - nokia-sros-md.system-login-control-idle-timeout
       - nokia-sros-md.system-name
+  mgmt.system.idle_timeout:
+    supported: true
+    cards:
+      - nokia-sros-md.system-login-control-idle-timeout
   mgmt.system.name:
     supported: true
     cards:

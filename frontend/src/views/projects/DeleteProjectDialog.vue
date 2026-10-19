@@ -9,7 +9,7 @@ interface Preview {
   project: { id: number; slug: string; name: string }
   counts: { private_devices: number; versions: number; refs: number; check_projects: number; scripts: number; check_ignores: number; members: number }
 }
-const props = defineProps<{ project: { slug: string; name: string } }>()
+const props = defineProps<{ project: { slug: string; ref: string; name: string } }>()
 const emit = defineEmits<{ (e: 'close'): void; (e: 'deleted'): void }>()
 
 const pv = ref<Preview | null>(null)
@@ -18,7 +18,7 @@ const input = ref('')
 const busy = ref(false)
 const error = ref('')
 const ok = computed(() => !!pv.value && confirmMatches(input.value, props.project.slug) && !busy.value)
-const path = () => `/projects/${encodeURIComponent(props.project.slug)}`
+const path = () => `/projects/${encodeURIComponent(props.project.ref)}`
 
 async function load(): Promise<void> {
   loadError.value = ''

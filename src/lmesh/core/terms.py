@@ -1,6 +1,7 @@
-"""显示风格（REQ-026）：同一张配置图按华为或 Cisco 的叫法与命令写法显示。
+"""显示风格（REQ-026）：同一张配置图按华为、Cisco 或 Nokia 的叫法与命令写法显示。
 
-术语表在知识库的 terms.yaml（objects：对象的名称与命令写法模板；attrs：属性的命令关键字）。
+术语表在知识库的 terms.yaml（objects：对象的名称与命令写法模板；attrs：属性的命令关键字；
+contexts：按视图层级显示时顶层对象所在的配置上下文，M7-5 的 Nokia）。
 只影响显示（界面、报告），不影响解析、建图、对比、检查的结果。
 """
 
@@ -15,8 +16,9 @@ from typing import Any
 from lmesh.core.kb import KnowledgeBase, read_yaml
 
 STYLES = ("huawei", "cisco", "nokia")
-# 每个对象必须登记的风格；nokia（M7-3）是可选的第三种风格：对象没有 nokia 写法时按华为风格显示
-REQUIRED_STYLES = ("huawei", "cisco")
+# 每个对象必须登记的风格（M7-5 起 nokia 也必须登记）；属性没有登记某种风格的关键字时，非华为 / Cisco 的风格按华为显示
+REQUIRED_STYLES = ("huawei", "cisco", "nokia")
+BASE_STYLES = ("huawei", "cisco")
 _FIELD = re.compile(r"\{([\w\-]+)\}")
 
 
@@ -26,9 +28,33 @@ class Terms:
     styles: dict[str, dict[str, str]] = field(default_factory=dict)
     objects: dict[str, dict[str, Any]] = field(default_factory=dict)
     attrs: dict[str, dict[str, str]] = field(default_factory=dict)
+    contexts: dict[str, list[dict[str, Any]]] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
-        return {"default": self.default, "styles": self.styles, "objects": self.objects, "attrs": self.attrs}
+        return {
+            "default": self.default,
+            "styles": self.styles,
+            "objects": self.objects,
+            "attrs": self.attrs,
+            "contexts": self.contexts,
+        }
+
+    def context(self, schema: str, key: Any, attrs: dict[str, Any], style: str) -> list[str]:
+        """顶层对象在该风格下的配置上下文路径（按视图层级显示时的分组）；没有登记或都不命中时为空。
+        attrs：对象的直接子属性 {短名: 取值}（例如 interface 的 vrf）。"""
+        keys = _key_dict(key, schema)
+        ktext = str(keys.get("_", "")) if "_" in keys else ",".join(f"{k}={v}" for k, v in keys.items())
+        for c in self.contexts.get(_style(style)) or []:
+            if not re.search(str(c.get("schema") or "$^"), schema):
+                continue
+            if c.get("key") and not re.search(str(c["key"]), ktext):
+                continue
+            attr = c.get("attr")
+            if attr and attrs.get(str(attr)) in (None, "", False):
+                continue
+            fields = {str(k): str(v) for k, v in attrs.items()}
+            return [_fill(str(p), fields) for p in c.get("path") or []]
+        return []
 
     # ---------- 渲染 ----------
 
@@ -52,7 +78,7 @@ class Terms:
         for cand in spec.get("label") or []:
             tpl, _, req = str(cand).partition(" ? ")
             need = [r.strip() for r in req.split(",") if r.strip()]
-            if any(not str(keys.get(r) or "").strip() for r in need):
+            if not all(_has(keys, r) for r in need):
                 continue
             return re.sub(r"\s+", " ", _FIELD.sub(lambda m: shown.get(m.group(1), ""), tpl)).strip()
         text = " ".join(str(v) for v in keys.values() if str(v).strip())
@@ -61,8 +87,19 @@ class Terms:
     def attr(self, schema: str, style: str) -> str | None:
         """属性在该风格下的命令关键字；没有登记时返回 None（界面用 Schema 的名称）。"""
         spec = self.attrs.get(schema) or {}
-        v = spec.get(_style(style)) or (spec.get("huawei") if _style(style) not in REQUIRED_STYLES else None)
+        v = spec.get(_style(style)) or (spec.get("huawei") if _style(style) not in BASE_STYLES else None)
         return str(v) if v else None
+
+
+def _fill(tpl: str, fields: dict[str, str]) -> str:
+    return _FIELD.sub(lambda m: fields.get(m.group(1), ""), tpl).strip()
+
+
+def _has(keys: dict[str, Any], req: str) -> bool:
+    """label 候选的条件：字段有值；写成 “字段~正则” 时取值还要能被正则搜索到（M7-5：Nokia 的端口与路由器接口）。"""
+    name, _, pattern = req.partition("~")
+    v = str(keys.get(name.strip()) or "").strip()
+    return bool(v) and (not pattern or re.search(pattern, v) is not None)
 
 
 def _style(style: str) -> str:
@@ -70,9 +107,9 @@ def _style(style: str) -> str:
 
 
 def _spec(obj: dict[str, Any] | None, style: str) -> dict[str, Any]:
-    """对象在该风格下的写法；可选风格（nokia）没有登记时用华为风格。"""
+    """对象在该风格下的写法；华为 / Cisco 之外的风格没有登记时用华为风格（check() 要求都登记，这里只是兜底）。"""
     obj = obj or {}
-    return obj.get(_style(style)) or (obj.get("huawei") if _style(style) not in REQUIRED_STYLES else None) or {}
+    return obj.get(_style(style)) or (obj.get("huawei") if _style(style) not in BASE_STYLES else None) or {}
 
 
 def _key_dict(key: Any, schema: str) -> dict[str, Any]:
@@ -104,6 +141,7 @@ def load(kb_root: Path, kb: KnowledgeBase | None = None) -> Terms:
         styles=dict(raw.get("styles") or {}),
         objects=dict(raw.get("objects") or {}),
         attrs={str(k): {s: str(x) for s, x in (v or {}).items()} for k, v in (raw.get("attrs") or {}).items()},
+        contexts={str(s): [dict(c) for c in (v or [])] for s, v in (raw.get("contexts") or {}).items()},
     )
     if kb is not None:
         for nid, node in kb.nodes.items():
@@ -126,6 +164,18 @@ def check(kb: KnowledgeBase, terms: Terms) -> list[str]:
     for nid in terms.attrs:
         if nid not in kb.nodes:
             problems.append(f"attrs.{nid}: Schema 中没有这个节点")
+    for s, rows in terms.contexts.items():
+        if s not in STYLES:
+            problems.append(f"contexts.{s}: 不是已知的显示风格")
+        for i, c in enumerate(rows):
+            if not c.get("schema") or not isinstance(c.get("path"), list) or not c["path"]:
+                problems.append(f"contexts.{s}[{i}]: 缺少 schema 或 path")
+                continue
+            for k in ("schema", "key"):
+                try:
+                    re.compile(str(c.get(k) or ""))
+                except re.error as e:
+                    problems.append(f"contexts.{s}[{i}].{k}: 正则错误 {e}")
     for nid, node in kb.nodes.items():
         if node.type == "object" and nid not in terms.objects:
             problems.append(f"objects.{nid}: 对象没有登记显示风格")

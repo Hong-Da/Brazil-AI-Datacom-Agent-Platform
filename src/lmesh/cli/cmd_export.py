@@ -12,7 +12,7 @@ from lmesh.cli import output
 from lmesh.cli.cmd_configs import require_db
 from lmesh.cli.cmd_graph import _kb
 from lmesh.cli.output import Ctx, emit, fail
-from lmesh.core import analysis, export_tables, gquery, history, importer, topology
+from lmesh.core import analysis, export_tables, gquery, history, importer, terms, topology
 from lmesh.core.kb import KnowledgeBase
 
 _SUFFIXES = (".cfg", ".txt", ".conf", ".config", ".log")
@@ -89,7 +89,8 @@ def register(app: typer.Typer) -> None:
 
     @exp.command("presets", help="预置模板：编号、对象类型、列与筛选条件")
     def cmd_presets(
-        ctx: typer.Context, style: Annotated[str, typer.Option(help="显示风格 huawei | cisco（表头叫法）")] = "huawei"
+        ctx: typer.Context,
+        style: Annotated[str, typer.Option(help="显示风格 huawei | cisco | nokia（表头叫法）")] = "huawei",
     ) -> None:
         c = output.get(ctx)
         kb, root = _kb(c)
@@ -142,7 +143,7 @@ def register(app: typer.Typer) -> None:
         table_lang: Annotated[
             str | None, typer.Option("--table-lang", help="表头语言 zh-CN | en | pt-BR（默认跟随 --lang）")
         ] = None,
-        style: Annotated[str, typer.Option(help="显示风格 huawei | cisco（表头叫法）")] = "huawei",
+        style: Annotated[str, typer.Option(help="显示风格 huawei | cisco | nokia（表头叫法）")] = "huawei",
         out: Annotated[
             Path | None, typer.Option("-o", "--out", help="输出文件（CSV / XLSX 必填，JSON 不给时写到标准输出）")
         ] = None,
@@ -151,7 +152,7 @@ def register(app: typer.Typer) -> None:
         c = output.get(ctx)
         if fmt not in export_tables.FORMATS:
             fail(c, output.EXIT_USAGE, c.t("export.bad_format", allowed=", ".join(export_tables.FORMATS)))
-        if style not in ("huawei", "cisco"):
+        if style not in terms.STYLES:
             fail(c, output.EXIT_USAGE, c.t("change.bad_style"))
         if not preset and not obj:
             fail(c, output.EXIT_USAGE, c.t("export.need_object"))

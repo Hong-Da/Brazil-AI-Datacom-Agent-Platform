@@ -11,6 +11,7 @@ import { ApiError, del, errorText, get, post, waitTask } from '@/api'
 import { acceptFile, fmtBytes, fmtTime, MAX_FILE_BYTES, vendorLabel } from './devices/logic'
 import type { PubDevice, Version } from './add-device/logic'
 import { filterPublic, isFresh, publicStats, timeline, type PubFilter } from './public-devices/logic'
+import VendorBadge from '@/components/vendor-badge.vue'
 
 const { t } = useI18n()
 const T = (k: string, p?: Record<string, unknown>) => t(`public-devices.${k}`, p ?? {})
@@ -206,7 +207,7 @@ async function rebuild(): Promise<void> {
                 <tr v-for="d in rows" :key="d.id" :class="{ 'is-sel': d.id === curId }" style="cursor: pointer" :data-testid="`pub-row-${d.id}`" @click="curId = d.id">
                   <td>
                     <div class="devcell">
-                      <span class="vendor"><i :class="d.vendor === 'huawei' ? 'hw' : d.vendor === 'cisco' ? 'cs' : ''">{{ d.vendor === 'huawei' ? 'H' : d.vendor === 'cisco' ? 'C' : '?' }}</i></span>
+                      <VendorBadge :of="d.vendor" letter />
                       <div><b>{{ d.name }}</b><small>{{ vendorLabel(d.vendor) }} · {{ d.profile }}</small></div>
                     </div>
                   </td>
@@ -254,7 +255,7 @@ async function rebuild(): Promise<void> {
                 <tbody>
                   <tr v-for="r in cur.refs" :key="r.project">
                     <td>
-                      <router-link :to="{ name: 'devices', params: { project: r.project } }">{{ r.name }}</router-link>
+                      <router-link :to="{ name: 'devices', params: { project: r.full_ref ?? r.project } }">{{ r.name }}</router-link>
                       <div class="small faint">{{ T('owner', { u: r.owner ?? '—' }) }}</div>
                     </td>
                     <td class="right">

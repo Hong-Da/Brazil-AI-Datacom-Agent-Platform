@@ -267,6 +267,16 @@ entries:
       - nokia-sros-classic.qos.1~3
       - nokia-sros-classic.qos.2~2
       - nokia-sros-classic.qos.2~3
+  interface.access.shutdown:
+    manual: true
+    supported: true
+    default: false
+    assume: false
+    source: 命令参考 service epipe / vpls sap shutdown：Default no shutdown（SAP 缺省启用，业务本身缺省关闭）
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown~17
+      - nokia-sros-classic.shutdown~21
   interface.access.vlan:
     supported: true
     cards:
@@ -731,7 +741,12 @@ entries:
     cards:
       - nokia-sros-classic.vpls
   l2vpn.vsi.shutdown:
+    manual: true
     supported: true
+    default: true
+    assume: false
+    source: 命令参考 service vpls shutdown：Default shutdown（MD-CLI admin-state 缺省 disable）
+    verified: doc
     cards:
       - nokia-sros-classic.shutdown~22
   l2vpn.xconnect:
@@ -771,9 +786,40 @@ entries:
     cards:
       - nokia-sros-classic.epipe.1
   l2vpn.xconnect.shutdown:
+    manual: true
     supported: true
+    default: true
+    assume: false
+    source: 命令参考 service epipe shutdown：Default shutdown（MD-CLI admin-state 缺省 disable）
+    verified: doc
     cards:
       - nokia-sros-classic.shutdown~18
+  mgmt.aaa.enabled:
+    manual: true
+    supported: false
+    default: true
+    source: Nokia 没有开关 AAA 的命令，本地认证恒开启（password authentication-order 缺省 local）；安全基线按缺省值判断
+    verified: doc
+  mgmt.aaa.lockout_time:
+    manual: true
+    supported: true
+    default: 10
+    source: 命令参考 system security password attempts：Default lockout 10（分钟）
+    verified: doc
+    cards:
+      - nokia-sros-classic.attempts~3
+  mgmt.aaa.login_attempts:
+    manual: true
+    supported: true
+    default: 3
+    source: 命令参考 system security password attempts：Default attempts 3 time 5 lockout 10
+    verified: doc
+    cards:
+      - nokia-sros-classic.attempts~3
+  mgmt.aaa.password_aging:
+    supported: true
+    cards:
+      - nokia-sros-classic.aging
   mgmt.aaa.user:
     supported: true
     cards:
@@ -798,10 +844,22 @@ entries:
     verified: doc
     cards:
       - nokia-sros-classic.ftp-server
+  mgmt.maf:
+    supported: true
+    cards:
+      - nokia-sros-classic.management-access-filter
+  mgmt.maf.ipv4:
+    supported: true
+    cards:
+      - nokia-sros-classic.ip-filter
   mgmt.ntp:
     supported: true
     cards:
       - nokia-sros-classic.ntp
+  mgmt.ntp.authentication:
+    supported: true
+    cards:
+      - nokia-sros-classic.authentication-check
   mgmt.ntp.server:
     supported: true
     cards:
@@ -823,6 +881,12 @@ entries:
     verified: doc
     cards:
       - nokia-sros-classic.shutdown~8
+  mgmt.ntp.source_interface:
+    manual: true
+    supported: false
+    default: system
+    source: 命令参考 system security source-address：不配置时带内管理协议（NTP）用 system 接口地址；source-address 未建模，安全基线按缺省值判断
+    verified: doc
   mgmt.radius:
     supported: true
     cards:
@@ -858,6 +922,12 @@ entries:
     supported: true
     cards:
       - nokia-sros-classic.location
+  mgmt.snmp.trap_source:
+    manual: true
+    supported: false
+    default: system
+    source: 命令参考 system security source-address：不配置时 SNMP 告警用 system 接口地址；source-address 未建模，安全基线按缺省值判断
+    verified: doc
   mgmt.ssh:
     supported: true
     cards:
@@ -870,6 +940,12 @@ entries:
     verified: doc
     cards:
       - nokia-sros-classic.server-shutdown
+  mgmt.ssh.version:
+    manual: true
+    supported: false
+    default: '2'
+    source: SR OS 25.x 的 SSH 服务端只支持 SSHv2（命令参考没有 SSH 版本命令）；安全基线按缺省值判断
+    verified: doc
   mgmt.syslog.host:
     supported: true
     cards:
@@ -894,11 +970,26 @@ entries:
     supported: true
     cards:
       - nokia-sros-classic.address~2
+  mgmt.syslog.source_interface:
+    manual: true
+    supported: false
+    default: system
+    source: 命令参考 system security source-address：不配置时 syslog 用 system 接口地址；source-address 未建模，安全基线按缺省值判断
+    verified: doc
   mgmt.system:
     supported: true
     cards:
+      - nokia-sros-classic.idle-timeout
       - nokia-sros-classic.name
       - nokia-sros-classic.router-id~4
+  mgmt.system.idle_timeout:
+    manual: true
+    supported: true
+    default: '30'
+    source: 命令参考 system login-control idle-timeout：Default 30（分钟）
+    verified: doc
+    cards:
+      - nokia-sros-classic.idle-timeout
   mgmt.system.name:
     supported: true
     cards:
@@ -1124,7 +1215,12 @@ entries:
     cards:
       - nokia-sros-classic.ies
   service.ies.shutdown:
+    manual: true
     supported: true
+    default: true
+    assume: false
+    source: 命令参考 service ies shutdown：Default shutdown（MD-CLI admin-state 缺省 disable）
+    verified: doc
     cards:
       - nokia-sros-classic.shutdown~29
   service.sdp:
@@ -1144,7 +1240,11 @@ entries:
     cards:
       - nokia-sros-classic.far-end.2
   service.sdp.keep_alive:
+    manual: true
     supported: true
+    default: false
+    source: 命令参考 service sdp keep-alive shutdown：Default shutdown（SDP 保活缺省关闭）
+    verified: doc
     cards:
       - nokia-sros-classic.shutdown~15
   service.sdp.ldp:
@@ -1160,7 +1260,11 @@ entries:
     cards:
       - nokia-sros-classic.path-mtu
   service.sdp.shutdown:
+    manual: true
     supported: true
+    default: true
+    source: 命令参考 service sdp shutdown：Default shutdown（MD-CLI admin-state 缺省 disable）
+    verified: doc
     cards:
       - nokia-sros-classic.shutdown~16
   sr.global:
@@ -1331,6 +1435,11 @@ entries:
     cards:
       - nokia-sros-classic.vprn
   vrf.instance.shutdown:
+    manual: true
     supported: true
+    default: true
+    assume: false
+    source: 命令参考 service vprn shutdown：Default shutdown（业务缺省关闭，需要 no shutdown；MD-CLI admin-state 缺省 disable）
+    verified: doc
     cards:
       - nokia-sros-classic.shutdown~25

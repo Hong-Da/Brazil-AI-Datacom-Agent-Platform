@@ -1,4 +1,5 @@
-"""账号命令（REQ-030）：lmesh user list / add / disable / enable / reset-password / set-role / delete。
+"""账号命令（REQ-030）：lmesh user list / add / disable / enable / reset-password / set-role / delete；
+自助注册（REQ-039）：lmesh user list --pending、lmesh user approve / reject。
 
 直接操作本机数据库。密码从提示（不回显、输入两次）或 --password-stdin 读取，不接受命令行明文参数。
 """
@@ -39,6 +40,8 @@ def _password(c: Ctx, from_stdin: bool) -> str:
 def _status(c: Ctx, u: dict[str, Any]) -> str:
     if u["disabled"]:
         return c.t("user.status.disabled")
+    if u.get("status") == "pending":
+        return c.t("user.status.pending")
     if u["locked"]:
         return c.t("user.status.locked", until=(u["locked_until"] or "")[:16].replace("T", " "))
     return c.t("user.status.enabled")
@@ -61,10 +64,13 @@ def list_text(c: Ctx, rows: list[dict[str, Any]]) -> str:
     return output.table(body, head) + "\n" + c.t("user.count", n=len(rows))
 
 
-@user_app.command("list", help="账号列表 / list accounts")
-def cmd_list(ctx: typer.Context) -> None:
+@user_app.command("list", help="账号列表；--pending 只看待审核的自助注册账号 / list accounts")
+def cmd_list(
+    ctx: typer.Context,
+    pending: Annotated[bool, typer.Option("--pending", help="只看待审核的自助注册账号（REQ-039）")] = False,
+) -> None:
     c = output.get(ctx)
-    rows = users.list_users(require_db(c))
+    rows = users.list_users(require_db(c), "pending" if pending else None)
     emit(c, {"users": rows, "count": len(rows)}, list_text(c, rows))
 
 
@@ -162,3 +168,33 @@ def cmd_delete(
 
 def register(app: typer.Typer) -> None:
     app.add_typer(user_app, name="user")
+
+
+def _audit(c: Ctx, db: str, action: str, name: str) -> None:
+    from lmesh.core import projects
+
+    projects.audit(db, projects.cli_identity(db, c.as_user), None, "", action, {"username": name, "via": "cli"})
+
+
+@user_app.command("approve", help="批准自助注册的待审核账号（建好默认项目）/ approve a pending sign-up")
+def cmd_approve(ctx: typer.Context, name: Annotated[str, typer.Argument(help="用户名")]) -> None:
+    c = output.get(ctx)
+    db = require_db(c)
+    try:
+        u = users.approve(db, name)
+    except users.UserError as e:
+        _fail(c, e)
+    _audit(c, db, "user.approve", u["username"])
+    emit(c, {"user": u}, c.t("user.approved", name=u["username"]))
+
+
+@user_app.command("reject", help="拒绝自助注册的待审核账号（删除，用户名可再注册）/ reject a pending sign-up")
+def cmd_reject(ctx: typer.Context, name: Annotated[str, typer.Argument(help="用户名")]) -> None:
+    c = output.get(ctx)
+    db = require_db(c)
+    try:
+        r = users.reject(db, name)
+    except users.UserError as e:
+        _fail(c, e)
+    _audit(c, db, "user.reject", name)
+    emit(c, r, c.t("user.rejected", name=name))

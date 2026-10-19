@@ -5,6 +5,8 @@
 - 至少保留一个启用的管理员：最后一个启用的管理员不能停用、删除或改成普通用户。
 - 连续登录失败达到上限时锁定一段时间；登录、登出、失败、锁定写日志（不含密码）。
 - 会话令牌随机生成，只返回一次；数据库只存其 SHA-256。停用账号、重置密码时删除该账号的全部会话。
+- 自助注册（REQ-039）：注册的账号为普通用户（origin = register）；需要审核时状态为 pending（待审核，不能登录），
+  管理员批准后为 active，拒绝即删除该账号（用户名可以再注册）。同一来源地址的注册频率由 RateLimiter 限制。
 """
 
 from __future__ import annotations
@@ -15,6 +17,9 @@ import hmac
 import logging
 import re
 import secrets
+import threading
+import time
+from collections import deque
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -24,6 +29,7 @@ from lmesh.core import store
 from lmesh.core.store.models import User, UserSession, iso
 
 ROLES = ("admin", "maintainer", "user")  # maintainer：知识库维护员（M6，REQ-036）
+STATUSES = ("active", "pending")  # pending：自助注册后等待管理员审核（REQ-039）
 MIN_PASSWORD = 8
 MAX_PASSWORD = 256
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$")
@@ -42,7 +48,7 @@ class UserError(Exception):
 
 
 class AuthError(Exception):
-    """登录失败。reason：invalid 用户名或密码不对 / locked 已锁定 / disabled 已停用。"""
+    """登录失败。reason：invalid 用户名或密码不对 / locked 已锁定 / disabled 已停用 / pending 待审核（REQ-039）。"""
 
     def __init__(self, reason: str, locked_until: datetime | None = None):
         super().__init__(reason)
@@ -141,6 +147,8 @@ def to_dict(u: User) -> dict[str, Any]:
         "username": u.username,
         "role": u.role,
         "disabled": bool(u.disabled),
+        "status": u.status or "active",
+        "origin": u.origin or "admin",
         "locked": locked,
         "locked_until": iso(u.locked_until) if locked else None,
         "last_login_at": iso(u.last_login_at),
@@ -164,9 +172,18 @@ def count(url: str) -> int:
         return int(s.scalar(select(func.count()).select_from(User)) or 0)
 
 
-def list_users(url: str) -> list[dict[str, Any]]:
+def list_users(url: str, status: str | None = None) -> list[dict[str, Any]]:
+    """账号列表；status 给出时只列该状态（pending：待审核）。"""
     with store.session(url) as s:
-        return [to_dict(u) for u in s.scalars(select(User).order_by(User.username))]
+        q = select(User).order_by(User.username)
+        if status:
+            q = q.where(User.status == status)
+        return [to_dict(u) for u in s.scalars(q)]
+
+
+def count_pending(url: str) -> int:
+    with store.session(url) as s:
+        return int(s.scalar(select(func.count()).select_from(User).where(User.status == "pending")) or 0)
 
 
 def get_user(url: str, username: str) -> dict[str, Any]:
@@ -174,17 +191,27 @@ def get_user(url: str, username: str) -> dict[str, Any]:
         return to_dict(_get(s, username))
 
 
-def create_user(url: str, username: str, password: str, role: str = "user") -> dict[str, Any]:
+def create_user(
+    url: str, username: str, password: str, role: str = "user", *, status: str = "active", origin: str = "admin"
+) -> dict[str, Any]:
     username = validate_username(username)
     validate_password(password)
     validate_role(role)
     with store.session(url) as s:
         if s.scalar(select(User).where(func.lower(User.username) == username.lower())) is not None:
             raise UserError("state", "users.exists", name=username)
-        u = User(username=username, role=role, disabled=False, password_hash=hash_password(password), failed_count=0)
+        u = User(
+            username=username,
+            role=role,
+            disabled=False,
+            status=status,
+            origin=origin,
+            password_hash=hash_password(password),
+            failed_count=0,
+        )
         s.add(u)
         s.flush()
-        _log.info("账号已创建：%s（%s）", username, role)
+        _log.info("账号已创建：%s（%s，%s）", username, role, status)
         out = to_dict(u)
     from lmesh.core import projects
 
@@ -332,6 +359,9 @@ def authenticate(
         if u.disabled:
             _log.warning("登录被拒：账号已停用 %s%s", u.username, where)
             raise AuthError("disabled")
+        if (u.status or "active") == "pending":  # 密码正确才提示待审核，不暴露账号是否存在
+            _log.info("登录被拒：账号待审核 %s%s", u.username, where)
+            raise AuthError("pending")
         u.failed_count, u.locked_until, u.last_login_at = 0, None, now
         _log.info("登录成功：%s%s", u.username, where)
         return to_dict(u)
@@ -360,7 +390,7 @@ def session_user(url: str, token: str) -> dict[str, Any] | None:
             s.delete(row)
             return None
         u = s.get(User, row.user_id)
-        if u is None or u.disabled:
+        if u is None or u.disabled or (u.status or "active") != "active":
             return None
         return {**to_dict(u), "session_expires_at": iso(row.expires_at)}
 
@@ -379,3 +409,76 @@ def end_session(url: str, token: str) -> str | None:
     if name:
         _log.info("已登出：%s", name)
     return name
+
+
+# ---------- 自助注册（REQ-039） ----------
+
+
+class RateLimiter:
+    """按来源地址的滑动窗口计数（进程内；重启后清零）。limit 次 / window 秒。"""
+
+    def __init__(self, window: float = 3600.0):
+        self.window = window
+        self._hits: dict[str, deque[float]] = {}
+        self._lock = threading.Lock()
+
+    def allow(self, key: str, limit: int) -> bool:
+        """记一次尝试；超过 limit 时返回 False（被拒的尝试不计入）。"""
+        now = time.monotonic()
+        with self._lock:
+            q = self._hits.setdefault(key, deque())
+            while q and now - q[0] >= self.window:
+                q.popleft()
+            if len(q) >= limit:
+                return False
+            q.append(now)
+            return True
+
+    def reset(self) -> None:
+        with self._lock:
+            self._hits.clear()
+
+
+REGISTER_LIMITER = RateLimiter()
+
+
+def register(url: str, username: str, password: str, approval: bool) -> dict[str, Any]:
+    """自助注册：普通用户；approval 为真时待审核（不能登录），否则直接可用并建好默认项目。"""
+    u = create_user(url, username, password, "user", status="pending" if approval else "active", origin="register")
+    if not approval:
+        _provision(url, u)
+    _log.info("自助注册：%s（%s）", u["username"], u["status"])
+    return u
+
+
+def _provision(url: str, u: dict[str, Any]) -> None:
+    """新账号可以使用时：建工作空间与默认项目（REQ-035）。"""
+    from lmesh.core import projects
+
+    projects.default_project(url, projects.Identity(u["id"], u["username"], u["role"]))
+
+
+def approve(url: str, username: str) -> dict[str, Any]:
+    """批准待审核账号：可以登录，并建好默认项目。"""
+    with store.session(url) as s:
+        u = _get(s, username)
+        if (u.status or "active") != "pending":
+            raise UserError("state", "users.not_pending", name=username)
+        u.status = "active"
+        s.flush()
+        out = to_dict(u)
+    _provision(url, out)
+    _log.info("已批准注册：%s", username)
+    return out
+
+
+def reject(url: str, username: str) -> dict[str, Any]:
+    """拒绝待审核账号：删除它（用户名可以再注册）；只能拒绝待审核的账号。"""
+    with store.session(url) as s:
+        u = _get(s, username)
+        if (u.status or "active") != "pending":
+            raise UserError("state", "users.not_pending", name=username)
+        _close_sessions(s, u.id)
+        s.delete(u)
+    _log.info("已拒绝注册并删除账号：%s", username)
+    return {"rejected": username, "deleted": True}

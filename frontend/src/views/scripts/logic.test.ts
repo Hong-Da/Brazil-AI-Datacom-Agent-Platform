@@ -34,6 +34,8 @@ describe('scripts logic', () => {
     expect(checkState({ errors: 1, warnings: 0, infos: 0, order: true, kind: 'change', at: '' })).toBe('issues')
     expect(starterChange('cisco')).toContain('configure terminal')
     expect(starterChange('huawei-atn')).toContain('system-view')
+    expect(starterChange('nokia', 'nokia-sros-classic-7750-25.10')).toContain('exit all')
+    expect(starterChange('nokia', 'nokia-sros-md-7750-25.10')).toContain('edit-config private')
     expect(nextScriptName([{ name: 'script-2.txt' }])).toBe('script-3.txt')
     expect(nextScriptName([{ name: 'x' }, { name: 'script-2.txt' }])).toBe('script-3.txt')
   })

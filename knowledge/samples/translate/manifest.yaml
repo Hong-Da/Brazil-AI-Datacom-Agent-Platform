@@ -86,38 +86,38 @@ cases:
     src_profile: nokia-sros-classic-7750-25.10
     dst_profile: huawei-atn-v800r025
     interface_map: nokia-to-atn.ifmap.yaml
-    min_rendered: 0.79
+    min_rendered: 0.78
     expect_warnings: [default_differs]
-    note: Nokia 端口、LAG、路由器接口（并到端口 / Eth-Trunk）、VRRP、静态路由、OSPF、LDP → ATN（81 / 102）；端口模式与封装、静态路由的 indirect / bfd-enable、syslog 编号与级别等 Nokia 特有节点报不支持
+    note: Nokia 端口、LAG、路由器接口（并到端口 / Eth-Trunk）、VRRP、静态路由、OSPF、LDP → ATN（81 / 103）；端口模式与封装、静态路由的 indirect / bfd-enable、syslog 编号与级别等 Nokia 特有节点报不支持
   - id: nokia-routing-mgmt-to-atn
     src: ../nokia-sros-classic-synthetic/classic-pe-routing-mgmt.cfg
     src_profile: nokia-sros-classic-7750-25.10
     dst_profile: huawei-atn-v800r025
     interface_map: nokia-to-atn.ifmap.yaml
     min_rendered: 0.74
-    note: 管理面、OSPF（export 策略）、IS-IS（area-id 拼成 NET）、BGP 组、路由策略（default-action、from protocol）、MPLS / LDP、SR → ATN（91 / 122）；RSVP-TE 与 Nokia 特有节点报不支持
+    note: 管理面、OSPF（export 策略）、IS-IS（area-id 拼成 NET）、BGP 组与 family（换成地址族视图与 peer enable，M7-5）、路由策略（default-action、from protocol）、MPLS / LDP、SR → ATN（97 / 131）；RSVP-TE 与 Nokia 特有节点报不支持
   - id: nokia-services-to-atn
     src: ../nokia-sros-classic-synthetic/classic-pe-services.cfg
     src_profile: nokia-sros-classic-7750-25.10
     dst_profile: huawei-atn-v800r025
     interface_map: nokia-to-atn.ifmap.yaml
-    min_rendered: 0.5
-    note: 过滤器、VPRN（VPN 实例、接口 SAP 换成子接口）、VPLS（SAP 换成二层子接口）→ ATN（79 / 155）；客户、SDP、Epipe 的伪线（对端取 SDP）、IES、SAP 的 QoS 策略在华为上没有对应结构，报不支持
+    min_rendered: 0.54
+    note: 过滤器、VPRN（VPN 实例、接口 SAP 换成子接口）、VPLS（SAP 换成二层子接口）→ ATN（85 / 155）；客户、SDP、Epipe 的伪线（对端取 SDP）、IES、SAP 的 QoS 策略在华为上没有对应结构，报不支持
   - id: asr920-to-nokia
     src: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
     src_profile: cisco-iosxe-asr920-17.15
     dst_profile: nokia-sros-classic-7750-25.10
     interface_map: asr920-to-nokia.ifmap.yaml
-    min_rendered: 0.65
+    min_rendered: 0.70
     expect_warnings: [inferred_value]
-    note: ASR 920 L3VPN PE → Nokia（90 / 137）：三层口换成路由器接口 "if-<源接口名>" + port，VRF 换成 VPRN（业务编号按顺序推出、客户 1，告警 inferred_value），channel-group 写成 lag 下的 port；BGP 地址族、业务实例（EFP）、BDI 的桥域、prefix-list 的 ge 在 Nokia 上结构不同，报不支持
+    note: ASR 920 L3VPN PE → Nokia（93 / 131）：三层口换成路由器接口 "if-<源接口名>" + port，VRF 换成 VPRN（业务编号按顺序推出、客户 1，告警 inferred_value），channel-group 写成 lag 下的 port；BGP 地址族、业务实例（EFP）、BDI 的桥域、prefix-list 的 ge 在 Nokia 上结构不同，报不支持
   - id: asr920-igp-mgmt-to-nokia
     src: ../cisco-iosxe-asr920-synthetic/pe-asr920-02-igp-mgmt.cfg
     src_profile: cisco-iosxe-asr920-17.15
     dst_profile: nokia-sros-classic-7750-25.10
     interface_map: asr920-to-nokia.ifmap.yaml
-    min_rendered: 0.48
-    note: OSPF（network 宣告换成区域下的接口）、IS-IS、BFD、管理面 → Nokia（64 / 132）；IS-IS 区域标签（CORE）不是 Nokia 的实例编号、AAA 方法列表、登录线路、TACACS+ 服务器名、SSH 参数在 Nokia 上没有对应写法，报不支持
+    min_rendered: 0.51
+    note: OSPF（network 宣告换成区域下的接口）、IS-IS、BFD、管理面 → Nokia（66 / 128）；IS-IS 区域标签（CORE）不是 Nokia 的实例编号、AAA 方法列表、登录线路、TACACS+ 服务器名、SSH 参数在 Nokia 上没有对应写法，报不支持
   # ---------- Nokia 7750 SR MD-CLI（SR OS 25.10，M7-4）----------
   # 同一设备的两种配置格式映射到同一套 Schema：MD-CLI ↔ Classic 几乎全部写出（只差 Classic 没有映射的过滤器名称、
   # MD-CLI 拆成布尔叶子的 BGP 地址族）；对 ATN / ASR 920 的翻译与 Classic 的用例写出比例相当
@@ -126,7 +126,7 @@ cases:
     src_profile: nokia-sros-md-7750-25.10
     dst_profile: nokia-sros-classic-7750-25.10
     min_rendered: 0.99
-    note: MD-CLI → Classic（152 / 153）：过滤器、QoS 策略、客户（按名称引用换成编号）、SDP、Epipe（sap 同时建立接入电路）、VPLS、VPRN、IES；Classic 不记过滤器名称（acl.instance.filter_name）
+    note: MD-CLI → Classic（150 / 151）：过滤器、QoS 策略、客户（按名称引用换成编号）、SDP、Epipe（sap 同时建立接入电路）、VPLS、VPRN、IES；Classic 不记过滤器名称（acl.instance.filter_name）
   - id: nokia-md-flat-to-classic
     src: ../nokia-sros-md-synthetic/md-pe-basic-flat.cfg
     src_profile: nokia-sros-md-7750-25.10
@@ -137,27 +137,27 @@ cases:
     src: ../nokia-sros-classic-synthetic/classic-pe-routing-mgmt.cfg
     src_profile: nokia-sros-classic-7750-25.10
     dst_profile: nokia-sros-md-7750-25.10
-    min_rendered: 0.95
-    note: Classic → MD-CLI（117 / 122）：管理面、OSPF、IS-IS、BGP、路由策略、MPLS / LDP、SR；BGP family 与用户 access 在 MD-CLI 是逐个布尔叶子，暂不归并，报不支持
+    min_rendered: 0.94
+    note: Classic → MD-CLI（118 / 125）：管理面、OSPF、IS-IS、BGP、路由策略、MPLS / LDP、SR；BGP family 与用户 access 在 MD-CLI 是逐个布尔叶子，暂不归并，报不支持
   - id: nokia-md-routing-mgmt-to-atn
     src: ../nokia-sros-md-synthetic/md-pe-routing-mgmt.cfg
     src_profile: nokia-sros-md-7750-25.10
     dst_profile: huawei-atn-v800r025
     interface_map: nokia-to-atn.ifmap.yaml
     min_rendered: 0.75
-    note: MD-CLI → ATN（91 / 120，与 Classic 的 nokia-routing-mgmt-to-atn 相同的 91 个节点）
+    note: MD-CLI → ATN（91 / 121；MD-CLI 的 BGP family 是逐个布尔叶子、未归并，不换成地址族视图，比 Classic 版少写出 6 个节点）
   - id: nokia-md-services-to-atn
     src: ../nokia-sros-md-synthetic/md-pe-services.cfg
     src_profile: nokia-sros-md-7750-25.10
     dst_profile: huawei-atn-v800r025
     interface_map: nokia-to-atn.ifmap.yaml
-    min_rendered: 0.52
-    note: MD-CLI → ATN（82 / 157）：VPRN、VPLS、过滤器写出；客户、SDP、Epipe 伪线、IES、SAP 的 QoS 策略在华为上没有对应结构，报不支持
+    min_rendered: 0.53
+    note: MD-CLI → ATN（82 / 152）：VPRN、VPLS、过滤器写出；客户、SDP、Epipe 伪线、IES、SAP 的 QoS 策略在华为上没有对应结构，报不支持
   - id: asr920-to-nokia-md
     src: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
     src_profile: cisco-iosxe-asr920-17.15
     dst_profile: nokia-sros-md-7750-25.10
     interface_map: asr920-to-nokia.ifmap.yaml
-    min_rendered: 0.64
+    min_rendered: 0.68
     expect_warnings: [inferred_value]
-    note: ASR 920 L3VPN PE → MD-CLI（88 / 137）：三层口换成路由器接口 + port、VRF 换成 VPRN（业务编号推出、客户 1）；BGP 地址族、业务实例、桥域报不支持
+    note: ASR 920 L3VPN PE → MD-CLI（90 / 131）：三层口换成路由器接口 + port、VRF 换成 VPRN（业务编号推出、客户 1）；BGP 地址族、业务实例、桥域报不支持

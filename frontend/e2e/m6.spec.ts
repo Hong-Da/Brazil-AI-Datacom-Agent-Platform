@@ -106,3 +106,62 @@ test('旧网址跳到默认项目的对应页面', async ({ page }) => {
   await expect(page).toHaveURL(/\/projects\?missing=no-such-project/)
   await expect(page.getByTestId('projects-missing')).toBeVisible()
 })
+
+/**
+ * 标识按属主唯一（用户 2026-10-19 评审改选）：e2e-user 与 e2e-admin 各有一个同名项目。
+ * 自己的写 /p/<标识>/…，别人的写 /p/<属主>/<标识>/…；两个都能访问的账号只写标识时回到“我的项目”选择。
+ */
+test('同名项目：自己的与别人的互不影响，只写标识有歧义时列出候选', async ({ page, browser, baseURL }) => {
+  test.setTimeout(120_000)
+  const slug = `e2e-same-${Date.now() % 100000}`
+  const admin = await asUser(baseURL!, ADMIN)
+  const user = await asUser(baseURL!, USER)
+  const both = { username: 'e2e-both', password: 'E2e-both-pass' }
+  const made = await admin.post('/api/v1/users', { data: { ...both, role: 'user' } })
+  expect(made.ok() || made.status() === 409, await made.text()).toBeTruthy()
+  try {
+    expect((await user.post('/api/v1/projects', { data: { name: '我的同名项目', slug } })).ok()).toBeTruthy()
+    expect((await admin.post('/api/v1/projects', { data: { name: '管理员的同名项目', slug } })).ok()).toBeTruthy()
+    // 管理员的项目：e2e-user 与 e2e-both 只读；e2e-user 的项目：e2e-both 只读
+    for (const who of [USER.username, both.username]) {
+      expect((await admin.put(`/api/v1/projects/${slug}/members/${who}`, { data: { role: 'read' } })).ok()).toBeTruthy()
+    }
+    expect((await user.put(`/api/v1/projects/${slug}/members/${both.username}`, { data: { role: 'read' } })).ok()).toBeTruthy()
+
+    await login(page, 'zh-CN', USER)
+    const errors = collectErrors(page)
+    // 只写标识：自己的项目
+    await page.goto(`/p/${slug}/devices`)
+    await expect(page.getByTestId('project-current')).toHaveText('我的同名项目')
+    await expect(page).toHaveURL(new RegExp(`/p/${slug}/devices$`))
+    // 属主/标识：别人的项目（只读）
+    await page.goto(`/p/${ADMIN.username}/${slug}/devices`)
+    await expect(page.getByTestId('project-current')).toHaveText('管理员的同名项目')
+    await expect(page.getByTestId('scope-readonly')).toBeVisible()
+    // 项目切换器：两个都在，切回自己的
+    await page.getByTestId('project-switcher-button').click()
+    await expect(page.getByTestId(`sw-item-${ADMIN.username}/${slug}`)).toBeVisible()
+    await page.getByTestId(`sw-item-${slug}`).click()
+    await expect(page).toHaveURL(new RegExp(`/p/${slug}/devices$`))
+    await expect(page.getByTestId('project-current')).toHaveText('我的同名项目')
+    expect(errors).toEqual([])
+
+    // 两个都能访问、自己没有同名的账号：只写标识时回到“我的项目”列出候选
+    const ctx = await browser.newContext()
+    const bp = await ctx.newPage()
+    await login(bp, 'zh-CN', both)
+    await bp.goto(`/p/${slug}/devices`)
+    await expect(bp).toHaveURL((u) => u.pathname === "/projects" && u.searchParams.get("ambiguous") === slug)
+    await expect(bp.getByTestId('projects-ambiguous')).toBeVisible()
+    await bp.getByTestId(`projects-ambiguous-${USER.username}/${slug}`).click()
+    await expect(bp).toHaveURL(new RegExp(`/p/${USER.username}/${slug}/devices$`))
+    await expect(bp.getByTestId('project-current')).toHaveText('我的同名项目')
+    await ctx.close()
+  } finally {
+    await user.delete(`/api/v1/projects/${slug}?confirm=${slug}`)
+    await admin.delete(`/api/v1/projects/${slug}?confirm=${slug}`)
+    await admin.delete(`/api/v1/users/${both.username}?delete_projects=true`)
+    await user.dispose()
+    await admin.dispose()
+  }
+})

@@ -12,7 +12,7 @@ try { localStorage.removeItem('lmesh-token') } catch { /* 忽略 */ }
 
 /** 登录已失效：回到登录页，登录后回到当前页面。登录页和向导自己处理 401。 */
 export function toLogin(expired: boolean): void {
-  if (location.pathname === '/login' || location.pathname === '/setup') return
+  if (location.pathname === '/login' || location.pathname === '/setup' || location.pathname === '/register') return
   const q = new URLSearchParams({ next: location.pathname + location.search })
   if (expired) q.set('expired', '1')
   location.assign(`/login?${q}`)

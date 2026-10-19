@@ -46,9 +46,9 @@ async function go(p: ProjectRow, confirmed = false): Promise<void> {
   confirmFor.value = null
   close()
   if (route.meta.project) {
-    await router.push({ name: route.name as string, params: { ...route.params, project: p.slug }, query: keepQuery() })
+    await router.push({ name: route.name as string, params: { ...route.params, project: p.ref }, query: keepQuery() })
   } else {
-    try { await project.enter(p.slug) } catch (e) { err.value = errorText(e); return }
+    try { await project.enter(p.ref) } catch (e) { err.value = errorText(e); return }
     void status.refresh()
   }
 }
@@ -92,15 +92,15 @@ watch(() => route.fullPath, close)
         <div class="sw-list">
           <div class="sw-gh">{{ $t('proj.mine') }}<b>{{ mine.length }}</b></div>
           <div v-if="!mine.length" class="sw-none">{{ $t('proj.empty') }}</div>
-          <button v-for="p in mine" :key="p.slug" type="button" role="option" :class="['sw-item', { 'is-cur': p.slug === project.slug }]" :aria-selected="p.slug === project.slug" :data-testid="`sw-item-${p.slug}`" @click="go(p)">
-            <span class="sw-ic"><Icon :name="p.slug === project.slug ? 'check' : 'folder'" small /></span>
+          <button v-for="p in mine" :key="p.ref" type="button" role="option" :class="['sw-item', { 'is-cur': p.ref === project.ref }]" :aria-selected="p.ref === project.ref" :data-testid="`sw-item-${p.ref}`" @click="go(p)">
+            <span class="sw-ic"><Icon :name="p.ref === project.ref ? 'check' : 'folder'" small /></span>
             <span class="sw-main"><span class="sw-n">{{ p.name }}</span><span class="sw-m">{{ $t('proj.devices', { n: p.counts.devices }) }} · {{ $t('proj.scripts', { n: p.counts.scripts }) }}</span></span>
           </button>
           <template v-if="shared.length || !auth.isAdmin">
             <div class="sw-gh">{{ $t('proj.shared') }}<b>{{ shared.length }}</b></div>
             <div v-if="!shared.length" class="sw-none">{{ $t('proj.empty') }}</div>
-            <button v-for="p in shared" :key="p.slug" type="button" role="option" :class="['sw-item', { 'is-cur': p.slug === project.slug }]" :aria-selected="p.slug === project.slug" :data-testid="`sw-item-${p.slug}`" @click="go(p)">
-              <span class="sw-ic"><Icon :name="p.slug === project.slug ? 'check' : 'folder'" small /></span>
+            <button v-for="p in shared" :key="p.ref" type="button" role="option" :class="['sw-item', { 'is-cur': p.ref === project.ref }]" :aria-selected="p.ref === project.ref" :data-testid="`sw-item-${p.ref}`" @click="go(p)">
+              <span class="sw-ic"><Icon :name="p.ref === project.ref ? 'check' : 'folder'" small /></span>
               <span class="sw-main"><span class="sw-n">{{ p.name }}</span><span class="sw-m">{{ $t('proj.devices', { n: p.counts.devices }) }} · {{ $t('proj.scripts', { n: p.counts.scripts }) }} · {{ $t('proj.ownerIs', { u: p.owner ?? '—' }) }}</span></span>
               <ProjRole :role="p.role" />
             </button>
@@ -108,8 +108,8 @@ watch(() => route.fullPath, close)
           <template v-if="auth.isAdmin">
             <div class="sw-gh adm"><Icon name="shield" small />{{ $t('proj.others') }}<b>{{ others.length }}</b></div>
             <div class="sw-note">{{ $t('proj.othersNote') }}</div>
-            <button v-for="p in others" :key="p.slug" type="button" role="option" :class="['sw-item', { 'is-cur': p.slug === project.slug }]" :aria-selected="p.slug === project.slug" :data-testid="`sw-item-${p.slug}`" @click="go(p)">
-              <span class="sw-ic"><Icon :name="p.slug === project.slug ? 'check' : 'folder'" small /></span>
+            <button v-for="p in others" :key="p.ref" type="button" role="option" :class="['sw-item', { 'is-cur': p.ref === project.ref }]" :aria-selected="p.ref === project.ref" :data-testid="`sw-item-${p.ref}`" @click="go(p)">
+              <span class="sw-ic"><Icon :name="p.ref === project.ref ? 'check' : 'folder'" small /></span>
               <span class="sw-main"><span class="sw-n">{{ p.name }}</span><span class="sw-m">{{ $t('proj.devices', { n: p.counts.devices }) }} · {{ $t('proj.scripts', { n: p.counts.scripts }) }} · {{ $t('proj.ownerIs', { u: p.owner ?? '—' }) }}</span></span>
             </button>
           </template>
@@ -117,7 +117,7 @@ watch(() => route.fullPath, close)
         <div class="sw-foot">
           <router-link :to="{ name: 'projects', query: { new: '1' } }" class="btn btn-sm" data-testid="sw-new"><Icon name="plus" small />{{ $t('proj.new') }}</router-link>
           <router-link :to="{ name: 'projects' }" class="btn btn-sm btn-ghost" data-testid="sw-manage">{{ $t('proj.manage') }}</router-link>
-          <router-link v-if="project.slug" :to="{ name: 'project-settings', params: { project: project.slug } }" class="btn btn-sm btn-ghost ml-auto" data-testid="sw-settings"><Icon name="gear" small />{{ $t('proj.settings') }}</router-link>
+          <router-link v-if="project.ref" :to="{ name: 'project-settings', params: { project: project.ref } }" class="btn btn-sm btn-ghost ml-auto" data-testid="sw-settings"><Icon name="gear" small />{{ $t('proj.settings') }}</router-link>
         </div>
       </div>
     </div>

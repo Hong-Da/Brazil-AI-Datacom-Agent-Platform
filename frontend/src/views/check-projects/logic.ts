@@ -2,6 +2,7 @@
 import type {
   AiInfo, Category, CheckResult, DiffRow, Issue, Kind, Move, Project, Revision, Severity, Summary,
 } from './types'
+import { vendorKey } from '@/vendor'
 
 export const SEVERITIES: Severity[] = ['error', 'warning', 'info']
 export const SEV_RANK: Record<Severity, number> = { error: 3, warning: 2, info: 1 }
@@ -258,8 +259,7 @@ export function summaryCounts(s: Summary | null | undefined): { e: number; w: nu
 export interface ProjectFilter { scope: 'all' | 'mine'; q: string; vendor: string; me: string | null }
 
 export function vendorOf(p: Project): string {
-  const s = (p.device?.vendor || p.device?.profile || p.profile || '').toLowerCase()
-  return s.startsWith('cisco') ? 'cisco' : s.startsWith('huawei') ? 'huawei' : ''
+  return vendorKey(p.device?.vendor || p.device?.profile || p.profile || '')
 }
 
 export function filterProjects(list: Project[], f: ProjectFilter): Project[] {

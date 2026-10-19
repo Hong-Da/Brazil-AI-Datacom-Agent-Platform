@@ -11,3 +11,16 @@ body = { text = "hostname R1\n!\ninterface Loopback0\n ip address 10.255.0.1 255
 expect_status = 200
 expect_json = { "code" = 0, "data.source.profile" = "cisco-iosxe-asr920-17.15", "data.target.family" = "nokia-sros-classic", "data.verify.checked" = true, "data.verify.unexplained" = 0, "data.lines.0.text" = "exit all" }
 in_docs = true
+
+[[case]]
+id = "nokia-check-port"
+title = { zh-CN = "检查 Nokia 配置：路由器接口绑定的端口缺省关闭（修复参考命令按平台族给出）", en = "Check a Nokia configuration: the port bound to a router interface is down by default", pt-BR = "Verificar uma configuração Nokia: a porta vinculada à interface do roteador vem desativada" }
+method = "POST"
+path = "/api/v1/check"
+setup = "configured-fullkb"
+auth = true
+body = { text = "# TiMOS-B-25.10.R1 both/x86_64 Nokia 7750 SR\nexit all\nconfigure\n    port 1/1/2\n        ethernet\n            mode network\n        exit\n    exit\n    router Base\n        interface \"to-SIDE\"\n            address 10.8.2.1/30\n            port 1/1/2\n            no shutdown\n        exit\n    exit\nexit all\n" }
+expect_status = 200
+expect_json = { "code" = 0, "data.profile" = "nokia-sros-classic-7750-25.10", "data.summary.total" = 1, "data.findings.0.rule" = "port.shutdown_bound", "data.findings.0.node" = "interface[to-SIDE]", "data.findings.0.remedy" = ["configure port <PORT> no shutdown", "configure lag <LAG-ID> no shutdown"] }
+in_docs = true
+

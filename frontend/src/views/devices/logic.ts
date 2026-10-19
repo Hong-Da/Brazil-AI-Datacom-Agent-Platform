@@ -1,5 +1,7 @@
 /** 设备与导入页的纯逻辑：设备状态与筛选、导入文件筛选、脱敏结果汇总、时间格式。 */
 
+import { vendorMark } from '@/vendor'
+
 export interface Device {
   id: number
   name: string
@@ -43,10 +45,8 @@ export function vendorCounts(list: Device[]): [string, number][] {
 }
 
 export function vendorLabel(v: string): string {
-  const s = (v || '').toLowerCase()
-  if (s === 'huawei') return 'Huawei'
-  if (s === 'cisco') return 'Cisco'
-  return v
+  const m = vendorMark(v)
+  return m.key && m.key === (v || '').toLowerCase() ? m.name : v
 }
 
 /** 与后端 importer.CONFIG_SUFFIXES 一致：无扩展名、.txt .cfg .conf .config .log .zip。 */

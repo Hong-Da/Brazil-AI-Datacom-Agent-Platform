@@ -4,6 +4,7 @@
  * 公共设备库引用（跟随最新 / 固定版本）或复制为私有、从我的其他项目复制、导入新配置，三种来源可以混合，底部汇总后一起添加。
  * 没有批量接口：逐条调用 POST /projects/{p}/refs、/devices/copy-in，最后上传文件（POST /configs），逐条报告结果。
  */
+import VendorBadge from '@/components/vendor-badge.vue'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -86,8 +87,8 @@ const srcVers = reactive<Record<number, Version[] | 'loading' | 'error'>>({})
 async function loadProjects(): Promise<void> {
   try {
     const l = await project.loadLists()
-    projects.value = [...l.mine, ...l.shared].filter((p) => p.slug !== project.slug)
-    if (!srcProject.value && projects.value.length) srcProject.value = projects.value[0].slug
+    projects.value = [...l.mine, ...l.shared].filter((p) => p.ref !== project.ref)
+    if (!srcProject.value && projects.value.length) srcProject.value = projects.value[0].ref
   } catch (e) { srcErr.value = errorText(e) }
 }
 watch(srcProject, async (s) => {
@@ -159,8 +160,8 @@ const imported = ref<{ r: ImportResult; kind: ImportKind }[]>([])
 const runErr = ref('')
 
 async function addAll(): Promise<void> {
-  if (!project.slug || !project.canWrite || nothing.value || running.value) return
-  const slug = encodeURIComponent(project.slug)
+  if (!project.ref || !project.canWrite || nothing.value || running.value) return
+  const slug = encodeURIComponent(project.ref)
   const list = ops.value
   running.value = true
   runErr.value = ''
@@ -214,7 +215,7 @@ const finished = computed(() => !running.value && (outcomes.value.length > 0 || 
 onMounted(async () => {
   await Promise.all([loadHere(), loadPub(), loadProjects()])
 })
-watch(() => project.slug, () => { void loadHere(); void loadProjects() })
+watch(() => project.ref, () => { void loadHere(); void loadProjects() })
 watch(src, (s) => { void router.replace({ query: { ...route.query, src: s } }) })
 const KIND_TAG: Record<ImportKind, string> = { new: 't-teal', version: 't-blue', duplicate: '', failed: 'fail' }
 </script>
@@ -266,7 +267,7 @@ const KIND_TAG: Record<ImportKind, string> = { new: 't-teal', version: 't-blue',
                 </td>
                 <td>
                   <div class="devcell">
-                    <span class="vendor"><i :class="d.vendor === 'huawei' ? 'hw' : d.vendor === 'cisco' ? 'cs' : ''">{{ d.vendor === 'huawei' ? 'H' : d.vendor === 'cisco' ? 'C' : '?' }}</i></span>
+                    <VendorBadge :of="d.vendor" letter />
                     <div><b>{{ d.name }}</b><small>{{ vendorLabel(d.vendor) }} · {{ d.profile }}</small></div>
                   </div>
                 </td>
@@ -306,7 +307,7 @@ const KIND_TAG: Record<ImportKind, string> = { new: 't-teal', version: 't-blue',
         <div class="panel-h toolbar" style="padding: 8px 12px">
           <span class="small muted">{{ T('srcProject') }}</span>
           <select v-model="srcProject" class="select" style="width: auto" :disabled="!projects.length" data-testid="add-src-project">
-            <option v-for="p in projects" :key="p.slug" :value="p.slug">{{ p.name }}{{ p.role !== 'owner' ? ` — ${$t(`proj.role.${p.role}`)} · ${p.owner ?? ''}` : '' }}</option>
+            <option v-for="p in projects" :key="p.ref" :value="p.ref">{{ p.name }}{{ p.role !== 'owner' ? ` — ${$t(`proj.role.${p.role}`)} · ${p.owner ?? ''}` : '' }}</option>
           </select>
           <span class="grow" />
           <span class="small faint">{{ T('projNote') }}</span>
@@ -322,7 +323,7 @@ const KIND_TAG: Record<ImportKind, string> = { new: 't-teal', version: 't-blue',
                 <td><input type="checkbox" class="check" :checked="!!projSel[d.id]" :disabled="!project.canWrite" :aria-label="d.name" :data-testid="`add-proj-check-${d.id}`" @change="toggleProj(d, ($event.target as HTMLInputElement).checked)"></td>
                 <td>
                   <div class="devcell">
-                    <span class="vendor"><i :class="d.vendor === 'huawei' ? 'hw' : d.vendor === 'cisco' ? 'cs' : ''">{{ d.vendor === 'huawei' ? 'H' : d.vendor === 'cisco' ? 'C' : '?' }}</i></span>
+                    <VendorBadge :of="d.vendor" letter />
                     <div><b>{{ d.name }}</b><small>{{ d.profile }}</small></div>
                   </div>
                 </td>

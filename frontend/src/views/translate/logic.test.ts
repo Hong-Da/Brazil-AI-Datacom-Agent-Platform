@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  appendRaw, buildWarns, groupCounts, interfacesIn, linkFromDst, linkFromSrc, outIndex, renameNode, reportMd, srcIndex,
+  appendRaw, buildWarns, groupCounts, interfacesIn, interfacesInGraph, linkFromDst, linkFromSrc, outIndex, renameNode, reportMd, srcIndex,
   warnCsvRows, warnDst, warnText,
 } from './logic'
 import type { OutLine, TranslateResult, TrItem } from './types'
@@ -99,5 +99,13 @@ describe('附注与下载', () => {
   })
   it('从配置中列出接口', () => {
     expect(interfacesIn('interface GE0/2/1\n mtu 1\ninterface GE0/2/1.10\n#\ninterface LoopBack0')).toEqual(['GE0/2/1', 'GE0/2/1.10', 'LoopBack0'])
+  })
+  it('Nokia：从配置图的顶层接口对象列出接口（M7-5）', () => {
+    const o = (id: string, schema: string, key: unknown) => ({ id, kind: 'object', schema, key })
+    expect(interfacesInGraph([
+      o('interface[1/1/4]', 'interface', '1/1/4'), o('interface[system]', 'interface', 'system'),
+      o('interface[1/1/4]/access[1001]', 'interface.access', '1001'), o('vrf.instance[A]', 'vrf.instance', 'A'),
+      { id: 'interface[1/1/4]/mtu', kind: 'attr', schema: 'interface.mtu' },
+    ])).toEqual(['1/1/4', 'system'])
   })
 })

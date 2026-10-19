@@ -17,7 +17,7 @@ import type { Device } from '@/views/devices/logic'
 import { keyText } from './m4/texts'
 import { lines as splitLines, snippet, stamp } from './m4/common'
 import {
-  cellOf, failuresByRule, matrixCsv, remedyText, scoreBand, stripCounts,
+  cellOf, failuresByRule, matrixCsv, REMEDY_KEYS, remedyText, scoreBand, stripCounts,
   type BaselineResult, type DeviceResult, type Rule, type RulesInfo,
 } from './m4/baseline'
 
@@ -268,8 +268,9 @@ onMounted(async () => {
                 <div class="row wrap" style="gap: 8px 14px"><span class="sev" :class="ruleInfo.severity"><Icon :name="sevIcon(ruleInfo.severity)" small />{{ $t(`baseline.sev.${ruleInfo.severity}`) }}</span><code class="small">{{ ruleInfo.id }}</code><span v-for="tg in ruleInfo.tags" :key="tg" class="tag">{{ tg }}</span></div>
                 <div class="cond"><h4>{{ $t('baseline.whatFails') }}</h4><p>{{ pickLang(ruleInfo.message, lang) }}</p></div>
                 <div class="cond"><h4>{{ $t('baseline.suggestion') }}</h4><p>{{ pickLang(ruleInfo.suggestion, lang) }}</p></div>
-                <div v-if="ruleInfo.remedy.huawei?.length" class="cond"><h4><DevChip :name="$t('baseline.remedyHw')" vendor="huawei" /></h4><pre class="block">{{ ruleInfo.remedy.huawei.join('\n') }}</pre></div>
-                <div v-if="ruleInfo.remedy.cisco?.length" class="cond"><h4><DevChip :name="$t('baseline.remedyCs')" vendor="cisco" /></h4><pre class="block">{{ ruleInfo.remedy.cisco.join('\n') }}</pre></div>
+                <template v-for="rk in REMEDY_KEYS" :key="rk.key">
+                  <div v-if="ruleInfo.remedy[rk.key]?.length" class="cond" :data-testid="`bl-remedy-${rk.key}`"><h4><DevChip :name="$t(rk.label)" :vendor="rk.key" /></h4><pre class="block">{{ ruleInfo.remedy[rk.key]!.join('\n') }}</pre></div>
+                </template>
                 <dl class="kv"><dt>{{ $t('baseline.ruleSource') }}</dt><dd class="mono">knowledge/rules/{{ ruleInfo.source }}#{{ ruleInfo.id }}</dd><dt>{{ $t('baseline.inBaselines') }}</dt><dd>{{ ruleInfo.profiles.join(', ') }}</dd></dl>
                 <div>
                   <div class="sec-k">{{ $t('baseline.perDevice') }}</div>

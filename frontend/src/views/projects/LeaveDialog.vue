@@ -5,7 +5,7 @@ import Icon from '@/components/Icon.vue'
 import { del, errorText } from '@/api'
 import { useAuth } from '@/stores/auth'
 
-const props = defineProps<{ project: { slug: string; name: string } }>()
+const props = defineProps<{ project: { slug: string; ref: string; name: string } }>()
 const emit = defineEmits<{ (e: 'close'): void; (e: 'left'): void }>()
 const auth = useAuth()
 const busy = ref(false)
@@ -16,7 +16,7 @@ async function ok(): Promise<void> {
   busy.value = true
   error.value = ''
   try {
-    await del(`/projects/${encodeURIComponent(props.project.slug)}/members/${encodeURIComponent(auth.me.username)}`)
+    await del(`/projects/${encodeURIComponent(props.project.ref)}/members/${encodeURIComponent(auth.me.username)}`)
     emit('left')
   } catch (e) {
     error.value = errorText(e)

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from collections.abc import Awaitable, Callable
 from typing import Any
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, FastAPI, Path, Request
 from fastapi.routing import APIRoute
@@ -35,7 +36,7 @@ def _enter(request: Request, p: Principal, scope: projects.Scope, lvl: str, via:
     if lvl == "kb" and via == "path" and not p.is_kb_editor:
         raise ApiError(E_FORBIDDEN, 403, "api.error.kb_editor_only")
     if write and not scope.can_write:
-        raise ApiError(E_FORBIDDEN, 403, "projects.read_only", project=scope.slug)
+        raise ApiError(E_FORBIDDEN, 403, "projects.read_only", project=scope.label)
     projects.set_identity(p.identity())
     projects.set_scope(scope)
     request.state.scope = scope
@@ -56,7 +57,10 @@ def _after(request: Request, scope: projects.Scope, lvl: str, audit: bool = True
 def project_guard(lvl: str) -> Callable[..., Awaitable[None]]:
     async def guard(
         request: Request,
-        project: str = Path(..., description="项目标识（也可以写属主/标识或项目编号）"),
+        project: str = Path(
+            ...,
+            description="项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+        ),
         p: Principal = Depends(require_token),
     ) -> None:
         _check_level(p, lvl)
@@ -75,7 +79,7 @@ def legacy_guard(lvl: str) -> Callable[..., Awaitable[None]]:
         _check_level(p, lvl)
         scope = await run_in_threadpool(projects.default_scope, db_of(request), p.identity())
         _enter(request, p, scope, lvl, "legacy")
-        request.state.deprecated_successor = scope.slug
+        request.state.deprecated_successor = quote(scope.label, safe="")
         # 全局令牌走旧路径时落到第一个管理员的默认项目，这是系统自身的调用，不按“管理员访问他人项目”审计
         await run_in_threadpool(_after, request, scope, lvl, p.user_id is not None)
 
@@ -140,3 +144,27 @@ def add_deprecation_headers(app: FastAPI, prefix: str) -> None:
             response.headers["Deprecation"] = "true"
             response.headers["Link"] = f'<{prefix}/projects/{slug}{rest}>; rel="successor-version"'
         return response
+
+
+def add_project_ref_rewrite(app: FastAPI, prefix: str) -> None:
+    """项目路径里的“属主/标识”：客户端按 URL 编码写成 /projects/属主%2F标识/…，服务器解码后“/”会把一段拆成两段、
+    匹配不到路由。这里在路由之前按原始路径把这一段里的 %2F 换成“~”（core.projects 同样接受“属主~标识”）。"""
+    marker = (prefix + "/projects/").encode()
+
+    class _Rewrite:
+        def __init__(self, inner: Any) -> None:
+            self.inner = inner
+
+        async def __call__(self, scope: dict[str, Any], receive: Any, send: Any) -> None:
+            raw = scope.get("raw_path") if scope.get("type") == "http" else None
+            if raw and raw.startswith(marker):
+                seg, sep, rest = raw[len(marker) :].partition(b"/")
+                if b"%2f" in seg.lower():
+                    from urllib.parse import unquote
+
+                    fixed = unquote(seg.decode("latin-1").replace("%2F", "~").replace("%2f", "~"))
+                    tail = unquote(rest.decode("latin-1")) if sep else ""
+                    scope = {**scope, "path": prefix + "/projects/" + fixed + ("/" + tail if sep else "")}
+            await self.inner(scope, receive, send)
+
+    app.add_middleware(_Rewrite)  # type: ignore[arg-type]

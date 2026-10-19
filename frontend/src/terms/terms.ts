@@ -1,11 +1,13 @@
 /**
- * 显示风格（REQ-026）：同一张配置图按华为或 Cisco 的叫法与命令写法显示。
+ * 显示风格（REQ-026）：同一张配置图按华为、Cisco 或 Nokia（M7-5）的叫法与命令写法显示。
  * 与后端 src/lmesh/core/terms.py 的 Terms.label / name / attr、split_node_id、describe 逐条对应，结果必须一致
  * （测试用例取自 tests/unit/test_terms.py）。只影响显示，不影响解析、对比、检查的结果。
  */
 
-export const STYLES = ['huawei', 'cisco'] as const
+export const STYLES = ['huawei', 'cisco', 'nokia'] as const
 export type Style = (typeof STYLES)[number]
+/** 华为 / Cisco 之外的风格（nokia）没有登记某个属性或对象的写法时按华为显示（与后端 BASE_STYLES 一致）。 */
+const BASE_STYLES: readonly string[] = ['huawei', 'cisco']
 
 export type I18nText = Record<string, string>
 
@@ -15,12 +17,21 @@ export interface ObjectStyle {
   values?: Record<string, Record<string, string>>
 }
 
+/** 按视图层级显示时顶层对象所在的配置上下文（M7-5，terms.yaml 的 contexts）。 */
+export interface ContextRule {
+  schema: string
+  key?: string
+  attr?: string
+  path: string[]
+}
+
 /** GET /api/v1/kb/terms 的返回。 */
 export interface TermsData {
   default: string
   styles: Record<string, I18nText>
   objects: Record<string, Partial<Record<string, ObjectStyle>>>
   attrs: Record<string, Partial<Record<string, string>>>
+  contexts?: Partial<Record<string, ContextRule[]>>
 }
 
 /** Schema 里与显示有关的部分：节点编号、单键对象的键名、语义。 */
@@ -67,6 +78,15 @@ function pyStr(v: unknown): string {
   return JSON.stringify(v)
 }
 
+/** label 候选的条件：字段有值；写成 “字段~正则” 时取值还要能被正则搜索到（与后端 _has 一致）。 */
+function has(keys: Record<string, unknown>, req: string): boolean {
+  const at = req.indexOf('~')
+  const name = (at >= 0 ? req.slice(0, at) : req).trim()
+  const pattern = at >= 0 ? req.slice(at + 1) : ''
+  const v = (truthy(keys[name]) ? pyStr(keys[name]) : '').trim()
+  return Boolean(v) && (!pattern || new RegExp(pattern).test(v))
+}
+
 /** Python 的真值判断（"" / 0 / False / None / 空列表 / 空字典为假）。 */
 function truthy(v: unknown): boolean {
   if (v === null || v === undefined || v === '' || v === 0 || v === false) return false
@@ -86,7 +106,9 @@ export class Terms {
   }
 
   private spec(schema: string, style: string): ObjectStyle {
-    return this.data.objects[schema]?.[toStyle(style)] ?? {}
+    const st = toStyle(style)
+    const obj = this.data.objects[schema]
+    return obj?.[st] ?? (BASE_STYLES.includes(st) ? undefined : obj?.huawei) ?? {}
   }
 
   /** 对象类型的叫法；没有登记时用 Schema 的 semantic，再没有用编号。 */
@@ -122,7 +144,7 @@ export class Terms {
       const at = c.indexOf(' ? ')
       const tpl = at >= 0 ? c.slice(0, at) : c
       const need = at >= 0 ? c.slice(at + 3).split(',').map((r) => r.trim()).filter(Boolean) : []
-      if (need.some((r) => !(truthy(keys[r]) ? pyStr(keys[r]) : '').trim())) continue
+      if (!need.every((r) => has(keys, r))) continue
       return tpl.replace(FIELD, (_m, f: string) => shown[f] ?? '').replace(/\s+/g, ' ').trim()
     }
     const text = Object.values(keys).map(pyStr).filter((s) => s.trim()).join(' ')
@@ -132,8 +154,31 @@ export class Terms {
 
   /** 属性在该风格下的命令关键字；没有登记时返回 null（界面用 Schema 的名称）。 */
   attr(schema: string, style: string): string | null {
-    const v = this.data.attrs[schema]?.[toStyle(style)]
+    const st = toStyle(style)
+    const spec = this.data.attrs[schema]
+    const v = spec?.[st] || (BASE_STYLES.includes(st) ? undefined : spec?.huawei)
     return v ? String(v) : null
+  }
+
+  /**
+   * 顶层对象在该风格下的配置上下文路径（按视图层级显示时的分组，M7-5 的 Nokia：port、router Base、service › vprn X…）；
+   * 没有登记或都不命中时为空数组。attrs 是对象的直接子属性 {短名: 取值}。与后端 Terms.context 一致。
+   */
+  context(schema: string, key: unknown, attrs: Record<string, unknown>, style: string): string[] {
+    const keys = this.keyDict(key, schema)
+    const ktext = '_' in keys ? pyStr(keys._) : Object.entries(keys).map(([k, v]) => `${k}=${pyStr(v)}`).join(',')
+    for (const c of this.data.contexts?.[toStyle(style)] ?? []) {
+      if (!new RegExp(c.schema || '$^').test(schema)) continue
+      if (c.key && !new RegExp(c.key).test(ktext)) continue
+      if (c.attr) {
+        const v = attrs[c.attr]
+        if (v === null || v === undefined || v === '' || v === false) continue
+      }
+      const fields: Record<string, string> = {}
+      for (const [k, v] of Object.entries(attrs)) fields[k] = pyStr(v)
+      return (c.path ?? []).map((p) => String(p).replace(FIELD, (_m, f: string) => fields[f] ?? '').trim())
+    }
+    return []
   }
 
   /** Schema 节点在该风格下的命令写法模板（Schema 视图用）：对象给出 label 候选（去掉条件），属性给出关键字。 */

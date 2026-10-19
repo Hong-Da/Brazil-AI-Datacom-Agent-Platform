@@ -116,6 +116,7 @@ onMounted(() => { void auth.load(); void load() })
               <option value="">{{ T('allPlatforms') }}</option>
               <option value="huawei">{{ T('plat.huawei') }}</option>
               <option value="cisco">{{ T('plat.cisco') }}</option>
+              <option value="nokia">{{ T('plat.nokia') }}</option>
             </select>
             <span class="grow" />
             <span v-if="!auth.isAdmin" class="small faint">{{ T('ownOnly') }}</span>

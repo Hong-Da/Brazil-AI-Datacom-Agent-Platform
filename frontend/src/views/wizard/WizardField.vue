@@ -30,14 +30,16 @@ function onInput(e: Event): void {
   emit('update:modelValue', coerce(props.field, (e.target as HTMLInputElement).value))
 }
 function optLabel(c: string): string {
-  return props.optionLabel ? props.optionLabel(c) : c || t('wizard.none')
+  if (props.optionLabel) return props.optionLabel(c)
+  if (props.field.kind === 'bool') return t(c === 'true' ? 'wizard.on' : 'wizard.off') // 开关：true / false
+  return c || t('wizard.none')
 }
 </script>
 
 <template>
   <div class="field">
     <label :for="id">{{ label }}</label>
-    <select v-if="field.kind === 'choice'" :id="id" class="select" :value="text" :data-testid="`field-${field.key}`"
+    <select v-if="field.kind === 'choice' || field.kind === 'bool'" :id="id" class="select" :value="text" :data-testid="`field-${field.key}`"
       @change="onInput($event); emit('commit')">
       <option v-for="c in choices ?? field.choices" :key="c" :value="c">{{ optLabel(c) }}</option>
     </select>

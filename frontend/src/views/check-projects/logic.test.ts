@@ -180,6 +180,7 @@ describe('项目列表', () => {
     expect(filterProjects(list, { scope: 'mine', q: '', vendor: '', me: 'liwei' }).map((x) => x.id)).toEqual([1, 3])
     expect(filterProjects(list, { scope: 'all', q: '', vendor: 'cisco', me: null }).map((x) => x.id)).toEqual([2])
     expect(filterProjects(list, { scope: 'all', q: 'dev-3', vendor: '', me: null }).map((x) => x.id)).toEqual([3])
+    expect(filterProjects([...list, p(4, 'SR', 'liwei', 'nokia', 0, null)], { scope: 'all', q: '', vendor: 'nokia', me: null }).map((x) => x.id)).toEqual([4])
   })
   it('概况', () => {
     expect(projectStats(list, 'liwei')).toEqual({ total: 3, mine: 2, withErrors: 1, scripts: 6, latest: 2 })
