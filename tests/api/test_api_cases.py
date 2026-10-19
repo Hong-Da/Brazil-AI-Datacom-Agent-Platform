@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from tests.conftest import INPUTS, TEST_TOKEN, prepare
+from tests.conftest import INPUTS, TEST_TOKEN, kb_params, prepare
 from tests.helpers import check_json, load_cases
 
 CASES = load_cases("api_cases.toml")
@@ -37,7 +37,7 @@ def _check(r: Any, case: dict[str, Any]) -> None:
 
 
 @pytest.mark.api
-@pytest.mark.parametrize("case", CASES, ids=[c["id"] for c in CASES])
+@pytest.mark.parametrize("case", kb_params(CASES), ids=[c["id"] for c in CASES])
 def test_api_case(case: dict[str, Any], tmp_root: Path, request: pytest.FixtureRequest) -> None:
     from fastapi.testclient import TestClient
 

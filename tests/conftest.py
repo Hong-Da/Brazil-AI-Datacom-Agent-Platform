@@ -2,6 +2,7 @@
 
 PostgreSQL：从 config/test.env 或环境变量读取 LMESH_TEST_PG_URL；设置了 LMESH_TEST_PG_SSH 时自动建 SSH 隧道。
 没有可用的 PostgreSQL 时，pg 相关用例跳过并在结果中注明。
+并行（pytest-xdist）时：隧道由主进程建一次；PostgreSQL schema 名带 worker 名；每个 worker 有自己的共用只读知识库副本。
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ import time
 import uuid
 from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -46,41 +48,74 @@ def _port_open(host: str, port: int) -> bool:
         return s.connect_ex((host, port)) == 0
 
 
-@pytest.fixture(scope="session")
-def pg_url() -> Iterator[str | None]:
+def _pg_address() -> tuple[str, str, int] | None:
     url = os.environ.get("LMESH_TEST_PG_URL")
     if not url:
-        yield None
-        return
+        return None
     from sqlalchemy.engine import make_url
 
     u = make_url(url)
-    host, port = u.host or "127.0.0.1", u.port or 5432
-    proc = None
+    return url, u.host or "127.0.0.1", u.port or 5432
+
+
+def _open_tunnel(host: str, port: int) -> subprocess.Popen[bytes] | None:
+    """设置了 LMESH_TEST_PG_SSH 且端口没开时建 SSH 隧道。"""
     ssh = os.environ.get("LMESH_TEST_PG_SSH")
-    if ssh and not _port_open(host, port):
-        key = os.path.expanduser(os.environ.get("LMESH_TEST_PG_SSH_KEY", "~/.ssh/lmesh_dev_ed25519"))
-        proc = subprocess.Popen(
-            [
-                "ssh",
-                "-N",
-                "-o",
-                "BatchMode=yes",
-                "-o",
-                "ExitOnForwardFailure=yes",
-                "-i",
-                key,
-                "-L",
-                f"{port}:127.0.0.1:{port}",
-                ssh,
-            ],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
-        for _ in range(50):
-            if _port_open(host, port):
-                break
-            time.sleep(0.2)
+    if not ssh or _port_open(host, port):
+        return None
+    key = os.path.expanduser(os.environ.get("LMESH_TEST_PG_SSH_KEY", "~/.ssh/lmesh_dev_ed25519"))
+    proc = subprocess.Popen(
+        [
+            "ssh",
+            "-N",
+            "-o",
+            "BatchMode=yes",
+            "-o",
+            "ExitOnForwardFailure=yes",
+            "-i",
+            key,
+            "-L",
+            f"{port}:127.0.0.1:{port}",
+            ssh,
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    for _ in range(50):
+        if _port_open(host, port):
+            break
+        time.sleep(0.2)
+    return proc
+
+
+def _xdist_worker() -> str | None:
+    """并行（pytest-xdist）时当前 worker 的名字，如 gw3；串行时 None。"""
+    return os.environ.get("PYTEST_XDIST_WORKER")
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    # 并行时由主进程建一次 SSH 隧道、所有 worker 共用（worker 各建各的会在先结束的 worker 退出时断开别人的连接）
+    if hasattr(config, "workerinput") or not getattr(config.option, "numprocesses", None):
+        return
+    addr = _pg_address()
+    if addr:
+        config._lmesh_pg_tunnel = _open_tunnel(addr[1], addr[2])  # type: ignore[attr-defined]
+
+
+def pytest_unconfigure(config: pytest.Config) -> None:
+    proc = getattr(config, "_lmesh_pg_tunnel", None)
+    if proc:
+        proc.terminate()
+
+
+@pytest.fixture(scope="session")
+def pg_url() -> Iterator[str | None]:
+    addr = _pg_address()
+    if not addr:
+        yield None
+        return
+    url, host, port = addr
+    proc = None if _xdist_worker() else _open_tunnel(host, port)
     yield url if _port_open(host, port) else None
     if proc:
         proc.terminate()
@@ -88,7 +123,7 @@ def pg_url() -> Iterator[str | None]:
 
 @pytest.fixture(params=["sqlite", "pg"])
 def db_url(request: pytest.FixtureRequest, tmp_root: Path, pg_url: str | None) -> Iterator[str]:
-    """每个数据库相关用例在 SQLite 与 PostgreSQL 上各跑一次。PostgreSQL 用独立 schema，用完删除。"""
+    """每个数据库相关用例在 SQLite 与 PostgreSQL 上各跑一次。PostgreSQL 用独立 schema（名字带并行 worker 名与随机串），用完删除。"""
     if request.param == "sqlite":
         yield f"sqlite:///{(tmp_root / 'data' / 'test.db').as_posix()}"
         return
@@ -96,7 +131,7 @@ def db_url(request: pytest.FixtureRequest, tmp_root: Path, pg_url: str | None) -
         pytest.skip("没有可用的 PostgreSQL（config/test.env 中的 LMESH_TEST_PG_URL）")
     from sqlalchemy import create_engine, text
 
-    schema = f"t_{uuid.uuid4().hex[:10]}"
+    schema = f"t_{_xdist_worker() or 'main'}_{uuid.uuid4().hex[:10]}"
     admin = create_engine(pg_url)
     with admin.begin() as conn:
         conn.execute(text(f'CREATE SCHEMA "{schema}"'))
@@ -110,20 +145,134 @@ def db_url(request: pytest.FixtureRequest, tmp_root: Path, pg_url: str | None) -
     admin.dispose()
 
 
+def _skip_cards(directory: str, names: list[str]) -> set[str]:
+    """复制知识库时不带抽取出的命令卡文件（几千张卡会拖慢测试，并与测试用的卡冲突）；视图、Schema、Profile 保留。"""
+    if Path(directory).parent.name == "commands":
+        return {n for n in names if n.endswith(".yaml") and n != "views.yaml"}
+    return set()
+
+
+def _snapshot(root: Path) -> dict[str, tuple[int, int]]:
+    """目录下每个文件与子目录的（大小，修改时间）：用来发现谁改了共用的知识库。"""
+    out: dict[str, tuple[int, int]] = {}
+    stack = [root]
+    while stack:
+        d = stack.pop()
+        with os.scandir(d) as it:
+            for e in it:
+                st = e.stat(follow_symlinks=False)
+                out[os.path.relpath(e.path, root)] = (st.st_size if e.is_file() else -1, st.st_mtime_ns)
+                if e.is_dir(follow_symlinks=False):
+                    stack.append(Path(e.path))
+    return out
+
+
+def _link_dir(link: Path, target: Path) -> bool:
+    """建目录链接（Windows 用目录联接，不需要管理员权限；其他系统用符号链接）。建不了时返回 False，由调用方改为复制。"""
+    try:
+        if os.name == "nt":
+            import _winapi
+
+            _winapi.CreateJunction(str(target), str(link))
+        else:
+            os.symlink(target, link, target_is_directory=True)
+    except OSError:
+        return False
+    return True
+
+
+def _unlink_dir(link: Path) -> None:
+    """只删链接本身，不碰目标目录。"""
+    if os.name == "nt":
+        os.rmdir(link)
+    else:
+        os.unlink(link)
+
+
+class SharedKnowledge:
+    """每个测试进程（并行时每个 worker）共用的只读知识库副本：lite 不带命令卡，full 带全部命令卡。
+
+    用例的 tmp_root/knowledge 是指向它的链接，省去每个用例复制、删除知识库。用例结束时比对快照：
+    共用副本被改动时恢复它，并让该用例报错（提示加 @pytest.mark.kb_write），不会影响后面的用例。
+    """
+
+    def __init__(self, base: Path) -> None:
+        self.base = base
+        self.snaps: dict[str, dict[str, tuple[int, int]]] = {}
+
+    def path(self, kind: str) -> Path:
+        p = self.base / kind
+        if kind not in self.snaps:
+            self._build(kind)
+        return p
+
+    def _build(self, kind: str) -> None:
+        p = self.base / kind
+        if p.exists():
+            shutil.rmtree(p)
+        shutil.copytree(ROOT / "knowledge", p, ignore=_skip_cards if kind == "lite" else None)
+        self.snaps[kind] = _snapshot(p)
+
+    def check(self, kind: str) -> list[str]:
+        """返回被改动的路径（并恢复副本）；没有改动时返回空列表。"""
+        now = _snapshot(self.base / kind)
+        old = self.snaps[kind]
+        changed = sorted(k for k in old.keys() | now.keys() if old.get(k) != now.get(k))
+        if changed:
+            self._build(kind)
+        return changed
+
+
+@pytest.fixture(scope="session")
+def shared_knowledge(tmp_path_factory: pytest.TempPathFactory) -> SharedKnowledge:
+    return SharedKnowledge(tmp_path_factory.mktemp("kb-shared", numbered=False))
+
+
+class _KbLink:
+    """当前用例的 tmp_root/knowledge：链接到哪份共用副本（None 表示用例自己的副本）。"""
+
+    def __init__(self, root: Path, shared: SharedKnowledge | None) -> None:
+        self.root, self.shared, self.kind = root, shared, None if shared is None else "lite"
+
+    def use_full(self) -> None:
+        """改为带全部命令卡的知识库（full_kb_root）。"""
+        target = self.root / "knowledge"
+        if self.shared is None:
+            shutil.copytree(ROOT / "knowledge" / "commands", target / "commands", dirs_exist_ok=True)
+            return
+        _unlink_dir(target)
+        self.kind = "full"
+        if not _link_dir(target, self.shared.path("full")):
+            self.kind = None
+            shutil.copytree(ROOT / "knowledge", target)
+
+    def release(self) -> list[str]:
+        """删除链接并检查共用副本；返回被改动的路径。"""
+        if self.shared is None or self.kind is None:
+            return []
+        _unlink_dir(self.root / "knowledge")
+        return self.shared.check(self.kind)
+
+
 @pytest.fixture
-def tmp_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
-    """临时项目根目录：不读写开发者本机的 config/ 与 data/。"""
+def tmp_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, request: pytest.FixtureRequest) -> Iterator[Path]:
+    """临时项目根目录：不读写开发者本机的 config/ 与 data/。
+
+    knowledge/（程序自带的知识库）默认链接到进程内共用的只读副本；会写入它的用例加 @pytest.mark.kb_write，
+    改为复制一份自己的。没加标记却写了的用例会在结束时报错。
+    """
     root = tmp_path / "root"
     for d in ("config", "data", "logs"):
         (root / d).mkdir(parents=True)
+    link = _KbLink(root, None)
     if (ROOT / "knowledge").exists():
-        # 复制知识库时不带抽取出的命令卡文件（几千张卡会拖慢测试，并与测试用的卡冲突）；视图、Schema、Profile 保留
-        def _skip_cards(directory: str, names: list[str]) -> set[str]:
-            if Path(directory).parent.name == "commands":
-                return {n for n in names if n.endswith(".yaml") and n != "views.yaml"}
-            return set()
-
-        shutil.copytree(ROOT / "knowledge", root / "knowledge", ignore=_skip_cards)
+        own = request.node.get_closest_marker("kb_write") is not None or os.environ.get("LMESH_TEST_KB_COPY") == "1"
+        shared: SharedKnowledge | None = None if own else request.getfixturevalue("shared_knowledge")
+        if shared is not None and _link_dir(root / "knowledge", shared.path("lite")):
+            link = _KbLink(root, shared)
+        else:
+            shutil.copytree(ROOT / "knowledge", root / "knowledge", ignore=_skip_cards)
+    root_links[root] = link
     monkeypatch.setenv("LMESH_ROOT", str(root))
     for k in list(os.environ):
         if k.startswith("LMESH_") and "__" in k:
@@ -137,12 +286,27 @@ def tmp_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
     from lmesh.core import store
 
     store.dispose_all()
+    changed = root_links.pop(root).release()
+    if changed:
+        pytest.fail(
+            "用例写入了共用的只读知识库（已恢复）。请给它加 @pytest.mark.kb_write（CLI / API 用例在 toml 里写 kb_write = true）。"
+            f"改动：{changed[:10]}",
+            pytrace=False,
+        )
+
+
+root_links: dict[Path, _KbLink] = {}
+
+
+def kb_params(cases: list[dict[str, Any]]) -> list[Any]:
+    """toml 用例写了 kb_write = true 时加 kb_write 标记（用自己的知识库副本）。"""
+    return [pytest.param(c, marks=[pytest.mark.kb_write] if c.get("kb_write") else []) for c in cases]
 
 
 @pytest.fixture
 def full_kb_root(tmp_root: Path) -> Path:
     """带上全部抽取出的命令卡（解析、建图、往返相关的用例需要）。"""
-    shutil.copytree(ROOT / "knowledge" / "commands", tmp_root / "knowledge" / "commands", dirs_exist_ok=True)
+    root_links[tmp_root].use_full()
     return tmp_root
 
 
