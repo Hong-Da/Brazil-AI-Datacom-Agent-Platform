@@ -15,6 +15,7 @@ import { useTerms } from '@/stores/terms'
 import { rememberedChoice, rememberedFlag } from '@/stores/prefs'
 import HiddenLegend from '@/components/hidden-legend.vue'
 import ShowDefaultToggle from '@/components/show-default-toggle.vue'
+import DevDelDialog from '@/components/devdel-dialog.vue'
 import GraphCanvas from './device-graph/GraphCanvas.vue'
 import ForceGraph from './device-graph/ForceGraph.vue'
 import { buildForce, domainColorVar, domainCounts } from './device-graph/force'
@@ -32,6 +33,15 @@ const router = useRouter()
 const { t } = useI18n()
 const status = useStatus()
 const terms = useTerms()
+
+// 删除设备（REQ-038）：删除后回到设备列表
+const showDelete = ref(false)
+function onDeviceDeleted(_r: unknown, msg: string): void {
+  showDelete.value = false
+  ElMessage.success(msg)
+  void status.refresh()
+  void router.push({ name: 'devices' })
+}
 
 const deviceId = computed(() => {
   const v = Number(route.params.id)
@@ -483,6 +493,9 @@ onMounted(async () => {
           <button class="btn btn-sm" :disabled="!graph" data-testid="btn-export" @click="exportJson">
             <Icon name="download" small /><span>{{ $t('device-graph.exportJson') }}</span>
           </button>
+          <button class="btn btn-sm btn-danger" data-testid="btn-delete-device" @click="showDelete = true">
+            <Icon name="trash" small /><span>{{ $t('devdel.deleteDeviceEllipsis') }}</span>
+          </button>
         </div>
       </div>
 
@@ -638,6 +651,7 @@ onMounted(async () => {
         </section>
       </div>
     </div>
+    <DevDelDialog v-if="showDelete && deviceId" :device-id="deviceId" @close="showDelete = false" @deleted="onDeviceDeleted" />
   </main>
 </template>
 

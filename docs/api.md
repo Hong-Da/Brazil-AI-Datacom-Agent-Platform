@@ -140,6 +140,9 @@
 | `GET /devices/{id}/check?severity=info&domain=D&version_id=V` | 是 | 检查设备的最新配置版本（给出 `version_id` 时检查该版本，版本不属于该设备时 404），结果同上 |
 | `POST /cleanup` | 是 | 冗余清理：`{"text": "…" 或 "device_id": 1, "profile": null, "objects": null}`（`objects` 给出时只清理这些对象：只被选中对象引用的级联孤儿随之删除，只选级联孤儿而引用它的对象仍在时跳过，`skipped.reason` 为 `parent_kept`（附 `via`）、`not_orphan` 或 `maybe_referenced`；结果 `selected: true`）；返回待删除对象（`reason`：orphan / cascade）、按顺序的删除命令（`text`、`context` 所在视图、`object`、`lines`、`card`、`fallback`、`fallback_reason`：`no_undo` 命令卡没有取消语法 / `undo_invalid` 取消语法写错 / `render_failed` 用原行参数渲染不出 / `match_failed` 回匹配失败）、脚本文本 `script`、未删除的对象 `skipped` 与删除后验证 `verify` |
 | `GET /devices/{id}/versions/{vid}/text` | 是 | 配置版本的原文（脱敏后）：`{text, version_id, device_id, source_name}`；版本不存在或不属于该设备时 404 |
+| `GET /devices/{id}/delete-preview` | 是 | 删除设备的预览（REQ-038，不删除）：`device`（`id`、`name`、`vendor`、`profile`）、`counts`（`versions`、`imports`、`nodes`、`edges`、`unknown_lines`、`check_ignores`）、`baseline`（以它为基线的配置检查项目 `projects`：`id`、`name`、`version_id`、`follows_latest`、`scripts`（`id`、`name`、`kind`）；`scripts` 脚本总数）、`blocked`（有项目以它为基线，不加 `force` 删除会 409）、`versions`（旧的在前：`id`、`seq`、`latest`、`collected_at`、`tag`、`imports` 导入次数、`pinned_by` 固定这个版本作基线的项目编号）；设备不存在 404 |
+| `DELETE /devices/{id}?force=false` | 是（登录账号都可以） | 删除设备与它的全部配置版本、快照、图、未识别行、导入记录、检查忽略项；返回 `deleted`、`device`、`counts`（同预览）、`baseline_cleared`（被清空基线的项目，结构同 `baseline.projects`）；设备是配置检查项目的基线且没有 `force=true` 时 409（`data` 为删除预览），`force=true` 时删除并清空这些项目的基线设备与版本（脚本与修订保留）；设备不存在 404；删除记入日志（操作者、设备、版本个数） |
+| `DELETE /devices/{id}/versions/{vid}?force=false` | 是（登录账号都可以） | 删除一个配置版本：返回 `deleted`、`device_id`、`version`（`id`、`seq`、`latest`）、`latest_version_id`（删除后的最新版本）、`versions_left`、`counts`（`imports`、`nodes`、`edges`、`unknown_lines`）、`baseline_cleared`（固定这个版本作基线、已改为跟随最新版本的项目）、`baseline_moved`（删除的是最新版本时，跟随最新版本、基线随之变为上一个版本的项目）、`recomputed`（变化计数已重算的下一个版本编号，删除最新版本时为 null）；最后一个版本 409（请删除设备）；版本被项目固定为基线且没有 `force=true` 时 409（`data.baseline`）；设备或版本不存在、版本不属于该设备 404 |
 | `GET /kb/rules` | 是 | 检查规则：内置检查与知识库 `rules/` 中的规则（编号、`enabled`、`severity`、`source`（`builtin` 或规则文件名）、内置检查的 `default_severity`、适用的 Schema 节点、条件，以及三种语言的标题、说明、建议） |
 | `PUT /kb/rules/{rule_id}` | 是 | 修改规则的开关与级别：`{"enabled": false, "severity": "info"}`（至少给一项）；知识库规则写回所在的规则文件，内置检查写入覆盖文件 `rules/builtin.yaml`，并提交运行时知识库；返回更新后的规则（结构同 `GET /kb/rules` 的一条）；规则不存在 404，写回后规则文件校验不通过时恢复原文件并返回 409 |
 | `GET /check/ignores?device_id=1` | 是 | 忽略的检查发现：`ignores`（`id`、`device_id`、`rule`、`node`、`reason`、`created_at`）；设备不存在时 404 |
@@ -1776,6 +1779,123 @@ print(r.status_code, r.json())
 HTTP 状态：`404`；返回中的关键字段：
 
 - `code` = `1004`
+
+### 删除设备的预览（不删除）
+
+`GET /api/v1/devices/1/delete-preview`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/devices/1/delete-preview' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/devices/1/delete-preview' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/devices/1/delete-preview', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.device.name` = `"ATN-CHANGE-01"`
+- `data.counts.versions` = `2`
+- `data.counts.imports` = `3`
+- `data.counts.check_ignores` = `0`
+- `data.counts.unknown_lines` = `0`
+- `data.blocked` = `false`
+- `data.baseline.projects` = `[]`
+- `data.versions.0.seq` = `1`
+- `data.versions.0.imports` = `2`
+- `data.versions.1.latest` = `true`
+
+### 删除设备
+
+`DELETE /api/v1/devices/1`（需要令牌）
+
+```bash
+curl -X DELETE 'http://127.0.0.1:9090/api/v1/devices/1' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method DELETE -Uri 'http://127.0.0.1:9090/api/v1/devices/1' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('DELETE', 'http://127.0.0.1:9090/api/v1/devices/1', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.deleted` = `true`
+- `data.device.id` = `1`
+- `data.counts.versions` = `2`
+- `data.counts.imports` = `3`
+- `data.baseline_cleared` = `[]`
+
+### 设备是检查项目的基线：409，data 为删除预览
+
+`DELETE /api/v1/devices/1`（需要令牌）
+
+```bash
+curl -X DELETE 'http://127.0.0.1:9090/api/v1/devices/1' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method DELETE -Uri 'http://127.0.0.1:9090/api/v1/devices/1' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('DELETE', 'http://127.0.0.1:9090/api/v1/devices/1', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`409`；返回中的关键字段：
+
+- `code` = `1003`
+- `data.blocked` = `true`
+- `data.baseline.projects.0.name` = `"割接前检查"`
+- `data.baseline.scripts` = `2`
+
+### 删除最新版本：最新版本回到上一个
+
+`DELETE /api/v1/devices/1/versions/2`（需要令牌）
+
+```bash
+curl -X DELETE 'http://127.0.0.1:9090/api/v1/devices/1/versions/2' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method DELETE -Uri 'http://127.0.0.1:9090/api/v1/devices/1/versions/2' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('DELETE', 'http://127.0.0.1:9090/api/v1/devices/1/versions/2', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.deleted` = `true`
+- `data.version.id` = `2`
+- `data.version.seq` = `2`
+- `data.version.latest` = `true`
+- `data.latest_version_id` = `1`
+- `data.versions_left` = `1`
+- `data.counts.imports` = `1`
 
 ### 审计表格的预置模板（Cisco 叫法）
 

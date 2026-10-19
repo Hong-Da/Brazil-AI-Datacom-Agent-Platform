@@ -1,0 +1,143 @@
+# Nokia SR OS（7750 SR / 7450 ESS / 7950 XRS / VSR）Classic CLI 的书写习惯与视图树（M7-1 草稿，M7-2 补视图与解析器开关）。
+# 依据：Classic CLI Command Reference Guide 25.10.R1（每条命令的 Full Context 即视图路径），
+#       以及 admin display-config 的输出格式（见 docs/project-spec.md “接入 Nokia 7750 SR（REQ-037）（M7-1 分析结果）”）。
+#
+# 书写习惯：
+# - 层级：缩进 4 个空格；每个视图块以与开头同级的 `exit` 结束；整份配置以 `exit all` 开始与结束。
+# - admin display-config 的顶层是 `configure`（缩进 0），其下的 system / port / router / service 等缩进 4；
+#   块注释 `#--------------------------------------------------` 与 `echo "..."` 在缩进 0，夹在各段之间。
+#   这里把 `configure` 这一层当作根视图（root_view: configure），命令卡的视图都相对于 configure。
+# - 取消前缀 `no`；很多对象默认 shutdown，display-config 会写出 `no shutdown`。
+# - 名称常带引号：interface "to-P1"、description "..."。
+# 解析器的分块方式由下面的 block / comment / layout / begin / quotes 驱动（M7-2；华为、Cisco 不设这些键，按缺省的缩进分块）：
+# - block: exit —— 缩进按 indent 个空格折算层级；每个块由与开头同列的 exit 关闭（范围外的原文块也一样）；
+#   没有进入视图的命令下面若有更深缩进的子行，子行按原文保留。
+# - comment / layout —— # 开头的注释与 echo "…" 版式行不改变视图栈；分隔行（separator）也不清空视图栈。
+# - begin —— configure 是结构行（进入根视图）；end（exit all）清空视图栈。
+# - quotes —— 引号字符串是一个词（名称可含空格），参数取值去掉引号，渲染时按原文写回。
+vendor: nokia
+separator: "#--------------------------------------------------"
+end: exit all
+indent: 4
+negative: "no"
+root_view: configure
+block: exit
+comment: ["#"]
+layout: ['^echo "']
+begin: [configure]
+quotes: true
+views:
+  configure:
+    title: 配置根 (config)
+  # 范围外的子上下文：在范围内视图里的“进入子上下文”命令（如 router interface 下的 ipv6、icmp）进入这里，
+  # 该视图没有命令卡，块内的行按原文（raw）保留，块尾 exit 只退出这一层
+  opaque: {parent: configure, title: 范围外的子上下文（按原文保留）, exit: [exit]}
+  # ---------- 接口：端口、LAG、路由器接口（M7-1 试抽取） ----------
+  port: {parent: configure, title: 端口 (config>port), exit: [exit]}
+  port-ethernet: {parent: port, title: 端口以太网参数 (config>port>ethernet), exit: [exit]}
+  lag: {parent: configure, title: LAG (config>lag), exit: [exit]}
+  router: {parent: configure, title: 路由器实例 (config>router)（Base / management）, exit: [exit]}
+  router-if: {parent: router, title: 路由器接口 (config>router>if), exit: [exit]}
+  # ---------- 静态路由（M7-1 试抽取） ----------
+  static-route-entry: {parent: router, title: 静态路由条目 (config>router>static-route-entry), exit: [exit]}
+  static-nh: {parent: static-route-entry, title: 静态路由下一跳 (config>router>static-route-entry>next-hop), exit: [exit]}
+  static-indirect: {parent: static-route-entry, title: 静态路由间接下一跳 (config>router>static-route-entry>indirect), exit: [exit]}
+  static-bh: {parent: static-route-entry, title: 静态黑洞路由 (config>router>static-route-entry>black-hole), exit: [exit]}
+  # ---------- M7-2 抽取：管理面、OSPF、IS-IS、BGP、路由策略、MPLS / RSVP / LDP、SR；时钟同步、BFD、VRRP、业务、QoS、过滤器的视图编号先定下来 ----------
+  # 系统与管理面
+  system: {parent: configure, title: 系统 (config>system), exit: [exit]}
+  system-time: {parent: system, title: 时间 (config>system>time), exit: [exit]}
+  system-ntp: {parent: system-time, title: NTP (config>system>time>ntp), exit: [exit]}
+  system-security: {parent: system, title: 安全 (config>system>security), exit: [exit]}
+  system-snmp: {parent: system, title: SNMP 代理 (config>system>snmp), exit: [exit]}
+  security-snmp: {parent: system-security, title: SNMP 安全 (config>system>security>snmp), exit: [exit]}
+  security-ssh: {parent: system-security, title: SSH (config>system>security>ssh), exit: [exit]}
+  security-user: {parent: system-security, title: 本地用户 (config>system>security>user), exit: [exit]}
+  security-tacplus: {parent: system-security, title: TACACS+ (config>system>security>tacplus), exit: [exit]}
+  security-radius: {parent: system-security, title: RADIUS (config>system>security>radius), exit: [exit]}
+  security-maf: {parent: system-security, title: 管理访问过滤 (config>system>security>management-access-filter), exit: [exit]}
+  security-password: {parent: system-security, title: 口令策略 (config>system>security>password), exit: [exit]}
+  login-control: {parent: system, title: 登录控制 (config>system>login-control), exit: [exit]}
+  log: {parent: configure, title: 日志 (config>log), exit: [exit]}
+  log-syslog: {parent: log, title: Syslog 目标 (config>log>syslog), exit: [exit]}
+  log-id: {parent: log, title: 日志流 (config>log>log-id), exit: [exit]}
+  # 时钟同步
+  sync-if-timing: {parent: system, title: 同步接口定时 (config>system>sync-if-timing), exit: [exit]}
+  system-ptp: {parent: system, title: PTP (config>system>ptp), exit: [exit]}
+  # 路由协议与路由策略（Base 路由器下；VPRN 下同名视图另编号）
+  ospf: {parent: router, title: OSPF (config>router>ospf), exit: [exit]}
+  ospf-area: {parent: ospf, title: OSPF 区域 (config>router>ospf>area), exit: [exit]}
+  ospf-if: {parent: ospf-area, title: OSPF 接口 (config>router>ospf>area>if), exit: [exit]}
+  isis: {parent: router, title: IS-IS (config>router>isis), exit: [exit]}
+  isis-if: {parent: isis, title: IS-IS 接口 (config>router>isis>if), exit: [exit]}
+  isis-level: {parent: isis, title: IS-IS 级别 (config>router>isis>level), exit: [exit]}
+  isis-if-level: {parent: isis-if, title: IS-IS 接口级别 (config>router>isis>if>level), exit: [exit]}
+  bgp: {parent: router, title: BGP (config>router>bgp), exit: [exit]}
+  bgp-group: {parent: bgp, title: BGP 组 (config>router>bgp>group), exit: [exit]}
+  bgp-neighbor: {parent: bgp-group, title: BGP 邻居 (config>router>bgp>group>neighbor), exit: [exit]}
+  policy-options: {parent: router, title: 路由策略 (config>router>policy-options)；begin / commit 包围, exit: [exit]}
+  prefix-list: {parent: policy-options, title: 前缀列表 (config>router>policy-options>prefix-list), exit: [exit]}
+  policy-statement: {parent: policy-options, title: 策略语句 (config>router>policy-options>policy-statement), exit: [exit]}
+  policy-entry: {parent: policy-statement, title: 策略条目 (…>policy-statement>entry), exit: [exit]}
+  policy-from: {parent: policy-entry, title: 匹配条件 (…>entry>from), exit: [exit]}
+  policy-action: {parent: policy-entry, title: 动作 (…>entry>action), exit: [exit]}
+  policy-default: {parent: policy-statement, title: 缺省动作 (…>policy-statement>default-action), exit: [exit]}
+  router-bfd: {parent: router, title: BFD 模板 (config>router>bfd), exit: [exit]}
+  router-if-vrrp: {parent: router-if, title: VRRP 实例 (config>router>if>vrrp), exit: [exit]}
+  # MPLS / LDP / RSVP / SR
+  mpls: {parent: router, title: MPLS (config>router>mpls), exit: [exit]}
+  mpls-if: {parent: mpls, title: MPLS 接口 (config>router>mpls>if), exit: [exit]}
+  mpls-path: {parent: mpls, title: MPLS 路径 (config>router>mpls>path), exit: [exit]}
+  mpls-lsp: {parent: mpls, title: MPLS LSP (config>router>mpls>lsp), exit: [exit]}
+  mpls-lsp-primary: {parent: mpls-lsp, title: LSP 主路径 (config>router>mpls>lsp>primary), exit: [exit]}
+  mpls-lsp-secondary: {parent: mpls-lsp, title: LSP 备路径 (config>router>mpls>lsp>secondary), exit: [exit]}
+  rsvp: {parent: router, title: RSVP (config>router>rsvp), exit: [exit]}
+  rsvp-if: {parent: rsvp, title: RSVP 接口 (config>router>rsvp>if), exit: [exit]}
+  ldp: {parent: router, title: LDP (config>router>ldp), exit: [exit]}
+  ldp-if-params: {parent: ldp, title: LDP 接口参数 (config>router>ldp>interface-parameters), exit: [exit]}
+  ldp-if: {parent: ldp-if-params, title: LDP 接口 (…>interface-parameters>interface), exit: [exit]}
+  ldp-if-ipv4: {parent: ldp-if, title: LDP 接口 IPv4 (…>interface-parameters>interface>ipv4), exit: [exit]}
+  ldp-targeted: {parent: ldp, title: LDP 远端会话 (config>router>ldp>targeted-session), exit: [exit]}
+  ldp-targeted-peer: {parent: ldp-targeted, title: LDP 远端对等体 (config>router>ldp>targeted-session>peer), exit: [exit]}
+  # SR：标签范围与 IGP 下的 segment-routing（M7-2）
+  mpls-labels: {parent: router, title: MPLS 标签范围 (config>router>mpls-labels), exit: [exit]}
+  ospf-sr: {parent: ospf, title: OSPF 段路由 (config>router>ospf>segment-routing), exit: [exit]}
+  isis-sr: {parent: isis, title: IS-IS 段路由 (config>router>isis>segment-routing), exit: [exit]}
+  # 业务：客户、SDP、Epipe、VPLS、VPRN、IES
+  service: {parent: configure, title: 业务 (config>service), exit: [exit]}
+  customer: {parent: service, title: 客户 (config>service>customer), exit: [exit]}
+  sdp: {parent: service, title: SDP (config>service>sdp), exit: [exit]}
+  epipe: {parent: service, title: Epipe（VPWS）(config>service>epipe), exit: [exit]}
+  epipe-sap: {parent: epipe, title: Epipe SAP (config>service>epipe>sap), exit: [exit]}
+  epipe-spoke: {parent: epipe, title: Epipe spoke-sdp (config>service>epipe>spoke-sdp), exit: [exit]}
+  vpls: {parent: service, title: VPLS (config>service>vpls), exit: [exit]}
+  vpls-sap: {parent: vpls, title: VPLS SAP (config>service>vpls>sap), exit: [exit]}
+  vpls-spoke: {parent: vpls, title: VPLS spoke-sdp (config>service>vpls>spoke-sdp), exit: [exit]}
+  vpls-mesh: {parent: vpls, title: VPLS mesh-sdp (config>service>vpls>mesh-sdp), exit: [exit]}
+  vprn: {parent: service, title: VPRN（L3VPN）(config>service>vprn), exit: [exit]}
+  vprn-if: {parent: vprn, title: VPRN 接口 (config>service>vprn>if), exit: [exit]}
+  vprn-if-sap: {parent: vprn-if, title: VPRN 接口 SAP (config>service>vprn>if>sap), exit: [exit]}
+  vprn-static: {parent: vprn, title: VPRN 静态路由 (config>service>vprn>static-route-entry), exit: [exit]}
+  vprn-static-nh: {parent: vprn-static, title: VPRN 静态路由下一跳, exit: [exit]}
+  vprn-bgp: {parent: vprn, title: VPRN BGP (config>service>vprn>bgp), exit: [exit]}
+  vprn-bgp-group: {parent: vprn-bgp, title: VPRN BGP 组, exit: [exit]}
+  vprn-bgp-neighbor: {parent: vprn-bgp-group, title: VPRN BGP 邻居, exit: [exit]}
+  vprn-ospf: {parent: vprn, title: VPRN OSPF, exit: [exit]}
+  vprn-ospf-area: {parent: vprn-ospf, title: VPRN OSPF 区域, exit: [exit]}
+  vprn-ospf-if: {parent: vprn-ospf-area, title: VPRN OSPF 接口, exit: [exit]}
+  ies: {parent: service, title: IES（Internet 增强业务）(config>service>ies), exit: [exit]}
+  ies-if: {parent: ies, title: IES 接口 (config>service>ies>if), exit: [exit]}
+  ies-if-sap: {parent: ies-if, title: IES 接口 SAP, exit: [exit]}
+  # SAP / SDP 绑定下的 ingress / egress（QoS、过滤器引用）在 M7-3 按业务类型补视图
+  # QoS 与过滤器（ACL）
+  qos: {parent: configure, title: QoS (config>qos), exit: [exit]}
+  qos-sap-ingress: {parent: qos, title: SAP 入方向 QoS 策略 (config>qos>sap-ingress), exit: [exit]}
+  qos-sap-egress: {parent: qos, title: SAP 出方向 QoS 策略 (config>qos>sap-egress), exit: [exit]}
+  qos-network: {parent: qos, title: 网络 QoS 策略 (config>qos>network), exit: [exit]}
+  qos-network-queue: {parent: qos, title: 网络队列策略 (config>qos>network-queue), exit: [exit]}
+  qos-scheduler: {parent: qos, title: 调度策略 (config>qos>scheduler-policy), exit: [exit]}
+  filter: {parent: configure, title: 过滤器 (config>filter), exit: [exit]}
+  ip-filter: {parent: filter, title: IPv4 过滤器 (config>filter>ip-filter), exit: [exit]}
+  ip-filter-entry: {parent: ip-filter, title: 过滤器条目 (config>filter>ip-filter>entry), exit: [exit]}
+  ip-filter-match: {parent: ip-filter-entry, title: 匹配条件 (…>entry>match), exit: [exit]}
+  ip-filter-action: {parent: ip-filter-entry, title: 动作 (…>entry>action), exit: [exit]}

@@ -637,6 +637,171 @@
         }
       }
     },
+    "/api/v1/devices/{device_id}/delete-preview": {
+      "get": {
+        "tags": [
+          "configs"
+        ],
+        "summary": "删除设备的预览：连带删除的内容计数与受影响的检查项目（不删除）",
+        "operationId": "delete_preview_api_v1_devices__device_id__delete_preview_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Preview Api V1 Devices  Device Id  Delete Preview Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}": {
+      "delete": {
+        "tags": [
+          "configs"
+        ],
+        "summary": "删除设备与它的全部配置版本、快照、图、未识别行、导入记录、检查忽略项",
+        "operationId": "delete_device_api_v1_devices__device_id__delete",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "被配置检查项目作基线时仍删除，并清空这些项目的基线",
+              "default": false,
+              "title": "Force"
+            },
+            "description": "被配置检查项目作基线时仍删除，并清空这些项目的基线"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Device Api V1 Devices  Device Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/versions/{version_id}": {
+      "delete": {
+        "tags": [
+          "configs"
+        ],
+        "summary": "删除设备的一个配置版本（最后一个版本不能单独删除）",
+        "operationId": "delete_version_api_v1_devices__device_id__versions__version_id__delete",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "版本被配置检查项目固定为基线时仍删除，这些项目改为跟随最新版本",
+              "default": false,
+              "title": "Force"
+            },
+            "description": "版本被配置检查项目固定为基线时仍删除，这些项目改为跟随最新版本"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Version Api V1 Devices  Device Id  Versions  Version Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tasks/{task_id}": {
       "get": {
         "tags": [

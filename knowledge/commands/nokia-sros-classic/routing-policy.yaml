@@ -1,0 +1,2369 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: routing-policy
+cards:
+  - id: nokia-sros-classic.abort
+    syntax: abort
+    view: policy-options
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: abort
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.action
+    syntax: action { accept | next-entry | next-policy | drop | reject }
+    view: policy-entry
+    enters_view: policy-action
+    undo: no action
+    default: no action
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: action
+      line: 34
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.add-paths-send-limit@policy-entry
+    syntax: add-paths-send-limit <send-limit>
+    view: policy-entry
+    undo: no add-paths-send-limit
+    params: &id001
+      send-limit:
+        type: integer
+        range:
+          - 1
+          - 16
+    default: no add-paths-send-limit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: add-paths-send-limit
+      line: 84
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.add-paths-send-limit@policy-default
+    syntax: add-paths-send-limit <send-limit>
+    view: policy-default
+    undo: no add-paths-send-limit
+    params: *id001
+    default: no add-paths-send-limit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: add-paths-send-limit
+      line: 84
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.admin-tag-policy@policy-default
+    syntax: admin-tag-policy <policy-name>
+    view: policy-default
+    undo: no admin-tag-policy
+    params: &id002
+      policy-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: admin-tag-policy
+      line: 131
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.admin-tag-policy@policy-action
+    syntax: admin-tag-policy <policy-name>
+    view: policy-action
+    undo: no admin-tag-policy
+    params: *id002
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: admin-tag-policy
+      line: 131
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.advertise-label@policy-action
+    syntax: advertise-label { per-prefix | pop | pop-and-forward }
+    view: policy-action
+    undo: no advertise-label
+    default: no advertise-label
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: advertise-label
+      line: 176
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.advertise-label@policy-default
+    syntax: advertise-label { per-prefix | pop | pop-and-forward }
+    view: policy-default
+    undo: no advertise-label
+    default: no advertise-label
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: advertise-label
+      line: 176
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.aggregate-contributor
+    syntax: aggregate-contributor
+    view: policy-from
+    undo: no aggregate-contributor
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: aggregate-contributor
+      line: 245
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.aigp-metric.1@policy-action
+    syntax: aigp-metric <metric>
+    view: policy-action
+    undo: no aigp-metric
+    params: &id003
+      metric:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: no aigp-metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: aigp-metric
+      line: 279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.aigp-metric.1@policy-default
+    syntax: aigp-metric <metric>
+    view: policy-default
+    undo: no aigp-metric
+    params: *id003
+    default: no aigp-metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: aigp-metric
+      line: 279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.aigp-metric.2@policy-action
+    syntax: aigp-metric add
+    view: policy-action
+    undo: no aigp-metric
+    default: no aigp-metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: aigp-metric
+      line: 279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.aigp-metric.2@policy-default
+    syntax: aigp-metric add
+    view: policy-default
+    undo: no aigp-metric
+    default: no aigp-metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: aigp-metric
+      line: 279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.aigp-metric.3@policy-action
+    syntax: aigp-metric igp
+    view: policy-action
+    undo: no aigp-metric
+    default: no aigp-metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: aigp-metric
+      line: 279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.aigp-metric.3@policy-default
+    syntax: aigp-metric igp
+    view: policy-default
+    undo: no aigp-metric
+    default: no aigp-metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: aigp-metric
+      line: 279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.area~2
+    syntax: area <area-id>
+    view: policy-from
+    undo: no area
+    params:
+      area-id:
+        type: word
+    default: no area
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: area
+      line: 346
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.as-path
+    syntax: as-path <name>
+    view: policy-options
+    enters_view: opaque
+    undo: no as-path <name>
+    params:
+      name:
+        type: word
+    default: no as-path
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: as-path
+      line: 392
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.as-path~2
+    syntax: as-path <name>
+    view: policy-from
+    undo: no as-path
+    params:
+      name:
+        type: word
+    default: no as-path
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: as-path
+      line: 434
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.as-path@policy-default
+    syntax: as-path { add | replace } <name>
+    view: policy-default
+    undo: no as-path
+    params: &id004
+      name:
+        type: word
+    default: no as-path
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: as-path
+      line: 480
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.as-path@policy-action
+    syntax: as-path { add | replace } <name>
+    view: policy-action
+    undo: no as-path
+    params: *id004
+    default: no as-path
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: as-path
+      line: 480
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.as-path-group
+    syntax: as-path-group <name>
+    view: policy-options
+    enters_view: opaque
+    undo: no as-path-group <name>
+    params:
+      name:
+        type: word
+    default: no as-path-group
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: as-path-group
+      line: 531
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.as-path-group~2
+    syntax: as-path-group <name>
+    view: policy-from
+    undo: no as-path-group <name>
+    params:
+      name:
+        type: word
+    default: no as-path-group
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: as-path-group
+      line: 573
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.as-path-length
+    syntax: as-path-length <length> [ equal | or-higher | or-lower ] [ unique ]
+    view: policy-from
+    undo: no as-path-length
+    params:
+      length:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: no as-path-length
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: as-path-length
+      line: 615
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.as-path-prepend.1@policy-default
+    syntax: as-path-prepend <as-path> [ <repeat> ]
+    view: policy-default
+    undo: no as-path-prepend
+    params: &id005
+      as-path:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      repeat: &id006
+        type: integer
+        range:
+          - 1
+          - 50
+    default: no as-path-prepend
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: as-path-prepend
+      line: 667
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.as-path-prepend.1@policy-action
+    syntax: as-path-prepend <as-path> [ <repeat> ]
+    view: policy-action
+    undo: no as-path-prepend
+    params: *id005
+    default: no as-path-prepend
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: as-path-prepend
+      line: 667
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.as-path-prepend.2@policy-default
+    syntax: as-path-prepend most-recent [ <repeat> ]
+    view: policy-default
+    undo: no as-path-prepend
+    params: &id007
+      repeat: *id006
+    default: no as-path-prepend
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: as-path-prepend
+      line: 667
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.as-path-prepend.2@policy-action
+    syntax: as-path-prepend most-recent [ <repeat> ]
+    view: policy-action
+    undo: no as-path-prepend
+    params: *id007
+    default: no as-path-prepend
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: as-path-prepend
+      line: 667
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.begin
+    syntax: begin [ exclusive ]
+    view: policy-options
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: begin
+      line: 722
+      version: 25.10.R1
+      patched: 原文写作 begin {exclusive}（花括号只有一项，等于必选）；exclusive 是可选的，display-config 在 policy-options 下写 begin
+    status: draft
+  - id: nokia-sros-classic.bgp-high-priority@policy-default
+    syntax: bgp-high-priority
+    view: policy-default
+    undo: no bgp-high-priority
+    default: no bgp-high-priority
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: bgp-high-priority
+      line: 756
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-high-priority@policy-action
+    syntax: bgp-high-priority
+    view: policy-action
+    undo: no bgp-high-priority
+    default: no bgp-high-priority
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: bgp-high-priority
+      line: 756
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-leak@policy-action
+    syntax: bgp-leak
+    view: policy-action
+    undo: no bgp-leak
+    default: no bgp-leak
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: bgp-leak
+      line: 809
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-leak@policy-default
+    syntax: bgp-leak
+    view: policy-default
+    undo: no bgp-leak
+    default: no bgp-leak
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: bgp-leak
+      line: 809
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-med.1@policy-default
+    syntax: bgp-med adjust <expression>
+    view: policy-default
+    undo: no bgp-med
+    params: &id008
+      expression:
+        type: word
+    default: no bgp-med
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: bgp-med
+      line: 854
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-med.1@policy-action
+    syntax: bgp-med adjust <expression>
+    view: policy-action
+    undo: no bgp-med
+    params: *id008
+    default: no bgp-med
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: bgp-med
+      line: 854
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-med.2@policy-default
+    syntax: bgp-med set { igp | min-igp }
+    view: policy-default
+    undo: no bgp-med
+    default: no bgp-med
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: bgp-med
+      line: 854
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-med.2@policy-action
+    syntax: bgp-med set { igp | min-igp }
+    view: policy-action
+    undo: no bgp-med
+    default: no bgp-med
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: bgp-med
+      line: 854
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-med.3@policy-default
+    syntax: bgp-med set <med-value>
+    view: policy-default
+    undo: no bgp-med
+    params: &id009
+      med-value:
+        type: word
+    default: no bgp-med
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: bgp-med
+      line: 854
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-med.3@policy-action
+    syntax: bgp-med set <med-value>
+    view: policy-action
+    undo: no bgp-med
+    params: *id009
+    default: no bgp-med
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: bgp-med
+      line: 854
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-tunnel-metric@policy-default
+    syntax: bgp-tunnel-metric [ <value> | <param-name> ] [ prefer-aigp ] [ prefer-med ]
+    view: policy-default
+    undo: no bgp-tunnel-metric
+    params: &id010
+      value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      param-name:
+        type: word
+    default: no bgp-tunnel-metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: bgp-tunnel-metric
+      line: 910
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-tunnel-metric@policy-action
+    syntax: bgp-tunnel-metric [ <value> | <param-name> ] [ prefer-aigp ] [ prefer-med ]
+    view: policy-action
+    undo: no bgp-tunnel-metric
+    params: *id010
+    default: no bgp-tunnel-metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: bgp-tunnel-metric
+      line: 910
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cluster-id.1
+    syntax: cluster-id <ip-address/mask> [ <ip-address/mask> ] &<1-31>
+    view: policy-from
+    undo: no cluster-id
+    params:
+      ip-address/mask:
+        type: prefix
+    default: no cluster-id
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: cluster-id
+      line: 960
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cluster-id.2
+    syntax: cluster-id none
+    view: policy-from
+    undo: no cluster-id
+    default: no cluster-id
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: cluster-id
+      line: 960
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.color
+    syntax: color <color-id>
+    view: policy-from
+    undo: no color
+    params:
+      color-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: color
+      line: 1016
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.commit
+    syntax: commit
+    view: policy-options
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: commit
+      line: 1056
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community~3
+    syntax: community <name>
+    view: policy-options
+    enters_view: opaque
+    undo: no community <name>
+    params:
+      name:
+        type: word
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: community
+      line: 1084
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community.1@policy-action
+    syntax: community add <name> [ <name> ] &<1-31>
+    view: policy-action
+    undo: no community
+    params: &id011
+      name: &id012
+        type: word
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: community
+      line: 1128
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community.1@policy-default
+    syntax: community add <name> [ <name> ] &<1-31>
+    view: policy-default
+    undo: no community
+    params: *id011
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: community
+      line: 1128
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community.2@policy-action
+    syntax: community remove <name> [ <name> ] &<1-31>
+    view: policy-action
+    undo: no community
+    params: &id013
+      name: *id012
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: community
+      line: 1128
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community.2@policy-default
+    syntax: community remove <name> [ <name> ] &<1-31>
+    view: policy-default
+    undo: no community
+    params: *id013
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: community
+      line: 1128
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community.3@policy-action
+    syntax: community replace <name> [ <name> ] &<1-31>
+    view: policy-action
+    undo: no community
+    params: &id014
+      name: *id012
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: community
+      line: 1128
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community.3@policy-default
+    syntax: community replace <name> [ <name> ] &<1-31>
+    view: policy-default
+    undo: no community
+    params: *id014
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: community
+      line: 1128
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community.1
+    syntax: community <comm-name>
+    view: policy-from
+    undo: no community
+    params:
+      comm-name:
+        type: word
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: community
+      line: 1186
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community.2
+    syntax: community expression <expression>
+    view: policy-from
+    undo: no community
+    params:
+      expression:
+        type: word
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: community
+      line: 1186
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community-count
+    syntax: community-count <count> [ equal | or-higher | or-lower ] [ standard | extended | large ]
+    view: policy-from
+    undo: no community-count
+    params:
+      count:
+        type: integer
+        range:
+          - 0
+          - 1024
+    default: no community-count
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: community-count
+      line: 1233
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.conditional-expression
+    syntax: conditional-expression
+    view: policy-entry
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: conditional-expression
+      line: 1285
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.create-mpls-tunnel
+    syntax: create-mpls-tunnel
+    view: policy-action
+    undo: no create-mpls-tunnel
+    default: no create-mpls-tunnel
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: create-mpls-tunnel
+      line: 1313
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.create-udp-tunnel@policy-action
+    syntax: create-udp-tunnel
+    view: policy-action
+    undo: no create-udp-tunnel
+    default: no create-udp-tunnel
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: create-udp-tunnel
+      line: 1363
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.create-udp-tunnel@policy-default
+    syntax: create-udp-tunnel
+    view: policy-default
+    undo: no create-udp-tunnel
+    default: no create-udp-tunnel
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: create-udp-tunnel
+      line: 1363
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.damping
+    syntax: damping <name>
+    view: policy-options
+    enters_view: opaque
+    undo: no damping <name>
+    params:
+      name:
+        type: word
+    default: no damping
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: damping
+      line: 1402
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.damping@policy-action
+    syntax: damping { <name> | none }
+    view: policy-action
+    undo: no damping
+    params: &id015
+      name:
+        type: word
+    default: no damping
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: damping
+      line: 1444
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.damping@policy-default
+    syntax: damping { <name> | none }
+    view: policy-default
+    undo: no damping
+    params: *id015
+    default: no damping
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: damping
+      line: 1444
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.default-action
+    syntax: default-action { accept | next-entry | next-policy | drop | reject }
+    view: policy-statement
+    enters_view: policy-default
+    undo: no default-action
+    default: no default-action
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: default-action
+      line: 1494
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.description@policy-entry
+    syntax: description <short-description-string>
+    view: policy-entry
+    undo: no description
+    params: &id016
+      short-description-string:
+        type: text
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: description
+      line: 1540
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.description@policy-statement
+    syntax: description <short-description-string>
+    view: policy-statement
+    undo: no description
+    params: *id016
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: description
+      line: 1540
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dest-class@policy-entry
+    syntax: dest-class <dest-class>
+    view: policy-entry
+    undo: no dest-class
+    params: &id017
+      dest-class:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: no dest-class
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: dest-class
+      line: 2133
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dest-class@policy-default
+    syntax: dest-class <dest-class>
+    view: policy-default
+    undo: no dest-class
+    params: *id017
+    default: no dest-class
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: dest-class
+      line: 2133
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.disable-route-table-install@policy-action
+    syntax: disable-route-table-install
+    view: policy-action
+    undo: no disable-route-table-install
+    default: no disable-route-table-install
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: disable-route-table-install
+      line: 2184
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.disable-route-table-install@policy-default
+    syntax: disable-route-table-install
+    view: policy-default
+    undo: no disable-route-table-install
+    default: no disable-route-table-install
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: disable-route-table-install
+      line: 2184
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.distinguisher
+    syntax: distinguisher <distinguisher-id>
+    view: policy-from
+    undo: no distinguisher
+    params:
+      distinguisher-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: distinguisher
+      line: 2229
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.egress-statistics@policy-default
+    syntax: egress-statistics
+    view: policy-default
+    undo: no egress-statistics
+    default: no egress-statistics
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: egress-statistics
+      line: 2267
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.egress-statistics@policy-action
+    syntax: egress-statistics
+    view: policy-action
+    undo: no egress-statistics
+    default: no egress-statistics
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: egress-statistics
+      line: 2267
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.endpoint
+    syntax: endpoint <ip-address>
+    view: policy-from
+    undo: no endpoint
+    params:
+      ip-address:
+        type: ipv4
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: endpoint
+      line: 2308
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.entry
+    syntax: entry <entry-id>
+    view: policy-statement
+    enters_view: policy-entry
+    undo: no entry
+    params:
+      entry-id:
+        type: integer
+        range:
+          - 1
+          - 128
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: entry
+      line: 2389
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.evpn-type
+    syntax: evpn-type <type>
+    view: policy-from
+    undo: no evpn-type
+    params:
+      type:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: evpn-type
+      line: 2431
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.exclusive-lock-time
+    syntax: exclusive-lock-time <seconds>
+    view: policy-options
+    params:
+      seconds:
+        type: word
+    default: exclusive-lock-time 300
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: exclusive-lock-time
+      line: 2483
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.external
+    syntax: external
+    view: policy-from
+    undo: no external
+    default: no external
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: external
+      line: 2621
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.family
+    syntax: family [ ipv4 ] [ label-ipv4 ] [ vpn-ipv4 ] [ ipv6 ] [ label-ipv6 ] [ vpn-ipv6 ] [ mcast-ipv4 ] [ l2-vpn ] [ mvpn-ipv4 ] [ mvpn-ipv6 ] [ mdt-safi ] [ ms-pw ] [ flow-ipv4 ] [ flow-ipv6 ] [ route-target ] [ mcast-vpn-ipv4 ] [ evpn ] [ bgp-ls ] [ mcast-ipv6 ] [ mcast-vpn-ipv6 ] [ sr-policy-ipv4 ] [ sr-policy-ipv6 ] [ flow-vpn-ipv4 ] [ flow-vpn-ipv6 ]
+    view: policy-from
+    undo: no family
+    default: no family
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: family
+      line: 2655
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.fc
+    syntax: fc <fc> [ priority { low | high } ]
+    view: policy-action
+    undo: no fc
+    params:
+      fc:
+        type: word
+    default: no fc
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: fc
+      line: 2720
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.flow-spec-dest
+    syntax: flow-spec-dest <prefix-list-name>
+    view: policy-from
+    undo: no flow-spec-dest
+    params:
+      prefix-list-name:
+        type: word
+    default: no flow-spec-dest
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: flow-spec-dest
+      line: 2817
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.flow-spec-source
+    syntax: flow-spec-source <prefix-list-name>
+    view: policy-from
+    undo: no flow-spec-source
+    params:
+      prefix-list-name:
+        type: word
+    default: no flow-spec-source
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: flow-spec-source
+      line: 2861
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.from~2
+    syntax: from
+    view: policy-entry
+    enters_view: policy-from
+    undo: no from
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: from
+      line: 2905
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.global-variables
+    syntax: global-variables
+    view: policy-options
+    enters_view: opaque
+    undo: no global-variables
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: global-variables
+      line: 2939
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.group-address
+    syntax: group-address <prefix-list-name>
+    view: policy-from
+    undo: no group-address
+    params:
+      prefix-list-name:
+        type: word
+    default: no group-address
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: group-address
+      line: 2971
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.host-ip
+    syntax: host-ip <prefix-list-name>
+    view: policy-from
+    params:
+      prefix-list-name:
+        type: word
+    default: no host-ip
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: host-ip
+      line: 3059
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ingress-statistics@policy-default
+    syntax: ingress-statistics
+    view: policy-default
+    undo: no ingress-statistics
+    default: no ingress-statistics
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: ingress-statistics
+      line: 3097
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ingress-statistics@policy-action
+    syntax: ingress-statistics
+    view: policy-action
+    undo: no ingress-statistics
+    default: no ingress-statistics
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: ingress-statistics
+      line: 3097
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.install-backup-path@policy-action
+    syntax: install-backup-path
+    view: policy-action
+    undo: no install-backup-path
+    default: no install-backup-path
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: install-backup-path
+      line: 3138
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.install-backup-path@policy-default
+    syntax: install-backup-path
+    view: policy-default
+    undo: no install-backup-path
+    default: no install-backup-path
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: install-backup-path
+      line: 3138
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interface~3
+    syntax: interface <interface-name>
+    view: policy-from
+    undo: no interface
+    params:
+      interface-name:
+        type: word
+    default: no interface
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: interface
+      line: 3185
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interface-subnets
+    syntax: interface-subnets [ service <service-id> ] <interface-name>
+    view: policy-from
+    undo: no interface-subnets
+    params:
+      service-id:
+        type: word
+      interface-name:
+        type: word
+    default: no interface-subnets
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: interface-subnets
+      line: 3227
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.level~2
+    syntax: level { 1 | 2 }
+    view: policy-from
+    undo: no level
+    default: no level
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: level
+      line: 3277
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.local-preference
+    syntax: local-preference <preference> [ equal | or-higher | or-lower ]
+    view: policy-from
+    undo: no local-preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: no local-preference
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: local-preference
+      line: 3322
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.local-preference@policy-entry
+    syntax: local-preference <preference>
+    view: policy-entry
+    undo: no local-preference
+    params: &id018
+      preference:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: no local-preference
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: local-preference
+      line: 3369
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.local-preference@policy-default
+    syntax: local-preference <preference>
+    view: policy-default
+    undo: no local-preference
+    params: *id018
+    default: no local-preference
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: local-preference
+      line: 3369
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.metric~3
+    syntax: metric <metric> [ equal | or-higher | or-lower ]
+    view: policy-from
+    undo: no metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: no metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: metric
+      line: 3516
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.metric.1@policy-action
+    syntax: metric { add | subtract } <metric>
+    view: policy-action
+    undo: no metric
+    params: &id019
+      metric:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: no metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: metric
+      line: 3563
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.metric.1@policy-default
+    syntax: metric { add | subtract } <metric>
+    view: policy-default
+    undo: no metric
+    params: *id019
+    default: no metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: metric
+      line: 3563
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.metric.2@policy-action
+    syntax: metric set [ igp | <metric-value> ]
+    view: policy-action
+    undo: no metric
+    params: &id020
+      metric-value:
+        type: word
+    default: no metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: metric
+      line: 3563
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.metric.2@policy-default
+    syntax: metric set [ igp | <metric-value> ]
+    view: policy-default
+    undo: no metric
+    params: *id020
+    default: no metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: metric
+      line: 3563
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.multicast-redirection
+    syntax: multicast-redirection [ fwd-service <service-id> ] <ip-int-name>
+    view: policy-action
+    undo: no multicast-redirection
+    params:
+      service-id:
+        type: word
+      ip-int-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: multicast-redirection
+      line: 3616
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.multicast-redirection~2
+    syntax: multicast-redirection [ fwd-service <service-id> ] <ip-int-name>
+    view: policy-default
+    undo: no multicast-redirection
+    params:
+      service-id:
+        type: word
+      ip-int-name:
+        type: word
+    default: no multicast-redirection
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: multicast-redirection
+      line: 3646
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mvpn-type
+    syntax: mvpn-type { 1 | 2 | 3 | 4 | 5 | 6 | 7 }
+    view: policy-from
+    undo: no mvpn-type
+    default: no mvpn-type
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: mvpn-type
+      line: 3695
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.nat-policy
+    syntax: nat-policy <nat-policy-name>
+    view: policy-action
+    undo: no nat-policy
+    params:
+      nat-policy-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: nat-policy
+      line: 3801
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.nat-policy~2
+    syntax: nat-policy <nat-policy-name>
+    view: policy-default
+    undo: no nat-policy
+    params:
+      nat-policy-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: nat-policy
+      line: 3841
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.neighbor~2
+    syntax: neighbor { <ip-address> | prefix-list <name> }
+    view: policy-from
+    undo: no neighbor
+    params:
+      ip-address:
+        type: ipv4
+      name:
+        type: word
+    default: no neighbor
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: neighbor
+      line: 3883
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.next-hop.1
+    syntax: next-hop <ip-address>
+    view: policy-from
+    undo: no next-hop
+    params:
+      ip-address:
+        type: ipv4
+    default: no next-hop
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: next-hop
+      line: 3931
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.next-hop.2
+    syntax: next-hop prefix-list <name>
+    view: policy-from
+    undo: no next-hop
+    params:
+      name:
+        type: word
+    default: no next-hop
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: next-hop
+      line: 3931
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.next-hop@policy-action
+    syntax: next-hop { <ip-address> | peer-address }
+    view: policy-action
+    undo: no next-hop
+    params: &id021
+      ip-address:
+        type: ipv4
+    default: no next-hop
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: next-hop
+      line: 3979
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.next-hop@policy-default
+    syntax: next-hop { <ip-address> | peer-address }
+    view: policy-default
+    undo: no next-hop
+    params: *id021
+    default: no next-hop
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: next-hop
+      line: 3979
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.next-hop-self@policy-action
+    syntax: next-hop-self
+    view: policy-action
+    undo: no next-hop-self
+    default: no next-hop-self
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: next-hop-self
+      line: 4029
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.next-hop-self@policy-default
+    syntax: next-hop-self
+    view: policy-default
+    undo: no next-hop-self
+    default: no next-hop-self
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: next-hop-self
+      line: 4029
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.origin
+    syntax: origin { igp | egp | incomplete | any | aaa | dynamic | static | bonding | pfcp }
+    view: policy-from
+    undo: no origin
+    default: no origin
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: origin
+      line: 4072
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.origin@policy-default
+    syntax: origin { igp | egp | incomplete | <param-name> }
+    view: policy-default
+    undo: no origin
+    params: &id022
+      param-name:
+        type: word
+    default: no origin
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: origin
+      line: 4130
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.origin@policy-action
+    syntax: origin { igp | egp | incomplete | <param-name> }
+    view: policy-action
+    undo: no origin
+    params: *id022
+    default: no origin
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: origin
+      line: 4130
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.origin-validation-state
+    syntax: origin-validation-state state
+    view: policy-from
+    undo: no origin-validation-state
+    default: no origin-validation-state
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: origin-validation-state
+      line: 4182
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.origin-validation-state@policy-default
+    syntax: origin-validation-state { <state> | <param-name> }
+    view: policy-default
+    undo: no origin-validation-state
+    params: &id023
+      state:
+        type: word
+      param-name:
+        type: word
+    default: no origin-validation-state
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: origin-validation-state
+      line: 4230
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.origin-validation-state@policy-action
+    syntax: origin-validation-state { <state> | <param-name> }
+    view: policy-action
+    undo: no origin-validation-state
+    params: *id023
+    default: no origin-validation-state
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: origin-validation-state
+      line: 4230
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.path-type
+    syntax: path-type { ibgp | ebgp }
+    view: policy-from
+    undo: no path-type
+    default: no path-type
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: path-type
+      line: 4282
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.policy
+    syntax: policy <plcy-or-long-expr>
+    view: policy-from
+    undo: no policy
+    params:
+      plcy-or-long-expr:
+        type: word
+    default: no policy
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: policy
+      line: 4325
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.policy~2
+    syntax: policy <plcy-or-long-expr>
+    view: policy-action
+    undo: no policy
+    params:
+      plcy-or-long-expr:
+        type: word
+    default: no policy
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: policy
+      line: 4371
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.policy-options
+    syntax: policy-options
+    view: router
+    enters_view: policy-options
+    undo: no policy-options
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: policy-options
+      line: 4417
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.policy-statement
+    syntax: policy-statement <name>
+    view: policy-options
+    enters_view: policy-statement
+    undo: no policy-statement <name>
+    params:
+      name:
+        type: word
+    default: no policy-statement
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: policy-statement
+      line: 4449
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.policy-variables
+    syntax: policy-variables
+    view: policy-from
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: policy-variables
+      line: 4495
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.preference~3
+    syntax: preference <preference>
+    view: policy-action
+    undo: no preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: no preference
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: preference
+      line: 4525
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix
+    syntax: prefix <ip-prefix/prefix-length> [ exact | longer | through <length> | prefix-length-range <length1-length2> | to <ip-prefix/prefix-length> | address-mask <mask-pattern> ]
+    view: prefix-list
+    undo: no prefix <ip-prefix/prefix-length> [ exact | longer | through <length> | prefix-length-range <length1-length2> | to <ip-prefix/prefix-length> | address-mask <mask-pattern> ]
+    params:
+      ip-prefix/prefix-length:
+        type: prefix
+      length:
+        type: integer
+        range:
+          - 0
+          - 32
+      length1-length2:
+        type: word
+      mask-pattern:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: prefix
+      line: 4578
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-list
+    syntax: prefix-list <name>
+    view: policy-options
+    enters_view: prefix-list
+    undo: no prefix-list <name>
+    params:
+      name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: prefix-list
+      line: 4622
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-list~2
+    syntax: prefix-list <name> [ <name> ] &<1-31>
+    view: policy-from
+    undo: no prefix-list
+    params:
+      name:
+        type: word
+    default: no prefix-list
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: prefix-list
+      line: 4660
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-list-override.1
+    syntax: prefix-list-override <name> { exact | longer }
+    view: policy-from
+    undo: no prefix-list-override
+    params:
+      name: &id024
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: prefix-list-override
+      line: 4715
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-list-override.2
+    syntax: prefix-list-override <name> prefix-length-range <length1-length2>
+    view: policy-from
+    undo: no prefix-list-override
+    params:
+      name:
+        type: word
+      length1-length2:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: prefix-list-override
+      line: 4715
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-list-override.3
+    syntax: prefix-list-override <name> through <length>
+    view: policy-from
+    undo: no prefix-list-override
+    params:
+      name: *id024
+      length:
+        type: integer
+        range:
+          - 0
+          - 128
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: prefix-list-override
+      line: 4715
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.protocol.1
+    syntax: protocol <protocol> [ all | { instance <instance> } ]
+    view: policy-from
+    undo: no protocol
+    params:
+      protocol:
+        type: word
+      instance:
+        type: word
+    default: no protocol
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: protocol
+      line: 4761
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.protocol.2
+    syntax: protocol <protocol2> [ <protocol2> ] &<1-4>
+    view: policy-from
+    undo: no protocol
+    params:
+      protocol2:
+        type: word
+    default: no protocol
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: protocol
+      line: 4761
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.renumber
+    syntax: renumber from <entry-id> to <entry-id>
+    view: policy-statement
+    params:
+      entry-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: renumber
+      line: 4898
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.resolve-static@policy-action
+    syntax: resolve-static
+    view: policy-action
+    undo: no resolve-static
+    default: no resolve-static
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: resolve-static
+      line: 4935
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.resolve-static@policy-default
+    syntax: resolve-static
+    view: policy-default
+    undo: no resolve-static
+    default: no resolve-static
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: resolve-static
+      line: 4935
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.route-distinguisher-list
+    syntax: route-distinguisher-list <name>
+    view: policy-options
+    enters_view: opaque
+    undo: no route-distinguisher-list <name>
+    params:
+      name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: route-distinguisher-list
+      line: 5020
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.route-distinguisher-list~2
+    syntax: route-distinguisher-list <name>
+    view: policy-from
+    undo: no route-distinguisher-list <name>
+    params:
+      name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: route-distinguisher-list
+      line: 5056
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.source-address.1
+    syntax: source-address <ip-address>
+    view: policy-from
+    undo: no source-address
+    params:
+      ip-address:
+        type: ipv4
+    default: no source-address
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: source-address
+      line: 5136
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.source-address.2
+    syntax: source-address prefix-list <prefix-list-name>
+    view: policy-from
+    undo: no source-address
+    params:
+      prefix-list-name:
+        type: word
+    default: no source-address
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: source-address
+      line: 5136
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.source-class@policy-action
+    syntax: source-class [ <value> ]
+    view: policy-action
+    undo: no source-class
+    params: &id025
+      value:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: source-class
+      line: 5183
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.source-class@policy-default
+    syntax: source-class [ <value> ]
+    view: policy-default
+    undo: no source-class
+    params: *id025
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: source-class
+      line: 5183
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sr-label-index@policy-action
+    syntax: sr-label-index { <value> | <param-name> } [ prefer-igp ]
+    view: policy-action
+    undo: no sr-label-index
+    params: &id026
+      value:
+        type: integer
+        range:
+          - 0
+          - 52487
+      param-name:
+        type: word
+    default: no sr-label-index
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: sr-label-index
+      line: 5224
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sr-label-index@policy-default
+    syntax: sr-label-index { <value> | <param-name> } [ prefer-igp ]
+    view: policy-default
+    undo: no sr-label-index
+    params: *id026
+    default: no sr-label-index
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: sr-label-index
+      line: 5224
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sr-maintenance-policy@policy-default
+    syntax: sr-maintenance-policy <maintenance-policy-name>
+    view: policy-default
+    undo: no sr-maintenance-policy
+    params: &id027
+      maintenance-policy-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: sr-maintenance-policy
+      line: 5287
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sr-maintenance-policy@policy-action
+    syntax: sr-maintenance-policy <maintenance-policy-name>
+    view: policy-action
+    undo: no sr-maintenance-policy
+    params: *id027
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: sr-maintenance-policy
+      line: 5287
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srv6-locator@policy-action
+    syntax: srv6-locator <name>
+    view: policy-action
+    undo: no srv6-locator
+    params: &id028
+      name:
+        type: word
+    default: no srv6-locator
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: srv6-locator
+      line: 5380
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srv6-locator@policy-default
+    syntax: srv6-locator <name>
+    view: policy-default
+    undo: no srv6-locator
+    params: *id028
+    default: no srv6-locator
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: srv6-locator
+      line: 5380
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srv6-micro-segment-locator@policy-default
+    syntax: srv6-micro-segment-locator <name>
+    view: policy-default
+    undo: no srv6-micro-segment-locator
+    params: &id029
+      name:
+        type: word
+    default: no srv6-micro-segment-locator
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: srv6-micro-segment-locator
+      line: 5431
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srv6-micro-segment-locator@policy-action
+    syntax: srv6-micro-segment-locator <name>
+    view: policy-action
+    undo: no srv6-micro-segment-locator
+    params: *id029
+    default: no srv6-micro-segment-locator
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: srv6-micro-segment-locator
+      line: 5431
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srv6-sid-prefix
+    syntax: srv6-sid-prefix { <ipv6-prefix/prefix-length> | <param-name> }
+    view: policy-from
+    undo: no srv6-sid-prefix
+    params:
+      ipv6-prefix/prefix-length:
+        type: word
+      param-name:
+        type: word
+    default: no srv6-sid-prefix
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: srv6-sid-prefix
+      line: 5526
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srv6-tlv
+    syntax: srv6-tlv { present | not-present }
+    view: policy-from
+    undo: no srv6-tlv
+    default: no srv6-tlv
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: srv6-tlv
+      line: 5573
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.state
+    syntax: state <state>
+    view: policy-from
+    undo: no state
+    params:
+      state:
+        type: word
+    default: no state
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: state
+      line: 5618
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sticky-ecmp@policy-action
+    syntax: sticky-ecmp
+    view: policy-action
+    undo: no sticky-ecmp
+    default: no sticky-ecmp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: sticky-ecmp
+      line: 5658
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sticky-ecmp@policy-default
+    syntax: sticky-ecmp
+    view: policy-default
+    undo: no sticky-ecmp
+    default: no sticky-ecmp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: sticky-ecmp
+      line: 5658
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tag~2
+    syntax: tag { no-tag | <tag> }
+    view: policy-from
+    undo: no tag
+    params:
+      tag:
+        type: word
+    default: no tag
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: tag
+      line: 5741
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tag@policy-action
+    syntax: tag <tag>
+    view: policy-action
+    undo: no tag
+    params: &id030
+      tag:
+        type: word
+    default: no tag
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: tag
+      line: 5784
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tag@policy-default
+    syntax: tag <tag>
+    view: policy-default
+    undo: no tag
+    params: *id030
+    default: no tag
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: tag
+      line: 5784
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.to
+    syntax: to
+    view: policy-entry
+    enters_view: opaque
+    undo: no to
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: to
+      line: 5835
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.type
+    syntax: type { 1 | 2 }
+    view: policy-from
+    undo: no type
+    default: no type
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: type
+      line: 5871
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.type@policy-action
+    syntax: type { <type> | <param-name> }
+    view: policy-action
+    undo: no type
+    params: &id031
+      type:
+        type: word
+      param-name:
+        type: word
+    default: type 2
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: type
+      line: 5916
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.type@policy-default
+    syntax: type { <type> | <param-name> }
+    view: policy-default
+    undo: no type
+    params: *id031
+    default: type 2
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: type
+      line: 5916
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.flex-algo@policy-action
+    syntax: flex-algo { <flex-algo-id> | <param-name> }
+    view: policy-action
+    undo: no flex-algo
+    params: &id032
+      flex-algo-id:
+        type: integer
+        range:
+          - 128
+          - 255
+      param-name:
+        type: word
+    default: no flex-algo
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: flex-algo
+      line: 2763
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.flex-algo@policy-default
+    syntax: flex-algo { <flex-algo-id> | <param-name> }
+    view: policy-default
+    undo: no flex-algo
+    params: *id032
+    default: no flex-algo
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: flex-algo
+      line: 2763
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sr-return-path-bfd-label@policy-action
+    syntax: sr-return-path-bfd-label { <value> | <param-name> }
+    view: policy-action
+    undo: no sr-return-path-bfd-label
+    params: &id033
+      value:
+        type: integer
+        range:
+          - 32
+          - 1048575
+      param-name:
+        type: word
+    default: no sr-return-path-bfd-label
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: sr-return-path-bfd-label
+      line: 5330
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sr-return-path-bfd-label@policy-default
+    syntax: sr-return-path-bfd-label { <value> | <param-name> }
+    view: policy-default
+    undo: no sr-return-path-bfd-label
+    params: *id033
+    default: no sr-return-path-bfd-label
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: sr-return-path-bfd-label
+      line: 5330
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srv6-return-path-bfd-sid@policy-action
+    syntax: srv6-return-path-bfd-sid { <ipv6-address> | <param-name> }
+    view: policy-action
+    undo: no srv6-return-path-bfd-sid
+    params: &id034
+      ipv6-address:
+        type: word
+      param-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: srv6-return-path-bfd-sid
+      line: 5482
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srv6-return-path-bfd-sid@policy-default
+    syntax: srv6-return-path-bfd-sid { <ipv6-address> | <param-name> }
+    view: policy-default
+    undo: no srv6-return-path-bfd-sid
+    params: *id034
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_policy-options.md
+      title: srv6-return-path-bfd-sid
+      line: 5482
+      version: 25.10.R1
+    status: draft

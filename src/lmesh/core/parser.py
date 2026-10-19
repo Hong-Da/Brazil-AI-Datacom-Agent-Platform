@@ -11,6 +11,10 @@
 
 层级以缩进为准；例外是“比上一行缩进深很多、而上一行并没有进入子视图”的行（终端分页留下的异常缩进），
 它仍属于上一行所在的视图，原始空白原样保留。
+
+平台族 views.yaml 的 block: exit（Nokia Classic）用另一种分块方式（_parse_exit_blocks）：缩进按 indent 个空格折算层级；
+每个块由与开头同列的 exit 关闭（原文块也一样）；exit all 清空视图栈；configure 等结构行进入根视图；
+# 注释、echo 版式行与分隔行不改变视图栈；没有进入视图的命令下面若有更深缩进的子行，子行按原文保留。
 """
 
 from __future__ import annotations
@@ -22,7 +26,7 @@ from typing import Any
 
 from lmesh.core.kb import KnowledgeBase
 from lmesh.core.kb import syntax as syn
-from lmesh.core.kb.model import Card
+from lmesh.core.kb.model import Card, Family
 
 STATUS_RANK = {"verified": 3, "reviewed": 2, "draft": 1, "rejected": 0}
 
@@ -94,6 +98,7 @@ class CardIndex:
     def __init__(self, kb: KnowledgeBase, family: str):
         self.negative = kb.families[family].negative
         self.root_view = kb.families[family].root_view
+        self.quotes = kb.families[family].quotes
         self.undo: dict[str, list[tuple[Card, syn.Syntax]]] = defaultdict(list)  # 视图 → (卡, undo 语法)
         self.by_key: dict[tuple[str, str], list[Card]] = defaultdict(list)
         self.loose: dict[str, list[Card]] = defaultdict(list)  # 语法不以关键字开头的卡
@@ -120,6 +125,7 @@ class CardIndex:
                         self.prefixes[c.view].add(tuple(usyn.leading_keywords()[:3]))
                 except syn.SyntaxErrorKB:
                     pass
+        self.enters = {c.id: str(c.enters_view) for c in kb.cards_of(family) if c.enters_view}
         for cards in self.by_key.values():
             cards.sort(key=lambda c: (-STATUS_RANK.get(c.status, 0), c.id))
 
@@ -144,7 +150,7 @@ def match_undo(index: CardIndex, view: str, text: str) -> tuple[Card, syn.Match,
     """取消形式：先按命令卡的 undo 语法匹配；匹配不上时，“取消前缀 + 某张卡开头的全部关键字”也算（no ip address）。"""
     best: tuple[Card, syn.Match, syn.Syntax] | None = None
     for card, usyn in index.undo.get(view, []):
-        m = syn.match(usyn, text, card.params)
+        m = syn.match(usyn, text, card.params, index.quotes)
         if m is not None and (
             best is None
             or m.keywords > best[1].keywords
@@ -157,7 +163,7 @@ def match_undo(index: CardIndex, view: str, text: str) -> tuple[Card, syn.Match,
             lead = card.parsed.leading_keywords()
             if lead and lead == words:
                 bare = syn.parse(" ".join([text.split()[0], *card.parsed.leading_keywords()]))
-                m = syn.match(bare, text, {})
+                m = syn.match(bare, text, {}, index.quotes)
                 if m is not None:
                     return (card, m, bare)
     return best
@@ -170,7 +176,7 @@ def match_line(index: CardIndex, view: str, text: str) -> tuple[Card, syn.Match]
     best: tuple[Card, syn.Match] | None = None
     for card in index.candidates(view, toks[0]):
         try:
-            m = syn.match(card.parsed, text, card.params)
+            m = syn.match(card.parsed, text, card.params, index.quotes)
         except syn.SyntaxErrorKB:
             continue
         if m is None:
@@ -211,6 +217,8 @@ def _abnormal_depth(stack: list[_Frame], indent: int, index: CardIndex, stripped
 def parse(text: str, kb: KnowledgeBase, family: str) -> Parsed:
     fam = kb.families[family]
     index = CardIndex(kb, family)
+    if fam.block == "exit":
+        return _parse_exit_blocks(text, fam, index, Parsed(family))
     out = Parsed(family)
     stack: list[_Frame] = []
     prev_indent = 0
@@ -310,6 +318,105 @@ def parse(text: str, kb: KnowledgeBase, family: str) -> Parsed:
         stack.append(_Frame(indent, view, no, raw=True))
         prev_indent, prev_entered = indent, False
     return out
+
+
+def _command_line(index: CardIndex, view: str, no: int, raw: str, lead: str, parent: int | None) -> Line | None:
+    """在视图里匹配一行（先取消形式，再普通形式）；匹配不上返回 None。"""
+    stripped = raw.strip()
+    body = raw[len(lead) :]
+    if stripped.split()[0].lower() == index.negative:
+        neg = match_undo(index, view, stripped)
+        if neg:
+            card, m, usyn = neg
+            line = Line(no, raw, "command", lead, view, card.id, m, parent, card.domain, negated=True)
+            if syn.render(usyn, m) != body:
+                line.fmt = body
+            return line
+    hit = match_line(index, view, stripped)
+    if hit is None:
+        return None
+    card, m = hit
+    line = Line(no, raw, "command", lead, view, card.id, m, parent, card.domain)
+    if syn.render(card.parsed, m) != body:
+        line.fmt = body
+    return line
+
+
+def _parse_exit_blocks(text: str, fam: Family, index: CardIndex, out: Parsed) -> Parsed:
+    """Nokia Classic 的分块：层级 = 缩进 / indent；块由同列的 exit 关闭（见模块说明）。"""
+    unit = max(fam.indent, 1)
+    layout = [re.compile(p) for p in fam.layout]
+    stack: list[_Frame] = []  # _Frame.indent 存层级
+    for no, raw in enumerate(text.split("\n"), start=1):
+        stripped = raw.strip()
+        lead = raw[: len(raw) - len(raw.lstrip())]
+        if not stripped:
+            out.lines.append(Line(no, raw, "blank", lead))
+            continue
+        if stripped == fam.separator:
+            out.lines.append(Line(no, raw, "separator", lead))
+            continue
+        if any(stripped.startswith(c) for c in fam.comment) or any(p.search(stripped) for p in layout):
+            out.lines.append(Line(no, raw, "comment", lead))
+            continue
+        if fam.end and stripped == fam.end:
+            out.lines.append(Line(no, raw, "end", lead))
+            stack.clear()
+            continue
+        if stripped in fam.begin and not lead:
+            out.lines.append(Line(no, raw, "separator", lead))
+            stack.clear()
+            continue
+        level = (len(lead.expandtabs(unit)) + unit - 1) // unit
+        if stripped == "exit":
+            while stack and stack[-1].indent > level:
+                stack.pop()
+            if stack and stack[-1].indent == level:
+                fr = stack.pop()
+                if fr.raw:
+                    out.lines.append(Line(no, raw, "raw", lead, fr.view, parent=fr.line))
+                else:
+                    out.lines.append(Line(no, raw, "command", lead, fr.view, card="@exit:exit", parent=fr.line))
+            else:  # 没有对应的块（多余的 exit）：原文保留
+                frame = stack[-1] if stack else None
+                out.lines.append(
+                    Line(
+                        no,
+                        raw,
+                        "raw",
+                        lead,
+                        frame.view if frame else fam.root_view,
+                        parent=frame.line if frame else None,
+                    )
+                )
+            continue
+        while stack and stack[-1].indent >= level:
+            stack.pop()
+        frame = stack[-1] if stack else None
+        view = frame.view if frame else fam.root_view
+        parent = frame.line if frame else None
+        if frame is not None and frame.raw:
+            out.lines.append(Line(no, raw, "raw", lead, view, parent=parent))
+            stack.append(_Frame(level, view, no, raw=True))
+            continue
+        line = _command_line(index, view, no, raw, lead, parent)
+        if line is not None:
+            out.lines.append(line)
+            enters = index_card_enters(index, line)
+            # 没有进入视图的命令：下面若有更深的子行（范围外的子上下文），按原文块保留
+            stack.append(_Frame(level, enters or view, no, raw=not enters))
+            continue
+        kind = "unknown" if index.known_prefix(view, stripped.split()) else "raw"
+        out.lines.append(Line(no, raw, kind, lead, view, parent=parent))
+        stack.append(_Frame(level, view, no, raw=True))
+    return out
+
+
+def index_card_enters(index: CardIndex, line: Line) -> str | None:
+    """命令行进入的视图（取消形式不进入）。"""
+    if line.negated or not line.card:
+        return None
+    return index.enters.get(line.card)
 
 
 def normalize_pattern(text: str) -> str:

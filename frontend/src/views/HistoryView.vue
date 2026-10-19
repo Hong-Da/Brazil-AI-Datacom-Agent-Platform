@@ -15,6 +15,7 @@ import { postFile, saveBlob } from '@/views/check/report'
 import { saveText } from '@/views/profiles/csv'
 import type { Device } from '@/views/devices/logic'
 import HistoryTimeline from './m5/HistoryTimeline.vue'
+import DevDelDialog from '@/components/devdel-dialog.vue'
 import {
   diffCli, fmtTime, foldRows, groupItems, itemOfNode, markWords, matrixRow, noneffByObject, objectLog, objectOptions,
   pairLines, showVal, underObject, type DiffResult, type Item, type ObjectHistory, type PairRow, type SideVal, type Timeline,
@@ -234,6 +235,14 @@ async function removeTag(vid: number): Promise<void> {
   } catch (e) { flash(errorText(e)) }
 }
 
+// ---------------------------------------------------------------- 删除单个版本（REQ-038）
+const delVer = ref<number | null>(null)
+async function onVersionDeleted(_r: unknown, msg: string): Promise<void> {
+  delVer.value = null
+  flash(msg)
+  await Promise.all([loadDevices(), loadTimeline(true)])
+}
+
 // ---------------------------------------------------------------- 回到 A、报告、CLI
 interface RestoreRes { change: { equal?: boolean; script_plain: string; rollback?: { script_plain: string } | null; verify?: { ok: boolean } | null; ops: unknown[]; summary?: { by_action?: Record<string, number> } } }
 const restore = ref<RestoreRes | null>(null)
@@ -347,7 +356,7 @@ onMounted(async () => {
 
           <div v-if="showList" class="snaptbl" data-testid="hist-snap-table">
             <table class="tbl compact">
-              <thead><tr><th /><th>#</th><th>{{ $t('history.col.time') }}</th><th>{{ $t('history.col.source') }}</th><th>{{ $t('history.col.actor') }}</th><th class="num">{{ $t('history.col.lines') }}</th><th class="num">{{ $t('history.col.nodes') }}</th><th>{{ $t('history.col.vs') }}</th><th>{{ $t('history.col.kb') }}</th><th>{{ $t('history.col.fp') }}</th><th>{{ $t('history.col.tag') }}</th><th /></tr></thead>
+              <thead><tr><th /><th>#</th><th>{{ $t('history.col.time') }}</th><th>{{ $t('history.col.source') }}</th><th>{{ $t('history.col.actor') }}</th><th class="num">{{ $t('history.col.lines') }}</th><th class="num">{{ $t('history.col.nodes') }}</th><th>{{ $t('history.col.vs') }}</th><th>{{ $t('history.col.kb') }}</th><th>{{ $t('history.col.fp') }}</th><th>{{ $t('history.col.tag') }}</th><th /><th /></tr></thead>
               <tbody>
                 <template v-for="(s, i) in [...snaps].reverse()" :key="s.id">
                   <tr v-for="(im, j) in s.imports" :key="im.id" :class="{ 'is-sel': s.id === sa?.id || s.id === sb?.id }">
@@ -369,6 +378,7 @@ onMounted(async () => {
                       </template>
                     </td>
                     <td class="nowrap"><template v-if="j === 0 && !single"><button class="btn btn-xs" type="button" :disabled="snaps.length - 1 - i >= ib" @click="setAB(snaps.length - 1 - i, ib)">A</button> <button class="btn btn-xs" type="button" :disabled="snaps.length - 1 - i <= ia" @click="setAB(ia, snaps.length - 1 - i)">B</button></template></td>
+                    <td class="nowrap"><button v-if="j === 0" class="btn btn-xs btn-danger" type="button" :disabled="single" :title="single ? $t('devdel.lastVersionTip') : $t('devdel.deleteVersion')" :data-testid="`hist-del-${s.seq}`" @click="delVer = s.id"><Icon name="trash" small />{{ $t('devdel.deleteVersion') }}</button></td>
                   </tr>
                 </template>
               </tbody>
@@ -385,6 +395,7 @@ onMounted(async () => {
                   <span v-if="s.tag" class="vtag pin"><Icon name="tag" small />{{ s.tag }}</span>
                   <span v-if="s.latest" class="tag t-blue">{{ $t('history.latest') }}</span>
                   <span class="faint small mono">v{{ s.id }}</span>
+                  <button class="btn btn-xs btn-ghost del-ver" type="button" :disabled="single" :title="single ? $t('devdel.lastVersionTip') : $t('devdel.deleteVersion')" :aria-label="`${$t('devdel.deleteVersion')} #${s.seq}`" :data-testid="`hist-card-del-${single ? 'only' : k === 0 ? 'a' : 'b'}`" @click="delVer = s.id"><Icon name="trash" small /></button>
                 </div>
                 <dl class="kv">
                   <dt>{{ $t('history.col.source') }}</dt><dd>{{ $t(`history.src.${s.imports[0]?.source_kind ?? 'file'}`) }} <span class="mono faint small">{{ s.source_name }}</span></dd>
@@ -646,6 +657,7 @@ onMounted(async () => {
       </div>
     </div>
     <div v-if="toast" class="m5-toast" role="status">{{ toast }}</div>
+    <DevDelDialog v-if="delVer !== null && devId !== null" :device-id="devId" :version-id="delVer" @close="delVer = null" @deleted="onVersionDeleted" />
   </main>
 </template>
 
@@ -669,6 +681,8 @@ onMounted(async () => {
 .abcard { padding: 10px 14px; min-width: 0; }
 .abcard .hd { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
 .abcard .hd b { font: 600 13px var(--font-mono); }
+.abcard .hd .del-ver { margin-left: auto; color: var(--ink-3); }
+.abcard .hd .del-ver:hover:not(:disabled) { color: var(--red-ink); background: var(--red-soft); }
 .abcard .kv { grid-template-columns: max-content minmax(0, 1fr) max-content minmax(0, 1fr); gap: 3px 12px; font-size: 12px; }
 .abcard .kv dd { font-size: 12px; min-width: 0; overflow-wrap: anywhere; }
 .abcard .imports { margin-top: 6px; font-size: 11.5px; color: var(--ink-2); }

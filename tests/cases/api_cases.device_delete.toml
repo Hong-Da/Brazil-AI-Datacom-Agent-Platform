@@ -1,0 +1,126 @@
+# 删除设备与配置版本接口的 API 用例（REQ-038，加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-fullkb-history：设备 ATN-CHANGE-01（编号 1）有两个配置版本（版本 1 导入两次）；
+# configured-fullkb-checkproj：另有配置检查项目 1“割接前检查”以它为基线（跟随最新版本），两份脚本。
+
+[[case]]
+id = "device-delete-preview"
+title = { zh-CN = "删除设备的预览（不删除）", en = "Device delete preview (deletes nothing)", pt-BR = "Prévia da exclusão do dispositivo (não exclui)" }
+method = "GET"
+path = "/api/v1/devices/1/delete-preview"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.device.name" = "ATN-CHANGE-01", "data.counts.versions" = 2, "data.counts.imports" = 3, "data.counts.check_ignores" = 0, "data.counts.unknown_lines" = 0, "data.blocked" = false, "data.baseline.projects" = [], "data.versions.0.seq" = 1, "data.versions.0.imports" = 2, "data.versions.1.latest" = true }
+in_docs = true
+
+[[case]]
+id = "device-delete-preview-baseline"
+title = { zh-CN = "删除预览：作基线的检查项目与脚本", en = "Delete preview: check projects and scripts using it as baseline", pt-BR = "Prévia: projetos e scripts que o usam como base" }
+method = "GET"
+path = "/api/v1/devices/1/delete-preview"
+setup = "configured-fullkb-checkproj"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.blocked" = true, "data.baseline.scripts" = 2, "data.baseline.projects.0.id" = 1, "data.baseline.projects.0.name" = "割接前检查", "data.baseline.projects.0.follows_latest" = true, "data.baseline.projects.0.scripts.0.name" = "绑定 VPN", "data.versions.1.pinned_by" = [] }
+
+[[case]]
+id = "device-delete-preview-not-found"
+title = { zh-CN = "删除预览：设备不存在 404", en = "Delete preview: device not found 404", pt-BR = "Prévia: dispositivo não encontrado 404" }
+method = "GET"
+path = "/api/v1/devices/99/delete-preview"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "device-delete"
+title = { zh-CN = "删除设备", en = "Delete a device", pt-BR = "Excluir um dispositivo" }
+method = "DELETE"
+path = "/api/v1/devices/1"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.deleted" = true, "data.device.id" = 1, "data.counts.versions" = 2, "data.counts.imports" = 3, "data.baseline_cleared" = [] }
+in_docs = true
+
+[[case]]
+id = "device-delete-baseline"
+title = { zh-CN = "设备是检查项目的基线：409，data 为删除预览", en = "Device is a check project baseline: 409 with the preview in data", pt-BR = "Dispositivo é base de projeto: 409 com a prévia em data" }
+method = "DELETE"
+path = "/api/v1/devices/1"
+setup = "configured-fullkb-checkproj"
+auth = true
+expect_status = 409
+expect_json = { "code" = 1003, "data.blocked" = true, "data.baseline.projects.0.name" = "割接前检查", "data.baseline.scripts" = 2 }
+in_docs = true
+
+[[case]]
+id = "device-delete-force"
+title = { zh-CN = "force=true：删除并清空检查项目的基线", en = "force=true: delete and clear the check project baseline", pt-BR = "force=true: excluir e limpar a base do projeto" }
+method = "DELETE"
+path = "/api/v1/devices/1?force=true"
+setup = "configured-fullkb-checkproj"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.deleted" = true, "data.baseline_cleared.0.id" = 1, "data.baseline_cleared.0.name" = "割接前检查" }
+
+[[case]]
+id = "device-delete-not-found"
+title = { zh-CN = "删除设备：不存在 404", en = "Delete device: not found 404", pt-BR = "Excluir dispositivo: não encontrado 404" }
+method = "DELETE"
+path = "/api/v1/devices/99"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "device-delete-no-auth"
+title = { zh-CN = "删除设备需要登录：401", en = "Deleting a device needs login: 401", pt-BR = "Excluir dispositivo exige login: 401" }
+method = "DELETE"
+path = "/api/v1/devices/1"
+setup = "configured-fullkb-history"
+expect_status = 401
+expect_json = { "code" = 1002 }
+
+[[case]]
+id = "device-delete-version"
+title = { zh-CN = "删除最新版本：最新版本回到上一个", en = "Delete the latest version: latest goes back to the previous one", pt-BR = "Excluir a versão mais recente: a anterior passa a ser a mais recente" }
+method = "DELETE"
+path = "/api/v1/devices/1/versions/2"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.deleted" = true, "data.version.id" = 2, "data.version.seq" = 2, "data.version.latest" = true, "data.latest_version_id" = 1, "data.versions_left" = 1, "data.counts.imports" = 1 }
+in_docs = true
+
+[[case]]
+id = "device-delete-version-older"
+title = { zh-CN = "删除较早的版本：下一个版本的变化计数重算（recomputed）", en = "Delete an older version: the next version's change counts are recomputed", pt-BR = "Excluir versão antiga: contagens da próxima versão recalculadas" }
+method = "DELETE"
+path = "/api/v1/devices/1/versions/1"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.version.seq" = 1, "data.version.latest" = false, "data.latest_version_id" = 2, "data.recomputed" = 2, "data.counts.imports" = 2 }
+
+[[case]]
+id = "device-delete-version-follow"
+title = { zh-CN = "删除最新版本：列出跟随最新版本的检查项目（baseline_moved）", en = "Delete the latest version: lists check projects following the latest (baseline_moved)", pt-BR = "Excluir a mais recente: lista projetos que seguem a mais recente (baseline_moved)" }
+method = "DELETE"
+path = "/api/v1/devices/1/versions/2"
+setup = "configured-fullkb-checkproj"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.baseline_moved.0.id" = 1, "data.baseline_cleared" = [] }
+
+[[case]]
+id = "device-delete-version-not-found"
+title = { zh-CN = "删除版本：版本不存在 404", en = "Delete version: version not found 404", pt-BR = "Excluir versão: versão não encontrada 404" }
+method = "DELETE"
+path = "/api/v1/devices/1/versions/99"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }

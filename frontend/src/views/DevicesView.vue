@@ -5,6 +5,7 @@ import Icon from '@/components/Icon.vue'
 import { errorText, get, post, waitTask } from '@/api'
 import { useStatus } from '@/stores/status'
 import ImportDialog from './devices/ImportDialog.vue'
+import DevDelDialog from '@/components/devdel-dialog.vue'
 import { filterDevices, fmtTime, vendorCounts, vendorLabel, type DevFilter, type Device } from './devices/logic'
 
 const route = useRoute()
@@ -122,6 +123,16 @@ async function rebuildSelected(): Promise<void> {
   }
 }
 
+// ---- 删除设备（REQ-038）
+const delId = ref<number | null>(null)
+const delMsg = ref('')
+function onDeleted(_r: unknown, msg: string): void {
+  delId.value = null
+  delMsg.value = msg
+  void load()
+  void status.refresh()
+}
+
 function onImported(): void {
   void load()
   void status.refresh()
@@ -164,6 +175,8 @@ function onImported(): void {
         <div class="grow">{{ $t('devices.staleHint', { n: staleCount, v: kbVersion }) }}</div>
         <button class="btn btn-sm" @click="rebuildAll"><Icon name="refresh" small />{{ $t('devices.rebuildNow') }}</button>
       </div>
+
+      <div v-if="delMsg" class="notice ok rebuild" data-testid="device-deleted"><Icon name="ok" /><div class="grow">{{ delMsg }}</div><button class="btn btn-xs" @click="delMsg = ''">{{ $t('c.close') }}</button></div>
 
       <div v-if="loading && !devices.length" class="panel"><div class="empty">{{ $t('c.loading') }}</div></div>
 
@@ -220,11 +233,12 @@ function onImported(): void {
                 <th>{{ $t('devices.colRoundtrip') }}</th>
                 <th>{{ $t('devices.colKb') }}</th>
                 <th>{{ $t('devices.colImported') }}</th>
+                <th style="width: 40px" :aria-label="$t('devdel.deleteDevice')" />
               </tr>
             </thead>
             <tbody>
               <tr v-if="!rows.length">
-                <td colspan="10">
+                <td colspan="11">
                   <div class="empty">
                     <h3>{{ $t('devices.noMatch') }}</h3>
                     <p>{{ $t('devices.noMatchHint') }}</p>
@@ -263,6 +277,7 @@ function onImported(): void {
                   <span v-if="d.stale" class="tag warn" style="font-family: var(--font-ui)" :title="$t('devices.staleTip', { v: kbVersion })">{{ $t('devices.old') }}</span>
                 </td>
                 <td class="nowrap faint" :title="fmtTime(d.collected_at, true)">{{ fmtTime(d.collected_at) }}</td>
+                <td class="right"><button class="btn btn-ghost btn-icon btn-sm del-btn" type="button" :title="$t('devdel.deleteDevice')" :aria-label="`${$t('devdel.deleteDevice')} ${d.name}`" data-testid="device-delete" @click="delId = d.id"><Icon name="trash" small /></button></td>
               </tr>
             </tbody>
           </table>
@@ -277,6 +292,7 @@ function onImported(): void {
     </div>
 
     <ImportDialog v-if="showImport" @close="showImport = false" @imported="onImported" />
+    <DevDelDialog v-if="delId !== null" :device-id="delId" @close="delId = null" @deleted="onDeleted" />
   </main>
 </template>
 
@@ -288,6 +304,8 @@ function onImported(): void {
 .dev-tbl .nm .src { font-size: 11px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
 .dev-tbl .unk { color: var(--red-ink); font-weight: 600; }
 .ck { accent-color: var(--teal); }
+.del-btn { color: var(--ink-3); }
+.del-btn:hover { color: var(--red-ink); background: var(--red-soft); }
 .tbl-foot { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 12px; flex-wrap: wrap; }
 .bulk { display: flex; gap: 8px; align-items: center; padding: 8px 14px; background: var(--blue-soft); border-bottom: 1px solid var(--blue-line); font-size: 12.5px; }
 </style>

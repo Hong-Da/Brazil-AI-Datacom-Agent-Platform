@@ -34,6 +34,17 @@ description: 透网 LucidMesh 从厂商产品文档（命令参考）到统一�
 
 写块分隔符（华为 `#`、Cisco `!`）、结尾（`return` / `end`）、缩进单位、取消前缀（`undo` / `no`），以及视图树：每个视图的 `parent`、显式退出命令 `exit`（如 `exit-address-family`、`quit`）。视图编号要与抽取规则的 `views_map`、`enters` 和映射规则的 `view` 一致。解析器靠它跟踪当前视图，写错了后面全错。
 
+分块方式不同的平台族用这几个键驱动解析器（缺省值就是华为 / Cisco 的现状，不写即不变；Nokia Classic 见 `commands/nokia-sros-classic/views.yaml`）：
+
+| 键 | 作用（Nokia Classic 的取值） |
+|---|---|
+| `block` | `indent`（缺省：层级只看缩进差，分页痕迹按上一行视图判断）；`exit`：缩进按 `indent`（4）折算层级，每个块由与开头同列的 `exit` 关闭——原文块也一样，所以范围外块（OSPF 未抽取时的 `ospf` 块）里的 `exit` 不会提前退出外层；没有进入视图的命令下面若有更深的子行，子行按原文保留；多余的 `exit` 原文保留 |
+| `comment` / `layout` | 注释前缀（`#`）与版式行正则（`^echo "`）：不改变视图栈；`block: exit` 下分隔行也不清空视图栈（Nokia 的段落标记会夹在上下文中间） |
+| `begin` | 结构行（`configure`）：进入根视图、清空视图栈；`end`（`exit all`）同样清空 |
+| `quotes` | `true`：引号字符串是一个词（名称可含空格），参数取值去掉引号（图的键与引用不带引号），`Match.quoted` 记录原文引号，渲染时写回 |
+
+参数类型另有 `port`（`1/1/1`、`lag-1`、`esat-1/1/1`…）与 `sap`（`端口:VLAN[.VLAN]`、`:*`）。
+
 ## 2. 准备文档并写抽取规则：`knowledge/extractors/<规则>.yaml`
 
 - 产品文档放 `DevelopDocs/设备产品文档/…`（不入库）。HTML、PDF、CHM 由 `convert.py` 转 Markdown（CHM 需要 7z）；目录里已有 `.md` 时直接用。
@@ -70,6 +81,8 @@ lmesh kb ingest <文档目录> --rules <规则名> [--domain bgp]… [--version 
 - 可以只抽部分功能域（`--domain`）：编号会避开其他功能域已有的卡，合并时先按“语法 + 视图”对上已有的卡，所以分批抽取与整体抽取结果一致。抽完重跑一次，合并结果应全部是 unchanged。
 - 看输出里的跳过统计：“视图不在范围”多 → 补 `views_map`；“文档语法有错”多 → 补 `syntax_rewrites` 或 patches；参数类型不对 → 补 `param_types`。改规则后再抽一次，直到跳过的都是该跳过的。
 - `--ai` 只处理规则失败的命令，结果必须能通过语法解析；AI 未配置时不用。
+- 新平台族或大批量补抽时在隔离环境里跑（M7-1 / M7-2 的 Nokia 做法）：`LMESH_KNOWLEDGE__DIR=tmp/<名>/knowledge`（不存在时自动从 `knowledge/` 复制）、`LMESH_DATABASE__URL=sqlite:///tmp/<名>/review.db`，规则改在仓库里、每次抽取前复制过去，满意后把 `commands/<平台族>/` 的卡复制回仓库；这样不往共享数据库写审核记录。`lmesh kb validate` 默认校验运行时知识库，校验仓库要加 `LMESH_KNOWLEDGE__DIR=knowledge`。不要为了新平台族运行 `kb map`（会重写其他平台族的卡与 Profile）。
+- Nokia Classic 命令参考的特殊处理：文档先用 `DevelopDocs/设备产品文档/Nokia/tools/nokia_classic_to_md.py` 转换；`View path` 一行一个上下文，`views_map` 用 `^…$` 精确匹配；同一文件要分到两个功能域时（OSPF 文件里的 segment-routing 归 sr 域），在一个域的文件条目里把这些视图映射为 `view: null`，在另一个域的条目里只映射它们、最后加 `{match: '.', view: null}`；范围内视图里进入范围外子上下文的命令进入 `opaque`（名单由“命令的完整上下文又是别的命令的视图路径”生成）；转换痕迹（`[no]` 前缀、拆开的关键字、斜体的 `<|>`、参数名带空格被拆成两个参数、括号不配对）与列表写法 `<p> [ <p> ]`（改成重复组 `<p> [ <p> ] &<1-31>`，同名参数在匹配记录里会互相覆盖）都用 `syntax_rewrites` 统一改；`Values 0.0.0.0 to …` 这类点分 / 整数两用的取值会被按整数推断，用 `param_types` 按参数名改成 word。
 - 合并时编号以内容为准：同名命令多了一个视图变体、抽取编号整体后移时，被别的卡按“语法 + 视图”认领的编号改用下一个空闲的 `~N`（在整个平台族内避让），不会覆盖已有的卡。抽完用 `lmesh kb validate` 确认没有重复编号与缺失的映射节点。
 
 ## 4. 审核

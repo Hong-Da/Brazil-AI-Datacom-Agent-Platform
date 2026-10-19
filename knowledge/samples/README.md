@@ -5,6 +5,7 @@
 | 目录 | 来源 | 处理方式 | 说明 |
 |---|---|---|---|
 | `huawei-atn-v800r023/` | 用户提供的现网 ATN 配置（V800R023C00SPC500） | `lmesh sanitize --level strict --redact <运营商名> --redact '<站点编码规则>'`，并人工核对残留词 | 行数与原文一致（2266 行），行号可追溯；密文、口令、团体字、密钥块、全部 IP（前缀保持）、主机名、描述、用户名、网元 ID、SNMP 引擎 ID、运营商名称与站点编码都已替换 |
+| `nokia-sros-classic-synthetic/` | 自编的 Nokia SR OS 25.10 Classic CLI 配置（M7-1 / M7-2） | 合成，不含真实设备信息（文档保留网段、私网地址，口令与团体字为 LMESH 占位符） | 有自己的 `manifest.yaml`；Profile 在 M7-3 建立前由 `tests/roundtrip/test_nokia_samples.py` 按平台族解析、往返 |
 | `cisco-ios-public/` | Batfish 仓库（提交 cf100e56，Apache-2.0，见 `LICENSE-batfish-Apache-2.0.txt`） | 原样保留，未改动 | IOS 15.2 / 15.5 风格：BGP、peer-group、route-map、prefix-list、community-list、VRF、子接口；没有 ASR 920 特有写法（service instance、BDI、VPNv4），这部分在 M1-6 补充自编样本 |
 
 Cisco ASR 920 配置指南中的示例版权归 Cisco，不是开源许可，只留在 `DevelopDocs/` 作内部参考，不放进本目录。

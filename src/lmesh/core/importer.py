@@ -14,12 +14,22 @@ from sqlalchemy import select
 
 from lmesh.core import store
 from lmesh.core.parser import normalize_pattern
-from lmesh.core.sanitize import Level, SanitizeLeak, Sanitizer, detect_vendor, detect_version, local_key
+from lmesh.core.sanitize import (
+    Level,
+    SanitizeLeak,
+    Sanitizer,
+    detect_format,
+    detect_vendor,
+    detect_version,
+    family_of,
+    local_key,
+)
 from lmesh.core.store.models import ConfigVersion, Device, UnknownLine, iso
 
 CONFIG_SUFFIXES = {"", ".txt", ".cfg", ".conf", ".config", ".log", ".zip"}
 MAX_BYTES = 20 * 1024 * 1024
 _HOST = re.compile(r"^\s*(?:sysname|hostname)\s+(\S+)", re.M)
+_NOKIA_HOST = re.compile(r'^ {8}name\s+"?([^"\s]+)"?\s*$', re.M)  # configure > system > name "PE1"
 
 
 @dataclass
@@ -76,10 +86,10 @@ def iter_bytes(name: str, data: bytes) -> Iterator[tuple[str, bytes]]:
     yield name, data
 
 
-def guess_profile(vendor: str, version: str, kb: Any = None) -> str:
+def guess_profile(vendor: str, version: str, kb: Any = None, fmt: str = "") -> str:
     """按厂商与版本选 Profile：优先用知识库中各 Profile 的匹配规则；没有知识库时按命名约定推断。"""
     if kb is not None:
-        found = kb.match_profile(vendor, version)
+        found = kb.match_profile(vendor, version, family_of(vendor, fmt))
         if found:
             return str(found)
     if vendor == "huawei":
@@ -89,6 +99,9 @@ def guess_profile(vendor: str, version: str, kb: Any = None) -> str:
         return "huawei-atn-v800r025"
     if vendor == "cisco":
         return "cisco-iosxe-asr920-17.15"
+    if vendor == "nokia":
+        # Profile 本身在 M7-3 建立；还没有时导入照常进行（只存原文，不解析、不建图）
+        return "nokia-sros-md-7750-25.10" if fmt == "md" else "nokia-sros-classic-7750-25.10"
     return ""
 
 
@@ -100,12 +113,13 @@ def sanitize_one(name: str, raw: bytes, sanitizer: Sanitizer, kb: Any = None) ->
     if not vendor:
         return ImportResult(name, False, error="import.unknown_vendor"), ""
     version = detect_version(text, vendor)
+    fmt = detect_format(text, vendor)
     try:
         result = sanitizer.sanitize(text)
     except SanitizeLeak:
         # 自检发现脱敏后仍残留秘密值：这个文件不入库（只报告，不写日志原文），批次里的其他文件照常导入
         return ImportResult(name, False, error="import.sanitize_leak"), ""
-    m = _HOST.search(result.text)
+    m = (_NOKIA_HOST if vendor == "nokia" else _HOST).search(result.text)
     device = m.group(1) if m else Path(name).stem
     return ImportResult(
         name,
@@ -113,7 +127,7 @@ def sanitize_one(name: str, raw: bytes, sanitizer: Sanitizer, kb: Any = None) ->
         device=device,
         vendor=vendor,
         version=version,
-        profile=guess_profile(vendor, version, kb),
+        profile=guess_profile(vendor, version, kb, fmt),
         lines=text.count("\n") + 1,
         sanitized=result.summary(),
     ), result.text

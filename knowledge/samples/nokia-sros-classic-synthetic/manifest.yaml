@@ -1,0 +1,9 @@
+# Nokia SR OS Classic CLI 的合成样本（M7-2）。Profile nokia-sros-classic-7750-25.10 在 M7-3 建立，之前这些样本不进总清单
+# （knowledge/samples/manifest.yaml 的样本必须有 Profile），由 tests/roundtrip/test_nokia_samples.py 按平台族解析、往返：
+# 逐字一致、未识别 0（范围外的子上下文按原文保留）。M7-3 建好 Profile 后把这些条目移到总清单并删除本清单。
+family: nokia-sros-classic
+profile: nokia-sros-classic-7750-25.10
+samples:
+  - {file: classic-pe-basic.cfg, note: 合成：系统基本项、端口、LAG、路由器接口、静态路由、OSPF、LDP（M7-1 草稿）}
+  - {file: classic-pe-services.cfg, note: 合成：过滤器、QoS、BGP、客户、SDP、Epipe、VPLS、VPRN（业务部分范围外，按原文保留；M7-1 草稿）}
+  - {file: classic-pe-routing-mgmt.cfg, note: 合成：管理面（SNMP、NTP、登录、安全、TACACS+、用户、日志）、OSPF、IS-IS、BGP、路由策略、MPLS / RSVP / LDP、SR（M7-2）}

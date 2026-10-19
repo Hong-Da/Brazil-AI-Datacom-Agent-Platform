@@ -1,0 +1,337 @@
+# Nokia SR OS Classic CLI Command Reference（25.10.R1）的命令卡抽取规则（M7-1 起步，M7-2 补管理面、OSPF、IS-IS、BGP、路由策略、MPLS / RSVP / LDP、SR）。
+# 文档先由 DevelopDocs/设备产品文档/Nokia/tools/nokia_classic_to_md.py 从 HTML 转成 Markdown：
+#   文件 = 完整上下文的前 3 个词（configure service … 取 4 个），例如 configure_router_static-route-entry.md；
+#   每条命令一个 `## 命令名`，小节：### Syntax / Context / Full Context / View path / Description / Default / Parameters / Platforms。
+#   View path 是 Full Context 去掉最后一个词（命令所在视图的路径），一条命令有多个上下文时每行一个。
+name: nokia-sros-classic-md
+family: nokia-sros-classic
+
+sections:
+  syntax: [Syntax]
+  params: [Parameters]
+  views: [View path]
+  default: [Default]
+  function: [Description]
+
+negative_prefix: "no"
+exclude_titles: '^(info|show|clear|debug|tools|monitor|admin)$'
+
+# View path 每行一个，按行拆即可；这里给一个不会出现的分隔符，避免把路径里的空格当成分隔
+views_split: '\x00'
+views_map:
+  - {match: '^configure$', view: configure}
+  - {match: '^configure port$', view: port}
+  - {match: '^configure port ethernet$', view: port-ethernet}
+  - {match: '^configure lag$', view: lag}
+  - {match: '^configure router$', view: router}
+  - {match: '^configure router interface$', view: router-if}
+  - {match: '^configure router static-route-entry$', view: static-route-entry}
+  - {match: '^configure router static-route-entry next-hop$', view: static-nh}
+  - {match: '^configure router static-route-entry indirect$', view: static-indirect}
+  - {match: '^configure router static-route-entry black-hole$', view: static-bh}
+  - {match: '^configure system$', view: system}
+  - {match: '^configure system time$', view: system-time}
+  - {match: '^configure system time ntp$', view: system-ntp}
+  - {match: '^configure system security$', view: system-security}
+  - {match: '^configure system snmp$', view: system-snmp}
+  - {match: '^configure system security snmp$', view: security-snmp}
+  - {match: '^configure system security ssh$', view: security-ssh}
+  - {match: '^configure system security user$', view: security-user}
+  - {match: '^configure system security tacplus$', view: security-tacplus}
+  - {match: '^configure system security radius$', view: security-radius}
+  - {match: '^configure system security management-access-filter$', view: security-maf}
+  - {match: '^configure system security password$', view: security-password}
+  - {match: '^configure system login-control$', view: login-control}
+  - {match: '^configure log$', view: log}
+  - {match: '^configure log syslog$', view: log-syslog}
+  - {match: '^configure log log-id$', view: log-id}
+  - {match: '^configure router ospf$', view: ospf}
+  - {match: '^configure router ospf area$', view: ospf-area}
+  - {match: '^configure router ospf area interface$', view: ospf-if}
+  - {match: '^configure router isis$', view: isis}
+  - {match: '^configure router isis interface$', view: isis-if}
+  - {match: '^configure router isis level$', view: isis-level}
+  - {match: '^configure router isis interface level$', view: isis-if-level}
+  - {match: '^configure router bgp$', view: bgp}
+  - {match: '^configure router bgp group$', view: bgp-group}
+  - {match: '^configure router bgp group neighbor$', view: bgp-neighbor}
+  - {match: '^configure router policy-options$', view: policy-options}
+  - {match: '^configure router policy-options prefix-list$', view: prefix-list}
+  - {match: '^configure router policy-options policy-statement$', view: policy-statement}
+  - {match: '^configure router policy-options policy-statement entry$', view: policy-entry}
+  - {match: '^configure router policy-options policy-statement entry from$', view: policy-from}
+  - {match: '^configure router policy-options policy-statement entry action$', view: policy-action}
+  - {match: '^configure router policy-options policy-statement default-action$', view: policy-default}
+  - {match: '^configure router mpls$', view: mpls}
+  - {match: '^configure router mpls interface$', view: mpls-if}
+  - {match: '^configure router mpls path$', view: mpls-path}
+  - {match: '^configure router mpls lsp$', view: mpls-lsp}
+  - {match: '^configure router mpls lsp primary$', view: mpls-lsp-primary}
+  - {match: '^configure router mpls lsp secondary$', view: mpls-lsp-secondary}
+  - {match: '^configure router rsvp$', view: rsvp}
+  - {match: '^configure router rsvp interface$', view: rsvp-if}
+  - {match: '^configure router ldp$', view: ldp}
+  - {match: '^configure router ldp interface-parameters$', view: ldp-if-params}
+  - {match: '^configure router ldp interface-parameters interface$', view: ldp-if}
+  - {match: '^configure router ldp interface-parameters interface ipv4$', view: ldp-if-ipv4}
+  - {match: '^configure router ldp targeted-session$', view: ldp-targeted}
+  - {match: '^configure router ldp targeted-session peer$', view: ldp-targeted-peer}
+  - {match: '^configure router mpls-labels$', view: mpls-labels}
+  - {match: '^configure router ospf segment-routing$', view: ospf-sr}
+  - {match: '^configure router isis segment-routing$', view: isis-sr}
+
+enters:
+  # ---- 进入范围内视图（M7-1：接口、静态路由；M7-2：管理面、OSPF、IS-IS、BGP、路由策略、MPLS / RSVP / LDP、SR） ----
+  - {view: configure, syntax: '^port \{', enters: port}
+  - {view: port, syntax: '^ethernet$', enters: port-ethernet}
+  - {view: configure, syntax: '^lag <', enters: lag}
+  - {view: configure, syntax: '^router( |$)', enters: router}
+  - {view: router, syntax: '^interface <', enters: router-if}
+  - {view: router, syntax: '^static-route-entry <', enters: static-route-entry}
+  - {view: static-route-entry, syntax: '^next-hop \{', enters: static-nh}
+  - {view: static-route-entry, syntax: '^indirect <', enters: static-indirect}
+  - {view: static-route-entry, syntax: '^black-hole$', enters: static-bh}
+  - {view: configure, syntax: '^system$', enters: system}
+  - {view: configure, syntax: '^log$', enters: log}
+  - {view: system, syntax: '^time$', enters: system-time}
+  - {view: system, syntax: '^security$', enters: system-security}
+  - {view: system, syntax: '^snmp$', enters: system-snmp}
+  - {view: system, syntax: '^login-control$', enters: login-control}
+  - {view: system-time, syntax: '^ntp$', enters: system-ntp}
+  - {view: system-security, syntax: '^snmp$', enters: security-snmp}
+  - {view: system-security, syntax: '^ssh$', enters: security-ssh}
+  - {view: system-security, syntax: '^user <', enters: security-user}
+  - {view: system-security, syntax: '^tacplus$', enters: security-tacplus}
+  - {view: system-security, syntax: '^radius$', enters: security-radius}
+  - {view: system-security, syntax: '^management-access-filter$', enters: security-maf}
+  - {view: system-security, syntax: '^password$', enters: security-password}
+  - {view: log, syntax: '^syslog <', enters: log-syslog}
+  - {view: log, syntax: '^log-id <', enters: log-id}
+  - {view: router, syntax: '^ospf( |$)', enters: ospf}
+  - {view: ospf, syntax: '^area <', enters: ospf-area}
+  - {view: ospf-area, syntax: '^interface <', enters: ospf-if}
+  - {view: router, syntax: '^isis( |$)', enters: isis}
+  - {view: isis, syntax: '^interface <', enters: isis-if}
+  - {view: isis, syntax: '^level ', enters: isis-level}
+  - {view: isis-if, syntax: '^level ', enters: isis-if-level}
+  - {view: router, syntax: '^bgp$', enters: bgp}
+  - {view: bgp, syntax: '^group <', enters: bgp-group}
+  - {view: bgp-group, syntax: '^neighbor <', enters: bgp-neighbor}
+  - {view: router, syntax: '^policy-options$', enters: policy-options}
+  - {view: policy-options, syntax: '^prefix-list <', enters: prefix-list}
+  - {view: policy-options, syntax: '^policy-statement <', enters: policy-statement}
+  - {view: policy-statement, syntax: '^entry <', enters: policy-entry}
+  - {view: policy-statement, syntax: '^default-action ', enters: policy-default}
+  - {view: policy-entry, syntax: '^from$', enters: policy-from}
+  - {view: policy-entry, syntax: '^action ', enters: policy-action}
+  - {view: router, syntax: '^mpls$', enters: mpls}
+  - {view: mpls, syntax: '^interface <', enters: mpls-if}
+  - {view: mpls, syntax: '^path <', enters: mpls-path}
+  - {view: mpls, syntax: '^lsp <', enters: mpls-lsp}
+  - {view: mpls-lsp, syntax: '^primary <', enters: mpls-lsp-primary}
+  - {view: mpls-lsp, syntax: '^secondary <', enters: mpls-lsp-secondary}
+  - {view: router, syntax: '^rsvp$', enters: rsvp}
+  - {view: rsvp, syntax: '^interface <', enters: rsvp-if}
+  - {view: router, syntax: '^ldp$', enters: ldp}
+  - {view: ldp, syntax: '^interface-parameters$', enters: ldp-if-params}
+  - {view: ldp-if-params, syntax: '^interface <', enters: ldp-if}
+  - {view: ldp-if, syntax: '^ipv4$', enters: ldp-if-ipv4}
+  - {view: ldp, syntax: '^targeted-session$', enters: ldp-targeted}
+  - {view: ldp-targeted, syntax: '^peer <', enters: ldp-targeted-peer}
+  - {view: router, syntax: '^mpls-labels$', enters: mpls-labels}
+  - {view: ospf, syntax: '^segment-routing$', enters: ospf-sr}
+  - {view: isis, syntax: '^segment-routing$', enters: isis-sr}
+  # ---- 范围外的子上下文（命令本身在范围内的视图里，但它下面的命令还没有抽取）：进入 opaque 视图，块内按原文保留，
+  # 块尾的 exit 也只退出这一层。名单由“命令的完整上下文又是别的命令的视图路径”自动得出（D-0170；M7-2 用 tmp/m72_views.py 重新生成）。
+  # 解析器（block: exit）对没有进入视图、下面又有更深缩进子行的命令同样按原文块处理，这份名单只是让卡上标明“进入范围外上下文”
+  - {view: configure, syntax: '^(aaa|anysec|application-assurance|bfd|bmp|call-trace|card|cflowd|connection-profile-vlan|esa|eth-cfm|eth-ring|eth-tunnel|filter|fwd-path-ext|group-encryption|ipsec|isa|li|macsec|mcast-management|mirror|oam-pm|open-flow|port-policy|port-xc|pw-port|python|qos|redundancy|saa|service|sflow|sfm|subscriber-mgmt|test-oam|vrrp)( |$)', enters: opaque}
+  - {view: port, syntax: '^(access|aps|connector|dwdm|gnss|hybrid-buffer-allocation|modify-buffer-allocation-rate|network|otu|sonet-sdh|tdm|transceiver)( |$)', enters: opaque}
+  - {view: port-ethernet, syntax: '^(access|crc-monitor|dampening|dot1x|down-when-looped|efm-oam|egress|egress-scheduler-override|elmi|eth-cfm|lldp|network|ptp-timestamping|ssm|symbol-monitor)( |$)', enters: opaque}
+  - {view: lag, syntax: '^(access|bfd|eth-cfm|link-map-profile|lldp-member-template|ptp-timestamping)( |$)', enters: opaque}
+  - {view: router, syntax: '^(admin-tags|bfd|bier|dhcp|dhcp6|dns|firewall|flexible-algorithm-definitions|flowspec|gtm|gtp|if-attribute|igmp|ipsec|ipv6|isa-service-chaining|l2tp|lsp-bfd|mcac|mld|msdp|mtrace2|nat|network-domains|origin-validation|ospf3|p2mp-sr-tree|pcep|pcp-server|pim|policy-acct-template|radius-proxy|radius-server|rib-api|rip|ripng|route-next-hop-policy|router-advertisement|segment-routing|sgt-qos|subscriber-mgmt|ttl-propagate|twamp-light|vrgw|wlan-gw|wpp)( |$)', enters: opaque}
+  - {view: router-if, syntax: '^(cflowd-parameters|dhcp|egress|eth-cfm|external-reference|group-encryption|hold-time|icmp|if-attribute|ingress|ipsec|ipv6|load-balancing|urpf-check|vrrp)( |$)', enters: opaque}
+  - {view: static-route-entry, syntax: '^(leak-destination)( |$)', enters: opaque}
+  - {view: static-nh, syntax: '^(backup-next-hop|cpe-check|forwarding-class)( |$)', enters: opaque}
+  - {view: static-indirect, syntax: '^(cpe-check|forwarding-class|tunnel-next-hop)( |$)', enters: opaque}
+  - {view: system, syntax: '^(alarm-contact-input|alarms|bluetooth|cpm-http-redirect|cron|dhcp6|dns|ethernet|fan-control|file-transmission-profile|grpc|grpc-tunnel|ip|l2tp|lldp|load-balancing|management-interface|netconf|network-element-discovery|persistence|port-topology|power-management|ptp|rollback|satellite|script-control|software-repository|switch-fabric|sync-if-timing|telemetry|thresholds)( |$)', enters: opaque}
+  - {view: system-time, syntax: '^(dst-zone|sntp)( |$)', enters: opaque}
+  - {view: system-security, syntax: '^(cli-script|cli-session-group|cpm-filter|cpm-queue|cpu-protection|dist-cpu-protection|dot1x|keychain|ldap|management|management-interface|pki|profile|source-address|tech-support|telnet|tls|user-template|vprn-aaa-server)( |$)', enters: opaque}
+  - {view: system-snmp, syntax: '^(streaming)( |$)', enters: opaque}
+  - {view: security-snmp, syntax: '^(src-access-list|view)( |$)', enters: opaque}
+  - {view: security-ssh, syntax: '^(authentication-method|client-cipher-list|client-host-key-list|client-kex-list|client-mac-list|key-re-exchange|server-cipher-list|server-host-key-list|server-kex-list|server-mac-list)( |$)', enters: opaque}
+  - {view: security-user, syntax: '^(console|public-keys|snmp|ssh-authentication-method)( |$)', enters: opaque}
+  - {view: security-tacplus, syntax: '^(priv-lvl-map|request-format|service-request)( |$)', enters: opaque}
+  - {view: security-maf, syntax: '^(ip-filter|ipv6-filter|mac-filter)( |$)', enters: opaque}
+  - {view: security-password, syntax: '^(complexity-rules|enable-admin-control)( |$)', enters: opaque}
+  - {view: login-control, syntax: '^(ftp|login-scripts|ssh|telnet)( |$)', enters: opaque}
+  - {view: log, syntax: '^(accounting-policy|app-route-notifications|event-handling|event-trigger|file-id|file-storage-control|filter|services-all-events|snmp-trap-group)( |$)', enters: opaque}
+  - {view: ospf, syntax: '^(entropy-label|flexible-algorithms|graceful-restart|igp-shortcut|loopfree-alternates|timers|traffic-engineering-options)( |$)', enters: opaque}
+  - {view: ospf-area, syntax: '^(bier|nssa|stub|virtual-link)( |$)', enters: opaque}
+  - {view: ospf-if, syntax: '^(delay-normalization|flex-algo)( |$)', enters: opaque}
+  - {view: isis, syntax: '^(entropy-label|flexible-algorithms|graceful-restart|igp-shortcut|link-group|loopfree-alternates|multi-topology|prefix-unreachable|segment-routing-v6|timers|traffic-engineering-options)( |$)', enters: opaque}
+  - {view: isis-if, syntax: '^(delay-normalization)( |$)', enters: opaque}
+  - {view: isis-level, syntax: '^(bier)( |$)', enters: opaque}
+  - {view: isis-if-level, syntax: '^(level-number)( |$)', enters: opaque}
+  - {view: bgp, syntax: '^(add-paths|best-path-selection|bfd-strict-mode|convergence|egress-peer-engineering|error-handling|flowspec|graceful-restart|label-allocation|monitor|multi-path|next-hop-resolution|optimal-route-reflection|outbound-route-filtering|segment-routing|segment-routing-v6)( |$)', enters: opaque}
+  - {view: bgp-group, syntax: '^(add-paths|bfd-strict-mode|dynamic-neighbor|egress-engineering|error-handling|graceful-restart|link-bandwidth|monitor|outbound-route-filtering|segment-routing-v6)( |$)', enters: opaque}
+  - {view: bgp-neighbor, syntax: '^(add-paths|bfd-strict-mode|error-handling|graceful-restart|link-bandwidth|monitor|outbound-route-filtering|segment-routing-v6)( |$)', enters: opaque}
+  - {view: policy-options, syntax: '^(as-path|as-path-group|community|damping|global-variables|route-distinguisher-list)( |$)', enters: opaque}
+  - {view: policy-entry, syntax: '^(conditional-expression|to)( |$)', enters: opaque}
+  - {view: policy-from, syntax: '^(policy-variables)( |$)', enters: opaque}
+  - {view: mpls, syntax: '^(class-forwarding-policy|forwarding-policies|ingress-statistics|lsp-container|lsp-history|lsp-self-ping|lsp-template|mpls-tp|pce-initiated-lsp|sr-te-resignal|srlg-database|static-lsp|tunnel-table-pref)( |$)', enters: opaque}
+  - {view: mpls-if, syntax: '^(label-map|mpls-tp-mep)( |$)', enters: opaque}
+  - {view: mpls-lsp, syntax: '^(auto-bandwidth|bfd|class-forwarding|egr-stats|egress-statistics|fast-reroute|ingress-statistics|pce-associations|primary-p2mp-instance|protect-tp-path|working-tp-path)( |$)', enters: opaque}
+  - {view: mpls-lsp-primary, syntax: '^(bfd)( |$)', enters: opaque}
+  - {view: mpls-lsp-secondary, syntax: '^(bfd)( |$)', enters: opaque}
+  - {view: rsvp, syntax: '^(dbw-accounting|diffserv-te|msg-pacing|te-threshold-update)( |$)', enters: opaque}
+  - {view: rsvp-if, syntax: '^(refresh-reduction)( |$)', enters: opaque}
+  - {view: ldp, syntax: '^(aggregate-prefix-match|egress-statistics|graceful-restart|import-pmsi-routes|lsp-bfd|session-parameters|tcp-session-parameters)( |$)', enters: opaque}
+  - {view: ldp-if-params, syntax: '^(ipv4|ipv6)( |$)', enters: opaque}
+  - {view: ldp-if, syntax: '^(ipv6)( |$)', enters: opaque}
+  - {view: ldp-if-ipv4, syntax: '^(fec-type-capability)( |$)', enters: opaque}
+  - {view: ldp-targeted, syntax: '^(auto-rx|auto-tx|ipv4|ipv6|peer-template)( |$)', enters: opaque}
+  - {view: ldp-targeted-peer, syntax: '^(mcast-tunneling|tunneling)( |$)', enters: opaque}
+  - {view: mpls-labels, syntax: '^(reserved-label-block)( |$)', enters: opaque}
+  - {view: ospf-sr, syntax: '^(adjacency-set|adjacency-sid|egress-statistics|ingress-statistics|mapping-server|maximum-sid-depth)( |$)', enters: opaque}
+  - {view: isis-sr, syntax: '^(adjacency-set|adjacency-sid|egress-statistics|ingress-statistics|mapping-server|maximum-sid-depth)( |$)', enters: opaque}
+
+# 参数说明的取值范围写作 “Values 1 to 255”；按顺序第一条命中生效（ipv6 要在 ipv4 之前）
+param_types:
+  - {name: 'virtual-router-id$', type: integer}
+  # M7-2：取值说明里有 “Values 0.0.0.0 to …”（点分或整数两种写法）、MAC 形式、长度范围的参数不能按整数检查
+  - {name: '^(area-id|system-id|length1-length2)$', type: word}
+  # M7-2：端口与 SAP 类型（路由器接口的 port 写作 端口[:封装]，按 SAP 检查）
+  - {name: '^(port-id)$', type: port}
+  - {name: '^(sap-id|port-name)$', type: sap}
+  - {name: '(ipv6|ip-int-name|interface-name|port-name|port-id|sap-id|lag-id|aps-id|connector-port-id)', type: word}
+  - {name: '(ip-prefix/prefix-length|ip-address/mask|ip-prefix/mask)$', type: prefix}
+  - {name: 'netmask$|^mask$', type: mask}
+  - {name: '(ip-address|next-hop|router-id)$', type: ipv4}
+  - {name: '(description-string|description)$', type: text}
+  - {value: 'Values\s+(-?\d+)\s+to\s+(\d+)', type: integer, range_groups: [1, 2]}
+  - {value: '\bValues\s+\d+\b', type: integer}
+
+domains:
+  interface:
+    - {path: 'configure_port.md'}
+    - {path: 'configure_port_*.md'}
+    - {path: 'configure_lag.md'}
+    - {path: 'configure_lag_*.md'}
+    - {path: 'configure_router.md'}
+    - {path: 'configure_router_interface.md'}
+  static-route:
+    - {path: 'configure_router_static-route-entry.md'}
+  # ---- M7-2 ----
+  # 系统与管理面：configure system 下的单条命令（name、contact、location…）各成一个文件，用通配；
+  # 时钟同步（sync-if-timing、ptp）的子上下文不在范围，只抽进入它们的那条命令（进入 opaque）
+  mgmt:
+    - {path: 'configure_system_*.md'}
+    - {path: 'configure_log.md'}
+    - {path: 'configure_log_*.md'}
+  ospf:
+    - path: 'configure_router_ospf.md'
+      views_map: [{match: '^configure router ospf segment-routing$', view: null}]
+  isis:
+    - path: 'configure_router_isis.md'
+      views_map: [{match: '^configure router isis segment-routing$', view: null}]
+  bgp:
+    - {path: 'configure_router_bgp.md'}
+    # 路由器级别的 AS 号与 Router ID（BGP / OSPF 共用；放在 BGP 功能域，映射在 M7-3 定）
+    - {path: 'configure_router_autonomous-system.md'}
+    - {path: 'configure_router_router-id.md'}
+    - {path: 'configure_router_confederation.md'}
+  routing-policy:
+    - {path: 'configure_router_policy-options.md'}
+  mpls:
+    - {path: 'configure_router_mpls.md'}
+    - {path: 'configure_router_rsvp.md'}
+    - {path: 'configure_router_ldp.md'}
+  # SR：标签范围（mpls-labels 的 sr-labels）与 OSPF / IS-IS 下的 segment-routing 上下文；
+  # 同一文件的其他视图在本功能域丢弃（最后一条 '.' 命中即停，不落到全局映射）
+  sr:
+    - {path: 'configure_router_mpls-labels.md'}
+    - path: 'configure_router_ospf.md'
+      views_map: [{match: '^configure router ospf segment-routing$', view: ospf-sr}, {match: '.', view: null}]
+    - path: 'configure_router_isis.md'
+      views_map: [{match: '^configure router isis segment-routing$', view: isis-sr}, {match: '.', view: null}]
+
+syntax_rewrites:
+  # 前缀 / 掩码：文档写作 *ip-prefix***/***prefix-length*（斜杠是粗体），转换后成了 <ip-prefix> / <prefix-length>；
+  # 配置里是一个词（10.0.0.0/24），合成一个参数
+  - pattern: '<ip-prefix> / <prefix-length>'
+    replace: '<ip-prefix/prefix-length>'
+    params: {ip-prefix/prefix-length: {type: prefix}}
+  - pattern: '<ip-address> / <mask>'
+    replace: '<ip-address/mask>'
+    params: {ip-address/mask: {type: prefix}}
+  - pattern: '<ipv6-prefix> / <prefix-length>'
+    replace: '<ipv6-prefix/prefix-length>'
+    params: {ipv6-prefix/prefix-length: {type: word}}
+  # 文档排版把关键字拆开了（**c ommunity**）
+  - pattern: '^c ommunity\b'
+    replace: 'community'
+  # ---- M7-2 ----
+  # 多个策略名：文档写作嵌套的同名参数（[ <p> [ <p> ] ]），同名参数在匹配记录里会互相覆盖；改成重复组（BGP 最多 15 个、IGP 最多 5 个）
+  - pattern: '^(import|export|vrf-import|vrf-export) <plcy-or-long-expr> \[ <plcy-or-expr> \[ <plcy-or-expr> \]( \])?$'
+    replace: '\1 <plcy-or-long-expr> [ <plcy-or-expr> ] &<1-14>'
+  - pattern: '^(import|export) <policy-name> \[ <policy-name> \]$'
+    replace: '\1 <policy-name> [ <policy-name> ] &<1-4>'
+  - pattern: '^route-target-list <comm-id> \[ <comm-id> \] \]$'
+    replace: 'route-target-list <comm-id> [ <comm-id> ] &<1-14>'
+  # 文档里括号不配对
+  - pattern: '^attempts <count> \[ time <minutes1> \[ lockout <minutes2> \]$'
+    replace: 'attempts <count> [ time <minutes1> [ lockout <minutes2> ] ]'
+  - pattern: '^lsp-refresh-interval \[ <seconds> \] \[ half-lifetime \{ enable \| disable \}$'
+    replace: 'lsp-refresh-interval [ <seconds> ] [ half-lifetime { enable | disable } ]'
+  - pattern: '^cluster <cluster-id> orr-location <location-id> \[ allow-local-fallback \] \]$'
+    replace: 'cluster <cluster-id> orr-location <location-id> [ allow-local-fallback ]'
+  # “命令 <值> | <参数名>” 少了花括号
+  - pattern: '^(\S+) (<[^<>]+>) \| (<[^<>]+>)$'
+    replace: '\1 { \2 | \3 }'
+  - pattern: '^lsp-template <template-name> pce-init-p2p-srte template-id default \| <template-id>$'
+    replace: 'lsp-template <template-name> pce-init-p2p-srte template-id { default | <template-id> }'
+  # 文档的参数名带空格（*ebgp preference*），转换后拆成了两个参数；同名参数表示两种含义的改成不同的名字
+  - pattern: '\[ ebgp <ebgp> <label> <preference> \] \[ ibgp <ibgp> <label> <preference> \]'
+    replace: '[ ebgp <ebgp-label-preference> ] [ ibgp <ibgp-label-preference> ]'
+    params: {ebgp-label-preference: {type: integer, range: [1, 255]}, ibgp-label-preference: {type: integer, range: [1, 255]}}
+  - pattern: '\[ ebgp <ebgp> <preference> \] \[ ibgp <ibgp> <preference> \]'
+    replace: '[ ebgp <ebgp-preference> ] [ ibgp <ibgp-preference> ]'
+    params: {ebgp-preference: {type: integer, range: [1, 255]}, ibgp-preference: {type: integer, range: [1, 255]}}
+  - pattern: '^hold-time <seconds> \[ min <seconds> \]$'
+    replace: 'hold-time <seconds> [ min <min-seconds> ]'
+    params: {min-seconds: {type: integer, range: [0, 65535]}}
+  # “[ <名称> ...(up to 5 max) ]” 与 “<名称> [ <名称> ]”（列表）：改成重复组，每个取值单独记录
+  - pattern: '\[ <([^<>]+)> \.\.\.\(up to \d+ max\) \]'
+    replace: '[ <\1> ] &<1-31>'
+  - pattern: '<([^<>]+)> \[ <\1> \](?! &)'
+    replace: '<\1> [ <\1> ] &<1-31>'
+  # 转换留下的排版痕迹：[no] 前缀、拆开的关键字、语法里带了完整上下文、斜体的 |、带括号的列表说明
+  - pattern: '^\[no\] '
+    replace: ''
+  - pattern: '^configure system security ssh '
+    replace: ''
+  - pattern: '\bs ecurity-level\b'
+    replace: 'security-level'
+  - pattern: '\bp refix -match\b'
+    replace: 'prefix-match'
+  - pattern: '^n o view '
+    replace: 'view '
+  - pattern: ' <\|> '
+    replace: ' | '
+  - pattern: '<:mm>'
+    replace: '<mm>'
+  - pattern: '^to \[ <ip-address> \| node-id \[ <a\.b\.c\.d> \| <1\.\.\.4294967295> \] \]$'
+    replace: 'to { <ip-address> | node-id <node-id> }'
+    params: {ip-address: {type: ipv4}, node-id: {type: word}}
+  - pattern: '\[ <([^<>]+)> \) \]'
+    replace: '[ <\1> ] &<1-4>'
+  - pattern: '\[ <([^<>]+)> \(up to \d+ max\) \]'
+    replace: '[ <\1> ] &<1-4>'
+  - pattern: '^snmp-trap-group <log-id> \| <log-name> '
+    replace: 'snmp-trap-group { <log-id> | <log-name> } '
+  - pattern: '<ip-prefix> / <mask>'
+    replace: '<ip-prefix/mask>'
+    params: {ip-prefix/mask: {type: prefix}}
+  - pattern: '^(default-metric|default-ipv6-unicast-metric) <(ipv4|ipv6)> <metric>$'
+    replace: '\1 <\2-metric>'
+    params: {ipv4-metric: {type: integer, range: [1, 16777214]}, ipv6-metric: {type: integer, range: [1, 16777214]}}

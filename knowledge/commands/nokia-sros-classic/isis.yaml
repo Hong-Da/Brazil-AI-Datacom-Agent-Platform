@@ -1,0 +1,2064 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: isis
+cards:
+  - id: nokia-sros-classic.adjacency-set~2
+    syntax: adjacency-set <id>
+    view: isis-if
+    undo: no adjacency-set <id>
+    params:
+      id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: adjacency-set
+      line: 249
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.advertise-passive-only
+    syntax: advertise-passive-only
+    view: isis
+    undo: no advertise-passive-only
+    default: no advertise-passive-only
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: advertise-passive-only
+      line: 448
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.advertise-router-capability~2
+    syntax: advertise-router-capability { area | as }
+    view: isis
+    undo: no advertise-router-capability
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: advertise-router-capability
+      line: 482
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.advertise-router-capability~3
+    syntax: advertise-router-capability
+    view: isis-level
+    undo: no advertise-router-capability
+    default: advertise-router-capability
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: advertise-router-capability
+      line: 523
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.advertise-tunnel-link~2
+    syntax: advertise-tunnel-link
+    view: isis
+    undo: no advertise-tunnel-link
+    default: no advertise-tunnel-link
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: advertise-tunnel-link
+      line: 559
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.all-l1isis
+    syntax: all-l1isis <ieee-address>
+    view: isis
+    undo: no all-l1isis
+    params:
+      ieee-address:
+        type: word
+    default: 01:80:c2:00:00:14
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: all-l1isis
+      line: 608
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.all-l2isis
+    syntax: all-l2isis <ieee-address>
+    view: isis
+    undo: no all-l2isis
+    params:
+      ieee-address:
+        type: word
+    default: 01:80:c2:00:00:15
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: all-l2isis
+      line: 650
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.area-id
+    syntax: area-id <area-address>
+    view: isis
+    undo: no area-id <area-address>
+    params:
+      area-address:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: area-id
+      line: 809
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.auth-keychain@isis-level
+    syntax: auth-keychain <name>
+    view: isis-level
+    params: &id001
+      name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: auth-keychain
+      line: 899
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.auth-keychain@isis
+    syntax: auth-keychain <name>
+    view: isis
+    params: *id001
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: auth-keychain
+      line: 899
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-check~2
+    syntax: authentication-check
+    view: isis
+    undo: no authentication-check
+    default: authentication-check
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: authentication-check
+      line: 938
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-key@isis
+    syntax: authentication-key [ <authentication-key> | <hash-key> ] [ hash | hash2 | custom ]
+    view: isis
+    undo: no authentication-key
+    params: &id002
+      authentication-key:
+        type: word
+      hash-key:
+        type: word
+    default: no authentication-key
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: authentication-key
+      line: 978
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-key@isis-level
+    syntax: authentication-key [ <authentication-key> | <hash-key> ] [ hash | hash2 | custom ]
+    view: isis-level
+    undo: no authentication-key
+    params: *id002
+    default: no authentication-key
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: authentication-key
+      line: 978
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-type@isis
+    syntax: authentication-type { password | message-digest }
+    view: isis
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: authentication-type
+      line: 1035
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-type@isis-level
+    syntax: authentication-type { password | message-digest }
+    view: isis-level
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: authentication-type
+      line: 1035
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bfd-enable~2
+    syntax: bfd-enable { ipv4 | ipv6 } [ include-bfd-tlv ]
+    view: isis-if
+    undo: no bfd-enable { ipv4 | ipv6 }
+    default: no bfd-enable ipv4 no bfd-enable ipv6
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: bfd-enable
+      line: 1085
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bier~2
+    syntax: bier
+    view: isis-level
+    enters_view: opaque
+    undo: no bier
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: bier
+      line: 1131
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.csnp-authentication@isis
+    syntax: csnp-authentication
+    view: isis
+    undo: no csnp-authentication
+    default: csnp-authentication
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: csnp-authentication
+      line: 1200
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.csnp-authentication@isis-level
+    syntax: csnp-authentication
+    view: isis-level
+    undo: no csnp-authentication
+    default: csnp-authentication
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: csnp-authentication
+      line: 1200
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.csnp-interval
+    syntax: csnp-interval <seconds>
+    view: isis-if
+    undo: no csnp-interval
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: csnp-interval 10 — CSN PDUs are sent every 10 seconds for LAN interfaces. csnp-interval 5 — CSN PDUs are sent every 5 seconds for point-to-point interfaces.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: csnp-interval
+      line: 1241
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.csnp-on-p2p
+    syntax: csnp-on-p2p
+    view: isis
+    undo: no csnp-on-p2p
+    default: csnp-on-p2p
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: csnp-on-p2p
+      line: 1285
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.database-export~2
+    syntax: database-export [ identifier <id> ] [ bgp-ls-identifier <bgp-ls-id> ] [ reachable-ls-only ]
+    view: isis
+    undo: no database-export
+    params:
+      id:
+        type: integer
+        range:
+          - 0
+          - 18446744073709551615
+      bgp-ls-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: database-export
+      line: 1322
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.database-export-exclude~2
+    syntax: database-export-exclude
+    view: isis-level
+    undo: no database-export-exclude
+    default: no database-export-exclude
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: database-export-exclude
+      line: 1364
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.default-instance
+    syntax: default-instance
+    view: isis-if
+    undo: no default-instance
+    default: no default-instance
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: default-instance
+      line: 1400
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.default-ipv4-multicast-metric
+    syntax: default-ipv4-multicast-metric <metric>
+    view: isis-level
+    undo: no default-ipv4-multicast-metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: default-ipv4-multicast-metric 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: default-ipv4-multicast-metric
+      line: 1438
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.default-ipv6-multicast-metric
+    syntax: default-ipv6-multicast-metric <metric>
+    view: isis-level
+    undo: no default-ipv6-multicast-metric
+    params:
+      metric:
+        type: word
+    default: default-ipv6-multicast-metric 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: default-ipv6-multicast-metric
+      line: 1480
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.default-ipv6-unicast-metric
+    syntax: default-ipv6-unicast-metric <ipv6-metric>
+    view: isis-level
+    undo: no default-ipv6-unicast-metric
+    params:
+      ipv6-metric:
+        type: integer
+        range:
+          - 1
+          - 16777214
+    default: default-ipv6-unicast-metric 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: default-ipv6-unicast-metric
+      line: 1522
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.default-metric
+    syntax: default-metric <ipv4-metric>
+    view: isis-level
+    undo: no default-metric
+    params:
+      ipv4-metric:
+        type: integer
+        range:
+          - 1
+          - 16777214
+    default: default-metric 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: default-metric
+      line: 1564
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.default-route-tag
+    syntax: default-route-tag <tag>
+    view: isis
+    undo: no default-route-tag
+    params:
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: default-route-tag
+      line: 1606
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.delay-normalization~2
+    syntax: delay-normalization
+    view: isis-if
+    enters_view: opaque
+    undo: no delay-normalization
+    default: no delay-normalization
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: delay-normalization
+      line: 1642
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.disable-ldp-sync~2
+    syntax: disable-ldp-sync
+    view: isis
+    undo: no disable-ldp-sync
+    default: no disable-ldp-sync
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: disable-ldp-sync
+      line: 1776
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.entropy-label~2
+    syntax: entropy-label
+    view: isis
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: entropy-label
+      line: 1842
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.export~3
+    syntax: export <policy-name> [ <policy-name> ] &<1-4>
+    view: isis
+    undo: no export <policy-name> [ <policy-name> ] &<1-31>
+    params:
+      policy-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: export
+      line: 1943
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.export-limit~2
+    syntax: export-limit <number> [ log <percentage> ]
+    view: isis
+    undo: no export-limit
+    params:
+      number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      percentage:
+        type: integer
+        range:
+          - 1
+          - 100
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: export-limit
+      line: 1989
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.external-preference~2
+    syntax: external-preference <preference>
+    view: isis-level
+    undo: no external-preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: external-preference (Level 1) — 160 external-preference (Level 2) — 165
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: external-preference
+      line: 2082
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.flexible-algorithms~2
+    syntax: flexible-algorithms
+    view: isis
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: flexible-algorithms
+      line: 2258
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.graceful-restart~2
+    syntax: graceful-restart
+    view: isis
+    enters_view: opaque
+    undo: no graceful-restart
+    default: no graceful-restart
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: graceful-restart
+      line: 2286
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-auth-keychain@isis-level
+    syntax: hello-auth-keychain <name>
+    view: isis-level
+    params: &id003
+      name:
+        type: word
+    default: no hello-auth-keychain
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-auth-keychain
+      line: 2322
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-auth-keychain@isis
+    syntax: hello-auth-keychain <name>
+    view: isis
+    params: *id003
+    default: no hello-auth-keychain
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-auth-keychain
+      line: 2322
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-authentication@isis-level
+    syntax: hello-authentication
+    view: isis-level
+    undo: no hello-authentication
+    default: hello-authentication
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-authentication
+      line: 2367
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-authentication@isis
+    syntax: hello-authentication
+    view: isis
+    undo: no hello-authentication
+    default: hello-authentication
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-authentication
+      line: 2367
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-authentication@isis-if
+    syntax: hello-authentication
+    view: isis-if
+    undo: no hello-authentication
+    default: hello-authentication
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-authentication
+      line: 2367
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-authentication-key@isis-if-level
+    syntax: hello-authentication-key [ <authentication-key> | <hash-key> ] [ hash | hash2 | custom ]
+    view: isis-if-level
+    undo: no hello-authentication-key
+    params: &id004
+      authentication-key:
+        type: word
+      hash-key:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-authentication-key
+      line: 2413
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-authentication-key@isis-if
+    syntax: hello-authentication-key [ <authentication-key> | <hash-key> ] [ hash | hash2 | custom ]
+    view: isis-if
+    undo: no hello-authentication-key
+    params: *id004
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-authentication-key
+      line: 2413
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-authentication-type@isis-if
+    syntax: hello-authentication-type { password | message-digest }
+    view: isis-if
+    undo: no hello-authentication-type
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-authentication-type
+      line: 2468
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-authentication-type@isis-if-level
+    syntax: hello-authentication-type { password | message-digest }
+    view: isis-if-level
+    undo: no hello-authentication-type
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-authentication-type
+      line: 2468
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-interval~2
+    syntax: hello-interval <seconds>
+    view: isis-if-level
+    undo: no hello-interval
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 20000
+    default: 3 – for designated intermediate system interfaces 9 – for non-designated intermediate system interfaces and point-to-point interfaces
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-interval
+      line: 2516
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-multiplier
+    syntax: hello-multiplier <multiplier>
+    view: isis-if-level
+    undo: no hello-multiplier
+    params:
+      multiplier:
+        type: integer
+        range:
+          - 2
+          - 100
+    default: hello-multiplier 3
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-multiplier
+      line: 2612
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-padding@isis-level
+    syntax: hello-padding { none | adaptive | loose | strict }
+    view: isis-level
+    undo: no hello-padding { none | adaptive | loose | strict }
+    default: no hello-padding
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-padding
+      line: 2660
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-padding@isis-if-level
+    syntax: hello-padding { none | adaptive | loose | strict }
+    view: isis-if-level
+    undo: no hello-padding { none | adaptive | loose | strict }
+    default: no hello-padding
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-padding
+      line: 2660
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-padding@isis
+    syntax: hello-padding { none | adaptive | loose | strict }
+    view: isis
+    undo: no hello-padding { none | adaptive | loose | strict }
+    default: no hello-padding
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-padding
+      line: 2660
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-padding@isis-if
+    syntax: hello-padding { none | adaptive | loose | strict }
+    view: isis-if
+    undo: no hello-padding { none | adaptive | loose | strict }
+    default: no hello-padding
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: hello-padding
+      line: 2660
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ignore-attached-bit.1
+    syntax: ignore-attached-bit
+    view: isis
+    undo: no ignore-attached-bit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ignore-attached-bit
+      line: 2758
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ignore-lsp-errors
+    syntax: ignore-lsp-errors
+    view: isis
+    undo: no ignore-lsp-errors
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ignore-lsp-errors
+      line: 2790
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ignore-narrow-metric
+    syntax: ignore-narrow-metric
+    view: isis
+    undo: no ignore-narrow-metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ignore-narrow-metric
+      line: 2825
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.igp-shortcut~2
+    syntax: igp-shortcut
+    view: isis
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: igp-shortcut
+      line: 2857
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.iid-tlv-enable
+    syntax: iid-tlv-enable
+    view: isis
+    undo: no iid-tlv-enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: iid-tlv-enable
+      line: 2913
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.import~3
+    syntax: import <policy-name> [ <policy-name> ] &<1-4>
+    view: isis
+    undo: no import
+    params:
+      policy-name:
+        type: word
+    default: no import
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: import
+      line: 2947
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interface~2
+    syntax: interface <ip-int-name>
+    view: isis
+    enters_view: isis-if
+    undo: no interface <ip-int-name>
+    params:
+      ip-int-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: interface
+      line: 3025
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interface-type~2
+    syntax: interface-type { broadcast | point-to-point }
+    view: isis-if
+    undo: no interface-type
+    default: interface-type point-to-point — For IP interfaces on SONET channels. interface-type broadcast — For IP interfaces on Ethernet or unknown type physical interfaces.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: interface-type
+      line: 3069
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv4-adjacency-sid
+    syntax: ipv4-adjacency-sid label <value>
+    view: isis-if
+    undo: no ipv4-adjacency-sid
+    params:
+      value:
+        type: integer
+        range:
+          - 18432
+          - 5248
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv4-adjacency-sid
+      line: 3118
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv4-multicast-disable
+    syntax: ipv4-multicast-disable
+    view: isis-if
+    undo: no ipv4-multicast-disable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv4-multicast-disable
+      line: 3194
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv4-multicast-metric
+    syntax: ipv4-multicast-metric <metric>
+    view: isis-if-level
+    undo: no ipv4-multicast-metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv4-multicast-metric
+      line: 3226
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv4-multicast-routing.1
+    syntax: ipv4-multicast-routing { native | mt }
+    view: isis
+    undo: no ipv4-multicast-routing
+    default: ipv4-multicast-routing native
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv4-multicast-routing
+      line: 3306
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv4-multicast-routing.2
+    syntax: ipv4-multicast-routing
+    view: isis
+    undo: no ipv4-multicast-routing
+    default: ipv4-multicast-routing native
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv4-multicast-routing
+      line: 3306
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv4-node-sid.1
+    syntax: ipv4-node-sid index <index-value> [ clear-n-flag ]
+    view: isis-if
+    undo: no ipv4-node-sid
+    params:
+      index-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: no ipv4-node-sid
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv4-node-sid
+      line: 3351
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv4-node-sid.2
+    syntax: ipv4-node-sid label <label-value> [ clear-n-flag ]
+    view: isis-if
+    undo: no ipv4-node-sid
+    params:
+      label-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: no ipv4-node-sid
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv4-node-sid
+      line: 3351
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv4-routing
+    syntax: ipv4-routing
+    view: isis
+    undo: no ipv4-routing
+    default: ipv4-routing
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv4-routing
+      line: 3405
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6-adjacency-sid
+    syntax: ipv6-adjacency-sid label <value>
+    view: isis-if
+    undo: no ipv6-adjacency-sid
+    params:
+      value:
+        type: integer
+        range:
+          - 18432
+          - 5248
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv6-adjacency-sid
+      line: 3519
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6-multicast-disable
+    syntax: ipv6-multicast-disable
+    view: isis-if
+    undo: no ipv6-multicast-disable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv6-multicast-disable
+      line: 3595
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6-multicast-metric
+    syntax: ipv6-multicast-metric <metric>
+    view: isis-if-level
+    undo: no ipv6-multicast-metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: no ipv6-multicast-metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv6-multicast-metric
+      line: 3627
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6-multicast-routing.1
+    syntax: ipv6-multicast-routing { native | mt }
+    view: isis
+    undo: no ipv6-multicast-routing
+    default: ipv6-multicast-routing native
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv6-multicast-routing
+      line: 3711
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6-multicast-routing.2
+    syntax: ipv6-multicast-routing
+    view: isis
+    undo: no ipv6-multicast-routing
+    default: ipv6-multicast-routing native
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv6-multicast-routing
+      line: 3711
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6-node-sid.1
+    syntax: ipv6-node-sid index <index-value> [ clear-n-flag ]
+    view: isis-if
+    undo: no ipv6-node-sid
+    params:
+      index-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: no ipv6-node-sid
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv6-node-sid
+      line: 3756
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6-node-sid.2
+    syntax: ipv6-node-sid label <label-value> [ clear-n-flag ]
+    view: isis-if
+    undo: no ipv6-node-sid
+    params:
+      label-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: no ipv6-node-sid
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv6-node-sid
+      line: 3756
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6-routing
+    syntax: ipv6-routing { native | mt }
+    view: isis
+    undo: no ipv6-routing { native | mt }
+    default: no ipv6-routing
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv6-routing
+      line: 3810
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6-unicast-disable
+    syntax: ipv6-unicast-disable
+    view: isis-if
+    undo: no ipv6-unicast-disable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv6-unicast-disable
+      line: 3889
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6-unicast-metric
+    syntax: ipv6-unicast-metric <metric>
+    view: isis-if-level
+    undo: no ipv6-unicast-metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: no ipv6-unicast-metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ipv6-unicast-metric
+      line: 3924
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.isis
+    syntax: isis [ <isis-instance> ]
+    view: router
+    enters_view: isis
+    undo: no isis [ <isis-instance> ]
+    params:
+      isis-instance:
+        type: integer
+        range:
+          - 0
+          - 127
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: isis
+      line: 4008
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ldp-over-rsvp~2
+    syntax: ldp-over-rsvp
+    view: isis
+    undo: no ldp-over-rsvp
+    default: no ldp-over-rsvp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ldp-over-rsvp
+      line: 4050
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.level@isis-if
+    syntax: level { 1 | 2 }
+    view: isis-if
+    enters_view: isis-if-level
+    default: level 1 or level 2
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: level
+      line: 4122
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.level@isis
+    syntax: level { 1 | 2 }
+    view: isis
+    enters_view: isis-level
+    default: level 1 or level 2
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: level
+      line: 4122
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.level-capability@isis
+    syntax: level-capability { level-1 | level-2 | level-1/2 }
+    view: isis
+    undo: no level-capability
+    default: level-capability level-1/2
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: level-capability
+      line: 4244
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.level-capability@isis-if
+    syntax: level-capability { level-1 | level-2 | level-1/2 }
+    view: isis-if
+    undo: no level-capability
+    default: level-capability level-1/2
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: level-capability
+      line: 4244
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lfa-policy-map~2
+    syntax: lfa-policy-map route-nh-template <template-name>
+    view: isis-if
+    undo: no lfa-policy-map
+    params:
+      template-name:
+        type: word
+    default: no lfa-policy-map
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: lfa-policy-map
+      line: 4453
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.link-group
+    syntax: link-group <link-group-name>
+    view: isis
+    enters_view: opaque
+    undo: no link-group
+    params:
+      link-group-name:
+        type: word
+    default: no link-group
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: link-group
+      line: 4505
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.load-balancing-weight~3
+    syntax: load-balancing-weight [ <value> ]
+    view: isis-if
+    params:
+      value:
+        type: word
+    default: no load-balancing-weight
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: load-balancing-weight
+      line: 4545
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.loopfree-alternate-exclude@isis-level
+    syntax: loopfree-alternate-exclude
+    view: isis-level
+    undo: no loopfree-alternate-exclude
+    default: no loopfree-alternate-exclude
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: loopfree-alternate-exclude
+      line: 4629
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.loopfree-alternate-exclude@isis-if
+    syntax: loopfree-alternate-exclude
+    view: isis-if
+    undo: no loopfree-alternate-exclude
+    default: no loopfree-alternate-exclude
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: loopfree-alternate-exclude
+      line: 4629
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.loopfree-alternates~2
+    syntax: loopfree-alternates
+    view: isis
+    enters_view: opaque
+    undo: no loopfree-alternates
+    default: no loopfree-alternates
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: loopfree-alternates
+      line: 4715
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-lifetime
+    syntax: lsp-lifetime <seconds>
+    view: isis
+    undo: no lsp-lifetime
+    params:
+      seconds:
+        type: integer
+        range:
+          - 350
+          - 65535
+    default: lsp-lifetime 1200
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: lsp-lifetime
+      line: 4779
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-minimum-remaining-lifetime
+    syntax: lsp-minimum-remaining-lifetime <seconds>
+    view: isis
+    undo: no lsp-minimum-remaining-lifetime
+    params:
+      seconds:
+        type: integer
+        range:
+          - 350
+          - 65535
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: lsp-minimum-remaining-lifetime
+      line: 4825
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-mtu-size@isis
+    syntax: lsp-mtu-size <size>
+    view: isis
+    undo: no lsp-mtu-size
+    params: &id005
+      size:
+        type: integer
+        range:
+          - 490
+          - 9778
+    default: lsp-mtu-size 1492
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: lsp-mtu-size
+      line: 4865
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-mtu-size@isis-level
+    syntax: lsp-mtu-size <size>
+    view: isis-level
+    undo: no lsp-mtu-size
+    params: *id005
+    default: lsp-mtu-size 1492
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: lsp-mtu-size
+      line: 4865
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-pacing-interval
+    syntax: lsp-pacing-interval <milliseconds>
+    view: isis-if
+    undo: no lsp-pacing-interval
+    params:
+      milliseconds:
+        type: word
+    default: lsp-pacing-interval 100
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: lsp-pacing-interval
+      line: 4916
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mesh-group
+    syntax: mesh-group { value | blocked }
+    view: isis-if
+    undo: no mesh-group
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: mesh-group
+      line: 5195
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.metric~2
+    syntax: metric <metric>
+    view: isis-if-level
+    undo: no metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: metric 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: metric
+      line: 5240
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mru-mismatch-detection
+    syntax: mru-mismatch-detection
+    view: isis
+    undo: no mru-mismatch-detection
+    default: no mru-mismatch-detection
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: mru-mismatch-detection
+      line: 5521
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.multi-topology
+    syntax: multi-topology
+    view: isis
+    enters_view: opaque
+    undo: no multi-topology
+    default: no multi-topology
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: multi-topology
+      line: 5612
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.multicast-import~2
+    syntax: multicast-import [ { both | ipv4 | ipv6 } ]
+    view: isis
+    undo: no multicast-import [ { both | ipv4 | ipv6 } ]
+    default: no multicast-import
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: multicast-import
+      line: 5780
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.overload~2
+    syntax: overload [ timeout <seconds> ] [ max-metric ]
+    view: isis
+    undo: no overload
+    params:
+      seconds:
+        type: integer
+        range:
+          - 60
+          - 1800
+    default: no overload
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: overload
+      line: 5989
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.overload-export-external
+    syntax: overload-export-external
+    view: isis
+    undo: no overload-export-external
+    default: no overload-export-external
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: overload-export-external
+      line: 6042
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.overload-export-interlevel
+    syntax: overload-export-interlevel
+    view: isis
+    undo: no overload-export-interlevel
+    default: no overload-export-interlevel
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: overload-export-interlevel
+      line: 6078
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.overload-fib-error-notify-only
+    syntax: overload-fib-error-notify-only [ retry <seconds> ]
+    view: isis
+    undo: no overload-fib-error-notify-only
+    params:
+      seconds:
+        type: integer
+        range:
+          - 10
+          - 1800
+    default: no overload-fib-error-notify-only
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: overload-fib-error-notify-only
+      line: 6114
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.overload-include-locators
+    syntax: overload-include-locators
+    view: isis
+    undo: no overload-include-locators
+    default: no overload-include-locators
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: overload-include-locators
+      line: 6165
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.overload-on-boot~2
+    syntax: overload-on-boot [ timeout <seconds> ] [ max-metric ]
+    view: isis
+    undo: no overload-on-boot
+    params:
+      seconds:
+        type: integer
+        range:
+          - 60
+          - 1800
+    default: no overload-on-boot
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: overload-on-boot
+      line: 6201
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.passive@isis-if-level
+    syntax: passive
+    view: isis-if-level
+    undo: no passive
+    default: no passive
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: passive
+      line: 6470
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.passive@isis-if
+    syntax: passive
+    view: isis-if
+    undo: no passive
+    default: no passive
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: passive
+      line: 6470
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.poi-tlv-enable
+    syntax: poi-tlv-enable
+    view: isis
+    default: no poi-tlv-enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: poi-tlv-enable
+      line: 6513
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.preference~2
+    syntax: preference <preference>
+    view: isis-level
+    undo: no preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: preference (Level 1) — 15 preference (Level 2) — 18
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: preference
+      line: 6547
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-attributes-tlv
+    syntax: prefix-attributes-tlv
+    view: isis
+    undo: no prefix-attributes-tlv
+    default: no prefix-attributes-tlv
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: prefix-attributes-tlv
+      line: 6637
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-limit
+    syntax: prefix-limit <limit> [ log-only ] [ threshold <percent> ] [ overload-timeout { <seconds> | forever } ]
+    view: isis
+    undo: no prefix-limit
+    params:
+      limit:
+        type: integer
+        range:
+          - 1
+          - 4294967296
+      percent:
+        type: integer
+        range:
+          - 0
+          - 100
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 1800
+    default: no prefix-limit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: prefix-limit
+      line: 6673
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-unreachable
+    syntax: prefix-unreachable
+    view: isis
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: prefix-unreachable
+      line: 6826
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.priority~2
+    syntax: priority <number>
+    view: isis-if-level
+    undo: no priority
+    params:
+      number:
+        type: integer
+        range:
+          - 0
+          - 127
+    default: priority 64
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: priority
+      line: 6854
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.psnp-authentication@isis-level
+    syntax: psnp-authentication
+    view: isis-level
+    undo: no psnp-authentication
+    default: psnp-authentication
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: psnp-authentication
+      line: 6934
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.psnp-authentication@isis
+    syntax: psnp-authentication
+    view: isis
+    undo: no psnp-authentication
+    default: psnp-authentication
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: psnp-authentication
+      line: 6934
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.reference-bandwidth.1~2
+    syntax: reference-bandwidth <bandwidth-in-kbps>
+    view: isis
+    undo: no reference-bandwidth
+    params:
+      bandwidth-in-kbps:
+        type: integer
+        range:
+          - 1
+          - 18446744073709551615
+    default: no reference-bandwidth
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: reference-bandwidth
+      line: 6975
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.reference-bandwidth.2~2
+    syntax: reference-bandwidth [ zbps <Zetta-bps> ] [ ebps <Exa-bps> ] [ pbps <Peta-bps> ] [ tbps <Tera-bps> ] [ gbps <Giga-bps> ] [ mbps <Mega-bps> ] [ kbps <Kilo-bps> ]
+    view: isis
+    undo: no reference-bandwidth
+    params:
+      Zetta-bps:
+        type: integer
+        range:
+          - 1
+          - 18
+      Exa-bps:
+        type: integer
+        range:
+          - 1
+          - 999
+      Peta-bps:
+        type: integer
+        range:
+          - 1
+          - 999
+      Tera-bps:
+        type: integer
+        range:
+          - 1
+          - 999
+      Giga-bps:
+        type: integer
+        range:
+          - 1
+          - 999
+      Mega-bps:
+        type: integer
+        range:
+          - 1
+          - 999
+      Kilo-bps:
+        type: integer
+        range:
+          - 1
+          - 999
+    default: no reference-bandwidth
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: reference-bandwidth
+      line: 6975
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.retransmit-interval~2
+    syntax: retransmit-interval <seconds>
+    view: isis-if
+    undo: no retransmit-interval
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: retransmit-interval 5
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: retransmit-interval
+      line: 7150
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rib-priority~3
+    syntax: rib-priority high { <prefix-list-name> | tag <tag-value> }
+    view: isis
+    undo: no rib-priority
+    params:
+      prefix-list-name:
+        type: word
+      tag-value:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: no rib-priority high
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: rib-priority
+      line: 7234
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.router-id~2
+    syntax: router-id <router-id>
+    view: isis
+    undo: no router-id
+    params:
+      router-id:
+        type: ipv4
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: router-id
+      line: 7277
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sd-offset
+    syntax: sd-offset <sd-offset>
+    view: isis-if-level
+    undo: no sd-offset
+    params:
+      sd-offset:
+        type: integer
+        range:
+          - 0
+          - 16777215
+    default: no sd-offset
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: sd-offset
+      line: 7345
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.segment-routing~2
+    syntax: segment-routing
+    view: isis
+    enters_view: isis-sr
+    undo: no segment-routing
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: segment-routing
+      line: 7387
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.segment-routing-v6
+    syntax: segment-routing-v6
+    view: isis
+    enters_view: opaque
+    undo: no segment-routing-v6
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: segment-routing-v6
+      line: 7435
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sf-offset
+    syntax: sf-offset <offset-value>
+    view: isis-if-level
+    undo: no sf-offset
+    params:
+      offset-value:
+        type: integer
+        range:
+          - 0
+          - 16777215
+    default: no sf-offset
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: sf-offset
+      line: 7469
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@isis
+    syntax: shutdown
+    view: isis
+    undo: no shutdown
+    default: shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: shutdown
+      line: 7511
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@isis-if-level
+    syntax: shutdown
+    view: isis-if-level
+    undo: no shutdown
+    default: shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: shutdown
+      line: 7511
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@isis-if
+    syntax: shutdown
+    view: isis-if
+    undo: no shutdown
+    default: shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: shutdown
+      line: 7511
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sid-protection~2
+    syntax: sid-protection
+    view: isis-if
+    undo: no sid-protection
+    default: sid-protection
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: sid-protection
+      line: 7747
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.standard-multi-instance
+    syntax: standard-multi-instance
+    view: isis
+    undo: no standard-multi-instance
+    default: no standard-multi-instance
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: standard-multi-instance
+      line: 7902
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.strict-adjacency-check
+    syntax: strict-adjacency-check
+    view: isis
+    undo: no strict-adjacency-check
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: strict-adjacency-check
+      line: 7940
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.summary-address.1
+    syntax: summary-address { <ip-prefix/ip-prefix-length> | <ip-prefix> <netmask> } [ <level> ] [ tag <tag> ] [ algorithm <algo-id> ]
+    view: isis
+    undo: no summary-address { <ip-prefix/ip-prefix-length> | <ip-prefix> <netmask> }
+    params:
+      ip-prefix/ip-prefix-length: &id006
+        type: word
+      ip-prefix:
+        type: word
+      netmask: &id007
+        type: mask
+      level: &id008
+        type: word
+      tag: &id009
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      algo-id: &id010
+        type: integer
+    default: no summary-address
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: summary-address
+      line: 7972
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.summary-address.2
+    syntax: summary-address { <ip-prefix/ip-prefix-length> | <ip-prefix> <netmask> } [ <level> ] [ tag <tag> ] [ algorithm <algo-id> ] advertise-unreachable [ match-route-tag <tag> ] [ advertise-route-tag <tag> ]
+    view: isis
+    undo: no summary-address { <ip-prefix/ip-prefix-length> | <ip-prefix> <netmask> }
+    params:
+      ip-prefix/ip-prefix-length: *id006
+      ip-prefix:
+        type: word
+      netmask: *id007
+      level: *id008
+      tag: *id009
+      algo-id: *id010
+    default: no summary-address
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: summary-address
+      line: 7972
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.suppress-attached-bit
+    syntax: suppress-attached-bit
+    view: isis
+    undo: no suppress-attached-bit
+    default: no suppress-attached-bit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: suppress-attached-bit
+      line: 8026
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.system-id
+    syntax: system-id <isis-system-id>
+    view: isis
+    undo: no system-id
+    params:
+      isis-system-id:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: system-id
+      line: 8060
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tag
+    syntax: tag <tag>
+    view: isis-if
+    undo: no tag
+    params:
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: tag
+      line: 8110
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.timers~2
+    syntax: timers
+    view: isis
+    enters_view: opaque
+    undo: no timers
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: timers
+      line: 8271
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.traffic-engineering~2
+    syntax: traffic-engineering
+    view: isis
+    undo: no traffic-engineering
+    default: no traffic-engineering
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: traffic-engineering
+      line: 8301
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.traffic-engineering-options~2
+    syntax: traffic-engineering-options
+    view: isis
+    enters_view: opaque
+    undo: no traffic-engineering-options
+    default: no traffic-engineering-options
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: traffic-engineering-options
+      line: 8335
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.unicast-import-disable.1
+    syntax: unicast-import-disable [ ipv4 ]
+    view: isis
+    undo: no unicast-import-disable [ ipv4 ]
+    default: no unicast-import-disable both
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: unicast-import-disable
+      line: 8561
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.unicast-import-disable.2
+    syntax: unicast-import-disable [ ipv6 ]
+    view: isis
+    undo: no unicast-import-disable [ ipv6 ]
+    default: no unicast-import-disable both
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: unicast-import-disable
+      line: 8561
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.unicast-import-disable.3
+    syntax: unicast-import-disable [ both ]
+    view: isis
+    undo: no unicast-import-disable [ both ]
+    default: no unicast-import-disable both
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: unicast-import-disable
+      line: 8561
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.wide-metrics-only
+    syntax: wide-metrics-only
+    view: isis-level
+    undo: no wide-metrics-only
+    default: no wide-metrics-only
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: wide-metrics-only
+      line: 8697
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-refresh-interval
+    syntax: lsp-refresh-interval [ <seconds> ] [ half-lifetime { enable | disable } ]
+    view: isis
+    undo: no lsp-refresh-interval
+    params:
+      seconds:
+        type: integer
+        range:
+          - 150
+          - 65535
+    default: lsp-refresh-interval 600 half-lifetime enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: lsp-refresh-interval
+      line: 4966
+      version: 25.10.R1
+    status: draft

@@ -1,0 +1,632 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: static-route
+cards:
+  - id: nokia-sros-classic.backup-next-hop
+    syntax: backup-next-hop
+    view: static-nh
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: backup-next-hop
+      line: 53
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.backup-tag
+    syntax: backup-tag <tag-id>
+    view: static-route-entry
+    undo: no backup-tag
+    params:
+      tag-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: no backup-tag
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: backup-tag
+      line: 82
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bfd-enable
+    syntax: bfd-enable
+    view: static-nh
+    undo: no bfd-enable
+    default: no bfd-enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: bfd-enable
+      line: 127
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.black-hole
+    syntax: black-hole
+    view: static-route-entry
+    enters_view: static-bh
+    undo: no black-hole
+    default: no black-hole
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: black-hole
+      line: 165
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community@static-indirect
+    syntax: community <comm-id>
+    view: static-indirect
+    undo: no community [ <comm-id> ]
+    params: &id001
+      comm-id:
+        type: word
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: community
+      line: 199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community@static-nh
+    syntax: community <comm-id>
+    view: static-nh
+    undo: no community [ <comm-id> ]
+    params: *id001
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: community
+      line: 199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community@static-bh
+    syntax: community <comm-id>
+    view: static-bh
+    undo: no community [ <comm-id> ]
+    params: *id001
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: community
+      line: 199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community
+    syntax: community <comm-id> [ <comm-id> ] &<1-31>
+    view: static-route-entry
+    undo: no community [ <comm-id> [ <comm-id> ] &<1-31> ]
+    params:
+      comm-id:
+        type: word
+    default: no community
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: community
+      line: 253
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cpe-check@static-indirect
+    syntax: cpe-check <cpe-ip-address>
+    view: static-indirect
+    enters_view: opaque
+    undo: no cpe-check [ <cpe-ip-address> ]
+    params: &id002
+      cpe-ip-address:
+        type: ipv4
+    default: no cpe-check
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: cpe-check
+      line: 297
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cpe-check@static-nh
+    syntax: cpe-check <cpe-ip-address>
+    view: static-nh
+    enters_view: opaque
+    undo: no cpe-check [ <cpe-ip-address> ]
+    params: *id002
+    default: no cpe-check
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: cpe-check
+      line: 297
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.description@static-nh
+    syntax: description <short-description-string>
+    view: static-nh
+    undo: no description
+    params: &id003
+      short-description-string:
+        type: text
+    default: no description
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: description
+      line: 350
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.description@static-bh
+    syntax: description <short-description-string>
+    view: static-bh
+    undo: no description
+    params: *id003
+    default: no description
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: description
+      line: 350
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.description@static-indirect
+    syntax: description <short-description-string>
+    view: static-indirect
+    undo: no description
+    params: *id003
+    default: no description
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: description
+      line: 350
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.destination-class@static-nh
+    syntax: destination-class <dest-index>
+    view: static-nh
+    undo: no destination-class [ <dest-index> ]
+    params: &id004
+      dest-index:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: no destination-class
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: destination-class
+      line: 889
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.destination-class@static-indirect
+    syntax: destination-class <dest-index>
+    view: static-indirect
+    undo: no destination-class [ <dest-index> ]
+    params: *id004
+    default: no destination-class
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: destination-class
+      line: 889
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dynamic-bgp
+    syntax: dynamic-bgp
+    view: static-bh
+    undo: no dynamic-bgp
+    default: no dynamic-bgp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: dynamic-bgp
+      line: 1019
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forwarding-class@static-nh
+    syntax: forwarding-class { be | l2 | af | l1 | h2 | ef | h1 | nc }
+    view: static-nh
+    enters_view: opaque
+    undo: no forwarding-class [ { be | l2 | af | l1 | h2 | ef | h1 | nc } ]
+    default: no forwarding-class
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: forwarding-class
+      line: 1101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forwarding-class@static-indirect
+    syntax: forwarding-class { be | l2 | af | l1 | h2 | ef | h1 | nc }
+    view: static-indirect
+    enters_view: opaque
+    undo: no forwarding-class [ { be | l2 | af | l1 | h2 | ef | h1 | nc } ]
+    default: no forwarding-class
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: forwarding-class
+      line: 1101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.generate-icmp
+    syntax: generate-icmp
+    view: static-bh
+    undo: no generate-icmp
+    default: no generate-icmp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: generate-icmp
+      line: 1146
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.indirect
+    syntax: indirect <ip-address>
+    view: static-route-entry
+    enters_view: static-indirect
+    undo: no indirect <ip-address>
+    params:
+      ip-address:
+        type: ipv4
+    default: no indirect
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: indirect
+      line: 1184
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ldp-sync
+    syntax: ldp-sync
+    view: static-nh
+    undo: no ldp-sync
+    default: no ldp-sync
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: ldp-sync
+      line: 1309
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.leak-destination
+    syntax: leak-destination
+    view: static-route-entry
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: leak-destination
+      line: 1345
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.load-balancing-weight
+    syntax: load-balancing-weight <value>
+    view: static-nh
+    undo: no load-balancing-weight [ <value> ]
+    params:
+      value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: load-balancing-weight
+      line: 1373
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.metric@static-nh
+    syntax: metric <metric>
+    view: static-nh
+    undo: no metric [ <metric> ]
+    params: &id005
+      metric:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: metric 1
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: metric
+      line: 1493
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.metric@static-indirect
+    syntax: metric <metric>
+    view: static-indirect
+    undo: no metric [ <metric> ]
+    params: *id005
+    default: metric 1
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: metric
+      line: 1493
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.metric@static-bh
+    syntax: metric <metric>
+    view: static-bh
+    undo: no metric [ <metric> ]
+    params: *id005
+    default: metric 1
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: metric
+      line: 1493
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.next-hop
+    syntax: next-hop { <ip-int-name> | <ip-address> | <ipv6-address> }
+    view: static-route-entry
+    enters_view: static-nh
+    params:
+      ip-int-name:
+        type: word
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: word
+    default: no next-hop
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: next-hop
+      line: 1581
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.preference@static-bh
+    syntax: preference <preference>
+    view: static-bh
+    undo: no preference
+    params: &id006
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: preference 5
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: preference
+      line: 1668
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.preference@static-nh
+    syntax: preference <preference>
+    view: static-nh
+    undo: no preference
+    params: *id006
+    default: preference 5
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: preference
+      line: 1668
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.preference@static-indirect
+    syntax: preference <preference>
+    view: static-indirect
+    undo: no preference
+    params: *id006
+    default: preference 5
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: preference
+      line: 1668
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-list@static-bh
+    syntax: prefix-list <prefix-list-name> [ { all | none } ]
+    view: static-bh
+    undo: no prefix-list [ <prefix-list-name> ] [ { all | none } ]
+    params: &id007
+      prefix-list-name:
+        type: word
+    default: no prefix-list
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: prefix-list
+      line: 1802
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-list@static-indirect
+    syntax: prefix-list <prefix-list-name> [ { all | none } ]
+    view: static-indirect
+    undo: no prefix-list [ <prefix-list-name> ] [ { all | none } ]
+    params: *id007
+    default: no prefix-list
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: prefix-list
+      line: 1802
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-list@static-nh
+    syntax: prefix-list <prefix-list-name> [ { all | none } ]
+    view: static-nh
+    undo: no prefix-list [ <prefix-list-name> ] [ { all | none } ]
+    params: *id007
+    default: no prefix-list
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: prefix-list
+      line: 1802
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@static-nh
+    syntax: shutdown
+    view: static-nh
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: shutdown
+      line: 2088
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@static-bh
+    syntax: shutdown
+    view: static-bh
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: shutdown
+      line: 2088
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@static-indirect
+    syntax: shutdown
+    view: static-indirect
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: shutdown
+      line: 2088
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.source-class@static-nh
+    syntax: source-class <source-index>
+    view: static-nh
+    undo: no source-class [ <source-index> ]
+    params: &id008
+      source-index:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: no source-class
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: source-class
+      line: 2329
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.source-class@static-indirect
+    syntax: source-class <source-index>
+    view: static-indirect
+    undo: no source-class [ <source-index> ]
+    params: *id008
+    default: no source-class
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: source-class
+      line: 2329
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.static-route-entry
+    syntax: static-route-entry <ip-prefix/prefix-length> [ mcast ]
+    view: router
+    enters_view: static-route-entry
+    undo: no static-route-entry <ip-prefix/prefix-length> [ mcast ]
+    params:
+      ip-prefix/prefix-length:
+        type: prefix
+    default: No static routes are defined.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: static-route-entry
+      line: 2480
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tag@static-bh
+    syntax: tag <tag>
+    view: static-bh
+    undo: no tag [ <tag> ]
+    params: &id009
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: no tag
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: tag
+      line: 2526
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tag@static-route-entry
+    syntax: tag <tag>
+    view: static-route-entry
+    undo: no tag [ <tag> ]
+    params: *id009
+    default: no tag
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: tag
+      line: 2526
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tag@static-indirect
+    syntax: tag <tag>
+    view: static-indirect
+    undo: no tag [ <tag> ]
+    params: *id009
+    default: no tag
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: tag
+      line: 2526
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tag@static-nh
+    syntax: tag <tag>
+    view: static-nh
+    undo: no tag [ <tag> ]
+    params: *id009
+    default: no tag
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: tag
+      line: 2526
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tunnel-next-hop
+    syntax: tunnel-next-hop
+    view: static-indirect
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: tunnel-next-hop
+      line: 2585
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.validate-next-hop
+    syntax: validate-next-hop
+    view: static-nh
+    undo: no validate-next-hop
+    default: no validate-next-hop
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_static-route-entry.md
+      title: validate-next-hop
+      line: 2613
+      version: 25.10.R1
+    status: draft

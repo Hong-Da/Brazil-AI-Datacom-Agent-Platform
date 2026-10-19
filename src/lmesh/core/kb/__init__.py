@@ -52,12 +52,13 @@ class KnowledgeBase:
     def children(self, node_id: str | None) -> list[SchemaNode]:
         return [n for n in self.nodes.values() if n.parent == node_id]
 
-    def match_profile(self, vendor: str, version: str) -> str | None:
-        """按 Profile 的 match 规则选择：版本正则匹配上的优先；都不匹配时用标了 fallback 的 Profile。"""
+    def match_profile(self, vendor: str, version: str, family: str | None = None) -> str | None:
+        """按 Profile 的 match 规则选择：版本正则匹配上的优先；都不匹配时用标了 fallback 的 Profile。
+        family：限定平台族（同一厂商有多种配置格式时，例如 Nokia Classic / MD-CLI）。"""
         best: tuple[int, str] | None = None
         for p in sorted(self.profiles.values(), key=lambda x: x.id):
             mv, mver = p.match.get("vendor"), p.match.get("version", "")
-            if mv and mv != vendor:
+            if (mv and mv != vendor) or (family and p.family != family):
                 continue
             if mver and version and re.search(mver, version):
                 score = 2
@@ -169,6 +170,11 @@ def _load_family(kb: KnowledgeBase, d: Path, issues: list[Issue]) -> None:
         indent=int(data.get("indent", 1)),
         negative=str(data.get("negative", "undo")),
         root_view=str(data.get("root_view", "system")),
+        block=str(data.get("block", "indent")),
+        comment=[str(x) for x in data.get("comment") or []],
+        layout=[str(x) for x in data.get("layout") or []],
+        begin=[str(x) for x in data.get("begin") or []],
+        quotes=bool(data.get("quotes", False)),
     )
     for vid, v in (data.get("views") or {}).items():
         v = v or {}

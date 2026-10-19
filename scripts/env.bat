@@ -3,6 +3,10 @@ rem 工具链与缓存位置：所有脚本先加载它（call scripts\env.bat�
 chcp 65001 >nul
 for %%I in ("%~dp0..") do set "LMESH_ROOT=%%~fI"
 set "PYTHONUTF8=1"
+rem 临时文件（含 pytest 的临时目录）放在项目内，不写系统临时目录
+set "TMP=%LMESH_ROOT%\tmp\os"
+set "TEMP=%LMESH_ROOT%\tmp\os"
+if not exist "%TMP%" mkdir "%TMP%"
 
 rem Python（uv）：下载缓存、解释器、工具都放在项目内
 set "UV_CACHE_DIR=%LMESH_ROOT%\.toolchain\cache\uv"

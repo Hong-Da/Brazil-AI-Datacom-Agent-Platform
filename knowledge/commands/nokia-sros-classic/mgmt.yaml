@@ -1,0 +1,3143 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: mgmt
+cards:
+  - id: nokia-sros-classic.alarm-contact-in-power
+    syntax: alarm-contact-in-power { on | off }
+    view: system
+    default: alarm-contact-in-power off
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_alarm-contact-in-power.md
+      title: alarm-contact-in-power
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.alarm-contact-input
+    syntax: alarm-contact-input <input-pin-number>
+    view: system
+    enters_view: opaque
+    params:
+      input-pin-number:
+        type: integer
+        range:
+          - 1
+          - 4
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_alarm-contact-input.md
+      title: alarm-contact-input
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.alarms
+    syntax: alarms
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_alarms.md
+      title: alarms
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.allow-boot-license-violations
+    syntax: allow-boot-license-violations
+    view: system
+    undo: no allow-boot-license-violations
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_allow-boot-license-violations.md
+      title: allow-boot-license-violations
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bluetooth
+    syntax: bluetooth
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_bluetooth.md
+      title: bluetooth
+      line: 48
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.boot-bad-exec
+    syntax: boot-bad-exec <file-url>
+    view: system
+    undo: no boot-bad-exec
+    params:
+      file-url:
+        type: word
+    default: no boot-bad-exec
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_boot-bad-exec.md
+      title: boot-bad-exec
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.boot-good-exec
+    syntax: boot-good-exec <file-url>
+    view: system
+    undo: no boot-good-exec
+    params:
+      file-url:
+        type: word
+    default: no boot-good-exec
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_boot-good-exec.md
+      title: boot-good-exec
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.chassis-mode
+    syntax: chassis-mode <chassis-mode> [ force ]
+    view: system
+    params:
+      chassis-mode:
+        type: word
+    default: chassis-mode d
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_chassis-mode.md
+      title: chassis-mode
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.clli-code
+    syntax: clli-code <clli-code>
+    view: system
+    undo: no clli-code
+    params:
+      clli-code:
+        type: word
+    default: no clli-code
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_clli-code.md
+      title: clli-code
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.config-backup
+    syntax: config-backup <count>
+    view: system
+    undo: no config-backup
+    params:
+      count:
+        type: integer
+        range:
+          - 1
+          - 200
+    default: config-backup 50
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_config-backup.md
+      title: config-backup
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.contact
+    syntax: contact <contact-name>
+    view: system
+    undo: no contact
+    params:
+      contact-name:
+        type: word
+    default: no contact
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_contact.md
+      title: contact
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.coordinates
+    syntax: coordinates <coordinates>
+    view: system
+    undo: no coordinates
+    params:
+      coordinates:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_coordinates.md
+      title: coordinates
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cpm-http-redirect
+    syntax: cpm-http-redirect
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_cpm-http-redirect.md
+      title: cpm-http-redirect
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cron
+    syntax: cron
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_cron.md
+      title: cron
+      line: 46
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dhcp6
+    syntax: dhcp6
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_dhcp6.md
+      title: dhcp6
+      line: 57
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dns
+    syntax: dns
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_dns.md
+      title: dns
+      line: 85
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.enable-icmp-vse
+    syntax: enable-icmp-vse
+    view: system
+    undo: no enable-icmp-vse
+    default: no enable-icmp-vse
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_enable-icmp-vse.md
+      title: enable-icmp-vse
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.fan-control
+    syntax: fan-control
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_fan-control.md
+      title: fan-control
+      line: 51
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.file-transmission-profile
+    syntax: file-transmission-profile <name> [ create ]
+    view: system
+    enters_view: opaque
+    undo: no file-transmission-profile
+    params:
+      name:
+        type: word
+    default: no file-transmission-profile
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_file-transmission-profile.md
+      title: file-transmission-profile
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.grpc-tunnel
+    syntax: grpc-tunnel
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_grpc-tunnel.md
+      title: grpc-tunnel
+      line: 745
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.grpc
+    syntax: grpc
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_grpc.md
+      title: grpc
+      line: 150
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ip
+    syntax: ip
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_ip.md
+      title: ip
+      line: 190
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lacp-system-priority
+    syntax: lacp-system-priority <lacp-system-priority>
+    view: system
+    undo: no lacp-system-priority
+    params:
+      lacp-system-priority:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: lacp-system-priority 32768
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_lacp-system-priority.md
+      title: lacp-system-priority
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lldp~2
+    syntax: lldp
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_lldp.md
+      title: lldp
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.load-balancing~2
+    syntax: load-balancing
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_load-balancing.md
+      title: load-balancing
+      line: 132
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.location
+    syntax: location <location>
+    view: system
+    undo: no location
+    params:
+      location:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_location.md
+      title: location
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.exponential-backoff
+    syntax: exponential-backoff
+    view: login-control
+    undo: no exponential-backoff
+    default: no exponential-backoff
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_login-control.md
+      title: exponential-backoff
+      line: 70
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ftp
+    syntax: ftp
+    view: login-control
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_login-control.md
+      title: ftp
+      line: 106
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.idle-timeout
+    syntax: idle-timeout { <minutes> | disable }
+    view: login-control
+    undo: no idle-timeout
+    params:
+      minutes:
+        type: integer
+        range:
+          - 1
+          - 1440
+    default: idle-timeout 30
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_login-control.md
+      title: idle-timeout
+      line: 178
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.login-banner
+    syntax: login-banner
+    view: login-control
+    undo: no login-banner
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_login-control.md
+      title: login-banner
+      line: 316
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.login-control
+    syntax: login-control
+    view: system
+    enters_view: login-control
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_login-control.md
+      title: login-control
+      line: 348
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.login-scripts
+    syntax: login-scripts
+    view: login-control
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_login-control.md
+      title: login-scripts
+      line: 376
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.motd
+    syntax: 'motd { url <url-prefix> : <source-url> | text <motd-text-string> }'
+    view: login-control
+    undo: no motd
+    params:
+      url-prefix:
+        type: word
+      source-url:
+        type: word
+      motd-text-string:
+        type: word
+    default: no motd
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_login-control.md
+      title: motd
+      line: 446
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.pre-login-message
+    syntax: pre-login-message <login-text-string> [ name ]
+    view: login-control
+    undo: no pre-login-message
+    params:
+      login-text-string:
+        type: word
+    default: no pre-login-message
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_login-control.md
+      title: pre-login-message
+      line: 591
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ssh
+    syntax: ssh
+    view: login-control
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_login-control.md
+      title: ssh
+      line: 638
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.telnet
+    syntax: telnet
+    view: login-control
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_login-control.md
+      title: telnet
+      line: 667
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.management-interface
+    syntax: management-interface
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_management-interface.md
+      title: management-interface
+      line: 1853
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.name
+    syntax: name <system-name>
+    view: system
+    undo: no name
+    params:
+      system-name:
+        type: word
+    default: no name
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_name.md
+      title: name
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.network-element-discovery
+    syntax: network-element-discovery
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_network-element-discovery.md
+      title: network-element-discovery
+      line: 196
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ospf-dynamic-hostnames
+    syntax: ospf-dynamic-hostnames
+    view: system
+    undo: no ospf-dynamic-hostnames
+    default: no ospf-dynamic-hostnames
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_ospf-dynamic-hostnames.md
+      title: ospf-dynamic-hostnames
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.persistence
+    syntax: persistence
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_persistence.md
+      title: persistence
+      line: 1451
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.port-topology
+    syntax: port-topology
+    view: system
+    enters_view: opaque
+    default: disabled
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_port-topology.md
+      title: port-topology
+      line: 67
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.power-supply
+    syntax: power-supply <power-supply-id> <type>
+    view: system
+    params:
+      power-supply-id:
+        type: integer
+      type:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_power-supply.md
+      title: power-supply
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ptp
+    syntax: ptp
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_ptp.md
+      title: ptp
+      line: 1262
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rollback
+    syntax: rollback
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_rollback.md
+      title: rollback
+      line: 126
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.satellite
+    syntax: satellite
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_satellite.md
+      title: satellite
+      line: 1364
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.script-control
+    syntax: script-control
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_script-control.md
+      title: script-control
+      line: 839
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.access~4
+    syntax: access [ ftp ] [ snmp ] [ console ] [ li ] [ netconf ] [ grpc ] [ scp-sftp ] [ console-port-cli ] [ ssh-cli ] [ telnet-cli ] [ bluetooth ]
+    view: security-user
+    undo: no access [ ftp ] [ snmp ] [ console ] [ li ] [ netconf ] [ grpc ] [ scp-sftp ] [ console-port-cli ] [ ssh-cli ] [ telnet-cli ] [ bluetooth ]
+    default: no access
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: access
+      line: 78
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.access~5
+    syntax: access group <group-name> security-model <security-model> security-level <security-level> [ context <context-name> [ prefix-match ] ] [ read <view-name-1> ] [ write <view-name-2> ] [ notify <view-name-3> ]
+    view: security-snmp
+    undo: no access group <group-name> security-model <security-model> security-level <security-level> [ context <context-name> [ prefix-match ] ] [ read <view-name-1> ] [ write <view-name-2> ] [ notify <view-name-3> ]
+    params:
+      group-name:
+        type: word
+      security-model:
+        type: word
+      security-level:
+        type: word
+      context-name:
+        type: word
+      view-name-1:
+        type: word
+      view-name-2:
+        type: word
+      view-name-3:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: access
+      line: 137
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.access-algorithm
+    syntax: access-algorithm { direct | round-robin }
+    view: security-radius
+    undo: no access-algorithm
+    default: access-algorithm direct
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: access-algorithm
+      line: 197
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.accounting
+    syntax: accounting
+    view: security-radius
+    undo: no accounting
+    default: no accounting
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: accounting
+      line: 286
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.accounting~2
+    syntax: accounting [ record-type { start-stop | stop-only } ]
+    view: security-tacplus
+    undo: no accounting
+    default: no accounting
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: accounting
+      line: 323
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.accounting-port
+    syntax: accounting-port <port>
+    view: security-radius
+    undo: no accounting-port
+    params:
+      port:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: accounting-port 1813
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: accounting-port
+      line: 365
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.admin-password
+    syntax: admin-password <password> [ hash | hash2 ]
+    view: security-password
+    undo: no admin-password
+    params:
+      password:
+        type: word
+    default: no admin-password
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: admin-password
+      line: 626
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.aging
+    syntax: aging <days>
+    view: security-password
+    undo: no aging
+    params:
+      days:
+        type: integer
+        range:
+          - 1
+          - 500
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: aging
+      line: 702
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.attempts
+    syntax: attempts [ <count> ] [ time <minutes1> ] [ lockout <minutes2> ]
+    view: security-snmp
+    undo: no attempts
+    params:
+      count:
+        type: integer
+        range:
+          - 1
+          - 64
+      minutes1:
+        type: integer
+        range:
+          - 0
+          - 60
+      minutes2:
+        type: integer
+        range:
+          - 0
+          - 1440
+    default: attempts 20 time 5 lockout 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: attempts
+      line: 1184
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-method
+    syntax: authentication-method
+    view: security-ssh
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: authentication-method
+      line: 1312
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-order
+    syntax: authentication-order [ <method-1> ] [ <method-2> ] [ <method-3> ] [ <method-4> ] [ exit-on-reject ]
+    view: security-password
+    undo: no authentication-order
+    params:
+      method-1:
+        type: word
+      method-2:
+        type: word
+      method-3:
+        type: word
+      method-4:
+        type: word
+    default: authentication-order radius tacplus ldap local
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: authentication-order
+      line: 1340
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authorization
+    syntax: authorization
+    view: security-radius
+    undo: no authorization
+    default: no authorization
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: authorization
+      line: 1428
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authorization~2
+    syntax: authorization [ use-priv-lvl ]
+    view: security-tacplus
+    undo: no authorization
+    default: no authorization
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: authorization
+      line: 1465
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cli-script
+    syntax: cli-script
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: cli-script
+      line: 2758
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cli-session-group
+    syntax: cli-session-group <session-group-name> [ create ]
+    view: system-security
+    enters_view: opaque
+    undo: no cli-session-group <session-group-name>
+    params:
+      session-group-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: cli-session-group
+      line: 2786
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.client-cipher-list
+    syntax: client-cipher-list
+    view: security-ssh
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: client-cipher-list
+      line: 2897
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.client-host-key-list
+    syntax: client-host-key-list
+    view: security-ssh
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: client-host-key-list
+      line: 3001
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.client-kex-list
+    syntax: client-kex-list
+    view: security-ssh
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: client-kex-list
+      line: 3029
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.client-mac-list
+    syntax: client-mac-list
+    view: security-ssh
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: client-mac-list
+      line: 3075
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.community~2
+    syntax: community <community-string> [ hash | hash2 | custom ] <access-permissions> [ version <SNMP-version> ] [ src-access-list <list-name> ]
+    view: security-snmp
+    undo: no community <community-string> [ hash | hash2 | custom ]
+    params:
+      community-string:
+        type: word
+      access-permissions:
+        type: word
+      SNMP-version:
+        type: word
+      list-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: community
+      line: 3492
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.complexity-rules
+    syntax: complexity-rules
+    view: security-password
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: complexity-rules
+      line: 3540
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.console
+    syntax: console
+    view: security-user
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: console
+      line: 3572
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.copy
+    syntax: copy { user <source-user> | <profile> <source-profile> } to <destination> [ overwrite ]
+    view: system-security
+    params:
+      source-user:
+        type: word
+      profile:
+        type: word
+      source-profile:
+        type: word
+      destination:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: copy
+      line: 3605
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cpm-filter
+    syntax: cpm-filter
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: cpm-filter
+      line: 3681
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cpm-queue
+    syntax: cpm-queue
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: cpm-queue
+      line: 3711
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cpu-protection~2
+    syntax: cpu-protection
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: cpu-protection
+      line: 3739
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dist-cpu-protection~2
+    syntax: dist-cpu-protection
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: dist-cpu-protection
+      line: 4793
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dot1x~2
+    syntax: dot1x
+    view: system-security
+    enters_view: opaque
+    undo: no dot1x
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: dot1x
+      line: 4888
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dynsvc-password
+    syntax: dynsvc-password <password> [ hash | hash2 ]
+    view: security-password
+    undo: no dynsvc-password
+    params:
+      password:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: dynsvc-password
+      line: 5304
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.enable-admin-control
+    syntax: enable-admin-control
+    view: security-password
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: enable-admin-control
+      line: 5495
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ftp-server
+    syntax: ftp-server
+    view: system-security
+    undo: no ftp-server
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: ftp-server
+      line: 6302
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hashing
+    syntax: hashing { bcrypt | sha2-pbkdf2 | sha3-pbkdf2 }
+    view: security-password
+    default: hashing bcrypt
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: hashing
+      line: 7681
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.health-check
+    syntax: health-check [ interval <interval> ]
+    view: security-password
+    undo: no health-check [ interval <interval> ]
+    params:
+      interval:
+        type: integer
+        range:
+          - 6
+          - 1500
+    default: health-check interval 30
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: health-check
+      line: 7721
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.history-size
+    syntax: history-size <size>
+    view: security-password
+    undo: no history-size
+    params:
+      size:
+        type: integer
+        range:
+          - 0
+          - 20
+    default: history-size 0
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: history-size
+      line: 7767
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.home-directory
+    syntax: home-directory <url-prefix> [ <directory> ] [ <directory> / <directory> ]
+    view: security-user
+    undo: no home-directory
+    params:
+      url-prefix:
+        type: word
+      directory:
+        type: word
+    default: no home-directory
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: home-directory
+      line: 7807
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ignore-unknown-mandatory-vsas
+    syntax: ignore-unknown-mandatory-vsas
+    view: security-tacplus
+    undo: no ignore-unknown-mandatory-vsas
+    default: ignore-unknown-mandatory-vsas
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: ignore-unknown-mandatory-vsas
+      line: 8242
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interactive-authentication
+    syntax: interactive-authentication
+    view: security-radius
+    undo: no interactive-authentication
+    default: no interactive-authentication
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: interactive-authentication
+      line: 8388
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interactive-authentication~2
+    syntax: interactive-authentication
+    view: security-tacplus
+    undo: no interactive-authentication
+    default: no interactive-authentication
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: interactive-authentication
+      line: 8423
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ip-filter
+    syntax: ip-filter
+    view: security-maf
+    enters_view: opaque
+    undo: no ip-filter
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: ip-filter
+      line: 8486
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6-filter
+    syntax: ipv6-filter
+    view: security-maf
+    enters_view: opaque
+    undo: no ipv6-filter
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: ipv6-filter
+      line: 8546
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.key-re-exchange
+    syntax: key-re-exchange
+    view: security-ssh
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: key-re-exchange
+      line: 8861
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.keychain
+    syntax: keychain <keychain-name>
+    view: system-security
+    enters_view: opaque
+    undo: no keychain <keychain-name>
+    params:
+      keychain-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: keychain
+      line: 8934
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ldap
+    syntax: ldap
+    view: system-security
+    enters_view: opaque
+    undo: no ldap
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: ldap
+      line: 9056
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.listening-port
+    syntax: listening-port <port>
+    view: security-ssh
+    undo: no listening-port
+    params:
+      port:
+        type: integer
+        range:
+          - 1024
+          - 49151
+    default: no listening-port
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: listening-port
+      line: 9198
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mac-filter
+    syntax: mac-filter
+    view: security-maf
+    enters_view: opaque
+    undo: no mac-filter
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: mac-filter
+      line: 9667
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.management
+    syntax: management
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: management
+      line: 9755
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.management-access-filter
+    syntax: management-access-filter
+    view: system-security
+    enters_view: security-maf
+    undo: no management-access-filter
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: management-access-filter
+      line: 9783
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.management-interface~2
+    syntax: management-interface
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: management-interface
+      line: 9819
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.minimum-age
+    syntax: minimum-age [ days <days> ] [ hrs <hours> ] [ min <minutes> ] [ sec <seconds> ]
+    view: security-password
+    undo: no minimum-age
+    params:
+      days:
+        type: integer
+        range:
+          - 0
+          - 1
+      hours:
+        type: integer
+        range:
+          - 0
+          - 23
+      minutes:
+        type: integer
+        range:
+          - 0
+          - 59
+      seconds:
+        type: integer
+        range:
+          - 0
+          - 59
+    default: minimum-age min 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: minimum-age
+      line: 10340
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.minimum-change
+    syntax: minimum-change <distance>
+    view: security-password
+    undo: no minimum-change
+    params:
+      distance:
+        type: integer
+        range:
+          - 1
+          - 20
+    default: minimum-change 5
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: minimum-change
+      line: 10383
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.password
+    syntax: password
+    view: system-security
+    enters_view: security-password
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: password
+      line: 11151
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.password~2
+    syntax: password [ <password> ]
+    view: security-user
+    params:
+      password:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: password
+      line: 11179
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.per-peer-queuing
+    syntax: per-peer-queuing
+    view: system-security
+    undo: no per-peer-queuing
+    default: per-peer-queuing
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: per-peer-queuing
+      line: 11233
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.permit-empty-passwords
+    syntax: permit-empty-passwords
+    view: security-ssh
+    default: permit-empty-passwords
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: permit-empty-passwords
+      line: 11354
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.pki
+    syntax: pki
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: pki
+      line: 11390
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.port~4
+    syntax: port <port>
+    view: security-radius
+    undo: no port
+    params:
+      port:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: port 1812 (as specified in RFC 2865, Remote Authentication Dial In User Service (RADIUS))
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: port
+      line: 11575
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.preserve-key
+    syntax: preserve-key
+    view: security-ssh
+    undo: no preserve-key
+    default: no preserve-key
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: preserve-key
+      line: 11699
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.priv-lvl-map
+    syntax: priv-lvl-map
+    view: security-tacplus
+    enters_view: opaque
+    undo: no priv-lvl-map
+    default: priv-lvl-map
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: priv-lvl-map
+      line: 11773
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.profile
+    syntax: profile <user-profile-name>
+    view: system-security
+    enters_view: opaque
+    undo: no profile <user-profile-name>
+    params:
+      user-profile-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: profile
+      line: 11810
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.public-keys
+    syntax: public-keys
+    view: security-user
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: public-keys
+      line: 12281
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.radius
+    syntax: radius
+    view: system-security
+    enters_view: security-radius
+    undo: no radius
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: radius
+      line: 12343
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.request-format
+    syntax: request-format
+    view: security-tacplus
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: request-format
+      line: 12849
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.restricted-to-home
+    syntax: restricted-to-home
+    view: security-user
+    undo: no restricted-to-home
+    default: restricted-to-home
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: restricted-to-home
+      line: 13000
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.retry
+    syntax: retry <count>
+    view: security-radius
+    undo: no retry
+    params:
+      count:
+        type: integer
+        range:
+          - 1
+          - 10
+    default: retry 3
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: retry
+      line: 13045
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.retry-timeout
+    syntax: retry-timeout <seconds>
+    view: security-tacplus
+    undo: no retry-timeout
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 300
+    default: retry-timeout 300
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: retry-timeout
+      line: 13215
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.route-preference@security-tacplus
+    syntax: route-preference { both | inband | outband }
+    view: security-tacplus
+    undo: no route-preference
+    default: route-preference both
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: route-preference
+      line: 13401
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.route-preference@security-radius
+    syntax: route-preference { both | inband | outband }
+    view: security-radius
+    undo: no route-preference
+    default: route-preference both
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: route-preference
+      line: 13401
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.save-when-restricted
+    syntax: save-when-restricted
+    view: security-user
+    default: save-when-restricted
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: save-when-restricted
+      line: 13678
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.security
+    syntax: security
+    view: system
+    enters_view: system-security
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: security
+      line: 13799
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.server
+    syntax: server <index> address <ip-address> secret <key> [ { hash | hash2 | custom } ] [ port <port> ]
+    view: security-tacplus
+    undo: no server <index>
+    params:
+      index:
+        type: integer
+        range:
+          - 1
+          - 5
+      ip-address:
+        type: ipv4
+      key:
+        type: word
+      port:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: No TACACS+ servers are configured.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: server
+      line: 13935
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.server~2
+    syntax: server <index> address <ip-address> secret <key> [ hash | hash2 | custom ] [ tls-client-profile <profile> ] [ authenticator { md5 | sm3 } ]
+    view: security-radius
+    undo: no server <index>
+    params:
+      index:
+        type: integer
+        range:
+          - 1
+          - 5
+      ip-address:
+        type: ipv4
+      key:
+        type: word
+      profile:
+        type: word
+    default: no server
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: server
+      line: 14014
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.server-cipher-list
+    syntax: server-cipher-list
+    view: security-ssh
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: server-cipher-list
+      line: 14252
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.server-host-key-list
+    syntax: server-host-key-list
+    view: security-ssh
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: server-host-key-list
+      line: 14358
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.server-kex-list
+    syntax: server-kex-list
+    view: security-ssh
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: server-kex-list
+      line: 14386
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.server-mac-list
+    syntax: server-mac-list
+    view: security-ssh
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: server-mac-list
+      line: 14432
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.server-shutdown
+    syntax: server-shutdown
+    view: security-ssh
+    undo: no server-shutdown
+    default: no server-shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: server-shutdown
+      line: 14460
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.service-request
+    syntax: service-request
+    view: security-tacplus
+    enters_view: opaque
+    undo: no service-request
+    default: no service-request
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: service-request
+      line: 14615
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown~5
+    syntax: shutdown
+    view: security-radius
+    undo: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: shutdown
+      line: 14866
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown~6
+    syntax: shutdown
+    view: security-tacplus
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: shutdown
+      line: 15091
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.snmp
+    syntax: snmp
+    view: security-user
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: snmp
+      line: 15636
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.snmp~2
+    syntax: snmp
+    view: system-security
+    enters_view: security-snmp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: snmp
+      line: 15668
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.source-address
+    syntax: source-address
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: source-address
+      line: 15697
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.src-access-list
+    syntax: src-access-list <list-name>
+    view: security-snmp
+    enters_view: opaque
+    undo: no src-access-list <list-name>
+    params:
+      list-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: src-access-list
+      line: 15765
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ssh~2
+    syntax: ssh
+    view: system-security
+    enters_view: security-ssh
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: ssh
+      line: 16232
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ssh-authentication-method
+    syntax: ssh-authentication-method
+    view: security-user
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: ssh-authentication-method
+      line: 16261
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tacplus
+    syntax: tacplus
+    view: system-security
+    enters_view: security-tacplus
+    undo: no tacplus
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: tacplus
+      line: 16460
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.telnet~2
+    syntax: telnet
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: telnet
+      line: 16740
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.telnet-server
+    syntax: telnet-server
+    view: system-security
+    undo: no telnet-server
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: telnet-server
+      line: 16816
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.telnet6-server
+    syntax: telnet6-server
+    view: system-security
+    undo: no telnet6-server
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: telnet6-server
+      line: 16852
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.timeout
+    syntax: timeout <seconds>
+    view: security-radius
+    undo: no timeout
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 90
+    default: timeout 3
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: timeout
+      line: 16924
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.timeout~2
+    syntax: timeout <seconds>
+    view: security-tacplus
+    undo: no timeout
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 90
+    default: timeout 3
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: timeout
+      line: 16967
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tls
+    syntax: tls
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: tls
+      line: 17094
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.use-default-template
+    syntax: use-default-template
+    view: security-tacplus
+    undo: no use-default-template
+    default: use-default-template
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: use-default-template
+      line: 17814
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.use-default-template~2
+    syntax: use-default-template
+    view: security-radius
+    undo: no use-default-template
+    default: no use-default-template
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: use-default-template
+      line: 17851
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.user
+    syntax: user <user-name>
+    view: system-security
+    enters_view: security-user
+    undo: no user <user-name>
+    params:
+      user-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: user
+      line: 17922
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.user-template
+    syntax: user-template { tacplus_default | radius_default | ldap-default }
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: user-template
+      line: 17966
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.usm-community
+    syntax: usm-community <community-string> [ hash | hash2 | custom ] group <group-name> [ src-access-list <list-name> ]
+    view: security-snmp
+    undo: no usm-community <community-string> [ hash | hash2 | custom ]
+    params:
+      community-string:
+        type: word
+      group-name:
+        type: word
+      list-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: usm-community
+      line: 18002
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.view.1
+    syntax: view <view-name> subtree <oid-value>
+    view: security-snmp
+    enters_view: opaque
+    params:
+      view-name:
+        type: word
+      oid-value:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: view
+      line: 18084
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.view.2
+    syntax: view <view-name> [ subtree <oid-value> ]
+    view: security-snmp
+    enters_view: opaque
+    params:
+      view-name:
+        type: word
+      oid-value:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: view
+      line: 18084
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.vprn-aaa-server
+    syntax: vprn-aaa-server
+    view: system-security
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: vprn-aaa-server
+      line: 18179
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.vprn-network-exceptions
+    syntax: vprn-network-exceptions <number> <seconds>
+    view: system-security
+    undo: no vprn-network-exceptions
+    params:
+      number:
+        type: integer
+        range:
+          - 10
+          - 10
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 60
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: vprn-network-exceptions
+      line: 18207
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.engineid
+    syntax: engineID <engine-id>
+    view: system-snmp
+    undo: no engineID <engine-id>
+    params:
+      engine-id:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_snmp.md
+      title: engineID
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.general-port
+    syntax: general-port <port-number>
+    view: system-snmp
+    undo: no general-port
+    params:
+      port-number:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: general-port 161
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_snmp.md
+      title: general-port
+      line: 52
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.max-bulk-duration
+    syntax: max-bulk-duration <milliseconds>
+    view: system-snmp
+    undo: no max-bulk-duration
+    params:
+      milliseconds:
+        type: integer
+        range:
+          - 100
+          - 5000
+    default: no max-bulk-duration
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_snmp.md
+      title: max-bulk-duration
+      line: 96
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.packet-size
+    syntax: packet-size <bytes>
+    view: system-snmp
+    undo: no packet-size
+    params:
+      bytes:
+        type: integer
+        range:
+          - 484
+          - 9216
+    default: packet-size 1500
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_snmp.md
+      title: packet-size
+      line: 136
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown~7
+    syntax: shutdown
+    view: system-snmp
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_snmp.md
+      title: shutdown
+      line: 214
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.snmp~3
+    syntax: snmp
+    view: system
+    enters_view: system-snmp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_snmp.md
+      title: snmp
+      line: 252
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.streaming
+    syntax: streaming
+    view: system-snmp
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_snmp.md
+      title: streaming
+      line: 281
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.transport
+    syntax: transport <transport-protocol>
+    view: system-snmp
+    undo: no transport
+    params:
+      transport-protocol:
+        type: word
+    default: no transport
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_snmp.md
+      title: transport
+      line: 309
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.software-repository
+    syntax: software-repository <repository-name> [ create ]
+    view: system
+    enters_view: opaque
+    undo: no software-repository <repository-name>
+    params:
+      repository-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_software-repository.md
+      title: software-repository
+      line: 613
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.switch-fabric
+    syntax: switch-fabric
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_switch-fabric.md
+      title: switch-fabric
+      line: 294
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.switchover-exec
+    syntax: switchover-exec <file-url>
+    view: system
+    undo: no switchover-exec
+    params:
+      file-url:
+        type: word
+    default: no switch-over-exec
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_switchover-exec.md
+      title: switchover-exec
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sync-if-timing
+    syntax: sync-if-timing
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_sync-if-timing.md
+      title: sync-if-timing
+      line: 1188
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.telemetry
+    syntax: telemetry
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_telemetry.md
+      title: telemetry
+      line: 1396
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.thresholds
+    syntax: thresholds
+    view: system
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_thresholds.md
+      title: thresholds
+      line: 521
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-check
+    syntax: authentication-check
+    view: system-ntp
+    undo: no authentication-check
+    default: authentication-check
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: authentication-check
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-key
+    syntax: authentication-key <key-id> key <key> [ hash | hash2 | custom ] type { des | message-digest }
+    view: system-ntp
+    undo: no authentication-key <key-id>
+    params:
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+      key:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: authentication-key
+      line: 44
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-keychain
+    syntax: authentication-keychain <keychain-name>
+    view: system-ntp
+    undo: no authentication-keychain
+    params:
+      keychain-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: authentication-keychain
+      line: 87
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.broadcast
+    syntax: broadcast [ router <router-name> ] { interface <ip-int-name> } [ key-id <key-id> | authentication-keychain <keychain-name> ] [ version <version> ] [ ttl <ttl> ]
+    view: system-ntp
+    undo: no broadcast [ router <router-name> ] { interface <ip-int-name> }
+    params:
+      router-name:
+        type: word
+      ip-int-name:
+        type: word
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+      keychain-name:
+        type: word
+      version:
+        type: integer
+        range:
+          - 2
+          - 4
+      ttl:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: broadcast
+      line: 127
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.broadcastclient
+    syntax: broadcastclient [ router <router-instance> | service-name <service-name> ] { interface <ip-int-name> } [ authenticate ]
+    view: system-ntp
+    undo: no broadcastclient [ router <router-instance> | service-name <service-name> ] { interface <ip-int-name> }
+    params:
+      router-instance:
+        type: word
+      service-name:
+        type: word
+      ip-int-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: broadcastclient
+      line: 208
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dst-zone
+    syntax: dst-zone { <std-zone-name> | <non-std-zone-name> }
+    view: system-time
+    enters_view: opaque
+    undo: no dst-zone { <std-zone-name> | <non-std-zone-name> }
+    params:
+      std-zone-name:
+        type: word
+      non-std-zone-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: dst-zone
+      line: 251
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.multicast
+    syntax: multicast [ key-id <key-id> | authentication-keychain <keychain-name> ] [ version <version> ]
+    view: system-ntp
+    undo: no multicast
+    params:
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+      keychain-name:
+        type: word
+      version:
+        type: integer
+        range:
+          - 2
+          - 4
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: multicast
+      line: 337
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.multicastclient
+    syntax: multicastclient [ authenticate ]
+    view: system-ntp
+    undo: no multicastclient
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: multicastclient
+      line: 377
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ntp
+    syntax: ntp
+    view: system-time
+    enters_view: system-ntp
+    undo: no ntp
+    default: ntp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: ntp
+      line: 415
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ntp-server
+    syntax: ntp-server [ authenticate ]
+    view: system-ntp
+    undo: no ntp-server
+    default: no ntp-server
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: ntp-server
+      line: 451
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.peer
+    syntax: peer [ router <router-instance> | service-name <service-name> ] { <ip-address> | <ipv6-address> } [ key-id <key-id> | authentication-keychain <keychain-name> ] [ version <version> ] [ prefer ]
+    view: system-ntp
+    undo: no peer [ router <router-instance> | service-name <service-name> ] { <ip-address> | <ipv6-address> }
+    params:
+      router-instance:
+        type: word
+      service-name:
+        type: word
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: word
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+      keychain-name:
+        type: word
+      version:
+        type: integer
+        range:
+          - 2
+          - 4
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: peer
+      line: 529
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefer-local-time
+    syntax: prefer-local-time
+    view: system-time
+    undo: no prefer-local-time
+    default: no prefer-local-time
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: prefer-local-time
+      line: 578
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.server~3
+    syntax: server [ router <router-instance> | service-name <service-name> ] { <ip-address> | <ipv6-address> | ptp } [ key-id <key-id> | authentication-keychain <keychain-name> ] [ version <version> ] [ prefer ]
+    view: system-ntp
+    undo: no server [ router <router-instance> | service-name <service-name> ] { <ip> <address> | <ipv6-address> | ptp }
+    params:
+      router-instance:
+        type: word
+      service-name:
+        type: word
+      ip-address:
+        type: ipv4
+      ipv6-address:
+        type: word
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+      keychain-name:
+        type: word
+      version:
+        type: integer
+        range:
+          - 2
+          - 4
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: server
+      line: 624
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown~8
+    syntax: shutdown
+    view: system-ntp
+    undo: no shutdown
+    default: shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: shutdown
+      line: 715
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sntp
+    syntax: sntp
+    view: system-time
+    enters_view: opaque
+    undo: no sntp
+    default: sntp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: sntp
+      line: 929
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.time
+    syntax: time
+    view: system
+    enters_view: system-time
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: time
+      line: 1014
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.zone
+    syntax: zone { <std-zone-name> | <non-std-zone-name> } [ <hh> [ <mm> ] ]
+    view: system-time
+    undo: no zone
+    params:
+      std-zone-name:
+        type: word
+      non-std-zone-name:
+        type: word
+      hh:
+        type: word
+      mm:
+        type: word
+    default: zone UTC 00
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_time.md
+      title: zone
+      line: 1042
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.log
+    syntax: log
+    view: configure
+    enters_view: log
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log.md
+      title: log
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.accounting-policy~2
+    syntax: accounting-policy <policy-id> [ interval <minutes> ]
+    view: log
+    enters_view: opaque
+    undo: no accounting-policy <policy-id>
+    params:
+      policy-id:
+        type: integer
+        range:
+          - 1
+          - 99
+      minutes:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_accounting-policy.md
+      title: accounting-policy
+      line: 114
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.app-route-notifications
+    syntax: app-route-notifications
+    view: log
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_app-route-notifications.md
+      title: app-route-notifications
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.encryption-key
+    syntax: encryption-key <key> [ hash | hash2 | custom ]
+    view: log
+    undo: no encryption-key
+    params:
+      key:
+        type: word
+    default: no encryption-key
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_encryption-key.md
+      title: encryption-key
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.event-control.1
+    syntax: event-control <application-id> [ <event-name> | <event-number> ] [ generate ] [ <severity-level> ] [ throttle ] [ specific-throttle-rate <events-limit> interval <seconds> | disable-specific-throttle ] [ repeat | no-repeat ]
+    view: log
+    undo: no event-control <application-id> [ <event-name> | <event-number> ]
+    params:
+      application-id: &id001
+        type: word
+      event-name: &id002
+        type: word
+      event-number: &id003
+        type: integer
+        range:
+          - 0
+          - 4294967295
+      severity-level:
+        type: word
+      events-limit:
+        type: integer
+        range:
+          - 1
+          - 20000
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 1200
+    default: Each event has a set of default settings. To display a list of all events and the current configuration use the event-control command.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_event-control.md
+      title: event-control
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.event-control.2
+    syntax: event-control <application-id> [ <event-name> | <event-number> ] suppress
+    view: log
+    undo: no event-control <application-id> [ <event-name> | <event-number> ]
+    params:
+      application-id: *id001
+      event-name: *id002
+      event-number: *id003
+    default: Each event has a set of default settings. To display a list of all events and the current configuration use the event-control command.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_event-control.md
+      title: event-control
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.event-damping
+    syntax: event-damping
+    view: log
+    undo: no event-damping
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_event-damping.md
+      title: event-damping
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.event-handling
+    syntax: event-handling
+    view: log
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_event-handling.md
+      title: event-handling
+      line: 318
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.event-trigger
+    syntax: event-trigger
+    view: log
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_event-trigger.md
+      title: event-trigger
+      line: 368
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.file-id
+    syntax: file-id <file-id> [ name <file-policy-name> ]
+    view: log
+    enters_view: opaque
+    undo: no file-id <file-id> [ name <file-policy-name> ]
+    params:
+      file-id:
+        type: integer
+        range:
+          - 1
+          - 99
+      file-policy-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_file-id.md
+      title: file-id
+      line: 248
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.file-storage-control
+    syntax: file-storage-control
+    view: log
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_file-storage-control.md
+      title: file-storage-control
+      line: 56
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.filter
+    syntax: filter <filter-id> [ name <filter-name> ]
+    view: log
+    enters_view: opaque
+    undo: no filter <filter-id>
+    params:
+      filter-id:
+        type: integer
+        range:
+          - 1
+          - 1500
+      filter-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_filter.md
+      title: filter
+      line: 429
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.description~4
+    syntax: description <short-description-string>
+    view: log-id
+    undo: no description
+    params:
+      short-description-string:
+        type: text
+    default: No description is associated with the configuration context.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: description
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.filter~2
+    syntax: filter <filter-id>
+    view: log-id
+    undo: no filter
+    params:
+      filter-id:
+        type: integer
+        range:
+          - 1
+          - 1000
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: filter
+      line: 248
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.from
+    syntax: from { [ main ] [ security ] [ change ] [ debug-trace ] }
+    view: log-id
+    undo: no from
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: from
+      line: 296
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.log-id
+    syntax: log-id <log-id> [ name <log-name> ]
+    view: log
+    enters_view: log-id
+    undo: no log-id <log-id>
+    params:
+      log-id:
+        type: integer
+        range:
+          - 1
+          - 101
+      log-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: log-id
+      line: 341
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.netconf-stream
+    syntax: netconf-stream <stream-name>
+    view: log-id
+    params:
+      stream-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: netconf-stream
+      line: 398
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.python-policy
+    syntax: python-policy <policy-name>
+    view: log-id
+    undo: no python-policy
+    params:
+      policy-name:
+        type: word
+    default: no python-policy
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: python-policy
+      line: 436
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown~9
+    syntax: shutdown
+    view: log-id
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: shutdown
+      line: 480
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.time-format
+    syntax: time-format { local | utc }
+    view: log-id
+    default: time-format utc
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: time-format
+      line: 521
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.to.1
+    syntax: to cli [ <size> ]
+    view: log-id
+    params:
+      size: &id004
+        type: integer
+        range:
+          - 50
+          - 3000
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: to
+      line: 568
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.to.2
+    syntax: to console
+    view: log-id
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: to
+      line: 568
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.to.3
+    syntax: to file <log-file-id>
+    view: log-id
+    params:
+      log-file-id:
+        type: integer
+        range:
+          - 1
+          - 99
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: to
+      line: 568
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.to.4
+    syntax: to memory [ <size> ]
+    view: log-id
+    params:
+      size: *id004
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: to
+      line: 568
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.to.5
+    syntax: to netconf [ <size> ]
+    view: log-id
+    params:
+      size: *id004
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: to
+      line: 568
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.to.6
+    syntax: to session
+    view: log-id
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: to
+      line: 568
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.to.7
+    syntax: to snmp [ <size> ]
+    view: log-id
+    params:
+      size: *id004
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: to
+      line: 568
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.to.8
+    syntax: to syslog <syslog-id>
+    view: log-id
+    params:
+      syslog-id:
+        type: integer
+        range:
+          - 1
+          - 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_log-id.md
+      title: to
+      line: 568
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.route-preference
+    syntax: route-preference primary { inband | outband } secondary { inband | outband | none }
+    view: log
+    undo: no route-preference
+    default: no route-preference
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_route-preference.md
+      title: route-preference
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.services-all-events
+    syntax: services-all-events
+    view: log
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_services-all-events.md
+      title: services-all-events
+      line: 44
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.snmp-trap-group
+    syntax: snmp-trap-group { <log-id> | <log-name> } [ name <log-name> ]
+    view: log
+    enters_view: opaque
+    undo: no snmp-trap-group <log-id> | <log-name>
+    params:
+      log-id:
+        type: word
+      log-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_snmp-trap-group.md
+      title: snmp-trap-group
+      line: 248
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.address~2
+    syntax: address <ip-address>
+    view: log-syslog
+    undo: no address
+    params:
+      ip-address:
+        type: ipv4
+    default: no address
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_syslog.md
+      title: address
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.description~5
+    syntax: description <short-description-string>
+    view: log-syslog
+    undo: no description
+    params:
+      short-description-string:
+        type: text
+    default: No description is associated with the configuration context.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_syslog.md
+      title: description
+      line: 54
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.facility
+    syntax: facility <syslog-facility>
+    view: log-syslog
+    undo: no facility
+    params:
+      syslog-facility:
+        type: word
+    default: facility local7
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_syslog.md
+      title: facility
+      line: 296
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hostname
+    syntax: hostname { use-system-name | value <value-string> }
+    view: log-syslog
+    undo: no hostname
+    params:
+      value-string:
+        type: word
+    default: no hostname
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_syslog.md
+      title: hostname
+      line: 342
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.level
+    syntax: level <syslog-level>
+    view: log-syslog
+    undo: no level
+    params:
+      syslog-level:
+        type: word
+    default: level info
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_syslog.md
+      title: level
+      line: 385
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.log-prefix
+    syntax: log-prefix <log-prefix-string>
+    view: log-syslog
+    undo: no log-prefix
+    params:
+      log-prefix-string:
+        type: word
+    default: no log-prefix
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_syslog.md
+      title: log-prefix
+      line: 429
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.port~5
+    syntax: port <value>
+    view: log-syslog
+    undo: no port
+    params:
+      value:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_syslog.md
+      title: port
+      line: 475
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.syslog
+    syntax: syslog <syslog-id> [ name <syslog-name> ]
+    view: log
+    enters_view: log-syslog
+    undo: no syslog <syslog-id>
+    params:
+      syslog-id:
+        type: integer
+        range:
+          - 1
+          - 10
+      syslog-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_syslog.md
+      title: syslog
+      line: 517
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.timestamp-format
+    syntax: timestamp-format millisecond
+    view: log-syslog
+    undo: no timestamp-format
+    default: no timestamp-format
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_syslog.md
+      title: timestamp-format
+      line: 564
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tls-client-profile
+    syntax: tls-client-profile <tls-client-profile>
+    view: log-syslog
+    undo: no tls-client-profile
+    params:
+      tls-client-profile:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_syslog.md
+      title: tls-client-profile
+      line: 606
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.throttle-rate
+    syntax: throttle-rate <events> [ interval <seconds> ]
+    view: log
+    undo: no throttle-rate
+    params:
+      events:
+        type: integer
+        range:
+          - 1
+          - 20000
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 1200
+    default: throttle-rate 2000 interval 1
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_log_throttle-rate.md
+      title: throttle-rate
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.attempts~3
+    syntax: attempts <count> [ time <minutes1> [ lockout <minutes2> ] ]
+    view: security-password
+    undo: no attempts
+    params:
+      count:
+        type: integer
+        range:
+          - 1
+          - 64
+      minutes1:
+        type: word
+      minutes2:
+        type: word
+    default: attempts 3 time 5 lockout 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_system_security.md
+      title: attempts
+      line: 1133
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.system
+    syntax: system
+    view: configure
+    enters_view: system
+    source:
+      patched: 命令参考没有单列 configure 下进入 system 上下文的命令（system 下各命令的完整上下文都以 configure system 开头）；display-config 写作 system，块尾 exit
+      added_by_patch: true
+    status: draft

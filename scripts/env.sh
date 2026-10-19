@@ -3,6 +3,9 @@
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export LMESH_ROOT="$ROOT"
 export PYTHONUTF8=1
+# 临时文件（含 pytest 的临时目录）放在项目内，不写系统临时目录
+export TMPDIR="$ROOT/tmp/os"
+mkdir -p "$TMPDIR"
 
 # Python（uv）：下载缓存、解释器、工具都放在项目内
 export UV_CACHE_DIR="$ROOT/.toolchain/cache/uv"

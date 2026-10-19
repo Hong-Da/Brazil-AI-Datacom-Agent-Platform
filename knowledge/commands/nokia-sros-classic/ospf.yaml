@@ -1,0 +1,1355 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: ospf
+cards:
+  - id: nokia-sros-classic.adjacency-set
+    syntax: adjacency-set <id>
+    view: ospf-if
+    undo: no adjacency-set <id>
+    params:
+      id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: adjacency-set
+      line: 190
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.adjacency-sid
+    syntax: adjacency-sid label <value>
+    view: ospf-if
+    undo: no adjacency-sid
+    params:
+      value:
+        type: integer
+        range:
+          - 18432
+          - 52428
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: adjacency-sid
+      line: 229
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.advertise-router-capability
+    syntax: advertise-router-capability { link | area | as }
+    view: ospf
+    undo: no advertise-router-capability
+    default: no advertise-router-capability
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: advertise-router-capability
+      line: 435
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.advertise-router-capability@ospf-area
+    syntax: advertise-router-capability
+    view: ospf-area
+    undo: no advertise-router-capability
+    default: advertise-router-capability
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: advertise-router-capability
+      line: 494
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.advertise-router-capability@ospf-if
+    syntax: advertise-router-capability
+    view: ospf-if
+    undo: no advertise-router-capability
+    default: advertise-router-capability
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: advertise-router-capability
+      line: 494
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.advertise-subnet
+    syntax: advertise-subnet
+    view: ospf-if
+    undo: no advertise-subnet
+    default: advertise-subnet
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: advertise-subnet
+      line: 549
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.advertise-tunnel-link
+    syntax: advertise-tunnel-link
+    view: ospf
+    undo: no advertise-tunnel-link
+    default: no advertise-tunnel-link
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: advertise-tunnel-link
+      line: 585
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.area
+    syntax: area <area-id>
+    view: ospf
+    enters_view: ospf-area
+    undo: no area <area-id>
+    params:
+      area-id:
+        type: word
+    default: no area
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: area
+      line: 713
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.area-range
+    syntax: area-range <ip-prefix/mask> [ advertise | not-advertise ]
+    view: ospf-area
+    undo: no area-range <ip-prefix/mask>
+    params:
+      ip-prefix/mask:
+        type: prefix
+    default: no area-range
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: area-range
+      line: 756
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.asbr.1
+    syntax: asbr [ trace-path <domain-id> ]
+    view: ospf
+    undo: no asbr [ trace-path <domain-id> ]
+    params:
+      domain-id:
+        type: integer
+        range:
+          - 1
+          - 31
+    default: no asbr
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: asbr
+      line: 807
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.asbr.2
+    syntax: asbr
+    view: ospf
+    undo: no asbr [ trace-path <domain-id> ]
+    default: no asbr
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: asbr
+      line: 807
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.auth-keychain
+    syntax: auth-keychain
+    view: ospf-if
+    default: no auth-keychain
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: auth-keychain
+      line: 902
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-key~2
+    syntax: authentication-key [ <authentication-key> | <hash-key> ] [ hash | hash2 | custom ]
+    view: ospf-if
+    undo: no authentication-key
+    params:
+      authentication-key:
+        type: word
+      hash-key:
+        type: word
+    default: no authentication-key
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: authentication-key
+      line: 947
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-type
+    syntax: authentication-type { password | message-digest }
+    view: ospf-if
+    undo: no authentication-type
+    default: no authentication-type
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: authentication-type
+      line: 1002
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bfd-enable.1
+    syntax: bfd-enable [ remain-down-on-failure ]
+    view: ospf-if
+    undo: no bfd-enable
+    default: no bfd-enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: bfd-enable
+      line: 1106
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bfd-enable.2
+    syntax: bfd-enable [ remain-down-on-failure ] strict [ strict-mode-holddown <number> ]
+    view: ospf-if
+    undo: no bfd-enable
+    params:
+      number:
+        type: integer
+        range:
+          - 1
+          - 600
+    default: no bfd-enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: bfd-enable
+      line: 1106
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bier
+    syntax: bier
+    view: ospf-area
+    enters_view: opaque
+    undo: no bier
+    default: no bier
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: bier
+      line: 1153
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.blackhole-aggregate
+    syntax: blackhole-aggregate
+    view: ospf-area
+    undo: no blackhole-aggregate
+    default: blackhole-aggregate
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: blackhole-aggregate
+      line: 1189
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.compatible-rfc1583
+    syntax: compatible-rfc1583
+    view: ospf
+    undo: no compatible-rfc1583
+    default: compatible-rfc1583
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: compatible-rfc1583
+      line: 1265
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.database-export
+    syntax: database-export [ identifier <id> ] [ bgp-ls-identifier <bgp-ls-id> ] [ reachable-ls-only ]
+    view: ospf
+    undo: no database-export
+    params:
+      id:
+        type: integer
+        range:
+          - 0
+          - 18446744073709551615
+      bgp-ls-id:
+        type: word
+    default: no database-export
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: database-export
+      line: 1305
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.database-export-exclude
+    syntax: database-export-exclude
+    view: ospf-area
+    undo: no database-export-exclude
+    default: no database-export-exclude
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: database-export-exclude
+      line: 1352
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dead-interval
+    syntax: dead-interval <seconds>
+    view: ospf-if
+    undo: no dead-interval
+    params:
+      seconds:
+        type: integer
+        range:
+          - 2
+          - 65535
+    default: dead-interval 40
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: dead-interval
+      line: 1387
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.delay-normalization
+    syntax: delay-normalization
+    view: ospf-if
+    enters_view: opaque
+    undo: no delay-normalization
+    default: no delay-normalization
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: delay-normalization
+      line: 1483
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.disable-ldp-sync
+    syntax: disable-ldp-sync
+    view: ospf
+    undo: no disable-ldp-sync
+    default: no disable-ldp-sync
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: disable-ldp-sync
+      line: 1563
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.entropy-label
+    syntax: entropy-label
+    view: ospf
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: entropy-label
+      line: 1630
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.export
+    syntax: export <policy-name> [ <policy-name> ] &<1-4>
+    view: ospf
+    undo: no export
+    params:
+      policy-name:
+        type: word
+    default: no export
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: export
+      line: 1732
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.export~2
+    syntax: export <policy-name> [ <policy-name> ] &<1-4>
+    view: ospf-area
+    undo: no export <policy-name> [ <policy-name> ] &<1-31>
+    params:
+      policy-name:
+        type: word
+    default: no export
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: export
+      line: 1779
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.export-limit
+    syntax: export-limit <number> [ log <percentage> ]
+    view: ospf
+    undo: no export-limit
+    params:
+      number:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      percentage:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: no export-limit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: export-limit
+      line: 1824
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.external-db-overflow
+    syntax: external-db-overflow <limit> <interval>
+    view: ospf
+    undo: no external-db-overflow
+    params:
+      limit:
+        type: integer
+        range:
+          - 0
+          - 2147483647
+      interval:
+        type: integer
+        range:
+          - 0
+          - 2147483647
+    default: no external-db-overflow
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: external-db-overflow
+      line: 1912
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.external-preference
+    syntax: external-preference <preference>
+    view: ospf
+    undo: no external-preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: external-preference 150
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: external-preference
+      line: 1962
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.flex-algo
+    syntax: flex-algo <flex-algo-id>
+    view: ospf-if
+    enters_view: opaque
+    undo: no flex-algo <flex-algo-id>
+    params:
+      flex-algo-id:
+        type: integer
+        range:
+          - 128
+          - 255
+    default: no flex-algo
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: flex-algo
+      line: 2092
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.flexible-algorithms
+    syntax: flexible-algorithms
+    view: ospf
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: flexible-algorithms
+      line: 2134
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.graceful-restart
+    syntax: graceful-restart
+    view: ospf
+    enters_view: opaque
+    undo: no graceful-restart
+    default: no graceful-restart
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: graceful-restart
+      line: 2162
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-interval
+    syntax: hello-interval <seconds>
+    view: ospf-if
+    undo: no hello-interval
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: hello-interval 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: hello-interval
+      line: 2199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.igp-shortcut
+    syntax: igp-shortcut
+    view: ospf
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: igp-shortcut
+      line: 2295
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.import
+    syntax: import <policy-name> [ <policy-name> ] &<1-4>
+    view: ospf
+    undo: no import
+    params:
+      policy-name:
+        type: word
+    default: no import
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: import
+      line: 2352
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.import~2
+    syntax: import <policy-name> [ <policy-name> ] &<1-4>
+    view: ospf-area
+    undo: no import <policy-name> [ <policy-name> ] &<1-31>
+    params:
+      policy-name:
+        type: word
+    default: no import
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: import
+      line: 2393
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interface
+    syntax: interface <ip-int-name> [ secondary ]
+    view: ospf-area
+    enters_view: ospf-if
+    undo: no interface <ip-int-name>
+    params:
+      ip-int-name:
+        type: word
+    default: no interface
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: interface
+      line: 2515
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interface-type
+    syntax: interface-type { broadcast | point-to-point | non-broadcast | p2mp-nbma }
+    view: ospf-if
+    undo: no interface-type
+    default: interface-type point-to-point (if the physical interface is SONET) interface-type broadcast (if the physical interface is Ethernet or unknown)
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: interface-type
+      line: 2561
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ldp-over-rsvp
+    syntax: ldp-over-rsvp
+    view: ospf
+    undo: no ldp-over-rsvp
+    default: no ldp-over-rsvp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: ldp-over-rsvp
+      line: 2621
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lfa-policy-map
+    syntax: lfa-policy-map route-nh-template <template-name>
+    view: ospf-if
+    undo: no lfa-policy-map
+    params:
+      template-name:
+        type: word
+    default: no lfa-policy-map
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: lfa-policy-map
+      line: 2655
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.load-balancing-weight~2
+    syntax: load-balancing-weight [ <weight> ]
+    view: ospf-if
+    undo: no load-balancing-weight
+    params:
+      weight:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: no load-balancing-weight
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: load-balancing-weight
+      line: 2707
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.loopfree-alternate-exclude
+    syntax: loopfree-alternate-exclude prefix-policy <prefix-policy> [ <prefix-policy> ] &<1-4>
+    view: ospf
+    undo: no loopfree-alternate-exclude
+    params:
+      prefix-policy:
+        type: word
+    default: no loopfree-alternate-exclude
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: loopfree-alternate-exclude
+      line: 2750
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.loopfree-alternate-exclude@ospf-area
+    syntax: loopfree-alternate-exclude
+    view: ospf-area
+    undo: no loopfree-alternate-exclude
+    default: no loopfree-alternate-exclude
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: loopfree-alternate-exclude
+      line: 2801
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.loopfree-alternate-exclude@ospf-if
+    syntax: loopfree-alternate-exclude
+    view: ospf-if
+    undo: no loopfree-alternate-exclude
+    default: no loopfree-alternate-exclude
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: loopfree-alternate-exclude
+      line: 2801
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.loopfree-alternates
+    syntax: loopfree-alternates
+    view: ospf
+    enters_view: opaque
+    undo: no loopfree-alternates
+    default: no loopfree-alternates
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: loopfree-alternates
+      line: 2887
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsa-filter-out
+    syntax: lsa-filter-out [ all | except-own-rtrlsa | except-own-rtrlsa-and-defaults ]
+    view: ospf-if
+    undo: no lsa-filter-out
+    default: no lsa-filter-out
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: lsa-filter-out
+      line: 3058
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.message-digest-key
+    syntax: message-digest-key <key-id> md5 [ <key> | <hash-key> | <hash2-key> ] [ hash | hash2 | custom ]
+    view: ospf-if
+    undo: no message-digest-key <key-id>
+    params:
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+      key:
+        type: word
+      hash-key:
+        type: word
+      hash2-key:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: message-digest-key
+      line: 3216
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.metric
+    syntax: metric <metric>
+    view: ospf-if
+    undo: no metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: no metric
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: metric
+      line: 3266
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mtu~2
+    syntax: mtu <bytes>
+    view: ospf-if
+    undo: no mtu
+    params:
+      bytes:
+        type: integer
+        range:
+          - 512
+          - 9786
+    default: no mtu
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: mtu
+      line: 3447
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.multi-instance
+    syntax: multi-instance
+    view: ospf
+    undo: no multi-instance
+    default: no multi-instance
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: multi-instance
+      line: 3546
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.multicast-import
+    syntax: multicast-import
+    view: ospf
+    undo: no multicast-import
+    default: no multicast-import
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: multicast-import
+      line: 3582
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.multicast-import-policy.1
+    syntax: multicast-import-policy <policy-name>
+    view: ospf
+    undo: no multicast-import-policy
+    params:
+      policy-name:
+        type: word
+    default: no multicast-import-policy
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: multicast-import-policy
+      line: 3619
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.multicast-import-policy.2
+    syntax: multicast-import-policy
+    view: ospf
+    undo: no multicast-import-policy
+    default: no multicast-import-policy
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: multicast-import-policy
+      line: 3619
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.neighbor.1
+    syntax: neighbor <ipv4-address>
+    view: ospf-if
+    undo: no neighbor <ipv4-address>
+    params:
+      ipv4-address:
+        type: word
+    default: no neighbor
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: neighbor
+      line: 3665
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.neighbor.2
+    syntax: neighbor <ipv6-address>
+    view: ospf-if
+    undo: no neighbor <ipv4-address>
+    params:
+      ipv6-address:
+        type: word
+    default: no neighbor
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: neighbor
+      line: 3665
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.node-sid.1
+    syntax: node-sid index <index-value> [ clear-n-flag ]
+    view: ospf-if
+    undo: no node-sid
+    params:
+      index-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: node-sid
+      line: 3840
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.node-sid.2
+    syntax: node-sid label <label-value> [ clear-n-flag ]
+    view: ospf-if
+    undo: no node-sid
+    params:
+      label-value:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: node-sid
+      line: 3840
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.nssa
+    syntax: nssa
+    view: ospf-area
+    enters_view: opaque
+    undo: no nssa
+    default: no nssa
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: nssa
+      line: 3929
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ospf.1
+    syntax: ospf [ <ospf-instance> [ <router-id> ] ]
+    view: router
+    enters_view: ospf
+    undo: no ospf [ <ospf-instance> ]
+    params:
+      ospf-instance:
+        type: integer
+        range:
+          - 0
+          - 31
+      router-id:
+        type: ipv4
+    default: no ospf
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: ospf
+      line: 4023
+      version: 25.10.R1
+      patched: 原文 ospf-instance 为必选、取值 1 to 31；基本实例 0 可以省略或写作 0（配置指南的举例有 ospf、ospf 0、ospf 0 10.20.1.6 三种写法）
+    status: draft
+  - id: nokia-sros-classic.ospf.2
+    syntax: ospf <ospf-instance>
+    view: router
+    enters_view: ospf
+    undo: no ospf <ospf-instance>
+    params:
+      ospf-instance:
+        type: integer
+        range:
+          - 1
+          - 31
+    default: no ospf
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: ospf
+      line: 4023
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.overload
+    syntax: overload [ timeout <seconds> ]
+    view: ospf
+    undo: no overload
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 1800
+    default: no overload
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: overload
+      line: 4084
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.overload-include-ext-1
+    syntax: overload-include-ext-1
+    view: ospf
+    undo: no overload-include-ext-1
+    default: no overload-include-ext-1
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: overload-include-ext-1
+      line: 4131
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.overload-include-ext-2
+    syntax: overload-include-ext-2
+    view: ospf
+    undo: no overload-include-ext-2
+    default: no overload-include-ext-2
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: overload-include-ext-2
+      line: 4168
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.overload-include-stub
+    syntax: overload-include-stub
+    view: ospf
+    undo: no overload-include-stub
+    default: no overload-include-stub
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: overload-include-stub
+      line: 4205
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.overload-on-boot
+    syntax: overload-on-boot [ timeout <seconds> ]
+    view: ospf
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 1800
+    default: no overload-on-boot
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: overload-on-boot
+      line: 4242
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.passive
+    syntax: passive
+    view: ospf-if
+    undo: no passive
+    default: no passive
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: passive
+      line: 4493
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.poll-interval
+    syntax: poll-interval <seconds>
+    view: ospf-if
+    undo: no poll-interval
+    params:
+      seconds:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: '120'
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: poll-interval
+      line: 4534
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.preference
+    syntax: preference <preference>
+    view: ospf
+    undo: no preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: preference 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: preference
+      line: 4577
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.priority
+    syntax: priority <number>
+    view: ospf-if
+    undo: no priority
+    params:
+      number:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: priority 1
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: priority
+      line: 4779
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.reference-bandwidth.1
+    syntax: reference-bandwidth <bandwidth-in-kbps>
+    view: ospf
+    undo: no reference-bandwidth
+    params:
+      bandwidth-in-kbps:
+        type: integer
+        range:
+          - 1
+          - 18446744073709551615
+    default: reference-bandwidth 100000000
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: reference-bandwidth
+      line: 4912
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.reference-bandwidth.2
+    syntax: reference-bandwidth [ zbps <Zetta-bps> ] [ ebps <Exa-bps> ] [ pbps <Peta-bps> ] [ tbps <Tera-bps> ] [ gbps <Giga-bps> ] [ mbps <Mega-bps> ] [ kbps <Kilo-bps> ]
+    view: ospf
+    undo: no reference-bandwidth
+    params:
+      Zetta-bps:
+        type: integer
+        range:
+          - 1
+          - 18
+      Exa-bps:
+        type: integer
+        range:
+          - 1
+          - 999
+      Peta-bps:
+        type: integer
+        range:
+          - 1
+          - 999
+      Tera-bps:
+        type: integer
+        range:
+          - 1
+          - 999
+      Giga-bps:
+        type: integer
+        range:
+          - 1
+          - 999
+      Mega-bps:
+        type: integer
+        range:
+          - 1
+          - 999
+      Kilo-bps:
+        type: integer
+        range:
+          - 1
+          - 999
+    default: reference-bandwidth 100000000
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: reference-bandwidth
+      line: 4912
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.retransmit-interval
+    syntax: retransmit-interval <seconds>
+    view: ospf-if
+    undo: no retransmit-interval
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 1800
+    default: retransmit-interval 5
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: retransmit-interval
+      line: 5101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rib-priority
+    syntax: rib-priority { high } <prefix-list-name>
+    view: ospf
+    undo: no rib-priority { high }
+    params:
+      prefix-list-name:
+        type: word
+    default: no rib-priority high
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: rib-priority
+      line: 5152
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rib-priority~2
+    syntax: rib-priority { high }
+    view: ospf-if
+    undo: no rib-priority
+    default: no rib-priority
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: rib-priority
+      line: 5195
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.router-id
+    syntax: router-id <ip-address>
+    view: ospf
+    undo: no router-id
+    params:
+      ip-address:
+        type: ipv4
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: router-id
+      line: 5238
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rtr-adv-lsa-limit.1
+    syntax: rtr-adv-lsa-limit <limit> [ log-only ] [ threshold <percent> ]
+    view: ospf
+    undo: no rtr-adv-lsa-limit
+    params:
+      limit: &id001
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      percent: &id002
+        type: integer
+        range:
+          - 0
+          - 100
+    default: no rtr-adv-lsa-limit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: rtr-adv-lsa-limit
+      line: 5318
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rtr-adv-lsa-limit.2
+    syntax: rtr-adv-lsa-limit <limit> [ log-only ] [ threshold <percent> ] [ overload-timeout { <seconds> | forever } ]
+    view: ospf
+    undo: no rtr-adv-lsa-limit
+    params:
+      limit: *id001
+      percent: *id002
+      seconds:
+        type: word
+    default: no rtr-adv-lsa-limit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: rtr-adv-lsa-limit
+      line: 5318
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.segment-routing
+    syntax: segment-routing
+    view: ospf
+    enters_view: ospf-sr
+    undo: no segment-routing
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: segment-routing
+      line: 5369
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown~10
+    syntax: shutdown
+    view: ospf
+    undo: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: shutdown
+      line: 5454
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sid-protection
+    syntax: sid-protection
+    view: ospf-if
+    undo: no sid-protection
+    default: sid-protection
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: sid-protection
+      line: 5615
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.stub
+    syntax: stub
+    view: ospf-area
+    enters_view: opaque
+    undo: no stub
+    default: no stub
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: stub
+      line: 5854
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.timers
+    syntax: timers
+    view: ospf
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: timers
+      line: 6025
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.traffic-engineering
+    syntax: traffic-engineering
+    view: ospf
+    undo: no traffic-engineering
+    default: no traffic-engineering
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: traffic-engineering
+      line: 6056
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.traffic-engineering-options
+    syntax: traffic-engineering-options
+    view: ospf
+    enters_view: opaque
+    undo: no traffic-engineering-options
+    default: no traffic-engineering-options
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: traffic-engineering-options
+      line: 6094
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.transit-delay
+    syntax: transit-delay <seconds>
+    view: ospf-if
+    undo: no transit-delay
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 1800
+    default: transit-delay 1
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: transit-delay
+      line: 6130
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.unicast-import-disable
+    syntax: unicast-import-disable
+    view: ospf
+    undo: no unicast-import-disable
+    default: no unicast-import-disable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: unicast-import-disable
+      line: 6376
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.virtual-link
+    syntax: virtual-link <router-id> transit-area <area-id>
+    view: ospf-area
+    enters_view: opaque
+    undo: no virtual-link <router-id> transit-area <area-id>
+    params:
+      router-id:
+        type: ipv4
+      area-id:
+        type: word
+    default: no virtual-link
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: virtual-link
+      line: 6411
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@ospf-if
+    syntax: shutdown
+    view: ospf-if
+    undo: no shutdown
+    default: no shutdown
+    source:
+      patched: 命令参考 OSPF 的 shutdown 条目只列了 ospf3 的 area interface，漏了 OSPFv2 的 configure router ospf area interface（display-config 在每个 OSPF 接口下写 no shutdown）
+      added_by_patch: true
+    status: draft

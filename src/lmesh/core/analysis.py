@@ -14,7 +14,7 @@ from sqlalchemy import select
 from lmesh.core import kb as kbmod
 from lmesh.core import parser, store
 from lmesh.core.kb import KnowledgeBase, mapping, profilegen, repo
-from lmesh.core.sanitize import detect_vendor, detect_version
+from lmesh.core.sanitize import detect_format, detect_vendor, detect_version, family_of
 from lmesh.core.store.models import UnknownLine
 
 _cache: dict[str, tuple[tuple[float, int], KnowledgeBase]] = {}
@@ -106,7 +106,7 @@ def resolve_profile(text: str, kb: KnowledgeBase, profile: str | None = None) ->
         if profile not in kb.profiles:
             raise AnalysisError("parse.profile_unknown")
         return profile, kb.profiles[profile].vendor or vendor, version
-    found = kb.match_profile(vendor, version) if vendor else None
+    found = kb.match_profile(vendor, version, family_of(vendor, detect_format(text, vendor))) if vendor else None
     if not found:
         raise AnalysisError("parse.no_profile")
     return found, vendor, version

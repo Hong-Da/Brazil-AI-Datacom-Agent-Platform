@@ -1,0 +1,3776 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: mpls
+cards:
+  - id: nokia-sros-classic.adaptive@mpls-lsp
+    syntax: adaptive
+    view: mpls-lsp
+    undo: no adaptive
+    default: adaptive
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: adaptive
+      line: 123
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.adaptive@mpls-lsp-secondary
+    syntax: adaptive
+    view: mpls-lsp-secondary
+    undo: no adaptive
+    default: adaptive
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: adaptive
+      line: 123
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.adaptive@mpls-lsp-primary
+    syntax: adaptive
+    view: mpls-lsp-primary
+    undo: no adaptive
+    default: adaptive
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: adaptive
+      line: 123
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.admin-group
+    syntax: admin-group <group-name> [ <group-name> ] &<1-31>
+    view: mpls-if
+    undo: no admin-group <group-name> [ <group-name> ] &<1-31>
+    params:
+      group-name:
+        type: word
+    default: no admin-group
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: admin-group
+      line: 275
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.admin-group-frr
+    syntax: admin-group-frr
+    view: mpls
+    undo: no admin-group-frr
+    default: no frr-admin-group
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: admin-group-frr
+      line: 328
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.admin-tag
+    syntax: admin-tag <tag-value>
+    view: mpls-lsp
+    undo: no admin-tag <tag-value>
+    params:
+      tag-value:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: admin-tag
+      line: 374
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.adspec
+    syntax: adspec
+    view: mpls-lsp
+    undo: no adspec
+    default: no adspec — No ADSPEC objects are included in RSVP messages.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: adspec
+      line: 421
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.auto-bandwidth
+    syntax: auto-bandwidth
+    view: mpls-lsp
+    enters_view: opaque
+    undo: no auto-bandwidth
+    default: no auto-bandwidth
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: auto-bandwidth
+      line: 498
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.auto-bandwidth-multipliers
+    syntax: auto-bandwidth-multipliers sample-multiplier <number1> adjust-multiplier <number2>
+    view: mpls
+    undo: no auto-bandwidth-multipliers
+    params:
+      number1:
+        type: integer
+        range:
+          - 1
+          - 511
+      number2:
+        type: integer
+        range:
+          - 1
+          - 16383
+    default: auto-bandwidth-multipliers sample-multiplier 1 adjust-multiplier 288
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: auto-bandwidth-multipliers
+      line: 541
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.auto-lsp
+    syntax: auto-lsp lsp-template <template-name> { policy <peer-prefix-policy> [ peer-prefix-policy ] | one-hop }
+    view: mpls
+    undo: no auto-lsp lsp-template <template-name>
+    params:
+      template-name:
+        type: word
+      peer-prefix-policy:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: auto-lsp
+      line: 584
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.aux-stats
+    syntax: aux-stats sr
+    view: mpls
+    undo: no aux-stats sr
+    default: aux-stats sr
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: aux-stats
+      line: 660
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.backup-class-type
+    syntax: backup-class-type ct-number
+    view: mpls-lsp-primary
+    undo: no backup-class-type
+    default: no backup-class-type
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: backup-class-type
+      line: 702
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bandwidth@mpls-lsp-secondary
+    syntax: bandwidth <bandwidth-in-mbps>
+    view: mpls-lsp-secondary
+    undo: no bandwidth
+    params: &id001
+      bandwidth-in-mbps:
+        type: integer
+        range:
+          - 0
+          - 6400000
+    default: no bandwidth (bandwidth setting in the global LSP configuration)
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: bandwidth
+      line: 849
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bandwidth@mpls-lsp-primary
+    syntax: bandwidth <bandwidth-in-mbps>
+    view: mpls-lsp-primary
+    undo: no bandwidth
+    params: *id001
+    default: no bandwidth (bandwidth setting in the global LSP configuration)
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: bandwidth
+      line: 849
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bfd@mpls-lsp-primary
+    syntax: bfd
+    view: mpls-lsp-primary
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: bfd
+      line: 896
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bfd@mpls-lsp-secondary
+    syntax: bfd
+    view: mpls-lsp-secondary
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: bfd
+      line: 896
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bfd@mpls-lsp
+    syntax: bfd
+    view: mpls-lsp
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: bfd
+      line: 896
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-shortcut
+    syntax: bgp-shortcut
+    view: mpls-lsp
+    undo: no bgp-shortcut
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: bgp-shortcut
+      line: 1180
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bgp-transport-tunnel
+    syntax: bgp-transport-tunnel [ include | exclude ]
+    view: mpls-lsp
+    default: bgp-transport-tunnel include
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: bgp-transport-tunnel
+      line: 1215
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.binding-sid
+    syntax: binding-sid <label>
+    view: mpls-lsp
+    undo: no binding-sid
+    params:
+      label:
+        type: integer
+        range:
+          - 32
+          - 1048575
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: binding-sid
+      line: 1299
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bypass-resignal-timer
+    syntax: bypass-resignal-timer <minutes>
+    view: mpls
+    undo: no bypass-resignal-timer
+    params:
+      minutes:
+        type: integer
+        range:
+          - 1
+          - 10080
+    default: no bypass-resignal timer.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: bypass-resignal-timer
+      line: 1371
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.class-forwarding
+    syntax: class-forwarding
+    view: mpls-lsp
+    enters_view: opaque
+    undo: no class-forwarding
+    default: no class-forwarding
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: class-forwarding
+      line: 1429
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.class-forwarding-policy
+    syntax: class-forwarding-policy <policy-name>
+    view: mpls
+    enters_view: opaque
+    undo: no class-forwarding-policy <policy-name>
+    params:
+      policy-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: class-forwarding-policy
+      line: 1472
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.class-type@mpls-lsp-secondary
+    syntax: class-type <ct-number>
+    view: mpls-lsp-secondary
+    undo: no class-type
+    params: &id002
+      ct-number:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: class-type 0
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: class-type
+      line: 1508
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.class-type@mpls-lsp-primary
+    syntax: class-type <ct-number>
+    view: mpls-lsp-primary
+    undo: no class-type
+    params: *id002
+    default: class-type 0
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: class-type
+      line: 1508
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.class-type@mpls-lsp
+    syntax: class-type <ct-number>
+    view: mpls-lsp
+    undo: no class-type
+    params: *id002
+    default: class-type 0
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: class-type
+      line: 1508
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cspf-on-loose-hop
+    syntax: cspf-on-loose-hop
+    view: mpls
+    undo: no cspf-on-loose-hop
+    default: no cspf-on-loose-hop
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: cspf-on-loose-hop
+      line: 1654
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.delay-metric-limit@mpls-lsp-secondary
+    syntax: delay-metric-limit <delay-metric-limit>
+    view: mpls-lsp-secondary
+    undo: no delay-metric-limit
+    params: &id003
+      delay-metric-limit:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: no delay-metric-limit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: delay-metric-limit
+      line: 1762
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.delay-metric-limit@mpls-lsp-primary
+    syntax: delay-metric-limit <delay-metric-limit>
+    view: mpls-lsp-primary
+    undo: no delay-metric-limit
+    params: *id003
+    default: no delay-metric-limit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: delay-metric-limit
+      line: 1762
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dest-global-id
+    syntax: dest-global-id <dest-global-id>
+    view: mpls-lsp
+    undo: no dest-global-id
+    params:
+      dest-global-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: dest-global-id 0
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: dest-global-id
+      line: 1809
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dest-tunnel-number
+    syntax: dest-tunnel-number <dest-tunnel-number>
+    view: mpls-lsp
+    undo: no dest-tunnel-number
+    params:
+      dest-tunnel-number:
+        type: integer
+        range:
+          - 1
+          - 61440
+    default: The default value is the configured src-tunnel-num.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: dest-tunnel-number
+      line: 1849
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dynamic-bypass
+    syntax: dynamic-bypass [ enable | disable ]
+    view: mpls
+    undo: no dynamic-bypass
+    default: dynamic-bypass enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: dynamic-bypass
+      line: 1987
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.egress-statistics
+    syntax: egress-statistics
+    view: mpls-lsp
+    enters_view: opaque
+    undo: no egress-statistics
+    default: no egress-statistics
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: egress-statistics
+      line: 2021
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.entropy-label~3
+    syntax: entropy-label { rsvp-te | sr-te } { force-disable | enable }
+    view: mpls
+    default: entropy-label rsvp-te enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: entropy-label
+      line: 2152
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.entropy-label~4
+    syntax: entropy-label { force-disable | enable | inherit }
+    view: mpls-lsp
+    default: entropy-label inherit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: entropy-label
+      line: 2205
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.exclude@mpls-lsp-primary
+    syntax: exclude <group-name> [ <group-name> ] &<1-31>
+    view: mpls-lsp-primary
+    undo: no exclude [ <group-name> [ <group-name> ] &<1-31> ]
+    params: &id004
+      group-name:
+        type: word
+    default: no exclude
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: exclude
+      line: 2264
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.exclude@mpls-lsp-secondary
+    syntax: exclude <group-name> [ <group-name> ] &<1-31>
+    view: mpls-lsp-secondary
+    undo: no exclude [ <group-name> [ <group-name> ] &<1-31> ]
+    params: *id004
+    default: no exclude
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: exclude
+      line: 2264
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.exclude@mpls-lsp
+    syntax: exclude <group-name> [ <group-name> ] &<1-31>
+    view: mpls-lsp
+    undo: no exclude [ <group-name> [ <group-name> ] &<1-31> ]
+    params: *id004
+    default: no exclude
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: exclude
+      line: 2264
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.exclude-node
+    syntax: exclude-node <ip-address>
+    view: mpls-lsp
+    undo: no exclude-node
+    params:
+      ip-address:
+        type: ipv4
+    default: no exclude-node
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: exclude-node
+      line: 2328
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.exponential-backoff-retry
+    syntax: exponential-backoff-retry
+    view: mpls
+    undo: no exponential-backoff-retry
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: exponential-backoff-retry
+      line: 2362
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.fallback-path-computation-method
+    syntax: fallback-path-computation-method { none | local-cspf }
+    view: mpls-lsp
+    undo: no fallback-path-computation-method
+    default: fallback-path-computation-method none
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: fallback-path-computation-method
+      line: 2489
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.fast-reroute
+    syntax: fast-reroute <frr-method>
+    view: mpls-lsp
+    enters_view: opaque
+    undo: no fast-reroute
+    params:
+      frr-method:
+        type: word
+    default: no fast-reroute — When fast-reroute is specified, the default fast-reroute method is one-to-one.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: fast-reroute
+      line: 2582
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forwarding-policies
+    syntax: forwarding-policies
+    view: mpls
+    enters_view: opaque
+    undo: no forwarding-policies
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: forwarding-policies
+      line: 2756
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.from~3
+    syntax: from <ip-address>
+    view: mpls-lsp
+    params:
+      ip-address:
+        type: ipv4
+    default: The system IP address
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: from
+      line: 2894
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.frr-object
+    syntax: frr-object
+    view: mpls
+    undo: no frr-object
+    default: frr-object — Specifies the value is by default inherited by all LSPs.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: frr-object
+      line: 2941
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hold-timer
+    syntax: hold-timer <seconds>
+    view: mpls
+    undo: no hold-timer
+    params:
+      seconds:
+        type: integer
+        range:
+          - 0
+          - 1000
+    default: no hold-timer
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: hold-timer
+      line: 3097
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hop.1
+    syntax: hop <hop-index> <ip-address> { strict | loose }
+    view: mpls-path
+    undo: no hop <hop-index>
+    params:
+      hop-index: &id005
+        type: integer
+        range:
+          - 1
+          - 1024
+      ip-address:
+        type: ipv4
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: hop
+      line: 3139
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hop.2
+    syntax: hop <hop-index> sid-label <sid-value>
+    view: mpls-path
+    undo: no hop <hop-index>
+    params:
+      hop-index: *id005
+      sid-value:
+        type: integer
+        range:
+          - 32
+          - 1048575
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: hop
+      line: 3139
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hop-limit
+    syntax: hop-limit <number>
+    view: mpls-lsp
+    undo: no hop-limit
+    params:
+      number:
+        type: integer
+        range:
+          - 2
+          - 255
+    default: hop-limit 255
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: hop-limit
+      line: 3236
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hop-limit@mpls-lsp-primary
+    syntax: hop-limit <number>
+    view: mpls-lsp-primary
+    undo: no hop-limit
+    params: &id006
+      number:
+        type: integer
+        range:
+          - 2
+          - 255
+    default: no hop-limit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: hop-limit
+      line: 3287
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hop-limit@mpls-lsp-secondary
+    syntax: hop-limit <number>
+    view: mpls-lsp-secondary
+    undo: no hop-limit
+    params: *id006
+    default: no hop-limit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: hop-limit
+      line: 3287
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.igp-shortcut.1
+    syntax: igp-shortcut [ lfa-protect | lfa-only ] [ allow-sr-over-srte ]
+    view: mpls-lsp
+    undo: no igp-shortcut
+    default: igp-shortcut. All RSVP LSPs originating on this node are eligible by default as long as the destination address of the LSP corresponds to a router-id of a remote node.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: igp-shortcut
+      line: 3417
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.igp-shortcut.2
+    syntax: igp-shortcut relative-metric [ <offset> ] [ allow-sr-over-srte ]
+    view: mpls-lsp
+    undo: no igp-shortcut
+    params:
+      offset:
+        type: word
+    default: igp-shortcut. All RSVP LSPs originating on this node are eligible by default as long as the destination address of the LSP corresponds to a router-id of a remote node.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: igp-shortcut
+      line: 3417
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.include@mpls-lsp-secondary
+    syntax: include <group-name> [ <group-name> ] &<1-31>
+    view: mpls-lsp-secondary
+    undo: no include [ <group-name> [ <group-name> ] &<1-31> ]
+    params: &id007
+      group-name:
+        type: word
+    default: no include
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: include
+      line: 3578
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.include@mpls-lsp-primary
+    syntax: include <group-name> [ <group-name> ] &<1-31>
+    view: mpls-lsp-primary
+    undo: no include [ <group-name> [ <group-name> ] &<1-31> ]
+    params: *id007
+    default: no include
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: include
+      line: 3578
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.include@mpls-lsp
+    syntax: include <group-name> [ <group-name> ] &<1-31>
+    view: mpls-lsp
+    undo: no include [ <group-name> [ <group-name> ] &<1-31> ]
+    params: *id007
+    default: no include
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: include
+      line: 3578
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ingress-statistics
+    syntax: ingress-statistics
+    view: mpls
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: ingress-statistics
+      line: 3642
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ingress-statistics~2
+    syntax: ingress-statistics
+    view: mpls-lsp
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: ingress-statistics
+      line: 3670
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interface~4
+    syntax: interface <ip-int-name>
+    view: mpls
+    enters_view: mpls-if
+    undo: no interface <ip-int-name>
+    params:
+      ip-int-name:
+        type: word
+    default: shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: interface
+      line: 3859
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.label-map
+    syntax: label-map <in-label>
+    view: mpls-if
+    enters_view: opaque
+    undo: no label-map <in-label>
+    params:
+      in-label:
+        type: integer
+        range:
+          - 32
+          - 1023
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: label-map
+      line: 3943
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.label-stack-reduction
+    syntax: label-stack-reduction
+    view: mpls-lsp
+    undo: no label-stack-reduction
+    default: no label-stack-reduction
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: label-stack-reduction
+      line: 3981
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ldp-over-rsvp~3
+    syntax: ldp-over-rsvp [ include | exclude ]
+    view: mpls-lsp
+    default: ldp-over-rsvp include
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: ldp-over-rsvp
+      line: 4024
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.least-fill
+    syntax: least-fill
+    view: mpls-lsp
+    undo: no least-fill
+    default: no least-fill. The path of an LSP is randomly chosen among a set of equal cost paths.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: least-fill
+      line: 4067
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.least-fill-min-thd
+    syntax: least-fill-min-thd <percent>
+    view: mpls
+    undo: no least-fill-min-thd
+    params:
+      percent:
+        type: word
+    default: least-fill-min-thd 5
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: least-fill-min-thd
+      line: 4136
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.least-fill-reoptim-thd
+    syntax: least-fill-reoptim-thd <percent>
+    view: mpls
+    undo: no least-fill-reoptim-thd
+    params:
+      percent:
+        type: word
+    default: least-fill-reoptim-thd 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: least-fill-reoptim-thd
+      line: 4178
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.load-balancing-weight~4
+    syntax: load-balancing-weight <weight>
+    view: mpls-lsp
+    undo: no load-balancing-weight
+    params:
+      weight:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: load-balancing-weight
+      line: 4220
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.local-sr-protection
+    syntax: local-sr-protection <local-sr-protection>
+    view: mpls-lsp
+    undo: no local-sr-protection
+    params:
+      local-sr-protection:
+        type: word
+    default: no local-sr-protection
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: local-sr-protection
+      line: 4296
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.logger-event-bundling
+    syntax: logger-event-bundling
+    view: mpls
+    undo: no logger-event-bundling
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: logger-event-bundling
+      line: 4349
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp
+    syntax: lsp <lsp-name> [ bypass-only | p2mp-lsp | mpls-tp <src-tunnel-num> | sr-te ]
+    view: mpls
+    enters_view: mpls-lsp
+    undo: no lsp <lsp-name> [ bypass-only | p2mp-lsp | mpls-tp <src-tunnel-num> | sr-te ]
+    params:
+      lsp-name:
+        type: word
+      src-tunnel-num:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp
+      line: 4428
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-bsid-block
+    syntax: lsp-bsid-block <name>
+    view: mpls
+    undo: no lsp-bsid-block
+    params:
+      name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-bsid-block
+      line: 4474
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-container
+    syntax: lsp-container <container-name>
+    view: mpls
+    enters_view: opaque
+    undo: no lsp-container <container-name>
+    params:
+      container-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-container
+      line: 4512
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-history
+    syntax: lsp-history
+    view: mpls
+    enters_view: opaque
+    default: no lsp-history
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-history
+      line: 4550
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-init-retry-timeout
+    syntax: lsp-init-retry-timeout <seconds>
+    view: mpls
+    undo: no lsp-init-retry-timeout
+    params:
+      seconds:
+        type: integer
+        range:
+          - 10
+          - 600
+    default: lsp-init-retry-timeout 30
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-init-retry-timeout
+      line: 4584
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-self-ping
+    syntax: lsp-self-ping
+    view: mpls
+    enters_view: opaque
+    undo: no lsp-self-ping
+    default: no lsp-self-ping
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-self-ping
+      line: 4734
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-self-ping~2
+    syntax: lsp-self-ping { enable | disable | inherit }
+    view: mpls-lsp
+    undo: no lsp-self-ping
+    default: lsp-self-ping inherit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-self-ping
+      line: 4774
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-template.1
+    syntax: lsp-template <template-name>
+    view: mpls
+    enters_view: opaque
+    params:
+      template-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-template
+      line: 4829
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-template.2
+    syntax: lsp-template <template-name> member-p2p
+    view: mpls
+    enters_view: opaque
+    params:
+      template-name: &id008
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-template
+      line: 4829
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-template.3
+    syntax: lsp-template <template-name> mesh-p2p
+    view: mpls
+    enters_view: opaque
+    params:
+      template-name: *id008
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-template
+      line: 4829
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-template.4
+    syntax: lsp-template <template-name> on-demand-p2p-srte
+    view: mpls
+    enters_view: opaque
+    params:
+      template-name: *id008
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-template
+      line: 4829
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-template.5
+    syntax: lsp-template <template-name> one-hop-p2p
+    view: mpls
+    enters_view: opaque
+    params:
+      template-name: *id008
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-template
+      line: 4829
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-template.6
+    syntax: lsp-template <template-name> one-hop-p2p-srte
+    view: mpls
+    enters_view: opaque
+    params:
+      template-name: *id008
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-template
+      line: 4829
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-template.7
+    syntax: lsp-template <template-name> p2mp
+    view: mpls
+    enters_view: opaque
+    params:
+      template-name: *id008
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-template
+      line: 4829
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.main-ct-retry-limit
+    syntax: main-ct-retry-limit <number>
+    view: mpls-lsp
+    undo: no main-ct-retry-limit
+    params:
+      number:
+        type: integer
+        range:
+          - 0
+          - 1000
+    default: no main-ct-retry-limit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: main-ct-retry-limit
+      line: 4889
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.max-bypass-associations
+    syntax: max-bypass-associations <integer>
+    view: mpls
+    undo: no max-bypass-associations
+    params:
+      integer:
+        type: integer
+        range:
+          - 100
+          - 131072
+    default: max-bypass-associations 1000
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: max-bypass-associations
+      line: 5037
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.max-bypass-plr-associations
+    syntax: max-bypass-plr-associations <plr-value>
+    view: mpls
+    undo: no max-bypass-plr-associations
+    params:
+      plr-value:
+        type: integer
+        range:
+          - 1
+          - 16
+    default: max-bypass-plr-associations 16
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: max-bypass-plr-associations
+      line: 5083
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.max-sr-labels
+    syntax: max-sr-labels <label-stack-size> [ additional-frr-labels <labels> ]
+    view: mpls-lsp
+    undo: no max-sr-labels
+    params:
+      label-stack-size:
+        type: integer
+        range:
+          - 1
+          - 11
+      labels:
+        type: integer
+        range:
+          - 0
+          - 3
+    default: max-sr-labels 6 additional-frr-labels 1
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: max-sr-labels
+      line: 5175
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mbb-prefer-current-hops
+    syntax: mbb-prefer-current-hops
+    view: mpls
+    undo: no mbb-prefer-current-hops
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: mbb-prefer-current-hops
+      line: 5288
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.metric~4
+    syntax: metric <metric>
+    view: mpls-lsp
+    undo: no metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 0
+          - 16777215
+    default: no metric. The LSP operational metric defaults to the metric returned by MPLS.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: metric
+      line: 5413
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.metric-type
+    syntax: metric-type <metric-type>
+    view: mpls-lsp
+    undo: no metric-type
+    params:
+      metric-type:
+        type: word
+    default: metric-type igp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: metric-type
+      line: 5509
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mpls
+    syntax: mpls
+    view: router
+    enters_view: mpls
+    undo: no mpls
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: mpls
+      line: 5767
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mpls-tp
+    syntax: mpls-tp
+    view: mpls
+    enters_view: opaque
+    undo: no mpls-tp
+    default: no mpls-tp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: mpls-tp
+      line: 5801
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mpls-tp-mep
+    syntax: mpls-tp-mep
+    view: mpls-if
+    enters_view: opaque
+    undo: no mpls-tp-mep
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: mpls-tp-mep
+      line: 5837
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.override-tunnel-elc~2
+    syntax: override-tunnel-elc
+    view: mpls-lsp
+    undo: no override-tunnel-elc
+    default: no override-tunnel-elc
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: override-tunnel-elc
+      line: 6350
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.p2mp-id
+    syntax: p2mp-id <id>
+    view: mpls-lsp
+    params:
+      id:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: '0'
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: p2mp-id
+      line: 6393
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.p2mp-resignal-timer
+    syntax: p2mp-resignal-timer <minutes>
+    view: mpls
+    undo: no p2mp-resignal-timer
+    params:
+      minutes:
+        type: integer
+        range:
+          - 60
+          - 10080
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: p2mp-resignal-timer
+      line: 6437
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.p2mp-s2l-fast-retry
+    syntax: p2mp-s2-fast-retry <seconds>
+    view: mpls
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 10
+    default: no p2mp-s2l-fast-retry
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: p2mp-s2l-fast-retry
+      line: 6477
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.p2mp-ttl-propagate
+    syntax: p2mp-ttl-propagate
+    view: mpls
+    undo: no p2mp-ttl-propagate
+    default: p2mp-ttl-propagate
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: p2mp-ttl-propagate
+      line: 6591
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.p2p-active-path-fast-retry
+    syntax: p2p-active-path-fast-retry <seconds>
+    view: mpls
+    undo: no p2p-active-path-fast-retry
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 10
+    default: no p2p-active-path-fast-retry
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: p2p-active-path-fast-retry
+      line: 6629
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.path
+    syntax: path <path-name>
+    view: mpls
+    enters_view: mpls-path
+    undo: no path <path-name>
+    params:
+      path-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: path
+      line: 6738
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.path-computation-method
+    syntax: path-computation-method <path-computation-method>
+    view: mpls-lsp
+    undo: no path-computation-method
+    params:
+      path-computation-method:
+        type: word
+    default: no path-computation-method
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: path-computation-method
+      line: 6778
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.path-preference
+    syntax: path-preference <value>
+    view: mpls-lsp-secondary
+    undo: no path-preference
+    params:
+      value:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: path-preference 255
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: path-preference
+      line: 6883
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.path-profile
+    syntax: path-profile <profile-id> [ path-group <group-id> ]
+    view: mpls-lsp
+    undo: no path-profile <profile-id>
+    params:
+      profile-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      group-id:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: path-profile
+      line: 6925
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.pce-associations
+    syntax: pce-associations
+    view: mpls-lsp
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: pce-associations
+      line: 6973
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.pce-control
+    syntax: pce-control
+    view: mpls-lsp
+    undo: no pce-control
+    default: no pce-control
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: pce-control
+      line: 7006
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.pce-initiated-lsp
+    syntax: pce-initiated-lsp
+    view: mpls
+    enters_view: opaque
+    undo: no pce-initiated-lsp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: pce-initiated-lsp
+      line: 7049
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.pce-report.1
+    syntax: pce-report rsvp-te { enable | disable }
+    view: mpls
+    default: pce-report rsvp-te disable pce-report sr-te disable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: pce-report
+      line: 7081
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.pce-report.2
+    syntax: pce-report sr-te { enable | disable }
+    view: mpls
+    default: pce-report rsvp-te disable pce-report sr-te disable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: pce-report
+      line: 7081
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.pce-report
+    syntax: pce-report { enable | disable | inherit }
+    view: mpls-lsp
+    default: pce-report inherit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: pce-report
+      line: 7130
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.primary
+    syntax: primary <path-name>
+    view: mpls-lsp
+    enters_view: mpls-lsp-primary
+    undo: no primary
+    params:
+      path-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: primary
+      line: 7298
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.primary-p2mp-instance
+    syntax: primary-p2mp-instance <instance-name>
+    view: mpls-lsp
+    enters_view: opaque
+    undo: no primary-p2mp-instance <instance-name>
+    params:
+      instance-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: primary-p2mp-instance
+      line: 7370
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.priority@mpls-lsp-primary
+    syntax: priority <setup-priority> <hold-priority>
+    view: mpls-lsp-primary
+    undo: no priority
+    params: &id009
+      setup-priority:
+        type: integer
+        range:
+          - 0
+          - 7
+      hold-priority:
+        type: word
+    default: no priority
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: priority
+      line: 7408
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.priority@mpls-lsp-secondary
+    syntax: priority <setup-priority> <hold-priority>
+    view: mpls-lsp-secondary
+    undo: no priority
+    params: *id009
+    default: no priority
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: priority
+      line: 7408
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.propagate-admin-group
+    syntax: propagate-admin-group
+    view: mpls-lsp
+    undo: no propagate-admin-group
+    default: no propagate-admin-group
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: propagate-admin-group
+      line: 7546
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.protect-tp-path
+    syntax: protect-tp-path
+    view: mpls-lsp
+    enters_view: opaque
+    undo: no protect-tp-path
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: protect-tp-path
+      line: 7595
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.record@mpls-lsp-secondary
+    syntax: record
+    view: mpls-lsp-secondary
+    undo: no record
+    default: record
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: record
+      line: 7836
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.record@mpls-lsp-primary
+    syntax: record
+    view: mpls-lsp-primary
+    undo: no record
+    default: record
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: record
+      line: 7836
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.record-label@mpls-lsp-primary
+    syntax: record-label
+    view: mpls-lsp-primary
+    undo: no record-label
+    default: record-label
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: record-label
+      line: 7889
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.record-label@mpls-lsp-secondary
+    syntax: record-label
+    view: mpls-lsp-secondary
+    undo: no record-label
+    default: record-label
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: record-label
+      line: 7889
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.resignal-on-igp-event
+    syntax: resignal-on-igp-event
+    view: mpls
+    undo: no resignal-on-igp-event
+    default: no resignal-on-igp-event
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: resignal-on-igp-event
+      line: 8023
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.resignal-on-igp-overload
+    syntax: resignal-on-igp-overload
+    view: mpls
+    undo: no resignal-on-igp-overload
+    default: no resignal-on-overload
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: resignal-on-igp-overload
+      line: 8073
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.resignal-timer
+    syntax: resignal-timer <minutes>
+    view: mpls
+    undo: no resignal-timer
+    params:
+      minutes:
+        type: integer
+        range:
+          - 30
+          - 10080
+    default: no resignal-timer
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: resignal-timer
+      line: 8159
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.retry-limit
+    syntax: retry-limit <number>
+    view: mpls-lsp
+    undo: no retry-limit
+    params:
+      number:
+        type: integer
+        range:
+          - 0
+          - 10000
+    default: retry-limit 0 (no limit, retries forever)
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: retry-limit
+      line: 8249
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.retry-on-igp-overload
+    syntax: retry-on-igp-overload
+    view: mpls
+    undo: no retry-on-igp-overload
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: retry-on-igp-overload
+      line: 8302
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.retry-timer
+    syntax: retry-timer <seconds>
+    view: mpls-lsp
+    undo: no retry-timer
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 600
+    default: retry-timer 30
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: retry-timer
+      line: 8340
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.revert-timer
+    syntax: revert-timer <timer-value>
+    view: mpls-lsp
+    undo: no revert-timer
+    params:
+      timer-value:
+        type: integer
+        range:
+          - 1
+          - 4320
+    default: no revert-timer
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: revert-timer
+      line: 8499
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rsvp-resv-style
+    syntax: rsvp-resv-style [ se | ff ]
+    view: mpls-lsp
+    default: rsvp-resv-style se
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: rsvp-resv-style
+      line: 8659
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.secondary~2
+    syntax: secondary <path-name>
+    view: mpls-lsp
+    enters_view: mpls-lsp-secondary
+    undo: no secondary <path-name>
+    params:
+      path-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: secondary
+      line: 8831
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.secondary-fast-retry-timer
+    syntax: secondary-fast-retry-timer <seconds>
+    view: mpls
+    undo: no secondary-fast-retry-timer
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 10
+    default: no secondary-fast-retry-timer
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: secondary-fast-retry-timer
+      line: 8873
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shortcut-local-ttl-propagate
+    syntax: shortcut-local-ttl-propagate
+    view: mpls
+    undo: no shortcut-local-ttl-propagate
+    default: shortcut-local-ttl-propagate
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: shortcut-local-ttl-propagate
+      line: 8917
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shortcut-transit-ttl-propagate
+    syntax: shortcut-transit-ttl-propagate
+    view: mpls
+    undo: no shortcut-transit-ttl-propagate
+    default: shortcut-transit-ttl-propagate
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: shortcut-transit-ttl-propagate
+      line: 8960
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@mpls-if
+    syntax: shutdown
+    view: mpls-if
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: shutdown
+      line: 9494
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@mpls-lsp-secondary
+    syntax: shutdown
+    view: mpls-lsp-secondary
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: shutdown
+      line: 9494
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@mpls-lsp-primary
+    syntax: shutdown
+    view: mpls-lsp-primary
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: shutdown
+      line: 9494
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@mpls
+    syntax: shutdown
+    view: mpls
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: shutdown
+      line: 9494
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown~11
+    syntax: shutdown
+    view: mpls-lsp
+    undo: no shutdown
+    default: shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: shutdown
+      line: 9646
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown~12
+    syntax: shutdown
+    view: mpls-path
+    undo: no shutdown
+    default: shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: shutdown
+      line: 9691
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.soft-preemption
+    syntax: soft-preemption
+    view: mpls-lsp
+    undo: no soft-preemption
+    default: no soft-preemption
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: soft-preemption
+      line: 9865
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sr-te-resignal
+    syntax: sr-te-resignal
+    view: mpls
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: sr-te-resignal
+      line: 10162
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srlg
+    syntax: srlg
+    view: mpls-lsp-secondary
+    undo: no srlg
+    default: no srlg
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: srlg
+      line: 10190
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srlg-database
+    syntax: srlg-database
+    view: mpls
+    enters_view: opaque
+    undo: no srlg-database
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: srlg-database
+      line: 10258
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srlg-frr
+    syntax: srlg-frr [ strict ]
+    view: mpls
+    undo: no srlg-frr
+    default: no srlg-frr
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: srlg-frr
+      line: 10290
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srlg-group
+    syntax: srlg-group <group-name> [ <group-name> ] &<1-31>
+    view: mpls-if
+    undo: no srlg-group <group-name> [ <group-name> ] &<1-31>
+    params:
+      group-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: srlg-group
+      line: 10348
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.standby
+    syntax: standby
+    view: mpls-lsp-secondary
+    undo: no standby
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: standby
+      line: 10397
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.static-lsp
+    syntax: static-lsp <lsp-name>
+    view: mpls
+    enters_view: opaque
+    undo: no static-lsp <lsp-name>
+    params:
+      lsp-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: static-lsp
+      line: 10490
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.static-lsp-fast-retry
+    syntax: static-lsp-fast-retry <seconds>
+    view: mpls
+    undo: no static-lsp-fast-retry
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 30
+    default: no static-lsp-fast-retry
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: static-lsp-fast-retry
+      line: 10530
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.strict-ero-nhop-direct-resolution
+    syntax: strict-ero-nhop-direct-resolution
+    view: mpls
+    undo: no strict-ero-nhop-direct-resolution
+    default: no strict-ero-nhop-direct-resolution
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: strict-ero-nhop-direct-resolution
+      line: 10574
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.te-metric
+    syntax: te-metric <value>
+    view: mpls-if
+    undo: no te-metric
+    params:
+      value:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: no te-metric The value of the IGP metric is advertised in the TE metric sub-TLV by IS-IS and OSPF.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: te-metric
+      line: 10702
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.to~2
+    syntax: to { <ip-address> | node-id <node-id> }
+    view: mpls-lsp
+    params:
+      ip-address:
+        type: ipv4
+      node-id:
+        type: word
+    default: no default
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: to
+      line: 10839
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tunnel-table-pref
+    syntax: tunnel-table-pref
+    view: mpls
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: tunnel-table-pref
+      line: 11045
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.user-srlg-db
+    syntax: user-srlg-db [ enable | disable ]
+    view: mpls
+    default: user-srlg-db disable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: user-srlg-db
+      line: 11213
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.vprn-auto-bind
+    syntax: vprn-auto-bind [ include | exclude ]
+    view: mpls-lsp
+    default: vprn-auto-bind include
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: vprn-auto-bind
+      line: 11249
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.working-tp-path
+    syntax: working-tp-path
+    view: mpls-lsp
+    enters_view: opaque
+    undo: no working-tp-path
+    default: no working-tp-path
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: working-tp-path
+      line: 11412
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.auth-keychain~2
+    syntax: auth-keychain <name>
+    view: rsvp-if
+    params:
+      name:
+        type: word
+    default: no auth-keychain
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: auth-keychain
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-key~3
+    syntax: authentication-key { <authentication-key> | <hash-key> } [ hash | hash2 | custom ]
+    view: rsvp-if
+    undo: no authentication-key
+    params:
+      authentication-key:
+        type: word
+      hash-key:
+        type: word
+    default: no authentication-key - The authentication key value is the null string.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: authentication-key
+      line: 46
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.authentication-over-bypass
+    syntax: authentication-over-bypass [ enable | disable ]
+    view: rsvp
+    default: authentication-over-bypass disable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: authentication-over-bypass
+      line: 98
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bfd-enable~3
+    syntax: bfd-enable
+    view: rsvp-if
+    undo: no bfd-enable
+    default: no bfd-enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: bfd-enable
+      line: 143
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.class-type-bw
+    syntax: class-type-bw ct0 <%-link-bandwidth> ct1 <%-link-bandwidth> ct2 <%-link-bandwidth> ct3 <%-link-bandwidth> ct4 <%-link-bandwidth> ct5 <%-link-bandwidth> ct6 <%-link-bandwidth> ct7 <%-link-bandwidth>
+    view: rsvp-if
+    undo: no class-type-bw
+    params:
+      '%-link-bandwidth':
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: class-type-bw
+      line: 195
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dbw-accounting
+    syntax: dbw-accounting
+    view: rsvp
+    enters_view: opaque
+    undo: no dbw-accounting
+    default: no dbw-accounting
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: dbw-accounting
+      line: 250
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dbw-down-threshold
+    syntax: dbw-down-threshold <percent-change> [ bw <absolute-change> ]
+    view: rsvp-if
+    undo: no dbw-down-threshold
+    params:
+      percent-change:
+        type: integer
+        range:
+          - 0
+          - 100
+      absolute-change:
+        type: integer
+        range:
+          - 0
+          - 1000000
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: dbw-down-threshold
+      line: 286
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dbw-multiplier
+    syntax: dbw-multiplier <percent>
+    view: rsvp-if
+    undo: no dbw-multiplier
+    params:
+      percent:
+        type: integer
+        range:
+          - 0
+          - 1000
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: dbw-multiplier
+      line: 365
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dbw-up-threshold
+    syntax: dbw-up-threshold <percent-change> [ bw <absolute-change> ]
+    view: rsvp-if
+    undo: no dbw-up-threshold
+    params:
+      percent-change:
+        type: integer
+        range:
+          - 0
+          - 100
+      absolute-change:
+        type: integer
+        range:
+          - 0
+          - 1000000
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: dbw-up-threshold
+      line: 403
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.diffserv-te
+    syntax: diffserv-te [ mam | rdm ]
+    view: rsvp
+    enters_view: opaque
+    undo: no diffserv-te
+    default: no diffserv-te
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: diffserv-te
+      line: 444
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.entropy-label-capability
+    syntax: entropy-label-capability
+    view: rsvp
+    undo: no entropy-label-capability
+    default: no entropy-label-capability
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: entropy-label-capability
+      line: 586
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.gr-helper
+    syntax: gr-helper [ enable | disable ]
+    view: rsvp-if
+    default: disable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: gr-helper
+      line: 743
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.gr-helper-time
+    syntax: gr-helper-time max-recovery <recovery-interval> max-restart <restart-interval>
+    view: rsvp
+    undo: no gr-helper-time
+    params:
+      recovery-interval:
+        type: integer
+        range:
+          - 1
+          - 1800
+      restart-interval:
+        type: integer
+        range:
+          - 1
+          - 300
+    default: gr-helper-time max-recovery 300 max-restart 120
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: gr-helper-time
+      line: 787
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.graceful-shutdown@rsvp-if
+    syntax: graceful-shutdown
+    view: rsvp-if
+    undo: no graceful-shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: graceful-shutdown
+      line: 832
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.graceful-shutdown@rsvp
+    syntax: graceful-shutdown
+    view: rsvp
+    undo: no graceful-shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: graceful-shutdown
+      line: 832
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-interval~3
+    syntax: hello-interval <milli-seconds>
+    view: rsvp-if
+    undo: no hello-interval
+    params:
+      milli-seconds:
+        type: integer
+        range:
+          - 0
+          - 60000
+    default: hello-interval 3000
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: hello-interval
+      line: 889
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.implicit-null-label
+    syntax: implicit-null-label
+    view: rsvp
+    undo: no implicit-null-label
+    default: no implicit-null-label
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: implicit-null-label
+      line: 933
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.implicit-null-label~2
+    syntax: implicit-null-label [ enable | disable ]
+    view: rsvp-if
+    undo: no implicit-null-label
+    default: no implicit-null-label
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: implicit-null-label
+      line: 973
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interface~5
+    syntax: interface <ip-int-name>
+    view: rsvp
+    enters_view: rsvp-if
+    undo: no interface <ip-int-name>
+    params:
+      ip-int-name:
+        type: word
+    default: shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: interface
+      line: 1020
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.keep-multiplier
+    syntax: keep-multiplier <number>
+    view: rsvp
+    undo: no keep-multiplier <number>
+    params:
+      number:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: keep-multiplier 3
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: keep-multiplier
+      line: 1062
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.msg-pacing
+    syntax: msg-pacing
+    view: rsvp
+    enters_view: opaque
+    undo: no msg-pacing
+    default: no msg-pacing
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: msg-pacing
+      line: 1146
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.node-id-in-rro
+    syntax: node-id-in-rro [ include | exclude ]
+    view: rsvp
+    undo: no node-id-in-rro [ include | exclude ]
+    default: node-id-in-rro exclude
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: node-id-in-rro
+      line: 1180
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.p2mp-merge-point-abort-timer
+    syntax: p2mp-merge-point-abort-timer <seconds>
+    view: rsvp
+    undo: no p2mp-merge-point-abort-timer
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: no p2mp-merge-point-abort-timer
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: p2mp-merge-point-abort-timer
+      line: 1252
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.p2mp-s2l-fast-retry~2
+    syntax: p2mp-s2-fast-retry <seconds>
+    view: rsvp
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 10
+    default: no p2mp-s2l-fast-retry
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: p2mp-s2l-fast-retry
+      line: 1294
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.p2p-merge-point-abort-timer
+    syntax: p2p-merge-point-abort-timer <seconds>
+    view: rsvp
+    undo: no p2p-merge-point-abort-timer
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: no p2p-merge-point-abort-timer
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: p2p-merge-point-abort-timer
+      line: 1339
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.preemption-timer
+    syntax: preemption-timer <seconds>
+    view: rsvp
+    undo: no preemption-timer
+    params:
+      seconds:
+        type: integer
+        range:
+          - 0
+          - 1800
+    default: preemption-timer 300
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: preemption-timer
+      line: 1421
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rapid-retransmit-time
+    syntax: rapid-retransmit-time <hundred-milliseconds>
+    view: rsvp
+    undo: no rapid-retransmit-time
+    params:
+      hundred-milliseconds:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: rapid-retransmit-time 5
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: rapid-retransmit-time
+      line: 1467
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rapid-retry-limit
+    syntax: rapid-retry-limit <number>
+    view: rsvp
+    undo: no rapid-retry-limit
+    params:
+      number:
+        type: integer
+        range:
+          - 1
+          - 6
+    default: rapid-retry-limit 3
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: rapid-retry-limit
+      line: 1519
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.refresh-reduction
+    syntax: refresh-reduction
+    view: rsvp-if
+    enters_view: opaque
+    undo: no refresh-reduction
+    default: no refresh-reduction
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: refresh-reduction
+      line: 1561
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.refresh-reduction-over-bypass
+    syntax: refresh-reduction-over-bypass [ enable | disable ]
+    view: rsvp
+    default: refresh-reduction-over-bypass disable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: refresh-reduction-over-bypass
+      line: 1617
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.refresh-time
+    syntax: refresh-time <seconds>
+    view: rsvp
+    undo: no refresh-time
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: refresh-time 30
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: refresh-time
+      line: 1653
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rsvp
+    syntax: rsvp
+    view: router
+    enters_view: rsvp
+    undo: no rsvp
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: rsvp
+      line: 1733
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@rsvp-if
+    syntax: shutdown
+    view: rsvp-if
+    undo: no shutdown
+    default: shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: shutdown
+      line: 1847
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@rsvp
+    syntax: shutdown
+    view: rsvp
+    undo: no shutdown
+    default: shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: shutdown
+      line: 1847
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.subscription
+    syntax: subscription <percentage>
+    view: rsvp-if
+    undo: no subscription
+    params:
+      percentage:
+        type: integer
+        range:
+          - 0
+          - 1000
+    default: subscription 100
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: subscription
+      line: 1888
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.te-down-threshold@rsvp
+    syntax: te-down-threshold <threshold-level> [ <threshold-level> ] &<1-31>
+    view: rsvp
+    undo: no te-down-threshold
+    params: &id010
+      threshold-level:
+        type: integer
+        range:
+          - 0
+          - 100
+    default: no te-down-threshold (equals following values 100 99 98 97 96 95 90 85 80 75 60 45 30 15 0)
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: te-down-threshold
+      line: 2022
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.te-down-threshold@rsvp-if
+    syntax: te-down-threshold <threshold-level> [ <threshold-level> ] &<1-31>
+    view: rsvp-if
+    undo: no te-down-threshold
+    params: *id010
+    default: no te-down-threshold (equals following values 100 99 98 97 96 95 90 85 80 75 60 45 30 15 0)
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: te-down-threshold
+      line: 2022
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.te-threshold-update
+    syntax: te-threshold-update
+    view: rsvp
+    enters_view: opaque
+    undo: no te-threshold-update
+    default: no te-threshold-update
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: te-threshold-update
+      line: 2071
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.te-up-threshold@rsvp
+    syntax: te-up-threshold <threshold-level> [ <threshold-level> ] &<1-31>
+    view: rsvp
+    undo: no te-up-threshold
+    params: &id011
+      threshold-level:
+        type: integer
+        range:
+          - 0
+          - 100
+    default: no te-up-threshold (equals values of 0 15 30 45 60 75 80 85 90 95 96 97 98 99 100)
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: te-up-threshold
+      line: 2107
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.te-up-threshold@rsvp-if
+    syntax: te-up-threshold <threshold-level> [ <threshold-level> ] &<1-31>
+    view: rsvp-if
+    undo: no te-up-threshold
+    params: *id011
+    default: no te-up-threshold (equals values of 0 15 30 45 60 75 80 85 90 95 96 97 98 99 100)
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_rsvp.md
+      title: te-up-threshold
+      line: 2107
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.aggregate-prefix-match
+    syntax: aggregate-prefix-match
+    view: ldp
+    enters_view: opaque
+    undo: no aggregate-prefix-match
+    default: no aggregate-prefix-match
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: aggregate-prefix-match
+      line: 133
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.auto-rx
+    syntax: auto-rx
+    view: ldp-targeted
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: auto-rx
+      line: 269
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.auto-tx
+    syntax: auto-tx
+    view: ldp-targeted
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: auto-tx
+      line: 297
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bfd-enable~4
+    syntax: bfd-enable [ ipv4 ] [ ipv6 ]
+    view: ldp-if
+    undo: no bfd-enable
+    default: no bfd-enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: bfd-enable
+      line: 361
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bfd-enable~5
+    syntax: bfd-enable
+    view: ldp-targeted-peer
+    undo: no bfd-enable
+    default: no bfd-enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: bfd-enable
+      line: 407
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.class-forwarding~2
+    syntax: class-forwarding cbf-mode { lsr | ler | lsr-and-ler }
+    view: ldp
+    undo: no class-forwarding
+    default: no class-forwarding
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: class-forwarding
+      line: 492
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.consider-system-ip-in-gep
+    syntax: consider-system-ip-in-gep
+    view: ldp
+    undo: no consider-system-ip-in-gep
+    default: no consider-system-ip-in-gep
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: consider-system-ip-in-gep
+      line: 629
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.disable-targeted-session
+    syntax: disable-targeted-session
+    view: ldp-targeted
+    undo: no disable-targeted-session
+    default: no disable-targeted-session
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: disable-targeted-session
+      line: 673
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.egress-statistics~2
+    syntax: egress-statistics
+    view: ldp
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: egress-statistics
+      line: 761
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.entropy-label-capability~2
+    syntax: entropy-label-capability
+    view: ldp
+    undo: no entropy-label-capability
+    default: no entropy-label-capability
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: entropy-label-capability
+      line: 789
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.export~4
+    syntax: export <policy-name> [ <policy-name> ] &<1-4>
+    view: ldp
+    undo: no export
+    params:
+      policy-name:
+        type: word
+    default: no export — No export route policies specified.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: export
+      line: 866
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.export-prefixes
+    syntax: export-prefixes <policy-name> [ <policy-name> ] &<1-31>
+    view: ldp-targeted
+    undo: no export-prefixes
+    params:
+      policy-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: export-prefixes
+      line: 998
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.export-tunnel-table
+    syntax: export-tunnel-table <policy-name> [ <policy-name> ] &<1-31>
+    view: ldp
+    undo: no export-tunnel-table
+    params:
+      policy-name:
+        type: word
+    default: no export-tunnel-table
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: export-tunnel-table
+      line: 1040
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.fast-reroute~2
+    syntax: fast-reroute [ backup-sr-tunnel ]
+    view: ldp
+    undo: no fast-reroute
+    default: no fast-reroute
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: fast-reroute
+      line: 1166
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.fec-originate.1
+    syntax: fec-originate <ip-prefix/mask> [ advertised-label <in-label> ] [ swap-label <out-label> ] interface interface-name
+    view: ldp
+    undo: no fec-originate <ip-prefix/mask> interface interface-name
+    params:
+      ip-prefix/mask: &id012
+        type: prefix
+      in-label: &id013
+        type: integer
+        range:
+          - 32
+          - 1023
+      out-label: &id014
+        type: integer
+        range:
+          - 16
+          - 1048575
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: fec-originate
+      line: 1300
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.fec-originate.2
+    syntax: fec-originate <ip-prefix/mask> [ advertised-label <in-label> ] next-hop <ip-address> [ swap-label <out-label> ]
+    view: ldp
+    undo: no fec-originate <ip-prefix/mask> interface interface-name
+    params:
+      ip-prefix/mask: *id012
+      in-label: *id013
+      ip-address:
+        type: ipv4
+      out-label: *id014
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: fec-originate
+      line: 1300
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.fec-originate.3
+    syntax: fec-originate <ip-prefix/mask> [ advertised-label <in-label> ] next-hop <ip-address> [ swap-label <out-label> ] interface interface-name
+    view: ldp
+    undo: no fec-originate <ip-prefix/mask> interface interface-name
+    params:
+      ip-prefix/mask: *id012
+      in-label: *id013
+      ip-address:
+        type: ipv4
+      out-label: *id014
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: fec-originate
+      line: 1300
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.fec-originate.4
+    syntax: fec-originate <ip-prefix/mask> [ advertised-label <in-label> ] pop
+    view: ldp
+    undo: no fec-originate <ip-prefix/mask> interface interface-name
+    params:
+      ip-prefix/mask: *id012
+      in-label: *id013
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: fec-originate
+      line: 1300
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.fec-type-capability
+    syntax: fec-type-capability
+    view: ldp-if-ipv4
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: fec-type-capability
+      line: 1397
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.generate-basic-fec-only
+    syntax: generate-basic-fec-only
+    view: ldp
+    undo: no generate-basic-fec-only
+    default: no generate-basic-fec-only
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: generate-basic-fec-only
+      line: 1475
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.graceful-restart~3
+    syntax: graceful-restart
+    view: ldp
+    enters_view: opaque
+    undo: no graceful-restart
+    default: no graceful-restart (disabled) — Graceful-restart must be explicitly enabled.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: graceful-restart
+      line: 1513
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello@ldp-if-ipv4
+    syntax: hello <timeout> <factor>
+    view: ldp-if-ipv4
+    undo: no hello
+    params: &id015
+      timeout:
+        type: integer
+        range:
+          - 1
+          - 65535
+      factor:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: Hello Timeout Factors lists the default values. Table 1 . Hello Timeout Factors Context Timeout Factor config>router>ldp>if-params 15 3 config>router>ldp>targ-session 45 3 config>router>ldp>if-params>if Inherits values from interface-parameters context. config>router>ldp>targ-session>peer Inherits values from targeted-session context.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: hello
+      line: 1551
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello@ldp-targeted-peer
+    syntax: hello <timeout> <factor>
+    view: ldp-targeted-peer
+    undo: no hello
+    params: *id015
+    default: Hello Timeout Factors lists the default values. Table 1 . Hello Timeout Factors Context Timeout Factor config>router>ldp>if-params 15 3 config>router>ldp>targ-session 45 3 config>router>ldp>if-params>if Inherits values from interface-parameters context. config>router>ldp>targ-session>peer Inherits values from targeted-session context.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: hello
+      line: 1551
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.hello-reduction
+    syntax: hello-reduction { enable <factor> | disable }
+    view: ldp-targeted-peer
+    undo: no hello-reduction
+    params:
+      factor:
+        type: integer
+    default: no hello-reduction
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: hello-reduction
+      line: 1675
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.implicit-null-label~3
+    syntax: implicit-null-label
+    view: ldp
+    undo: no implicit-null-label
+    default: no implicit-null-label
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: implicit-null-label
+      line: 1744
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.import~4
+    syntax: import <policy-name> [ <policy-name> ] &<1-4>
+    view: ldp
+    undo: no import
+    params:
+      policy-name:
+        type: word
+    default: no import
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: import
+      line: 1780
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.import-mcast-policy
+    syntax: import-mcast-policy <policy-name> [ <policy-name> ] &<1-31>
+    view: ldp
+    undo: no import-mcast-policy
+    params:
+      policy-name:
+        type: word
+    default: no import-mcast-policy
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: import-mcast-policy
+      line: 1826
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.import-pmsi-routes
+    syntax: import-pmsi-routes
+    view: ldp
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: import-pmsi-routes
+      line: 1868
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.import-prefixes
+    syntax: import-prefixes <policy-name> [ <policy-name> ] &<1-31>
+    view: ldp-targeted
+    undo: no import-prefixes
+    params:
+      policy-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: import-prefixes
+      line: 1944
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.import-tunnel-table
+    syntax: import-tunnel-table <policy-name> [ <policy-name> ] &<1-31>
+    view: ldp
+    undo: no import-tunnel-table
+    params:
+      policy-name:
+        type: word
+    default: no import-tunnel-table
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: import-tunnel-table
+      line: 1986
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interface~6
+    syntax: interface <ip-int-name> [ dual-stack ]
+    view: ldp-if-params
+    enters_view: ldp-if
+    undo: no interface <ip-int-name> [ dual-stack ]
+    params:
+      ip-int-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: interface
+      line: 2030
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interface-parameters
+    syntax: interface-parameters
+    view: ldp
+    enters_view: ldp-if-params
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: interface-parameters
+      line: 2073
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv4
+    syntax: ipv4
+    view: ldp-if
+    enters_view: ldp-if-ipv4
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: ipv4
+      line: 2101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv4~2
+    syntax: ipv4
+    view: ldp-if-params
+    enters_view: opaque
+    undo: no ipv4
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: ipv4
+      line: 2129
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv4~3
+    syntax: ipv4
+    view: ldp-targeted
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: ipv4
+      line: 2159
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6~2
+    syntax: ipv6
+    view: ldp-if
+    enters_view: opaque
+    undo: no ipv6
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: ipv6
+      line: 2220
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6~3
+    syntax: ipv6
+    view: ldp-if-params
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: ipv6
+      line: 2252
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ipv6~4
+    syntax: ipv6
+    view: ldp-targeted
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: ipv6
+      line: 2282
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.keepalive@ldp-if-ipv4
+    syntax: keepalive <timeout> <factor>
+    view: ldp-if-ipv4
+    undo: no keepalive
+    params: &id016
+      timeout:
+        type: integer
+        range:
+          - 1
+          - 65535
+      factor:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: Timeout Factor Defaults lists the default values. Table 2 . Timeout Factor Defaults Context Timeout Factor config>router>ldp>if-params 30 3 config>router>ldp>targ-session 40 4 config>router>ldp>if-params>if Inherits values from interface-parameters context. config>router>ldp>targ-session>peer Inherits values from targeted-session context.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: keepalive
+      line: 2312
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.keepalive@ldp-targeted-peer
+    syntax: keepalive <timeout> <factor>
+    view: ldp-targeted-peer
+    undo: no keepalive
+    params: *id016
+    default: Timeout Factor Defaults lists the default values. Table 2 . Timeout Factor Defaults Context Timeout Factor config>router>ldp>if-params 30 3 config>router>ldp>targ-session 40 4 config>router>ldp>if-params>if Inherits values from interface-parameters context. config>router>ldp>targ-session>peer Inherits values from targeted-session context.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: keepalive
+      line: 2312
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.label-withdrawal-delay
+    syntax: label-withdrawal-delay <seconds>
+    view: ldp
+    undo: no label-withdrawal-delay
+    params:
+      seconds:
+        type: integer
+        range:
+          - 3
+          - 120
+    default: no label-withdrawal-delay
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: label-withdrawal-delay
+      line: 2436
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ldp
+    syntax: ldp
+    view: router
+    enters_view: ldp
+    undo: no ldp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: ldp
+      line: 2480
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.legacy-ipv4-lsr-interop
+    syntax: legacy-ipv4-lsr-interop
+    view: ldp
+    undo: no legacy-ipv4-lsr-interop
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: legacy-ipv4-lsr-interop
+      line: 2514
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.load-balancing-weight~5
+    syntax: load-balancing-weight <weight>
+    view: ldp-if
+    undo: no load-balancing-weight
+    params:
+      weight:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: load-balancing-weight
+      line: 2548
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.local-lsr-id.1
+    syntax: local-lsr-id { system | interface } [ 32bit-format ]
+    view: ldp-if-ipv4
+    undo: no local-lsr-id
+    default: no local-lsr-id
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: local-lsr-id
+      line: 2590
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.local-lsr-id.2
+    syntax: local-lsr-id <interface-name> [ 32bit-format ]
+    view: ldp-if-ipv4
+    undo: no local-lsr-id
+    params:
+      interface-name:
+        type: word
+    default: no local-lsr-id
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: local-lsr-id
+      line: 2590
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.local-lsr-id
+    syntax: local-lsr-id <interface-name> [ 32bit-format ]
+    view: ldp-targeted-peer
+    undo: no local-lsr-id
+    params:
+      interface-name:
+        type: word
+    default: no local-lsr-id
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: local-lsr-id
+      line: 2662
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-bfd
+    syntax: lsp-bfd <prefix-list-name>
+    view: ldp
+    enters_view: opaque
+    undo: no lsp-bfd <prefix-list-name>
+    params:
+      prefix-list-name:
+        type: word
+    default: no lsp-bfd
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: lsp-bfd
+      line: 2790
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.max-ecmp-routes
+    syntax: max-ecmp-routes <max-routes>
+    view: ldp
+    undo: no max-ecmp-routes
+    params:
+      max-routes:
+        type: integer
+        range:
+          - 1
+          - 64
+    default: max-ecmp-routes 32
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: max-ecmp-routes
+      line: 2882
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mcast-tunneling
+    syntax: mcast-tunneling
+    view: ldp-targeted-peer
+    enters_view: opaque
+    undo: no mcast-tunneling
+    default: no mcast-tunneling
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: mcast-tunneling
+      line: 2970
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mcast-upstream-asbr-frr
+    syntax: mcast-upstream-asbr-frr
+    view: ldp
+    undo: no mcast-upstream-asbr-frr
+    default: no mcast-upstream-asbr-frr
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: mcast-upstream-asbr-frr
+      line: 3013
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mcast-upstream-frr
+    syntax: mcast-upstream-frr
+    view: ldp
+    undo: no mcast-upstream-frr
+    default: no mcast-upstream-frr
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: mcast-upstream-frr
+      line: 3055
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mp-mbb-time
+    syntax: mp-mbb-time <interval>
+    view: ldp
+    undo: no mp-mbb-time
+    params:
+      interval:
+        type: integer
+        range:
+          - 0
+          - 10
+    default: no mp-mbb-time (which equals a value of 3 seconds)
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: mp-mbb-time
+      line: 3093
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.peer~2
+    syntax: peer <ip-address>
+    view: ldp-targeted
+    enters_view: ldp-targeted-peer
+    undo: no peer <ip-address>
+    params:
+      ip-address:
+        type: ipv4
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: peer
+      line: 3497
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.peer-template
+    syntax: peer-template <template-name>
+    view: ldp-targeted
+    enters_view: opaque
+    undo: no peer-template <template-name>
+    params:
+      template-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: peer-template
+      line: 3535
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.peer-template-map
+    syntax: peer-template-map <template-name> policy <peer-prefix-policy1> [ <peer-prefix-policy2..up> <to> <5> ]
+    view: ldp-targeted
+    undo: no peer-template-map peer-template <template-name>
+    params:
+      template-name:
+        type: word
+      peer-prefix-policy1:
+        type: word
+      peer-prefix-policy2..up:
+        type: word
+      to:
+        type: word
+      '5':
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: peer-template-map
+      line: 3573
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefer-mcast-tunnel-in-tunnel
+    syntax: prefer-mcast-tunnel-in-tunnel
+    view: ldp
+    undo: no prefer-mcast-tunnel-in-tunnel
+    default: no prefer-mcast-tunnel-in-tunnel
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: prefer-mcast-tunnel-in-tunnel
+      line: 3683
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefer-protocol-stitching
+    syntax: prefer-protocol-stitching
+    view: ldp
+    undo: no prefer-protocol-stitching
+    default: no prefer-protocol-stitching
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: prefer-protocol-stitching
+      line: 3721
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefer-tunnel-in-tunnel
+    syntax: prefer-tunnel-in-tunnel
+    view: ldp
+    undo: no prefer-tunnel-in-tunnel
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: prefer-tunnel-in-tunnel
+      line: 3757
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.resolve-root-using
+    syntax: resolve-root-using { ucast-rtm | mcast-rtm }
+    view: ldp
+    default: resolve-root-using ucast-rtm
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: resolve-root-using
+      line: 3953
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.resolve-v6-prefix-over-shortcut
+    syntax: resolve-v6-prefix-over-shortcut
+    view: ldp-targeted
+    undo: no resolve-v6-prefix-over-shortcut
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: resolve-v6-prefix-over-shortcut
+      line: 3993
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.session-parameters
+    syntax: session-parameters
+    view: ldp
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: session-parameters
+      line: 4025
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shortcut-local-ttl-propagate~2
+    syntax: shortcut-local-ttl-propagate
+    view: ldp
+    undo: no shortcut-local-ttl-propagate
+    default: shortcut-local-ttl-propagate
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: shortcut-local-ttl-propagate
+      line: 4053
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shortcut-transit-ttl-propagate~2
+    syntax: shortcut-transit-ttl-propagate
+    view: ldp
+    undo: no shortcut-transit-ttl-propagate
+    default: shortcut-transit-ttl-propagate
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: shortcut-transit-ttl-propagate
+      line: 4096
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@ldp-if
+    syntax: shutdown
+    view: ldp-if
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: shutdown
+      line: 4137
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@ldp-if-ipv4
+    syntax: shutdown
+    view: ldp-if-ipv4
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: shutdown
+      line: 4137
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@ldp-targeted-peer
+    syntax: shutdown
+    view: ldp-targeted-peer
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: shutdown
+      line: 4137
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown@ldp
+    syntax: shutdown
+    view: ldp
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: shutdown
+      line: 4137
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.targeted-session
+    syntax: targeted-session
+    view: ldp
+    enters_view: ldp-targeted
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: targeted-session
+      line: 4299
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tcp-session-parameters
+    syntax: tcp-session-parameters
+    view: ldp
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: tcp-session-parameters
+      line: 4329
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.transport-address
+    syntax: transport-address { interface | system }
+    view: ldp-if-ipv4
+    undo: no transport-address
+    default: system
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: transport-address
+      line: 4357
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tunnel-down-damp-time
+    syntax: tunnel-down-damp-time <seconds>
+    view: ldp
+    undo: no tunnel-down-damp-time
+    params:
+      seconds:
+        type: word
+    default: no tunnel-down-damp-time (which equals a value of 3 seconds)
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: tunnel-down-damp-time
+      line: 4467
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tunnel-table-pref~2
+    syntax: tunnel-table-pref <preference>
+    view: ldp
+    undo: no tunnel-table-pref
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: tunnel-table-pref 9
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: tunnel-table-pref
+      line: 4517
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tunneling
+    syntax: tunneling
+    view: ldp-targeted-peer
+    enters_view: opaque
+    undo: no tunneling
+    default: no tunneling
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: tunneling
+      line: 4565
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.weighted-ecmp
+    syntax: weighted-ecmp
+    view: ldp
+    undo: no weighted-ecmp
+    default: no weighted-ecmp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ldp.md
+      title: weighted-ecmp
+      line: 4647
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.lsp-template.8
+    syntax: lsp-template <template-name> pce-init-p2p-srte template-id { default | <template-id> }
+    view: mpls
+    enters_view: opaque
+    params:
+      template-name:
+        type: word
+      template-id:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls.md
+      title: lsp-template
+      line: 4829
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.cspf@mpls-lsp
+    syntax: cspf [ use-te-metric ]
+    view: mpls-lsp
+    undo: no cspf
+    default: no cspf
+    source:
+      patched: 命令参考 25.10 没有收录 configure router mpls lsp 下的 cspf（MPLS Guide 的 LSP 配置举例有 cspf；写法 cspf [ use-te-metric ]）
+      added_by_patch: true
+    status: draft

@@ -1,0 +1,611 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: sr
+cards:
+  - id: nokia-sros-classic.bgp-labels-hold-timer
+    syntax: bgp-labels-hold-timer <seconds>
+    view: mpls-labels
+    undo: no bgp-labels-hold-timer
+    params:
+      seconds:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: bgp-labels-hold-timer 0
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls-labels.md
+      title: bgp-labels-hold-timer
+      line: 6
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mpls-labels
+    syntax: mpls-labels
+    view: router
+    enters_view: mpls-labels
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls-labels.md
+      title: mpls-labels
+      line: 56
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.reserved-label-block
+    syntax: reserved-label-block <name>
+    view: mpls-labels
+    enters_view: opaque
+    undo: no reserved-label-block <name>
+    params:
+      name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls-labels.md
+      title: reserved-label-block
+      line: 84
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sr-labels
+    syntax: sr-labels start <start-value> end <end-value>
+    view: mpls-labels
+    undo: no sr-labels
+    params:
+      start-value:
+        type: integer
+        range:
+          - 18432
+          - 524287
+      end-value:
+        type: integer
+        range:
+          - 18432
+          - 524287
+    default: no sr-labels
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls-labels.md
+      title: sr-labels
+      line: 122
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.static-label-range
+    syntax: static-label-range <static-range>
+    view: mpls-labels
+    undo: no static-label-range
+    params:
+      static-range:
+        type: integer
+        range:
+          - 0
+          - 262112
+    default: static-label-range 18400
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_mpls-labels.md
+      title: static-label-range
+      line: 206
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.adj-sid-hold
+    syntax: adj-sid-hold <seconds>
+    view: ospf-sr
+    undo: no adj-sid-hold
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 1800
+    default: adj-sid-hold 15
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: adj-sid-hold
+      line: 94
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.adjacency-set~3
+    syntax: adjacency-set <id>
+    view: ospf-sr
+    enters_view: opaque
+    undo: no adjacency-set <id>
+    params:
+      id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: adjacency-set
+      line: 151
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.adjacency-sid~2
+    syntax: adjacency-sid
+    view: ospf-sr
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: adjacency-sid
+      line: 269
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.backup-node-sid.1
+    syntax: backup-node-sid <ip-prefix/prefix-length> index <index>
+    view: ospf-sr
+    undo: no backup-node-sid
+    params:
+      ip-prefix/prefix-length: &id001
+        type: prefix
+      index:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    default: no backup-node-sid
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: backup-node-sid
+      line: 1054
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.backup-node-sid.2
+    syntax: backup-node-sid <ip-prefix/prefix-length> label <label>
+    view: ospf-sr
+    undo: no backup-node-sid
+    params:
+      ip-prefix/prefix-length: *id001
+      label:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    default: no backup-node-sid
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: backup-node-sid
+      line: 1054
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.class-forwarding~3
+    syntax: class-forwarding
+    view: ospf-sr
+    undo: no class-forwarding
+    default: no class-forwarding
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: class-forwarding
+      line: 1228
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.egress-statistics~3
+    syntax: egress-statistics
+    view: ospf-sr
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: egress-statistics
+      line: 1600
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.entropy-label~5
+    syntax: entropy-label { force-disable | enable }
+    view: ospf-sr
+    undo: no entropy-label
+    default: entropy-label enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: entropy-label
+      line: 1659
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.export-tunnel-table~2
+    syntax: export-tunnel-table ldp
+    view: ospf-sr
+    undo: no export-tunnel-table ldp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: export-tunnel-table
+      line: 1868
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ingress-statistics~3
+    syntax: ingress-statistics
+    view: ospf-sr
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: ingress-statistics
+      line: 2485
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mapping-server
+    syntax: mapping-server
+    view: ospf-sr
+    enters_view: opaque
+    undo: no mapping-server
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: mapping-server
+      line: 3154
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.maximum-sid-depth
+    syntax: maximum-sid-depth
+    view: ospf-sr
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: maximum-sid-depth
+      line: 3188
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.micro-loop-avoidance
+    syntax: micro-loop-avoidance [ fib-delay <fib-delay> ]
+    view: ospf-sr
+    undo: no micro-loop-avoidance
+    params:
+      fib-delay:
+        type: integer
+        range:
+          - 1
+          - 300
+    default: no micro-loop-avoidance
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: micro-loop-avoidance
+      line: 3355
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-sid-range.1
+    syntax: prefix-sid-range global
+    view: ospf-sr
+    undo: no prefix-sid-range
+    default: no prefix-sid-range
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: prefix-sid-range
+      line: 4725
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-sid-range.2
+    syntax: prefix-sid-range start-label <label-value> max-index <index-value>
+    view: ospf-sr
+    undo: no prefix-sid-range
+    params:
+      label-value:
+        type: integer
+        range:
+          - 0
+          - 524287
+      index-value:
+        type: integer
+        range:
+          - 1
+          - 524287
+    default: no prefix-sid-range
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: prefix-sid-range
+      line: 4725
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown~13
+    syntax: shutdown
+    view: ospf-sr
+    undo: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: shutdown
+      line: 5454
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srlb
+    syntax: srlb <reserved-label-block-name>
+    view: ospf-sr
+    undo: no srlb
+    params:
+      reserved-label-block-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: srlb
+      line: 5776
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tunnel-mtu
+    syntax: tunnel-mtu <bytes>
+    view: ospf-sr
+    undo: no tunnel-mtu
+    params:
+      bytes:
+        type: integer
+        range:
+          - 512
+          - 9786
+    default: no tunnel-mtu
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: tunnel-mtu
+      line: 6179
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tunnel-table-pref~3
+    syntax: tunnel-table-pref <preference>
+    view: ospf-sr
+    undo: no tunnel-table-pref
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: tunnel-table-pref 10
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_ospf.md
+      title: tunnel-table-pref
+      line: 6305
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.adj-sid-hold~2
+    syntax: adj-sid-hold <seconds>
+    view: isis-sr
+    undo: no adj-sid-hold
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 1800
+    default: adj-sid-hold 15
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: adj-sid-hold
+      line: 94
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.adjacency-set~4
+    syntax: adjacency-set <id>
+    view: isis-sr
+    enters_view: opaque
+    undo: no adjacency-set <id>
+    params:
+      id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: adjacency-set
+      line: 210
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.adjacency-sid~3
+    syntax: adjacency-sid
+    view: isis-sr
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: adjacency-sid
+      line: 288
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.class-forwarding~4
+    syntax: class-forwarding
+    view: isis-sr
+    undo: no class-forwarding
+    default: no class-forwarding
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: class-forwarding
+      line: 1163
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.egress-statistics~4
+    syntax: egress-statistics
+    view: isis-sr
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: egress-statistics
+      line: 1812
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.entropy-label~6
+    syntax: entropy-label { force-disable | enable }
+    view: isis-sr
+    undo: no entropy-label
+    default: entropy-label enable
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: entropy-label
+      line: 1871
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.export-tunnel-table~3
+    syntax: export-tunnel-table ldp
+    view: isis-sr
+    undo: no export-tunnel-table
+    default: no export-tunnel-table
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: export-tunnel-table
+      line: 2028
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ingress-statistics~4
+    syntax: ingress-statistics
+    view: isis-sr
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: ingress-statistics
+      line: 2995
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mapping-server~2
+    syntax: mapping-server
+    view: isis-sr
+    enters_view: opaque
+    undo: no mapping-server
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: mapping-server
+      line: 5053
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.maximum-sid-depth~2
+    syntax: maximum-sid-depth
+    view: isis-sr
+    enters_view: opaque
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: maximum-sid-depth
+      line: 5129
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.micro-loop-avoidance~2
+    syntax: micro-loop-avoidance [ fib-delay <fib-delay> ]
+    view: isis-sr
+    undo: no micro-loop-avoidance
+    params:
+      fib-delay:
+        type: integer
+        range:
+          - 1
+          - 300
+    default: no micro-loop-avoidance
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: micro-loop-avoidance
+      line: 5333
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.multi-topology~2
+    syntax: multi-topology mt2
+    view: isis-sr
+    undo: no multi-topology
+    default: no multi-topology
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: multi-topology
+      line: 5646
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.prefix-sid-range
+    syntax: prefix-sid-range { global | start-label <label-value> max-index <index-value> }
+    view: isis-sr
+    undo: no prefix-sid-range
+    params:
+      label-value:
+        type: integer
+        range:
+          - 0
+          - 524287
+      index-value:
+        type: integer
+        range:
+          - 1
+          - 524287
+    default: no prefix-sid-range
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: prefix-sid-range
+      line: 6775
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shutdown~14
+    syntax: shutdown
+    view: isis-sr
+    undo: no shutdown
+    default: shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: shutdown
+      line: 7511
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.srlb~2
+    syntax: srlb <reserved-label-block-name>
+    view: isis-sr
+    undo: no srlb
+    params:
+      reserved-label-block-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: srlb
+      line: 7863
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tunnel-mtu~2
+    syntax: tunnel-mtu <bytes>
+    view: isis-sr
+    undo: no tunnel-mtu
+    params:
+      bytes:
+        type: integer
+        range:
+          - 512
+          - 9786
+    default: no tunnel-mtu
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: tunnel-mtu
+      line: 8371
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tunnel-table-pref~4
+    syntax: tunnel-table-pref <preference>
+    view: isis-sr
+    undo: no tunnel-table-pref
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: tunnel-table-pref 11
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_isis.md
+      title: tunnel-table-pref
+      line: 8495
+      version: 25.10.R1
+    status: draft

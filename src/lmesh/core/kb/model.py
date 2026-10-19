@@ -139,6 +139,13 @@ class Family:
     negative: str = "undo"  # 取消命令的前缀：华为 undo，Cisco no
     views: dict[str, View] = field(default_factory=dict)
     root_view: str = "system"
+    # 分块方式：indent（缺省，华为 / Cisco：层级只看缩进差）；exit（Nokia Classic：缩进按 indent 个空格折算层级，
+    # 每个块由与开头同列的 exit 关闭，原文块同样；没有进入视图的命令下面若有更深的子行，子行按原文保留）
+    block: str = "indent"
+    comment: list[str] = field(default_factory=list)  # 注释前缀（Nokia 的 #）：不改变视图栈
+    layout: list[str] = field(default_factory=list)  # 版式行正则（Nokia 的 echo "…"）：按注释处理，不改变视图栈
+    begin: list[str] = field(default_factory=list)  # 结构行（Nokia 的 configure）：进入根视图，清空视图栈
+    quotes: bool = False  # 分词识别引号字符串（名称可含空格）；参数取值去掉引号，渲染时按原文写回
 
 
 @dataclass

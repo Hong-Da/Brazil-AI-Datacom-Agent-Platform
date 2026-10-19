@@ -1,0 +1,80 @@
+# 删除设备与配置版本 lmesh device delete / delete-version 的 CLI 用例（REQ-038，加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-fullkb-history：设备 ATN-CHANGE-01（编号 1）有两个配置版本（版本 1 导入两次）；
+# configured-fullkb-checkproj：另有配置检查项目 1“割接前检查”以它为基线（跟随最新版本），两份脚本。
+# 子进程的标准输入不是终端，不加 --yes 也不提示确认。
+
+[[case]]
+id = "device-delete"
+title = { zh-CN = "删除设备（连带配置版本、导入记录等）", en = "Delete a device (with its versions, import records…)", pt-BR = "Excluir um dispositivo (com versões, registros de importação…)" }
+args = ["--output", "json", "device", "delete", "ATN-CHANGE-01", "--yes"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_json = { "ok" = true, "data.deleted" = true, "data.device.name" = "ATN-CHANGE-01", "data.counts.versions" = 2, "data.counts.imports" = 3, "data.counts.check_ignores" = 0, "data.baseline_cleared" = [] }
+in_docs = true
+
+[[case]]
+id = "device-delete-text"
+title = { zh-CN = "删除设备的文字输出（按编号）", en = "Delete a device by id (text output)", pt-BR = "Excluir dispositivo pelo número (saída de texto)" }
+args = ["device", "delete", "1", "--yes"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_stdout = ["已删除设备 ATN-CHANGE-01", "配置版本 2 个", "导入记录 3 条"]
+
+[[case]]
+id = "device-delete-baseline"
+title = { zh-CN = "设备是配置检查项目的基线：拒绝并列出项目与脚本，退出码 1", en = "Device is a check project baseline: refused with projects and scripts listed, exit 1", pt-BR = "Dispositivo é base de projeto: recusado com projetos e scripts, saída 1" }
+args = ["--output", "json", "device", "delete", "ATN-CHANGE-01", "--yes"]
+setup = "configured-fullkb-checkproj"
+expect_exit = 1
+expect_stderr = ["--force", "割接前检查", "绑定 VPN"]
+expect_json = { "ok" = false, "error.code" = 1, "error.data.blocked" = true, "error.data.baseline.scripts" = 2, "error.data.baseline.projects.0.name" = "割接前检查" }
+
+[[case]]
+id = "device-delete-force"
+title = { zh-CN = "--force：删除并清空检查项目的基线", en = "--force: delete and clear the check project baseline", pt-BR = "--force: excluir e limpar a base do projeto" }
+args = ["--output", "json", "device", "delete", "ATN-CHANGE-01", "--force", "--yes"]
+setup = "configured-fullkb-checkproj"
+expect_exit = 0
+expect_json = { "ok" = true, "data.deleted" = true, "data.baseline_cleared.0.id" = 1, "data.baseline_cleared.0.scripts.1.name" = "完整配置" }
+in_docs = true
+
+[[case]]
+id = "device-delete-not-found"
+title = { zh-CN = "设备不存在：退出码 4", en = "Device not found: exit 4", pt-BR = "Dispositivo não encontrado: saída 4" }
+args = ["device", "delete", "NO-SUCH-DEVICE", "--yes"]
+setup = "configured-fullkb-history"
+expect_exit = 4
+expect_stderr = ["NO-SUCH-DEVICE"]
+
+[[case]]
+id = "device-delete-version"
+title = { zh-CN = "删除最新版本（序号 2）：最新版本回到上一个", en = "Delete the latest version (#2): latest goes back to the previous one", pt-BR = "Excluir a versão mais recente (nº 2): a anterior passa a ser a mais recente" }
+args = ["--output", "json", "device", "delete-version", "ATN-CHANGE-01", "2", "--yes"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_json = { "ok" = true, "data.version.id" = 2, "data.version.seq" = 2, "data.version.latest" = true, "data.latest_version_id" = 1, "data.versions_left" = 1, "data.counts.imports" = 1 }
+in_docs = true
+
+[[case]]
+id = "device-delete-version-by-id"
+title = { zh-CN = "按版本编号删除较早的版本：下一个版本的变化计数重算", en = "Delete an older version by id: the next version's change counts are recomputed", pt-BR = "Excluir versão antiga pelo número: contagens da próxima versão recalculadas" }
+args = ["device", "delete-version", "ATN-CHANGE-01", "v1", "--yes"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_stdout = ["已删除设备 ATN-CHANGE-01 的配置版本 1（第 1 个）", "剩余 1 个版本，最新版本是 2"]
+
+[[case]]
+id = "device-delete-version-follow"
+title = { zh-CN = "删除最新版本时提示跟随最新版本的检查项目基线变化", en = "Deleting the latest version reports check projects that follow the latest", pt-BR = "Excluir a versão mais recente informa projetos que seguem a mais recente" }
+args = ["--lang", "en", "device", "delete-version", "ATN-CHANGE-01", "latest", "--yes"]
+setup = "configured-fullkb-checkproj"
+expect_exit = 0
+expect_stdout = ["Deleted config version 2 (#2)", "now use version 1", "割接前检查"]
+
+[[case]]
+id = "device-delete-version-not-found"
+title = { zh-CN = "版本不存在：退出码 4", en = "Version not found: exit 4", pt-BR = "Versão não encontrada: saída 4" }
+args = ["device", "delete-version", "ATN-CHANGE-01", "v99", "--yes"]
+setup = "configured-fullkb-history"
+expect_exit = 4
+expect_stderr = ["99"]

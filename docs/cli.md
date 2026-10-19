@@ -121,6 +121,8 @@
 | `lmesh history object <设备> <对象规范编号> [--rebuild]` | 一个对象在每个快照中的取值与变化 |
 | `lmesh history tag <设备> <快照> <标签>` / `--remove` | 给快照贴标签（永久保留）或去掉标签 |
 | `lmesh history restore <设备> --to <快照> [--from 快照] [-o 脚本] [--rollback 文件] [--plain] [--report 文件]` | 回到某个快照：当前（默认最新）→ 目标快照的增量变更脚本，附回滚脚本与模拟验证（复用 `lmesh change`） |
+| `lmesh device delete <设备> [--force] [--yes]` | 删除设备（REQ-038，设备写名称或编号）：连带删除全部配置版本（含快照）、图的节点与边、未识别行、导入记录、检查忽略项；在终端里先提示确认（列出将删除的版本、导入记录、忽略项个数），`--yes` 跳过（标准输入不是终端时不提示）；设备是配置检查项目的基线时拒绝并列出项目与脚本（退出码 1，`--output json` 的 `error.data` 为删除预览），`--force` 时删除并清空这些项目的基线（脚本与修订保留，结果中 `baseline_cleared`）；设备不存在退出码 4；删除记入日志（操作者、设备、版本个数），不记录配置内容 |
+| `lmesh device delete-version <设备> <版本> [--force] [--yes]` | 删除设备的一个配置版本（版本写法同 `lmesh history`：数字是序号，`v<编号>` 是配置版本编号，另有 `latest`、`prev`、`tag:<标签>`）：连带删除该版本的快照、图、未识别行、导入记录；最后一个版本不能单独删除（退出码 1，请删除设备）；删除最新版本后上一个版本成为最新，跟随最新版本的检查项目随之改用它（`baseline_moved`）；删除较早的版本后，下一个版本相对上一快照的变化计数重算（`recomputed`）；版本被检查项目固定为基线时拒绝（退出码 1），`--force` 时这些项目改为跟随最新版本（`baseline_cleared`）；版本不存在退出码 4 |
 | `lmesh export presets [--style huawei\|cisco]` | 审计表格的预置模板（`knowledge/export/tables.yaml`）：IP 地址表、VLAN / 桥域表、BGP 邻居表、接口描述表、VPN 实例表、静态路由表 |
 | `lmesh export table [文件\|目录\|设备名…] [--all] --preset P \| --object O [--fields 路径,…] [--where 筛选,…] [--filter '字段 运算符 取值']… [--no-defaults] [--canonical-names] [--format csv\|xlsx\|json] [--sheets per-device\|single] [--table-lang zh-CN\|en\|pt-BR] [--style] [-o 文件]` | 导出审计表格：每行一个对象、每格可追溯到图节点与配置行；CSV 为 UTF-8 带 BOM，另有“来源”列标出来自默认值的格子；XLSX 有“说明”工作表，默认值格子加批注；表头三语；敏感字段只写“已配置 / 未配置” |
 | `lmesh feature [关键词] [--profile P]… [--family F] [--domain D] [--state supported\|unsupported\|unfilled] [--include-same] [--detail 节点]` | 特性能力查询（由知识库计算）：各 Profile 是否支持、默认值（↑ 表示继承）、命令写法、命令卡、来源；不带关键词浏览全部时各 Profile 完全相同的只计数 |
@@ -850,6 +852,57 @@ lmesh compare NO-SUCH-DEVICE tests/inputs/compare/cs-pe.cfg
 退出码：`4`
 
 错误提示（stderr）包含：`NO-SUCH-DEVICE`
+
+### 删除设备（连带配置版本、导入记录等）
+
+```bash
+lmesh --output json device delete ATN-CHANGE-01 --yes
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.deleted` = `true`
+- `data.device.name` = `"ATN-CHANGE-01"`
+- `data.counts.versions` = `2`
+- `data.counts.imports` = `3`
+- `data.counts.check_ignores` = `0`
+- `data.baseline_cleared` = `[]`
+
+### --force：删除并清空检查项目的基线
+
+```bash
+lmesh --output json device delete ATN-CHANGE-01 --force --yes
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.deleted` = `true`
+- `data.baseline_cleared.0.id` = `1`
+- `data.baseline_cleared.0.scripts.1.name` = `"完整配置"`
+
+### 删除最新版本（序号 2）：最新版本回到上一个
+
+```bash
+lmesh --output json device delete-version ATN-CHANGE-01 2 --yes
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.version.id` = `2`
+- `data.version.seq` = `2`
+- `data.version.latest` = `true`
+- `data.latest_version_id` = `1`
+- `data.versions_left` = `1`
+- `data.counts.imports` = `1`
 
 ### 列出预置模板
 

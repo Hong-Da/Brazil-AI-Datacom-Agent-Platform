@@ -60,7 +60,7 @@
 | REQ-035 | 用户工作空间与项目：每个账号有独立的工作空间，可创建项目，每个项目有自己的设备与脚本；公共设备库；项目成员；个人 API 令牌 | 用户 2026-10-19 | M6（0.6.0） | 数据库（工作空间、项目、成员、公共设备库）、所有设备相关接口按项目隔离、项目切换器 | 待开发 | 设计见“用户工作空间与项目（REQ-035）”一节，经用户确认 |
 | REQ-036 | 权限模型：新增“知识库维护员”角色；知识库与共享的规则、基线、模板只有管理员和维护员可改，普通用户只读并可提交建议；用户可建私有模板、在项目中调整规则；全部设备重新解析仅管理员 | 用户 2026-10-19 | M6（0.6.0） | 角色、权限检查、审核队列“建议”、项目级规则覆盖 | 待开发 | 设计见“权限模型（REQ-036）”一节，经用户确认 |
 | REQ-037 | 接入 Nokia 7750 SR（SR OS）：Classic CLI 与 MD-CLI 两种格式，映射到统一 Schema，支持解析、往返、对比、检查、翻译等 | 用户 2026-10-19 | M7（0.7.0） | `knowledge/` 新平台族、解析器 MD-CLI 分块扩展、Profile | 进行中 | 文档与知识准备先行，与 M6 并行 |
-| REQ-038 | 删除设备与单个配置版本（确认对话列出连带删除的内容；被配置检查项目作基线时提示；最后一个版本不能单独删除）；CLI `lmesh device delete`、`DELETE /api/v1/devices/{id}`；所有登录账号都可删除（删除记入日志），M6 起项目属主与“可编辑”成员可删除项目内的设备与配置（只读成员不可，公共设备库仅管理员，引用的公共设备为解除引用） | 用户 2026-10-19 | M5 补充（问题修复） | 设备接口、设备列表与版本历史页 | 待开发 | 用户确认现在做；用户随后要求每个用户都可以删除项目下的配置 |
+| REQ-038 | 删除设备与单个配置版本（确认对话列出连带删除的内容；被配置检查项目作基线时提示；最后一个版本不能单独删除）；CLI `lmesh device delete`、`DELETE /api/v1/devices/{id}`；所有登录账号都可删除（删除记入日志），M6 起项目属主与“可编辑”成员可删除项目内的设备与配置（只读成员不可，公共设备库仅管理员，引用的公共设备为解除引用） | 用户 2026-10-19 | M5 补充（问题修复） | 设备接口、设备列表与版本历史页 | 已完成 | 用户确认现在做；用户随后要求每个用户都可以删除项目下的配置；现阶段所有登录账号都可删除，M6 项目权限另做；实现见“删除设备与配置版本（REQ-038）”一节 |
 
 ## 待确认
 
@@ -1223,6 +1223,22 @@ ports:                       # 端口映射：按顺序，第一条命中生效
 - 测试：`tests/unit/test_layers.py`（全部 Schema 对象已归层、未归层提示、按键细分、跨层边、现网样本分层、区间与引用、默认值行位置、摘要数值、跨平台默认值）、`tests/cases/cli_cases.analysis.toml`、`tests/cases/api_cases.analysis.toml`、前端 `src/views/device-analysis/*.test.ts`、端到端 `frontend/e2e/req034.spec.ts`（从设备列表进入 → 点引用跳到定义 → TCP/IP 选中与跨层描边 → 关系视图按层分带联动 → 摘要跳回脚本；现网大配置虚拟滚动、显示风格切换、暗色主题）。
 
 
+
+## 删除设备与配置版本（REQ-038）
+
+用户 2026-10-19 提出：删除设备与单个配置版本，确认对话列出连带删除的内容，被配置检查项目作基线时提示，最后一个版本不能单独删除。现阶段所有登录账号（含普通用户与 API 令牌）都可删除，删除记入日志；M6 起按项目权限（属主与“可编辑”成员，见“权限模型（REQ-036）”）另做。
+
+### 实现结果（REQ-038）
+
+- 核心 `core/device_delete.py`（CLI 与 API 共用，决策 D-0180～D-0183）：
+  - `preview`：将删除的内容计数（`versions`、`imports`、`nodes`、`edges`、`unknown_lines`、`check_ignores`）、以该设备为基线的配置检查项目与脚本（`baseline.projects`：`version_id`、`follows_latest`、`scripts`）、`blocked`、每个版本（`seq`、`latest`、`imports`、`pinned_by`）；不删除。
+  - `delete_device`：一个事务内按子表到父表显式删除边、节点、未识别行、导入记录、配置版本（含快照 `graph_gz`）、检查忽略项、设备，不依赖数据库级联，SQLite 与 PostgreSQL 一致；设备是检查项目的基线时默认拒绝（data 为删除预览），`force` 时把这些项目的基线设备与版本置空（脚本与修订保留，`baseline_cleared`）。
+  - `delete_version`：最后一个版本拒绝；删除最新版本后“最新”自然指向上一个版本，跟随最新版本的项目随之改用它（`baseline_moved`，只提示）；被项目固定为基线的版本默认拒绝，`force` 时这些项目改为跟随最新版本；删除较早的版本后下一个版本的变化计数置空并重算（`recomputed`，没有知识库时查看时间线再算）。
+  - 删除后清空配置检查项目的基线图缓存；日志 `lmesh.devices` 记录操作者（会话账号名，令牌记为 `api-token`，CLI 为操作系统用户名）、设备名与编号、删除的版本个数，不记录配置内容。
+- 接口：`GET /api/v1/devices/{id}/delete-preview`、`DELETE /api/v1/devices/{id}?force=`、`DELETE /api/v1/devices/{id}/versions/{vid}?force=`；被作基线、最后一个版本时 409（错误码 1003），设备或版本不存在、版本不属于该设备时 404。CLI `lmesh device delete <设备> [--force] [--yes]`、`lmesh device delete-version <设备> <版本> [--force] [--yes]`（版本写法同 `lmesh history`），终端里先确认，`--output json`，拒绝时退出码 1，不存在退出码 4。
+- 界面（预览 `DevelopDocs/ui-preview/M6/devices.html` 的删除确认框）：共用确认框 `components/devdel-dialog.vue`（打开时取删除预览，列出连带删除 / 保留的内容与数量；作基线的项目与脚本用警告框列出，勾选“仍然删除”后才能确认；删除最新版本时提示跟随最新版本的项目将改用哪个版本；最后一个版本只显示说明）。设备列表每行末尾、设备配置图页头有“删除设备”，版本历史的“全部快照”表与 A / B 卡片有“删除此版本”（只剩一个版本时不可用）。文案三语，颜色只用主题变量。
+- 测试：`tests/unit/test_device_delete.py`（级联、其他设备不受影响、基线拒绝与 force、最后一个版本、删除最新 / 中间版本与变化计数重算、固定版本、版本不属于该设备；SQLite 与 PostgreSQL 各一次）、`tests/cases/cli_cases.device_delete.toml`、`tests/cases/api_cases.device_delete.toml`、`tests/api/test_device_delete_api.py`（普通用户删除的完整流程）、前端 `src/views/devices/deleteLogic.test.ts`、端到端 `frontend/e2e/req038.spec.ts`（导入两个版本 → 版本历史删除一个版本 → 设备列表删除设备，暗色主题）；`frontend/e2e/req031.spec.ts` 结束时删除自己建的项目与导入的 ATN-CHANGE-01。
+
 ## 用户工作空间与项目（REQ-035）
 
 用户 2026-10-19 提出：每个账号有单独的用户工作空间数据，可以创建项目，每个项目有单独的脚本。以下设计经用户在对话中确认（【用户确认】），排期为新里程碑 M6（0.6.0），M5 开发收尾后开始，先做预览页确认再编码。
@@ -1326,3 +1342,58 @@ ports:                       # 端口映射：按顺序，第一条命中生效
 **映射表达式需要的扩展**（M7-3）：`ctx:<参数>` 取父上下文行的参数（静态路由 next-hop 的键要带父行前缀、OSPF 接口的 area、SAP 所属业务）；目标对象键取自参数（LAG 下 `port 1/1/2` → `interface{1/1/2}.lag`）；拆分 SAP（`1/1/4:1001` → 接口＋VLAN）。渲染需要 `knowledge/render/nokia-sros-classic.yaml`：每块写 `exit`、按段落顺序与 `echo` 标题输出、业务两遍顺序、`create`、引号。
 
 **后续**：M7-2 解析器改动（上面 1～8）＋补 system / mgmt、OSPF / IS-IS / BGP / 路由策略、MPLS / LDP / SR 的抽取；M7-3 Schema 新节点、映射规则、Profile `nokia-sros-classic-7750-25.10`、render 与往返、合成样本进门槛；M7-4 MD-CLI 分块扩展与 YANG 抽取器。
+
+## 接入 Nokia 7750 SR（REQ-037）（M7-2 结果）
+
+2026-10-19 完成 M7-2（Classic CLI 的解析器支持与命令卡补抽取）。决策 D-0184～D-0190。
+
+**解析器开关**（D-0184）：平台族 `views.yaml` 新增 5 个键，缺省值等于华为 / Cisco 的现状，所以这两个平台族的解析循环一行未改（改动前后对 78 个华为 / Cisco 配置做逐行解析、图、往返文本的哈希比较，完全相同）。
+
+| 键 | 缺省 | Nokia Classic | 作用 |
+|---|---|---|---|
+| `block` | `indent` | `exit` | `exit` 时 `parser.parse` 走 `_parse_exit_blocks`：缩进按 `indent`（4）折算层级；`exit` 关闭与它同列的块（原文块也一样，OSPF 等范围外块里的 `exit` 不会提前退出 `router`）；没有进入视图的命令下面若有更深缩进的子行，子行按原文保留；多余的 `exit` 原文保留 |
+| `comment` | 空 | `["#"]` | 注释前缀：文件头、`# Finished …` 不改变视图栈 |
+| `layout` | 空 | `['^echo "']` | 版式行正则：按注释处理；分隔行 `#-----…` 在 `block: exit` 下也不清空视图栈（段落标记出现在 `router Base` 与其下的 `ospf` 之间） |
+| `begin` | 空 | `[configure]` | 结构行：进入根视图、清空视图栈（行类型记为 separator）；`end`（`exit all`）同样清空 |
+| `quotes` | `false` | `true` | 分词识别引号字符串（名称可含空格）；参数取值去掉引号（图的键与引用不带引号），`Match.quoted` 记录原文带引号的参数，渲染时写回（D-0185）；`text` 参数整段是一个引号串时同样去引号 |
+
+**参数类型**：`port`（`1/1/1`、`1/1/c1/1`、`1/1/1.1`、`lag-1`、`esat-1/1/1`、`esat-1/1/u1`、`pxc-1.a`、`aps-1`、`ccag-1.a`、`eth-tunnel-1`、`A/1`）与 `sap`（端口、`端口:VLAN`、`端口:外层.内层`、`:*`）。抽取规则按参数名 `port-id` → port、`sap-id` / `port-name` → sap（路由器接口的 `port` 写作 端口[:封装]）。
+
+**识别与脱敏**：`detect_vendor` 遇到 `# TiMOS-` 文件头直接判为 nokia，没有文件头时看 `exit all`、`echo "`、50 个连字符的分隔行、`configure {`、`/configure `、`router "Base"` 等特征（至少 2 项且多于华为 / Cisco 的特征数）；`detect_version` 取 `TiMOS-B-25.10.R1` 中的 `25.10.R1`；新增 `detect_format`（classic / md）与 `family_of`（nokia → `nokia-sros-classic` / `nokia-sros-md`）。脱敏（D-0189）对 nokia 只用专用规则：`password` / `*-key` / `secret` 后的引号值或带 `hash` / `hash2` / `crypto` 标记的值、SNMP `community "…" r|rw|rwa|mgmt|vpls-mgmt`（策略里的 `community "名称"` 不替换）、`user "…"`、文件头 `by 用户名`、`configure > system > name` 为主机名；描述替换后保留引号。导入（D-0190）：`guess_profile` 对 nokia 按格式给 `nokia-sros-classic-7750-25.10` / `nokia-sros-md-7750-25.10`，`match_profile` 增加可选的 `family` 参数；设备名取 `system > name`；Profile 还不存在时导入只存原文（现有机制）。
+
+**抽取**（隔离环境 `tmp/nokia-m72/`：`LMESH_KNOWLEDGE__DIR`、`LMESH_DATABASE__URL` 指过去，结果复制回 `knowledge/commands/nokia-sros-classic/`；没有运行 `kb map`）。规则新增功能域与视图（D-0187）：SR 单独成域（`mpls-labels` 的 `sr-labels`、OSPF / IS-IS 下的 `segment-routing`），路由器级的 `autonomous-system` / `router-id` / `confederation` 放 bgp 域；新增视图 `security-password`、`isis-if-level`、`policy-default`、`mpls-lsp-primary` / `mpls-lsp-secondary`、`rsvp-if`、`ldp-if-ipv4`、`ldp-targeted-peer`、`mpls-labels`、`ospf-sr`、`isis-sr`（共 99 个视图）；范围外子上下文的 opaque 名单按“命令的完整上下文又是别的命令的视图路径”重新生成。
+
+| 功能域 | 命令卡 | 按视图 | 其中进入范围外子上下文（opaque） |
+|---|---|---|---|
+| mgmt | 223 | system 47、system-security 31、log 17、log-id 15、security-ssh 14、security-tacplus 13、security-radius 12、security-password 12、system-ntp 11、login-control 9、security-user 9、log-syslog 9、security-snmp 7、system-snmp 7、system-time 5、security-maf 3、configure 2 | 86 |
+| ospf | 89 | ospf 42、ospf-if 33、ospf-area 12、router 2 | 13 |
+| isis | 144 | isis 78、isis-if 31、isis-level 20、isis-if-level 14、router 1 | 13 |
+| bgp | 245 | bgp 92、bgp-group 75、bgp-neighbor 74、router 4 | 31 |
+| routing-policy | 167 | policy-from 48、policy-action 47、policy-default 46、policy-options 12、policy-entry 8、policy-statement 4、router 1、prefix-list 1 | 9 |
+| mpls | 269 | mpls 60、mpls-lsp 56、ldp 40、rsvp 23、rsvp-if 16、mpls-lsp-secondary 15、mpls-lsp-primary 13、ldp-targeted 11、ldp-targeted-peer 8、ldp-if-ipv4 7、mpls-if 6、ldp-if 5、mpls-path 3、router 3、ldp-if-params 3 | 57 |
+| sr | 41 | ospf-sr 19、isis-sr 17、mpls-labels 4、router 1 | 13 |
+| interface（重抽） | 158 | 不变；`port-id` 改为 port、`port-name` 改为 sap，lag 的成员端口列表改成重复组 | 46 |
+| static-route（重抽） | 45 | 不变 | 7 |
+| 合计 | 1 381（133 个文件、3 300 条命令条目） | | 275 |
+
+跳过：视图不在范围 2 226 条（全部为范围外子上下文，例如 system 的 management-interface / pki / grpc、log 的 accounting-policy、BGP 的 next-hop-resolution / add-paths、MPLS 的 forwarding-policies / lsp-template、OSPF / IS-IS 的 flexible-algorithms / loopfree-alternates；sr 域里同一文件的非 SR 视图按设计丢弃），语法错误 0（10 条文档括号错误用 `syntax_rewrites` 修正），重复 1、排除 1。重复抽取全部 unchanged；`lmesh kb validate` 0 错误（新增警告只有 card.unmapped）。
+
+文档错误修正（D-0188）：`syntax_rewrites` 处理转换痕迹——`[no]` 前缀、拆开的关键字（`s ecurity-level`、`p refix -match`、`n o view`）、语法里带了完整上下文、斜体的 `<|>`、括号不配对（attempts、lsp-refresh-interval、cluster、export / import、route-target-list）、“命令 <值> | <参数名>” 少花括号、参数名带空格被拆开（`default-preference ebgp <ebgp preference>`、`default-metric <ipv4 metric>`）、`hold-time <seconds> [ min <seconds> ]` 同名参数、列表 `<p> [ <p> ]` / `[ <p> ...(up to 5 max) ]` 改成重复组（每个取值单独记录，渲染不会把同名参数重复成同一个值）、`<ip-prefix> / <mask>` 合成一个参数；`area-id`、`system-id`、`length1-length2` 按 word（取值说明里的 “Values 0.0.0.0 to …” 会被误判为整数）。修正文件补 5 条：新增 configure 下的 `system`（命令参考没有单列）、`ospf [ <instance> [ <router-id> ] ]`（实例号可省略、可为 0）、OSPFv2 接口的 `shutdown`（原文只列了 ospf3）、LSP 的 `cspf [ use-te-metric ]`（25.10 命令参考漏收）、`begin [ exclusive ]`。
+
+**样本**（D-0186）：`knowledge/samples/nokia-sros-classic-synthetic/`（自带 `manifest.yaml`，Profile 在 M7-3 建立前不进总清单；`tests/roundtrip/test_nokia_samples.py` 用临时内存 Profile 解析、建图、往返）。
+
+| 样本 | 行数 | command | raw | unknown | 往返 |
+|---|---|---|---|---|---|
+| classic-pe-basic.cfg（M7-1 草稿） | 214 | 158 | 11（card / mda 块、sntp 等范围外子上下文） | 0 | 逐字一致 |
+| classic-pe-services.cfg（M7-1 草稿） | 149 | 18 | 101（filter、qos、service 范围外，M7-3 补） | 0 | 逐字一致 |
+| classic-pe-routing-mgmt.cfg（M7-2 新写） | 294 | 239 | 4 | 0 | 逐字一致 |
+
+三份都是合成配置（地址取自文档保留网段与私网，口令、团体字已是 LMESH 占位符），不含真实设备信息。往返按原文重放即逐字一致：命令行全部按卡的语法（含引号）重放，没有一行需要原文兜底（fmt 为 0）。
+
+**留给 M7-3 / M7-4**：
+- Schema / 映射 / Profile：1 381 张卡全部 card.unmapped；`nokia-sros-classic-7750-25.10` 建好后把合成样本移进总清单并删除自己的清单与 `test_samples.py`、`roundtrip.manifest()` 里的目录排除。
+- 规范渲染（翻译、变更脚本）需要 `knowledge/render/nokia-sros-classic.yaml`：每块写 `exit`、`echo` 段落、两遍业务顺序、`create`、引号（`Match.quoted` 已记录原文引号；新值含空格时要加引号）。往返本身不需要这些。
+- `core/canon.py`、`change.py`、`cleanup.py`、`script_check.py`、`config_analysis.py` 里的 `syn.match` / `tokenize_line` 调用还没有传 `quotes`，按缩进差 1 拼块的代码（canon、change）也不认识 `block: exit`；这些功能接入 Nokia 时要改。映射表达式里的 `tokens = ln.text.split()`（`kw:`、`tail:`）对带空格的引号名称会拆开。
+- 待真机核实的写法：policy-statement 的 `action accept` 块里能否写 `local-preference` 等动作（命令参考把这些动作挂在 `entry` / `default-action` 下）、用户口令是否带 `hash2`（25.x 文档写作 `password [ <password> ]`）。
+- 仍有同名参数的卡（`prefix-limit … hold-excess`、`summary-address … tag`、`prefix-list` 的 `prefix … to <前缀>`、`class-type-bw`、`router-if qos … redirect-group`、`renumber from … to` 等 9 张）：取值会互相覆盖，往返靠原文兜底；用到时补 `syntax_rewrites`。
+- M7-4：MD-CLI 分块（`block: braces`、扁平路径的前缀匹配）；`detect_format` 已能区分 md。

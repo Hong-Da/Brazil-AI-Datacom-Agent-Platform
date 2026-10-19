@@ -58,21 +58,49 @@ _CISCO_HINTS = [
 ]
 
 
+# Nokia SR OS：配置文件头 “# TiMOS-B-25.10.R1 …” 一出现即可确定；没有文件头时看 Classic / MD-CLI 的版式特征
+_NOKIA_HEADER = re.compile(r"^# TiMOS-", re.M)
+_NOKIA_HINTS = [
+    re.compile(p, re.M)
+    for p in (r"^exit all$", r'^\s*echo "', r"^#-{20,}$", r"^configure \{", r"^/configure ", r'^\s+router "?Base"?')
+]
+
+
 def detect_vendor(text: str) -> str | None:
-    """按配置特征识别厂商：huawei / cisco；分不出时返回 None。"""
+    """按配置特征识别厂商：huawei / cisco / nokia；分不出时返回 None。"""
+    if _NOKIA_HEADER.search(text):
+        return "nokia"
     h = sum(bool(p.search(text)) for p in _HUAWEI_HINTS)
     c = sum(bool(p.search(text)) for p in _CISCO_HINTS)
+    n = sum(bool(p.search(text)) for p in _NOKIA_HINTS)
+    if n >= 2 and n > max(h, c):
+        return "nokia"
     if h == c:
         return None
     return "huawei" if h > c else "cisco"
 
 
+def detect_format(text: str, vendor: str | None) -> str:
+    """同一厂商的配置格式：Nokia 的 classic（缩进 + exit）/ md（MD-CLI 花括号或 /configure 扁平路径）；其他厂商为空。"""
+    if vendor != "nokia":
+        return ""
+    if re.search(r"^(?:configure \{|/configure )", text, re.M):
+        return "md"
+    return "classic"
+
+
+def family_of(vendor: str, fmt: str) -> str | None:
+    """同一厂商有多种配置格式时，按格式确定平台族（Nokia：classic / md）；其他厂商返回 None（不限定）。"""
+    return f"nokia-sros-{fmt or 'classic'}" if vendor == "nokia" else None
+
+
 _HUAWEI_VERSION = re.compile(r"(V\d{3}R\d{3}C\d{2}(?:SPC\d{3})?)")
 _CISCO_VERSION = re.compile(r"^version (\d+\.\d+\S*)", re.M)
+_NOKIA_VERSION = re.compile(r"TiMOS-[A-Z]+-(\d+\.\d+\.R\d+)")
 
 
 def detect_version(text: str, vendor: str | None) -> str:
-    pat = _HUAWEI_VERSION if vendor == "huawei" else _CISCO_VERSION if vendor == "cisco" else None
+    pat = {"huawei": _HUAWEI_VERSION, "cisco": _CISCO_VERSION, "nokia": _NOKIA_VERSION}.get(vendor or "")
     m = pat.search(text) if pat else None
     return m.group(1) if m else ""
 
@@ -114,7 +142,23 @@ _SECRET_RULES: list[tuple[re.Pattern[str], str]] = [
     (re.compile(r"\bsnmp-server community\s+(?P<v>\S+)", re.I), "community"),
     (re.compile(r"\bsnmp-agent community\s+(?:read|write)\s+(?P<v>\S+)", re.I), "community"),
 ]
+# Nokia SR OS：值多写在引号里（可含空格），密文后面跟 hash / hash2 / crypto 标记；只在识别为 nokia 的配置上使用
+_NOKIA_SECRET_RULES: list[tuple[re.Pattern[str], str]] = [
+    # password "…" [hash|hash2]、authentication-key "…" hash2、secret "…" hash2、priv-key / auth-key、message-digest-key 1 md5 "…"
+    (re.compile(r'(?<![\w-])(?:[\w-]*-)?(?:password|key|secret)(?:\s+\d+\s+md5)?\s+"(?P<v>[^"]*)"', re.I), "secret"),
+    (
+        re.compile(r"(?<![\w-])(?:[\w-]*-)?(?:password|key|secret)\s+(?P<v>[^\s\"]+)\s+(?:hash2?|crypto)\b", re.I),
+        "secret",
+    ),
+    # SNMP 团体字：community "…" r / rw / rwa / mgmt / vpls-mgmt（策略里的 community "名称" members … 不是秘密）
+    (re.compile(r'^\s*community\s+"(?P<v>[^"]*)"\s+(?:r|rw|rwa|mgmt|vpls-mgmt)\b', re.I), "community"),
+]
+_NOKIA_USER_DEFS = [
+    re.compile(r'^\s*user\s+"(?P<v>[^"]+)"', re.I),
+    re.compile(r"^# Generated .*\bby\s+(?P<v>[\w.\-]+)\s+from\b", re.I),  # 文件头 “# Generated … by admin from Console”
+]
 _HOSTNAME = re.compile(r"^\s*(?:sysname|hostname)\s+(?P<v>\S+)", re.I)
+_NOKIA_HOSTNAME = re.compile(r'^ {8}name\s+"?(?P<v>[^"\s]+)"?\s*$')  # configure > system > name "PE1"
 # 行首的 description，以及行内的 … description X（例如 OSPF 的 network … description X）
 _DESCRIPTION = re.compile(r"^(?P<lead>(?:\s*|.*?\s)(?:description|desc)\s+)(?P<v>.+?)\s*$", re.I)
 # 用户名只在定义它的行里替换（全局替换会误伤 stp root 之类的关键字）
@@ -198,8 +242,9 @@ class Sanitizer:
         # 主机名在全文中替换（对端设备名也常出现在描述等处）
         hostnames: dict[str, str] = {}
         if strict:
+            host_pat = _NOKIA_HOSTNAME if vendor == "nokia" else _HOSTNAME
             for ln in lines:
-                m = _HOSTNAME.match(ln)
+                m = host_pat.match(ln)
                 if m:
                     hostnames[m.group("v")] = self._token("hostname", m.group("v"), "DEVICE-{h}")
         host_re = (
@@ -227,7 +272,7 @@ class Sanitizer:
                         continue
             if _KEY_BLOCK_BEGIN.match(line):
                 in_block = True
-            lines[idx - 1] = self._line(idx, line, reps, strict, host_re, hostnames)
+            lines[idx - 1] = self._line(idx, line, reps, strict, host_re, hostnames, vendor)
 
         out = "\n".join(lines)
         self._self_check(out, reps)
@@ -241,7 +286,10 @@ class Sanitizer:
         strict: bool,
         host_re: re.Pattern[str] | None,
         hostnames: dict[str, str],
+        vendor: str | None = None,
     ) -> str:
+        nokia = vendor == "nokia"
+
         def sub_value(m: re.Match[str], cat: str, fmt: str) -> str:
             v = m.group("v")
             if v.lower() in _NOT_A_SECRET or v.startswith(("%^%#", "%@%@", "%$%$", "LMESH-")):
@@ -266,19 +314,23 @@ class Sanitizer:
 
             new = rx.sub(custom, new)
         if not _SECRET_EXEMPT.match(new):
-            for pat, cat in _SECRET_RULES:
+            for pat, cat in _NOKIA_SECRET_RULES if nokia else _SECRET_RULES:
                 fmt = "LMESH-SECRET-{h}" if cat == "secret" else "LMESH-COMM-{h}"
                 new = pat.sub(functools.partial(_apply, sub_value, cat, fmt), new)
 
         if strict:
             md = _DESCRIPTION.match(new)
             if md:
-                rep = self._token("description", md.group("v"), "DESC-{h}")
-                reps.append(Replacement(idx, "description", md.group("v"), rep))
-                new = md.group("lead") + rep
+                value = md.group("v")
+                quoted = nokia and len(value) >= 2 and value[0] == value[-1] == '"'  # Nokia：保留引号
+                if quoted:
+                    value = value[1:-1]
+                rep = self._token("description", value, "DESC-{h}")
+                reps.append(Replacement(idx, "description", value, rep))
+                new = md.group("lead") + (f'"{rep}"' if quoted else rep)
             for p in _IDENTIFIERS:
                 new = p.sub(lambda m: sub_value(m, "identifier", "ID-{h}"), new)
-            for p in _USER_DEFS:
+            for p in _NOKIA_USER_DEFS if nokia else _USER_DEFS:
                 new = p.sub(lambda m: sub_value(m, "user", "user-{h}"), new)
             if host_re is not None:
 

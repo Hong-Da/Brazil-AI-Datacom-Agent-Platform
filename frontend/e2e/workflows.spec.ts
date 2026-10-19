@@ -29,8 +29,8 @@ test.beforeEach(async ({ page }) => {
 
 /**
  * 测试开始时的设备名单。e2e_server.py 导入 3 台（ATN、LAB-ATN-09、PE-ASR920-01），
- * 但文件名排在前面的用例（如 req031.spec.ts 导入 ATN-CHANGE-01 作基线）会再导入设备，且没有删除设备的接口，
- * 所以设备数按测试开始时的实际数量做相对断言，同时核对 e2e_server.py 导入的 3 台都在。
+ * 文件名排在前面的用例（req031.spec.ts 导入 ATN-CHANGE-01 作基线、req038.spec.ts 导入 E2E-DEL-01）会临时导入设备，
+ * 用例结束时自己删除（REQ-038）；设备数仍按测试开始时的实际数量做相对断言（单独运行或中途失败也成立），同时核对 e2e_server.py 导入的 3 台都在。
  */
 async function deviceNames(request: APIRequestContext): Promise<string[]> {
   const r = await request.get('/api/v1/devices', { headers: { Authorization: `Bearer ${TOKEN}` } })

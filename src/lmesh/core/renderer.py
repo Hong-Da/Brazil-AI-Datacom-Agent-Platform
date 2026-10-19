@@ -31,7 +31,8 @@ def _render_command(st: Statement, g: nx.MultiDiGraph, kb: KnowledgeBase) -> str
     elif ln.negated:
         try:
             usyn = syn.parse(card.undo) if card.undo else None
-            matched = usyn is not None and syn.match(usyn, ln.text, card.params) is not None
+            quotes = kb.families[card.family].quotes if card.family in kb.families else False
+            matched = usyn is not None and syn.match(usyn, ln.text, card.params, quotes) is not None
         except syn.SyntaxErrorKB:
             usyn, matched = None, False
         if usyn is not None and matched:

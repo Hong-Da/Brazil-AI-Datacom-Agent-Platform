@@ -22,6 +22,7 @@ from lmesh.api.routes_check import router as check_router
 from lmesh.api.routes_check_projects import router as check_projects_router
 from lmesh.api.routes_compare import router as compare_router
 from lmesh.api.routes_configs import router as configs_router
+from lmesh.api.routes_devices import router as devices_router
 from lmesh.api.routes_export import router as export_router
 from lmesh.api.routes_features import router as features_router
 from lmesh.api.routes_graph import router as graph_router
@@ -85,6 +86,7 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     app.include_router(auth_router, prefix=API_PREFIX, tags=["auth"])
     app.include_router(users_router, prefix=API_PREFIX, tags=["auth"])
     app.include_router(configs_router, prefix=API_PREFIX, tags=["configs"])
+    app.include_router(devices_router, prefix=API_PREFIX, tags=["configs"])
     app.include_router(tasks_ai_router, prefix=API_PREFIX, tags=["tasks-ai"])
     app.include_router(kb_router, prefix=API_PREFIX, tags=["knowledge"])
     app.include_router(graph_router, prefix=API_PREFIX, tags=["graph"])

@@ -1,0 +1,48 @@
+# Nokia SR OS Classic CLI Command Reference（25.10.R1）中的文档错误修正（每次抽取都会应用；被修正的卡在来源中注明 patched）
+patches:
+  - id: nokia-sros-classic.mode
+    reason: 原文 port ethernet 的 mode 只列了 network | hybrid；7750 SR 的接入口写作 mode access（配置指南 Interface Configuration Guide 的端口举例与合成样本），补上 access
+    set:
+      syntax: mode { access | network | hybrid }
+  - id: nokia-sros-classic.lacp
+    reason: 原文把取值参数 mode 标成了关键字（参数表写明取值为 active / passive），运行配置写作 lacp active administrative-key 32768
+    set:
+      syntax: lacp [ { active | passive } ] [ administrative-key <admin-key> ] [ system-id <system-id> ] [ system-priority <priority> ]
+      params: {admin-key: {type: integer, range: [1, 65535]}, system-id: {type: word}, priority: {type: integer, range: [0, 65535]}}
+  # ---- M7-2 ----
+  - id: nokia-sros-classic.system
+    reason: 命令参考没有单列 configure 下进入 system 上下文的命令（system 下各命令的完整上下文都以 configure system 开头）；display-config 写作 system，块尾 exit
+    add:
+      id: nokia-sros-classic.system
+      domain: mgmt
+      view: configure
+      syntax: system
+      enters_view: system
+  - id: nokia-sros-classic.ospf.1
+    reason: 原文 ospf-instance 为必选、取值 1 to 31；基本实例 0 可以省略或写作 0（配置指南的举例有 ospf、ospf 0、ospf 0 10.20.1.6 三种写法）
+    set:
+      syntax: ospf [ <ospf-instance> [ <router-id> ] ]
+      undo: no ospf [ <ospf-instance> ]
+      params: {ospf-instance: {type: integer, range: [0, 31]}, router-id: {type: ipv4}}
+  - id: nokia-sros-classic.shutdown@ospf-if
+    reason: 命令参考 OSPF 的 shutdown 条目只列了 ospf3 的 area interface，漏了 OSPFv2 的 configure router ospf area interface（display-config 在每个 OSPF 接口下写 no shutdown）
+    add:
+      id: nokia-sros-classic.shutdown@ospf-if
+      domain: ospf
+      view: ospf-if
+      syntax: shutdown
+      undo: no shutdown
+      default: no shutdown
+  - id: nokia-sros-classic.cspf@mpls-lsp
+    reason: 命令参考 25.10 没有收录 configure router mpls lsp 下的 cspf（MPLS Guide 的 LSP 配置举例有 cspf；写法 cspf [ use-te-metric ]）
+    add:
+      id: nokia-sros-classic.cspf@mpls-lsp
+      domain: mpls
+      view: mpls-lsp
+      syntax: cspf [ use-te-metric ]
+      undo: no cspf
+      default: no cspf
+  - id: nokia-sros-classic.begin
+    reason: 原文写作 begin {exclusive}（花括号只有一项，等于必选）；exclusive 是可选的，display-config 在 policy-options 下写 begin
+    set:
+      syntax: begin [ exclusive ]
