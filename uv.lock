@@ -495,10 +495,12 @@ version = "0.3.0"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },
+    { name = "anthropic" },
     { name = "cryptography" },
     { name = "dulwich" },
     { name = "fastapi" },
     { name = "networkx" },
+    { name = "openai" },
     { name = "openpyxl" },
     { name = "pdfplumber" },
     { name = "psycopg", extra = ["binary"] },
@@ -511,12 +513,6 @@ dependencies = [
     { name = "ttp" },
     { name = "typer" },
     { name = "uvicorn", extra = ["standard"] },
-]
-
-[package.optional-dependencies]
-ai = [
-    { name = "anthropic" },
-    { name = "openai" },
 ]
 
 [package.dev-dependencies]
@@ -534,12 +530,12 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = ">=1.13" },
-    { name = "anthropic", marker = "extra == 'ai'", specifier = ">=0.40" },
+    { name = "anthropic", specifier = ">=0.40" },
     { name = "cryptography", specifier = ">=42" },
     { name = "dulwich", specifier = ">=0.22" },
     { name = "fastapi", specifier = ">=0.115" },
     { name = "networkx", specifier = ">=3.3" },
-    { name = "openai", marker = "extra == 'ai'", specifier = ">=1.40" },
+    { name = "openai", specifier = ">=1.40" },
     { name = "openpyxl", specifier = ">=3.1" },
     { name = "pdfplumber", specifier = ">=0.11" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
@@ -553,7 +549,6 @@ requires-dist = [
     { name = "typer", specifier = ">=0.12" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.30" },
 ]
-provides-extras = ["ai"]
 
 [package.metadata.requires-dev]
 dev = [
