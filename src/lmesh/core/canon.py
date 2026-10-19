@@ -99,6 +99,10 @@ def _read_style(f: Path) -> dict[str, Any]:
         "containers": {str(k): str(v) for k, v in (data.get("containers") or {}).items()},
         "quote_params": str(data.get("quote_params") or ""),
         "create": bool(data.get("create", False)),
+        # M7-4（Nokia MD-CLI，块由花括号关闭）：open 进入视图的行尾写什么（" {"），exit_all 写 "}"；
+        # container_depth 经容器到达视图的最多层数（MD-CLI 的容器多：bgp-ipvpn > mpls > auto-bind-tunnel > resolution-filter）
+        "open": str(data.get("open") or ""),
+        "container_depth": int(data.get("container_depth") or 3),
         # wrap：进入这些视图后先写、退出前再写的命令（Nokia policy-options 的 begin / commit）
         "wrap": {str(k): [str(x) for x in (v or [])] for k, v in (data.get("wrap") or {}).items()},
         "l3_form": str(data.get("l3_form") or ""),
@@ -215,7 +219,16 @@ def _uses_ctx(expr: Any) -> bool:
     """表达式用到外层块的参数（ctx:参数；ctx:subif 是接口名，不算）。"""
     if isinstance(expr, dict):
         return any(_uses_ctx(v) for v in expr.values())
-    return any(a.strip().startswith("ctx:") and a.strip() != "ctx:subif" for a in str(expr).split("||"))
+    return any(
+        _strip_wrappers(a.strip()).startswith("ctx:") and a.strip() != "ctx:subif" for a in str(expr).split("||")
+    )
+
+
+def _strip_wrappers(e: str) -> str:
+    """去掉只改变写法的外层（strip:文字: / scale:倍数:，M7-4），露出里面的表达式。"""
+    while e.startswith(("strip:", "scale:")):
+        e = e.split(":", 2)[2]
+    return e
 
 
 _INDEX: dict[tuple[int, str], tuple[KnowledgeBase, _Index, dict[str, Any]]] = {}
@@ -414,6 +427,27 @@ class _Inverter:
         if e.startswith("pre:"):  # 取值写成 词:值
             _, word, rest = e.split(":", 2)
             return self.run(rest, f"{word}:{_text(want)}", "string")
+        if e.startswith("list:"):  # MD-CLI 叶子列表（M7-4）：取值（列表或空格分隔）写成 [ "a" "b" ]
+            rest = e[5:]
+            if not rest.startswith("$") or rest[1:] not in self.card.params:
+                return []
+            elems = want if isinstance(want, list | tuple) else _text(want).split()
+            return [_Sol(values=((rest[1:], mapping.join_leaflist(elems)),))] if elems else []
+        if e.startswith("by:"):  # 按键找对象的属性（客户编号 100 → 名称 ACME）；没有这样的对象时取值本身（M7-4）
+            _, schema, attr, rest = e.split(":", 3)
+            look = (self.ctx or {}).get("lookup")
+            v = look(schema, _text(want), attr) if look else None
+            return self.run(rest, _text(want) if v in (None, "") else v, "string")
+        if e.startswith("scale:"):  # 数值倍数（M7-4）：反过来除以倍数
+            _, factor, rest = e.split(":", 2)
+            try:
+                inv = mapping.scale_value(want, str(1 / float(factor)))
+            except (ValueError, ZeroDivisionError):
+                inv = None
+            return self.run(rest, inv, node_type) if inv is not None else []
+        if e.startswith("strip:"):  # 去掉的前缀写回（M7-4：LAG 编号 1 → lag-1）
+            _, word, rest = e.split(":", 2)
+            return self.run(rest, f"{word}{_text(want)}", "string")
         if e.startswith("via:"):  # 按对象的属性反查键（伪线对端 → 对端是它的 SDP）
             _, schema, attr, rest = e.split(":", 3)
             rl = (self.ctx or {}).get("rlookup")
@@ -584,6 +618,12 @@ class _Gen:
 
     def q(self, name: str, v: Any) -> str:
         text = str(v)
+        if (
+            self.quote is not None
+            and (self.params.get(name) or {}).get("type") == "string"
+            and not text.startswith('"')
+        ):
+            return f'"{text}"'  # M7-4：MD-CLI 的字符串（名称、描述、引用）总写成引号字符串
         return f'"{text}"' if self.quote is not None and self.quote(name, text) else text
 
     def _choice_kw(self, name: str) -> str | None:
@@ -620,8 +660,9 @@ class _Gen:
         if isinstance(n, syn.Param):
             v = vals.get(n.name)
             if v is None:
-                c = self._choice_kw(n.name)
-                return [([c], False)] if c else []
+                # fill（M7-4）：语法必填、映射不记的参数（MD-CLI ntp server 的 router-instance "Base"、prefix-list 的 type exact）
+                c = self._choice_kw(n.name) or (self.params.get(n.name) or {}).get("fill")
+                return [([self.q(n.name, c) if c != self._choice_kw(n.name) else c], False)] if c else []
             if isinstance(v, tuple):
                 return [([self.q(n.name, v[0])], False)] if len(v) == 1 else []
             return [([self.q(n.name, v)], False)]
@@ -707,10 +748,14 @@ class RLine:
         """行首缩进：frame（Nokia 的 exit all / configure / echo 段落）总在第 0 列，其余按层级加根视图的缩进。"""
         return "" if self.kind == "frame" else " " * (indent * (self.depth + base))
 
-    def as_dict(self, no: int, indent: int, base: int = 0) -> dict[str, Any]:
+    def full(self, indent: int, base: int = 0, opener: str = "") -> str:
+        """整行文本：缩进 + 命令；opener（MD-CLI 的 " {"）加在进入视图的行尾。"""
+        return self.pad(indent, base) + self.text + (opener if opener and self.opens else "")
+
+    def as_dict(self, no: int, indent: int, base: int = 0, opener: str = "") -> dict[str, Any]:
         return {
             "no": no,
-            "text": self.pad(indent, base) + self.text,
+            "text": self.full(indent, base, opener),
             "kind": self.kind,
             "origin": self.origin,
             "nodes": self.nodes,
@@ -731,13 +776,14 @@ class Rendered:
         default_factory=list
     )  # 按推导规则补出、并写进了命令的取值 {node, schema, value}
     base: int = 0  # 根视图下的命令缩进几级（Nokia 的 configure 下缩进 1 级）
+    opener: str = ""  # 进入视图的行尾（MD-CLI 的 " {"，M7-4）
 
     @property
     def text(self) -> str:
-        return "\n".join(ln.pad(self.indent, self.base) + ln.text for ln in self.lines)
+        return "\n".join(ln.full(self.indent, self.base, self.opener) for ln in self.lines)
 
     def line_dicts(self) -> list[dict[str, Any]]:
-        return [ln.as_dict(i, self.indent, self.base) for i, ln in enumerate(self.lines, start=1)]
+        return [ln.as_dict(i, self.indent, self.base, self.opener) for i, ln in enumerate(self.lines, start=1)]
 
 
 @dataclass
@@ -930,11 +976,27 @@ class _Renderer:
             else:
                 self.extra_place[nid] = ("ctx", owner)
 
+    def extra_here(self, nid: str, view: str) -> bool:
+        """原文节点（ext / raw）原来所在的视图（经容器时是最外层容器所在的视图）是不是 view（M7-4）。"""
+        lines = self.g.nodes[nid].get("lines") or []
+        st = self.stmts.get(min(lines)) if lines else None
+        if st is None:
+            return True
+        wrap = self.extra_wrap.get(nid)
+        return (wrap[0][0] if wrap else st.line.view) == view
+
     def extra_text(self, nid: str) -> str:
         d = self.g.nodes[nid]
         lines = d.get("lines") or []
         st = self.stmts.get(min(lines)) if lines else None
         if st is not None:
+            if self.style["open"]:
+                # MD-CLI（M7-4）：进入视图的未映射命令写 “ {”（块尾的 } 由 extra_lines 写）；原文块头按原文的花括号
+                card = self.kb.cards.get(str(st.line.card)) if st.line.kind == "command" and st.line.card else None
+                if card is not None and card.enters_view and not st.line.negated:
+                    return st.line.text + self.style["open"]
+                if st.line.tail:
+                    return f"{st.line.text} {st.line.tail.strip()}"
             return st.line.text
         if d.get("text"):
             return str(d["text"]).strip()
@@ -1101,7 +1163,7 @@ class _Renderer:
         out: list[tuple[str, list[tuple[str, str, Card]]]] = []
         frontier: list[tuple[str, list[tuple[str, str, Card]]]] = [(view, [])]
         seen = {view}
-        for _ in range(3):
+        for _ in range(self.style["container_depth"]):
             nxt: list[tuple[str, list[tuple[str, str, Card]]]] = []
             for v, path in frontier:
                 for w, card in self.idx.containers.get(v, []):
@@ -1340,7 +1402,7 @@ class _Renderer:
 
     def quote_value(self, name: str, text: str) -> bool:
         """Nokia：参数取值写成引号字符串——含空格、是描述文字，或参数名符合 render 的 quote_params。"""
-        if not self.quotes or text.startswith('"'):
+        if not self.quotes or text.startswith(('"', "[")):  # [ … ]：MD-CLI 叶子列表（M7-4）
             return False
         return " " in text or bool(self.quote_re and self.quote_re.search(name))
 
@@ -1445,6 +1507,7 @@ class _Renderer:
         skipped: set[str] = set()
         matched: set[str] = set()
         dyn: set[str] = set()
+        offchain: set[str] = set()  # 同一行顺带建立的、不在 anchor 链上的对象（Epipe 的 sap 同时建立接入电路，M7-4）
         for _t, sn, v in produced:
             if sn.type != "object":
                 continue
@@ -1452,6 +1515,10 @@ class _Renderer:
                 skipped.add(sn.id)
                 continue
             inst = chain.get(sn.id)
+            if inst is None and not isinstance(v, list):
+                inst = self.sibling_object(sn, v, ctx)
+                if inst is not None:
+                    offchain.add(inst)
             if inst is None or isinstance(v, list) and len(v) != 1:
                 return None
             if isinstance(v, dict) and any(isinstance(x, list) for x in v.values()):
@@ -1501,7 +1568,7 @@ class _Renderer:
                     (self.placeholder(inst) or osn.id in self.idx.shared) and self.placed(inst, ctx, objects)
                 ):
                     return None
-            if inst != chain.get(osn.id):
+            if inst != chain.get(osn.id) and inst not in offchain:
                 return None
             nid = f"{inst}/{_short(sn.id, osn.id)}"
             d = self.g.nodes.get(nid)
@@ -1519,6 +1586,19 @@ class _Renderer:
         return _Stmt(
             text, card, neg, matched & self.pending, objects, matched, params=dict(params), values=values, dyn=dyn
         )
+
+    def sibling_object(self, sn: SchemaNode, key: Any, ctx: _Ctx) -> str | None:
+        """不在 anchor 链上的对象：所属对象就在当前上下文里、键与这一行给出的相同的那个对象（M7-4：Epipe 块里的
+        sap 1/1/4:1001 写的是端口上的接入点，同时建立 Epipe 的接入电路）。"""
+        osn = self.owner_schema(sn)
+        owner = ctx.scope.get(osn.id) if osn is not None else None
+        if owner is None:
+            return None
+        for c in self.children.get(owner, []):
+            d = self.g.nodes[c]
+            if d.get("kind") == "object" and d.get("schema") == sn.id and self.key_eq(sn, d.get("key"), key):
+                return c
+        return None
 
     def placed(self, inst: str, ctx: _Ctx, objects: dict[str, str], depth: int = 0) -> bool:
         p = self.parent.get(inst, DEVICE)
@@ -1701,6 +1781,8 @@ class _Renderer:
                 if self.last_block is not None:
                     blocks.append((len(out) - self.last_tail, self.last_block))
             elif extras and self.extras_on and self.extra_place.get(c, ("", None)) == ("ctx", owner):
+                if self.style["open"] and not self.extra_here(c, ctx.view):
+                    continue  # MD-CLI（M7-4）：原文在别的视图（端口的 ethernet 下），等写那个块时再写
                 out += self.extra_lines(c, ctx.depth)
                 card = self.kb.cards.get(str(self.g.nodes[c].get("schema") or "")[4:])
                 if card is not None and card.enters_view and not self.exit_all:
@@ -1743,7 +1825,16 @@ class _Renderer:
                     if st is None:
                         continue
                     obj = n if self.g.nodes[n].get("kind") == "object" else self.parent.get(n, DEVICE)
-                    if st.card.enters_view and obj in st.objects.values():
+                    if self.style["open"] and st.card.enters_view and obj in st.dyn:
+                        # MD-CLI（M7-4）：入口行写的是别的对象上的节点（lag 下的 port 写成员口的 lag）：块里只写
+                        # 原来就在这个块里的原文（priority），成员口自己的节点在它自己的块里写
+                        got = self.take(st, ctx.depth, close=False)
+                        view, d = str(st.card.enters_view), ctx.depth + len(st.path) + 1
+                        for c in self.sorted_children(obj, ("ext", "raw", "unknown")):
+                            if self.extra_place.get(c, ("", None)) == ("ctx", obj) and self.extra_here(c, view):
+                                got += self.extra_lines(c, d)
+                        out += [*got, RLine(d - 1, self.exit_all, "exit"), *self.close_path(st, ctx.depth)]
+                    elif st.card.enters_view and obj in st.objects.values():
                         # 入口行写的是这个对象（VPRN 下的 interface、OSPF 区域下的 interface）：块内接着写它的节点
                         out += self.block_lines(ctx, obj, st, self.take(st, ctx.depth, close=False))
                     elif obj in st.objects.values() and obj in st.matched:
@@ -1944,6 +2035,7 @@ class _Renderer:
                 for n in sorted(self.inferred_used)
             ],
             self.style["root_depth"],
+            self.style["open"],
         )
 
     def run_framed(self) -> list[RLine]:
@@ -1952,14 +2044,19 @@ class _Renderer:
         secs = self.style["sections"]
         default = next((i for i, s in enumerate(secs) if s.get("default")), len(secs))
         buckets: dict[int, list[RLine]] = defaultdict(list)
-        for part in self.root_parts():
-            for chunk in _top_chunks(part):  # 一个对象可能写成多个顶层块（system 下的名称、router Base 下的 router-id）
-                buckets[self.section_of(chunk, secs, default)] += chunk
+        chunks = [c for part in self.root_parts() for c in _top_chunks(part)]
+        if self.style["open"]:
+            # MD-CLI（M7-4）：没有段落，顶层块按元素名排序（与 info 的字母序一致），同一容器（router "Base"、system）
+            # 的块排在一起后合并
+            chunks.sort(key=lambda c: c[0].text.split()[0] if c and c[0].text else "")
+        for chunk in chunks:  # 一个对象可能写成多个顶层块（system 下的名称、router Base 下的 router-id）
+            buckets[self.section_of(chunk, secs, default)] += chunk
         lines = [RLine(0, x, "frame") for x in self.style["prologue"]]
         for i in sorted(buckets):
             echo = str(secs[i].get("echo") if i < len(secs) else "Configuration")
             lines += [RLine(0, x.replace("{echo}", echo), "frame") for x in self.style["section_frame"]]
-            lines += merge_containers(buckets[i])
+            merged = merge_containers(buckets[i])
+            lines += merge_sibling_containers(merged) if self.style["open"] else merged
         lines += [RLine(0, x, "frame") for x in self.style["epilogue"]]
         return lines
 
@@ -1996,7 +2093,8 @@ def _top_chunks(part: list[RLine]) -> list[list[RLine]]:
     top = part[0].depth
     out: list[list[RLine]] = []
     for ln in part:
-        closing = ln.kind == "exit" or (ln.kind == "extra" and ln.text == "exit")  # 原文块的 exit 也是收尾
+        # 原文块的 exit（Classic）/ }（MD-CLI）也是收尾
+        closing = ln.kind == "exit" or (ln.kind == "extra" and ln.text in ("exit", "}"))
         if ln.depth == top and not (closing and out) or not out:
             out.append([ln])
         else:
@@ -2024,6 +2122,46 @@ def merge_containers(lines: list[RLine]) -> list[RLine]:
                 del out[lo:hi]
                 changed = True
                 break
+    return out
+
+
+def merge_sibling_containers(lines: list[RLine]) -> list[RLine]:
+    """MD-CLI（M7-4）：同一块里不相邻的同一容器（router "Base" 下的两个 bgp、qos 下的两个 sap-ingress "X"）也合并：
+    后一个块的内容移到前一个块的结尾之前。块内各行的先后不影响配置（花括号格式按路径合并）。"""
+    out = list(lines)
+
+    def end_of(h: int) -> int | None:
+        d = out[h].depth
+        return next((j for j in range(h + 1, len(out)) if out[j].depth <= d and out[j].kind != "frame"), None)
+
+    changed = True
+    while changed:
+        changed = False
+        for h, ln in enumerate(out):
+            if not ln.container:
+                continue
+            e = end_of(h)
+            if e is None or out[e].kind != "exit" or out[e].depth != ln.depth:
+                continue
+            stop = next((j for j in range(e + 1, len(out)) if out[j].depth < ln.depth), len(out))
+            k = next(
+                (
+                    j
+                    for j in range(e + 1, stop)
+                    if out[j].depth == ln.depth and out[j].container and out[j].text == ln.text
+                ),
+                None,
+            )
+            if k is None:
+                continue
+            ek = end_of(k)
+            if ek is None or out[ek].kind != "exit" or out[ek].depth != ln.depth:
+                continue
+            inner = out[k + 1 : ek]
+            del out[k : ek + 1]
+            out[e:e] = inner
+            changed = True
+            break
     return out
 
 
@@ -2057,7 +2195,7 @@ def _operand(g: nx.MultiDiGraph, owner: str, parent: dict[str, str], name: str) 
 
 def apply_infer(g: nx.MultiDiGraph, kb: KnowledgeBase, family: str) -> nx.MultiDiGraph:
     """推导规则（knowledge/render/<平台族>.yaml 的 infer）：目标平台族写声明行必须给出、源配置又没有的取值，
-    按同一对象的其他取值推出（same：两个取值相等；differ：不相等；“^” 表示上级对象的键）。
+    按同一对象的其他取值推出（same：两个取值相等；differ：不相等；“^” 表示上级对象的键；key: true 取对象自己的键，M7-4）。
     推出的节点 origin=inferred，不算要写出的节点，只让必须带上它的命令行通过校验；返回副本（没有推出时返回原图）。"""
     _, style = _index(kb, family)
     rules = style["infer"]
@@ -2077,6 +2215,11 @@ def apply_infer(g: nx.MultiDiGraph, kb: KnowledgeBase, family: str) -> nx.MultiD
         seq = int(rule["seq"]) if str(rule.get("seq", "")).isdigit() else None  # seq：按出现顺序编号（M7-3）
         for nid, d in g.nodes(data=True):
             if d.get("kind") != "object" or d.get("schema") != owner_schema or f"{nid}/{rel}" in g:
+                continue
+            if rule.get("key") and not isinstance(d.get("key"), dict):  # key：取所属对象自己的键（M7-4）
+                added.append((f"{nid}/{rel}", nid, sn.id, mapping.normalize(sn.type, sn.id, d.get("key"))))
+                if rule.get("write"):
+                    write.add(f"{nid}/{rel}")
                 continue
             if seq is not None:
                 added.append((f"{nid}/{rel}", nid, sn.id, mapping.normalize(sn.type, sn.id, seq)))

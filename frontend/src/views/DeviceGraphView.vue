@@ -12,6 +12,7 @@ import Icon from '@/components/Icon.vue'
 import { ApiError, errorText, get, post } from '@/api'
 import { useStatus } from '@/stores/status'
 import { useTerms } from '@/stores/terms'
+import { useProject } from '@/stores/project'
 import { rememberedChoice, rememberedFlag } from '@/stores/prefs'
 import HiddenLegend from '@/components/hidden-legend.vue'
 import ShowDefaultToggle from '@/components/show-default-toggle.vue'
@@ -28,6 +29,7 @@ import {
 } from './device-graph/model'
 import type { ApiNode, DeviceRow, GraphData, RoundtripResult, SchemaNodeInfo, SchemaTree } from './device-graph/types'
 
+const project = useProject() // 只读成员不显示修改操作（REQ-036）
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
@@ -481,7 +483,7 @@ onMounted(async () => {
           <select v-if="devices && devices.length > 1" class="select dev-sel" :value="deviceId" :aria-label="$t('device-graph.switchDevice')" data-testid="device-select" @change="switchDevice">
             <option v-for="d in devices" :key="d.id" :value="d.id">{{ d.name }}</option>
           </select>
-          <button class="btn btn-sm" :disabled="!!busy" data-testid="btn-rebuild" @click="rebuild">
+          <button v-if="project.canWrite" class="btn btn-sm" :disabled="!!busy" data-testid="btn-rebuild" @click="rebuild">
             <Icon name="refresh" small /><span>{{ busy === 'rebuild' ? $t('c.running') : $t('device-graph.rebuild') }}</span>
           </button>
           <button class="btn btn-sm" :disabled="!!busy || !graph?.text" data-testid="btn-roundtrip" @click="roundtrip">
@@ -493,7 +495,7 @@ onMounted(async () => {
           <button class="btn btn-sm" :disabled="!graph" data-testid="btn-export" @click="exportJson">
             <Icon name="download" small /><span>{{ $t('device-graph.exportJson') }}</span>
           </button>
-          <button class="btn btn-sm btn-danger" data-testid="btn-delete-device" @click="showDelete = true">
+          <button v-if="project.canWrite" class="btn btn-sm btn-danger" data-testid="btn-delete-device" @click="showDelete = true">
             <Icon name="trash" small /><span>{{ $t('devdel.deleteDeviceEllipsis') }}</span>
           </button>
         </div>

@@ -4,9 +4,11 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import { errorText, get, post } from '@/api'
+import { useProject } from '@/stores/project'
 import { fmtTime, orderPicks, revFrom, revMoves, splitLines, summaryCounts, togglePick } from './logic'
 import type { Revision, ScriptInfo } from './types'
 
+const proj = useProject() // 只读成员不能采纳重排、恢复修订（REQ-036）
 const props = defineProps<{ pid: number; script: ScriptInfo; scripts: ScriptInfo[] }>()
 const emit = defineEmits<{
   (e: 'switch', id: number): void
@@ -148,7 +150,7 @@ onMounted(() => load())
           <span class="small faint">{{ fmtTime(selRev.created_at) }} · {{ selRev.author }}</span>
           <span style="flex: 1" />
           <button v-if="selRev.id !== current?.id" class="btn btn-sm" type="button" @click="emit('diff', `rev:${selRev.id}`, `script:${script.id}`)"><Icon name="compare" small />{{ T('rev.vsCurrent') }}</button>
-          <button class="btn btn-sm" type="button" :disabled="selRev.id === current?.id" :title="selRev.id === current?.id ? T('rev.isCurrent') : ''" data-testid="cp-rev-restore" @click="confirmRes = true"><Icon name="rollback" small />{{ T('rev.restore') }}</button>
+          <button v-if="proj.canWrite" class="btn btn-sm" type="button" :disabled="selRev.id === current?.id" :title="selRev.id === current?.id ? T('rev.isCurrent') : ''" data-testid="cp-rev-restore" @click="confirmRes = true"><Icon name="rollback" small />{{ T('rev.restore') }}</button>
         </div>
         <div class="sb">
           <div v-if="pvErr" class="notice err" style="margin: 10px"><Icon name="err" /><div>{{ pvErr }}</div></div>

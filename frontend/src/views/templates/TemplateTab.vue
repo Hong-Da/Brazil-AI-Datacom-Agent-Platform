@@ -9,7 +9,8 @@ import { show } from '@/views/m3/texts'
 import { bodyCode, varConstraint, varUses } from './logic'
 import type { TemplateDetail } from './types'
 
-const props = defineProps<{ detail: TemplateDetail | null; yaml: string; editing: boolean; isNew: boolean }>()
+// readonly：共享模板对普通用户只读（REQ-036），不显示“编辑”
+const props = defineProps<{ detail: TemplateDetail | null; yaml: string; editing: boolean; isNew: boolean; readonly?: boolean }>()
 const emit = defineEmits<{ (e: 'update:yaml', v: string): void; (e: 'edit', v: boolean): void }>()
 const { t, locale } = useI18n()
 const view = ref<'body' | 'yaml'>('body')
@@ -35,7 +36,7 @@ function toggleHot(v: string): void {
           <button type="button" :aria-pressed="shownView === 'yaml'" data-testid="tpl-view-yaml" @click="view = 'yaml'">YAML</button>
         </div>
         <span class="ml-auto" />
-        <button v-if="!editing && !isNew" class="btn btn-xs" type="button" data-testid="tpl-edit" @click="emit('edit', true)"><Icon name="file" small />{{ $t('templates.edit') }}</button>
+        <button v-if="!editing && !isNew && !readonly" class="btn btn-xs" type="button" data-testid="tpl-edit" @click="emit('edit', true)"><Icon name="file" small />{{ $t('templates.edit') }}</button>
       </div>
       <M3Code v-if="shownView === 'body'" :lines="code" testid="tpl-body" class="tplcode" @var="toggleHot" />
       <textarea v-else-if="editing || isNew" class="yaml-ed mono" :value="yaml" spellcheck="false" data-testid="tpl-yaml" @input="emit('update:yaml', ($event.target as HTMLTextAreaElement).value)" />

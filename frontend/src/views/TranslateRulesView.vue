@@ -11,6 +11,7 @@ import Icon from '@/components/Icon.vue'
 import { ApiError, del, download, errorText, get, post, put } from '@/api'
 import type { Device } from '@/views/devices/logic'
 import NamingReportPanel from './translate-rules/NamingReportPanel.vue'
+import { canEdit, tabOf } from './templates/scope'
 import {
   SECTIONS, blankRules, copyId, issueAt, move, newNameRule, newNamingRule, newPortRule, normalize, titleOf, toSave, validId,
   type Issue, type MatchResult, type NamingReport, type RuleSetDetail, type RuleSetInfo, type Rules, type Section, type TypeInfo,
@@ -63,7 +64,9 @@ const busy = ref(false)
 const notice = ref<{ kind: 'ok' | 'err'; text: string } | null>(null)
 const issues = ref<Issue[]>([])
 const showYaml = ref(false)
-const readonly = computed(() => !isNew.value && !!current.value?.builtin)
+// 归属（REQ-036）：内置只读；共享的只有管理员与维护员可改；我的可改（管理员也能改别人的）。“另存为”即复制为我的规则集
+const infoOf = (id: string | undefined) => items.value.find((i) => i.id === id)
+const readonly = computed(() => !isNew.value && (!!current.value?.builtin || !canEdit(infoOf(current.value?.id))))
 const editId = computed(() => (isNew.value ? newId.value.trim() : current.value?.id ?? ''))
 
 async function open(id: string): Promise<void> {
@@ -124,7 +127,7 @@ async function save(): Promise<void> {
 }
 async function remove(): Promise<void> {
   const id = current.value?.id
-  if (!id || current.value?.builtin || !confirm(t('translate-rules.confirmDelete', { id }))) return
+  if (!id || readonly.value || !confirm(t('translate-rules.confirmDelete', { id }))) return
   try {
     await del(`/translate-rules/${encodeURIComponent(id)}`)
     current.value = null
@@ -234,8 +237,11 @@ async function dryRun(): Promise<void> {
   }
 }
 
-const builtin = computed(() => items.value.filter((i) => i.builtin))
-const mine = computed(() => items.value.filter((i) => !i.builtin))
+const GROUPS = computed(() => [
+  { k: 'builtin', rows: items.value.filter((i) => i.builtin) },
+  { k: 'shared', rows: items.value.filter((i) => !i.builtin && tabOf(i) === 'shared') },
+  { k: 'mine', rows: items.value.filter((i) => !i.builtin && tabOf(i) === 'mine') },
+])
 const counts = computed(() => ({ names: rules.value.names.length, naming: rules.value.naming.length, ports: rules.value.ports.length }))
 
 onMounted(async () => {
@@ -269,14 +275,15 @@ onMounted(async () => {
         <!-- 列表 -->
         <aside class="panel list" data-testid="trs-list">
           <div class="panel-h"><h2>{{ $t('translate-rules.sets') }}</h2><span class="meta">{{ items.length }}</span></div>
-          <div v-for="grp in [{ k: 'builtin', rows: builtin }, { k: 'mine', rows: mine }]" :key="grp.k" class="grp">
+          <div v-for="grp in GROUPS" v-show="grp.k !== 'shared' || grp.rows.length" :key="grp.k" class="grp" :data-testid="`trs-grp-${grp.k}`">
             <div class="grp-h">{{ $t(`translate-rules.${grp.k}`) }}</div>
             <div v-if="!grp.rows.length" class="small faint pad">{{ grp.k === 'mine' ? $t('translate-rules.noMine') : '—' }}</div>
             <button
               v-for="i in grp.rows" :key="i.id" type="button" class="item" :aria-current="current?.id === i.id && !isNew" :data-testid="`trs-item-${i.id}`"
               @click="open(i.id)"
             >
-              <span class="it">{{ titleOf(i, lang) }}</span>
+              <span class="it">{{ titleOf(i, lang) }}<Icon v-if="!i.builtin && !canEdit(i)" name="lock" small class="ro-ic" /></span>
+              <span v-if="i.scope === 'user'" class="small faint">{{ $t('translate-rules.ownerIs', { u: i.owner ?? '—' }) }}</span>
               <span class="mono small faint">{{ i.id }}</span>
               <span class="small faint">
                 <template v-if="i.valid !== false">{{ i.from || '*' }} → {{ i.to || '*' }} · {{ i.counts?.names ?? 0 }} / {{ i.counts?.naming ?? 0 }} / {{ i.counts?.ports ?? 0 }}</template>
@@ -297,14 +304,15 @@ onMounted(async () => {
               <template v-else>
                 <h2>{{ titleOf(current!, lang) }}</h2>
                 <span class="mono small faint">{{ current!.id }}</span>
-                <span v-if="current!.builtin" class="tag default"><Icon name="lock" small />{{ $t('translate-rules.readonly') }}</span>
+                <span v-if="readonly" class="tag default" data-testid="trs-readonly"><Icon name="lock" small />{{ $t('translate-rules.readonly') }}</span>
+                <span v-if="infoOf(current!.id)?.scope === 'user'" class="tag">{{ $t('translate-rules.ownerIs', { u: infoOf(current!.id)?.owner ?? '—' }) }}</span>
               </template>
             </div>
             <div class="ed-act">
               <button class="btn btn-sm" type="button" :aria-pressed="showYaml" data-testid="trs-yaml" :disabled="isNew" @click="showYaml = !showYaml"><Icon name="file" small />YAML</button>
               <button v-if="!isNew" class="btn btn-sm" type="button" data-testid="trs-export" @click="exportYaml"><Icon name="download" small />{{ $t('translate-rules.export') }}</button>
-              <button v-if="!isNew" class="btn btn-sm" type="button" data-testid="trs-saveas" @click="startNew(rules)"><Icon name="copy" small />{{ $t('translate-rules.saveAs') }}</button>
-              <button v-if="!isNew && !current?.builtin" class="btn btn-sm" type="button" data-testid="trs-delete" @click="remove"><Icon name="trash" small />{{ $t('c.delete') }}</button>
+              <button v-if="!isNew" class="btn btn-sm" type="button" data-testid="trs-saveas" @click="startNew(rules)"><Icon name="copy" small />{{ readonly ? $t('translate-rules.copyMine') : $t('translate-rules.saveAs') }}</button>
+              <button v-if="!isNew && !readonly" class="btn btn-sm" type="button" data-testid="trs-delete" @click="remove"><Icon name="trash" small />{{ $t('c.delete') }}</button>
               <button class="btn btn-primary btn-sm" type="button" :disabled="readonly || busy" data-testid="trs-save" @click="save"><Icon name="check" small />{{ $t('c.save') }}</button>
             </div>
           </div>
@@ -495,4 +503,5 @@ onMounted(async () => {
 .dry .select { width: auto; min-width: 220px; max-width: 100%; }
 @media (max-width: 1500px) { .ed-body { grid-template-columns: minmax(0, 1fr); } .tester { position: static; } }
 @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } .meta-f { grid-template-columns: minmax(0, 1fr); } }
+.ro-ic { color: var(--ink-3); margin-left: 4px; vertical-align: -2px; }
 </style>

@@ -6,6 +6,8 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import HiddenLegend from '@/components/hidden-legend.vue'
 import { useTerms } from '@/stores/terms'
+import { useProject } from '@/stores/project'
+import { useAuth } from '@/stores/auth'
 import { ApiError, del, errorText, get, post, put } from '@/api'
 import type { Device } from './devices/logic'
 import CheckTabs from './check/CheckTabs.vue'
@@ -20,7 +22,10 @@ import {
 import { SEVERITIES, type CheckResult, type Finding, type Rule, type Severity } from './check/types'
 
 const { t, locale } = useI18n()
+const project = useProject() // 只读成员不显示修改操作（REQ-036）
 const terms = useTerms()
+// 共享检查规则的开关与级别只限管理员与知识库维护员（REQ-036）；项目里的调整在项目设置
+const auth = useAuth()
 const route = useRoute()
 const router = useRouter()
 const lang = computed(() => String(locale.value))
@@ -449,8 +454,8 @@ onMounted(async () => {
                   </router-link>
                   <router-link v-if="cleanable(selected)" class="btn btn-sm btn-blue" :to="{ name: 'cleanup' }" data-testid="go-cleanup"><Icon name="broom" small />{{ $t('check.goCleanup') }}</router-link>
                   <template v-if="canIgnore">
-                    <button v-if="selected.ignored" class="btn btn-sm btn-ghost ml-auto" type="button" :disabled="busy" data-testid="btn-unignore" @click="unignore">{{ $t('check.unignore') }}</button>
-                    <button v-else-if="!ignoreOpen" class="btn btn-sm btn-ghost ml-auto" type="button" data-testid="btn-ignore" @click="ignoreOpen = true"><Icon name="eyeOff" small />{{ $t('check.ignore') }}</button>
+                    <button v-if="selected.ignored && project.canWrite" class="btn btn-sm btn-ghost ml-auto" type="button" :disabled="busy" data-testid="btn-unignore" @click="unignore">{{ $t('check.unignore') }}</button>
+                    <button v-else-if="!ignoreOpen && project.canWrite" class="btn btn-sm btn-ghost ml-auto" type="button" data-testid="btn-ignore" @click="ignoreOpen = true"><Icon name="eyeOff" small />{{ $t('check.ignore') }}</button>
                   </template>
                   <span v-else class="small faint ml-auto">{{ $t('check.ignoreTextMode') }}</span>
                 </div>
@@ -463,6 +468,7 @@ onMounted(async () => {
       <!-- 规则 -->
       <section v-else class="ck-rules" data-testid="tab-rules-panel">
         <div class="notice info rules-note"><Icon name="info" /><div class="grow">{{ $t('check.rulesNote') }}</div></div>
+        <div v-if="!auth.isKbEditor" class="ro-ribbon rules-note" data-testid="rules-ro"><Icon name="lock" small /><div class="grow">{{ $t('kbsugg.kbEditorOnly') }}</div></div>
         <div v-if="rulesError" class="notice err rules-note">
           <Icon name="err" /><div class="grow">{{ rulesError }}
             <ul v-if="failIssues.length" class="issues mono small"><li v-for="(x, i) in failIssues" :key="i">{{ x }}</li></ul>
@@ -477,12 +483,12 @@ onMounted(async () => {
               </tr></thead>
               <tbody>
                 <tr v-for="r in rules" :key="r.id" :class="{ off: !r.enabled }" data-testid="rule-row">
-                  <td><label class="switch"><input type="checkbox" :checked="r.enabled" :aria-label="titleOf(r.id)" :data-testid="`rule-on-${r.id}`" @change="saveRule(r, { enabled: ($event.target as HTMLInputElement).checked })" /><span></span></label></td>
+                  <td><label class="switch"><input type="checkbox" :checked="r.enabled" :aria-label="titleOf(r.id)" :disabled="!auth.isKbEditor" :data-testid="`rule-on-${r.id}`" @change="saveRule(r, { enabled: ($event.target as HTMLInputElement).checked })" /><span></span></label></td>
                   <td class="mono nowrap">{{ r.id }}</td>
                   <td>{{ titleOf(r.id) }}</td>
                   <td class="mono">{{ r.domain || $t('check.allDomainsShort') }}</td>
                   <td>
-                    <select class="select" :value="r.severity" :aria-label="$t('check.colSeverity')" @change="saveRule(r, { severity: ($event.target as HTMLSelectElement).value as Severity })">
+                    <select class="select" :value="r.severity" :aria-label="$t('check.colSeverity')" :disabled="!auth.isKbEditor" @change="saveRule(r, { severity: ($event.target as HTMLSelectElement).value as Severity })">
                       <option v-for="s in SEVERITIES" :key="s" :value="s">{{ sevText(s) }}</option>
                     </select>
                   </td>

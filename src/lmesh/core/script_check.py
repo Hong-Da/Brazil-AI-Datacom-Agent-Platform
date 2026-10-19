@@ -44,7 +44,11 @@ SEVERITIES = ("error", "warning", "info")
 CATEGORIES = ("parse", "view", "undo", "override", "side_effect", "order", "conflict", "rule", "ai")
 AI_STATUSES = ("passed", "unverifiable")
 _SEV_RANK = {"error": 3, "warning": 2, "info": 1}
-_SESSION = re.compile(r"^(system-view|sys|configure(\s+terminal)?|conf(ig)?\s+t(erm(inal)?)?|commit|return|end)$", re.I)
+_SESSION = re.compile(
+    r"^(system-view|sys|configure(\s+terminal)?|conf(ig)?\s+t(erm(inal)?)?|commit|return|end"
+    r"|edit-config(\s+(private|exclusive|global|read-only))?|quit-config)$",  # MD-CLI 的编辑会话（M7-4）
+    re.I,
+)
 _WS = re.compile(r"\s+")
 REORDER_PRIORITY = ["same_target", "anchor", "side_effect", "referenced_by", "reference", "contains"]
 
@@ -252,11 +256,19 @@ def track(text: str, kb: KnowledgeBase, family: str) -> list[SLine]:
     wrap = canon.load_style(kb, family)["wrap"]
     out: list[SLine] = []
     stack: list[_Frame] = []
+    braces = fam.block == "braces"
+    if braces:  # MD-CLI（M7-4）：块头行尾的 { / { } 不是命令的一部分（行号不变）
+        raw_lines = [r if r.strip() == "}" else (re.sub(r"\s*\{\s*\}?\s*$", "", r) or r) for r in raw_lines]
     for no, raw in enumerate(raw_lines, start=1):
         s = raw.strip()
         ind = len(raw.expandtabs(1)) - len(raw.expandtabs(1).lstrip())
         if not s:
             out.append(SLine(no, raw, "blank"))
+            continue
+        if braces and s == "}":  # } 关闭块
+            if stack:
+                stack.pop()
+            out.append(SLine(no, raw, "exit"))
             continue
         if s == fam.separator:
             if ind == 0:

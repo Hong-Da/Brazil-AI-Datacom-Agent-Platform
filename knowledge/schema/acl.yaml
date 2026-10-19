@@ -19,6 +19,13 @@ nodes:
     type: integer
     semantic: {zh-CN: 命名 ACL 同时指定的编号（华为 acl name … number）, en: ACL number}
     alias: true  # M3 知识库补缺：按编号引用命名 ACL（acl name X number N 被以 N 引用）时也能找到
+  # M7-4：Nokia 过滤器的名称（MD-CLI 的 ip-filter "名称" 是列表键、filter-id 是编号，SAP 按名称引用；对象仍以编号为键，
+  # 与 Classic 的 ip-filter <编号> name "名称" 一致）。alias：按名称引用时也能找到
+  acl.instance.filter_name:
+    parent: acl.instance
+    type: string
+    semantic: {zh-CN: 过滤器名称（Nokia ip-filter 的 name；MD-CLI 按名称引用）, en: Filter name (Nokia), pt-BR: Nome do filtro (Nokia)}
+    alias: true
   acl.instance.match_order:
     parent: acl.instance
     type: enum

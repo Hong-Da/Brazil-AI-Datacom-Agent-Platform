@@ -6,7 +6,8 @@
     vpn-target { <vpn-target> } &<1-8> [ export-extcommunity | import-extcommunity ]
 - 关键字直接写；参数用 <名称>；可选部分用 [ ]（里面可以有 | 表示可选的多选一）；多选一用 { a | b }；
   &<1-N> 跟在一个元素后面表示它可以重复 1 到 N 次（华为文档的写法）。
-- 参数的类型来自命令卡的 params（integer / ipv4 / mask / prefix / word / text / enum / port / sap …）；text 吃掉行尾剩余的全部内容（含空格）。
+- 参数的类型来自命令卡的 params（integer / ipv4 / mask / prefix / word / text / enum / port / sap …）；text 吃掉行尾剩余的全部内容（含空格）；
+  leaflist（M7-4，Nokia MD-CLI 的叶子列表）吃掉 [ … ] 整段（取值是原文，映射用 list: 拆成列表），没有括号时是一个词。
 - 引号字符串（平台族 quotes: true，Nokia）：分词时 "a b" 是一个词，参数取值去掉引号（图的键与引用不带引号），
   Match.quoted 记录哪些参数原文带引号，渲染时按原文写回。
 
@@ -207,6 +208,7 @@ TYPE_CHECKS: dict[str, Any] = {
     "word": lambda v, s: True,
     "string": lambda v, s: True,
     "text": lambda v, s: True,
+    "leaflist": lambda v, s: True,  # M7-4（Nokia MD-CLI 叶子列表）：[ "a" "b" ] 整段，或单个取值
 }
 
 
@@ -214,6 +216,9 @@ def type_ok(value: str, spec: dict[str, Any] | None) -> bool:
     spec = spec or {}
     choices = spec.get("choices")
     if choices and value not in choices:
+        return False
+    pattern = spec.get("pattern")  # M7-4：参数取值的附加限制（正则，整个取值匹配；例如 MD-CLI 的端口不含 lag-）
+    if pattern and not re.fullmatch(str(pattern), value):
         return False
     check = TYPE_CHECKS.get(spec.get("type", "word"), TYPE_CHECKS["word"])
     return bool(check(value, spec))
@@ -309,7 +314,15 @@ def _one(
     elif isinstance(n, Param):
         spec = params.get(n.name, {})
         quotes = _QUOTES_FLAG in params
-        if spec.get("type") == "text":
+        if spec.get("type") == "leaflist" and i < len(toks) and toks[i][0].startswith("["):
+            # MD-CLI 叶子列表 [ "a" "b" ]：到以 ] 结尾的词为止整段是一个取值（原文，含引号与括号），映射用 list: 拆开
+            for j in range(i, len(toks)):
+                if toks[j][0].endswith("]"):
+                    m2 = m.copy()
+                    m2.values[n.name] = line[toks[i][1] : toks[j][1] + len(toks[j][0])]
+                    yield j + 1, m2
+                    break
+        elif spec.get("type") == "text":
             if i < len(toks):
                 m2 = m.copy()
                 rest = line[toks[i][1] :].rstrip()

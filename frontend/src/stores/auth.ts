@@ -2,13 +2,19 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { post } from '@/api'
 
-/** 当前登录的账号（REQ-030）。会话放在 HttpOnly Cookie 里，前端只知道账号名与角色。 */
+/** 当前登录的账号（REQ-030）。会话放在 HttpOnly Cookie 里，前端只知道账号名与角色。
+ *  M6：角色多了知识库维护员（maintainer）；个人令牌（via = pat）可以是只读的。 */
+export type Role = 'admin' | 'maintainer' | 'user'
 export interface Me {
   username: string
-  role: 'admin' | 'user'
-  via: 'session' | 'token'
+  role: Role
+  via: 'session' | 'token' | 'pat'
   expires_at: string | null
+  read_only?: boolean
+  token_prefix?: string | null
 }
+
+export const normRole = (r: string | null | undefined): Role => (r === 'admin' || r === 'maintainer' ? r : 'user')
 
 /** 读当前账号：没登录时返回 null（不跳转，路由守卫自己决定去登录页）。 */
 export async function fetchMe(): Promise<Me | null> {
@@ -26,6 +32,8 @@ export const useAuth = defineStore('auth', () => {
   const me = ref<Me | null>(null)
   const loaded = ref(false)
   const isAdmin = computed(() => me.value?.role === 'admin')
+  /** 知识库与共享内容（规则、模板）可以修改：管理员与维护员（REQ-036） */
+  const isKbEditor = computed(() => (me.value?.role === 'admin' || me.value?.role === 'maintainer') && !me.value?.read_only)
 
   async function load(force = false): Promise<Me | null> {
     if (loaded.value && !force) return me.value
@@ -35,7 +43,7 @@ export const useAuth = defineStore('auth', () => {
   }
 
   function set(user: { username: string; role: string } | null, expires: string | null = null): void {
-    me.value = user ? { username: user.username, role: user.role === 'admin' ? 'admin' : 'user', via: 'session', expires_at: expires } : null
+    me.value = user ? { username: user.username, role: normRole(user.role), via: 'session', expires_at: expires } : null
     loaded.value = true
   }
 
@@ -44,5 +52,5 @@ export const useAuth = defineStore('auth', () => {
     set(null)
   }
 
-  return { me, loaded, isAdmin, load, set, logout }
+  return { me, loaded, isAdmin, isKbEditor, load, set, logout }
 })

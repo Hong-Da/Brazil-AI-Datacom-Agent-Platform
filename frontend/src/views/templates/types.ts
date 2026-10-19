@@ -15,7 +15,13 @@ export interface TemplateInfo {
   blocks: number
   valid: boolean
   issues: TemplateIssue[]
+  /** 归属（M6）：shared 共享 / mine 我的 / user 别人的（管理员才看得到）/ builtin 内置 */
+  scope?: TemplateScope
+  owner?: string | null
+  editable?: boolean
 }
+
+export type TemplateScope = 'shared' | 'mine' | 'user' | 'builtin'
 
 export interface TemplateIssue { where?: string; key: string; args?: Record<string, unknown> }
 
@@ -55,6 +61,8 @@ export interface TemplateDetail {
   digest: string
   body: string
   source: string
+  scope?: TemplateScope
+  editable?: boolean
 }
 
 export interface Finding {

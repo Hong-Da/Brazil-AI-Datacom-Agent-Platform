@@ -3,6 +3,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { get, post, errorText } from '@/api'
 import Icon from '@/components/Icon.vue'
+import { useAuth } from '@/stores/auth'
 import {
   APPROVABLE, EDIT_FIELDS, KIND_TONE, changedFields, isAi, previewComplete, rejectNote, splitTitle,
   unknownCardEmpty, unknownCardReady, type EditField, type ReviewItem, type UnknownCard,
@@ -11,6 +12,7 @@ import {
 const props = defineProps<{ itemId: number | null }>()
 const emit = defineEmits<{ decided: [id: number, approved: boolean] }>()
 const { t } = useI18n()
+const auth = useAuth()
 
 const item = ref<ReviewItem | null>(null)
 const loading = ref(false)
@@ -101,6 +103,7 @@ function startReject(): void {
 }
 
 async function decide(approve: boolean): Promise<void> {
+  if (!auth.isKbEditor) return
   const it = item.value
   if (!it || busy.value) return
   if (approve && !approvable.value) return
@@ -262,6 +265,7 @@ defineExpose({
       </div>
 
       <div v-if="item.status !== 'pending'" class="actbar"><span class="hint">{{ $t('review.decided') }}</span></div>
+      <div v-else-if="!auth.isKbEditor" class="actbar" data-testid="review-ro"><span class="hint"><Icon name="lock" small /> {{ $t('review.roNote') }}</span></div>
       <div v-else-if="mode === 'reject'" class="reject-box" data-testid="review-reject-box">
         <span class="small" style="color: var(--red-ink); font-weight: 600">{{ $t('review.reason') }}</span>
         <select v-model="reason" class="select" data-testid="review-reason">

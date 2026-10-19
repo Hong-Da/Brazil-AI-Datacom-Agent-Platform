@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { download, errorText, get } from '@/api'
 import Icon from '@/components/Icon.vue'
+import { useAuth } from '@/stores/auth'
+import KbRoRibbon from '@/components/kb-ro-ribbon.vue'
 import { useStatus } from '@/stores/status'
 import CompareTab from './profiles/CompareTab.vue'
 import EntryEditor from './profiles/EntryEditor.vue'
@@ -20,6 +22,7 @@ import type { Entry, ProfileDetail, ProfileList } from './profiles/types'
 const route = useRoute()
 const router = useRouter()
 const status = useStatus()
+const auth = useAuth()
 const { t } = useI18n()
 const terms = useTerms()
 /** 默认值列（REQ-028）：Profile 管理就是维护缺省值的地方，默认显示；选择每个浏览器记住 */
@@ -147,12 +150,13 @@ async function exportKb() {
           <button class="btn" :disabled="exporting" :title="$t('profiles.exportKbHint')" data-testid="profiles-export-kb" @click="exportKb">
             <Icon name="download" small />{{ $t('profiles.exportKb') }}
           </button>
-          <button class="btn btn-primary" :disabled="!list" data-testid="profiles-new" @click="showNew = true">
+          <button v-if="auth.isKbEditor" class="btn btn-primary" :disabled="!list" data-testid="profiles-new" @click="showNew = true">
             <Icon name="plus" small />{{ $t('profiles.newProfile') }}
           </button>
         </div>
       </div>
 
+      <KbRoRibbon />
       <div class="tabs" role="tablist">
         <button role="tab" :aria-selected="tab === 'list'" data-testid="tab-list" @click="tab = 'list'">{{ $t('profiles.tabList') }}</button>
         <button role="tab" :aria-selected="tab === 'cmp'" data-testid="tab-compare" @click="tab = 'cmp'">{{ $t('profiles.tabCompare') }}</button>

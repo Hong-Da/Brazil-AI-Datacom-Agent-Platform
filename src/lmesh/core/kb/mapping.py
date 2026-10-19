@@ -25,7 +25,13 @@
                             wild 长度换成反掩码（过滤器 src-ip 192.0.2.0/24 → 0.0.0.255）
            pre:词:表达式    取值写成 词:值 时去掉前缀（M7-3，Nokia vrf-target target:64500:1 → 64500:1）
            via:对象类型:属性:表达式  以表达式的取值为键找到该类型的对象，取它的属性（M7-3，Nokia spoke-sdp 12:1001
-                            的伪线对端 = SDP 12 的 far-end）；对象要先出现
+                            的伪线对端 = SDP 12 的 far-end）；对象在后面才出现时建图做第二遍（M7-4）
+           by:对象类型:属性:表达式   via 的反向：属性等于表达式取值的那个对象的键（M7-4，Nokia MD-CLI 按名称引用客户、
+                            QoS 策略、过滤器：customer "ACME" → 客户编号 100）；没有这样的对象时取值本身就是键
+           list:表达式      MD-CLI 叶子列表 [ "a" "b" ] 拆成列表（M7-4）；没有括号的单个取值是一个元素的列表
+           scale:倍数:表达式  数值乘以倍数（M7-4，MD-CLI VRRP message-interval 的单位是 0.1 秒：scale:0.1 换成秒）；
+                            结果不是整数时取不到值
+           strip:文字:表达式  去掉取值开头的文字（M7-4，MD-CLI 的 LAG 名 lag-1 → 编号 1）
            其他             文字常量
     对象节点的表达式给出对象的键：单键直接写；复合键写成 {字段: 表达式}。
     目标路径里的固定键也可以是表达式（M7-3）：interface{name=$port-id}.lag 表示“属于键为参数 port-id 的那个接口”，
@@ -33,7 +39,9 @@
     以 @ 开头的目标是指令而不是节点：@container 表示这张卡只是进入一个容器视图（Nokia 的 system、router Base、
     static-route-entry <前缀>），本身不产生节点，也不作为未映射命令（ext）；@share 表示这一行建立的对象对它后面的
     兄弟行也可见（Nokia router 下的 autonomous-system 建立 BGP 实例，之后的 bgp 块在它下面）；@frame 表示编辑会话的
-    框架命令（Nokia policy-options 下的 begin / commit），不产生节点，规范渲染与变更脚本按 render 的 wrap 写出。
+    框架命令（Nokia policy-options 下的 begin / commit），不产生节点，规范渲染与变更脚本按 render 的 wrap 写出；
+    @first（M7-4）表示建图时这一行先于它的兄弟行处理（MD-CLI 按字母序输出，对象的编号 customer-id / filter-id / policy-id
+    写在描述与子块之后：先建立对象，再处理描述与条目）。
 
 映射规则文件 knowledge/mappings/<平台族>.yaml：{view（正则，可省）, syntax（正则）, maps}，
 lmesh kb map 把规则套到所有匹配的命令卡上（同一命令在多个视图中的变体一次覆盖），结果写进命令卡的 maps。
@@ -55,8 +63,25 @@ _IPV4 = re.compile(r"^\d+\.\d+\.\d+\.\d+$")
 CONTAINER = "@container"  # 目标指令：容器卡（见模块说明）
 SHARE = "@share"  # 目标指令：这一行建立的对象对后面的兄弟行可见（见模块说明）
 FRAME = "@frame"  # 目标指令：编辑会话的框架命令（Nokia policy-options 的 begin / commit），不产生节点，渲染时按 render 的 wrap 写
-DIRECTIVES = (CONTAINER, SHARE, FRAME)
-_DYNAMIC = ("$", "ctx:", "sap:", "pfx:", "pre:", "via:", "fmt:", "kw:", "tail:")
+FIRST = "@first"  # 目标指令（M7-4）：建图时先于兄弟行处理（见模块说明）
+DIRECTIVES = (CONTAINER, SHARE, FRAME, FIRST)
+_DYNAMIC = ("$", "ctx:", "sap:", "pfx:", "pre:", "via:", "fmt:", "kw:", "tail:", "by:", "list:", "scale:", "strip:")
+_PREFIXED = (
+    "fmt:",
+    "kw:",
+    "tail:",
+    "if:",
+    "unless:",
+    "ctx:",
+    "sap:",
+    "pfx:",
+    "pre:",
+    "via:",
+    "by:",
+    "list:",
+    "scale:",
+    "strip:",
+)
 
 
 @dataclass
@@ -93,6 +118,39 @@ def tokens(text: str, quotes: bool = False) -> list[str]:
     from lmesh.core.kb import syntax as syn
 
     return [syn.unquote(w)[0] for w, _ in syn.tokenize_line(text, True)]
+
+
+def split_leaflist(value: Any) -> list[str] | None:
+    """MD-CLI 叶子列表的原文 [ "a" "b" ] → ["a", "b"]（M7-4）；没有括号的单个取值 → [取值]；已是列表时逐个拆开。"""
+    if value in (None, "", []):
+        return None
+    if isinstance(value, list):
+        out: list[str] = []
+        for v in value:
+            out += split_leaflist(v) or []
+        return out or None
+    from lmesh.core.kb import syntax as syn
+
+    s = str(value).strip()
+    if s.startswith("[") and s.endswith("]"):
+        s = s[1:-1]
+    items = [syn.unquote(w)[0] for w, _ in syn.tokenize_line(s, True)]
+    return items or None
+
+
+def join_leaflist(values: Any) -> str:
+    """split_leaflist 的逆：["a", "b"] → ["a" "b"]（规范渲染写 MD-CLI 叶子列表；取值是数字、地址时不加引号）。"""
+    items = values if isinstance(values, list | tuple) else str(values).split()
+    return "[" + " ".join(str(v) if re.fullmatch(r"[\d.:/]+", str(v)) else f'"{v}"' for v in items) + "]"
+
+
+def scale_value(value: Any, factor: str) -> str | None:
+    """scale: 的计算：取值 × 倍数，结果是整数时返回整数文本，否则 None。"""
+    try:
+        r = float(str(value)) * float(factor)
+    except ValueError:
+        return None
+    return str(int(round(r))) if abs(r - round(r)) < 1e-9 else None
 
 
 def split_sap(value: Any) -> dict[str, str] | None:
@@ -256,6 +314,28 @@ def evaluate(
         if key in (None, "", []) or look is None:
             return None
         return look(schema, str(key[0] if isinstance(key, list) else key), attr)
+    if e.startswith("by:"):
+        _, schema, attr, rest = e.split(":", 3)
+        want = evaluate(rest, values, tokens, negated, auto, ctx)
+        rl = (ctx or {}).get("rlookup")
+        if want in (None, "", []) or rl is None:
+            return None
+        w = str(want[0] if isinstance(want, list) else want)
+        keys = rl(schema, attr, w)
+        return keys[0] if keys else w  # 没有这样的对象：取值本身就是键（引用不存在的对象，由依赖检查报悬空）
+    if e.startswith("list:"):
+        return split_leaflist(evaluate(e[5:], values, tokens, negated, auto, ctx))
+    if e.startswith("scale:"):
+        _, factor, rest = e.split(":", 2)
+        v = evaluate(rest, values, tokens, negated, auto, ctx)
+        v = v[0] if isinstance(v, list) and v else v
+        return None if v in (None, "", []) else scale_value(v, factor)
+    if e.startswith("strip:"):
+        _, word, rest = e.split(":", 2)
+        v = evaluate(rest, values, tokens, negated, auto, ctx)
+        if isinstance(v, str) and v.lower().startswith(word.lower()) and len(v) > len(word):
+            return v[len(word) :]
+        return v
     if e.startswith("if:"):
         _, kw, rest = e.split(":", 2)
         if kw.startswith("$"):  # if:$参数:表达式——该参数有值时才取（Cisco host X 记反掩码 0.0.0.0）
@@ -308,7 +388,7 @@ def evaluate(
             v = values.get(alt[1:])
             if v not in (None, "", []):
                 return v
-        elif alt.startswith(("fmt:", "kw:", "tail:", "if:", "unless:", "ctx:", "sap:", "pfx:", "pre:", "via:")):
+        elif alt.startswith(_PREFIXED):
             v = evaluate(alt, values, tokens, negated, auto, ctx)
             if v not in (None, "", []):
                 return v

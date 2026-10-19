@@ -12,6 +12,8 @@ import { allDeps, allNodes, buildTree, depStyle, edgesOf, filterTree, nodeDomain
 import StyleForms from './schema/StyleForms.vue'
 import { styleForm } from './schema/styles'
 import { useTerms } from '@/stores/terms'
+import { useAuth } from '@/stores/auth'
+import KbRoRibbon from '@/components/kb-ro-ribbon.vue'
 import {
   errorDetails, formToBody, isDirty, newForm, nodeToForm, parseRange, SEM_LANGS, STATUSES, usageGroups, validateForm,
   descendants, type NodeForm, type NodeUsage,
@@ -30,6 +32,8 @@ const route = useRoute()
 const router = useRouter()
 const status = useStatus()
 const terms = useTerms()
+// 知识库只有管理员与维护员可以修改（REQ-036）；普通用户只读查看
+const auth = useAuth()
 
 const loading = ref(true)
 const loadError = ref('')
@@ -343,6 +347,7 @@ function semLabel(l: string): string {
         </div>
       </div>
 
+      <KbRoRibbon />
       <div v-if="loading" class="panel"><div class="empty"><p>{{ $t('c.loading') }}</p></div></div>
       <div v-else-if="loadError" class="notice err" data-testid="se-error">
         <Icon name="err" />
@@ -355,7 +360,7 @@ function semLabel(l: string): string {
         <aside class="panel p-tree">
           <div class="tsearch">
             <label class="input-wrap" style="flex: 1"><Icon name="search" small /><input v-model="tq" class="input" type="search" :placeholder="$t('schema-edit.filter')" data-testid="se-filter" /></label>
-            <button class="btn btn-icon" :title="$t('schema-edit.newRoot')" data-testid="se-new-root" @click="startCreate(null)"><Icon name="plus" small /></button>
+            <button v-if="auth.isKbEditor" class="btn btn-icon" :title="$t('schema-edit.newRoot')" data-testid="se-new-root" @click="startCreate(null)"><Icon name="plus" small /></button>
           </div>
           <div class="scroll tree" data-testid="se-tree">
             <template v-for="g in tree" :key="g.domain">
@@ -391,7 +396,7 @@ function semLabel(l: string): string {
                   <span v-else class="tag t-teal">{{ $t('schema-edit.active') }}</span>
                   <span v-if="sel && draftNodes.has(sel)" class="tag warn">{{ $t('schema-edit.modifiedInDraft') }}</span>
                   <span v-if="dirty && !creating" class="tag t-amber">{{ $t('schema-edit.unsaved') }}</span>
-                  <span v-if="!creating && current" class="ml-auto row">
+                  <span v-if="!creating && current && auth.isKbEditor" class="ml-auto row">
                     <button class="btn btn-sm" data-testid="se-new-child" @click="startCreate(current)"><Icon name="plus" small />{{ $t('schema-edit.newChild') }}</button>
                     <button v-if="current.deprecated" class="btn btn-sm" :disabled="saving" data-testid="se-restore" @click="restore"><Icon name="rollback" small />{{ $t('schema-edit.restore') }}</button>
                     <button v-else class="btn btn-sm" data-testid="se-deprecate" @click="openDeprecate">{{ $t('schema-edit.markDeprecated') }}</button>
@@ -424,6 +429,7 @@ function semLabel(l: string): string {
                 <span v-if="formDomain" class="meta mono">schema/{{ formDomain }}.yaml</span>
               </div>
               <div class="panel-b">
+                <fieldset class="ro-fs" :disabled="!auth.isKbEditor">
                 <div class="form-grid">
                   <div class="field">
                     <label>{{ $t('schema-edit.id') }}</label>
@@ -510,6 +516,7 @@ function semLabel(l: string): string {
                   </div>
                 </div>
 
+                </fieldset>
                 <div v-if="saveError" class="notice err mt12" data-testid="se-save-error">
                   <Icon name="err" />
                   <div class="grow">
@@ -518,11 +525,11 @@ function semLabel(l: string): string {
                     <ul v-if="saveError.details.length" class="small mt8 errlist"><li v-for="(d, i) in saveError.details" :key="i" class="mono">{{ d }}</li></ul>
                   </div>
                 </div>
-                <div class="row mt16">
+                <div v-if="auth.isKbEditor" class="row mt16">
                   <button class="btn btn-primary" :disabled="!canSave" data-testid="se-save" @click="save">{{ saving ? $t('schema-edit.saving') : $t('schema-edit.save') }}</button>
                   <button class="btn btn-ghost" :disabled="saving || (!dirty && !creating)" data-testid="se-discard" @click="discard">{{ $t('schema-edit.discard') }}</button>
                 </div>
-                <p class="small faint mt8">{{ $t('schema-edit.saveHint') }}</p>
+                <p v-if="auth.isKbEditor" class="small faint mt8">{{ $t('schema-edit.saveHint') }}</p>
               </div>
             </div>
 
@@ -691,6 +698,7 @@ function semLabel(l: string): string {
 </template>
 
 <style scoped>
+.ro-fs { border: 0; padding: 0; margin: 0; min-width: 0; }
 .se { flex: 1; min-height: 0; display: grid; gap: 10px; grid-template-columns: 290px minmax(0, 1fr) 360px; grid-template-areas: "tree edit side"; }
 .p-tree { grid-area: tree; display: flex; flex-direction: column; overflow: hidden; }
 .p-tree .tsearch { padding: 8px; border-bottom: 1px solid var(--line); display: flex; gap: 6px; }

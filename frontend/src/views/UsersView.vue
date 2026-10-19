@@ -4,10 +4,14 @@ import { useI18n } from 'vue-i18n'
 import { del, errorText, get, post, put } from '@/api'
 import { useAuth } from '@/stores/auth'
 import Icon from '@/components/Icon.vue'
-import { counts, isLastAdmin, passwordProblems, shortTime, stateOf, validName, type UserRow } from './account/account'
+import {
+  counts, deleteUserPath, isLastAdmin, passwordProblems, PERM_MATRIX, ROLES, shortTime, stateOf, transferTargets, validName,
+  type AccountRole, type OwnedProject, type Perm, type UserRow,
+} from './account/account'
 
 type Dialog =
   | { kind: 'new' }
+  | { kind: 'role'; user: UserRow }
   | { kind: 'reset'; user: UserRow }
   | { kind: 'disable'; user: UserRow }
   | { kind: 'delete'; user: UserRow }
@@ -23,7 +27,16 @@ const toast = ref('')
 const dialog = ref<Dialog | null>(null)
 const dlgError = ref('')
 const dlgBusy = ref(false)
-const form = ref({ username: '', role: 'user' as 'user' | 'admin', password: '', password2: '' })
+const form = ref({ username: '', role: 'user' as AccountRole, password: '', password2: '' })
+// 删除账号：拥有的项目（打开对话框时读取）与处理方式
+const owned = ref<OwnedProject[] | null>(null)
+const delMode = ref<'transfer' | 'delete'>('transfer')
+const delTo = ref('')
+const ROLE_ICON: Record<AccountRole, string> = { admin: 'shield', maintainer: 'book', user: 'user' }
+const ROLE_CHIP: Record<AccountRole, string> = { admin: 'r-admin', maintainer: 'r-maint', user: 'r-read' }
+const PERM_MARK: Record<Perm, string> = { y: '✓', c: '◐', r: '◐', s: '✎', n: '—' }
+const PERM_KEYS: Perm[] = ['y', 'c', 'r', 's', 'n']
+const targets = computed(() => (dialog.value?.kind === 'delete' ? transferTargets(rows.value, dialog.value.user.username) : []))
 const reveal = ref(false)
 
 const shown = computed(() => rows.value.filter((u) => showOff.value || !u.disabled))
@@ -34,6 +47,8 @@ const dlgOk = computed(() => {
   if (!d) return false
   if (d.kind === 'new') return validName(form.value.username) && pwProblems.value.length === 0
   if (d.kind === 'reset') return pwProblems.value.length === 0
+  if (d.kind === 'role') return form.value.role !== d.user.role
+  if (d.kind === 'delete') return owned.value !== null && deleteUserPath(d.user.username, owned.value.length, delMode.value, delTo.value) !== null
   return true
 })
 
@@ -80,10 +95,18 @@ async function update(u: UserRow, body: Record<string, unknown>, msg: string): P
 }
 
 async function open(d: Dialog): Promise<void> {
-  form.value = { username: '', role: 'user', password: '', password2: '' }
+  form.value = { username: '', role: d.kind === 'role' ? d.user.role : 'user', password: '', password2: '' }
   reveal.value = false
   dlgError.value = ''
   dialog.value = d
+  if (d.kind === 'delete') {
+    owned.value = null
+    delMode.value = 'transfer'
+    delTo.value = transferTargets(rows.value, d.user.username).find((n) => n === auth.me?.username) ?? ''
+    get<{ projects: OwnedProject[] }>(`/users/${encodeURIComponent(d.user.username)}/projects`)
+      .then((r) => { owned.value = r.projects })
+      .catch((e) => { dlgError.value = errorText(e) })
+  }
   await nextTick()
   document.querySelector<HTMLInputElement>('.modal input, .modal button[data-ok]')?.focus()
 }
@@ -103,11 +126,16 @@ async function confirm(): Promise<void> {
       const r = await post<{ user: UserRow }>(`/users/${encodeURIComponent(d.user.username)}/password`, { password: form.value.password })
       replace(r.user)
       flash(t('users.resetDone', { name: d.user.username }))
+    } else if (d.kind === 'role') {
+      replace((await put<{ user: UserRow }>(`/users/${encodeURIComponent(d.user.username)}`, { role: form.value.role })).user)
+      flash(t('users.roleSaved'))
     } else if (d.kind === 'disable') {
       replace((await put<{ user: UserRow }>(`/users/${encodeURIComponent(d.user.username)}`, { disabled: true })).user)
       flash(t('users.saved'))
     } else {
-      await del(`/users/${encodeURIComponent(d.user.username)}`)
+      const path = deleteUserPath(d.user.username, owned.value?.length ?? 0, delMode.value, delTo.value)
+      if (!path) return
+      await del(path)
       rows.value = rows.value.filter((r) => r.username !== d.user.username)
       flash(t('users.saved'))
     }
@@ -139,6 +167,7 @@ async function confirm(): Promise<void> {
       <div class="acct-strip" data-testid="users-strip">
         <div><div class="v">{{ n.all }}</div><div class="k">{{ $t('users.kAll') }}</div></div>
         <div><div class="v">{{ n.admin }}</div><div class="k">{{ $t('users.kAdmin') }}</div></div>
+        <div><div class="v">{{ n.maint }}</div><div class="k">{{ $t('users.kMaint') }}</div></div>
         <div><div class="v">{{ n.locked }}</div><div class="k">{{ $t('users.kLocked') }}</div></div>
         <div><div class="v">{{ n.disabled }}</div><div class="k">{{ $t('users.kDisabled') }}</div></div>
       </div>
@@ -158,6 +187,7 @@ async function confirm(): Promise<void> {
           <table class="tbl" data-testid="users-table">
             <thead><tr>
               <th>{{ $t('users.colName') }}</th><th>{{ $t('users.colRole') }}</th><th>{{ $t('users.colState') }}</th>
+              <th>{{ $t('users.colProjects') }}</th><th>{{ $t('users.colTokens') }}</th>
               <th>{{ $t('users.colLast') }}</th><th>{{ $t('users.colCreated') }}</th><th class="right">{{ $t('users.colActions') }}</th>
             </tr></thead>
             <tbody>
@@ -168,20 +198,20 @@ async function confirm(): Promise<void> {
                     <b>{{ u.username }}</b><span v-if="isMe(u)" class="me-tag">{{ $t('users.you') }}</span>
                   </div>
                 </td>
-                <td><span :class="['tag', { 't-teal': u.role === 'admin' }]">{{ $t(u.role === 'admin' ? 'account.admin' : 'account.user') }}</span></td>
+                <td><span :class="['rolechip', ROLE_CHIP[u.role] ?? 'r-read']" :data-testid="`user-role-${u.role}`"><Icon :name="ROLE_ICON[u.role] ?? 'user'" small />{{ $t(`users.role.${u.role}`) }}</span></td>
                 <td>
                   <span :class="['st-dot', stateOf(u) === 'locked' ? 'lock' : stateOf(u) === 'disabled' ? 'off' : '']">
                     <i />{{ stateOf(u) === 'locked' ? $t('users.st.locked', { t: shortTime(u.locked_until) }) : $t(`users.st.${stateOf(u)}`) }}
                   </span>
                 </td>
+                <td class="small"><span v-if="u.projects">{{ $t('users.nProjects', { n: u.projects }) }}</span><span v-else class="faint">—</span></td>
+                <td class="small"><span v-if="u.tokens">{{ $t('users.nTokens', { n: u.tokens }) }}</span><span v-else class="faint">—</span></td>
                 <td class="mono"><span v-if="u.last_login_at">{{ shortTime(u.last_login_at) }}</span><span v-else class="faint">{{ $t('users.never') }}</span></td>
                 <td class="mono">{{ shortTime(u.created_at).slice(0, 10) }}</td>
                 <td>
                   <div class="acts">
-                    <button v-if="u.role === 'admin'" type="button" class="btn btn-xs" :disabled="!!blocked(u, 'demote') || busy === u.username"
-                      :title="blocked(u, 'demote')" data-testid="user-demote" @click="update(u, { role: 'user' }, $t('users.saved'))">{{ $t('users.makeUser') }}</button>
-                    <button v-else type="button" class="btn btn-xs" :disabled="busy === u.username" data-testid="user-promote"
-                      @click="update(u, { role: 'admin' }, $t('users.saved'))">{{ $t('users.makeAdmin') }}</button>
+                    <button type="button" class="btn btn-xs" :disabled="(u.role === 'admin' && !!blocked(u, 'demote')) || busy === u.username"
+                      :title="u.role === 'admin' ? blocked(u, 'demote') : ''" data-testid="user-role" @click="open({ kind: 'role', user: u })">{{ $t('users.changeRole') }}</button>
                     <button type="button" class="btn btn-xs" data-testid="user-reset" @click="open({ kind: 'reset', user: u })"><Icon name="key" small />{{ $t('users.reset') }}</button>
                     <button v-if="u.locked" type="button" class="btn btn-xs" :disabled="busy === u.username" data-testid="user-unlock"
                       @click="update(u, { unlock: true }, $t('users.saved'))"><Icon name="lock" small />{{ $t('users.unlock') }}</button>
@@ -200,6 +230,27 @@ async function confirm(): Promise<void> {
         </div>
       </section>
       <div class="notice info mt12"><Icon name="shield" /><div class="grow small">{{ $t('users.note') }}</div></div>
+
+      <section class="panel mt16" data-testid="perm-matrix">
+        <div class="panel-h"><h2>{{ $t('users.pmTitle') }}</h2><span class="meta">{{ $t('users.pmMeta') }}</span></div>
+        <div class="tbl-wrap">
+          <table class="tbl permx">
+            <thead><tr>
+              <th>{{ $t('users.pmFeature') }}</th><th>{{ $t('users.role.admin') }}</th><th>{{ $t('users.role.maintainer') }}</th>
+              <th>{{ $t('users.pmUser') }}</th><th>{{ $t('users.pmRead') }}</th>
+            </tr></thead>
+            <tbody>
+              <tr v-for="r in PERM_MATRIX" :key="r.key">
+                <td>{{ $t(`users.pm.${r.key}`) }}</td>
+                <td v-for="(c, i) in r.cells" :key="i"><span :class="['pm', c === 'c' ? 'y' : c]" :title="$t(`users.pmk.${c}`)">{{ PERM_MARK[c] }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel-f small faint row wrap" style="gap: 14px">
+          <span v-for="c in PERM_KEYS" :key="c" :class="['pm', c === 'c' ? 'y' : c]">{{ PERM_MARK[c] }} {{ $t(`users.pmk.${c}`) }}</span>
+        </div>
+      </section>
     </div>
 
     <div v-if="dialog" class="modal-back" @click.self="close" @keydown.esc="close">
@@ -208,6 +259,7 @@ async function confirm(): Promise<void> {
           <h2>
             <template v-if="dialog.kind === 'new'">{{ $t('users.new') }}</template>
             <template v-else-if="dialog.kind === 'reset'">{{ $t('users.resetTitle', { name: dialog.user.username }) }}</template>
+            <template v-else-if="dialog.kind === 'role'">{{ $t('users.roleTitle', { name: dialog.user.username }) }}</template>
             <template v-else-if="dialog.kind === 'disable'">{{ $t('users.disableTitle') }}</template>
             <template v-else>{{ $t('users.deleteTitle') }}</template>
           </h2>
@@ -222,9 +274,8 @@ async function confirm(): Promise<void> {
             </div>
             <div class="field">
               <span class="field-label">{{ $t('users.roleLabel') }}</span>
-              <div class="role-cards" role="radiogroup">
-                <label class="radio-card"><span><input v-model="form.role" type="radio" value="user" data-testid="new-role-user" /> <b>{{ $t('account.user') }}</b></span><span class="rd">{{ $t('users.roleUserDesc') }}</span></label>
-                <label class="radio-card"><span><input v-model="form.role" type="radio" value="admin" data-testid="new-role-admin" /> <b>{{ $t('account.admin') }}</b></span><span class="rd">{{ $t('users.roleAdminDesc') }}</span></label>
+              <div class="role-cards three" role="radiogroup">
+                <label v-for="r in ROLES" :key="r" class="radio-card"><span><input v-model="form.role" type="radio" :value="r" :data-testid="`new-role-${r}`" /> <b>{{ $t(`users.role.${r}`) }}</b></span><span class="rd">{{ $t(`users.roleDesc.${r}`) }}</span></label>
               </div>
             </div>
             <div class="field">
@@ -251,10 +302,43 @@ async function confirm(): Promise<void> {
             </div>
             <div class="notice warn"><Icon name="warn" /><div class="grow small">{{ $t('users.resetNote') }}</div></div>
           </div>
-          <template v-else>
-            <p>{{ dialog.kind === 'disable' ? $t('users.disableNote') : $t('users.deleteNote') }}</p>
+          <div v-else-if="dialog.kind === 'role'" class="form-stack">
+            <div class="role-cards three" role="radiogroup">
+              <label v-for="r in ROLES" :key="r" class="radio-card"><span><input v-model="form.role" type="radio" :value="r" :data-testid="`role-${r}`" /> <b>{{ $t(`users.role.${r}`) }}</b></span><span class="rd">{{ $t(`users.roleDesc.${r}`) }}</span></label>
+            </div>
+            <p class="small faint">{{ $t('users.roleNote') }}</p>
+          </div>
+          <template v-else-if="dialog.kind === 'disable'">
+            <p>{{ $t('users.disableNote') }}</p>
             <p class="mt8"><b class="mono">{{ dialog.user.username }}</b></p>
           </template>
+          <div v-else class="form-stack">
+            <p><b class="mono">{{ dialog.user.username }}</b></p>
+            <p v-if="owned === null && !dlgError" class="faint">{{ $t('c.loading') }}</p>
+            <template v-else-if="owned && owned.length">
+              <p class="muted" data-testid="del-owned">{{ $t('users.delOwns', { n: owned.length }) }}<b>{{ owned.map((p) => p.name).join('、') }}</b></p>
+              <div class="radio-cards">
+                <label class="radio-card">
+                  <input v-model="delMode" type="radio" value="transfer" data-testid="del-mode-transfer" />
+                  <div style="flex: 1">
+                    <div class="rc-t">{{ $t('users.delTransfer') }}</div>
+                    <select v-model="delTo" class="select mt8" style="width: 220px" :disabled="delMode !== 'transfer'" data-testid="del-transfer-to">
+                      <option value="" disabled>{{ $t('users.delPick') }}</option>
+                      <option v-for="n in targets" :key="n" :value="n">{{ n }}</option>
+                    </select>
+                    <div class="rc-d mt8">{{ $t('users.delTransferNote') }}</div>
+                  </div>
+                </label>
+                <label class="radio-card">
+                  <input v-model="delMode" type="radio" value="delete" data-testid="del-mode-delete" />
+                  <div><div class="rc-t">{{ $t('users.delProjects') }}</div><div class="rc-d">{{ $t('users.delProjectsNote') }}</div></div>
+                </label>
+              </div>
+            </template>
+            <p v-else-if="owned" class="muted">{{ $t('users.delNoProjects') }}</p>
+            <p>{{ $t('users.deleteNote') }}</p>
+            <p class="small faint">{{ $t('users.delAssets') }}</p>
+          </div>
           <div v-if="dlgError" class="notice err mt12" role="alert" data-testid="users-dialog-error"><Icon name="err" /><div class="grow small">{{ dlgError }}</div></div>
         </div>
         <div class="modal-f">
@@ -263,6 +347,7 @@ async function confirm(): Promise<void> {
             :disabled="!dlgOk || dlgBusy" data-testid="users-dialog-ok">
             <template v-if="dialog.kind === 'new'">{{ $t('users.create') }}</template>
             <template v-else-if="dialog.kind === 'reset'">{{ $t('users.reset') }}</template>
+            <template v-else-if="dialog.kind === 'role'">{{ $t('c.save') }}</template>
             <template v-else-if="dialog.kind === 'disable'">{{ $t('users.disable') }}</template>
             <template v-else>{{ $t('users.delete') }}</template>
           </button>
@@ -274,7 +359,7 @@ async function confirm(): Promise<void> {
 </template>
 
 <style scoped>
-.acct-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-panel); margin-bottom: 12px; }
+.acct-strip { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-panel); margin-bottom: 12px; }
 .acct-strip > div { padding: 10px 14px; border-left: 1px solid var(--line); min-width: 0; }
 .acct-strip > div:first-child { border-left: 0; }
 .acct-strip .v { font: 600 20px/1.25 var(--font-display); }
@@ -292,9 +377,14 @@ async function confirm(): Promise<void> {
 .st-dot.lock i { background: var(--amber); }
 .row-off td { color: var(--ink-3); }
 .acts { display: flex; gap: 4px; justify-content: flex-end; flex-wrap: wrap; }
-.modal.narrow { width: min(460px, 100%); }
+.modal.narrow { width: min(640px, 100%); }
+.radio-cards { display: flex; flex-direction: column; gap: 8px; }
+.radio-cards .radio-card { align-items: flex-start; gap: 10px; }
+.rc-t { font-weight: 600; }
+.rc-d { font-size: 12px; color: var(--ink-2); }
 .form-stack { display: flex; flex-direction: column; gap: 14px; }
 .role-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.role-cards.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .role-cards .radio-card { flex-direction: column; align-items: flex-start; gap: 4px; }
 .role-cards .rd { font-size: 12px; color: var(--ink-2); }
 .pw { position: relative; display: flex; align-items: center; }

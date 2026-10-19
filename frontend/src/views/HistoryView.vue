@@ -11,6 +11,7 @@ import Icon from '@/components/Icon.vue'
 import DevChip from '@/components/m4-dev.vue'
 import { del, errorText, get, post, put } from '@/api'
 import { useTerms } from '@/stores/terms'
+import { useProject } from '@/stores/project'
 import { postFile, saveBlob } from '@/views/check/report'
 import { saveText } from '@/views/profiles/csv'
 import type { Device } from '@/views/devices/logic'
@@ -21,6 +22,7 @@ import {
   pairLines, showVal, underObject, type DiffResult, type Item, type ObjectHistory, type PairRow, type SideVal, type Timeline,
 } from './m5/history'
 
+const project = useProject() // 只读成员不显示修改操作（REQ-036）
 const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
@@ -372,13 +374,13 @@ onMounted(async () => {
                     <td class="mono faint" :title="s.fingerprint">{{ j === 0 ? `sha256:${s.fingerprint.slice(0, 8)}…` : '' }}</td>
                     <td>
                       <template v-if="j === 0">
-                        <span v-if="s.tag" class="vtag pin"><Icon name="tag" small />{{ s.tag }}<button class="link-btn" type="button" :aria-label="$t('history.untag')" :title="$t('history.untag')" @click="removeTag(s.id)"><Icon name="x" small /></button></span>
+                        <span v-if="s.tag" class="vtag pin"><Icon name="tag" small />{{ s.tag }}<button v-if="project.canWrite" class="link-btn" type="button" :aria-label="$t('history.untag')" :title="$t('history.untag')" @click="removeTag(s.id)"><Icon name="x" small /></button></span>
                         <span v-else-if="tagEdit === s.id" class="tagedit"><input v-model="tagText" class="input" maxlength="64" :placeholder="$t('history.tagPh')" data-testid="hist-tag-input" @keydown.enter="saveTag(s.id)"><button class="btn btn-xs btn-primary" type="button" :disabled="tagBusy || !tagText.trim()" data-testid="hist-tag-save" @click="saveTag(s.id)">{{ $t('c.save') }}</button><button class="btn btn-xs btn-ghost" type="button" @click="tagEdit = null">{{ $t('c.cancel') }}</button></span>
-                        <button v-else class="btn btn-xs btn-ghost" type="button" :data-testid="`hist-tag-${s.seq}`" @click="tagEdit = s.id; tagText = ''"><Icon name="plus" small />{{ $t('history.addTag') }}</button>
+                        <button v-else-if="project.canWrite" class="btn btn-xs btn-ghost" type="button" :data-testid="`hist-tag-${s.seq}`" @click="tagEdit = s.id; tagText = ''"><Icon name="plus" small />{{ $t('history.addTag') }}</button>
                       </template>
                     </td>
                     <td class="nowrap"><template v-if="j === 0 && !single"><button class="btn btn-xs" type="button" :disabled="snaps.length - 1 - i >= ib" @click="setAB(snaps.length - 1 - i, ib)">A</button> <button class="btn btn-xs" type="button" :disabled="snaps.length - 1 - i <= ia" @click="setAB(ia, snaps.length - 1 - i)">B</button></template></td>
-                    <td class="nowrap"><button v-if="j === 0" class="btn btn-xs btn-danger" type="button" :disabled="single" :title="single ? $t('devdel.lastVersionTip') : $t('devdel.deleteVersion')" :data-testid="`hist-del-${s.seq}`" @click="delVer = s.id"><Icon name="trash" small />{{ $t('devdel.deleteVersion') }}</button></td>
+                    <td class="nowrap"><button v-if="j === 0 && project.canWrite" class="btn btn-xs btn-danger" type="button" :disabled="single" :title="single ? $t('devdel.lastVersionTip') : $t('devdel.deleteVersion')" :data-testid="`hist-del-${s.seq}`" @click="delVer = s.id"><Icon name="trash" small />{{ $t('devdel.deleteVersion') }}</button></td>
                   </tr>
                 </template>
               </tbody>
@@ -395,7 +397,7 @@ onMounted(async () => {
                   <span v-if="s.tag" class="vtag pin"><Icon name="tag" small />{{ s.tag }}</span>
                   <span v-if="s.latest" class="tag t-blue">{{ $t('history.latest') }}</span>
                   <span class="faint small mono">v{{ s.id }}</span>
-                  <button class="btn btn-xs btn-ghost del-ver" type="button" :disabled="single" :title="single ? $t('devdel.lastVersionTip') : $t('devdel.deleteVersion')" :aria-label="`${$t('devdel.deleteVersion')} #${s.seq}`" :data-testid="`hist-card-del-${single ? 'only' : k === 0 ? 'a' : 'b'}`" @click="delVer = s.id"><Icon name="trash" small /></button>
+                  <button v-if="project.canWrite" class="btn btn-xs btn-ghost del-ver" type="button" :disabled="single" :title="single ? $t('devdel.lastVersionTip') : $t('devdel.deleteVersion')" :aria-label="`${$t('devdel.deleteVersion')} #${s.seq}`" :data-testid="`hist-card-del-${single ? 'only' : k === 0 ? 'a' : 'b'}`" @click="delVer = s.id"><Icon name="trash" small /></button>
                 </div>
                 <dl class="kv">
                   <dt>{{ $t('history.col.source') }}</dt><dd>{{ $t(`history.src.${s.imports[0]?.source_kind ?? 'file'}`) }} <span class="mono faint small">{{ s.source_name }}</span></dd>

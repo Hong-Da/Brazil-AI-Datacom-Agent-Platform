@@ -1,0 +1,2632 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: interface
+cards:
+  - id: nokia-sros-md.port
+    syntax: port <port-id>
+    view: configure
+    enters_view: port
+    undo: delete port <port-id>
+    params:
+      port-id:
+        type: port
+        pattern: (?!lag-).+
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port
+      line: 5
+      version: 25.10.R1
+      patched: configure port 的键是物理端口（1/1/1、esat-…、pxc-…），不含 LAG（LAG 在 configure lag "lag-1" 下）；端口类型的写法检查包含 lag-<n>，这里排除，规范渲染才不会把 LAG 写成 port lag-1
+    status: draft
+    maps:
+      interface: $port-id
+  - id: nokia-sros-md.port-access
+    syntax: access
+    view: port
+    enters_view: opaque
+    undo: delete access
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port access
+      line: 27
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-admin-state
+    syntax: admin-state <admin-state>
+    view: port
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port admin-state
+      line: 43
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.port-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: port
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port apply-groups
+      line: 65
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: port
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port apply-groups-exclude
+      line: 83
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-connector
+    syntax: connector
+    view: port
+    enters_view: opaque
+    undo: delete connector
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port connector
+      line: 101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ddm-events
+    syntax: ddm-events <ddm-events>
+    view: port
+    undo: delete ddm-events
+    params:
+      ddm-events:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ddm-events
+      line: 117
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-description
+    syntax: description <description>
+    view: port
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port description
+      line: 143
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.description: $description
+  - id: nokia-sros-md.port-dist-cpu-protection
+    syntax: dist-cpu-protection
+    view: port
+    enters_view: opaque
+    undo: delete dist-cpu-protection
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port dist-cpu-protection
+      line: 165
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-dwdm
+    syntax: dwdm
+    view: port
+    enters_view: opaque
+    undo: delete dwdm
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port dwdm
+      line: 181
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet
+    syntax: ethernet
+    view: port
+    enters_view: port.ethernet
+    undo: delete ethernet
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet
+      line: 197
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.port-ethernet-access
+    syntax: access
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete access
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet access
+      line: 213
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-accounting-policy
+    syntax: accounting-policy <accounting-policy>
+    view: port.ethernet
+    undo: delete accounting-policy
+    params:
+      accounting-policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet accounting-policy
+      line: 229
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: port.ethernet
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet apply-groups
+      line: 251
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: port.ethernet
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet apply-groups-exclude
+      line: 269
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-autonegotiate
+    syntax: autonegotiate <autonegotiate>
+    view: port.ethernet
+    undo: delete autonegotiate
+    params:
+      autonegotiate:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+          - limited
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet autonegotiate
+      line: 287
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.negotiation: kw:true=true|limited=true|false=false
+  - id: nokia-sros-md.port-ethernet-collect-stats
+    syntax: collect-stats <collect-stats>
+    view: port.ethernet
+    undo: delete collect-stats
+    params:
+      collect-stats:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet collect-stats
+      line: 309
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-crc-monitor
+    syntax: crc-monitor
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete crc-monitor
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet crc-monitor
+      line: 335
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-dampening
+    syntax: dampening
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete dampening
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet dampening
+      line: 351
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-discard-rx-pause-frames
+    syntax: discard-rx-pause-frames <discard-rx-pause-frames>
+    view: port.ethernet
+    undo: delete discard-rx-pause-frames
+    params:
+      discard-rx-pause-frames:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet discard-rx-pause-frames
+      line: 367
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-dot1q-etype
+    syntax: dot1q-etype <dot1q-etype>
+    view: port.ethernet
+    undo: delete dot1q-etype
+    params:
+      dot1q-etype:
+        type: word
+    default: '33024'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet dot1q-etype
+      line: 393
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-dot1x
+    syntax: dot1x
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete dot1x
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet dot1x
+      line: 419
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-down-on-internal-error
+    syntax: down-on-internal-error
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete down-on-internal-error
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet down-on-internal-error
+      line: 435
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-down-when-looped
+    syntax: down-when-looped
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete down-when-looped
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet down-when-looped
+      line: 451
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-duplex
+    syntax: duplex <duplex>
+    view: port.ethernet
+    undo: delete duplex
+    params:
+      duplex:
+        type: enum
+        choices:
+          - full
+          - half
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet duplex
+      line: 467
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.duplex: $duplex
+  - id: nokia-sros-md.port-ethernet-efm-oam
+    syntax: efm-oam
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete efm-oam
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet efm-oam
+      line: 489
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-egress
+    syntax: egress
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete egress
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet egress
+      line: 505
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-elmi
+    syntax: elmi
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete elmi
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet elmi
+      line: 521
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-encap-type
+    syntax: encap-type <encap-type>
+    view: port.ethernet
+    undo: delete encap-type
+    params:
+      encap-type:
+        type: enum
+        choices:
+          - 'null'
+          - dot1q
+          - qinq
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet encap-type
+      line: 537
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.encap_type: $encap-type
+  - id: nokia-sros-md.port-ethernet-eth-cfm
+    syntax: eth-cfm
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete eth-cfm
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet eth-cfm
+      line: 559
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-hold-time
+    syntax: hold-time
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete hold-time
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet hold-time
+      line: 575
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-ingress
+    syntax: ingress
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete ingress
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet ingress
+      line: 591
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-lacp-tunnel
+    syntax: lacp-tunnel <lacp-tunnel>
+    view: port.ethernet
+    undo: delete lacp-tunnel
+    params:
+      lacp-tunnel:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet lacp-tunnel
+      line: 607
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-lldp
+    syntax: lldp
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete lldp
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet lldp
+      line: 633
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-load-balancing-algorithm
+    syntax: load-balancing-algorithm <load-balancing-algorithm>
+    view: port.ethernet
+    undo: delete load-balancing-algorithm
+    params:
+      load-balancing-algorithm:
+        type: enum
+        choices:
+          - default
+          - include-l4
+          - exclude-l4
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet load-balancing-algorithm
+      line: 649
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-mac-address
+    syntax: mac-address <mac-address>
+    view: port.ethernet
+    undo: delete mac-address
+    params:
+      mac-address:
+        type: word
+    default: 00:00:00:00:00:00
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet mac-address
+      line: 671
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-min-frame-length
+    syntax: min-frame-length <min-frame-length>
+    view: port.ethernet
+    undo: delete min-frame-length
+    params:
+      min-frame-length:
+        type: integer
+    default: '64'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet min-frame-length
+      line: 697
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-mode
+    syntax: mode <mode>
+    view: port.ethernet
+    undo: delete mode
+    params:
+      mode:
+        type: enum
+        choices:
+          - access
+          - network
+          - hybrid
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet mode
+      line: 723
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.port_mode: $mode
+  - id: nokia-sros-md.port-ethernet-mtu
+    syntax: mtu <mtu>
+    view: port.ethernet
+    undo: delete mtu
+    params:
+      mtu:
+        type: integer
+        range:
+          - 512
+          - 9800
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet mtu
+      line: 745
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.mtu: $mtu
+  - id: nokia-sros-md.port-ethernet-network
+    syntax: network
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete network
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet network
+      line: 767
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-pbb-etype
+    syntax: pbb-etype <pbb-etype>
+    view: port.ethernet
+    undo: delete pbb-etype
+    params:
+      pbb-etype:
+        type: word
+    default: '35047'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet pbb-etype
+      line: 783
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-ptp-asymmetry
+    syntax: ptp-asymmetry <ptp-asymmetry>
+    view: port.ethernet
+    undo: delete ptp-asymmetry
+    params:
+      ptp-asymmetry:
+        type: integer
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet ptp-asymmetry
+      line: 809
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-ptp-timestamping
+    syntax: ptp-timestamping
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete ptp-timestamping
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet ptp-timestamping
+      line: 831
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-ptp-tunnel
+    syntax: ptp-tunnel <ptp-tunnel>
+    view: port.ethernet
+    undo: delete ptp-tunnel
+    params:
+      ptp-tunnel:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet ptp-tunnel
+      line: 847
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-qinq-etype
+    syntax: qinq-etype <qinq-etype>
+    view: port.ethernet
+    undo: delete qinq-etype
+    params:
+      qinq-etype:
+        type: word
+    default: '33024'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet qinq-etype
+      line: 873
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-report-alarm
+    syntax: report-alarm
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete report-alarm
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet report-alarm
+      line: 899
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-rs-fec-mode
+    syntax: rs-fec-mode <rs-fec-mode>
+    view: port.ethernet
+    undo: delete rs-fec-mode
+    params:
+      rs-fec-mode:
+        type: enum
+        choices:
+          - cl91-514-528
+          - cl74
+          - cl108
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet rs-fec-mode
+      line: 915
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-single-fiber
+    syntax: single-fiber <single-fiber>
+    view: port.ethernet
+    undo: delete single-fiber
+    params:
+      single-fiber:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet single-fiber
+      line: 937
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-speed
+    syntax: speed <speed>
+    view: port.ethernet
+    undo: delete speed
+    params:
+      speed:
+        type: integer
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet speed
+      line: 963
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.speed: $speed
+  - id: nokia-sros-md.port-ethernet-ssm
+    syntax: ssm
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete ssm
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet ssm
+      line: 985
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-symbol-monitor
+    syntax: symbol-monitor
+    view: port.ethernet
+    enters_view: opaque
+    undo: delete symbol-monitor
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet symbol-monitor
+      line: 1001
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-tx-pause-frames
+    syntax: tx-pause-frames <tx-pause-frames>
+    view: port.ethernet
+    undo: delete tx-pause-frames
+    params:
+      tx-pause-frames:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet tx-pause-frames
+      line: 1017
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-util-stats-interval
+    syntax: util-stats-interval <util-stats-interval>
+    view: port.ethernet
+    undo: delete util-stats-interval
+    params:
+      util-stats-interval:
+        type: integer
+        range:
+          - 30
+          - 600
+    default: '300'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet util-stats-interval
+      line: 1043
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-ethernet-xgig
+    syntax: xgig <xgig>
+    view: port.ethernet
+    undo: delete xgig
+    params:
+      xgig:
+        type: enum
+        choices:
+          - lan
+          - wan
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port ethernet xgig
+      line: 1069
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-gnss
+    syntax: gnss
+    view: port
+    enters_view: opaque
+    undo: delete gnss
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port gnss
+      line: 1091
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-hybrid-buffer-allocation
+    syntax: hybrid-buffer-allocation
+    view: port
+    enters_view: opaque
+    undo: delete hybrid-buffer-allocation
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port hybrid-buffer-allocation
+      line: 1107
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-modify-buffer-allocation
+    syntax: modify-buffer-allocation
+    view: port
+    enters_view: opaque
+    undo: delete modify-buffer-allocation
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port modify-buffer-allocation
+      line: 1123
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-monitor-agg-egress-queue-stats
+    syntax: monitor-agg-egress-queue-stats <monitor-agg-egress-queue-stats>
+    view: port
+    undo: delete monitor-agg-egress-queue-stats
+    params:
+      monitor-agg-egress-queue-stats:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port monitor-agg-egress-queue-stats
+      line: 1139
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-monitor-oper-group
+    syntax: monitor-oper-group <monitor-oper-group>
+    view: port
+    undo: delete monitor-oper-group
+    params:
+      monitor-oper-group:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port monitor-oper-group
+      line: 1165
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-network
+    syntax: network
+    view: port
+    enters_view: opaque
+    undo: delete network
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port network
+      line: 1187
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-oper-group
+    syntax: oper-group <oper-group>
+    view: port
+    undo: delete oper-group
+    params:
+      oper-group:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port oper-group
+      line: 1203
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-otu
+    syntax: otu
+    view: port
+    enters_view: opaque
+    undo: delete otu
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port otu
+      line: 1225
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-sonet-sdh
+    syntax: sonet-sdh
+    view: port
+    enters_view: opaque
+    undo: delete sonet-sdh
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port sonet-sdh
+      line: 1241
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-tdm
+    syntax: tdm
+    view: port
+    enters_view: opaque
+    undo: delete tdm
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port tdm
+      line: 1257
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.port-transceiver
+    syntax: transceiver
+    view: port
+    enters_view: opaque
+    undo: delete transceiver
+    source:
+      doc: nokia-sros-md-md
+      file: port.md
+      title: port transceiver
+      line: 1273
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag
+    syntax: lag <lag-name>
+    view: configure
+    enters_view: lag
+    undo: delete lag <lag-name>
+    params:
+      lag-name:
+        type: string
+        pattern: lag-.+
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag
+      line: 5
+      version: 25.10.R1
+      patched: configure lag 的键是 LAG 名（lag-<编号>，25.x 也可以是 lag-<名称>）；限定以 lag- 开头，规范渲染才不会把物理端口写成 lag "1/1/1"
+    status: draft
+    maps:
+      interface: $lag-name
+  - id: nokia-sros-md.lag-access
+    syntax: access
+    view: lag
+    enters_view: opaque
+    undo: delete access
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag access
+      line: 27
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-adaptive-load-balancing
+    syntax: adaptive-load-balancing
+    view: lag
+    enters_view: opaque
+    undo: delete adaptive-load-balancing
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag adaptive-load-balancing
+      line: 43
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-admin-state
+    syntax: admin-state <admin-state>
+    view: lag
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: disable
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag admin-state
+      line: 59
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.lag-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: lag
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag apply-groups
+      line: 85
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: lag
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag apply-groups-exclude
+      line: 103
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-bfd-liveness
+    syntax: bfd-liveness
+    view: lag
+    enters_view: opaque
+    undo: delete bfd-liveness
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag bfd-liveness
+      line: 121
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-description
+    syntax: description <description>
+    view: lag
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag description
+      line: 137
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.description: $description
+  - id: nokia-sros-md.lag-dynamic-cost
+    syntax: dynamic-cost <dynamic-cost>
+    view: lag
+    undo: delete dynamic-cost
+    params:
+      dynamic-cost:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag dynamic-cost
+      line: 159
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-encap-type
+    syntax: encap-type <encap-type>
+    view: lag
+    undo: delete encap-type
+    params:
+      encap-type:
+        type: enum
+        choices:
+          - 'null'
+          - dot1q
+          - qinq
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag encap-type
+      line: 185
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.encap_type: $encap-type
+  - id: nokia-sros-md.lag-eth-cfm
+    syntax: eth-cfm
+    view: lag
+    enters_view: opaque
+    undo: delete eth-cfm
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag eth-cfm
+      line: 207
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-hash-weight-threshold
+    syntax: hash-weight-threshold
+    view: lag
+    enters_view: opaque
+    undo: delete hash-weight-threshold
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag hash-weight-threshold
+      line: 223
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-hold-time-down
+    syntax: hold-time-down <hold-time-down>
+    view: lag
+    undo: delete hold-time-down
+    params:
+      hold-time-down:
+        type: integer
+        range:
+          - 1
+          - 2000
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag hold-time-down
+      line: 239
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-lacp
+    syntax: lacp
+    view: lag
+    enters_view: lag.lacp
+    undo: delete lacp
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag lacp
+      line: 261
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.lag-lacp-administrative-key
+    syntax: administrative-key <administrative-key>
+    view: lag.lacp
+    undo: delete administrative-key
+    params:
+      administrative-key:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag lacp administrative-key
+      line: 277
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-lacp-fallback
+    syntax: fallback
+    view: lag.lacp
+    enters_view: opaque
+    undo: delete fallback
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag lacp fallback
+      line: 303
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-lacp-mode
+    syntax: mode <mode>
+    view: lag.lacp
+    undo: delete mode
+    params:
+      mode:
+        type: enum
+        choices:
+          - passive
+          - active
+    default: passive
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag lacp mode
+      line: 319
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.lag_mode: $mode
+  - id: nokia-sros-md.lag-lacp-system-id
+    syntax: system-id <system-id>
+    view: lag.lacp
+    undo: delete system-id
+    params:
+      system-id:
+        type: word
+    default: 00:00:00:00:00:00
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag lacp system-id
+      line: 345
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-lacp-system-priority
+    syntax: system-priority <system-priority>
+    view: lag.lacp
+    undo: delete system-priority
+    params:
+      system-priority:
+        type: integer
+        range:
+          - 0
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag lacp system-priority
+      line: 371
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-lacp-mux-control
+    syntax: lacp-mux-control <lacp-mux-control>
+    view: lag
+    undo: delete lacp-mux-control
+    params:
+      lacp-mux-control:
+        type: enum
+        choices:
+          - coupled
+          - independent
+    default: coupled
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag lacp-mux-control
+      line: 393
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-lacp-xmit-interval
+    syntax: lacp-xmit-interval <lacp-xmit-interval>
+    view: lag
+    undo: delete lacp-xmit-interval
+    params:
+      lacp-xmit-interval:
+        type: enum
+        choices:
+          - slow
+          - fast
+    default: fast
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag lacp-xmit-interval
+      line: 419
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-lacp-xmit-stdby
+    syntax: lacp-xmit-stdby <lacp-xmit-stdby>
+    view: lag
+    undo: delete lacp-xmit-stdby
+    params:
+      lacp-xmit-stdby:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag lacp-xmit-stdby
+      line: 445
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-link-map-profile
+    syntax: link-map-profile <link-map-profile-id>
+    view: lag
+    enters_view: opaque
+    undo: delete link-map-profile <link-map-profile-id>
+    params:
+      link-map-profile-id:
+        type: integer
+        range:
+          - 1
+          - 64
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag link-map-profile
+      line: 471
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-lldp-member-template
+    syntax: lldp-member-template
+    view: lag
+    enters_view: opaque
+    undo: delete lldp-member-template
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag lldp-member-template
+      line: 493
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-mac-address
+    syntax: mac-address <mac-address>
+    view: lag
+    undo: delete mac-address
+    params:
+      mac-address:
+        type: word
+    default: 00:00:00:00:00:00
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag mac-address
+      line: 509
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-max-ports
+    syntax: max-ports <max-ports>
+    view: lag
+    undo: delete max-ports
+    params:
+      max-ports:
+        type: integer
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag max-ports
+      line: 535
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-mode
+    syntax: mode <mode>
+    view: lag
+    undo: delete mode
+    params:
+      mode:
+        type: enum
+        choices:
+          - access
+          - network
+          - hybrid
+    default: network
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag mode
+      line: 557
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.port_mode: $mode
+  - id: nokia-sros-md.lag-monitor-oper-group
+    syntax: monitor-oper-group <monitor-oper-group>
+    view: lag
+    undo: delete monitor-oper-group
+    params:
+      monitor-oper-group:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag monitor-oper-group
+      line: 583
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-oper-group
+    syntax: oper-group <oper-group>
+    view: lag
+    undo: delete oper-group
+    params:
+      oper-group:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag oper-group
+      line: 605
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-per-link-hash
+    syntax: per-link-hash
+    view: lag
+    enters_view: opaque
+    undo: delete per-link-hash
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag per-link-hash
+      line: 627
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-port
+    syntax: port <port-id>
+    view: lag
+    enters_view: lag.port
+    undo: delete port <port-id>
+    params:
+      port-id:
+        type: port
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag port
+      line: 643
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface{name=$port-id}.lag: strip:lag-:ctx:lag-name
+  - id: nokia-sros-md.lag-port-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: lag.port
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag port apply-groups
+      line: 665
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-port-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: lag.port
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag port apply-groups-exclude
+      line: 683
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-port-hash-weight
+    syntax: hash-weight <hash-weight>
+    view: lag.port
+    undo: delete hash-weight
+    params:
+      hash-weight:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag port hash-weight
+      line: 701
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-port-priority
+    syntax: priority <priority>
+    view: lag.port
+    undo: delete priority
+    params:
+      priority:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: '32768'
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag port priority
+      line: 723
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-port-sub-group
+    syntax: sub-group <sub-group>
+    view: lag.port
+    undo: delete sub-group
+    params:
+      sub-group:
+        type: word
+    default: '1'
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag port sub-group
+      line: 749
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-port-threshold
+    syntax: port-threshold
+    view: lag
+    enters_view: opaque
+    undo: delete port-threshold
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag port-threshold
+      line: 775
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-port-type
+    syntax: port-type <port-type>
+    view: lag
+    undo: delete port-type
+    params:
+      port-type:
+        type: enum
+        choices:
+          - standard
+          - hs
+    default: standard
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag port-type
+      line: 791
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-ptp-timestamping
+    syntax: ptp-timestamping
+    view: lag
+    enters_view: opaque
+    undo: delete ptp-timestamping
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag ptp-timestamping
+      line: 817
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-selection-criteria
+    syntax: selection-criteria
+    view: lag
+    enters_view: opaque
+    undo: delete selection-criteria
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag selection-criteria
+      line: 833
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.lag-standby-signaling
+    syntax: standby-signaling <standby-signaling>
+    view: lag
+    undo: delete standby-signaling
+    params:
+      standby-signaling:
+        type: enum
+        choices:
+          - lacp
+          - power-off
+    default: lacp
+    source:
+      doc: nokia-sros-md-md
+      file: lag.md
+      title: lag standby-signaling
+      line: 849
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router
+    syntax: router <router-name>
+    view: configure
+    enters_view: router
+    undo: delete router <router-name>
+    params:
+      router-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.md
+      title: router
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-interface
+    syntax: interface <interface-name>
+    view: router
+    enters_view: router.interface
+    undo: delete interface <interface-name>
+    params:
+      interface-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface: $interface-name
+  - id: nokia-sros-md.router-interface-admin-state
+    syntax: admin-state <admin-state>
+    view: router.interface
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface admin-state
+      line: 27
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-interface-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.interface
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface apply-groups
+      line: 49
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.interface
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface apply-groups-exclude
+      line: 67
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-cflowd-parameters
+    syntax: cflowd-parameters
+    view: router.interface
+    enters_view: opaque
+    undo: delete cflowd-parameters
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface cflowd-parameters
+      line: 85
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-cpu-protection
+    syntax: cpu-protection <cpu-protection>
+    view: router.interface
+    undo: delete cpu-protection
+    params:
+      cpu-protection:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface cpu-protection
+      line: 101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-description
+    syntax: description <description>
+    view: router.interface
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface description
+      line: 123
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.description: $description
+  - id: nokia-sros-md.router-interface-dist-cpu-protection
+    syntax: dist-cpu-protection <dist-cpu-protection>
+    view: router.interface
+    undo: delete dist-cpu-protection
+    params:
+      dist-cpu-protection:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface dist-cpu-protection
+      line: 145
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-egress
+    syntax: egress
+    view: router.interface
+    enters_view: opaque
+    undo: delete egress
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface egress
+      line: 167
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-eth-cfm
+    syntax: eth-cfm
+    view: router.interface
+    enters_view: opaque
+    undo: delete eth-cfm
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface eth-cfm
+      line: 183
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-external-reference
+    syntax: external-reference
+    view: router.interface
+    enters_view: opaque
+    undo: delete external-reference
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface external-reference
+      line: 199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-flavor
+    syntax: flavor <flavor>
+    view: router.interface
+    undo: delete flavor
+    params:
+      flavor:
+        type: word
+    default: regular
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface flavor
+      line: 215
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-gre-termination
+    syntax: gre-termination <gre-termination>
+    view: router.interface
+    undo: delete gre-termination
+    params:
+      gre-termination:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface gre-termination
+      line: 241
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-hold-time
+    syntax: hold-time
+    view: router.interface
+    enters_view: opaque
+    undo: delete hold-time
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface hold-time
+      line: 267
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-if-attribute
+    syntax: if-attribute
+    view: router.interface
+    enters_view: opaque
+    undo: delete if-attribute
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface if-attribute
+      line: 283
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ingress
+    syntax: ingress
+    view: router.interface
+    enters_view: opaque
+    undo: delete ingress
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ingress
+      line: 299
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ingress-stats
+    syntax: ingress-stats <ingress-stats>
+    view: router.interface
+    undo: delete ingress-stats
+    params:
+      ingress-stats:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ingress-stats
+      line: 315
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ip-mtu
+    syntax: ip-mtu <ip-mtu>
+    view: router.interface
+    undo: delete ip-mtu
+    params:
+      ip-mtu:
+        type: integer
+        range:
+          - 512
+          - 9786
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ip-mtu
+      line: 341
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipsec
+    syntax: ipsec
+    view: router.interface
+    enters_view: opaque
+    undo: delete ipsec
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipsec
+      line: 363
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4
+    syntax: ipv4
+    view: router.interface
+    enters_view: router.interface.ipv4
+    undo: delete ipv4
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4
+      line: 379
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-interface-ipv4-allow-directed-broadcasts
+    syntax: allow-directed-broadcasts <allow-directed-broadcasts>
+    view: router.interface.ipv4
+    undo: delete allow-directed-broadcasts
+    params:
+      allow-directed-broadcasts:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 allow-directed-broadcasts
+      line: 395
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-bfd
+    syntax: bfd
+    view: router.interface.ipv4
+    enters_view: router.interface.ipv4.bfd
+    undo: delete bfd
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 bfd
+      line: 421
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.bfd: _
+  - id: nokia-sros-md.router-interface-ipv4-bfd-admin-state
+    syntax: admin-state <admin-state>
+    view: router.interface.ipv4.bfd
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 bfd admin-state
+      line: 437
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-bfd-echo-receive
+    syntax: echo-receive <echo-receive>
+    view: router.interface.ipv4.bfd
+    undo: delete echo-receive
+    params:
+      echo-receive:
+        type: integer
+        range:
+          - 100
+          - 100000
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 bfd echo-receive
+      line: 463
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-bfd-multiplier
+    syntax: multiplier <multiplier>
+    view: router.interface.ipv4.bfd
+    undo: delete multiplier
+    params:
+      multiplier:
+        type: integer
+        range:
+          - 1
+          - 20
+    default: '3'
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 bfd multiplier
+      line: 485
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.bfd.multiplier: $multiplier
+  - id: nokia-sros-md.router-interface-ipv4-bfd-receive
+    syntax: receive <receive>
+    view: router.interface.ipv4.bfd
+    undo: delete receive
+    params:
+      receive:
+        type: integer
+        range:
+          - 10
+          - 100000
+    default: '100'
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 bfd receive
+      line: 511
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.bfd.min_rx: $receive
+  - id: nokia-sros-md.router-interface-ipv4-bfd-transmit-interval
+    syntax: transmit-interval <transmit-interval>
+    view: router.interface.ipv4.bfd
+    undo: delete transmit-interval
+    params:
+      transmit-interval:
+        type: integer
+        range:
+          - 10
+          - 100000
+    default: '100'
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 bfd transmit-interval
+      line: 537
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.bfd.min_tx: $transmit-interval
+  - id: nokia-sros-md.router-interface-ipv4-bfd-type
+    syntax: type <type>
+    view: router.interface.ipv4.bfd
+    undo: delete type
+    params:
+      type:
+        type: enum
+        choices:
+          - cpm-np
+          - auto
+          - fp
+    default: auto
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 bfd type
+      line: 563
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-dhcp
+    syntax: dhcp
+    view: router.interface.ipv4
+    enters_view: opaque
+    undo: delete dhcp
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 dhcp
+      line: 589
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-icmp
+    syntax: icmp
+    view: router.interface.ipv4
+    enters_view: opaque
+    undo: delete icmp
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 icmp
+      line: 605
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-ip-helper-address
+    syntax: ip-helper-address <ip-helper-address>
+    view: router.interface.ipv4
+    undo: delete ip-helper-address
+    params:
+      ip-helper-address:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 ip-helper-address
+      line: 621
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-local-dhcp-server
+    syntax: local-dhcp-server <local-dhcp-server>
+    view: router.interface.ipv4
+    undo: delete local-dhcp-server
+    params:
+      local-dhcp-server:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 local-dhcp-server
+      line: 643
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-neighbor-discovery
+    syntax: neighbor-discovery
+    view: router.interface.ipv4
+    enters_view: opaque
+    undo: delete neighbor-discovery
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 neighbor-discovery
+      line: 665
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-primary
+    syntax: primary
+    view: router.interface.ipv4
+    enters_view: router.interface.ipv4.primary
+    undo: delete primary
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 primary
+      line: 681
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-interface-ipv4-primary-address
+    syntax: address <address>
+    view: router.interface.ipv4.primary
+    undo: delete address
+    params:
+      address:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 primary address
+      line: 697
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.ipv4: $address
+      interface.ipv4.address: $address
+      interface.ipv4.secondary: 'false'
+      '@share': ''
+  - id: nokia-sros-md.router-interface-ipv4-primary-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.interface.ipv4.primary
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 primary apply-groups
+      line: 723
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-primary-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.interface.ipv4.primary
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 primary apply-groups-exclude
+      line: 741
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-primary-broadcast
+    syntax: broadcast <broadcast>
+    view: router.interface.ipv4.primary
+    undo: delete broadcast
+    params:
+      broadcast:
+        type: enum
+        choices:
+          - all-ones
+          - host-ones
+    default: host-ones
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 primary broadcast
+      line: 759
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-primary-gre-termination
+    syntax: gre-termination <gre-termination>
+    view: router.interface.ipv4.primary
+    undo: delete gre-termination
+    params:
+      gre-termination:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 primary gre-termination
+      line: 785
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-primary-prefix-length
+    syntax: prefix-length <prefix-length>
+    view: router.interface.ipv4.primary
+    undo: delete prefix-length
+    params:
+      prefix-length:
+        type: integer
+        range:
+          - 0
+          - 32
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 primary prefix-length
+      line: 811
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.ipv4.prefix_length: $prefix-length
+  - id: nokia-sros-md.router-interface-ipv4-primary-track-srrp
+    syntax: track-srrp <track-srrp>
+    view: router.interface.ipv4.primary
+    undo: delete track-srrp
+    params:
+      track-srrp:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 primary track-srrp
+      line: 837
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-qos-route-lookup
+    syntax: qos-route-lookup <qos-route-lookup>
+    view: router.interface.ipv4
+    undo: delete qos-route-lookup
+    params:
+      qos-route-lookup:
+        type: enum
+        choices:
+          - destination
+          - source
+          - source-and-dest
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 qos-route-lookup
+      line: 859
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-secondary
+    syntax: secondary <address>
+    view: router.interface.ipv4
+    enters_view: router.interface.ipv4.secondary
+    undo: delete secondary <address>
+    params:
+      address:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 secondary
+      line: 881
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.ipv4: $address
+      interface.ipv4.address: $address
+      interface.ipv4.secondary: 'true'
+  - id: nokia-sros-md.router-interface-ipv4-secondary-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.interface.ipv4.secondary
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 secondary apply-groups
+      line: 903
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-secondary-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.interface.ipv4.secondary
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 secondary apply-groups-exclude
+      line: 921
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-secondary-broadcast
+    syntax: broadcast <broadcast>
+    view: router.interface.ipv4.secondary
+    undo: delete broadcast
+    params:
+      broadcast:
+        type: enum
+        choices:
+          - all-ones
+          - host-ones
+    default: host-ones
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 secondary broadcast
+      line: 939
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-secondary-igp-inhibit
+    syntax: igp-inhibit <igp-inhibit>
+    view: router.interface.ipv4.secondary
+    undo: delete igp-inhibit
+    params:
+      igp-inhibit:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 secondary igp-inhibit
+      line: 965
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-secondary-prefix-length
+    syntax: prefix-length <prefix-length>
+    view: router.interface.ipv4.secondary
+    undo: delete prefix-length
+    params:
+      prefix-length:
+        type: integer
+        range:
+          - 0
+          - 32
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 secondary prefix-length
+      line: 991
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.ipv4.prefix_length: $prefix-length
+  - id: nokia-sros-md.router-interface-ipv4-secondary-track-srrp
+    syntax: track-srrp <track-srrp>
+    view: router.interface.ipv4.secondary
+    undo: delete track-srrp
+    params:
+      track-srrp:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 secondary track-srrp
+      line: 1017
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-tcp-mss
+    syntax: tcp-mss <tcp-mss>
+    view: router.interface.ipv4
+    undo: delete tcp-mss
+    params:
+      tcp-mss:
+        type: integer
+        range:
+          - 384
+          - 9746
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 tcp-mss
+      line: 1039
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-unnumbered
+    syntax: unnumbered
+    view: router.interface.ipv4
+    enters_view: opaque
+    undo: delete unnumbered
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 unnumbered
+      line: 1061
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-urpf-check
+    syntax: urpf-check
+    view: router.interface.ipv4
+    enters_view: opaque
+    undo: delete urpf-check
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv4 urpf-check
+      line: 1077
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv6
+    syntax: ipv6
+    view: router.interface
+    enters_view: opaque
+    undo: delete ipv6
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ipv6
+      line: 1093
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-lag
+    syntax: lag
+    view: router.interface
+    enters_view: opaque
+    undo: delete lag
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface lag
+      line: 1109
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ldp-sync-timer
+    syntax: ldp-sync-timer
+    view: router.interface
+    enters_view: opaque
+    undo: delete ldp-sync-timer
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ldp-sync-timer
+      line: 1125
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-load-balancing
+    syntax: load-balancing
+    view: router.interface
+    enters_view: opaque
+    undo: delete load-balancing
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface load-balancing
+      line: 1141
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-loopback
+    syntax: loopback
+    view: router.interface
+    undo: delete loopback
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface loopback
+      line: 1157
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.loopback: 'true'
+  - id: nokia-sros-md.router-interface-mac
+    syntax: mac <mac>
+    view: router.interface
+    undo: delete mac
+    params:
+      mac:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface mac
+      line: 1177
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-mac-accounting
+    syntax: mac-accounting <mac-accounting>
+    view: router.interface
+    undo: delete mac-accounting
+    params:
+      mac-accounting:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface mac-accounting
+      line: 1199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-network-domains
+    syntax: network-domains
+    view: router.interface
+    enters_view: opaque
+    undo: delete network-domains
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface network-domains
+      line: 1225
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-port
+    syntax: port <port>
+    view: router.interface
+    undo: delete port
+    params:
+      port:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface port
+      line: 1241
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.bind_port: sap:port:$port
+      interface.dot1q_termination: sap:vlan:$port
+  - id: nokia-sros-md.router-interface-ptp-hw-assist
+    syntax: ptp-hw-assist
+    view: router.interface
+    enters_view: opaque
+    undo: delete ptp-hw-assist
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface ptp-hw-assist
+      line: 1267
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-qos
+    syntax: qos
+    view: router.interface
+    enters_view: opaque
+    undo: delete qos
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface qos
+      line: 1283
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-strip-label
+    syntax: strip-label <strip-label>
+    view: router.interface
+    undo: delete strip-label
+    params:
+      strip-label:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface strip-label
+      line: 1299
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-tos-marking-state
+    syntax: tos-marking-state <tos-marking-state>
+    view: router.interface
+    undo: delete tos-marking-state
+    params:
+      tos-marking-state:
+        type: enum
+        choices:
+          - trusted
+          - untrusted
+    default: trusted
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface tos-marking-state
+      line: 1325
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-untrusted
+    syntax: untrusted
+    view: router.interface
+    enters_view: opaque
+    undo: delete untrusted
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface untrusted
+      line: 1351
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-urpf-selected-vprns
+    syntax: urpf-selected-vprns <urpf-selected-vprns>
+    view: router.interface
+    undo: delete urpf-selected-vprns
+    params:
+      urpf-selected-vprns:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface urpf-selected-vprns
+      line: 1367
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-vas-if-type
+    syntax: vas-if-type <vas-if-type>
+    view: router.interface
+    undo: delete vas-if-type
+    params:
+      vas-if-type:
+        type: enum
+        choices:
+          - to-from-access
+          - to-from-network
+          - to-from-both
+    source:
+      doc: nokia-sros-md-md
+      file: router.interface.md
+      title: router interface vas-if-type
+      line: 1393
+      version: 25.10.R1
+    status: draft

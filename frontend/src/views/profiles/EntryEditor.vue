@@ -8,6 +8,8 @@ import { entryBody, entryOrigin, formDirty, formFromEntry, type EntryForm } from
 import { formatDefault, parseDefault } from './format'
 import type { Entry } from './types'
 import StyleForms from '../schema/StyleForms.vue'
+import { useAuth } from '@/stores/auth'
+import KbSuggest from '@/components/kb-suggest.vue'
 
 const props = defineProps<{
   profileId: string
@@ -18,13 +20,17 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ changed: [message: string] }>()
 const { t, locale } = useI18n()
+// 普通用户只读（REQ-036）：不能覆盖、删除或保存条目，可以对默认值提建议
+const auth = useAuth()
+const suggesting = ref(false)
+const suggested = ref(false)
 
 const VERIFIED = ['doc', 'roundtrip', 'device']
 const origin = computed(() => entryOrigin(props.entry, props.parentEntries))
 const parentEntry = computed(() => props.parentEntries.get(props.entry.node))
 /** 继承或未填写的条目，点“在本 Profile 覆盖 / 填写”后才可编辑 */
 const opened = ref(false)
-const editable = computed(() => origin.value === 'own' || origin.value === 'override' || opened.value)
+const editable = computed(() => auth.isKbEditor && (origin.value === 'own' || origin.value === 'override' || opened.value))
 const base = ref<EntryForm>(formFromEntry(props.entry))
 const form = ref<EntryForm>({ ...base.value })
 const busy = ref(false)
@@ -106,7 +112,10 @@ function detailText(e: unknown): string {
           </span>
           <span class="small" v-else><span class="tag unfilled">{{ $t('st.unfilled') }}</span> {{ $t('profiles.unfilledHint') }}</span>
 
-          <button v-if="origin === 'override'" class="btn btn-xs" :disabled="busy" data-testid="entry-restore" @click="remove">
+          <button v-if="!auth.isKbEditor" class="btn btn-xs" data-testid="entry-suggest" @click="suggesting = true; suggested = false">
+            <Icon name="chat" small />{{ $t('kbsugg.button') }}
+          </button>
+          <button v-else-if="origin === 'override'" class="btn btn-xs" :disabled="busy" data-testid="entry-restore" @click="remove">
             <Icon name="rollback" small />{{ confirmDel ? $t('profiles.confirmRestore') : $t('profiles.restore') }}
           </button>
           <button v-else-if="origin === 'own'" class="btn btn-xs btn-danger" :disabled="busy" data-testid="entry-delete" @click="remove">
@@ -172,6 +181,8 @@ function detailText(e: unknown): string {
         </div>
       </div>
 
+      <div v-if="suggested" class="notice ok" data-testid="entry-suggested"><Icon name="check" /><div class="grow small">{{ $t('kbsugg.submitted') }}</div></div>
+      <KbSuggest v-if="suggesting" :target="`${profileId}:${entry.node}`" :current="formatDefault(entry.default)" kind="default" @close="suggesting = false" @submitted="suggesting = false; suggested = true" />
       <div v-if="err" class="notice err" data-testid="entry-error"><Icon name="err" /><div class="grow small">{{ err }}</div></div>
     </div>
     <div v-if="editable" class="panel-f">

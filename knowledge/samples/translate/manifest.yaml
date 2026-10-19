@@ -118,3 +118,46 @@ cases:
     interface_map: asr920-to-nokia.ifmap.yaml
     min_rendered: 0.48
     note: OSPF（network 宣告换成区域下的接口）、IS-IS、BFD、管理面 → Nokia（64 / 132）；IS-IS 区域标签（CORE）不是 Nokia 的实例编号、AAA 方法列表、登录线路、TACACS+ 服务器名、SSH 参数在 Nokia 上没有对应写法，报不支持
+  # ---------- Nokia 7750 SR MD-CLI（SR OS 25.10，M7-4）----------
+  # 同一设备的两种配置格式映射到同一套 Schema：MD-CLI ↔ Classic 几乎全部写出（只差 Classic 没有映射的过滤器名称、
+  # MD-CLI 拆成布尔叶子的 BGP 地址族）；对 ATN / ASR 920 的翻译与 Classic 的用例写出比例相当
+  - id: nokia-md-services-to-classic
+    src: ../nokia-sros-md-synthetic/md-pe-services.cfg
+    src_profile: nokia-sros-md-7750-25.10
+    dst_profile: nokia-sros-classic-7750-25.10
+    min_rendered: 0.99
+    note: MD-CLI → Classic（152 / 153）：过滤器、QoS 策略、客户（按名称引用换成编号）、SDP、Epipe（sap 同时建立接入电路）、VPLS、VPRN、IES；Classic 不记过滤器名称（acl.instance.filter_name）
+  - id: nokia-md-flat-to-classic
+    src: ../nokia-sros-md-synthetic/md-pe-basic-flat.cfg
+    src_profile: nokia-sros-md-7750-25.10
+    dst_profile: nokia-sros-classic-7750-25.10
+    min_rendered: 0.99
+    note: MD-CLI info flat 格式 → Classic（103 / 103）：扁平格式建出的图与花括号格式相同
+  - id: nokia-classic-routing-mgmt-to-md
+    src: ../nokia-sros-classic-synthetic/classic-pe-routing-mgmt.cfg
+    src_profile: nokia-sros-classic-7750-25.10
+    dst_profile: nokia-sros-md-7750-25.10
+    min_rendered: 0.95
+    note: Classic → MD-CLI（117 / 122）：管理面、OSPF、IS-IS、BGP、路由策略、MPLS / LDP、SR；BGP family 与用户 access 在 MD-CLI 是逐个布尔叶子，暂不归并，报不支持
+  - id: nokia-md-routing-mgmt-to-atn
+    src: ../nokia-sros-md-synthetic/md-pe-routing-mgmt.cfg
+    src_profile: nokia-sros-md-7750-25.10
+    dst_profile: huawei-atn-v800r025
+    interface_map: nokia-to-atn.ifmap.yaml
+    min_rendered: 0.75
+    note: MD-CLI → ATN（91 / 120，与 Classic 的 nokia-routing-mgmt-to-atn 相同的 91 个节点）
+  - id: nokia-md-services-to-atn
+    src: ../nokia-sros-md-synthetic/md-pe-services.cfg
+    src_profile: nokia-sros-md-7750-25.10
+    dst_profile: huawei-atn-v800r025
+    interface_map: nokia-to-atn.ifmap.yaml
+    min_rendered: 0.52
+    note: MD-CLI → ATN（82 / 157）：VPRN、VPLS、过滤器写出；客户、SDP、Epipe 伪线、IES、SAP 的 QoS 策略在华为上没有对应结构，报不支持
+  - id: asr920-to-nokia-md
+    src: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+    src_profile: cisco-iosxe-asr920-17.15
+    dst_profile: nokia-sros-md-7750-25.10
+    interface_map: asr920-to-nokia.ifmap.yaml
+    min_rendered: 0.64
+    expect_warnings: [inferred_value]
+    note: ASR 920 L3VPN PE → MD-CLI（88 / 137）：三层口换成路由器接口 + port、VRF 换成 VPRN（业务编号推出、客户 1）；BGP 地址族、业务实例、桥域报不支持

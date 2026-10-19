@@ -1,0 +1,1337 @@
+# Nokia SR OS MD-CLI Command Reference（25.10.R1）的命令卡抽取规则（M7-4，REQ-037）。
+# 文档先由 DevelopDocs/设备产品文档/Nokia/tools/nokia_md_to_md.py 从 HTML 配置树转成 Markdown（范围 tools/md-scope.txt）：
+#   每个 YANG 元素一条命令，标题 = 去掉 configure 与键的完整路径（命令卡编号由它生成，同名元素在不同上下文不会撞号）；
+#   小节 ### Syntax（**元素** *参数* / **delete** **元素**）/ View path（元素所在上下文，去掉键）/ Parameters（type=YANG 类型；
+#   Options / Range / Max. instances / quoted）/ Description / Default / Notes。
+#   文件 = 元素路径按功能归组（router.interface、router.ospf、service.vprn…）。
+# views_map 与 enters 由转换脚本生成（tmp 片段贴在下面的标记之间），视图编号 = 去掉 configure 与键的路径用 . 连接。
+name: nokia-sros-md-md
+family: nokia-sros-md
+
+sections:
+  syntax: [Syntax]
+  params: [Parameters]
+  views: [View path]
+  default: [Default]
+  function: [Description]
+
+negative_prefix: delete
+exclude_titles: '^$'
+views_split: '\x00'
+
+# 取值列：Options（keyword / boolean 的选项）→ 枚举；叶子列表（Max. instances）→ leaflist（[ "a" "b" ] 整段一个参数）；
+# number + Range → 带范围的整数；quoted（字符串类：名称、描述、引用）→ string（规范渲染加引号）；其余 word
+enum_marker: 'Options:'
+enum_item: '(?:Options:|,)\s*([\w\-./]+)'
+param_types:
+  - {value: 'Max\. instances', type: leaflist}
+  # 端口与 SAP（configure port 1/1/1、lag 下的 port 1/1/2、sap 1/1/4:100）：不加引号，按 Nokia 的端口 / SAP 写法检查
+  - {value: '^type=port(;|$)', type: port}
+  - {name: '^port-id$', type: port}
+  - {value: '^type=sap(;|$)', type: sap}
+  - {value: '^type=number\b.*Range (\d+) to (\d+)', type: integer, range_groups: [1, 2]}
+  - {value: '^type=number(;|$)', type: integer}
+  - {value: '; quoted', type: string}
+  - {type: word}
+
+domains:
+  interface:
+    - {path: port.md}
+    - {path: lag.md}
+    - {path: router.md}
+    - {path: router.interface.md}
+  vrrp:
+    - {path: router.vrrp.md}
+  static-route:
+    - {path: router.static-routes.md}
+  ospf:
+    - {path: router.ospf.md}
+  isis:
+    - {path: router.isis.md}
+  sr:
+    - {path: router.sr.md}
+    - {path: router.mpls-labels.md}
+  bgp:
+    - {path: router.bgp.md}
+    - {path: router.autonomous-system.md}
+    - {path: router.router-id.md}
+    - {path: router.confederation.md}
+  routing-policy:
+    - {path: policy-options.md}
+  mpls:
+    - {path: router.mpls.md}
+    - {path: router.rsvp.md}
+    - {path: router.ldp.md}
+  mgmt:
+    - {path: 'system*.md'}
+    - {path: 'log*.md'}
+  service:
+    - {path: 'service*.md'}
+  acl:
+    - {path: filter.md}
+  qos:
+    - {path: qos.md}
+
+# ---- 以下由 nokia_md_to_md.py 生成（views_map.yaml / enters.yaml），重新转换后整段替换 ----
+views_map:
+  - {match: '^configure$', view: configure}
+  - {match: '^configure filter$', view: filter}
+  - {match: '^configure filter ip\-filter$', view: filter.ip-filter}
+  - {match: '^configure filter ip\-filter entry$', view: filter.ip-filter.entry}
+  - {match: '^configure filter ip\-filter entry action$', view: filter.ip-filter.entry.action}
+  - {match: '^configure filter ip\-filter entry match$', view: filter.ip-filter.entry.match}
+  - {match: '^configure filter ip\-filter entry match dst\-ip$', view: filter.ip-filter.entry.match.dst-ip}
+  - {match: '^configure filter ip\-filter entry match dst\-port$', view: filter.ip-filter.entry.match.dst-port}
+  - {match: '^configure filter ip\-filter entry match dst\-port range$', view: filter.ip-filter.entry.match.dst-port.range}
+  - {match: '^configure filter ip\-filter entry match src\-ip$', view: filter.ip-filter.entry.match.src-ip}
+  - {match: '^configure filter ip\-filter entry match src\-port$', view: filter.ip-filter.entry.match.src-port}
+  - {match: '^configure filter ip\-filter entry match src\-port range$', view: filter.ip-filter.entry.match.src-port.range}
+  - {match: '^configure lag$', view: lag}
+  - {match: '^configure lag lacp$', view: lag.lacp}
+  - {match: '^configure lag port$', view: lag.port}
+  - {match: '^configure log$', view: log}
+  - {match: '^configure log log\-id$', view: log.log-id}
+  - {match: '^configure log log\-id destination$', view: log.log-id.destination}
+  - {match: '^configure log log\-id source$', view: log.log-id.source}
+  - {match: '^configure log syslog$', view: log.syslog}
+  - {match: '^configure policy\-options$', view: policy-options}
+  - {match: '^configure policy\-options community$', view: policy-options.community}
+  - {match: '^configure policy\-options policy\-statement$', view: policy-options.policy-statement}
+  - {match: '^configure policy\-options policy\-statement default\-action$', view: policy-options.policy-statement.default-action}
+  - {match: '^configure policy\-options policy\-statement entry$', view: policy-options.policy-statement.entry}
+  - {match: '^configure policy\-options policy\-statement entry action$', view: policy-options.policy-statement.entry.action}
+  - {match: '^configure policy\-options policy\-statement entry action community$', view: policy-options.policy-statement.entry.action.community}
+  - {match: '^configure policy\-options policy\-statement entry from$', view: policy-options.policy-statement.entry.from}
+  - {match: '^configure policy\-options policy\-statement entry from protocol$', view: policy-options.policy-statement.entry.from.protocol}
+  - {match: '^configure policy\-options prefix\-list$', view: policy-options.prefix-list}
+  - {match: '^configure policy\-options prefix\-list prefix$', view: policy-options.prefix-list.prefix}
+  - {match: '^configure port$', view: port}
+  - {match: '^configure port ethernet$', view: port.ethernet}
+  - {match: '^configure qos$', view: qos}
+  - {match: '^configure qos sap\-egress$', view: qos.sap-egress}
+  - {match: '^configure qos sap\-ingress$', view: qos.sap-ingress}
+  - {match: '^configure router$', view: router}
+  - {match: '^configure router bgp$', view: router.bgp}
+  - {match: '^configure router bgp family$', view: router.bgp.family}
+  - {match: '^configure router bgp group$', view: router.bgp.group}
+  - {match: '^configure router bgp group export$', view: router.bgp.group.export}
+  - {match: '^configure router bgp group family$', view: router.bgp.group.family}
+  - {match: '^configure router bgp group hold\-time$', view: router.bgp.group.hold-time}
+  - {match: '^configure router bgp group import$', view: router.bgp.group.import}
+  - {match: '^configure router bgp hold\-time$', view: router.bgp.hold-time}
+  - {match: '^configure router bgp neighbor$', view: router.bgp.neighbor}
+  - {match: '^configure router bgp neighbor export$', view: router.bgp.neighbor.export}
+  - {match: '^configure router bgp neighbor family$', view: router.bgp.neighbor.family}
+  - {match: '^configure router bgp neighbor hold\-time$', view: router.bgp.neighbor.hold-time}
+  - {match: '^configure router bgp neighbor import$', view: router.bgp.neighbor.import}
+  - {match: '^configure router interface$', view: router.interface}
+  - {match: '^configure router interface ipv4$', view: router.interface.ipv4}
+  - {match: '^configure router interface ipv4 bfd$', view: router.interface.ipv4.bfd}
+  - {match: '^configure router interface ipv4 primary$', view: router.interface.ipv4.primary}
+  - {match: '^configure router interface ipv4 secondary$', view: router.interface.ipv4.secondary}
+  - {match: '^configure router interface ipv4 vrrp$', view: router.interface.ipv4.vrrp}
+  - {match: '^configure router isis$', view: router.isis}
+  - {match: '^configure router isis interface$', view: router.isis.interface}
+  - {match: '^configure router isis interface ipv4\-node\-sid$', view: router.isis.interface.ipv4-node-sid}
+  - {match: '^configure router isis interface level$', view: router.isis.interface.level}
+  - {match: '^configure router isis level$', view: router.isis.level}
+  - {match: '^configure router isis segment\-routing$', view: router.isis.segment-routing}
+  - {match: '^configure router ldp$', view: router.ldp}
+  - {match: '^configure router ldp interface\-parameters$', view: router.ldp.interface-parameters}
+  - {match: '^configure router ldp interface\-parameters interface$', view: router.ldp.interface-parameters.interface}
+  - {match: '^configure router ldp interface\-parameters interface ipv4$', view: router.ldp.interface-parameters.interface.ipv4}
+  - {match: '^configure router ldp targeted\-session$', view: router.ldp.targeted-session}
+  - {match: '^configure router ldp targeted\-session peer$', view: router.ldp.targeted-session.peer}
+  - {match: '^configure router mpls$', view: router.mpls}
+  - {match: '^configure router mpls\-labels$', view: router.mpls-labels}
+  - {match: '^configure router mpls\-labels sr\-labels$', view: router.mpls-labels.sr-labels}
+  - {match: '^configure router mpls interface$', view: router.mpls.interface}
+  - {match: '^configure router mpls lsp$', view: router.mpls.lsp}
+  - {match: '^configure router mpls path$', view: router.mpls.path}
+  - {match: '^configure router mpls path hop$', view: router.mpls.path.hop}
+  - {match: '^configure router ospf$', view: router.ospf}
+  - {match: '^configure router ospf area$', view: router.ospf.area}
+  - {match: '^configure router ospf area interface$', view: router.ospf.area.interface}
+  - {match: '^configure router ospf area interface node\-sid$', view: router.ospf.area.interface.node-sid}
+  - {match: '^configure router ospf segment\-routing$', view: router.ospf.segment-routing}
+  - {match: '^configure router rsvp$', view: router.rsvp}
+  - {match: '^configure router rsvp interface$', view: router.rsvp.interface}
+  - {match: '^configure router static\-routes$', view: router.static-routes}
+  - {match: '^configure router static\-routes route$', view: router.static-routes.route}
+  - {match: '^configure router static\-routes route blackhole$', view: router.static-routes.route.blackhole}
+  - {match: '^configure router static\-routes route indirect$', view: router.static-routes.route.indirect}
+  - {match: '^configure router static\-routes route next\-hop$', view: router.static-routes.route.next-hop}
+  - {match: '^configure service$', view: service}
+  - {match: '^configure service customer$', view: service.customer}
+  - {match: '^configure service epipe$', view: service.epipe}
+  - {match: '^configure service epipe sap$', view: service.epipe.sap}
+  - {match: '^configure service epipe sap egress$', view: service.epipe.sap.egress}
+  - {match: '^configure service epipe sap egress filter$', view: service.epipe.sap.egress.filter}
+  - {match: '^configure service epipe sap egress qos$', view: service.epipe.sap.egress.qos}
+  - {match: '^configure service epipe sap egress qos sap\-egress$', view: service.epipe.sap.egress.qos.sap-egress}
+  - {match: '^configure service epipe sap ingress$', view: service.epipe.sap.ingress}
+  - {match: '^configure service epipe sap ingress filter$', view: service.epipe.sap.ingress.filter}
+  - {match: '^configure service epipe sap ingress qos$', view: service.epipe.sap.ingress.qos}
+  - {match: '^configure service epipe sap ingress qos sap\-ingress$', view: service.epipe.sap.ingress.qos.sap-ingress}
+  - {match: '^configure service epipe spoke\-sdp$', view: service.epipe.spoke-sdp}
+  - {match: '^configure service ies$', view: service.ies}
+  - {match: '^configure service ies interface$', view: service.ies.interface}
+  - {match: '^configure service ies interface ipv4$', view: service.ies.interface.ipv4}
+  - {match: '^configure service ies interface ipv4 primary$', view: service.ies.interface.ipv4.primary}
+  - {match: '^configure service ies interface ipv4 secondary$', view: service.ies.interface.ipv4.secondary}
+  - {match: '^configure service ies interface sap$', view: service.ies.interface.sap}
+  - {match: '^configure service ies interface sap egress$', view: service.ies.interface.sap.egress}
+  - {match: '^configure service ies interface sap egress filter$', view: service.ies.interface.sap.egress.filter}
+  - {match: '^configure service ies interface sap egress qos$', view: service.ies.interface.sap.egress.qos}
+  - {match: '^configure service ies interface sap egress qos sap\-egress$', view: service.ies.interface.sap.egress.qos.sap-egress}
+  - {match: '^configure service ies interface sap ingress$', view: service.ies.interface.sap.ingress}
+  - {match: '^configure service ies interface sap ingress filter$', view: service.ies.interface.sap.ingress.filter}
+  - {match: '^configure service ies interface sap ingress qos$', view: service.ies.interface.sap.ingress.qos}
+  - {match: '^configure service ies interface sap ingress qos sap\-ingress$', view: service.ies.interface.sap.ingress.qos.sap-ingress}
+  - {match: '^configure service sdp$', view: service.sdp}
+  - {match: '^configure service sdp far\-end$', view: service.sdp.far-end}
+  - {match: '^configure service sdp keep\-alive$', view: service.sdp.keep-alive}
+  - {match: '^configure service vpls$', view: service.vpls}
+  - {match: '^configure service vpls mesh\-sdp$', view: service.vpls.mesh-sdp}
+  - {match: '^configure service vpls sap$', view: service.vpls.sap}
+  - {match: '^configure service vpls sap egress$', view: service.vpls.sap.egress}
+  - {match: '^configure service vpls sap egress filter$', view: service.vpls.sap.egress.filter}
+  - {match: '^configure service vpls sap egress qos$', view: service.vpls.sap.egress.qos}
+  - {match: '^configure service vpls sap egress qos sap\-egress$', view: service.vpls.sap.egress.qos.sap-egress}
+  - {match: '^configure service vpls sap ingress$', view: service.vpls.sap.ingress}
+  - {match: '^configure service vpls sap ingress filter$', view: service.vpls.sap.ingress.filter}
+  - {match: '^configure service vpls sap ingress qos$', view: service.vpls.sap.ingress.qos}
+  - {match: '^configure service vpls sap ingress qos sap\-ingress$', view: service.vpls.sap.ingress.qos.sap-ingress}
+  - {match: '^configure service vpls spoke\-sdp$', view: service.vpls.spoke-sdp}
+  - {match: '^configure service vprn$', view: service.vprn}
+  - {match: '^configure service vprn bgp\-ipvpn$', view: service.vprn.bgp-ipvpn}
+  - {match: '^configure service vprn bgp\-ipvpn mpls$', view: service.vprn.bgp-ipvpn.mpls}
+  - {match: '^configure service vprn bgp\-ipvpn mpls auto\-bind\-tunnel$', view: service.vprn.bgp-ipvpn.mpls.auto-bind-tunnel}
+  - {match: '^configure service vprn bgp\-ipvpn mpls auto\-bind\-tunnel resolution\-filter$', view: service.vprn.bgp-ipvpn.mpls.auto-bind-tunnel.resolution-filter}
+  - {match: '^configure service vprn bgp\-ipvpn mpls vrf\-export$', view: service.vprn.bgp-ipvpn.mpls.vrf-export}
+  - {match: '^configure service vprn bgp\-ipvpn mpls vrf\-import$', view: service.vprn.bgp-ipvpn.mpls.vrf-import}
+  - {match: '^configure service vprn bgp\-ipvpn mpls vrf\-target$', view: service.vprn.bgp-ipvpn.mpls.vrf-target}
+  - {match: '^configure service vprn interface$', view: service.vprn.interface}
+  - {match: '^configure service vprn interface ipv4$', view: service.vprn.interface.ipv4}
+  - {match: '^configure service vprn interface ipv4 primary$', view: service.vprn.interface.ipv4.primary}
+  - {match: '^configure service vprn interface ipv4 secondary$', view: service.vprn.interface.ipv4.secondary}
+  - {match: '^configure service vprn interface sap$', view: service.vprn.interface.sap}
+  - {match: '^configure service vprn interface sap egress$', view: service.vprn.interface.sap.egress}
+  - {match: '^configure service vprn interface sap egress filter$', view: service.vprn.interface.sap.egress.filter}
+  - {match: '^configure service vprn interface sap egress qos$', view: service.vprn.interface.sap.egress.qos}
+  - {match: '^configure service vprn interface sap egress qos sap\-egress$', view: service.vprn.interface.sap.egress.qos.sap-egress}
+  - {match: '^configure service vprn interface sap ingress$', view: service.vprn.interface.sap.ingress}
+  - {match: '^configure service vprn interface sap ingress filter$', view: service.vprn.interface.sap.ingress.filter}
+  - {match: '^configure service vprn interface sap ingress qos$', view: service.vprn.interface.sap.ingress.qos}
+  - {match: '^configure service vprn interface sap ingress qos sap\-ingress$', view: service.vprn.interface.sap.ingress.qos.sap-ingress}
+  - {match: '^configure service vprn maximum\-ipv4\-routes$', view: service.vprn.maximum-ipv4-routes}
+  - {match: '^configure service vprn static\-routes$', view: service.vprn.static-routes}
+  - {match: '^configure service vprn static\-routes route$', view: service.vprn.static-routes.route}
+  - {match: '^configure service vprn static\-routes route next\-hop$', view: service.vprn.static-routes.route.next-hop}
+  - {match: '^configure system$', view: system}
+  - {match: '^configure system login\-control$', view: system.login-control}
+  - {match: '^configure system management\-interface$', view: system.management-interface}
+  - {match: '^configure system management\-interface snmp$', view: system.management-interface.snmp}
+  - {match: '^configure system security$', view: system.security}
+  - {match: '^configure system security aaa$', view: system.security.aaa}
+  - {match: '^configure system security aaa remote\-servers$', view: system.security.aaa.remote-servers}
+  - {match: '^configure system security aaa remote\-servers radius$', view: system.security.aaa.remote-servers.radius}
+  - {match: '^configure system security aaa remote\-servers tacplus$', view: system.security.aaa.remote-servers.tacplus}
+  - {match: '^configure system security aaa remote\-servers tacplus server$', view: system.security.aaa.remote-servers.tacplus.server}
+  - {match: '^configure system security snmp$', view: system.security.snmp}
+  - {match: '^configure system security snmp community$', view: system.security.snmp.community}
+  - {match: '^configure system security ssh$', view: system.security.ssh}
+  - {match: '^configure system security user\-params$', view: system.security.user-params}
+  - {match: '^configure system security user\-params local\-user$', view: system.security.user-params.local-user}
+  - {match: '^configure system security user\-params local\-user user$', view: system.security.user-params.local-user.user}
+  - {match: '^configure system security user\-params local\-user user access$', view: system.security.user-params.local-user.user.access}
+  - {match: '^configure system security user\-params local\-user user console$', view: system.security.user-params.local-user.user.console}
+  - {match: '^configure system time$', view: system.time}
+  - {match: '^configure system time ntp$', view: system.time.ntp}
+  - {match: '^configure system time ntp server$', view: system.time.ntp.server}
+enters:
+  - {view: configure, syntax: '^aaa( |$)', enters: opaque}
+  - {view: configure, syntax: '^bfd( |$)', enters: opaque}
+  - {view: configure, syntax: '^filter( |$)', enters: filter}
+  - {view: configure, syntax: '^lag( |$)', enters: lag}
+  - {view: configure, syntax: '^log( |$)', enters: log}
+  - {view: configure, syntax: '^policy\-options( |$)', enters: policy-options}
+  - {view: configure, syntax: '^port( |$)', enters: port}
+  - {view: configure, syntax: '^qos( |$)', enters: qos}
+  - {view: configure, syntax: '^router( |$)', enters: router}
+  - {view: configure, syntax: '^service( |$)', enters: service}
+  - {view: configure, syntax: '^system( |$)', enters: system}
+  - {view: configure, syntax: '^vrrp( |$)', enters: opaque}
+  - {view: filter, syntax: '^dhcp\-filter( |$)', enters: opaque}
+  - {view: filter, syntax: '^dhcp6\-filter( |$)', enters: opaque}
+  - {view: filter, syntax: '^gre\-tunnel\-template( |$)', enters: opaque}
+  - {view: filter, syntax: '^ip\-exception( |$)', enters: opaque}
+  - {view: filter, syntax: '^ip\-filter( |$)', enters: filter.ip-filter}
+  - {view: filter, syntax: '^ipv6\-exception( |$)', enters: opaque}
+  - {view: filter, syntax: '^ipv6\-filter( |$)', enters: opaque}
+  - {view: filter, syntax: '^log( |$)', enters: opaque}
+  - {view: filter, syntax: '^mac\-filter( |$)', enters: opaque}
+  - {view: filter, syntax: '^match\-list( |$)', enters: opaque}
+  - {view: filter, syntax: '^md\-auto\-id( |$)', enters: opaque}
+  - {view: filter, syntax: '^policer( |$)', enters: opaque}
+  - {view: filter, syntax: '^redirect\-policy( |$)', enters: opaque}
+  - {view: filter, syntax: '^redirect\-policy\-binding( |$)', enters: opaque}
+  - {view: filter, syntax: '^system\-filter( |$)', enters: opaque}
+  - {view: filter.ip-filter, syntax: '^embed( |$)', enters: opaque}
+  - {view: filter.ip-filter, syntax: '^entry( |$)', enters: filter.ip-filter.entry}
+  - {view: filter.ip-filter, syntax: '^subscriber\-mgmt( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry, syntax: '^action( |$)', enters: filter.ip-filter.entry.action}
+  - {view: filter.ip-filter.entry, syntax: '^match( |$)', enters: filter.ip-filter.entry.match}
+  - {view: filter.ip-filter.entry.action, syntax: '^accept\-when( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.action, syntax: '^drop\-when( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.action, syntax: '^forward( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.action, syntax: '^http\-redirect( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.action, syntax: '^nat( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.action, syntax: '^rate\-limit( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.action, syntax: '^remark( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.action, syntax: '^secondary( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.match, syntax: '^dst\-ip( |$)', enters: filter.ip-filter.entry.match.dst-ip}
+  - {view: filter.ip-filter.entry.match, syntax: '^dst\-port( |$)', enters: filter.ip-filter.entry.match.dst-port}
+  - {view: filter.ip-filter.entry.match, syntax: '^icmp( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.match, syntax: '^ip( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.match, syntax: '^ip\-option( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.match, syntax: '^packet\-length( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.match, syntax: '^port( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.match, syntax: '^src\-ip( |$)', enters: filter.ip-filter.entry.match.src-ip}
+  - {view: filter.ip-filter.entry.match, syntax: '^src\-mac( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.match, syntax: '^src\-port( |$)', enters: filter.ip-filter.entry.match.src-port}
+  - {view: filter.ip-filter.entry.match, syntax: '^tcp\-flags( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.match, syntax: '^ttl( |$)', enters: opaque}
+  - {view: filter.ip-filter.entry.match.dst-port, syntax: '^range( |$)', enters: filter.ip-filter.entry.match.dst-port.range}
+  - {view: filter.ip-filter.entry.match.src-port, syntax: '^range( |$)', enters: filter.ip-filter.entry.match.src-port.range}
+  - {view: lag, syntax: '^access( |$)', enters: opaque}
+  - {view: lag, syntax: '^adaptive\-load\-balancing( |$)', enters: opaque}
+  - {view: lag, syntax: '^bfd\-liveness( |$)', enters: opaque}
+  - {view: lag, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: lag, syntax: '^hash\-weight\-threshold( |$)', enters: opaque}
+  - {view: lag, syntax: '^lacp( |$)', enters: lag.lacp}
+  - {view: lag, syntax: '^link\-map\-profile( |$)', enters: opaque}
+  - {view: lag, syntax: '^lldp\-member\-template( |$)', enters: opaque}
+  - {view: lag, syntax: '^per\-link\-hash( |$)', enters: opaque}
+  - {view: lag, syntax: '^port( |$)', enters: lag.port}
+  - {view: lag, syntax: '^port\-threshold( |$)', enters: opaque}
+  - {view: lag, syntax: '^ptp\-timestamping( |$)', enters: opaque}
+  - {view: lag, syntax: '^selection\-criteria( |$)', enters: opaque}
+  - {view: lag.lacp, syntax: '^fallback( |$)', enters: opaque}
+  - {view: log, syntax: '^accounting\-policy( |$)', enters: opaque}
+  - {view: log, syntax: '^app\-route\-notifications( |$)', enters: opaque}
+  - {view: log, syntax: '^event\-handling( |$)', enters: opaque}
+  - {view: log, syntax: '^event\-trigger( |$)', enters: opaque}
+  - {view: log, syntax: '^file( |$)', enters: opaque}
+  - {view: log, syntax: '^file\-storage\-control( |$)', enters: opaque}
+  - {view: log, syntax: '^filter( |$)', enters: opaque}
+  - {view: log, syntax: '^log\-events( |$)', enters: opaque}
+  - {view: log, syntax: '^log\-id( |$)', enters: log.log-id}
+  - {view: log, syntax: '^route\-preference( |$)', enters: opaque}
+  - {view: log, syntax: '^services\-all\-events( |$)', enters: opaque}
+  - {view: log, syntax: '^snmp\-trap\-group( |$)', enters: opaque}
+  - {view: log, syntax: '^syslog( |$)', enters: log.syslog}
+  - {view: log, syntax: '^throttle\-rate( |$)', enters: opaque}
+  - {view: log.log-id, syntax: '^destination( |$)', enters: log.log-id.destination}
+  - {view: log.log-id, syntax: '^source( |$)', enters: log.log-id.source}
+  - {view: log.log-id.destination, syntax: '^cli( |$)', enters: opaque}
+  - {view: log.log-id.destination, syntax: '^memory( |$)', enters: opaque}
+  - {view: log.log-id.destination, syntax: '^netconf( |$)', enters: opaque}
+  - {view: log.log-id.destination, syntax: '^snmp( |$)', enters: opaque}
+  - {view: log.syslog, syntax: '^hostname( |$)', enters: opaque}
+  - {view: policy-options, syntax: '^as\-path( |$)', enters: opaque}
+  - {view: policy-options, syntax: '^as\-path\-group( |$)', enters: opaque}
+  - {view: policy-options, syntax: '^community( |$)', enters: policy-options.community}
+  - {view: policy-options, syntax: '^damping( |$)', enters: opaque}
+  - {view: policy-options, syntax: '^global\-variables( |$)', enters: opaque}
+  - {view: policy-options, syntax: '^policy\-statement( |$)', enters: policy-options.policy-statement}
+  - {view: policy-options, syntax: '^prefix\-list( |$)', enters: policy-options.prefix-list}
+  - {view: policy-options, syntax: '^route\-distinguisher\-list( |$)', enters: opaque}
+  - {view: policy-options.community, syntax: '^expression( |$)', enters: opaque}
+  - {view: policy-options.policy-statement, syntax: '^default\-action( |$)', enters: policy-options.policy-statement.default-action}
+  - {view: policy-options.policy-statement, syntax: '^entry( |$)', enters: policy-options.policy-statement.entry}
+  - {view: policy-options.policy-statement, syntax: '^named\-entry( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.default-action, syntax: '^aigp\-metric( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.default-action, syntax: '^as\-path( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.default-action, syntax: '^as\-path\-prepend( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.default-action, syntax: '^bgp\-med( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.default-action, syntax: '^bgp\-tunnel\-metric( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.default-action, syntax: '^community( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.default-action, syntax: '^metric( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.default-action, syntax: '^multicast\-redirection( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.default-action, syntax: '^sr\-label\-index( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry, syntax: '^action( |$)', enters: policy-options.policy-statement.entry.action}
+  - {view: policy-options.policy-statement.entry, syntax: '^conditional\-expression( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry, syntax: '^from( |$)', enters: policy-options.policy-statement.entry.from}
+  - {view: policy-options.policy-statement.entry, syntax: '^to( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.action, syntax: '^aigp\-metric( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.action, syntax: '^as\-path( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.action, syntax: '^as\-path\-prepend( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.action, syntax: '^bgp\-med( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.action, syntax: '^bgp\-tunnel\-metric( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.action, syntax: '^community( |$)', enters: policy-options.policy-statement.entry.action.community}
+  - {view: policy-options.policy-statement.entry.action, syntax: '^forwarding\-class( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.action, syntax: '^metric( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.action, syntax: '^multicast\-redirection( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.action, syntax: '^sr\-label\-index( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^as\-path( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^cluster\-id( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^community( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^flowspec( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^interface\-subnets( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^local\-preference( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^metric( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^neighbor( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^next\-hop( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^policy\-variables( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^prefix\-list\-override( |$)', enters: opaque}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^protocol( |$)', enters: policy-options.policy-statement.entry.from.protocol}
+  - {view: policy-options.policy-statement.entry.from, syntax: '^source\-address( |$)', enters: opaque}
+  - {view: policy-options.prefix-list, syntax: '^prefix( |$)', enters: policy-options.prefix-list.prefix}
+  - {view: port, syntax: '^access( |$)', enters: opaque}
+  - {view: port, syntax: '^connector( |$)', enters: opaque}
+  - {view: port, syntax: '^dist\-cpu\-protection( |$)', enters: opaque}
+  - {view: port, syntax: '^dwdm( |$)', enters: opaque}
+  - {view: port, syntax: '^ethernet( |$)', enters: port.ethernet}
+  - {view: port, syntax: '^gnss( |$)', enters: opaque}
+  - {view: port, syntax: '^hybrid\-buffer\-allocation( |$)', enters: opaque}
+  - {view: port, syntax: '^modify\-buffer\-allocation( |$)', enters: opaque}
+  - {view: port, syntax: '^network( |$)', enters: opaque}
+  - {view: port, syntax: '^otu( |$)', enters: opaque}
+  - {view: port, syntax: '^sonet\-sdh( |$)', enters: opaque}
+  - {view: port, syntax: '^tdm( |$)', enters: opaque}
+  - {view: port, syntax: '^transceiver( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^access( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^crc\-monitor( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^dampening( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^dot1x( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^down\-on\-internal\-error( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^down\-when\-looped( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^efm\-oam( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^egress( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^elmi( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^hold\-time( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^ingress( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^lldp( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^network( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^ptp\-timestamping( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^report\-alarm( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^ssm( |$)', enters: opaque}
+  - {view: port.ethernet, syntax: '^symbol\-monitor( |$)', enters: opaque}
+  - {view: qos, syntax: '^adv\-config\-policy( |$)', enters: opaque}
+  - {view: qos, syntax: '^fp\-resource\-policy( |$)', enters: opaque}
+  - {view: qos, syntax: '^hs\-attachment\-policy( |$)', enters: opaque}
+  - {view: qos, syntax: '^hs\-pool\-policy( |$)', enters: opaque}
+  - {view: qos, syntax: '^hs\-port\-pool\-policy( |$)', enters: opaque}
+  - {view: qos, syntax: '^hs\-scheduler\-policy( |$)', enters: opaque}
+  - {view: qos, syntax: '^hw\-agg\-shaper\-scheduler\-policy( |$)', enters: opaque}
+  - {view: qos, syntax: '^match\-list( |$)', enters: opaque}
+  - {view: qos, syntax: '^md\-auto\-id( |$)', enters: opaque}
+  - {view: qos, syntax: '^network( |$)', enters: opaque}
+  - {view: qos, syntax: '^network\-queue( |$)', enters: opaque}
+  - {view: qos, syntax: '^policer\-control\-policy( |$)', enters: opaque}
+  - {view: qos, syntax: '^port\-scheduler\-policy( |$)', enters: opaque}
+  - {view: qos, syntax: '^post\-policer\-mapping( |$)', enters: opaque}
+  - {view: qos, syntax: '^queue\-group\-redirect\-list( |$)', enters: opaque}
+  - {view: qos, syntax: '^queue\-group\-templates( |$)', enters: opaque}
+  - {view: qos, syntax: '^sap\-egress( |$)', enters: qos.sap-egress}
+  - {view: qos, syntax: '^sap\-ingress( |$)', enters: qos.sap-ingress}
+  - {view: qos, syntax: '^scheduler\-policy( |$)', enters: opaque}
+  - {view: qos, syntax: '^shared\-queue( |$)', enters: opaque}
+  - {view: qos, syntax: '^slope\-policy( |$)', enters: opaque}
+  - {view: qos.sap-egress, syntax: '^dot1p( |$)', enters: opaque}
+  - {view: qos.sap-egress, syntax: '^dscp( |$)', enters: opaque}
+  - {view: qos.sap-egress, syntax: '^fc( |$)', enters: opaque}
+  - {view: qos.sap-egress, syntax: '^hs\-wrr\-group( |$)', enters: opaque}
+  - {view: qos.sap-egress, syntax: '^hw\-agg\-shaper\-queues( |$)', enters: opaque}
+  - {view: qos.sap-egress, syntax: '^ip\-criteria( |$)', enters: opaque}
+  - {view: qos.sap-egress, syntax: '^ipv6\-criteria( |$)', enters: opaque}
+  - {view: qos.sap-egress, syntax: '^policer( |$)', enters: opaque}
+  - {view: qos.sap-egress, syntax: '^prec( |$)', enters: opaque}
+  - {view: qos.sap-egress, syntax: '^queue( |$)', enters: opaque}
+  - {view: qos.sap-egress, syntax: '^sched\-class\-elevation( |$)', enters: opaque}
+  - {view: qos.sap-egress, syntax: '^subscriber\-mgmt( |$)', enters: opaque}
+  - {view: qos.sap-ingress, syntax: '^dot1p( |$)', enters: opaque}
+  - {view: qos.sap-ingress, syntax: '^dscp( |$)', enters: opaque}
+  - {view: qos.sap-ingress, syntax: '^fc( |$)', enters: opaque}
+  - {view: qos.sap-ingress, syntax: '^ip\-criteria( |$)', enters: opaque}
+  - {view: qos.sap-ingress, syntax: '^ipv6\-criteria( |$)', enters: opaque}
+  - {view: qos.sap-ingress, syntax: '^lsp\-exp( |$)', enters: opaque}
+  - {view: qos.sap-ingress, syntax: '^mac\-criteria( |$)', enters: opaque}
+  - {view: qos.sap-ingress, syntax: '^policer( |$)', enters: opaque}
+  - {view: qos.sap-ingress, syntax: '^prec( |$)', enters: opaque}
+  - {view: qos.sap-ingress, syntax: '^queue( |$)', enters: opaque}
+  - {view: qos.sap-ingress, syntax: '^subscriber\-mgmt( |$)', enters: opaque}
+  - {view: router, syntax: '^aggregates( |$)', enters: opaque}
+  - {view: router, syntax: '^bfd( |$)', enters: opaque}
+  - {view: router, syntax: '^bgp( |$)', enters: router.bgp}
+  - {view: router, syntax: '^bier( |$)', enters: opaque}
+  - {view: router, syntax: '^confederation( |$)', enters: opaque}
+  - {view: router, syntax: '^dhcp\-server( |$)', enters: opaque}
+  - {view: router, syntax: '^dns( |$)', enters: opaque}
+  - {view: router, syntax: '^firewall( |$)', enters: opaque}
+  - {view: router, syntax: '^flowspec( |$)', enters: opaque}
+  - {view: router, syntax: '^gtm( |$)', enters: opaque}
+  - {view: router, syntax: '^gtp( |$)', enters: opaque}
+  - {view: router, syntax: '^igmp( |$)', enters: opaque}
+  - {view: router, syntax: '^interface( |$)', enters: router.interface}
+  - {view: router, syntax: '^ipsec( |$)', enters: opaque}
+  - {view: router, syntax: '^ipv6( |$)', enters: opaque}
+  - {view: router, syntax: '^ipv6\-te\-router\-id( |$)', enters: opaque}
+  - {view: router, syntax: '^isa\-service\-chaining( |$)', enters: opaque}
+  - {view: router, syntax: '^isis( |$)', enters: router.isis}
+  - {view: router, syntax: '^l2tp( |$)', enters: opaque}
+  - {view: router, syntax: '^ldp( |$)', enters: router.ldp}
+  - {view: router, syntax: '^leak\-export( |$)', enters: opaque}
+  - {view: router, syntax: '^lsp\-bfd( |$)', enters: opaque}
+  - {view: router, syntax: '^mc\-maximum\-routes( |$)', enters: opaque}
+  - {view: router, syntax: '^mld( |$)', enters: opaque}
+  - {view: router, syntax: '^mpls( |$)', enters: router.mpls}
+  - {view: router, syntax: '^mpls\-labels( |$)', enters: router.mpls-labels}
+  - {view: router, syntax: '^msdp( |$)', enters: opaque}
+  - {view: router, syntax: '^mss\-adjust( |$)', enters: opaque}
+  - {view: router, syntax: '^mtrace2( |$)', enters: opaque}
+  - {view: router, syntax: '^nat( |$)', enters: opaque}
+  - {view: router, syntax: '^network\-domains( |$)', enters: opaque}
+  - {view: router, syntax: '^origin\-validation( |$)', enters: opaque}
+  - {view: router, syntax: '^ospf( |$)', enters: router.ospf}
+  - {view: router, syntax: '^ospf3( |$)', enters: opaque}
+  - {view: router, syntax: '^p2mp\-sr\-tree( |$)', enters: opaque}
+  - {view: router, syntax: '^pcep( |$)', enters: opaque}
+  - {view: router, syntax: '^pcp( |$)', enters: opaque}
+  - {view: router, syntax: '^pim( |$)', enters: opaque}
+  - {view: router, syntax: '^radius( |$)', enters: opaque}
+  - {view: router, syntax: '^reassembly( |$)', enters: opaque}
+  - {view: router, syntax: '^rib\-api( |$)', enters: opaque}
+  - {view: router, syntax: '^rip( |$)', enters: opaque}
+  - {view: router, syntax: '^ripng( |$)', enters: opaque}
+  - {view: router, syntax: '^rsvp( |$)', enters: router.rsvp}
+  - {view: router, syntax: '^segment\-routing( |$)', enters: opaque}
+  - {view: router, syntax: '^sfm\-overload( |$)', enters: opaque}
+  - {view: router, syntax: '^sgt\-qos( |$)', enters: opaque}
+  - {view: router, syntax: '^static\-routes( |$)', enters: router.static-routes}
+  - {view: router, syntax: '^subscriber\-mgmt( |$)', enters: opaque}
+  - {view: router, syntax: '^ttl\-propagate( |$)', enters: opaque}
+  - {view: router, syntax: '^tunnel\-interface( |$)', enters: opaque}
+  - {view: router, syntax: '^twamp\-light( |$)', enters: opaque}
+  - {view: router, syntax: '^vrgw( |$)', enters: opaque}
+  - {view: router, syntax: '^wlan\-gw( |$)', enters: opaque}
+  - {view: router, syntax: '^wpp( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^add\-paths( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^advertise\-external( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^advertise\-ipv6\-next\-hops( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^backup\-path( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^best\-path\-selection( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^bfd\-strict\-mode( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^bgp\-tunnel\-metric( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^cluster( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^convergence( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^damp\-peer\-oscillations( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^default\-label\-preference( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^default\-preference( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^ebgp\-default\-reject\-policy( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^egress\-peer\-engineering( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^error\-handling( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^export( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^extended\-nh\-encoding( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^family( |$)', enters: router.bgp.family}
+  - {view: router.bgp, syntax: '^flowspec( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^graceful\-restart( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^group( |$)', enters: router.bgp.group}
+  - {view: router.bgp, syntax: '^hold\-time( |$)', enters: router.bgp.hold-time}
+  - {view: router.bgp, syntax: '^import( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^label\-allocation( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^local\-as( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^monitor( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^multipath( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^neighbor( |$)', enters: router.bgp.neighbor}
+  - {view: router.bgp, syntax: '^neighbor\-trust( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^next\-hop\-resolution( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^optimal\-route\-reflection( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^outbound\-route\-filtering( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^rapid\-update( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^remove\-private( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^rib\-management( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^segment\-routing( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^segment\-routing\-v6( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^send\-communities( |$)', enters: opaque}
+  - {view: router.bgp, syntax: '^send\-default( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^add\-paths( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^advertise\-ipv6\-next\-hops( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^bfd\-strict\-mode( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^cluster( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^damp\-peer\-oscillations( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^default\-label\-preference( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^default\-preference( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^dynamic\-neighbor( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^ebgp\-default\-reject\-policy( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^egress\-engineering( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^error\-handling( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^export( |$)', enters: router.bgp.group.export}
+  - {view: router.bgp.group, syntax: '^extended\-nh\-encoding( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^family( |$)', enters: router.bgp.group.family}
+  - {view: router.bgp.group, syntax: '^graceful\-restart( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^hold\-time( |$)', enters: router.bgp.group.hold-time}
+  - {view: router.bgp.group, syntax: '^import( |$)', enters: router.bgp.group.import}
+  - {view: router.bgp.group, syntax: '^link\-bandwidth( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^local\-as( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^monitor( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^next\-hop\-unchanged( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^origin\-validation( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^outbound\-route\-filtering( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^prefix\-limit( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^remove\-private( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^segment\-routing\-v6( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^send\-communities( |$)', enters: opaque}
+  - {view: router.bgp.group, syntax: '^send\-default( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^add\-paths( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^advertise\-ipv6\-next\-hops( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^bfd\-strict\-mode( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^cluster( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^damp\-peer\-oscillations( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^default\-label\-preference( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^default\-preference( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^ebgp\-default\-reject\-policy( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^egress\-engineering( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^error\-handling( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^export( |$)', enters: router.bgp.neighbor.export}
+  - {view: router.bgp.neighbor, syntax: '^extended\-nh\-encoding( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^family( |$)', enters: router.bgp.neighbor.family}
+  - {view: router.bgp.neighbor, syntax: '^graceful\-restart( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^hold\-time( |$)', enters: router.bgp.neighbor.hold-time}
+  - {view: router.bgp.neighbor, syntax: '^import( |$)', enters: router.bgp.neighbor.import}
+  - {view: router.bgp.neighbor, syntax: '^link\-bandwidth( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^local\-as( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^monitor( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^next\-hop\-unchanged( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^origin\-validation( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^outbound\-route\-filtering( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^prefix\-limit( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^remove\-private( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^segment\-routing\-v6( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^send\-communities( |$)', enters: opaque}
+  - {view: router.bgp.neighbor, syntax: '^send\-default( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^cflowd\-parameters( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^egress( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^external\-reference( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^hold\-time( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^if\-attribute( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^ingress( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^ipsec( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^ipv4( |$)', enters: router.interface.ipv4}
+  - {view: router.interface, syntax: '^ipv6( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^lag( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^ldp\-sync\-timer( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^load\-balancing( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^network\-domains( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^ptp\-hw\-assist( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^qos( |$)', enters: opaque}
+  - {view: router.interface, syntax: '^untrusted( |$)', enters: opaque}
+  - {view: router.interface.ipv4, syntax: '^bfd( |$)', enters: router.interface.ipv4.bfd}
+  - {view: router.interface.ipv4, syntax: '^dhcp( |$)', enters: opaque}
+  - {view: router.interface.ipv4, syntax: '^icmp( |$)', enters: opaque}
+  - {view: router.interface.ipv4, syntax: '^neighbor\-discovery( |$)', enters: opaque}
+  - {view: router.interface.ipv4, syntax: '^primary( |$)', enters: router.interface.ipv4.primary}
+  - {view: router.interface.ipv4, syntax: '^secondary( |$)', enters: router.interface.ipv4.secondary}
+  - {view: router.interface.ipv4, syntax: '^unnumbered( |$)', enters: opaque}
+  - {view: router.interface.ipv4, syntax: '^urpf\-check( |$)', enters: opaque}
+  - {view: router.interface.ipv4, syntax: '^vrrp( |$)', enters: router.interface.ipv4.vrrp}
+  - {view: router.interface.ipv4.vrrp, syntax: '^bfd\-liveness( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^database\-export( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^entropy\-label( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^export\-limit( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^flexible\-algorithms( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^graceful\-restart( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^igp\-shortcut( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^interface( |$)', enters: router.isis.interface}
+  - {view: router.isis, syntax: '^level( |$)', enters: router.isis.level}
+  - {view: router.isis, syntax: '^link\-group( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^loopfree\-alternate( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^lsp\-refresh( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^multi\-topology( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^multicast\-import( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^overload( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^overload\-fib\-error\-notify\-only( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^overload\-on\-boot( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^prefix\-limit( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^prefix\-unreachable( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^rib\-priority( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^segment\-routing( |$)', enters: router.isis.segment-routing}
+  - {view: router.isis, syntax: '^segment\-routing\-v6( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^summary\-address( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^timers( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^traffic\-engineering\-options( |$)', enters: opaque}
+  - {view: router.isis, syntax: '^unicast\-import( |$)', enters: opaque}
+  - {view: router.isis.interface, syntax: '^bfd\-liveness( |$)', enters: opaque}
+  - {view: router.isis.interface, syntax: '^delay\-normalization( |$)', enters: opaque}
+  - {view: router.isis.interface, syntax: '^flex\-algo( |$)', enters: opaque}
+  - {view: router.isis.interface, syntax: '^ipv4\-adjacency\-sid( |$)', enters: opaque}
+  - {view: router.isis.interface, syntax: '^ipv4\-node\-sid( |$)', enters: router.isis.interface.ipv4-node-sid}
+  - {view: router.isis.interface, syntax: '^ipv6\-adjacency\-sid( |$)', enters: opaque}
+  - {view: router.isis.interface, syntax: '^ipv6\-node\-sid( |$)', enters: opaque}
+  - {view: router.isis.interface, syntax: '^level( |$)', enters: router.isis.interface.level}
+  - {view: router.isis.interface, syntax: '^loopfree\-alternate( |$)', enters: opaque}
+  - {view: router.isis.interface, syntax: '^mesh\-group( |$)', enters: opaque}
+  - {view: router.isis.level, syntax: '^bier( |$)', enters: opaque}
+  - {view: router.isis.segment-routing, syntax: '^adjacency\-set( |$)', enters: opaque}
+  - {view: router.isis.segment-routing, syntax: '^adjacency\-sid( |$)', enters: opaque}
+  - {view: router.isis.segment-routing, syntax: '^egress\-statistics( |$)', enters: opaque}
+  - {view: router.isis.segment-routing, syntax: '^ingress\-statistics( |$)', enters: opaque}
+  - {view: router.isis.segment-routing, syntax: '^mapping\-server( |$)', enters: opaque}
+  - {view: router.isis.segment-routing, syntax: '^maximum\-sid\-depth( |$)', enters: opaque}
+  - {view: router.isis.segment-routing, syntax: '^micro\-loop\-avoidance( |$)', enters: opaque}
+  - {view: router.isis.segment-routing, syntax: '^multi\-topology( |$)', enters: opaque}
+  - {view: router.isis.segment-routing, syntax: '^prefix\-sid\-range( |$)', enters: opaque}
+  - {view: router.ldp, syntax: '^aggregate\-prefix\-match( |$)', enters: opaque}
+  - {view: router.ldp, syntax: '^egress\-statistics( |$)', enters: opaque}
+  - {view: router.ldp, syntax: '^fast\-reroute( |$)', enters: opaque}
+  - {view: router.ldp, syntax: '^fec\-originate( |$)', enters: opaque}
+  - {view: router.ldp, syntax: '^graceful\-restart( |$)', enters: opaque}
+  - {view: router.ldp, syntax: '^import\-pmsi\-routes( |$)', enters: opaque}
+  - {view: router.ldp, syntax: '^interface\-parameters( |$)', enters: router.ldp.interface-parameters}
+  - {view: router.ldp, syntax: '^ldp\-shortcut( |$)', enters: opaque}
+  - {view: router.ldp, syntax: '^lsp\-bfd( |$)', enters: opaque}
+  - {view: router.ldp, syntax: '^session\-parameters( |$)', enters: opaque}
+  - {view: router.ldp, syntax: '^targeted\-session( |$)', enters: router.ldp.targeted-session}
+  - {view: router.ldp, syntax: '^tcp\-session\-parameters( |$)', enters: opaque}
+  - {view: router.ldp.interface-parameters, syntax: '^interface( |$)', enters: router.ldp.interface-parameters.interface}
+  - {view: router.ldp.interface-parameters, syntax: '^ipv4( |$)', enters: opaque}
+  - {view: router.ldp.interface-parameters, syntax: '^ipv6( |$)', enters: opaque}
+  - {view: router.ldp.interface-parameters.interface, syntax: '^bfd\-liveness( |$)', enters: opaque}
+  - {view: router.ldp.interface-parameters.interface, syntax: '^ipv4( |$)', enters: router.ldp.interface-parameters.interface.ipv4}
+  - {view: router.ldp.interface-parameters.interface, syntax: '^ipv6( |$)', enters: opaque}
+  - {view: router.ldp.interface-parameters.interface.ipv4, syntax: '^fec\-type\-capability( |$)', enters: opaque}
+  - {view: router.ldp.interface-parameters.interface.ipv4, syntax: '^hello( |$)', enters: opaque}
+  - {view: router.ldp.interface-parameters.interface.ipv4, syntax: '^keepalive( |$)', enters: opaque}
+  - {view: router.ldp.interface-parameters.interface.ipv4, syntax: '^local\-lsr\-id( |$)', enters: opaque}
+  - {view: router.ldp.targeted-session, syntax: '^auto\-rx( |$)', enters: opaque}
+  - {view: router.ldp.targeted-session, syntax: '^auto\-tx( |$)', enters: opaque}
+  - {view: router.ldp.targeted-session, syntax: '^ipv4( |$)', enters: opaque}
+  - {view: router.ldp.targeted-session, syntax: '^ipv6( |$)', enters: opaque}
+  - {view: router.ldp.targeted-session, syntax: '^peer( |$)', enters: router.ldp.targeted-session.peer}
+  - {view: router.ldp.targeted-session, syntax: '^peer\-template( |$)', enters: opaque}
+  - {view: router.ldp.targeted-session, syntax: '^peer\-template\-map( |$)', enters: opaque}
+  - {view: router.ldp.targeted-session.peer, syntax: '^hello( |$)', enters: opaque}
+  - {view: router.ldp.targeted-session.peer, syntax: '^hello\-reduction( |$)', enters: opaque}
+  - {view: router.ldp.targeted-session.peer, syntax: '^keepalive( |$)', enters: opaque}
+  - {view: router.ldp.targeted-session.peer, syntax: '^local\-lsr\-id( |$)', enters: opaque}
+  - {view: router.ldp.targeted-session.peer, syntax: '^mcast\-tunneling( |$)', enters: opaque}
+  - {view: router.ldp.targeted-session.peer, syntax: '^tunneling( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^auto\-bandwidth\-multipliers( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^auto\-lsp( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^aux\-stats( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^class\-forwarding\-policy( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^entropy\-label( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^forwarding\-policies( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^ingress\-statistics( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^interface( |$)', enters: router.mpls.interface}
+  - {view: router.mpls, syntax: '^lsp( |$)', enters: router.mpls.lsp}
+  - {view: router.mpls, syntax: '^lsp\-container( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^lsp\-history( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^lsp\-self\-ping( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^lsp\-template( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^path( |$)', enters: router.mpls.path}
+  - {view: router.mpls, syntax: '^pce\-init\-lsp( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^pce\-report( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^sr\-te\-resignal( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^srlg\-database( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^static\-lsp( |$)', enters: opaque}
+  - {view: router.mpls, syntax: '^tunnel\-table\-pref( |$)', enters: opaque}
+  - {view: router.mpls-labels, syntax: '^reserved\-label\-block( |$)', enters: opaque}
+  - {view: router.mpls-labels, syntax: '^sr\-labels( |$)', enters: router.mpls-labels.sr-labels}
+  - {view: router.mpls.interface, syntax: '^label\-map( |$)', enters: opaque}
+  - {view: router.mpls.lsp, syntax: '^auto\-bandwidth( |$)', enters: opaque}
+  - {view: router.mpls.lsp, syntax: '^bfd( |$)', enters: opaque}
+  - {view: router.mpls.lsp, syntax: '^class\-forwarding( |$)', enters: opaque}
+  - {view: router.mpls.lsp, syntax: '^egress\-statistics( |$)', enters: opaque}
+  - {view: router.mpls.lsp, syntax: '^fast\-reroute( |$)', enters: opaque}
+  - {view: router.mpls.lsp, syntax: '^igp\-shortcut( |$)', enters: opaque}
+  - {view: router.mpls.lsp, syntax: '^max\-sr\-labels( |$)', enters: opaque}
+  - {view: router.mpls.lsp, syntax: '^path\-profile( |$)', enters: opaque}
+  - {view: router.mpls.lsp, syntax: '^pce\-associations( |$)', enters: opaque}
+  - {view: router.mpls.lsp, syntax: '^primary( |$)', enters: opaque}
+  - {view: router.mpls.lsp, syntax: '^primary\-p2mp\-instance( |$)', enters: opaque}
+  - {view: router.mpls.lsp, syntax: '^secondary( |$)', enters: opaque}
+  - {view: router.mpls.path, syntax: '^hop( |$)', enters: router.mpls.path.hop}
+  - {view: router.ospf, syntax: '^area( |$)', enters: router.ospf.area}
+  - {view: router.ospf, syntax: '^asbr( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^database\-export( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^entropy\-label( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^export\-limit( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^external\-db\-overflow( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^flexible\-algorithms( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^graceful\-restart( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^igp\-shortcut( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^loopfree\-alternate( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^overload\-on\-boot( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^rib\-priority( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^rtr\-adv\-lsa\-limit( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^segment\-routing( |$)', enters: router.ospf.segment-routing}
+  - {view: router.ospf, syntax: '^timers( |$)', enters: opaque}
+  - {view: router.ospf, syntax: '^traffic\-engineering\-options( |$)', enters: opaque}
+  - {view: router.ospf.area, syntax: '^area\-range( |$)', enters: opaque}
+  - {view: router.ospf.area, syntax: '^bier( |$)', enters: opaque}
+  - {view: router.ospf.area, syntax: '^interface( |$)', enters: router.ospf.area.interface}
+  - {view: router.ospf.area, syntax: '^nssa( |$)', enters: opaque}
+  - {view: router.ospf.area, syntax: '^stub( |$)', enters: opaque}
+  - {view: router.ospf.area, syntax: '^virtual\-link( |$)', enters: opaque}
+  - {view: router.ospf.area.interface, syntax: '^adjacency\-sid( |$)', enters: opaque}
+  - {view: router.ospf.area.interface, syntax: '^bfd\-liveness( |$)', enters: opaque}
+  - {view: router.ospf.area.interface, syntax: '^delay\-normalization( |$)', enters: opaque}
+  - {view: router.ospf.area.interface, syntax: '^flex\-algo( |$)', enters: opaque}
+  - {view: router.ospf.area.interface, syntax: '^loopfree\-alternate( |$)', enters: opaque}
+  - {view: router.ospf.area.interface, syntax: '^message\-digest\-key( |$)', enters: opaque}
+  - {view: router.ospf.area.interface, syntax: '^node\-sid( |$)', enters: router.ospf.area.interface.node-sid}
+  - {view: router.ospf.segment-routing, syntax: '^adjacency\-set( |$)', enters: opaque}
+  - {view: router.ospf.segment-routing, syntax: '^adjacency\-sid( |$)', enters: opaque}
+  - {view: router.ospf.segment-routing, syntax: '^backup\-node\-sid( |$)', enters: opaque}
+  - {view: router.ospf.segment-routing, syntax: '^egress\-statistics( |$)', enters: opaque}
+  - {view: router.ospf.segment-routing, syntax: '^ingress\-statistics( |$)', enters: opaque}
+  - {view: router.ospf.segment-routing, syntax: '^mapping\-server( |$)', enters: opaque}
+  - {view: router.ospf.segment-routing, syntax: '^maximum\-sid\-depth( |$)', enters: opaque}
+  - {view: router.ospf.segment-routing, syntax: '^micro\-loop\-avoidance( |$)', enters: opaque}
+  - {view: router.ospf.segment-routing, syntax: '^prefix\-sid\-range( |$)', enters: opaque}
+  - {view: router.rsvp, syntax: '^dbw\-accounting( |$)', enters: opaque}
+  - {view: router.rsvp, syntax: '^diffserv\-te( |$)', enters: opaque}
+  - {view: router.rsvp, syntax: '^graceful\-restart( |$)', enters: opaque}
+  - {view: router.rsvp, syntax: '^interface( |$)', enters: router.rsvp.interface}
+  - {view: router.rsvp, syntax: '^msg\-pacing( |$)', enters: opaque}
+  - {view: router.rsvp, syntax: '^te\-threshold\-update( |$)', enters: opaque}
+  - {view: router.rsvp.interface, syntax: '^class\-type\-bw( |$)', enters: opaque}
+  - {view: router.rsvp.interface, syntax: '^dbw\-down\-threshold( |$)', enters: opaque}
+  - {view: router.rsvp.interface, syntax: '^dbw\-up\-threshold( |$)', enters: opaque}
+  - {view: router.rsvp.interface, syntax: '^refresh\-reduction( |$)', enters: opaque}
+  - {view: router.rsvp.interface, syntax: '^te\-down\-threshold( |$)', enters: opaque}
+  - {view: router.rsvp.interface, syntax: '^te\-up\-threshold( |$)', enters: opaque}
+  - {view: router.static-routes, syntax: '^hold\-down( |$)', enters: opaque}
+  - {view: router.static-routes, syntax: '^route( |$)', enters: router.static-routes.route}
+  - {view: router.static-routes.route, syntax: '^blackhole( |$)', enters: router.static-routes.route.blackhole}
+  - {view: router.static-routes.route, syntax: '^indirect( |$)', enters: router.static-routes.route.indirect}
+  - {view: router.static-routes.route, syntax: '^interface( |$)', enters: opaque}
+  - {view: router.static-routes.route, syntax: '^ipsec\-tunnel( |$)', enters: opaque}
+  - {view: router.static-routes.route, syntax: '^leak\-destination( |$)', enters: opaque}
+  - {view: router.static-routes.route, syntax: '^next\-hop( |$)', enters: router.static-routes.route.next-hop}
+  - {view: router.static-routes.route.blackhole, syntax: '^prefix\-list( |$)', enters: opaque}
+  - {view: router.static-routes.route.indirect, syntax: '^cpe\-check( |$)', enters: opaque}
+  - {view: router.static-routes.route.indirect, syntax: '^prefix\-list( |$)', enters: opaque}
+  - {view: router.static-routes.route.indirect, syntax: '^qos( |$)', enters: opaque}
+  - {view: router.static-routes.route.indirect, syntax: '^tunnel\-next\-hop( |$)', enters: opaque}
+  - {view: router.static-routes.route.next-hop, syntax: '^backup\-next\-hop( |$)', enters: opaque}
+  - {view: router.static-routes.route.next-hop, syntax: '^cpe\-check( |$)', enters: opaque}
+  - {view: router.static-routes.route.next-hop, syntax: '^prefix\-list( |$)', enters: opaque}
+  - {view: router.static-routes.route.next-hop, syntax: '^qos( |$)', enters: opaque}
+  - {view: service, syntax: '^cpipe( |$)', enters: opaque}
+  - {view: service, syntax: '^customer( |$)', enters: service.customer}
+  - {view: service, syntax: '^epipe( |$)', enters: service.epipe}
+  - {view: service, syntax: '^ies( |$)', enters: service.ies}
+  - {view: service, syntax: '^ipfix( |$)', enters: opaque}
+  - {view: service, syntax: '^ipipe( |$)', enters: opaque}
+  - {view: service, syntax: '^mac\-list( |$)', enters: opaque}
+  - {view: service, syntax: '^md\-auto\-id( |$)', enters: opaque}
+  - {view: service, syntax: '^mrp( |$)', enters: opaque}
+  - {view: service, syntax: '^nat( |$)', enters: opaque}
+  - {view: service, syntax: '^oper\-group( |$)', enters: opaque}
+  - {view: service, syntax: '^pbb( |$)', enters: opaque}
+  - {view: service, syntax: '^proxy\-arp\-nd( |$)', enters: opaque}
+  - {view: service, syntax: '^pw\-template( |$)', enters: opaque}
+  - {view: service, syntax: '^sdp( |$)', enters: service.sdp}
+  - {view: service, syntax: '^sdp\-group( |$)', enters: opaque}
+  - {view: service, syntax: '^system( |$)', enters: opaque}
+  - {view: service, syntax: '^template( |$)', enters: opaque}
+  - {view: service, syntax: '^upnp( |$)', enters: opaque}
+  - {view: service, syntax: '^vpls( |$)', enters: service.vpls}
+  - {view: service, syntax: '^vprn( |$)', enters: service.vprn}
+  - {view: service.customer, syntax: '^multi\-service\-site( |$)', enters: opaque}
+  - {view: service.epipe, syntax: '^bgp( |$)', enters: opaque}
+  - {view: service.epipe, syntax: '^bgp\-evpn( |$)', enters: opaque}
+  - {view: service.epipe, syntax: '^bgp\-mh\-site( |$)', enters: opaque}
+  - {view: service.epipe, syntax: '^bgp\-vpws( |$)', enters: opaque}
+  - {view: service.epipe, syntax: '^endpoint( |$)', enters: opaque}
+  - {view: service.epipe, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: service.epipe, syntax: '^load\-balancing( |$)', enters: opaque}
+  - {view: service.epipe, syntax: '^nat\-outside( |$)', enters: opaque}
+  - {view: service.epipe, syntax: '^pbb( |$)', enters: opaque}
+  - {view: service.epipe, syntax: '^sap( |$)', enters: service.epipe.sap}
+  - {view: service.epipe, syntax: '^segment\-routing\-v6( |$)', enters: opaque}
+  - {view: service.epipe, syntax: '^spoke\-sdp( |$)', enters: service.epipe.spoke-sdp}
+  - {view: service.epipe, syntax: '^vxlan( |$)', enters: opaque}
+  - {view: service.epipe.sap, syntax: '^aarp( |$)', enters: opaque}
+  - {view: service.epipe.sap, syntax: '^cpu\-protection( |$)', enters: opaque}
+  - {view: service.epipe.sap, syntax: '^egress( |$)', enters: service.epipe.sap.egress}
+  - {view: service.epipe.sap, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: service.epipe.sap, syntax: '^ethernet( |$)', enters: opaque}
+  - {view: service.epipe.sap, syntax: '^ingress( |$)', enters: service.epipe.sap.ingress}
+  - {view: service.epipe.sap, syntax: '^l2tpv3\-session( |$)', enters: opaque}
+  - {view: service.epipe.sap, syntax: '^lag( |$)', enters: opaque}
+  - {view: service.epipe.sap, syntax: '^mc\-ring( |$)', enters: opaque}
+  - {view: service.epipe.sap, syntax: '^qtag\-normalization( |$)', enters: opaque}
+  - {view: service.epipe.sap, syntax: '^transit\-policy( |$)', enters: opaque}
+  - {view: service.epipe.sap.egress, syntax: '^agg\-rate( |$)', enters: opaque}
+  - {view: service.epipe.sap.egress, syntax: '^filter( |$)', enters: service.epipe.sap.egress.filter}
+  - {view: service.epipe.sap.egress, syntax: '^qos( |$)', enters: service.epipe.sap.egress.qos}
+  - {view: service.epipe.sap.egress, syntax: '^virtual\-port( |$)', enters: opaque}
+  - {view: service.epipe.sap.egress.qos, syntax: '^policer\-control\-policy( |$)', enters: opaque}
+  - {view: service.epipe.sap.egress.qos, syntax: '^sap\-egress( |$)', enters: service.epipe.sap.egress.qos.sap-egress}
+  - {view: service.epipe.sap.egress.qos, syntax: '^scheduler\-policy( |$)', enters: opaque}
+  - {view: service.epipe.sap.egress.qos.sap-egress, syntax: '^overrides( |$)', enters: opaque}
+  - {view: service.epipe.sap.egress.qos.sap-egress, syntax: '^port\-redirect\-group( |$)', enters: opaque}
+  - {view: service.epipe.sap.ingress, syntax: '^filter( |$)', enters: service.epipe.sap.ingress.filter}
+  - {view: service.epipe.sap.ingress, syntax: '^qos( |$)', enters: service.epipe.sap.ingress.qos}
+  - {view: service.epipe.sap.ingress, syntax: '^qtag\-manipulation( |$)', enters: opaque}
+  - {view: service.epipe.sap.ingress.qos, syntax: '^policer\-control\-policy( |$)', enters: opaque}
+  - {view: service.epipe.sap.ingress.qos, syntax: '^sap\-ingress( |$)', enters: service.epipe.sap.ingress.qos.sap-ingress}
+  - {view: service.epipe.sap.ingress.qos, syntax: '^scheduler\-policy( |$)', enters: opaque}
+  - {view: service.epipe.sap.ingress.qos.sap-ingress, syntax: '^fp\-redirect\-group( |$)', enters: opaque}
+  - {view: service.epipe.sap.ingress.qos.sap-ingress, syntax: '^overrides( |$)', enters: opaque}
+  - {view: service.epipe.spoke-sdp, syntax: '^aarp( |$)', enters: opaque}
+  - {view: service.epipe.spoke-sdp, syntax: '^bfd( |$)', enters: opaque}
+  - {view: service.epipe.spoke-sdp, syntax: '^cpu\-protection( |$)', enters: opaque}
+  - {view: service.epipe.spoke-sdp, syntax: '^egress( |$)', enters: opaque}
+  - {view: service.epipe.spoke-sdp, syntax: '^endpoint( |$)', enters: opaque}
+  - {view: service.epipe.spoke-sdp, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: service.epipe.spoke-sdp, syntax: '^hash\-label( |$)', enters: opaque}
+  - {view: service.epipe.spoke-sdp, syntax: '^ingress( |$)', enters: opaque}
+  - {view: service.epipe.spoke-sdp, syntax: '^pw\-status( |$)', enters: opaque}
+  - {view: service.epipe.spoke-sdp, syntax: '^source\-bmac( |$)', enters: opaque}
+  - {view: service.epipe.spoke-sdp, syntax: '^transit\-policy( |$)', enters: opaque}
+  - {view: service.ies, syntax: '^aa\-interface( |$)', enters: opaque}
+  - {view: service.ies, syntax: '^aarp\-interface( |$)', enters: opaque}
+  - {view: service.ies, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: service.ies, syntax: '^igmp\-host\-tracking( |$)', enters: opaque}
+  - {view: service.ies, syntax: '^interface( |$)', enters: service.ies.interface}
+  - {view: service.ies, syntax: '^redundant\-interface( |$)', enters: opaque}
+  - {view: service.ies, syntax: '^subscriber\-interface( |$)', enters: opaque}
+  - {view: service.ies, syntax: '^subscriber\-mgmt( |$)', enters: opaque}
+  - {view: service.ies, syntax: '^video\-interface( |$)', enters: opaque}
+  - {view: service.ies.interface, syntax: '^cflowd\-parameters( |$)', enters: opaque}
+  - {view: service.ies.interface, syntax: '^hold\-time( |$)', enters: opaque}
+  - {view: service.ies.interface, syntax: '^if\-attribute( |$)', enters: opaque}
+  - {view: service.ies.interface, syntax: '^ingress( |$)', enters: opaque}
+  - {view: service.ies.interface, syntax: '^ipsec( |$)', enters: opaque}
+  - {view: service.ies.interface, syntax: '^ipv4( |$)', enters: service.ies.interface.ipv4}
+  - {view: service.ies.interface, syntax: '^ipv6( |$)', enters: opaque}
+  - {view: service.ies.interface, syntax: '^load\-balancing( |$)', enters: opaque}
+  - {view: service.ies.interface, syntax: '^ping\-template( |$)', enters: opaque}
+  - {view: service.ies.interface, syntax: '^ptp\-hw\-assist( |$)', enters: opaque}
+  - {view: service.ies.interface, syntax: '^sap( |$)', enters: service.ies.interface.sap}
+  - {view: service.ies.interface, syntax: '^spoke\-sdp( |$)', enters: opaque}
+  - {view: service.ies.interface, syntax: '^vpls( |$)', enters: opaque}
+  - {view: service.ies.interface.ipv4, syntax: '^addresses( |$)', enters: opaque}
+  - {view: service.ies.interface.ipv4, syntax: '^bfd( |$)', enters: opaque}
+  - {view: service.ies.interface.ipv4, syntax: '^dhcp( |$)', enters: opaque}
+  - {view: service.ies.interface.ipv4, syntax: '^icmp( |$)', enters: opaque}
+  - {view: service.ies.interface.ipv4, syntax: '^neighbor\-discovery( |$)', enters: opaque}
+  - {view: service.ies.interface.ipv4, syntax: '^primary( |$)', enters: service.ies.interface.ipv4.primary}
+  - {view: service.ies.interface.ipv4, syntax: '^secondary( |$)', enters: service.ies.interface.ipv4.secondary}
+  - {view: service.ies.interface.ipv4, syntax: '^unnumbered( |$)', enters: opaque}
+  - {view: service.ies.interface.ipv4, syntax: '^urpf\-check( |$)', enters: opaque}
+  - {view: service.ies.interface.ipv4, syntax: '^vrrp( |$)', enters: opaque}
+  - {view: service.ies.interface.sap, syntax: '^aarp( |$)', enters: opaque}
+  - {view: service.ies.interface.sap, syntax: '^cpu\-protection( |$)', enters: opaque}
+  - {view: service.ies.interface.sap, syntax: '^egress( |$)', enters: service.ies.interface.sap.egress}
+  - {view: service.ies.interface.sap, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: service.ies.interface.sap, syntax: '^fwd\-wholesale( |$)', enters: opaque}
+  - {view: service.ies.interface.sap, syntax: '^ingress( |$)', enters: service.ies.interface.sap.ingress}
+  - {view: service.ies.interface.sap, syntax: '^ip\-tunnel( |$)', enters: opaque}
+  - {view: service.ies.interface.sap, syntax: '^ipsec\-gateway( |$)', enters: opaque}
+  - {view: service.ies.interface.sap, syntax: '^lag( |$)', enters: opaque}
+  - {view: service.ies.interface.sap, syntax: '^static\-host( |$)', enters: opaque}
+  - {view: service.ies.interface.sap, syntax: '^transit\-policy( |$)', enters: opaque}
+  - {view: service.ies.interface.sap.egress, syntax: '^agg\-rate( |$)', enters: opaque}
+  - {view: service.ies.interface.sap.egress, syntax: '^filter( |$)', enters: service.ies.interface.sap.egress.filter}
+  - {view: service.ies.interface.sap.egress, syntax: '^qos( |$)', enters: service.ies.interface.sap.egress.qos}
+  - {view: service.ies.interface.sap.egress, syntax: '^virtual\-port( |$)', enters: opaque}
+  - {view: service.ies.interface.sap.egress.qos, syntax: '^policer\-control\-policy( |$)', enters: opaque}
+  - {view: service.ies.interface.sap.egress.qos, syntax: '^sap\-egress( |$)', enters: service.ies.interface.sap.egress.qos.sap-egress}
+  - {view: service.ies.interface.sap.egress.qos, syntax: '^scheduler\-policy( |$)', enters: opaque}
+  - {view: service.ies.interface.sap.egress.qos.sap-egress, syntax: '^overrides( |$)', enters: opaque}
+  - {view: service.ies.interface.sap.egress.qos.sap-egress, syntax: '^port\-redirect\-group( |$)', enters: opaque}
+  - {view: service.ies.interface.sap.ingress, syntax: '^filter( |$)', enters: service.ies.interface.sap.ingress.filter}
+  - {view: service.ies.interface.sap.ingress, syntax: '^qos( |$)', enters: service.ies.interface.sap.ingress.qos}
+  - {view: service.ies.interface.sap.ingress.qos, syntax: '^policer\-control\-policy( |$)', enters: opaque}
+  - {view: service.ies.interface.sap.ingress.qos, syntax: '^sap\-ingress( |$)', enters: service.ies.interface.sap.ingress.qos.sap-ingress}
+  - {view: service.ies.interface.sap.ingress.qos, syntax: '^scheduler\-policy( |$)', enters: opaque}
+  - {view: service.ies.interface.sap.ingress.qos.sap-ingress, syntax: '^fp\-redirect\-group( |$)', enters: opaque}
+  - {view: service.ies.interface.sap.ingress.qos.sap-ingress, syntax: '^overrides( |$)', enters: opaque}
+  - {view: service.sdp, syntax: '^class\-forwarding( |$)', enters: opaque}
+  - {view: service.sdp, syntax: '^far\-end( |$)', enters: service.sdp.far-end}
+  - {view: service.sdp, syntax: '^keep\-alive( |$)', enters: service.sdp.keep-alive}
+  - {view: service.sdp, syntax: '^mixed\-lsp\-mode( |$)', enters: opaque}
+  - {view: service.sdp, syntax: '^pw\-port( |$)', enters: opaque}
+  - {view: service.sdp, syntax: '^source\-bmac\-lsb( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^bgp( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^bgp\-ad( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^bgp\-evpn( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^bgp\-mh\-site( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^bgp\-vpls( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^capture\-sap( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^endpoint( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^fdb( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^gsmp( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^igmp\-host\-tracking( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^igmp\-snooping( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^interface( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^isid\-policy( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^load\-balancing( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^mac\-flush( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^mac\-protect( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^mcr\-default\-gtw( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^mesh\-sdp( |$)', enters: service.vpls.mesh-sdp}
+  - {view: service.vpls, syntax: '^mfib( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^mld\-snooping( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^mrp( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^pbb( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^pim\-snooping( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^provider\-tunnel( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^proxy\-arp( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^proxy\-nd( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^routed\-vpls( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^sap( |$)', enters: service.vpls.sap}
+  - {view: service.vpls, syntax: '^segment\-routing\-v6( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^spb( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^spbm\-control\-vpls( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^split\-horizon\-group( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^spoke\-sdp( |$)', enters: service.vpls.spoke-sdp}
+  - {view: service.vpls, syntax: '^stp( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^vxlan( |$)', enters: opaque}
+  - {view: service.vpls, syntax: '^wlan\-gw( |$)', enters: opaque}
+  - {view: service.vpls.mesh-sdp, syntax: '^bfd( |$)', enters: opaque}
+  - {view: service.vpls.mesh-sdp, syntax: '^cpu\-protection( |$)', enters: opaque}
+  - {view: service.vpls.mesh-sdp, syntax: '^dhcp( |$)', enters: opaque}
+  - {view: service.vpls.mesh-sdp, syntax: '^egress( |$)', enters: opaque}
+  - {view: service.vpls.mesh-sdp, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: service.vpls.mesh-sdp, syntax: '^fdb( |$)', enters: opaque}
+  - {view: service.vpls.mesh-sdp, syntax: '^hash\-label( |$)', enters: opaque}
+  - {view: service.vpls.mesh-sdp, syntax: '^igmp\-snooping( |$)', enters: opaque}
+  - {view: service.vpls.mesh-sdp, syntax: '^ingress( |$)', enters: opaque}
+  - {view: service.vpls.mesh-sdp, syntax: '^mld\-snooping( |$)', enters: opaque}
+  - {view: service.vpls.mesh-sdp, syntax: '^mrp( |$)', enters: opaque}
+  - {view: service.vpls.mesh-sdp, syntax: '^pbb( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^arp\-host( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^cpu\-protection( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^dhcp( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^dhcp6( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^egress( |$)', enters: service.vpls.sap.egress}
+  - {view: service.vpls.sap, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^etree\-root\-leaf\-tag( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^fdb( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^i\-vpls\-mac\-flush( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^igmp\-host\-tracking( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^igmp\-snooping( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^ingress( |$)', enters: service.vpls.sap.ingress}
+  - {view: service.vpls.sap, syntax: '^l2pt( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^l2tpv3\-session( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^lag( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^managed\-vlan\-list( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^mc\-ring( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^mld\-snooping( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^mrp( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^pbb( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^pim\-snooping( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^spb( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^static\-host( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^static\-isid( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^stp( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^sub\-sla\-mgmt( |$)', enters: opaque}
+  - {view: service.vpls.sap, syntax: '^transit\-policy( |$)', enters: opaque}
+  - {view: service.vpls.sap.egress, syntax: '^agg\-rate( |$)', enters: opaque}
+  - {view: service.vpls.sap.egress, syntax: '^filter( |$)', enters: service.vpls.sap.egress.filter}
+  - {view: service.vpls.sap.egress, syntax: '^qos( |$)', enters: service.vpls.sap.egress.qos}
+  - {view: service.vpls.sap.egress, syntax: '^virtual\-port( |$)', enters: opaque}
+  - {view: service.vpls.sap.egress.qos, syntax: '^policer\-control\-policy( |$)', enters: opaque}
+  - {view: service.vpls.sap.egress.qos, syntax: '^sap\-egress( |$)', enters: service.vpls.sap.egress.qos.sap-egress}
+  - {view: service.vpls.sap.egress.qos, syntax: '^scheduler\-policy( |$)', enters: opaque}
+  - {view: service.vpls.sap.egress.qos.sap-egress, syntax: '^overrides( |$)', enters: opaque}
+  - {view: service.vpls.sap.egress.qos.sap-egress, syntax: '^port\-redirect\-group( |$)', enters: opaque}
+  - {view: service.vpls.sap.ingress, syntax: '^filter( |$)', enters: service.vpls.sap.ingress.filter}
+  - {view: service.vpls.sap.ingress, syntax: '^qos( |$)', enters: service.vpls.sap.ingress.qos}
+  - {view: service.vpls.sap.ingress, syntax: '^qtag\-manipulation( |$)', enters: opaque}
+  - {view: service.vpls.sap.ingress.qos, syntax: '^policer\-control\-policy( |$)', enters: opaque}
+  - {view: service.vpls.sap.ingress.qos, syntax: '^sap\-ingress( |$)', enters: service.vpls.sap.ingress.qos.sap-ingress}
+  - {view: service.vpls.sap.ingress.qos, syntax: '^scheduler\-policy( |$)', enters: opaque}
+  - {view: service.vpls.sap.ingress.qos.sap-ingress, syntax: '^fp\-redirect\-group( |$)', enters: opaque}
+  - {view: service.vpls.sap.ingress.qos.sap-ingress, syntax: '^overrides( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^bfd( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^cpu\-protection( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^dhcp( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^egress( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^endpoint( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^fdb( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^hash\-label( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^i\-vpls\-mac\-flush( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^igmp\-snooping( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^ingress( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^l2pt( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^mld\-snooping( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^mrp( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^pbb( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^pim\-snooping( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^pw\-status( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^spb( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^static\-isid( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^stp( |$)', enters: opaque}
+  - {view: service.vpls.spoke-sdp, syntax: '^transit\-policy( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^aa\-interface( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^aaa( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^aarp\-interface( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^aggregates( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^bgp( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^bgp\-evpn( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^bgp\-ipvpn( |$)', enters: service.vprn.bgp-ipvpn}
+  - {view: service.vprn, syntax: '^bgp\-shared\-queue( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^bgp\-vpn\-backup( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^confederation( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^dhcp\-server( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^dns( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^firewall( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^flowspec( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^grt\-leaking( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^gsmp( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^gtp( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^igmp( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^igmp\-host\-tracking( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^interface( |$)', enters: service.vprn.interface}
+  - {view: service.vprn, syntax: '^ip\-mirror\-interface( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^ipsec( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^ipv6( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^isis( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^l2tp( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^log( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^management( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^maximum\-ipv4\-routes( |$)', enters: service.vprn.maximum-ipv4-routes}
+  - {view: service.vprn, syntax: '^maximum\-ipv6\-routes( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^mc\-maximum\-routes( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^mld( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^msdp( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^mss\-adjust( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^mtrace2( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^mvpn( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^nat( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^network( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^network\-interface( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^ntp( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^ospf( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^ospf3( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^pcp( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^pim( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^radius( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^reassembly( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^redundant\-interface( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^rip( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^ripng( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^segment\-routing\-v6( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^sfm\-overload( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^sgt\-qos( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^snmp( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^source\-address( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^spoke\-sdp( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^static\-routes( |$)', enters: service.vprn.static-routes}
+  - {view: service.vprn, syntax: '^subscriber\-interface( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^subscriber\-mgmt( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^ttl\-propagate( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^twamp\-light( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^video\-interface( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^vxlan( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^wlan\-gw( |$)', enters: opaque}
+  - {view: service.vprn, syntax: '^wpp( |$)', enters: opaque}
+  - {view: service.vprn.bgp-ipvpn, syntax: '^attribute\-set( |$)', enters: opaque}
+  - {view: service.vprn.bgp-ipvpn, syntax: '^mpls( |$)', enters: service.vprn.bgp-ipvpn.mpls}
+  - {view: service.vprn.bgp-ipvpn, syntax: '^segment\-routing\-v6( |$)', enters: opaque}
+  - {view: service.vprn.bgp-ipvpn.mpls, syntax: '^auto\-bind\-tunnel( |$)', enters: service.vprn.bgp-ipvpn.mpls.auto-bind-tunnel}
+  - {view: service.vprn.bgp-ipvpn.mpls, syntax: '^vrf\-export( |$)', enters: service.vprn.bgp-ipvpn.mpls.vrf-export}
+  - {view: service.vprn.bgp-ipvpn.mpls, syntax: '^vrf\-import( |$)', enters: service.vprn.bgp-ipvpn.mpls.vrf-import}
+  - {view: service.vprn.bgp-ipvpn.mpls, syntax: '^vrf\-target( |$)', enters: service.vprn.bgp-ipvpn.mpls.vrf-target}
+  - {view: service.vprn.bgp-ipvpn.mpls.auto-bind-tunnel, syntax: '^resolution\-filter( |$)', enters: service.vprn.bgp-ipvpn.mpls.auto-bind-tunnel.resolution-filter}
+  - {view: service.vprn.interface, syntax: '^cflowd\-parameters( |$)', enters: opaque}
+  - {view: service.vprn.interface, syntax: '^external\-reference( |$)', enters: opaque}
+  - {view: service.vprn.interface, syntax: '^hold\-time( |$)', enters: opaque}
+  - {view: service.vprn.interface, syntax: '^if\-attribute( |$)', enters: opaque}
+  - {view: service.vprn.interface, syntax: '^ingress( |$)', enters: opaque}
+  - {view: service.vprn.interface, syntax: '^ipsec( |$)', enters: opaque}
+  - {view: service.vprn.interface, syntax: '^ipv4( |$)', enters: service.vprn.interface.ipv4}
+  - {view: service.vprn.interface, syntax: '^ipv6( |$)', enters: opaque}
+  - {view: service.vprn.interface, syntax: '^load\-balancing( |$)', enters: opaque}
+  - {view: service.vprn.interface, syntax: '^ping\-template( |$)', enters: opaque}
+  - {view: service.vprn.interface, syntax: '^ptp\-hw\-assist( |$)', enters: opaque}
+  - {view: service.vprn.interface, syntax: '^sap( |$)', enters: service.vprn.interface.sap}
+  - {view: service.vprn.interface, syntax: '^spoke\-sdp( |$)', enters: opaque}
+  - {view: service.vprn.interface, syntax: '^vpls( |$)', enters: opaque}
+  - {view: service.vprn.interface.ipv4, syntax: '^addresses( |$)', enters: opaque}
+  - {view: service.vprn.interface.ipv4, syntax: '^bfd( |$)', enters: opaque}
+  - {view: service.vprn.interface.ipv4, syntax: '^dhcp( |$)', enters: opaque}
+  - {view: service.vprn.interface.ipv4, syntax: '^icmp( |$)', enters: opaque}
+  - {view: service.vprn.interface.ipv4, syntax: '^neighbor\-discovery( |$)', enters: opaque}
+  - {view: service.vprn.interface.ipv4, syntax: '^primary( |$)', enters: service.vprn.interface.ipv4.primary}
+  - {view: service.vprn.interface.ipv4, syntax: '^secondary( |$)', enters: service.vprn.interface.ipv4.secondary}
+  - {view: service.vprn.interface.ipv4, syntax: '^unnumbered( |$)', enters: opaque}
+  - {view: service.vprn.interface.ipv4, syntax: '^urpf\-check( |$)', enters: opaque}
+  - {view: service.vprn.interface.ipv4, syntax: '^vrrp( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap, syntax: '^aarp( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap, syntax: '^cpu\-protection( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap, syntax: '^egress( |$)', enters: service.vprn.interface.sap.egress}
+  - {view: service.vprn.interface.sap, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap, syntax: '^fwd\-wholesale( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap, syntax: '^ingress( |$)', enters: service.vprn.interface.sap.ingress}
+  - {view: service.vprn.interface.sap, syntax: '^ip\-tunnel( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap, syntax: '^ipsec\-gateway( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap, syntax: '^ipsec\-tunnel( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap, syntax: '^lag( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap, syntax: '^static\-host( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap, syntax: '^transit\-policy( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap.egress, syntax: '^agg\-rate( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap.egress, syntax: '^filter( |$)', enters: service.vprn.interface.sap.egress.filter}
+  - {view: service.vprn.interface.sap.egress, syntax: '^qos( |$)', enters: service.vprn.interface.sap.egress.qos}
+  - {view: service.vprn.interface.sap.egress, syntax: '^virtual\-port( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap.egress.qos, syntax: '^policer\-control\-policy( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap.egress.qos, syntax: '^sap\-egress( |$)', enters: service.vprn.interface.sap.egress.qos.sap-egress}
+  - {view: service.vprn.interface.sap.egress.qos, syntax: '^scheduler\-policy( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap.egress.qos.sap-egress, syntax: '^overrides( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap.egress.qos.sap-egress, syntax: '^port\-redirect\-group( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap.ingress, syntax: '^filter( |$)', enters: service.vprn.interface.sap.ingress.filter}
+  - {view: service.vprn.interface.sap.ingress, syntax: '^qos( |$)', enters: service.vprn.interface.sap.ingress.qos}
+  - {view: service.vprn.interface.sap.ingress.qos, syntax: '^policer\-control\-policy( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap.ingress.qos, syntax: '^sap\-ingress( |$)', enters: service.vprn.interface.sap.ingress.qos.sap-ingress}
+  - {view: service.vprn.interface.sap.ingress.qos, syntax: '^scheduler\-policy( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap.ingress.qos.sap-ingress, syntax: '^fp\-redirect\-group( |$)', enters: opaque}
+  - {view: service.vprn.interface.sap.ingress.qos.sap-ingress, syntax: '^overrides( |$)', enters: opaque}
+  - {view: service.vprn.static-routes, syntax: '^hold\-down( |$)', enters: opaque}
+  - {view: service.vprn.static-routes, syntax: '^route( |$)', enters: service.vprn.static-routes.route}
+  - {view: service.vprn.static-routes.route, syntax: '^blackhole( |$)', enters: opaque}
+  - {view: service.vprn.static-routes.route, syntax: '^grt( |$)', enters: opaque}
+  - {view: service.vprn.static-routes.route, syntax: '^indirect( |$)', enters: opaque}
+  - {view: service.vprn.static-routes.route, syntax: '^interface( |$)', enters: opaque}
+  - {view: service.vprn.static-routes.route, syntax: '^ipsec\-tunnel( |$)', enters: opaque}
+  - {view: service.vprn.static-routes.route, syntax: '^next\-hop( |$)', enters: service.vprn.static-routes.route.next-hop}
+  - {view: service.vprn.static-routes.route.next-hop, syntax: '^backup\-next\-hop( |$)', enters: opaque}
+  - {view: service.vprn.static-routes.route.next-hop, syntax: '^cpe\-check( |$)', enters: opaque}
+  - {view: service.vprn.static-routes.route.next-hop, syntax: '^prefix\-list( |$)', enters: opaque}
+  - {view: service.vprn.static-routes.route.next-hop, syntax: '^qos( |$)', enters: opaque}
+  - {view: system, syntax: '^alarm\-contact\-input( |$)', enters: opaque}
+  - {view: system, syntax: '^alarms( |$)', enters: opaque}
+  - {view: system, syntax: '^bluetooth( |$)', enters: opaque}
+  - {view: system, syntax: '^central\-frequency\-clock( |$)', enters: opaque}
+  - {view: system, syntax: '^cpm\-http\-redirect( |$)', enters: opaque}
+  - {view: system, syntax: '^cron( |$)', enters: opaque}
+  - {view: system, syntax: '^dhcp6( |$)', enters: opaque}
+  - {view: system, syntax: '^dns( |$)', enters: opaque}
+  - {view: system, syntax: '^efm\-oam( |$)', enters: opaque}
+  - {view: system, syntax: '^eth\-cfm( |$)', enters: opaque}
+  - {view: system, syntax: '^fan\-control( |$)', enters: opaque}
+  - {view: system, syntax: '^grpc( |$)', enters: opaque}
+  - {view: system, syntax: '^grpc\-tunnel( |$)', enters: opaque}
+  - {view: system, syntax: '^ip( |$)', enters: opaque}
+  - {view: system, syntax: '^l2tp( |$)', enters: opaque}
+  - {view: system, syntax: '^lacp( |$)', enters: opaque}
+  - {view: system, syntax: '^lldp( |$)', enters: opaque}
+  - {view: system, syntax: '^load\-balancing( |$)', enters: opaque}
+  - {view: system, syntax: '^login\-control( |$)', enters: system.login-control}
+  - {view: system, syntax: '^management\-interface( |$)', enters: system.management-interface}
+  - {view: system, syntax: '^network\-element\-discovery( |$)', enters: opaque}
+  - {view: system, syntax: '^persistence( |$)', enters: opaque}
+  - {view: system, syntax: '^power\-management( |$)', enters: opaque}
+  - {view: system, syntax: '^ptp( |$)', enters: opaque}
+  - {view: system, syntax: '^script\-control( |$)', enters: opaque}
+  - {view: system, syntax: '^security( |$)', enters: system.security}
+  - {view: system, syntax: '^software\-repository( |$)', enters: opaque}
+  - {view: system, syntax: '^switch\-fabric( |$)', enters: opaque}
+  - {view: system, syntax: '^telemetry( |$)', enters: opaque}
+  - {view: system, syntax: '^thresholds( |$)', enters: opaque}
+  - {view: system, syntax: '^time( |$)', enters: system.time}
+  - {view: system, syntax: '^transmission\-profile( |$)', enters: opaque}
+  - {view: system, syntax: '^usb( |$)', enters: opaque}
+  - {view: system.login-control, syntax: '^ftp( |$)', enters: opaque}
+  - {view: system.login-control, syntax: '^login\-scripts( |$)', enters: opaque}
+  - {view: system.login-control, syntax: '^motd( |$)', enters: opaque}
+  - {view: system.login-control, syntax: '^pre\-login\-message( |$)', enters: opaque}
+  - {view: system.login-control, syntax: '^ssh( |$)', enters: opaque}
+  - {view: system.login-control, syntax: '^telnet( |$)', enters: opaque}
+  - {view: system.management-interface, syntax: '^cli( |$)', enters: opaque}
+  - {view: system.management-interface, syntax: '^commit\-management( |$)', enters: opaque}
+  - {view: system.management-interface, syntax: '^configuration\-save( |$)', enters: opaque}
+  - {view: system.management-interface, syntax: '^netconf( |$)', enters: opaque}
+  - {view: system.management-interface, syntax: '^operations( |$)', enters: opaque}
+  - {view: system.management-interface, syntax: '^remote\-management( |$)', enters: opaque}
+  - {view: system.management-interface, syntax: '^snmp( |$)', enters: system.management-interface.snmp}
+  - {view: system.management-interface, syntax: '^yang\-modules( |$)', enters: opaque}
+  - {view: system.management-interface.snmp, syntax: '^streaming( |$)', enters: opaque}
+  - {view: system.security, syntax: '^aaa( |$)', enters: system.security.aaa}
+  - {view: system.security, syntax: '^cli\-script( |$)', enters: opaque}
+  - {view: system.security, syntax: '^cpm\-filter( |$)', enters: opaque}
+  - {view: system.security, syntax: '^cpm\-queue( |$)', enters: opaque}
+  - {view: system.security, syntax: '^cpu\-protection( |$)', enters: opaque}
+  - {view: system.security, syntax: '^dist\-cpu\-protection( |$)', enters: opaque}
+  - {view: system.security, syntax: '^dot1x( |$)', enters: opaque}
+  - {view: system.security, syntax: '^hash\-control( |$)', enters: opaque}
+  - {view: system.security, syntax: '^keychains( |$)', enters: opaque}
+  - {view: system.security, syntax: '^management( |$)', enters: opaque}
+  - {view: system.security, syntax: '^management\-access\-filter( |$)', enters: opaque}
+  - {view: system.security, syntax: '^pki( |$)', enters: opaque}
+  - {view: system.security, syntax: '^python\-script( |$)', enters: opaque}
+  - {view: system.security, syntax: '^snmp( |$)', enters: system.security.snmp}
+  - {view: system.security, syntax: '^source\-address( |$)', enters: opaque}
+  - {view: system.security, syntax: '^ssh( |$)', enters: system.security.ssh}
+  - {view: system.security, syntax: '^system\-passwords( |$)', enters: opaque}
+  - {view: system.security, syntax: '^tech\-support( |$)', enters: opaque}
+  - {view: system.security, syntax: '^telnet( |$)', enters: opaque}
+  - {view: system.security, syntax: '^tls( |$)', enters: opaque}
+  - {view: system.security, syntax: '^user\-params( |$)', enters: system.security.user-params}
+  - {view: system.security, syntax: '^vprn\-network\-exceptions( |$)', enters: opaque}
+  - {view: system.security.aaa, syntax: '^cli\-session\-group( |$)', enters: opaque}
+  - {view: system.security.aaa, syntax: '^local\-profiles( |$)', enters: opaque}
+  - {view: system.security.aaa, syntax: '^management\-interface( |$)', enters: opaque}
+  - {view: system.security.aaa, syntax: '^remote\-servers( |$)', enters: system.security.aaa.remote-servers}
+  - {view: system.security.aaa, syntax: '^user\-template( |$)', enters: opaque}
+  - {view: system.security.aaa.remote-servers, syntax: '^ldap( |$)', enters: opaque}
+  - {view: system.security.aaa.remote-servers, syntax: '^radius( |$)', enters: system.security.aaa.remote-servers.radius}
+  - {view: system.security.aaa.remote-servers, syntax: '^tacplus( |$)', enters: system.security.aaa.remote-servers.tacplus}
+  - {view: system.security.aaa.remote-servers, syntax: '^vprn\-server( |$)', enters: opaque}
+  - {view: system.security.aaa.remote-servers.radius, syntax: '^server( |$)', enters: opaque}
+  - {view: system.security.aaa.remote-servers.tacplus, syntax: '^accounting( |$)', enters: opaque}
+  - {view: system.security.aaa.remote-servers.tacplus, syntax: '^admin\-control( |$)', enters: opaque}
+  - {view: system.security.aaa.remote-servers.tacplus, syntax: '^authorization( |$)', enters: opaque}
+  - {view: system.security.aaa.remote-servers.tacplus, syntax: '^priv\-lvl\-map( |$)', enters: opaque}
+  - {view: system.security.aaa.remote-servers.tacplus, syntax: '^server( |$)', enters: system.security.aaa.remote-servers.tacplus.server}
+  - {view: system.security.aaa.remote-servers.tacplus, syntax: '^service\-request( |$)', enters: opaque}
+  - {view: system.security.snmp, syntax: '^access( |$)', enters: opaque}
+  - {view: system.security.snmp, syntax: '^attempts( |$)', enters: opaque}
+  - {view: system.security.snmp, syntax: '^community( |$)', enters: system.security.snmp.community}
+  - {view: system.security.snmp, syntax: '^source\-access\-list( |$)', enters: opaque}
+  - {view: system.security.snmp, syntax: '^usm\-community( |$)', enters: opaque}
+  - {view: system.security.snmp, syntax: '^view( |$)', enters: opaque}
+  - {view: system.security.ssh, syntax: '^authentication\-method( |$)', enters: opaque}
+  - {view: system.security.ssh, syntax: '^client\-cipher\-list\-v2( |$)', enters: opaque}
+  - {view: system.security.ssh, syntax: '^client\-host\-key\-list\-v2( |$)', enters: opaque}
+  - {view: system.security.ssh, syntax: '^client\-kex\-list\-v2( |$)', enters: opaque}
+  - {view: system.security.ssh, syntax: '^client\-mac\-list\-v2( |$)', enters: opaque}
+  - {view: system.security.ssh, syntax: '^key\-re\-exchange( |$)', enters: opaque}
+  - {view: system.security.ssh, syntax: '^server\-cipher\-list\-v2( |$)', enters: opaque}
+  - {view: system.security.ssh, syntax: '^server\-host\-key\-list\-v2( |$)', enters: opaque}
+  - {view: system.security.ssh, syntax: '^server\-kex\-list\-v2( |$)', enters: opaque}
+  - {view: system.security.ssh, syntax: '^server\-mac\-list\-v2( |$)', enters: opaque}
+  - {view: system.security.user-params, syntax: '^attempts( |$)', enters: opaque}
+  - {view: system.security.user-params, syntax: '^authentication\-order( |$)', enters: opaque}
+  - {view: system.security.user-params, syntax: '^local\-user( |$)', enters: system.security.user-params.local-user}
+  - {view: system.security.user-params.local-user, syntax: '^password( |$)', enters: opaque}
+  - {view: system.security.user-params.local-user, syntax: '^user( |$)', enters: system.security.user-params.local-user.user}
+  - {view: system.security.user-params.local-user.user, syntax: '^access( |$)', enters: system.security.user-params.local-user.user.access}
+  - {view: system.security.user-params.local-user.user, syntax: '^console( |$)', enters: system.security.user-params.local-user.user.console}
+  - {view: system.security.user-params.local-user.user, syntax: '^public\-keys( |$)', enters: opaque}
+  - {view: system.security.user-params.local-user.user, syntax: '^snmp( |$)', enters: opaque}
+  - {view: system.security.user-params.local-user.user, syntax: '^ssh\-authentication\-method( |$)', enters: opaque}
+  - {view: system.time, syntax: '^daylight\-saving\-time\-zone( |$)', enters: opaque}
+  - {view: system.time, syntax: '^ntp( |$)', enters: system.time.ntp}
+  - {view: system.time, syntax: '^sntp( |$)', enters: opaque}
+  - {view: system.time, syntax: '^zone( |$)', enters: opaque}
+  - {view: system.time.ntp, syntax: '^authentication\-key( |$)', enters: opaque}
+  - {view: system.time.ntp, syntax: '^broadcast( |$)', enters: opaque}
+  - {view: system.time.ntp, syntax: '^broadcast\-client( |$)', enters: opaque}
+  - {view: system.time.ntp, syntax: '^multicast( |$)', enters: opaque}
+  - {view: system.time.ntp, syntax: '^multicast\-client( |$)', enters: opaque}
+  - {view: system.time.ntp, syntax: '^ntp\-server( |$)', enters: opaque}
+  - {view: system.time.ntp, syntax: '^peer( |$)', enters: opaque}
+  - {view: system.time.ntp, syntax: '^server( |$)', enters: system.time.ntp.server}

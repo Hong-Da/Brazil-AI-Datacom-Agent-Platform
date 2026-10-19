@@ -1,0 +1,4397 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: mgmt
+cards:
+  - id: nokia-sros-md.system-alarm-contact-in-power
+    syntax: alarm-contact-in-power <alarm-contact-in-power>
+    view: system
+    undo: delete alarm-contact-in-power
+    params:
+      alarm-contact-in-power:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.alarm-contact-in-power.md
+      title: system alarm-contact-in-power
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-alarm-contact-input
+    syntax: alarm-contact-input <input-pin-number>
+    view: system
+    enters_view: opaque
+    undo: delete alarm-contact-input <input-pin-number>
+    params:
+      input-pin-number:
+        type: integer
+        range:
+          - 1
+          - 4
+    source:
+      doc: nokia-sros-md-md
+      file: system.alarm-contact-input.md
+      title: system alarm-contact-input
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-alarms
+    syntax: alarms
+    view: system
+    enters_view: opaque
+    undo: delete alarms
+    source:
+      doc: nokia-sros-md-md
+      file: system.alarms.md
+      title: system alarms
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-allow-boot-license-violations
+    syntax: allow-boot-license-violations <allow-boot-license-violations>
+    view: system
+    undo: delete allow-boot-license-violations
+    params:
+      allow-boot-license-violations:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: system.allow-boot-license-violations.md
+      title: system allow-boot-license-violations
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.apply-groups-exclude.md
+      title: system apply-groups-exclude
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.apply-groups.md
+      title: system apply-groups
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-bluetooth
+    syntax: bluetooth
+    view: system
+    enters_view: opaque
+    undo: delete bluetooth
+    source:
+      doc: nokia-sros-md-md
+      file: system.bluetooth.md
+      title: system bluetooth
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-boot-bad-exec
+    syntax: boot-bad-exec <boot-bad-exec>
+    view: system
+    undo: delete boot-bad-exec
+    params:
+      boot-bad-exec:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.boot-bad-exec.md
+      title: system boot-bad-exec
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-boot-good-exec
+    syntax: boot-good-exec <boot-good-exec>
+    view: system
+    undo: delete boot-good-exec
+    params:
+      boot-good-exec:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.boot-good-exec.md
+      title: system boot-good-exec
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-central-frequency-clock
+    syntax: central-frequency-clock
+    view: system
+    enters_view: opaque
+    undo: delete central-frequency-clock
+    source:
+      doc: nokia-sros-md-md
+      file: system.central-frequency-clock.md
+      title: system central-frequency-clock
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-clli-code
+    syntax: clli-code <clli-code>
+    view: system
+    undo: delete clli-code
+    params:
+      clli-code:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.clli-code.md
+      title: system clli-code
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-congestion-management
+    syntax: congestion-management <congestion-management>
+    view: system
+    undo: delete congestion-management
+    params:
+      congestion-management:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.congestion-management.md
+      title: system congestion-management
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-contact
+    syntax: contact <contact>
+    view: system
+    undo: delete contact
+    params:
+      contact:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.contact.md
+      title: system contact
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.contact: $contact
+  - id: nokia-sros-md.system-coordinates
+    syntax: coordinates <coordinates>
+    view: system
+    undo: delete coordinates
+    params:
+      coordinates:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.coordinates.md
+      title: system coordinates
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-cpm-http-redirect
+    syntax: cpm-http-redirect
+    view: system
+    enters_view: opaque
+    undo: delete cpm-http-redirect
+    source:
+      doc: nokia-sros-md-md
+      file: system.cpm-http-redirect.md
+      title: system cpm-http-redirect
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-cron
+    syntax: cron
+    view: system
+    enters_view: opaque
+    undo: delete cron
+    source:
+      doc: nokia-sros-md-md
+      file: system.cron.md
+      title: system cron
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-dhcp6
+    syntax: dhcp6
+    view: system
+    enters_view: opaque
+    undo: delete dhcp6
+    source:
+      doc: nokia-sros-md-md
+      file: system.dhcp6.md
+      title: system dhcp6
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-dns
+    syntax: dns
+    view: system
+    enters_view: opaque
+    undo: delete dns
+    source:
+      doc: nokia-sros-md-md
+      file: system.dns.md
+      title: system dns
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-efm-oam
+    syntax: efm-oam
+    view: system
+    enters_view: opaque
+    undo: delete efm-oam
+    source:
+      doc: nokia-sros-md-md
+      file: system.efm-oam.md
+      title: system efm-oam
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-eth-cfm
+    syntax: eth-cfm
+    view: system
+    enters_view: opaque
+    undo: delete eth-cfm
+    source:
+      doc: nokia-sros-md-md
+      file: system.eth-cfm.md
+      title: system eth-cfm
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-fan-control
+    syntax: fan-control
+    view: system
+    enters_view: opaque
+    undo: delete fan-control
+    source:
+      doc: nokia-sros-md-md
+      file: system.fan-control.md
+      title: system fan-control
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-grpc-tunnel
+    syntax: grpc-tunnel
+    view: system
+    enters_view: opaque
+    undo: delete grpc-tunnel
+    source:
+      doc: nokia-sros-md-md
+      file: system.grpc-tunnel.md
+      title: system grpc-tunnel
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-grpc
+    syntax: grpc
+    view: system
+    enters_view: opaque
+    undo: delete grpc
+    source:
+      doc: nokia-sros-md-md
+      file: system.grpc.md
+      title: system grpc
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-icmp-vse
+    syntax: icmp-vse <icmp-vse>
+    view: system
+    undo: delete icmp-vse
+    params:
+      icmp-vse:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.icmp-vse.md
+      title: system icmp-vse
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-ip
+    syntax: ip
+    view: system
+    enters_view: opaque
+    undo: delete ip
+    source:
+      doc: nokia-sros-md-md
+      file: system.ip.md
+      title: system ip
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-l2tp
+    syntax: l2tp
+    view: system
+    enters_view: opaque
+    undo: delete l2tp
+    source:
+      doc: nokia-sros-md-md
+      file: system.l2tp.md
+      title: system l2tp
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-lacp
+    syntax: lacp
+    view: system
+    enters_view: opaque
+    undo: delete lacp
+    source:
+      doc: nokia-sros-md-md
+      file: system.lacp.md
+      title: system lacp
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-lldp
+    syntax: lldp
+    view: system
+    enters_view: opaque
+    undo: delete lldp
+    source:
+      doc: nokia-sros-md-md
+      file: system.lldp.md
+      title: system lldp
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-load-balancing
+    syntax: load-balancing
+    view: system
+    enters_view: opaque
+    undo: delete load-balancing
+    source:
+      doc: nokia-sros-md-md
+      file: system.load-balancing.md
+      title: system load-balancing
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-location
+    syntax: location <location>
+    view: system
+    undo: delete location
+    params:
+      location:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.location.md
+      title: system location
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.location: $location
+  - id: nokia-sros-md.system-login-control
+    syntax: login-control
+    view: system
+    enters_view: system.login-control
+    undo: delete login-control
+    source:
+      doc: nokia-sros-md-md
+      file: system.login-control.md
+      title: system login-control
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.system-login-control-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.login-control
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.login-control.md
+      title: system login-control apply-groups
+      line: 21
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-login-control-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.login-control
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.login-control.md
+      title: system login-control apply-groups-exclude
+      line: 39
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-login-control-exponential-backoff
+    syntax: exponential-backoff <exponential-backoff>
+    view: system.login-control
+    undo: delete exponential-backoff
+    params:
+      exponential-backoff:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.login-control.md
+      title: system login-control exponential-backoff
+      line: 57
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-login-control-ftp
+    syntax: ftp
+    view: system.login-control
+    enters_view: opaque
+    undo: delete ftp
+    source:
+      doc: nokia-sros-md-md
+      file: system.login-control.md
+      title: system login-control ftp
+      line: 83
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-login-control-idle-timeout
+    syntax: idle-timeout <idle-timeout>
+    view: system.login-control
+    undo: delete idle-timeout
+    params:
+      idle-timeout:
+        type: word
+    default: '30'
+    source:
+      doc: nokia-sros-md-md
+      file: system.login-control.md
+      title: system login-control idle-timeout
+      line: 99
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-login-control-login-banner
+    syntax: login-banner <login-banner>
+    view: system.login-control
+    undo: delete login-banner
+    params:
+      login-banner:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.login-control.md
+      title: system login-control login-banner
+      line: 125
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-login-control-login-scripts
+    syntax: login-scripts
+    view: system.login-control
+    enters_view: opaque
+    undo: delete login-scripts
+    source:
+      doc: nokia-sros-md-md
+      file: system.login-control.md
+      title: system login-control login-scripts
+      line: 151
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-login-control-motd
+    syntax: motd
+    view: system.login-control
+    enters_view: opaque
+    undo: delete motd
+    source:
+      doc: nokia-sros-md-md
+      file: system.login-control.md
+      title: system login-control motd
+      line: 167
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-login-control-pre-login-message
+    syntax: pre-login-message
+    view: system.login-control
+    enters_view: opaque
+    undo: delete pre-login-message
+    source:
+      doc: nokia-sros-md-md
+      file: system.login-control.md
+      title: system login-control pre-login-message
+      line: 183
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-login-control-ssh
+    syntax: ssh
+    view: system.login-control
+    enters_view: opaque
+    undo: delete ssh
+    source:
+      doc: nokia-sros-md-md
+      file: system.login-control.md
+      title: system login-control ssh
+      line: 199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-login-control-telnet
+    syntax: telnet
+    view: system.login-control
+    enters_view: opaque
+    undo: delete telnet
+    source:
+      doc: nokia-sros-md-md
+      file: system.login-control.md
+      title: system login-control telnet
+      line: 215
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface
+    syntax: management-interface
+    view: system
+    enters_view: system.management-interface
+    undo: delete management-interface
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.system-management-interface-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.management-interface
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface apply-groups
+      line: 21
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.management-interface
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface apply-groups-exclude
+      line: 39
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-cli
+    syntax: cli
+    view: system.management-interface
+    enters_view: opaque
+    undo: delete cli
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface cli
+      line: 57
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-commit-history
+    syntax: commit-history <commit-history>
+    view: system.management-interface
+    undo: delete commit-history
+    params:
+      commit-history:
+        type: integer
+        range:
+          - 0
+          - 200
+    default: '50'
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface commit-history
+      line: 73
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-commit-management
+    syntax: commit-management
+    view: system.management-interface
+    enters_view: opaque
+    undo: delete commit-management
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface commit-management
+      line: 99
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-configuration-mode
+    syntax: configuration-mode <configuration-mode>
+    view: system.management-interface
+    undo: delete configuration-mode
+    params:
+      configuration-mode:
+        type: enum
+        choices:
+          - classic
+          - model-driven
+          - mixed
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface configuration-mode
+      line: 115
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-configuration-save
+    syntax: configuration-save
+    view: system.management-interface
+    enters_view: opaque
+    undo: delete configuration-save
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface configuration-save
+      line: 137
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-netconf
+    syntax: netconf
+    view: system.management-interface
+    enters_view: opaque
+    undo: delete netconf
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface netconf
+      line: 153
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-operations
+    syntax: operations
+    view: system.management-interface
+    enters_view: opaque
+    undo: delete operations
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface operations
+      line: 169
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-remote-management
+    syntax: remote-management
+    view: system.management-interface
+    enters_view: opaque
+    undo: delete remote-management
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface remote-management
+      line: 185
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-schema-path
+    syntax: schema-path <schema-path>
+    view: system.management-interface
+    undo: delete schema-path
+    params:
+      schema-path:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface schema-path
+      line: 201
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-snmp
+    syntax: snmp
+    view: system.management-interface
+    enters_view: system.management-interface.snmp
+    undo: delete snmp
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface snmp
+      line: 223
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.system-management-interface-snmp-admin-state
+    syntax: admin-state <admin-state>
+    view: system.management-interface.snmp
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface snmp admin-state
+      line: 239
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.enabled: kw:enable=true|disable=false
+  - id: nokia-sros-md.system-management-interface-snmp-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.management-interface.snmp
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface snmp apply-groups
+      line: 265
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-snmp-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.management-interface.snmp
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface snmp apply-groups-exclude
+      line: 283
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-snmp-engine-id
+    syntax: engine-id <engine-id>
+    view: system.management-interface.snmp
+    undo: delete engine-id
+    params:
+      engine-id:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface snmp engine-id
+      line: 301
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-snmp-general-port
+    syntax: general-port <general-port>
+    view: system.management-interface.snmp
+    undo: delete general-port
+    params:
+      general-port:
+        type: integer
+    default: '161'
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface snmp general-port
+      line: 323
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-snmp-max-bulk-duration
+    syntax: max-bulk-duration <max-bulk-duration>
+    view: system.management-interface.snmp
+    undo: delete max-bulk-duration
+    params:
+      max-bulk-duration:
+        type: integer
+        range:
+          - 100
+          - 5000
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface snmp max-bulk-duration
+      line: 349
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-snmp-packet-size
+    syntax: packet-size <packet-size>
+    view: system.management-interface.snmp
+    undo: delete packet-size
+    params:
+      packet-size:
+        type: integer
+        range:
+          - 484
+          - 9216
+    default: '1500'
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface snmp packet-size
+      line: 371
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-snmp-streaming
+    syntax: streaming
+    view: system.management-interface.snmp
+    enters_view: opaque
+    undo: delete streaming
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface snmp streaming
+      line: 397
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-snmp-transport
+    syntax: transport <transport>
+    view: system.management-interface.snmp
+    undo: delete transport
+    params:
+      transport:
+        type: word
+    default: udp
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface snmp transport
+      line: 413
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-management-interface-yang-modules
+    syntax: yang-modules
+    view: system.management-interface
+    enters_view: opaque
+    undo: delete yang-modules
+    source:
+      doc: nokia-sros-md-md
+      file: system.management-interface.md
+      title: system management-interface yang-modules
+      line: 439
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system
+    syntax: system
+    view: configure
+    enters_view: system
+    undo: delete system
+    source:
+      doc: nokia-sros-md-md
+      file: system.md
+      title: system
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.system-name
+    syntax: name <name>
+    view: system
+    undo: delete name
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.name.md
+      title: system name
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.system: _
+      mgmt.system.name: $name
+  - id: nokia-sros-md.system-network-element-discovery
+    syntax: network-element-discovery
+    view: system
+    enters_view: opaque
+    undo: delete network-element-discovery
+    source:
+      doc: nokia-sros-md-md
+      file: system.network-element-discovery.md
+      title: system network-element-discovery
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-ospf-dynamic-hostnames
+    syntax: ospf-dynamic-hostnames <ospf-dynamic-hostnames>
+    view: system
+    undo: delete ospf-dynamic-hostnames
+    params:
+      ospf-dynamic-hostnames:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.ospf-dynamic-hostnames.md
+      title: system ospf-dynamic-hostnames
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-persistence
+    syntax: persistence
+    view: system
+    enters_view: opaque
+    undo: delete persistence
+    source:
+      doc: nokia-sros-md-md
+      file: system.persistence.md
+      title: system persistence
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-power-management
+    syntax: power-management <power-management-key>
+    view: system
+    enters_view: opaque
+    undo: delete power-management <power-management-key>
+    params:
+      power-management-key:
+        type: integer
+    source:
+      doc: nokia-sros-md-md
+      file: system.power-management.md
+      title: system power-management
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-ptp
+    syntax: ptp
+    view: system
+    enters_view: opaque
+    undo: delete ptp
+    source:
+      doc: nokia-sros-md-md
+      file: system.ptp.md
+      title: system ptp
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-script-control
+    syntax: script-control
+    view: system
+    enters_view: opaque
+    undo: delete script-control
+    source:
+      doc: nokia-sros-md-md
+      file: system.script-control.md
+      title: system script-control
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security
+    syntax: security
+    view: system
+    enters_view: system.security
+    undo: delete security
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.system-security-aaa
+    syntax: aaa
+    view: system.security
+    enters_view: system.security.aaa
+    undo: delete aaa
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa
+      line: 21
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.system-security-aaa-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.security.aaa
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa apply-groups
+      line: 37
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.security.aaa
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa apply-groups-exclude
+      line: 55
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-cli-session-group
+    syntax: cli-session-group <cli-session-group-name>
+    view: system.security.aaa
+    enters_view: opaque
+    undo: delete cli-session-group <cli-session-group-name>
+    params:
+      cli-session-group-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa cli-session-group
+      line: 73
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-health-check
+    syntax: health-check <health-check>
+    view: system.security.aaa
+    undo: delete health-check
+    params:
+      health-check:
+        type: word
+    default: '30'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa health-check
+      line: 95
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-local-profiles
+    syntax: local-profiles
+    view: system.security.aaa
+    enters_view: opaque
+    undo: delete local-profiles
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa local-profiles
+      line: 121
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-management-interface
+    syntax: management-interface
+    view: system.security.aaa
+    enters_view: opaque
+    undo: delete management-interface
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa management-interface
+      line: 137
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers
+    syntax: remote-servers
+    view: system.security.aaa
+    enters_view: system.security.aaa.remote-servers
+    undo: delete remote-servers
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers
+      line: 153
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.system-security-aaa-remote-servers-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.security.aaa.remote-servers
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers apply-groups
+      line: 169
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.security.aaa.remote-servers
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers apply-groups-exclude
+      line: 187
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-ldap
+    syntax: ldap
+    view: system.security.aaa.remote-servers
+    enters_view: opaque
+    undo: delete ldap
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers ldap
+      line: 205
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius
+    syntax: radius
+    view: system.security.aaa.remote-servers
+    enters_view: system.security.aaa.remote-servers.radius
+    undo: delete radius
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius
+      line: 221
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.radius: _
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-access-algorithm
+    syntax: access-algorithm <access-algorithm>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete access-algorithm
+    params:
+      access-algorithm:
+        type: enum
+        choices:
+          - direct
+          - round-robin
+    default: direct
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius access-algorithm
+      line: 237
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-accounting
+    syntax: accounting <accounting>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete accounting
+    params:
+      accounting:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius accounting
+      line: 263
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-accounting-port
+    syntax: accounting-port <accounting-port>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete accounting-port
+    params:
+      accounting-port:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: '1813'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius accounting-port
+      line: 289
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-admin-state
+    syntax: admin-state <admin-state>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius admin-state
+      line: 315
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius apply-groups
+      line: 341
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius apply-groups-exclude
+      line: 359
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-authorization
+    syntax: authorization <authorization>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete authorization
+    params:
+      authorization:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius authorization
+      line: 377
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-interactive-authentication
+    syntax: interactive-authentication <interactive-authentication>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete interactive-authentication
+    params:
+      interactive-authentication:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius interactive-authentication
+      line: 403
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-port
+    syntax: port <port>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete port
+    params:
+      port:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: '1812'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius port
+      line: 429
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-route-preference
+    syntax: route-preference <route-preference>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete route-preference
+    params:
+      route-preference:
+        type: enum
+        choices:
+          - both
+          - inband
+          - outband
+    default: both
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius route-preference
+      line: 455
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-server
+    syntax: server <index>
+    view: system.security.aaa.remote-servers.radius
+    enters_view: opaque
+    undo: delete server <index>
+    params:
+      index:
+        type: integer
+        range:
+          - 1
+          - 5
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius server
+      line: 481
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-server-retry
+    syntax: server-retry <server-retry>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete server-retry
+    params:
+      server-retry:
+        type: integer
+        range:
+          - 1
+          - 10
+    default: '3'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius server-retry
+      line: 503
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-server-timeout
+    syntax: server-timeout <server-timeout>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete server-timeout
+    params:
+      server-timeout:
+        type: integer
+        range:
+          - 1
+          - 90
+    default: '3'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius server-timeout
+      line: 529
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-radius-use-default-template
+    syntax: use-default-template <use-default-template>
+    view: system.security.aaa.remote-servers.radius
+    undo: delete use-default-template
+    params:
+      use-default-template:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers radius use-default-template
+      line: 555
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus
+    syntax: tacplus
+    view: system.security.aaa.remote-servers
+    enters_view: system.security.aaa.remote-servers.tacplus
+    undo: delete tacplus
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus
+      line: 581
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.tacacs: _
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-accounting
+    syntax: accounting
+    view: system.security.aaa.remote-servers.tacplus
+    enters_view: opaque
+    undo: delete accounting
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus accounting
+      line: 597
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-admin-control
+    syntax: admin-control
+    view: system.security.aaa.remote-servers.tacplus
+    enters_view: opaque
+    undo: delete admin-control
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus admin-control
+      line: 613
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-admin-state
+    syntax: admin-state <admin-state>
+    view: system.security.aaa.remote-servers.tacplus
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus admin-state
+      line: 629
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.security.aaa.remote-servers.tacplus
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus apply-groups
+      line: 655
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.security.aaa.remote-servers.tacplus
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus apply-groups-exclude
+      line: 673
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-authorization
+    syntax: authorization
+    view: system.security.aaa.remote-servers.tacplus
+    enters_view: opaque
+    undo: delete authorization
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus authorization
+      line: 691
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-ignore-unknown-mandatory-vsas
+    syntax: ignore-unknown-mandatory-vsas <ignore-unknown-mandatory-vsas>
+    view: system.security.aaa.remote-servers.tacplus
+    undo: delete ignore-unknown-mandatory-vsas
+    params:
+      ignore-unknown-mandatory-vsas:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus ignore-unknown-mandatory-vsas
+      line: 707
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-interactive-authentication
+    syntax: interactive-authentication <interactive-authentication>
+    view: system.security.aaa.remote-servers.tacplus
+    undo: delete interactive-authentication
+    params:
+      interactive-authentication:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus interactive-authentication
+      line: 733
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-priv-lvl-map
+    syntax: priv-lvl-map
+    view: system.security.aaa.remote-servers.tacplus
+    enters_view: opaque
+    undo: delete priv-lvl-map
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus priv-lvl-map
+      line: 759
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-route-preference
+    syntax: route-preference <route-preference>
+    view: system.security.aaa.remote-servers.tacplus
+    undo: delete route-preference
+    params:
+      route-preference:
+        type: enum
+        choices:
+          - both
+          - inband
+          - outband
+    default: both
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus route-preference
+      line: 775
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-server
+    syntax: server <index>
+    view: system.security.aaa.remote-servers.tacplus
+    enters_view: system.security.aaa.remote-servers.tacplus.server
+    undo: delete server <index>
+    params:
+      index:
+        type: integer
+        range:
+          - 1
+          - 5
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus server
+      line: 801
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-server-address
+    syntax: address <address>
+    view: system.security.aaa.remote-servers.tacplus.server
+    undo: delete address
+    params:
+      address:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus server address
+      line: 823
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.tacacs.server:
+        role: all
+        address: $address
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-server-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.security.aaa.remote-servers.tacplus.server
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus server apply-groups
+      line: 849
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-server-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.security.aaa.remote-servers.tacplus.server
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus server apply-groups-exclude
+      line: 867
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-server-port
+    syntax: port <port>
+    view: system.security.aaa.remote-servers.tacplus.server
+    undo: delete port
+    params:
+      port:
+        type: integer
+    default: '49'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus server port
+      line: 885
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-server-secret
+    syntax: secret <secret> [ hash | hash2 | custom ]
+    view: system.security.aaa.remote-servers.tacplus.server
+    undo: delete secret
+    params:
+      secret:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus server secret
+      line: 911
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.tacacs.key_set: 'true'
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-server-retry-timeout
+    syntax: server-retry-timeout <server-retry-timeout>
+    view: system.security.aaa.remote-servers.tacplus
+    undo: delete server-retry-timeout
+    params:
+      server-retry-timeout:
+        type: word
+    default: '300'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus server-retry-timeout
+      line: 937
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-server-timeout
+    syntax: server-timeout <server-timeout>
+    view: system.security.aaa.remote-servers.tacplus
+    undo: delete server-timeout
+    params:
+      server-timeout:
+        type: integer
+        range:
+          - 1
+          - 90
+    default: '3'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus server-timeout
+      line: 963
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.tacacs.timeout: $server-timeout
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-service-request
+    syntax: service-request
+    view: system.security.aaa.remote-servers.tacplus
+    enters_view: opaque
+    undo: delete service-request
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus service-request
+      line: 989
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-tacplus-use-default-template
+    syntax: use-default-template <use-default-template>
+    view: system.security.aaa.remote-servers.tacplus
+    undo: delete use-default-template
+    params:
+      use-default-template:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers tacplus use-default-template
+      line: 1005
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-remote-servers-vprn-server
+    syntax: vprn-server
+    view: system.security.aaa.remote-servers
+    enters_view: opaque
+    undo: delete vprn-server
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa remote-servers vprn-server
+      line: 1031
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-aaa-user-template
+    syntax: user-template <user-template-name>
+    view: system.security.aaa
+    enters_view: opaque
+    undo: delete user-template <user-template-name>
+    params:
+      user-template-name:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security aaa user-template
+      line: 1047
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.security
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security apply-groups
+      line: 1069
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.security
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security apply-groups-exclude
+      line: 1087
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-cli-script
+    syntax: cli-script
+    view: system.security
+    enters_view: opaque
+    undo: delete cli-script
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security cli-script
+      line: 1105
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-cpm-filter
+    syntax: cpm-filter
+    view: system.security
+    enters_view: opaque
+    undo: delete cpm-filter
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security cpm-filter
+      line: 1121
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-cpm-queue
+    syntax: cpm-queue
+    view: system.security
+    enters_view: opaque
+    undo: delete cpm-queue
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security cpm-queue
+      line: 1137
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-cpu-protection
+    syntax: cpu-protection
+    view: system.security
+    enters_view: opaque
+    undo: delete cpu-protection
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security cpu-protection
+      line: 1153
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-dist-cpu-protection
+    syntax: dist-cpu-protection
+    view: system.security
+    enters_view: opaque
+    undo: delete dist-cpu-protection
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security dist-cpu-protection
+      line: 1169
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-dot1x
+    syntax: dot1x
+    view: system.security
+    enters_view: opaque
+    undo: delete dot1x
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security dot1x
+      line: 1185
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ftp-server
+    syntax: ftp-server <ftp-server>
+    view: system.security
+    undo: delete ftp-server
+    params:
+      ftp-server:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ftp-server
+      line: 1201
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.ftp: _
+      mgmt.ftp.enabled: kw:true=true|false=false
+  - id: nokia-sros-md.system-security-hash-control
+    syntax: hash-control
+    view: system.security
+    enters_view: opaque
+    undo: delete hash-control
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security hash-control
+      line: 1227
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-keychains
+    syntax: keychains
+    view: system.security
+    enters_view: opaque
+    undo: delete keychains
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security keychains
+      line: 1243
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-management
+    syntax: management
+    view: system.security
+    enters_view: opaque
+    undo: delete management
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security management
+      line: 1259
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-management-access-filter
+    syntax: management-access-filter
+    view: system.security
+    enters_view: opaque
+    undo: delete management-access-filter
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security management-access-filter
+      line: 1275
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-per-peer-queuing
+    syntax: per-peer-queuing <per-peer-queuing>
+    view: system.security
+    undo: delete per-peer-queuing
+    params:
+      per-peer-queuing:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security per-peer-queuing
+      line: 1291
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-pki
+    syntax: pki
+    view: system.security
+    enters_view: opaque
+    undo: delete pki
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security pki
+      line: 1313
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-python-script
+    syntax: python-script
+    view: system.security
+    enters_view: opaque
+    undo: delete python-script
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security python-script
+      line: 1329
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-snmp
+    syntax: snmp
+    view: system.security
+    enters_view: system.security.snmp
+    undo: delete snmp
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp
+      line: 1345
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.system-security-snmp-access
+    syntax: access <group> context <context> security-model <security-model> security-level <security-level>
+    view: system.security.snmp
+    enters_view: opaque
+    undo: delete access <group>
+    params:
+      group:
+        type: string
+      context:
+        type: string
+      security-model:
+        type: enum
+        choices:
+          - snmpv1
+          - snmpv2c
+          - usm
+      security-level:
+        type: enum
+        choices:
+          - no-auth-no-privacy
+          - auth-no-privacy
+          - privacy
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp access
+      line: 1361
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-snmp-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.security.snmp
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp apply-groups
+      line: 1386
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-snmp-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.security.snmp
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp apply-groups-exclude
+      line: 1404
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-snmp-attempts
+    syntax: attempts
+    view: system.security.snmp
+    enters_view: opaque
+    undo: delete attempts
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp attempts
+      line: 1422
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-snmp-community
+    syntax: community <community-string>
+    view: system.security.snmp
+    enters_view: system.security.snmp.community
+    undo: delete community <community-string>
+    params:
+      community-string:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp community
+      line: 1438
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.community: $community-string
+  - id: nokia-sros-md.system-security-snmp-community-access-permissions
+    syntax: access-permissions <access-permissions>
+    view: system.security.snmp.community
+    undo: delete access-permissions
+    params:
+      access-permissions:
+        type: enum
+        choices:
+          - r
+          - rw
+          - rwa
+          - mgmt
+          - vpls-mgmt
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp community access-permissions
+      line: 1460
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.snmp.community.access: kw:r=read|rw=write|rwa=write|mgmt=read|vpls-mgmt=read
+  - id: nokia-sros-md.system-security-snmp-community-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.security.snmp.community
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp community apply-groups
+      line: 1486
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-snmp-community-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.security.snmp.community
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp community apply-groups-exclude
+      line: 1504
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-snmp-community-source-access-list
+    syntax: source-access-list <source-access-list>
+    view: system.security.snmp.community
+    undo: delete source-access-list
+    params:
+      source-access-list:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp community source-access-list
+      line: 1522
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-snmp-community-version
+    syntax: version <version>
+    view: system.security.snmp.community
+    undo: delete version
+    params:
+      version:
+        type: enum
+        choices:
+          - v1
+          - v2c
+          - both
+    default: both
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp community version
+      line: 1544
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-snmp-source-access-list
+    syntax: source-access-list <list-name>
+    view: system.security.snmp
+    enters_view: opaque
+    undo: delete source-access-list <list-name>
+    params:
+      list-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp source-access-list
+      line: 1570
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-snmp-usm-community
+    syntax: usm-community <community-string>
+    view: system.security.snmp
+    enters_view: opaque
+    undo: delete usm-community <community-string>
+    params:
+      community-string:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp usm-community
+      line: 1592
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-snmp-view
+    syntax: view <view-name> subtree <subtree>
+    view: system.security.snmp
+    enters_view: opaque
+    undo: delete view <view-name>
+    params:
+      view-name:
+        type: string
+      subtree:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security snmp view
+      line: 1614
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-source-address
+    syntax: source-address
+    view: system.security
+    enters_view: opaque
+    undo: delete source-address
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security source-address
+      line: 1637
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh
+    syntax: ssh
+    view: system.security
+    enters_view: system.security.ssh
+    undo: delete ssh
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh
+      line: 1653
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.ssh: _
+  - id: nokia-sros-md.system-security-ssh-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.security.ssh
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh apply-groups
+      line: 1669
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.security.ssh
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh apply-groups-exclude
+      line: 1687
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-authentication-method
+    syntax: authentication-method
+    view: system.security.ssh
+    enters_view: opaque
+    undo: delete authentication-method
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh authentication-method
+      line: 1705
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-client-cipher-list-v2
+    syntax: client-cipher-list-v2
+    view: system.security.ssh
+    enters_view: opaque
+    undo: delete client-cipher-list-v2
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh client-cipher-list-v2
+      line: 1721
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-client-host-key-list-v2
+    syntax: client-host-key-list-v2
+    view: system.security.ssh
+    enters_view: opaque
+    undo: delete client-host-key-list-v2
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh client-host-key-list-v2
+      line: 1737
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-client-kex-list-v2
+    syntax: client-kex-list-v2
+    view: system.security.ssh
+    enters_view: opaque
+    undo: delete client-kex-list-v2
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh client-kex-list-v2
+      line: 1753
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-client-mac-list-v2
+    syntax: client-mac-list-v2
+    view: system.security.ssh
+    enters_view: opaque
+    undo: delete client-mac-list-v2
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh client-mac-list-v2
+      line: 1769
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-key-re-exchange
+    syntax: key-re-exchange
+    view: system.security.ssh
+    enters_view: opaque
+    undo: delete key-re-exchange
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh key-re-exchange
+      line: 1785
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-listening-port
+    syntax: listening-port <listening-port>
+    view: system.security.ssh
+    undo: delete listening-port
+    params:
+      listening-port:
+        type: integer
+    default: '22'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh listening-port
+      line: 1801
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-permit-empty-passwords
+    syntax: permit-empty-passwords <permit-empty-passwords>
+    view: system.security.ssh
+    undo: delete permit-empty-passwords
+    params:
+      permit-empty-passwords:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh permit-empty-passwords
+      line: 1827
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-preserve-key
+    syntax: preserve-key <preserve-key>
+    view: system.security.ssh
+    undo: delete preserve-key
+    params:
+      preserve-key:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh preserve-key
+      line: 1853
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-server-admin-state
+    syntax: server-admin-state <server-admin-state>
+    view: system.security.ssh
+    undo: delete server-admin-state
+    params:
+      server-admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh server-admin-state
+      line: 1879
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.ssh.enabled: kw:enable=true|disable=false
+  - id: nokia-sros-md.system-security-ssh-server-cipher-list-v2
+    syntax: server-cipher-list-v2
+    view: system.security.ssh
+    enters_view: opaque
+    undo: delete server-cipher-list-v2
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh server-cipher-list-v2
+      line: 1905
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-server-host-key-list-v2
+    syntax: server-host-key-list-v2
+    view: system.security.ssh
+    enters_view: opaque
+    undo: delete server-host-key-list-v2
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh server-host-key-list-v2
+      line: 1921
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-server-kex-list-v2
+    syntax: server-kex-list-v2
+    view: system.security.ssh
+    enters_view: opaque
+    undo: delete server-kex-list-v2
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh server-kex-list-v2
+      line: 1937
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-ssh-server-mac-list-v2
+    syntax: server-mac-list-v2
+    view: system.security.ssh
+    enters_view: opaque
+    undo: delete server-mac-list-v2
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security ssh server-mac-list-v2
+      line: 1953
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-system-passwords
+    syntax: system-passwords
+    view: system.security
+    enters_view: opaque
+    undo: delete system-passwords
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security system-passwords
+      line: 1969
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-tech-support
+    syntax: tech-support
+    view: system.security
+    enters_view: opaque
+    undo: delete tech-support
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security tech-support
+      line: 1985
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-telnet
+    syntax: telnet
+    view: system.security
+    enters_view: opaque
+    undo: delete telnet
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security telnet
+      line: 2001
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-telnet-server
+    syntax: telnet-server <telnet-server>
+    view: system.security
+    undo: delete telnet-server
+    params:
+      telnet-server:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security telnet-server
+      line: 2017
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.telnet: _
+      mgmt.telnet.enabled: kw:true=true|false=false
+  - id: nokia-sros-md.system-security-telnet6-server
+    syntax: telnet6-server <telnet6-server>
+    view: system.security
+    undo: delete telnet6-server
+    params:
+      telnet6-server:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security telnet6-server
+      line: 2043
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-tls
+    syntax: tls
+    view: system.security
+    enters_view: opaque
+    undo: delete tls
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security tls
+      line: 2069
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params
+    syntax: user-params
+    view: system.security
+    enters_view: system.security.user-params
+    undo: delete user-params
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params
+      line: 2085
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.system-security-user-params-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.security.user-params
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params apply-groups
+      line: 2101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.security.user-params
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params apply-groups-exclude
+      line: 2119
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-attempts
+    syntax: attempts
+    view: system.security.user-params
+    enters_view: opaque
+    undo: delete attempts
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params attempts
+      line: 2137
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-authentication-order
+    syntax: authentication-order
+    view: system.security.user-params
+    enters_view: opaque
+    undo: delete authentication-order
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params authentication-order
+      line: 2153
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user
+    syntax: local-user
+    view: system.security.user-params
+    enters_view: system.security.user-params.local-user
+    undo: delete local-user
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user
+      line: 2169
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.system-security-user-params-local-user-password
+    syntax: password
+    view: system.security.user-params.local-user
+    enters_view: opaque
+    undo: delete password
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user password
+      line: 2185
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user
+    syntax: user <user-name>
+    view: system.security.user-params.local-user
+    enters_view: system.security.user-params.local-user.user
+    undo: delete user <user-name>
+    params:
+      user-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user
+      line: 2201
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.aaa.user: $user-name
+  - id: nokia-sros-md.system-security-user-params-local-user-user-access
+    syntax: access
+    view: system.security.user-params.local-user.user
+    enters_view: system.security.user-params.local-user.user.access
+    undo: delete access
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user access
+      line: 2223
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-access-bluetooth
+    syntax: bluetooth <bluetooth>
+    view: system.security.user-params.local-user.user.access
+    undo: delete bluetooth
+    params:
+      bluetooth:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user access bluetooth
+      line: 2239
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-access-console
+    syntax: console <console>
+    view: system.security.user-params.local-user.user.access
+    undo: delete console
+    params:
+      console:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user access console
+      line: 2265
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-access-console-port-cli
+    syntax: console-port-cli <console-port-cli>
+    view: system.security.user-params.local-user.user.access
+    undo: delete console-port-cli
+    params:
+      console-port-cli:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user access console-port-cli
+      line: 2291
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-access-ftp
+    syntax: ftp <ftp>
+    view: system.security.user-params.local-user.user.access
+    undo: delete ftp
+    params:
+      ftp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user access ftp
+      line: 2317
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-access-grpc
+    syntax: grpc <grpc>
+    view: system.security.user-params.local-user.user.access
+    undo: delete grpc
+    params:
+      grpc:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user access grpc
+      line: 2343
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-access-li
+    syntax: li <li>
+    view: system.security.user-params.local-user.user.access
+    undo: delete li
+    params:
+      li:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user access li
+      line: 2369
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-access-netconf
+    syntax: netconf <netconf>
+    view: system.security.user-params.local-user.user.access
+    undo: delete netconf
+    params:
+      netconf:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user access netconf
+      line: 2395
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-access-scp-sftp
+    syntax: scp-sftp <scp-sftp>
+    view: system.security.user-params.local-user.user.access
+    undo: delete scp-sftp
+    params:
+      scp-sftp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user access scp-sftp
+      line: 2421
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-access-snmp
+    syntax: snmp <snmp>
+    view: system.security.user-params.local-user.user.access
+    undo: delete snmp
+    params:
+      snmp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user access snmp
+      line: 2447
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-access-ssh-cli
+    syntax: ssh-cli <ssh-cli>
+    view: system.security.user-params.local-user.user.access
+    undo: delete ssh-cli
+    params:
+      ssh-cli:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user access ssh-cli
+      line: 2473
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-access-telnet-cli
+    syntax: telnet-cli <telnet-cli>
+    view: system.security.user-params.local-user.user.access
+    undo: delete telnet-cli
+    params:
+      telnet-cli:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user access telnet-cli
+      line: 2499
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.security.user-params.local-user.user
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user apply-groups
+      line: 2525
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.security.user-params.local-user.user
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user apply-groups-exclude
+      line: 2543
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-cli-engine
+    syntax: cli-engine <cli-engine>
+    view: system.security.user-params.local-user.user
+    undo: delete cli-engine
+    params:
+      cli-engine:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user cli-engine
+      line: 2561
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-console
+    syntax: console
+    view: system.security.user-params.local-user.user
+    enters_view: system.security.user-params.local-user.user.console
+    undo: delete console
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user console
+      line: 2587
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-console-cannot-change-password
+    syntax: cannot-change-password <cannot-change-password>
+    view: system.security.user-params.local-user.user.console
+    undo: delete cannot-change-password
+    params:
+      cannot-change-password:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user console cannot-change-password
+      line: 2603
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-console-login-exec
+    syntax: login-exec <login-exec>
+    view: system.security.user-params.local-user.user.console
+    undo: delete login-exec
+    params:
+      login-exec:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user console login-exec
+      line: 2629
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-console-member
+    syntax: member <member>
+    view: system.security.user-params.local-user.user.console
+    undo: delete member
+    params:
+      member:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user console member
+      line: 2651
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-console-new-password-at-login
+    syntax: new-password-at-login <new-password-at-login>
+    view: system.security.user-params.local-user.user.console
+    undo: delete new-password-at-login
+    params:
+      new-password-at-login:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user console new-password-at-login
+      line: 2677
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-home-directory
+    syntax: home-directory <home-directory>
+    view: system.security.user-params.local-user.user
+    undo: delete home-directory
+    params:
+      home-directory:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user home-directory
+      line: 2703
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-password
+    syntax: password <password>
+    view: system.security.user-params.local-user.user
+    undo: delete password
+    params:
+      password:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user password
+      line: 2725
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.aaa.user.password_set: 'true'
+  - id: nokia-sros-md.system-security-user-params-local-user-user-public-keys
+    syntax: public-keys
+    view: system.security.user-params.local-user.user
+    enters_view: opaque
+    undo: delete public-keys
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user public-keys
+      line: 2751
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-restricted-to-home
+    syntax: restricted-to-home <restricted-to-home>
+    view: system.security.user-params.local-user.user
+    undo: delete restricted-to-home
+    params:
+      restricted-to-home:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user restricted-to-home
+      line: 2767
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-save-when-restricted
+    syntax: save-when-restricted <save-when-restricted>
+    view: system.security.user-params.local-user.user
+    undo: delete save-when-restricted
+    params:
+      save-when-restricted:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user save-when-restricted
+      line: 2793
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-snmp
+    syntax: snmp
+    view: system.security.user-params.local-user.user
+    enters_view: opaque
+    undo: delete snmp
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user snmp
+      line: 2819
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-user-params-local-user-user-ssh-authentication-method
+    syntax: ssh-authentication-method
+    view: system.security.user-params.local-user.user
+    enters_view: opaque
+    undo: delete ssh-authentication-method
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security user-params local-user user ssh-authentication-method
+      line: 2835
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-security-vprn-network-exceptions
+    syntax: vprn-network-exceptions
+    view: system.security
+    enters_view: opaque
+    undo: delete vprn-network-exceptions
+    source:
+      doc: nokia-sros-md-md
+      file: system.security.md
+      title: system security vprn-network-exceptions
+      line: 2851
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-selective-fib
+    syntax: selective-fib <selective-fib>
+    view: system
+    undo: delete selective-fib
+    params:
+      selective-fib:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.selective-fib.md
+      title: system selective-fib
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-software-repository
+    syntax: software-repository <repository-name>
+    view: system
+    enters_view: opaque
+    undo: delete software-repository <repository-name>
+    params:
+      repository-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.software-repository.md
+      title: system software-repository
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-switch-fabric
+    syntax: switch-fabric
+    view: system
+    enters_view: opaque
+    undo: delete switch-fabric
+    source:
+      doc: nokia-sros-md-md
+      file: system.switch-fabric.md
+      title: system switch-fabric
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-telemetry
+    syntax: telemetry
+    view: system
+    enters_view: opaque
+    undo: delete telemetry
+    source:
+      doc: nokia-sros-md-md
+      file: system.telemetry.md
+      title: system telemetry
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-thresholds
+    syntax: thresholds
+    view: system
+    enters_view: opaque
+    undo: delete thresholds
+    source:
+      doc: nokia-sros-md-md
+      file: system.thresholds.md
+      title: system thresholds
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time
+    syntax: time
+    view: system
+    enters_view: system.time
+    undo: delete time
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.system-time-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.time
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time apply-groups
+      line: 21
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.time
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time apply-groups-exclude
+      line: 39
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-daylight-saving-time-zone
+    syntax: daylight-saving-time-zone
+    view: system.time
+    enters_view: opaque
+    undo: delete daylight-saving-time-zone
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time daylight-saving-time-zone
+      line: 57
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp
+    syntax: ntp
+    view: system.time
+    enters_view: system.time.ntp
+    undo: delete ntp
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp
+      line: 73
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.ntp: _
+  - id: nokia-sros-md.system-time-ntp-admin-state
+    syntax: admin-state <admin-state>
+    view: system.time.ntp
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: disable
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp admin-state
+      line: 89
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.ntp.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.system-time-ntp-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.time.ntp
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp apply-groups
+      line: 115
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.time.ntp
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp apply-groups-exclude
+      line: 133
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-authentication-check
+    syntax: authentication-check <authentication-check>
+    view: system.time.ntp
+    undo: delete authentication-check
+    params:
+      authentication-check:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp authentication-check
+      line: 151
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-authentication-key
+    syntax: authentication-key <key-id>
+    view: system.time.ntp
+    enters_view: opaque
+    undo: delete authentication-key <key-id>
+    params:
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp authentication-key
+      line: 177
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-authentication-keychain
+    syntax: authentication-keychain <authentication-keychain>
+    view: system.time.ntp
+    undo: delete authentication-keychain
+    params:
+      authentication-keychain:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp authentication-keychain
+      line: 199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-broadcast
+    syntax: broadcast <router-instance> interface-name <interface-name>
+    view: system.time.ntp
+    enters_view: opaque
+    undo: delete broadcast <router-instance>
+    params:
+      router-instance:
+        type: string
+      interface-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp broadcast
+      line: 221
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-broadcast-client
+    syntax: broadcast-client <router-instance> interface-name <interface-name>
+    view: system.time.ntp
+    enters_view: opaque
+    undo: delete broadcast-client <router-instance>
+    params:
+      router-instance:
+        type: string
+      interface-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp broadcast-client
+      line: 244
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-multicast
+    syntax: multicast
+    view: system.time.ntp
+    enters_view: opaque
+    undo: delete multicast
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp multicast
+      line: 267
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-multicast-client
+    syntax: multicast-client
+    view: system.time.ntp
+    enters_view: opaque
+    undo: delete multicast-client
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp multicast-client
+      line: 283
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-ntp-server
+    syntax: ntp-server
+    view: system.time.ntp
+    enters_view: opaque
+    undo: delete ntp-server
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp ntp-server
+      line: 299
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-peer
+    syntax: peer <ip-address> router-instance <router-instance>
+    view: system.time.ntp
+    enters_view: opaque
+    undo: delete peer <ip-address>
+    params:
+      ip-address:
+        type: word
+      router-instance:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp peer
+      line: 315
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-server
+    syntax: server <ip-address> router-instance <router-instance>
+    view: system.time.ntp
+    enters_view: system.time.ntp.server
+    undo: delete server <ip-address>
+    params:
+      ip-address:
+        type: word
+      router-instance:
+        type: string
+        fill: Base
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp server
+      line: 338
+      version: 25.10.R1
+      patched: NTP 服务器列表的第二个键 router-instance 必填（info 输出总写 router-instance "Base"）；统一 Schema 不记它（华为 / Cisco 没有），规范渲染缺省写 Base（fill）
+    status: draft
+    maps:
+      mgmt.ntp.server: $ip-address
+  - id: nokia-sros-md.system-time-ntp-server-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: system.time.ntp.server
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp server apply-groups
+      line: 361
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-server-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: system.time.ntp.server
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp server apply-groups-exclude
+      line: 379
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-server-authentication-keychain
+    syntax: authentication-keychain <authentication-keychain>
+    view: system.time.ntp.server
+    undo: delete authentication-keychain
+    params:
+      authentication-keychain:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp server authentication-keychain
+      line: 397
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-ntp-server-key-id
+    syntax: key-id <key-id>
+    view: system.time.ntp.server
+    undo: delete key-id
+    params:
+      key-id:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp server key-id
+      line: 423
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.ntp.server.key: $key-id
+  - id: nokia-sros-md.system-time-ntp-server-prefer
+    syntax: prefer <prefer>
+    view: system.time.ntp.server
+    undo: delete prefer
+    params:
+      prefer:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp server prefer
+      line: 449
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.ntp.server.prefer: kw:true=true|false=false
+  - id: nokia-sros-md.system-time-ntp-server-version
+    syntax: version <version>
+    view: system.time.ntp.server
+    undo: delete version
+    params:
+      version:
+        type: integer
+        range:
+          - 2
+          - 4
+    default: '4'
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time ntp server version
+      line: 475
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-prefer-local-time
+    syntax: prefer-local-time <prefer-local-time>
+    view: system.time
+    undo: delete prefer-local-time
+    params:
+      prefer-local-time:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time prefer-local-time
+      line: 501
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-sntp
+    syntax: sntp
+    view: system.time
+    enters_view: opaque
+    undo: delete sntp
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time sntp
+      line: 527
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-time-zone
+    syntax: zone
+    view: system.time
+    enters_view: opaque
+    undo: delete zone
+    source:
+      doc: nokia-sros-md-md
+      file: system.time.md
+      title: system time zone
+      line: 543
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-transmission-profile
+    syntax: transmission-profile <name>
+    view: system
+    enters_view: opaque
+    undo: delete transmission-profile <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: system.transmission-profile.md
+      title: system transmission-profile
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.system-usb
+    syntax: usb <usb-cflash>
+    view: system
+    enters_view: opaque
+    undo: delete usb <usb-cflash>
+    params:
+      usb-cflash:
+        type: enum
+        choices:
+          - cf2
+    source:
+      doc: nokia-sros-md-md
+      file: system.usb.md
+      title: system usb
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-accounting-policy
+    syntax: accounting-policy <policy-id>
+    view: log
+    enters_view: opaque
+    undo: delete accounting-policy <policy-id>
+    params:
+      policy-id:
+        type: integer
+        range:
+          - 1
+          - 99
+    source:
+      doc: nokia-sros-md-md
+      file: log.accounting-policy.md
+      title: log accounting-policy
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-app-route-notifications
+    syntax: app-route-notifications
+    view: log
+    enters_view: opaque
+    undo: delete app-route-notifications
+    source:
+      doc: nokia-sros-md-md
+      file: log.app-route-notifications.md
+      title: log app-route-notifications
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: log
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.apply-groups-exclude.md
+      title: log apply-groups-exclude
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: log
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.apply-groups.md
+      title: log apply-groups
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-encryption-key
+    syntax: encryption-key <encryption-key> [ hash | hash2 | custom ]
+    view: log
+    undo: delete encryption-key
+    params:
+      encryption-key:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.encryption-key.md
+      title: log encryption-key
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-event-damping
+    syntax: event-damping <event-damping>
+    view: log
+    undo: delete event-damping
+    params:
+      event-damping:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: log.event-damping.md
+      title: log event-damping
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-event-handling
+    syntax: event-handling
+    view: log
+    enters_view: opaque
+    undo: delete event-handling
+    source:
+      doc: nokia-sros-md-md
+      file: log.event-handling.md
+      title: log event-handling
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-event-trigger
+    syntax: event-trigger
+    view: log
+    enters_view: opaque
+    undo: delete event-trigger
+    source:
+      doc: nokia-sros-md-md
+      file: log.event-trigger.md
+      title: log event-trigger
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-file-storage-control
+    syntax: file-storage-control
+    view: log
+    enters_view: opaque
+    undo: delete file-storage-control
+    source:
+      doc: nokia-sros-md-md
+      file: log.file-storage-control.md
+      title: log file-storage-control
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-file
+    syntax: file <file-policy-name>
+    view: log
+    enters_view: opaque
+    undo: delete file <file-policy-name>
+    params:
+      file-policy-name:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: log.file.md
+      title: log file
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-filter
+    syntax: filter <filter-name>
+    view: log
+    enters_view: opaque
+    undo: delete filter <filter-name>
+    params:
+      filter-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.filter.md
+      title: log filter
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-events
+    syntax: log-events
+    view: log
+    enters_view: opaque
+    undo: delete log-events
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-events.md
+      title: log log-events
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id
+    syntax: log-id <name>
+    view: log
+    enters_view: log.log-id
+    undo: delete log-id <name>
+    params:
+      name:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-admin-state
+    syntax: admin-state <admin-state>
+    view: log.log-id
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id admin-state
+      line: 27
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: log.log-id
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id apply-groups
+      line: 53
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: log.log-id
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id apply-groups-exclude
+      line: 71
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-description
+    syntax: description <description>
+    view: log.log-id
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id description
+      line: 89
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-destination
+    syntax: destination
+    view: log.log-id
+    enters_view: log.log-id.destination
+    undo: delete destination
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id destination
+      line: 111
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-destination-cli
+    syntax: cli
+    view: log.log-id.destination
+    enters_view: opaque
+    undo: delete cli
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id destination cli
+      line: 127
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-destination-console
+    syntax: console
+    view: log.log-id.destination
+    undo: delete console
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id destination console
+      line: 147
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-destination-file
+    syntax: file <file>
+    view: log.log-id.destination
+    undo: delete file
+    params:
+      file:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id destination file
+      line: 167
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-destination-memory
+    syntax: memory
+    view: log.log-id.destination
+    enters_view: opaque
+    undo: delete memory
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id destination memory
+      line: 193
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-destination-netconf
+    syntax: netconf
+    view: log.log-id.destination
+    enters_view: opaque
+    undo: delete netconf
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id destination netconf
+      line: 213
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-destination-snmp
+    syntax: snmp
+    view: log.log-id.destination
+    enters_view: opaque
+    undo: delete snmp
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id destination snmp
+      line: 233
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-destination-syslog
+    syntax: syslog <syslog>
+    view: log.log-id.destination
+    undo: delete syslog
+    params:
+      syslog:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id destination syslog
+      line: 253
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-filter
+    syntax: filter <filter>
+    view: log.log-id
+    undo: delete filter
+    params:
+      filter:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id filter
+      line: 279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-netconf-stream
+    syntax: netconf-stream <netconf-stream>
+    view: log.log-id
+    undo: delete netconf-stream
+    params:
+      netconf-stream:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id netconf-stream
+      line: 301
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-python-policy
+    syntax: python-policy <python-policy>
+    view: log.log-id
+    undo: delete python-policy
+    params:
+      python-policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id python-policy
+      line: 323
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-source
+    syntax: source
+    view: log.log-id
+    enters_view: log.log-id.source
+    undo: delete source
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id source
+      line: 345
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-source-change
+    syntax: change <change>
+    view: log.log-id.source
+    undo: delete change
+    params:
+      change:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id source change
+      line: 361
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-source-debug
+    syntax: debug <debug>
+    view: log.log-id.source
+    undo: delete debug
+    params:
+      debug:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id source debug
+      line: 383
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-source-main
+    syntax: main <main>
+    view: log.log-id.source
+    undo: delete main
+    params:
+      main:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id source main
+      line: 409
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-source-security
+    syntax: security <security>
+    view: log.log-id.source
+    undo: delete security
+    params:
+      security:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id source security
+      line: 431
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-log-id-time-format
+    syntax: time-format <time-format>
+    view: log.log-id
+    undo: delete time-format
+    params:
+      time-format:
+        type: enum
+        choices:
+          - utc
+          - local
+    default: utc
+    source:
+      doc: nokia-sros-md-md
+      file: log.log-id.md
+      title: log log-id time-format
+      line: 453
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log
+    syntax: log
+    view: configure
+    enters_view: log
+    undo: delete log
+    source:
+      doc: nokia-sros-md-md
+      file: log.md
+      title: log
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.log-route-preference
+    syntax: route-preference
+    view: log
+    enters_view: opaque
+    undo: delete route-preference
+    source:
+      doc: nokia-sros-md-md
+      file: log.route-preference.md
+      title: log route-preference
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-services-all-events
+    syntax: services-all-events
+    view: log
+    enters_view: opaque
+    undo: delete services-all-events
+    source:
+      doc: nokia-sros-md-md
+      file: log.services-all-events.md
+      title: log services-all-events
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-snmp-trap-group
+    syntax: snmp-trap-group <log-name>
+    view: log
+    enters_view: opaque
+    undo: delete snmp-trap-group <log-name>
+    params:
+      log-name:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: log.snmp-trap-group.md
+      title: log snmp-trap-group
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-syslog
+    syntax: syslog <syslog-name>
+    view: log
+    enters_view: log.syslog
+    undo: delete syslog <syslog-name>
+    params:
+      syslog-name:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: log.syslog.md
+      title: log syslog
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.log-syslog-address
+    syntax: address <address>
+    view: log.syslog
+    undo: delete address
+    params:
+      address:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: log.syslog.md
+      title: log syslog address
+      line: 27
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.syslog.host: $address
+      mgmt.syslog.host.target_id: ctx:syslog-name
+      '@share': ''
+  - id: nokia-sros-md.log-syslog-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: log.syslog
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.syslog.md
+      title: log syslog apply-groups
+      line: 49
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-syslog-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: log.syslog
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.syslog.md
+      title: log syslog apply-groups-exclude
+      line: 67
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-syslog-description
+    syntax: description <description>
+    view: log.syslog
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.syslog.md
+      title: log syslog description
+      line: 85
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-syslog-facility
+    syntax: facility <facility>
+    view: log.syslog
+    undo: delete facility
+    params:
+      facility:
+        type: enum
+        choices:
+          - kernel
+          - user
+          - mail
+          - systemd
+          - auth
+          - syslogd
+          - printer
+          - netnews
+          - uucp
+          - cron
+          - authpriv
+          - ftp
+          - ntp
+          - logaudit
+          - logalert
+          - cron2
+          - local0
+          - local1
+          - local2
+          - local3
+          - local4
+          - local5
+          - local6
+          - local7
+    default: local7
+    source:
+      doc: nokia-sros-md-md
+      file: log.syslog.md
+      title: log syslog facility
+      line: 107
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.syslog.host.facility: $facility
+  - id: nokia-sros-md.log-syslog-hostname
+    syntax: hostname
+    view: log.syslog
+    enters_view: opaque
+    undo: delete hostname
+    source:
+      doc: nokia-sros-md-md
+      file: log.syslog.md
+      title: log syslog hostname
+      line: 133
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-syslog-log-prefix
+    syntax: log-prefix <log-prefix>
+    view: log.syslog
+    undo: delete log-prefix
+    params:
+      log-prefix:
+        type: string
+    default: TMNX
+    source:
+      doc: nokia-sros-md-md
+      file: log.syslog.md
+      title: log syslog log-prefix
+      line: 149
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-syslog-port
+    syntax: port <port>
+    view: log.syslog
+    undo: delete port
+    params:
+      port:
+        type: integer
+    default: '514'
+    source:
+      doc: nokia-sros-md-md
+      file: log.syslog.md
+      title: log syslog port
+      line: 175
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-syslog-severity
+    syntax: severity <severity>
+    view: log.syslog
+    undo: delete severity
+    params:
+      severity:
+        type: enum
+        choices:
+          - emergency
+          - alert
+          - critical
+          - error
+          - warning
+          - notice
+          - info
+          - debug
+    default: info
+    source:
+      doc: nokia-sros-md-md
+      file: log.syslog.md
+      title: log syslog severity
+      line: 201
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.syslog.host.level: $severity
+  - id: nokia-sros-md.log-syslog-timestamp-format
+    syntax: timestamp-format <timestamp-format>
+    view: log.syslog
+    undo: delete timestamp-format
+    params:
+      timestamp-format:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: log.syslog.md
+      title: log syslog timestamp-format
+      line: 227
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-syslog-tls-client-profile
+    syntax: tls-client-profile <tls-client-profile>
+    view: log.syslog
+    undo: delete tls-client-profile
+    params:
+      tls-client-profile:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: log.syslog.md
+      title: log syslog tls-client-profile
+      line: 249
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.log-throttle-rate
+    syntax: throttle-rate
+    view: log
+    enters_view: opaque
+    undo: delete throttle-rate
+    source:
+      doc: nokia-sros-md-md
+      file: log.throttle-rate.md
+      title: log throttle-rate
+      line: 5
+      version: 25.10.R1
+    status: draft

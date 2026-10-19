@@ -12,6 +12,7 @@ import { api, del, errorText, get, post, put } from '@/api'
 import { pickLang } from '@/i18n'
 import { usePrefs } from '@/stores/prefs'
 import { useTerms } from '@/stores/terms'
+import { useProject } from '@/stores/project'
 import ProjectSide from './check-projects/ProjectSide.vue'
 import ScriptEditor from './check-projects/ScriptEditor.vue'
 import IssuesPanel from './check-projects/IssuesPanel.vue'
@@ -31,6 +32,9 @@ const route = useRoute()
 const router = useRouter()
 const prefs = usePrefs()
 const terms = useTerms()
+// 只读成员（REQ-036）：可以查看、边写边查、对比，不能保存或修改设置
+const proj = useProject()
+const canWrite = computed(() => proj.canWrite)
 
 const pid = computed(() => Number(route.params.id))
 const view = computed(() => String(route.query.view || 'edit'))
@@ -268,8 +272,8 @@ async function createScript(): Promise<void> {
       // 完整配置从基线设备的配置复制一份
       let vid = p.version_id
       if (vid === null) {
-        const vs = (await get<{ versions: { id: number; latest: boolean }[] }>(`/devices/${p.device_id}/versions`)).versions
-        vid = (vs.find((v) => v.latest) ?? vs[0])?.id ?? null
+        const vs = (await get<{ versions: { id: number; latest: boolean; current?: boolean }[] }>(`/devices/${p.device_id}/versions`)).versions
+        vid = (vs.find((v) => v.current) ?? vs.find((v) => v.latest) ?? vs[0])?.id ?? null
       }
       if (vid !== null) content = (await get<{ text: string }>(`/devices/${p.device_id}/versions/${vid}/text`)).text ?? ''
     } else if (nsKind.value === 'change') {
@@ -357,8 +361,8 @@ watch(() => [terms.style, prefs.lang], () => { if (sid.value !== null) void runC
   <main class="main">
     <div class="page r31 ws-page">
       <div class="crumbs">
-        <span>{{ $t('grp.chg') }}</span><span class="sep">/</span>
-        <router-link :to="{ name: 'check-projects' }">{{ $t('nav.check-projects') }}</router-link><span class="sep">/</span>
+        <span>{{ proj.info?.name }}</span><span class="sep">/</span>
+        <router-link :to="{ name: 'scripts' }">{{ $t('nav.scripts') }}</router-link><span class="sep">/</span>
         <template v-if="view !== 'edit' && project">
           <a href="#" @click.prevent="go('edit')">{{ project.name }}</a><span class="sep">/</span><span>{{ T(`view.${view}`) }}</span>
         </template>
@@ -392,24 +396,24 @@ watch(() => [terms.style, prefs.lang], () => { if (sid.value !== null) void runC
                 <span class="fn" data-testid="cp-fn">{{ cur.name }}</span>
                 <span class="rev">{{ T('revN', { n: cur.revisions }) }}<template v-if="dirty">{{ T('unsavedSuffix') }}</template></span>
                 <div class="seg type" role="group" :aria-label="T('scriptType')" data-testid="cp-kind">
-                  <button type="button" :aria-pressed="kind === 'change'" :title="T('kindDesc.change')" data-kind="change" @click="setKind('change')">{{ T('kind.change') }}</button>
-                  <button type="button" :aria-pressed="kind === 'full'" :title="T('kindDesc.full')" data-kind="full" @click="setKind('full')">{{ T('kind.full') }}</button>
+                  <button type="button" :aria-pressed="kind === 'change'" :title="T('kindDesc.change')" data-kind="change" :disabled="!canWrite" @click="setKind('change')">{{ T('kind.change') }}</button>
+                  <button type="button" :aria-pressed="kind === 'full'" :title="T('kindDesc.full')" data-kind="full" :disabled="!canWrite" @click="setKind('full')">{{ T('kind.full') }}</button>
                 </div>
                 <span class="grow" />
                 <span v-if="checkErr" class="chk-state" style="color: var(--red-ink)" :title="checkErr"><Icon name="err" small /><span>{{ T('checkFailed') }}</span><button class="btn btn-xs" type="button" @click="runCheck(false)">{{ $t('c.retry') }}</button></span>
                 <span v-else-if="checking || pending" class="chk-state run" aria-live="polite" data-testid="cp-state" data-state="run"><span class="spin" /><span>{{ aiBusy ? T('aiChecking') : T('checking') }}</span></span>
                 <span v-else-if="result" class="chk-state ok" aria-live="polite" data-testid="cp-state" data-state="ok"><Icon name="ok" small /><span>{{ T('checkedMs', { n: result.ms }) }}</span></span>
-                <button class="btn btn-sm btn-primary" type="button" :disabled="busy" :title="T('saveTip')" data-testid="cp-save" @click="save"><Icon name="check" small /><span>{{ $t('c.save') }}</span></button>
+                <button v-if="canWrite" class="btn btn-sm btn-primary" type="button" :disabled="busy" :title="T('saveTip')" data-testid="cp-save" @click="save"><Icon name="check" small /><span>{{ $t('c.save') }}</span></button>
               </div>
               <div class="edbar opts">
                 <label class="tgl" :class="{ 'is-disabled': !orderApplicable }" :title="orderApplicable ? T('orderTip') : T('orderNa')" data-testid="cp-order">
-                  <span class="switch"><input type="checkbox" :checked="orderOn && orderApplicable" :disabled="!orderApplicable" data-testid="cp-order-input" @change="setOrder(($event.target as HTMLInputElement).checked)"><span /></span>
+                  <span class="switch"><input type="checkbox" :checked="orderOn && orderApplicable" :disabled="!orderApplicable || !canWrite" data-testid="cp-order-input" @change="setOrder(($event.target as HTMLInputElement).checked)"><span /></span>
                   <span>{{ T('orderCheck') }}</span>
                 </label>
                 <template v-if="aiRules.configured">
                   <span class="sep" />
                   <label class="tgl" :title="T('aiTip')" data-testid="cp-ai">
-                    <span class="switch"><input type="checkbox" :checked="project.ai_check" @change="setAi(($event.target as HTMLInputElement).checked)"><span /></span>
+                    <span class="switch"><input type="checkbox" :checked="project.ai_check" :disabled="!canWrite" @change="setAi(($event.target as HTMLInputElement).checked)"><span /></span>
                     <Icon name="spark" small style="color: var(--ai)" /><span>{{ T('aiCheck') }}</span>
                   </label>
                   <details ref="ruleDd" class="dd" data-testid="cp-ai-rules">
@@ -418,7 +422,7 @@ watch(() => [terms.style, prefs.lang], () => { if (sid.value !== null) void runC
                       <div class="h">{{ T('rulesHead') }}</div>
                       <div v-if="!aiRules.rules.length" class="small faint" style="padding: 6px 4px">{{ T('noAiRules') }}</div>
                       <label v-for="r in aiRules.rules" :key="r.id">
-                        <input type="checkbox" :checked="project.ai_rules.includes(r.id)" @change="toggleRule(r.id, ($event.target as HTMLInputElement).checked)">
+                        <input type="checkbox" :checked="project.ai_rules.includes(r.id)" :disabled="!canWrite" @change="toggleRule(r.id, ($event.target as HTMLInputElement).checked)">
                         <span>{{ pickLang(r.title, String(locale)) }}</span><small>{{ r.id }}</small>
                       </label>
                       <div class="f"><Icon name="shield" /><span>{{ T('rulesFoot') }}</span></div>
@@ -447,7 +451,7 @@ watch(() => [terms.style, prefs.lang], () => { if (sid.value !== null) void runC
             </template>
             <div v-else class="empty" data-testid="cp-no-script">
               <h3>{{ T('noScripts') }}</h3>
-              <button class="btn btn-primary" type="button" @click="openNew"><Icon name="plus" small /><span>{{ T('newScript') }}</span></button>
+              <button v-if="canWrite" class="btn btn-primary" type="button" @click="openNew"><Icon name="plus" small /><span>{{ T('newScript') }}</span></button>
             </div>
           </section>
 

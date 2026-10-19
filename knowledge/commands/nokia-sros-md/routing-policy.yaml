@@ -1,0 +1,2552 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: routing-policy
+cards:
+  - id: nokia-sros-md.policy-options
+    syntax: policy-options
+    view: configure
+    enters_view: policy-options
+    undo: delete policy-options
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.policy-options-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: policy-options
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options apply-groups
+      line: 21
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: policy-options
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options apply-groups-exclude
+      line: 39
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-as-path
+    syntax: as-path <name>
+    view: policy-options
+    enters_view: opaque
+    undo: delete as-path <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options as-path
+      line: 57
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-as-path-group
+    syntax: as-path-group <name>
+    view: policy-options
+    enters_view: opaque
+    undo: delete as-path-group <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options as-path-group
+      line: 79
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-community
+    syntax: community <name>
+    view: policy-options
+    enters_view: policy-options.community
+    undo: delete community <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options community
+      line: 101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-community-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: policy-options.community
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options community apply-groups
+      line: 123
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-community-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: policy-options.community
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options community apply-groups-exclude
+      line: 141
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-community-expression
+    syntax: expression
+    view: policy-options.community
+    enters_view: opaque
+    undo: delete expression
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options community expression
+      line: 159
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-community-member
+    syntax: member <member>
+    view: policy-options.community
+    undo: delete member
+    params:
+      member:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options community member
+      line: 175
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-damping
+    syntax: damping <name>
+    view: policy-options
+    enters_view: opaque
+    undo: delete damping <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options damping
+      line: 197
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-global-variables
+    syntax: global-variables
+    view: policy-options
+    enters_view: opaque
+    undo: delete global-variables
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options global-variables
+      line: 219
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement
+    syntax: policy-statement <name>
+    view: policy-options
+    enters_view: policy-options.policy-statement
+    undo: delete policy-statement <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement
+      line: 235
+      version: 25.10.R1
+    status: draft
+    maps:
+      rp.policy: $name
+  - id: nokia-sros-md.policy-options-policy-statement-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: policy-options.policy-statement
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement apply-groups
+      line: 257
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: policy-options.policy-statement
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement apply-groups-exclude
+      line: 275
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action
+    syntax: default-action
+    view: policy-options.policy-statement
+    enters_view: policy-options.policy-statement.default-action
+    undo: delete default-action
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action
+      line: 293
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-action-type
+    syntax: action-type <action-type>
+    view: policy-options.policy-statement.default-action
+    undo: delete action-type
+    params:
+      action-type:
+        type: enum
+        choices:
+          - accept
+          - reject
+          - next-entry
+          - next-policy
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action action-type
+      line: 309
+      version: 25.10.R1
+    status: draft
+    maps:
+      rp.policy.default_action: kw:accept|reject|next-entry|next-policy
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-add-paths-send-limit
+    syntax: add-paths-send-limit <add-paths-send-limit>
+    view: policy-options.policy-statement.default-action
+    undo: delete add-paths-send-limit
+    params:
+      add-paths-send-limit:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action add-paths-send-limit
+      line: 335
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-admin-tag-policy
+    syntax: admin-tag-policy <admin-tag-policy>
+    view: policy-options.policy-statement.default-action
+    undo: delete admin-tag-policy
+    params:
+      admin-tag-policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action admin-tag-policy
+      line: 357
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-advertise-label
+    syntax: advertise-label <advertise-label>
+    view: policy-options.policy-statement.default-action
+    undo: delete advertise-label
+    params:
+      advertise-label:
+        type: enum
+        choices:
+          - per-prefix
+          - pop
+          - pop-and-forward
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action advertise-label
+      line: 379
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-aigp-metric
+    syntax: aigp-metric
+    view: policy-options.policy-statement.default-action
+    enters_view: opaque
+    undo: delete aigp-metric
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action aigp-metric
+      line: 401
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: policy-options.policy-statement.default-action
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action apply-groups
+      line: 417
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: policy-options.policy-statement.default-action
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action apply-groups-exclude
+      line: 435
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-as-path
+    syntax: as-path
+    view: policy-options.policy-statement.default-action
+    enters_view: opaque
+    undo: delete as-path
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action as-path
+      line: 453
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-as-path-prepend
+    syntax: as-path-prepend
+    view: policy-options.policy-statement.default-action
+    enters_view: opaque
+    undo: delete as-path-prepend
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action as-path-prepend
+      line: 469
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-bgp-high-priority
+    syntax: bgp-high-priority <bgp-high-priority>
+    view: policy-options.policy-statement.default-action
+    undo: delete bgp-high-priority
+    params:
+      bgp-high-priority:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action bgp-high-priority
+      line: 485
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-bgp-leak
+    syntax: bgp-leak <bgp-leak>
+    view: policy-options.policy-statement.default-action
+    undo: delete bgp-leak
+    params:
+      bgp-leak:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action bgp-leak
+      line: 511
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-bgp-med
+    syntax: bgp-med
+    view: policy-options.policy-statement.default-action
+    enters_view: opaque
+    undo: delete bgp-med
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action bgp-med
+      line: 537
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-bgp-tunnel-metric
+    syntax: bgp-tunnel-metric
+    view: policy-options.policy-statement.default-action
+    enters_view: opaque
+    undo: delete bgp-tunnel-metric
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action bgp-tunnel-metric
+      line: 553
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-community
+    syntax: community
+    view: policy-options.policy-statement.default-action
+    enters_view: opaque
+    undo: delete community
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action community
+      line: 569
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-create-mpls-tunnel
+    syntax: create-mpls-tunnel <create-mpls-tunnel>
+    view: policy-options.policy-statement.default-action
+    undo: delete create-mpls-tunnel
+    params:
+      create-mpls-tunnel:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action create-mpls-tunnel
+      line: 585
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-create-udp-tunnel
+    syntax: create-udp-tunnel <create-udp-tunnel>
+    view: policy-options.policy-statement.default-action
+    undo: delete create-udp-tunnel
+    params:
+      create-udp-tunnel:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action create-udp-tunnel
+      line: 611
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-damping
+    syntax: damping <damping>
+    view: policy-options.policy-statement.default-action
+    undo: delete damping
+    params:
+      damping:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action damping
+      line: 637
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-dest-class
+    syntax: dest-class <dest-class>
+    view: policy-options.policy-statement.default-action
+    undo: delete dest-class
+    params:
+      dest-class:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action dest-class
+      line: 659
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-egress-statistics
+    syntax: egress-statistics <egress-statistics>
+    view: policy-options.policy-statement.default-action
+    undo: delete egress-statistics
+    params:
+      egress-statistics:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action egress-statistics
+      line: 681
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-flex-algo
+    syntax: flex-algo <flex-algo>
+    view: policy-options.policy-statement.default-action
+    undo: delete flex-algo
+    params:
+      flex-algo:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action flex-algo
+      line: 707
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-ingress-statistics
+    syntax: ingress-statistics <ingress-statistics>
+    view: policy-options.policy-statement.default-action
+    undo: delete ingress-statistics
+    params:
+      ingress-statistics:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action ingress-statistics
+      line: 729
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-install-backup-path
+    syntax: install-backup-path <install-backup-path>
+    view: policy-options.policy-statement.default-action
+    undo: delete install-backup-path
+    params:
+      install-backup-path:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action install-backup-path
+      line: 755
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-local-preference
+    syntax: local-preference <local-preference>
+    view: policy-options.policy-statement.default-action
+    undo: delete local-preference
+    params:
+      local-preference:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action local-preference
+      line: 781
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-metric
+    syntax: metric
+    view: policy-options.policy-statement.default-action
+    enters_view: opaque
+    undo: delete metric
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action metric
+      line: 803
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-multicast-redirection
+    syntax: multicast-redirection
+    view: policy-options.policy-statement.default-action
+    enters_view: opaque
+    undo: delete multicast-redirection
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action multicast-redirection
+      line: 819
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-nat-policy
+    syntax: nat-policy <nat-policy>
+    view: policy-options.policy-statement.default-action
+    undo: delete nat-policy
+    params:
+      nat-policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action nat-policy
+      line: 835
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-next-hop
+    syntax: next-hop <next-hop>
+    view: policy-options.policy-statement.default-action
+    undo: delete next-hop
+    params:
+      next-hop:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action next-hop
+      line: 857
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-origin
+    syntax: origin <origin>
+    view: policy-options.policy-statement.default-action
+    undo: delete origin
+    params:
+      origin:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action origin
+      line: 879
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-origin-validation-state
+    syntax: origin-validation-state <origin-validation-state>
+    view: policy-options.policy-statement.default-action
+    undo: delete origin-validation-state
+    params:
+      origin-validation-state:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action origin-validation-state
+      line: 901
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-preference
+    syntax: preference <preference>
+    view: policy-options.policy-statement.default-action
+    undo: delete preference
+    params:
+      preference:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action preference
+      line: 923
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-resolve-static
+    syntax: resolve-static <resolve-static>
+    view: policy-options.policy-statement.default-action
+    undo: delete resolve-static
+    params:
+      resolve-static:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action resolve-static
+      line: 945
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-route-table-install
+    syntax: route-table-install <route-table-install>
+    view: policy-options.policy-statement.default-action
+    undo: delete route-table-install
+    params:
+      route-table-install:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action route-table-install
+      line: 971
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-source-class
+    syntax: source-class <source-class>
+    view: policy-options.policy-statement.default-action
+    undo: delete source-class
+    params:
+      source-class:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action source-class
+      line: 997
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-sr-label-index
+    syntax: sr-label-index
+    view: policy-options.policy-statement.default-action
+    enters_view: opaque
+    undo: delete sr-label-index
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action sr-label-index
+      line: 1019
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-sr-maintenance-policy
+    syntax: sr-maintenance-policy <sr-maintenance-policy>
+    view: policy-options.policy-statement.default-action
+    undo: delete sr-maintenance-policy
+    params:
+      sr-maintenance-policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action sr-maintenance-policy
+      line: 1035
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-sr-return-path-bfd-label
+    syntax: sr-return-path-bfd-label <sr-return-path-bfd-label>
+    view: policy-options.policy-statement.default-action
+    undo: delete sr-return-path-bfd-label
+    params:
+      sr-return-path-bfd-label:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action sr-return-path-bfd-label
+      line: 1057
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-srv6-locator
+    syntax: srv6-locator <srv6-locator>
+    view: policy-options.policy-statement.default-action
+    undo: delete srv6-locator
+    params:
+      srv6-locator:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action srv6-locator
+      line: 1079
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-srv6-micro-segment-locator
+    syntax: srv6-micro-segment-locator <srv6-micro-segment-locator>
+    view: policy-options.policy-statement.default-action
+    undo: delete srv6-micro-segment-locator
+    params:
+      srv6-micro-segment-locator:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action srv6-micro-segment-locator
+      line: 1101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-srv6-return-path-bfd-sid
+    syntax: srv6-return-path-bfd-sid <srv6-return-path-bfd-sid>
+    view: policy-options.policy-statement.default-action
+    undo: delete srv6-return-path-bfd-sid
+    params:
+      srv6-return-path-bfd-sid:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action srv6-return-path-bfd-sid
+      line: 1123
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-sticky-ecmp
+    syntax: sticky-ecmp <sticky-ecmp>
+    view: policy-options.policy-statement.default-action
+    undo: delete sticky-ecmp
+    params:
+      sticky-ecmp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action sticky-ecmp
+      line: 1145
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-tag
+    syntax: tag <tag>
+    view: policy-options.policy-statement.default-action
+    undo: delete tag
+    params:
+      tag:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action tag
+      line: 1171
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-default-action-type
+    syntax: type <type>
+    view: policy-options.policy-statement.default-action
+    undo: delete type
+    params:
+      type:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement default-action type
+      line: 1193
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-description
+    syntax: description <description>
+    view: policy-options.policy-statement
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement description
+      line: 1215
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry
+    syntax: entry <entry-id>
+    view: policy-options.policy-statement
+    enters_view: policy-options.policy-statement.entry
+    undo: delete entry <entry-id>
+    params:
+      entry-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry
+      line: 1237
+      version: 25.10.R1
+    status: draft
+    maps:
+      rp.policy.node: $entry-id
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action
+    syntax: action
+    view: policy-options.policy-statement.entry
+    enters_view: policy-options.policy-statement.entry.action
+    undo: delete action
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action
+      line: 1259
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-action-type
+    syntax: action-type <action-type>
+    view: policy-options.policy-statement.entry.action
+    undo: delete action-type
+    params:
+      action-type:
+        type: enum
+        choices:
+          - accept
+          - reject
+          - next-entry
+          - next-policy
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action action-type
+      line: 1275
+      version: 25.10.R1
+    status: draft
+    maps:
+      rp.policy.node.action: kw:accept=permit|reject=deny
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-add-paths-send-limit
+    syntax: add-paths-send-limit <add-paths-send-limit>
+    view: policy-options.policy-statement.entry.action
+    undo: delete add-paths-send-limit
+    params:
+      add-paths-send-limit:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action add-paths-send-limit
+      line: 1301
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-admin-tag-policy
+    syntax: admin-tag-policy <admin-tag-policy>
+    view: policy-options.policy-statement.entry.action
+    undo: delete admin-tag-policy
+    params:
+      admin-tag-policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action admin-tag-policy
+      line: 1323
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-advertise-label
+    syntax: advertise-label <advertise-label>
+    view: policy-options.policy-statement.entry.action
+    undo: delete advertise-label
+    params:
+      advertise-label:
+        type: enum
+        choices:
+          - per-prefix
+          - pop
+          - pop-and-forward
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action advertise-label
+      line: 1345
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-aigp-metric
+    syntax: aigp-metric
+    view: policy-options.policy-statement.entry.action
+    enters_view: opaque
+    undo: delete aigp-metric
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action aigp-metric
+      line: 1367
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: policy-options.policy-statement.entry.action
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action apply-groups
+      line: 1383
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: policy-options.policy-statement.entry.action
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action apply-groups-exclude
+      line: 1401
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-as-path
+    syntax: as-path
+    view: policy-options.policy-statement.entry.action
+    enters_view: opaque
+    undo: delete as-path
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action as-path
+      line: 1419
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-as-path-prepend
+    syntax: as-path-prepend
+    view: policy-options.policy-statement.entry.action
+    enters_view: opaque
+    undo: delete as-path-prepend
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action as-path-prepend
+      line: 1435
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-bgp-high-priority
+    syntax: bgp-high-priority <bgp-high-priority>
+    view: policy-options.policy-statement.entry.action
+    undo: delete bgp-high-priority
+    params:
+      bgp-high-priority:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action bgp-high-priority
+      line: 1451
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-bgp-leak
+    syntax: bgp-leak <bgp-leak>
+    view: policy-options.policy-statement.entry.action
+    undo: delete bgp-leak
+    params:
+      bgp-leak:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action bgp-leak
+      line: 1477
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-bgp-med
+    syntax: bgp-med
+    view: policy-options.policy-statement.entry.action
+    enters_view: opaque
+    undo: delete bgp-med
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action bgp-med
+      line: 1503
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-bgp-tunnel-metric
+    syntax: bgp-tunnel-metric
+    view: policy-options.policy-statement.entry.action
+    enters_view: opaque
+    undo: delete bgp-tunnel-metric
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action bgp-tunnel-metric
+      line: 1519
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-community
+    syntax: community
+    view: policy-options.policy-statement.entry.action
+    enters_view: policy-options.policy-statement.entry.action.community
+    undo: delete community
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action community
+      line: 1535
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-community-add
+    syntax: add <add>
+    view: policy-options.policy-statement.entry.action.community
+    undo: delete add
+    params:
+      add:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action community add
+      line: 1551
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-community-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: policy-options.policy-statement.entry.action.community
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action community apply-groups
+      line: 1577
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-community-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: policy-options.policy-statement.entry.action.community
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action community apply-groups-exclude
+      line: 1595
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-community-remove
+    syntax: remove <remove>
+    view: policy-options.policy-statement.entry.action.community
+    undo: delete remove
+    params:
+      remove:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action community remove
+      line: 1613
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-community-replace
+    syntax: replace <replace>
+    view: policy-options.policy-statement.entry.action.community
+    undo: delete replace
+    params:
+      replace:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action community replace
+      line: 1639
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-create-mpls-tunnel
+    syntax: create-mpls-tunnel <create-mpls-tunnel>
+    view: policy-options.policy-statement.entry.action
+    undo: delete create-mpls-tunnel
+    params:
+      create-mpls-tunnel:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action create-mpls-tunnel
+      line: 1665
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-create-udp-tunnel
+    syntax: create-udp-tunnel <create-udp-tunnel>
+    view: policy-options.policy-statement.entry.action
+    undo: delete create-udp-tunnel
+    params:
+      create-udp-tunnel:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action create-udp-tunnel
+      line: 1691
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-damping
+    syntax: damping <damping>
+    view: policy-options.policy-statement.entry.action
+    undo: delete damping
+    params:
+      damping:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action damping
+      line: 1717
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-dest-class
+    syntax: dest-class <dest-class>
+    view: policy-options.policy-statement.entry.action
+    undo: delete dest-class
+    params:
+      dest-class:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action dest-class
+      line: 1739
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-egress-statistics
+    syntax: egress-statistics <egress-statistics>
+    view: policy-options.policy-statement.entry.action
+    undo: delete egress-statistics
+    params:
+      egress-statistics:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action egress-statistics
+      line: 1761
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-flex-algo
+    syntax: flex-algo <flex-algo>
+    view: policy-options.policy-statement.entry.action
+    undo: delete flex-algo
+    params:
+      flex-algo:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action flex-algo
+      line: 1787
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-forwarding-class
+    syntax: forwarding-class
+    view: policy-options.policy-statement.entry.action
+    enters_view: opaque
+    undo: delete forwarding-class
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action forwarding-class
+      line: 1809
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-ingress-statistics
+    syntax: ingress-statistics <ingress-statistics>
+    view: policy-options.policy-statement.entry.action
+    undo: delete ingress-statistics
+    params:
+      ingress-statistics:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action ingress-statistics
+      line: 1825
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-install-backup-path
+    syntax: install-backup-path <install-backup-path>
+    view: policy-options.policy-statement.entry.action
+    undo: delete install-backup-path
+    params:
+      install-backup-path:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action install-backup-path
+      line: 1851
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-local-preference
+    syntax: local-preference <local-preference>
+    view: policy-options.policy-statement.entry.action
+    undo: delete local-preference
+    params:
+      local-preference:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action local-preference
+      line: 1877
+      version: 25.10.R1
+    status: draft
+    maps:
+      rp.policy.node.set_local_preference: $local-preference
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-metric
+    syntax: metric
+    view: policy-options.policy-statement.entry.action
+    enters_view: opaque
+    undo: delete metric
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action metric
+      line: 1899
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-multicast-redirection
+    syntax: multicast-redirection
+    view: policy-options.policy-statement.entry.action
+    enters_view: opaque
+    undo: delete multicast-redirection
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action multicast-redirection
+      line: 1915
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-nat-policy
+    syntax: nat-policy <nat-policy>
+    view: policy-options.policy-statement.entry.action
+    undo: delete nat-policy
+    params:
+      nat-policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action nat-policy
+      line: 1931
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-next-hop
+    syntax: next-hop <next-hop>
+    view: policy-options.policy-statement.entry.action
+    undo: delete next-hop
+    params:
+      next-hop:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action next-hop
+      line: 1953
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-origin
+    syntax: origin <origin>
+    view: policy-options.policy-statement.entry.action
+    undo: delete origin
+    params:
+      origin:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action origin
+      line: 1975
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-origin-validation-state
+    syntax: origin-validation-state <origin-validation-state>
+    view: policy-options.policy-statement.entry.action
+    undo: delete origin-validation-state
+    params:
+      origin-validation-state:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action origin-validation-state
+      line: 1997
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-preference
+    syntax: preference <preference>
+    view: policy-options.policy-statement.entry.action
+    undo: delete preference
+    params:
+      preference:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action preference
+      line: 2019
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-resolve-static
+    syntax: resolve-static <resolve-static>
+    view: policy-options.policy-statement.entry.action
+    undo: delete resolve-static
+    params:
+      resolve-static:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action resolve-static
+      line: 2041
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-route-table-install
+    syntax: route-table-install <route-table-install>
+    view: policy-options.policy-statement.entry.action
+    undo: delete route-table-install
+    params:
+      route-table-install:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action route-table-install
+      line: 2067
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-source-class
+    syntax: source-class <source-class>
+    view: policy-options.policy-statement.entry.action
+    undo: delete source-class
+    params:
+      source-class:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action source-class
+      line: 2093
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-sr-label-index
+    syntax: sr-label-index
+    view: policy-options.policy-statement.entry.action
+    enters_view: opaque
+    undo: delete sr-label-index
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action sr-label-index
+      line: 2115
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-sr-maintenance-policy
+    syntax: sr-maintenance-policy <sr-maintenance-policy>
+    view: policy-options.policy-statement.entry.action
+    undo: delete sr-maintenance-policy
+    params:
+      sr-maintenance-policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action sr-maintenance-policy
+      line: 2131
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-sr-return-path-bfd-label
+    syntax: sr-return-path-bfd-label <sr-return-path-bfd-label>
+    view: policy-options.policy-statement.entry.action
+    undo: delete sr-return-path-bfd-label
+    params:
+      sr-return-path-bfd-label:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action sr-return-path-bfd-label
+      line: 2153
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-srv6-locator
+    syntax: srv6-locator <srv6-locator>
+    view: policy-options.policy-statement.entry.action
+    undo: delete srv6-locator
+    params:
+      srv6-locator:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action srv6-locator
+      line: 2175
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-srv6-micro-segment-locator
+    syntax: srv6-micro-segment-locator <srv6-micro-segment-locator>
+    view: policy-options.policy-statement.entry.action
+    undo: delete srv6-micro-segment-locator
+    params:
+      srv6-micro-segment-locator:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action srv6-micro-segment-locator
+      line: 2197
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-srv6-return-path-bfd-sid
+    syntax: srv6-return-path-bfd-sid <srv6-return-path-bfd-sid>
+    view: policy-options.policy-statement.entry.action
+    undo: delete srv6-return-path-bfd-sid
+    params:
+      srv6-return-path-bfd-sid:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action srv6-return-path-bfd-sid
+      line: 2219
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-sticky-ecmp
+    syntax: sticky-ecmp <sticky-ecmp>
+    view: policy-options.policy-statement.entry.action
+    undo: delete sticky-ecmp
+    params:
+      sticky-ecmp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action sticky-ecmp
+      line: 2241
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-tag
+    syntax: tag <tag>
+    view: policy-options.policy-statement.entry.action
+    undo: delete tag
+    params:
+      tag:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action tag
+      line: 2267
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-action-type
+    syntax: type <type>
+    view: policy-options.policy-statement.entry.action
+    undo: delete type
+    params:
+      type:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry action type
+      line: 2289
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: policy-options.policy-statement.entry
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry apply-groups
+      line: 2311
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: policy-options.policy-statement.entry
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry apply-groups-exclude
+      line: 2329
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-conditional-expression
+    syntax: conditional-expression
+    view: policy-options.policy-statement.entry
+    enters_view: opaque
+    undo: delete conditional-expression
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry conditional-expression
+      line: 2347
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-description
+    syntax: description <description>
+    view: policy-options.policy-statement.entry
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry description
+      line: 2363
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from
+    syntax: from
+    view: policy-options.policy-statement.entry
+    enters_view: policy-options.policy-statement.entry.from
+    undo: delete from
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from
+      line: 2385
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-aggregate-contributor
+    syntax: aggregate-contributor <aggregate-contributor>
+    view: policy-options.policy-statement.entry.from
+    undo: delete aggregate-contributor
+    params:
+      aggregate-contributor:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from aggregate-contributor
+      line: 2401
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: policy-options.policy-statement.entry.from
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from apply-groups
+      line: 2427
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: policy-options.policy-statement.entry.from
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from apply-groups-exclude
+      line: 2445
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-area
+    syntax: area <area>
+    view: policy-options.policy-statement.entry.from
+    undo: delete area
+    params:
+      area:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from area
+      line: 2463
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-as-path
+    syntax: as-path
+    view: policy-options.policy-statement.entry.from
+    enters_view: opaque
+    undo: delete as-path
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from as-path
+      line: 2485
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-cluster-id
+    syntax: cluster-id
+    view: policy-options.policy-statement.entry.from
+    enters_view: opaque
+    undo: delete cluster-id
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from cluster-id
+      line: 2501
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-color
+    syntax: color <color>
+    view: policy-options.policy-statement.entry.from
+    undo: delete color
+    params:
+      color:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from color
+      line: 2517
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-community
+    syntax: community
+    view: policy-options.policy-statement.entry.from
+    enters_view: opaque
+    undo: delete community
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from community
+      line: 2539
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-distinguisher
+    syntax: distinguisher <distinguisher>
+    view: policy-options.policy-statement.entry.from
+    undo: delete distinguisher
+    params:
+      distinguisher:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from distinguisher
+      line: 2555
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-endpoint
+    syntax: endpoint <endpoint>
+    view: policy-options.policy-statement.entry.from
+    undo: delete endpoint
+    params:
+      endpoint:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from endpoint
+      line: 2577
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-evpn-type
+    syntax: evpn-type <evpn-type>
+    view: policy-options.policy-statement.entry.from
+    undo: delete evpn-type
+    params:
+      evpn-type:
+        type: enum
+        choices:
+          - ethernet-auto-discovery
+          - mac-ip-advertisement
+          - inclusive-multicast
+          - ethernet-segment
+          - ip-prefix
+          - selective-multicast
+          - multicast-join-sync
+          - multicast-leave-sync
+          - selective-pmsi-auto-discovery
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from evpn-type
+      line: 2599
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-external
+    syntax: external <external>
+    view: policy-options.policy-statement.entry.from
+    undo: delete external
+    params:
+      external:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from external
+      line: 2621
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-family
+    syntax: family <family>
+    view: policy-options.policy-statement.entry.from
+    undo: delete family
+    params:
+      family:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from family
+      line: 2647
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-flowspec
+    syntax: flowspec
+    view: policy-options.policy-statement.entry.from
+    enters_view: opaque
+    undo: delete flowspec
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from flowspec
+      line: 2669
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-group-address
+    syntax: group-address <group-address>
+    view: policy-options.policy-statement.entry.from
+    undo: delete group-address
+    params:
+      group-address:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from group-address
+      line: 2685
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-host-ip
+    syntax: host-ip <host-ip>
+    view: policy-options.policy-statement.entry.from
+    undo: delete host-ip
+    params:
+      host-ip:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from host-ip
+      line: 2707
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-interface
+    syntax: interface <interface>
+    view: policy-options.policy-statement.entry.from
+    undo: delete interface
+    params:
+      interface:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from interface
+      line: 2729
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-interface-subnets
+    syntax: interface-subnets
+    view: policy-options.policy-statement.entry.from
+    enters_view: opaque
+    undo: delete interface-subnets
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from interface-subnets
+      line: 2755
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-level
+    syntax: level <level>
+    view: policy-options.policy-statement.entry.from
+    undo: delete level
+    params:
+      level:
+        type: integer
+        range:
+          - 1
+          - 2
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from level
+      line: 2771
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-local-preference
+    syntax: local-preference
+    view: policy-options.policy-statement.entry.from
+    enters_view: opaque
+    undo: delete local-preference
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from local-preference
+      line: 2793
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-metric
+    syntax: metric
+    view: policy-options.policy-statement.entry.from
+    enters_view: opaque
+    undo: delete metric
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from metric
+      line: 2809
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-mvpn-type
+    syntax: mvpn-type <mvpn-type>
+    view: policy-options.policy-statement.entry.from
+    undo: delete mvpn-type
+    params:
+      mvpn-type:
+        type: enum
+        choices:
+          - intra-as-ipmsi-auto-discovery
+          - inter-as-ipmsi-auto-discovery
+          - s-pmsi-auto-discovery
+          - intra-as-segment-leaf-auto-discovery
+          - source-active-auto-discovery
+          - shared-tree-join
+          - source-tree-join
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from mvpn-type
+      line: 2825
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-neighbor
+    syntax: neighbor
+    view: policy-options.policy-statement.entry.from
+    enters_view: opaque
+    undo: delete neighbor
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from neighbor
+      line: 2847
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-next-hop
+    syntax: next-hop
+    view: policy-options.policy-statement.entry.from
+    enters_view: opaque
+    undo: delete next-hop
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from next-hop
+      line: 2863
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-origin
+    syntax: origin <origin>
+    view: policy-options.policy-statement.entry.from
+    undo: delete origin
+    params:
+      origin:
+        type: enum
+        choices:
+          - igp
+          - egp
+          - incomplete
+          - any
+          - aaa
+          - dynamic
+          - static
+          - bonding
+          - pfcp
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from origin
+      line: 2879
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-origin-validation-state
+    syntax: origin-validation-state <origin-validation-state>
+    view: policy-options.policy-statement.entry.from
+    undo: delete origin-validation-state
+    params:
+      origin-validation-state:
+        type: enum
+        choices:
+          - valid
+          - not-found
+          - invalid
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from origin-validation-state
+      line: 2901
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-ospf-type
+    syntax: ospf-type <ospf-type>
+    view: policy-options.policy-statement.entry.from
+    undo: delete ospf-type
+    params:
+      ospf-type:
+        type: integer
+        range:
+          - 1
+          - 2
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from ospf-type
+      line: 2923
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-path-type
+    syntax: path-type <path-type>
+    view: policy-options.policy-statement.entry.from
+    undo: delete path-type
+    params:
+      path-type:
+        type: enum
+        choices:
+          - ibgp
+          - ebgp
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from path-type
+      line: 2945
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-policy
+    syntax: policy <policy>
+    view: policy-options.policy-statement.entry.from
+    undo: delete policy
+    params:
+      policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from policy
+      line: 2967
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-policy-variables
+    syntax: policy-variables
+    view: policy-options.policy-statement.entry.from
+    enters_view: opaque
+    undo: delete policy-variables
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from policy-variables
+      line: 2989
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-prefix-list
+    syntax: prefix-list <prefix-list>
+    view: policy-options.policy-statement.entry.from
+    undo: delete prefix-list
+    params:
+      prefix-list:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from prefix-list
+      line: 3005
+      version: 25.10.R1
+    status: draft
+    maps:
+      rp.policy.node.match_prefix_list: list:$prefix-list
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-prefix-list-override
+    syntax: prefix-list-override <prefix-list>
+    view: policy-options.policy-statement.entry.from
+    enters_view: opaque
+    undo: delete prefix-list-override <prefix-list>
+    params:
+      prefix-list:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from prefix-list-override
+      line: 3031
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-protocol
+    syntax: protocol
+    view: policy-options.policy-statement.entry.from
+    enters_view: policy-options.policy-statement.entry.from.protocol
+    undo: delete protocol
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from protocol
+      line: 3053
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-protocol-instance
+    syntax: instance <instance>
+    view: policy-options.policy-statement.entry.from.protocol
+    undo: delete instance
+    params:
+      instance:
+        type: word
+    default: '0'
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from protocol instance
+      line: 3069
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-protocol-name
+    syntax: name <name>
+    view: policy-options.policy-statement.entry.from.protocol
+    undo: delete name
+    params:
+      name:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from protocol name
+      line: 3095
+      version: 25.10.R1
+    status: draft
+    maps:
+      rp.policy.node.match_protocol: list:$name
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-route-distinguisher-list
+    syntax: route-distinguisher-list <route-distinguisher-list>
+    view: policy-options.policy-statement.entry.from
+    undo: delete route-distinguisher-list
+    params:
+      route-distinguisher-list:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from route-distinguisher-list
+      line: 3117
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-source-address
+    syntax: source-address
+    view: policy-options.policy-statement.entry.from
+    enters_view: opaque
+    undo: delete source-address
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from source-address
+      line: 3139
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-srv6-sid-prefix
+    syntax: srv6-sid-prefix <srv6-sid-prefix>
+    view: policy-options.policy-statement.entry.from
+    undo: delete srv6-sid-prefix
+    params:
+      srv6-sid-prefix:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from srv6-sid-prefix
+      line: 3155
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-srv6-tlv
+    syntax: srv6-tlv <srv6-tlv>
+    view: policy-options.policy-statement.entry.from
+    undo: delete srv6-tlv
+    params:
+      srv6-tlv:
+        type: enum
+        choices:
+          - present
+          - not-present
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from srv6-tlv
+      line: 3177
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-state
+    syntax: state <state>
+    view: policy-options.policy-statement.entry.from
+    undo: delete state
+    params:
+      state:
+        type: enum
+        choices:
+          - srrp-master
+          - srrp-non-master
+          - ipsec-master-with-peer
+          - ipsec-master-without-peer
+          - ipsec-non-master
+          - fsg-active
+          - fsg-standby
+          - fsg-active-path-restoration
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from state
+      line: 3199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-from-tag
+    syntax: tag <tag>
+    view: policy-options.policy-statement.entry.from
+    undo: delete tag
+    params:
+      tag:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry from tag
+      line: 3221
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-to
+    syntax: to
+    view: policy-options.policy-statement.entry
+    enters_view: opaque
+    undo: delete to
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry to
+      line: 3243
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-entry-type
+    syntax: entry-type <entry-type>
+    view: policy-options.policy-statement
+    undo: delete entry-type
+    params:
+      entry-type:
+        type: enum
+        choices:
+          - numbered
+          - named
+    default: numbered
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement entry-type
+      line: 3259
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-policy-statement-named-entry
+    syntax: named-entry <entry-name>
+    view: policy-options.policy-statement
+    enters_view: opaque
+    undo: delete named-entry <entry-name>
+    params:
+      entry-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options policy-statement named-entry
+      line: 3285
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-prefix-list
+    syntax: prefix-list <name>
+    view: policy-options
+    enters_view: policy-options.prefix-list
+    undo: delete prefix-list <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options prefix-list
+      line: 3311
+      version: 25.10.R1
+    status: draft
+    maps:
+      rp.prefix_list: $name
+  - id: nokia-sros-md.policy-options-prefix-list-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: policy-options.prefix-list
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options prefix-list apply-groups
+      line: 3333
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-prefix-list-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: policy-options.prefix-list
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options prefix-list apply-groups-exclude
+      line: 3351
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-prefix-list-prefix
+    syntax: prefix <ip-prefix> type <type>
+    view: policy-options.prefix-list
+    enters_view: policy-options.prefix-list.prefix
+    undo: delete prefix <ip-prefix>
+    params:
+      ip-prefix:
+        type: word
+      type:
+        type: enum
+        choices:
+          - exact
+          - longer
+          - through
+          - range
+          - to
+          - address-mask
+        fill: exact
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options prefix-list prefix
+      line: 3369
+      version: 25.10.R1
+      patched: 前缀列表条目的第二个键 type 必填；精确匹配（exact）在 Classic 里不写关键字、映射不记 match_type，规范渲染缺省写 type exact（fill）
+    status: draft
+    maps:
+      rp.prefix_list.entry: auto
+      rp.prefix_list.entry.action: permit
+      rp.prefix_list.entry.prefix: $ip-prefix
+      rp.prefix_list.entry.match_type: kw:exact|longer|through|range=prefix-length-range|to|address-mask
+  - id: nokia-sros-md.policy-options-prefix-list-prefix-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: policy-options.prefix-list.prefix
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options prefix-list prefix apply-groups
+      line: 3392
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-prefix-list-prefix-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: policy-options.prefix-list.prefix
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options prefix-list prefix apply-groups-exclude
+      line: 3410
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-prefix-list-prefix-end-length
+    syntax: end-length <end-length>
+    view: policy-options.prefix-list.prefix
+    undo: delete end-length
+    params:
+      end-length:
+        type: integer
+        range:
+          - 0
+          - 128
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options prefix-list prefix end-length
+      line: 3428
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-prefix-list-prefix-mask-pattern
+    syntax: mask-pattern <mask-pattern>
+    view: policy-options.prefix-list.prefix
+    undo: delete mask-pattern
+    params:
+      mask-pattern:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options prefix-list prefix mask-pattern
+      line: 3454
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-prefix-list-prefix-start-length
+    syntax: start-length <start-length>
+    view: policy-options.prefix-list.prefix
+    undo: delete start-length
+    params:
+      start-length:
+        type: integer
+        range:
+          - 0
+          - 128
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options prefix-list prefix start-length
+      line: 3480
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-prefix-list-prefix-through-length
+    syntax: through-length <through-length>
+    view: policy-options.prefix-list.prefix
+    undo: delete through-length
+    params:
+      through-length:
+        type: integer
+        range:
+          - 0
+          - 128
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options prefix-list prefix through-length
+      line: 3506
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-prefix-list-prefix-to-prefix
+    syntax: to-prefix <to-prefix>
+    view: policy-options.prefix-list.prefix
+    undo: delete to-prefix
+    params:
+      to-prefix:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options prefix-list prefix to-prefix
+      line: 3532
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.policy-options-route-distinguisher-list
+    syntax: route-distinguisher-list <name>
+    view: policy-options
+    enters_view: opaque
+    undo: delete route-distinguisher-list <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: policy-options.md
+      title: policy-options route-distinguisher-list
+      line: 3558
+      version: 25.10.R1
+    status: draft

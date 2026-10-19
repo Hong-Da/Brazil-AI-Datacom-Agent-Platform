@@ -4,11 +4,13 @@ import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import { errorText, post } from '@/api'
+import { useProject } from '@/stores/project'
 import { usePrefs } from '@/stores/prefs'
 import { useTerms } from '@/stores/terms'
 import { reorderColumns, wirePath } from './logic'
 import type { ReorderResult, ScriptInfo } from './types'
 
+const proj = useProject() // 只读成员不能采纳重排、恢复修订（REQ-036）
 const props = defineProps<{ pid: number; script: ScriptInfo; content: string; dirty: boolean }>()
 const emit = defineEmits<{
   (e: 'back'): void
@@ -159,7 +161,7 @@ onMounted(load)
           </div>
           <span style="flex: 1" />
           <button class="btn" type="button" @click="emit('back')">{{ adopted ? T('backWs') : $t('c.cancel') }}</button>
-          <button v-if="!adopted" class="btn btn-primary" type="button" :disabled="busy || !res.changed" data-testid="cp-adopt" @click="adopt"><Icon name="check" small /><span>{{ T('reorder.adopt') }}</span></button>
+          <button v-if="!adopted && proj.canWrite" class="btn btn-primary" type="button" :disabled="busy || !res.changed" data-testid="cp-adopt" @click="adopt"><Icon name="check" small /><span>{{ T('reorder.adopt') }}</span></button>
         </div>
       </section>
     </template>

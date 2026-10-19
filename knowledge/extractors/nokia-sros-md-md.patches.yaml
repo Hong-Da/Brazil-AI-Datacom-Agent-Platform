@@ -1,0 +1,18 @@
+# Nokia SR OS MD-CLI Command Reference（25.10.R1）抽取结果的修正（每次抽取都会应用；被修正的卡在来源中注明 patched）。M7-4。
+patches:
+  - id: nokia-sros-md.port
+    reason: configure port 的键是物理端口（1/1/1、esat-…、pxc-…），不含 LAG（LAG 在 configure lag "lag-1" 下）；端口类型的写法检查包含 lag-<n>，这里排除，规范渲染才不会把 LAG 写成 port lag-1
+    set:
+      params: {port-id: {type: port, pattern: '(?!lag-).+'}}
+  - id: nokia-sros-md.lag
+    reason: configure lag 的键是 LAG 名（lag-<编号>，25.x 也可以是 lag-<名称>）；限定以 lag- 开头，规范渲染才不会把物理端口写成 lag "1/1/1"
+    set:
+      params: {lag-name: {type: string, pattern: 'lag-.+'}}
+  - id: nokia-sros-md.system-time-ntp-server
+    reason: NTP 服务器列表的第二个键 router-instance 必填（info 输出总写 router-instance "Base"）；统一 Schema 不记它（华为 / Cisco 没有），规范渲染缺省写 Base（fill）
+    set:
+      params: {ip-address: {type: word}, router-instance: {type: string, fill: Base}}
+  - id: nokia-sros-md.policy-options-prefix-list-prefix
+    reason: 前缀列表条目的第二个键 type 必填；精确匹配（exact）在 Classic 里不写关键字、映射不记 match_type，规范渲染缺省写 type exact（fill）
+    set:
+      params: {ip-prefix: {type: word}, type: {type: enum, choices: [exact, longer, through, range, to, address-mask], fill: exact}}

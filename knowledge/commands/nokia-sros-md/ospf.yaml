@@ -1,0 +1,1409 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: ospf
+cards:
+  - id: nokia-sros-md.router-ospf
+    syntax: ospf <ospf-instance>
+    view: router
+    enters_view: router.ospf
+    undo: delete ospf <ospf-instance>
+    params:
+      ospf-instance:
+        type: integer
+        range:
+          - 0
+          - 31
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      ospf.process: $ospf-instance
+  - id: nokia-sros-md.router-ospf-admin-state
+    syntax: admin-state <admin-state>
+    view: router.ospf
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf admin-state
+      line: 27
+      version: 25.10.R1
+    status: draft
+    maps:
+      ospf.process.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-ospf-advertise-router-capability
+    syntax: advertise-router-capability <advertise-router-capability>
+    view: router.ospf
+    undo: delete advertise-router-capability
+    params:
+      advertise-router-capability:
+        type: enum
+        choices:
+          - 'false'
+          - link
+          - area
+          - as
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf advertise-router-capability
+      line: 53
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-advertise-tunnel-link
+    syntax: advertise-tunnel-link <advertise-tunnel-link>
+    view: router.ospf
+    undo: delete advertise-tunnel-link
+    params:
+      advertise-tunnel-link:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf advertise-tunnel-link
+      line: 79
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.ospf
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf apply-groups
+      line: 105
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.ospf
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf apply-groups-exclude
+      line: 123
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area
+    syntax: area <area-id>
+    view: router.ospf
+    enters_view: router.ospf.area
+    undo: delete area <area-id>
+    params:
+      area-id:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area
+      line: 141
+      version: 25.10.R1
+    status: draft
+    maps:
+      ospf.process.area: $area-id
+  - id: nokia-sros-md.router-ospf-area-advertise-router-capability
+    syntax: advertise-router-capability <advertise-router-capability>
+    view: router.ospf.area
+    undo: delete advertise-router-capability
+    params:
+      advertise-router-capability:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area advertise-router-capability
+      line: 163
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.ospf.area
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area apply-groups
+      line: 189
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.ospf.area
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area apply-groups-exclude
+      line: 207
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-area-range
+    syntax: area-range <ip-prefix-mask>
+    view: router.ospf.area
+    enters_view: opaque
+    undo: delete area-range <ip-prefix-mask>
+    params:
+      ip-prefix-mask:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area area-range
+      line: 225
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-bier
+    syntax: bier
+    view: router.ospf.area
+    enters_view: opaque
+    undo: delete bier
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area bier
+      line: 247
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-blackhole-aggregate
+    syntax: blackhole-aggregate <blackhole-aggregate>
+    view: router.ospf.area
+    undo: delete blackhole-aggregate
+    params:
+      blackhole-aggregate:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area blackhole-aggregate
+      line: 263
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-database-export-exclude
+    syntax: database-export-exclude <database-export-exclude>
+    view: router.ospf.area
+    undo: delete database-export-exclude
+    params:
+      database-export-exclude:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area database-export-exclude
+      line: 289
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-export-policy
+    syntax: export-policy <export-policy>
+    view: router.ospf.area
+    undo: delete export-policy
+    params:
+      export-policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area export-policy
+      line: 315
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-import-policy
+    syntax: import-policy <import-policy>
+    view: router.ospf.area
+    undo: delete import-policy
+    params:
+      import-policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area import-policy
+      line: 341
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface
+    syntax: interface <interface-name>
+    view: router.ospf.area
+    enters_view: router.ospf.area.interface
+    undo: delete interface <interface-name>
+    params:
+      interface-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface
+      line: 367
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface{name=$interface-name}.ospf: _
+      interface{name=$interface-name}.ospf.process: ctx:ospf-instance
+      interface{name=$interface-name}.ospf.area: ctx:area-id
+  - id: nokia-sros-md.router-ospf-area-interface-adjacency-set
+    syntax: adjacency-set <adjacency-set>
+    view: router.ospf.area.interface
+    undo: delete adjacency-set
+    params:
+      adjacency-set:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface adjacency-set
+      line: 389
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-adjacency-sid
+    syntax: adjacency-sid
+    view: router.ospf.area.interface
+    enters_view: opaque
+    undo: delete adjacency-sid
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface adjacency-sid
+      line: 411
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-admin-state
+    syntax: admin-state <admin-state>
+    view: router.ospf.area.interface
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface admin-state
+      line: 427
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.ospf.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-ospf-area-interface-advertise-router-capability
+    syntax: advertise-router-capability <advertise-router-capability>
+    view: router.ospf.area.interface
+    undo: delete advertise-router-capability
+    params:
+      advertise-router-capability:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface advertise-router-capability
+      line: 453
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-advertise-subnet
+    syntax: advertise-subnet <advertise-subnet>
+    view: router.ospf.area.interface
+    undo: delete advertise-subnet
+    params:
+      advertise-subnet:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface advertise-subnet
+      line: 479
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.ospf.area.interface
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface apply-groups
+      line: 505
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.ospf.area.interface
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface apply-groups-exclude
+      line: 523
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-authentication-key
+    syntax: authentication-key <authentication-key> [ hash | hash2 | custom ]
+    view: router.ospf.area.interface
+    undo: delete authentication-key
+    params:
+      authentication-key:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface authentication-key
+      line: 541
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-authentication-keychain
+    syntax: authentication-keychain <authentication-keychain>
+    view: router.ospf.area.interface
+    undo: delete authentication-keychain
+    params:
+      authentication-keychain:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface authentication-keychain
+      line: 563
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-authentication-type
+    syntax: authentication-type <authentication-type>
+    view: router.ospf.area.interface
+    undo: delete authentication-type
+    params:
+      authentication-type:
+        type: enum
+        choices:
+          - password
+          - message-digest
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface authentication-type
+      line: 585
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-bfd-liveness
+    syntax: bfd-liveness
+    view: router.ospf.area.interface
+    enters_view: opaque
+    undo: delete bfd-liveness
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface bfd-liveness
+      line: 607
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.ospf.bfd: 'true'
+  - id: nokia-sros-md.router-ospf-area-interface-conditional-advertise-prefix
+    syntax: conditional-advertise-prefix <conditional-advertise-prefix>
+    view: router.ospf.area.interface
+    undo: delete conditional-advertise-prefix
+    params:
+      conditional-advertise-prefix:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface conditional-advertise-prefix
+      line: 623
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-dead-interval
+    syntax: dead-interval <dead-interval>
+    view: router.ospf.area.interface
+    undo: delete dead-interval
+    params:
+      dead-interval:
+        type: integer
+        range:
+          - 2
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface dead-interval
+      line: 645
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.ospf.dead: $dead-interval
+  - id: nokia-sros-md.router-ospf-area-interface-delay-normalization
+    syntax: delay-normalization
+    view: router.ospf.area.interface
+    enters_view: opaque
+    undo: delete delay-normalization
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface delay-normalization
+      line: 667
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-flex-algo
+    syntax: flex-algo <flex-algo-id>
+    view: router.ospf.area.interface
+    enters_view: opaque
+    undo: delete flex-algo <flex-algo-id>
+    params:
+      flex-algo-id:
+        type: integer
+        range:
+          - 128
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface flex-algo
+      line: 683
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-hello-interval
+    syntax: hello-interval <hello-interval>
+    view: router.ospf.area.interface
+    undo: delete hello-interval
+    params:
+      hello-interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: '10'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface hello-interval
+      line: 705
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.ospf.hello: $hello-interval
+  - id: nokia-sros-md.router-ospf-area-interface-interface-type
+    syntax: interface-type <interface-type>
+    view: router.ospf.area.interface
+    undo: delete interface-type
+    params:
+      interface-type:
+        type: enum
+        choices:
+          - broadcast
+          - non-broadcast
+          - point-to-point
+          - secondary
+          - p2mp-nbma
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface interface-type
+      line: 731
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.ospf.network_type: kw:point-to-point=p2p|broadcast|non-broadcast=nbma|p2mp-nbma=p2mp
+  - id: nokia-sros-md.router-ospf-area-interface-load-balancing-weight
+    syntax: load-balancing-weight <load-balancing-weight>
+    view: router.ospf.area.interface
+    undo: delete load-balancing-weight
+    params:
+      load-balancing-weight:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface load-balancing-weight
+      line: 753
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-loopfree-alternate
+    syntax: loopfree-alternate
+    view: router.ospf.area.interface
+    enters_view: opaque
+    undo: delete loopfree-alternate
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface loopfree-alternate
+      line: 775
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-lsa-filter-out
+    syntax: lsa-filter-out <lsa-filter-out>
+    view: router.ospf.area.interface
+    undo: delete lsa-filter-out
+    params:
+      lsa-filter-out:
+        type: enum
+        choices:
+          - none
+          - all
+          - except-own-rtrlsa
+          - except-own-rtrlsa-and-defaults
+    default: none
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface lsa-filter-out
+      line: 791
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-message-digest-key
+    syntax: message-digest-key <key-id>
+    view: router.ospf.area.interface
+    enters_view: opaque
+    undo: delete message-digest-key <key-id>
+    params:
+      key-id:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface message-digest-key
+      line: 817
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-metric
+    syntax: metric <metric>
+    view: router.ospf.area.interface
+    undo: delete metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface metric
+      line: 839
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.ospf.cost: $metric
+  - id: nokia-sros-md.router-ospf-area-interface-mtu
+    syntax: mtu <mtu>
+    view: router.ospf.area.interface
+    undo: delete mtu
+    params:
+      mtu:
+        type: integer
+        range:
+          - 512
+          - 9786
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface mtu
+      line: 861
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-neighbor
+    syntax: neighbor <neighbor>
+    view: router.ospf.area.interface
+    undo: delete neighbor
+    params:
+      neighbor:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface neighbor
+      line: 883
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-node-sid
+    syntax: node-sid
+    view: router.ospf.area.interface
+    enters_view: router.ospf.area.interface.node-sid
+    undo: delete node-sid
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface node-sid
+      line: 905
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-ospf-area-interface-node-sid-clear-n-flag
+    syntax: clear-n-flag <clear-n-flag>
+    view: router.ospf.area.interface.node-sid
+    undo: delete clear-n-flag
+    params:
+      clear-n-flag:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface node-sid clear-n-flag
+      line: 921
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-node-sid-index
+    syntax: index <index>
+    view: router.ospf.area.interface.node-sid
+    undo: delete index
+    params:
+      index:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface node-sid index
+      line: 947
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.prefix_sid: ospf
+      interface.prefix_sid.index: $index
+      interface.prefix_sid.node_disable: 'false'
+  - id: nokia-sros-md.router-ospf-area-interface-node-sid-label
+    syntax: label <label>
+    view: router.ospf.area.interface.node-sid
+    undo: delete label
+    params:
+      label:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface node-sid label
+      line: 973
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-passive
+    syntax: passive <passive>
+    view: router.ospf.area.interface
+    undo: delete passive
+    params:
+      passive:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface passive
+      line: 999
+      version: 25.10.R1
+    status: draft
+    maps:
+      ospf.process.passive: ctx:interface-name
+      ospf.process.passive.enabled: kw:true=true|false=false
+  - id: nokia-sros-md.router-ospf-area-interface-poll-interval
+    syntax: poll-interval <poll-interval>
+    view: router.ospf.area.interface
+    undo: delete poll-interval
+    params:
+      poll-interval:
+        type: integer
+    default: '120'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface poll-interval
+      line: 1021
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-priority
+    syntax: priority <priority>
+    view: router.ospf.area.interface
+    undo: delete priority
+    params:
+      priority:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: '1'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface priority
+      line: 1047
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.ospf.priority: $priority
+  - id: nokia-sros-md.router-ospf-area-interface-retransmit-interval
+    syntax: retransmit-interval <retransmit-interval>
+    view: router.ospf.area.interface
+    undo: delete retransmit-interval
+    params:
+      retransmit-interval:
+        type: integer
+        range:
+          - 1
+          - 1800
+    default: '5'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface retransmit-interval
+      line: 1073
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-rib-priority
+    syntax: rib-priority <rib-priority>
+    view: router.ospf.area.interface
+    undo: delete rib-priority
+    params:
+      rib-priority:
+        type: enum
+        choices:
+          - high
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface rib-priority
+      line: 1099
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-sid-protection
+    syntax: sid-protection <sid-protection>
+    view: router.ospf.area.interface
+    undo: delete sid-protection
+    params:
+      sid-protection:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface sid-protection
+      line: 1121
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-interface-transit-delay
+    syntax: transit-delay <transit-delay>
+    view: router.ospf.area.interface
+    undo: delete transit-delay
+    params:
+      transit-delay:
+        type: integer
+        range:
+          - 1
+          - 1800
+    default: '1'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area interface transit-delay
+      line: 1147
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-loopfree-alternate-exclude
+    syntax: loopfree-alternate-exclude <loopfree-alternate-exclude>
+    view: router.ospf.area
+    undo: delete loopfree-alternate-exclude
+    params:
+      loopfree-alternate-exclude:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area loopfree-alternate-exclude
+      line: 1173
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-nssa
+    syntax: nssa
+    view: router.ospf.area
+    enters_view: opaque
+    undo: delete nssa
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area nssa
+      line: 1199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-stub
+    syntax: stub
+    view: router.ospf.area
+    enters_view: opaque
+    undo: delete stub
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area stub
+      line: 1215
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-area-virtual-link
+    syntax: virtual-link <router-id> transit-area <transit-area>
+    view: router.ospf.area
+    enters_view: opaque
+    undo: delete virtual-link <router-id>
+    params:
+      router-id:
+        type: word
+      transit-area:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf area virtual-link
+      line: 1231
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-asbr
+    syntax: asbr
+    view: router.ospf
+    enters_view: opaque
+    undo: delete asbr
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf asbr
+      line: 1254
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-compatible-rfc1583
+    syntax: compatible-rfc1583 <compatible-rfc1583>
+    view: router.ospf
+    undo: delete compatible-rfc1583
+    params:
+      compatible-rfc1583:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf compatible-rfc1583
+      line: 1270
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-database-export
+    syntax: database-export
+    view: router.ospf
+    enters_view: opaque
+    undo: delete database-export
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf database-export
+      line: 1296
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-entropy-label
+    syntax: entropy-label
+    view: router.ospf
+    enters_view: opaque
+    undo: delete entropy-label
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf entropy-label
+      line: 1312
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-export-limit
+    syntax: export-limit
+    view: router.ospf
+    enters_view: opaque
+    undo: delete export-limit
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf export-limit
+      line: 1328
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-export-policy
+    syntax: export-policy <export-policy>
+    view: router.ospf
+    undo: delete export-policy
+    params:
+      export-policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf export-policy
+      line: 1344
+      version: 25.10.R1
+    status: draft
+    maps:
+      ospf.process.export_policy: list:$export-policy
+  - id: nokia-sros-md.router-ospf-external-db-overflow
+    syntax: external-db-overflow
+    view: router.ospf
+    enters_view: opaque
+    undo: delete external-db-overflow
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf external-db-overflow
+      line: 1370
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-external-preference
+    syntax: external-preference <external-preference>
+    view: router.ospf
+    undo: delete external-preference
+    params:
+      external-preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '150'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf external-preference
+      line: 1386
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-flexible-algorithms
+    syntax: flexible-algorithms
+    view: router.ospf
+    enters_view: opaque
+    undo: delete flexible-algorithms
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf flexible-algorithms
+      line: 1412
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-graceful-restart
+    syntax: graceful-restart
+    view: router.ospf
+    enters_view: opaque
+    undo: delete graceful-restart
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf graceful-restart
+      line: 1428
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-igp-shortcut
+    syntax: igp-shortcut
+    view: router.ospf
+    enters_view: opaque
+    undo: delete igp-shortcut
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf igp-shortcut
+      line: 1444
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-import-policy
+    syntax: import-policy <import-policy>
+    view: router.ospf
+    undo: delete import-policy
+    params:
+      import-policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf import-policy
+      line: 1460
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-ldp-over-rsvp
+    syntax: ldp-over-rsvp <ldp-over-rsvp>
+    view: router.ospf
+    undo: delete ldp-over-rsvp
+    params:
+      ldp-over-rsvp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf ldp-over-rsvp
+      line: 1486
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-ldp-sync
+    syntax: ldp-sync <ldp-sync>
+    view: router.ospf
+    undo: delete ldp-sync
+    params:
+      ldp-sync:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf ldp-sync
+      line: 1512
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-loopfree-alternate
+    syntax: loopfree-alternate
+    view: router.ospf
+    enters_view: opaque
+    undo: delete loopfree-alternate
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf loopfree-alternate
+      line: 1538
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-multi-instance
+    syntax: multi-instance <multi-instance>
+    view: router.ospf
+    undo: delete multi-instance
+    params:
+      multi-instance:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf multi-instance
+      line: 1554
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-multicast-import
+    syntax: multicast-import <multicast-import>
+    view: router.ospf
+    undo: delete multicast-import
+    params:
+      multicast-import:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf multicast-import
+      line: 1580
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-multicast-import-policy
+    syntax: multicast-import-policy <multicast-import-policy>
+    view: router.ospf
+    undo: delete multicast-import-policy
+    params:
+      multicast-import-policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf multicast-import-policy
+      line: 1606
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-overload
+    syntax: overload <overload>
+    view: router.ospf
+    undo: delete overload
+    params:
+      overload:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf overload
+      line: 1632
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-overload-include-ext-1
+    syntax: overload-include-ext-1 <overload-include-ext-1>
+    view: router.ospf
+    undo: delete overload-include-ext-1
+    params:
+      overload-include-ext-1:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf overload-include-ext-1
+      line: 1658
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-overload-include-ext-2
+    syntax: overload-include-ext-2 <overload-include-ext-2>
+    view: router.ospf
+    undo: delete overload-include-ext-2
+    params:
+      overload-include-ext-2:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf overload-include-ext-2
+      line: 1684
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-overload-include-stub
+    syntax: overload-include-stub <overload-include-stub>
+    view: router.ospf
+    undo: delete overload-include-stub
+    params:
+      overload-include-stub:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf overload-include-stub
+      line: 1710
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-overload-on-boot
+    syntax: overload-on-boot
+    view: router.ospf
+    enters_view: opaque
+    undo: delete overload-on-boot
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf overload-on-boot
+      line: 1736
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-preference
+    syntax: preference <preference>
+    view: router.ospf
+    undo: delete preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '10'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf preference
+      line: 1752
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-reference-bandwidth
+    syntax: reference-bandwidth <reference-bandwidth>
+    view: router.ospf
+    undo: delete reference-bandwidth
+    params:
+      reference-bandwidth:
+        type: integer
+        range:
+          - 1
+          - 18446744073709551615
+    default: '100000000'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf reference-bandwidth
+      line: 1778
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-rib-priority
+    syntax: rib-priority
+    view: router.ospf
+    enters_view: opaque
+    undo: delete rib-priority
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf rib-priority
+      line: 1804
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-router-id
+    syntax: router-id <router-id>
+    view: router.ospf
+    undo: delete router-id
+    params:
+      router-id:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf router-id
+      line: 1820
+      version: 25.10.R1
+    status: draft
+    maps:
+      ospf.process.router_id: $router-id
+  - id: nokia-sros-md.router-ospf-rtr-adv-lsa-limit
+    syntax: rtr-adv-lsa-limit
+    view: router.ospf
+    enters_view: opaque
+    undo: delete rtr-adv-lsa-limit
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf rtr-adv-lsa-limit
+      line: 1842
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-timers
+    syntax: timers
+    view: router.ospf
+    enters_view: opaque
+    undo: delete timers
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf timers
+      line: 1858
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-traffic-engineering
+    syntax: traffic-engineering <traffic-engineering>
+    view: router.ospf
+    undo: delete traffic-engineering
+    params:
+      traffic-engineering:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf traffic-engineering
+      line: 1874
+      version: 25.10.R1
+    status: draft
+    maps:
+      ospf.process.te: kw:true=true|false=false
+  - id: nokia-sros-md.router-ospf-traffic-engineering-options
+    syntax: traffic-engineering-options
+    view: router.ospf
+    enters_view: opaque
+    undo: delete traffic-engineering-options
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf traffic-engineering-options
+      line: 1900
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-unicast-import
+    syntax: unicast-import <unicast-import>
+    view: router.ospf
+    undo: delete unicast-import
+    params:
+      unicast-import:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ospf.md
+      title: router ospf unicast-import
+      line: 1916
+      version: 25.10.R1
+    status: draft

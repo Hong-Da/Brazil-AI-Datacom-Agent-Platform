@@ -3,6 +3,7 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import { apiUrl } from '@/api'
 import { i18n } from '@/i18n'
 import { useTerms } from '@/stores/terms'
 import { dispositionName, reportName } from './setup'
@@ -23,7 +24,7 @@ const previewLang = computed<Lang>(() => (locale.value === 'zh-CN' ? 'zh-CN' : '
 
 /** POST 版的下载（api.ts 的 download 只支持 GET）。 */
 async function fetchReport(lang: Lang, fmt: Fmt): Promise<{ blob: Blob; filename: string }> {
-  const res = await fetch('/api/v1/reports', {
+  const res = await fetch(apiUrl('/reports'), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

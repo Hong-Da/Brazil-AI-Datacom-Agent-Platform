@@ -38,7 +38,7 @@
 
 - 项目路径：设备相关接口（导入、设备列表、配置图、对比、检查、清理、忽略项、翻译、变更、影响分析、拓扑与一致性、割接迁移、基线、版本历史、表格导出、报告、图查询与 AI 查询、配置检查项目与脚本、首页概况）写成 `/api/v1/projects/{project}/…`，例如 `GET /api/v1/projects/oam-vpn/devices`。`{project}` 是项目标识（全站唯一），也可以写 `属主/标识` 或项目编号。下表中“项目”一栏为“是”的接口都有项目路径版本
 - 兼容别名（已弃用）：旧的无项目路径（例如 `GET /api/v1/devices`）仍然可用，落到调用者的默认项目（全局令牌为第一个管理员的默认项目）；响应头带 `Deprecation: true` 与 `Link: </api/v1/projects/<默认项目>/…>; rel="successor-version"`，OpenAPI 中标为 deprecated
-- 项目里的设备：项目私有设备（导入或复制而来）与引用的公共设备（`source`：`private` / `public`）。引用的公共设备跟随公共库最新版本（`policy: follow`）或固定在某个版本（`policy: pin`，`pinned_version_id`，公共库有更新版本时 `newer_available: true`）；设备列表、对比、检查等用到“最新版本”的地方都按项目的版本策略取当前版本
+- 项目里的设备：项目私有设备（导入或复制而来）与引用的公共设备（`source`：`private` / `public`）。引用的公共设备跟随公共库最新版本（`policy: follow`）或固定在某个版本（`policy: pin`，`pinned_version_id`，固定版本的序号 `pinned_seq`（第几版），公共库有更新版本时 `newer_available: true`）；设备列表、对比、检查等用到“最新版本”的地方都按项目的版本策略取当前版本
 - 项目角色：属主（owner）、可编辑成员（edit）、只读成员（read）；管理员访问不是自己参与的项目时角色为 admin，拥有完全权限，访问写入审计（`GET /admin/audit`、`logs/audit.log`）
 - 权限：查看（GET）与计算（不修改数据的 POST：对比、检查、清理脚本生成、翻译、变更脚本生成、影响分析、拓扑、导出、报告、图查询、模板校验与生成……）对所有项目角色开放；修改数据（导入、删除、忽略、规则调整、脚本保存、重新解析本项目）只限属主、可编辑成员与管理员；成员管理、转交、删除项目只限属主与管理员；退出项目、复制项目或把设备复制到自己的项目只需能查看。不是成员的普通账号访问项目返回 404（不暴露项目是否存在）
 - 只读的个人令牌只能调用查看与计算接口，其他接口返回 403（code 1006）
@@ -203,7 +203,7 @@
 | `DELETE /projects/{p}/members/{username}` | 属主 / 管理员；本人 | 移除成员；成员移除自己即退出项目 |
 | `POST /projects/{p}/transfer` | 属主 / 管理员 | 转交：`{"to", "keep_as": "edit\|read\|null"}`；原属主默认留作可编辑成员；项目设置中用到的、原属主私有的翻译规则集复制一份给新属主（`rule_set_copied`） |
 | `POST /projects/{p}/copy` | 项目成员 | 复制为我的新项目：`{"name", "slug", "devices", "scripts"}`；复制设置、规则调整、私有设备（各复制当前版本）、引用（同样的版本策略）、脚本（当前内容）；不复制成员 |
-| `GET /projects/{p}/refs` | 项目成员 | 本项目引用的公共设备：`policy`、`pinned_version_id`、`public_latest_version_id`、`newer_available` |
+| `GET /projects/{p}/refs` | 项目成员 | 本项目引用的公共设备：`policy`、`pinned_version_id`、`pinned_seq`（固定版本的序号）、`public_latest_version_id`、`newer_available` |
 | `POST /projects/{p}/refs` | 属主 / 可编辑 | 引用公共设备：`{"device_id", "version_id"}`（不给版本时跟随最新）；项目里已有同名设备 409 |
 | `PUT /projects/{p}/refs/{device_id}` | 属主 / 可编辑 | 改版本策略：`{"version_id": 编号 \| null}`（null 为跟随最新） |
 | `DELETE /projects/{p}/refs/{device_id}` | 属主 / 可编辑 | 解除引用（本项目对它的忽略项一并删除，以它为基线的检查项目基线置空）；`DELETE /projects/{p}/devices/{id}` 对引用的公共设备也是解除引用 |

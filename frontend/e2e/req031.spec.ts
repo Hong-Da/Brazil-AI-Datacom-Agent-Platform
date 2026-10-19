@@ -61,26 +61,20 @@ test('配置检查项目：边写边查、顺序核查、按依赖重排、对�
     await login(page)
     const errors = collectErrors(page)
 
-    // 导航入口在“变更”组
+    // 导航入口在“变更”组：配置检查项目并入项目脚本（M6，/p/<项目>/scripts）
     await page.goto('/')
-    await page.getByTestId('nav-check-projects').click()
-    await expect(page).toHaveURL(/\/check-projects$/)
+    await page.getByTestId('nav-scripts').click()
+    await expect(page).toHaveURL(/\/p\/[^/]+\/scripts$/)
 
-    // 新建项目
-    await page.getByTestId('cp-new').click()
-    await page.getByTestId('cp-new-name').fill('e2e 割接前检查')
-    await page.getByTestId('cp-new-dev-ATN-CHANGE-01').check()
-    await page.getByTestId('cp-new-create').click()
-    await expect(page).toHaveURL(/\/check-projects\/\d+/)
-    projectId = Number(/\/check-projects\/(\d+)/.exec(page.url())![1])
-    await expect(page.getByTestId('cp-title')).toHaveText('e2e 割接前检查')
+    // 新建变更脚本：基线为本项目的设备，同时建好保存基线与检查设置的脚本组，直接进入编辑器
+    await page.getByTestId('scripts-new').click()
+    await page.getByTestId('scripts-ns-name').fill('bind-vpn.txt')
+    await page.getByTestId('scripts-ns-kind').getByRole('button').first().click()
+    await page.getByTestId('scripts-ns-device').selectOption({ label: 'ATN-CHANGE-01' })
+    await page.getByTestId('scripts-ns-create').click()
+    await expect(page).toHaveURL(/\/p\/[^/]+\/scripts\/\d+/)
+    projectId = Number(/\/scripts\/(\d+)/.exec(page.url())![1])
     await expect(page.getByTestId('cp-basechip')).toContainText('ATN-CHANGE-01')
-
-    // 新建变更脚本并输入内容
-    await page.getByTestId('cp-new-script').click()
-    await page.getByTestId('cp-ns-name').fill('bind-vpn.txt')
-    await page.getByTestId('cp-ns-change').check()
-    await page.getByTestId('cp-ns-create').click()
     await expect(page.getByTestId('cp-fn')).toHaveText('bind-vpn.txt')
     await waitChecked(page)
     await setEditor(page, SCRIPT)
@@ -158,8 +152,8 @@ test('配置检查项目：边写边查、顺序核查、按依赖重排、对�
     await expect(page.locator('[data-testid="cp-issue"][data-cat="order"]').first()).toBeVisible({ timeout: 30_000 })
 
     // 列表页显示项目与最近检查
-    await page.getByTestId('nav-check-projects').click()
-    await expect(page.getByTestId('cp-table')).toContainText('e2e 割接前检查')
+    await page.getByTestId('nav-scripts').click()
+    await expect(page.getByTestId('scripts-table')).toContainText('bind-vpn.txt')
     await expectNoKeys(page)
     expect(errors).toEqual([])
   } finally {

@@ -1,0 +1,58 @@
+# Nokia SR OS MD-CLI 的规范渲染书写习惯（core/canon.py 读取；字段说明见 cisco-iosxe.yaml 与 nokia-sros-classic.yaml）。M7-4（REQ-037）。
+# 生成命令仍由命令卡 + 映射规则反推；这里是 MD-CLI 特有的块结构（info / admin show configuration 的花括号格式）：
+#   open / exit_all  进入视图的行以 “ {” 结尾，块以与入口同层的 “}” 结束（views.yaml 的 block: braces）；没有 exit、没有段落
+#   root_depth       configure 下的命令缩进 1 级（4 个空格）
+#   prologue / epilogue  整份配置以 “configure {” 开头、“}” 结尾
+#   containers       容器视图的入口写法（router 的 Base 实例）；没列出的容器按容器卡语法生成（route <前缀> route-type unicast）
+#   container_depth  经容器到达视图的最多层数（bgp-ipvpn > mpls > vrf-target、SAP 的 ingress > qos > sap-ingress）
+#   字符串参数（命令卡参数类型 string：名称、描述、引用）总写成引号字符串；叶子列表写成 [ "a" "b" ]
+#   l3_form / instance_keys / access_form / infer  与 Classic 相同（同一设备软件）
+family: nokia-sros-md
+nested_separator: false
+open: " {"
+exit_all: "}"
+root_depth: 1
+container_depth: 5
+prologue: ["configure {"]
+epilogue: ["}"]
+section_frame: []
+sections: []
+containers:
+  router: router "Base"
+  # IS-IS 级别：图中不区分级别（wide-metrics-only 记为 metric_style），规范渲染写在 level 2 下
+  router.isis.level: level 2
+  # 静态路由：只写单播路由（route-type unicast）
+  router.static-routes.route: route {ip-prefix} route-type unicast
+  service.vprn.static-routes.route: route {ip-prefix} route-type unicast
+quote_params: '(-name|^name|^description|^location|^contact|-string)$'
+create: false
+wrap: {}
+exits: {}
+prefer: {}
+# 带密文的命令不反推（生成的写法会丢掉 hash2 等密文标记）：同平台族按原文写回，跨平台族本来就不写密码
+avoid:
+  - nokia-sros-md.router-bgp-group-authentication-key
+  - nokia-sros-md.router-bgp-neighbor-authentication-key
+  - nokia-sros-md.system-security-user-params-local-user-user-password
+  - nokia-sros-md.system-security-aaa-remote-servers-tacplus-server-secret
+no_declare: []
+# 推导（翻译成 Nokia MD-CLI 时，业务的名称是列表键，编号、所属客户是必填的叶子；告警 inferred_value）
+infer:
+  - {node: vrf.instance.service_id, seq: 1001}
+  - {node: vrf.instance.customer, value: 1, write: true}
+  - {node: l2vpn.vsi.service_id, seq: 2001}
+  - {node: l2vpn.vsi.customer, value: 1, write: true}
+  - {node: l2vpn.xconnect.service_id, seq: 3001}
+  - {node: l2vpn.xconnect.customer, value: 1, write: true}
+  - {node: mgmt.syslog.host.target_id, seq: 1}
+  # 过滤器、客户、QoS 策略的名称是 MD-CLI 的列表键（编号是子叶子）：源配置没有名称时（华为 / Cisco / Classic 的编号 ACL）用编号作名称
+  - {node: acl.instance.filter_name, key: true}
+  - {node: service.customer.name, key: true}
+  - {node: qos.sap_ingress.name, key: true}
+  - {node: qos.sap_egress.name, key: true}
+interface_types: []
+access_form: instance
+l3_form: logical
+instance_keys:
+  ospf.process: {"0": "1"}
+  isis.process: {"0": "1"}

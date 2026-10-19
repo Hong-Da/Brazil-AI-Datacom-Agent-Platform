@@ -201,7 +201,8 @@ def test_public_library_refs_and_pins(full_kb_root: Path, team: Path) -> None:
     a = liwei.get("/projects/cutover/devices").json()["data"]["devices"][0]
     b = liwei.get("/projects/patrol/devices").json()["data"]["devices"][0]
     assert a["source"] == "public" and a["policy"] == "pin" and a["latest_version_id"] == v1 and a["newer_available"]
-    assert b["policy"] == "follow" and b["latest_version_id"] == v2
+    assert a["pinned_seq"] == 1 and a["versions"] == 2  # 界面显示“固定在 v1”，公共库有 v2（M6-5）
+    assert b["policy"] == "follow" and b["latest_version_id"] == v2 and b["pinned_seq"] is None
     g = liwei.get(f"/projects/cutover/devices/{pid}/graph").json()["data"]
     assert g["version_id"] == v1
 

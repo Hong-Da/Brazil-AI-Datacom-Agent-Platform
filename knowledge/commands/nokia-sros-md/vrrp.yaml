@@ -1,0 +1,406 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: vrrp
+cards:
+  - id: nokia-sros-md.router-interface-ipv4-vrrp
+    syntax: vrrp <virtual-router-id>
+    view: router.interface.ipv4
+    enters_view: router.interface.ipv4.vrrp
+    undo: delete vrrp <virtual-router-id>
+    params:
+      virtual-router-id:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.vrrp: $virtual-router-id
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-admin-state
+    syntax: admin-state <admin-state>
+    view: router.interface.ipv4.vrrp
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp admin-state
+      line: 27
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.vrrp.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.interface.ipv4.vrrp
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp apply-groups
+      line: 53
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.interface.ipv4.vrrp
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp apply-groups-exclude
+      line: 71
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-authentication-key
+    syntax: authentication-key <authentication-key> [ hash | hash2 | custom ]
+    view: router.interface.ipv4.vrrp
+    undo: delete authentication-key
+    params:
+      authentication-key:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp authentication-key
+      line: 89
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-backup
+    syntax: backup <backup>
+    view: router.interface.ipv4.vrrp
+    undo: delete backup
+    params:
+      backup:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp backup
+      line: 111
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.vrrp.virtual_ip: list:$backup
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-bfd-liveness
+    syntax: bfd-liveness
+    view: router.interface.ipv4.vrrp
+    enters_view: opaque
+    undo: delete bfd-liveness
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp bfd-liveness
+      line: 133
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-init-delay
+    syntax: init-delay <init-delay>
+    view: router.interface.ipv4.vrrp
+    undo: delete init-delay
+    params:
+      init-delay:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp init-delay
+      line: 149
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-mac
+    syntax: mac <mac>
+    view: router.interface.ipv4.vrrp
+    undo: delete mac
+    params:
+      mac:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp mac
+      line: 171
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-master-int-inherit
+    syntax: master-int-inherit <master-int-inherit>
+    view: router.interface.ipv4.vrrp
+    undo: delete master-int-inherit
+    params:
+      master-int-inherit:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp master-int-inherit
+      line: 193
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-message-interval
+    syntax: message-interval <message-interval>
+    view: router.interface.ipv4.vrrp
+    undo: delete message-interval
+    params:
+      message-interval:
+        type: integer
+        range:
+          - 1
+          - 2559
+    default: '10'
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp message-interval
+      line: 215
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.vrrp.advertise_interval: scale:0.1:$message-interval
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-monitor-oper-group
+    syntax: monitor-oper-group <monitor-oper-group>
+    view: router.interface.ipv4.vrrp
+    undo: delete monitor-oper-group
+    params:
+      monitor-oper-group:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp monitor-oper-group
+      line: 241
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-ntp-reply
+    syntax: ntp-reply <ntp-reply>
+    view: router.interface.ipv4.vrrp
+    undo: delete ntp-reply
+    params:
+      ntp-reply:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp ntp-reply
+      line: 263
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-oper-group
+    syntax: oper-group <oper-group>
+    view: router.interface.ipv4.vrrp
+    undo: delete oper-group
+    params:
+      oper-group:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp oper-group
+      line: 289
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-owner
+    syntax: owner <owner>
+    view: router.interface.ipv4.vrrp
+    undo: delete owner
+    params:
+      owner:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp owner
+      line: 311
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.vrrp.owner: kw:true=true|false=false
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-passive
+    syntax: passive <passive>
+    view: router.interface.ipv4.vrrp
+    undo: delete passive
+    params:
+      passive:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp passive
+      line: 337
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-ping-reply
+    syntax: ping-reply <ping-reply>
+    view: router.interface.ipv4.vrrp
+    undo: delete ping-reply
+    params:
+      ping-reply:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp ping-reply
+      line: 363
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-policy
+    syntax: policy <policy>
+    view: router.interface.ipv4.vrrp
+    undo: delete policy
+    params:
+      policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp policy
+      line: 389
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-preempt
+    syntax: preempt <preempt>
+    view: router.interface.ipv4.vrrp
+    undo: delete preempt
+    params:
+      preempt:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp preempt
+      line: 411
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-priority
+    syntax: priority <priority>
+    view: router.interface.ipv4.vrrp
+    undo: delete priority
+    params:
+      priority:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp priority
+      line: 437
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.vrrp.priority: $priority
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-ssh-reply
+    syntax: ssh-reply <ssh-reply>
+    view: router.interface.ipv4.vrrp
+    undo: delete ssh-reply
+    params:
+      ssh-reply:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp ssh-reply
+      line: 459
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-standby-forwarding
+    syntax: standby-forwarding <standby-forwarding>
+    view: router.interface.ipv4.vrrp
+    undo: delete standby-forwarding
+    params:
+      standby-forwarding:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp standby-forwarding
+      line: 485
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-telnet-reply
+    syntax: telnet-reply <telnet-reply>
+    view: router.interface.ipv4.vrrp
+    undo: delete telnet-reply
+    params:
+      telnet-reply:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp telnet-reply
+      line: 511
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-interface-ipv4-vrrp-traceroute-reply
+    syntax: traceroute-reply <traceroute-reply>
+    view: router.interface.ipv4.vrrp
+    undo: delete traceroute-reply
+    params:
+      traceroute-reply:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.vrrp.md
+      title: router interface ipv4 vrrp traceroute-reply
+      line: 537
+      version: 25.10.R1
+    status: draft

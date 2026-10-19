@@ -1,0 +1,3810 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: mpls
+cards:
+  - id: nokia-sros-md.router-mpls
+    syntax: mpls
+    view: router
+    enters_view: router.mpls
+    undo: delete mpls
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      mpls.global: _
+  - id: nokia-sros-md.router-mpls-admin-group-frr
+    syntax: admin-group-frr <admin-group-frr>
+    view: router.mpls
+    undo: delete admin-group-frr
+    params:
+      admin-group-frr:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls admin-group-frr
+      line: 21
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-admin-state
+    syntax: admin-state <admin-state>
+    view: router.mpls
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls admin-state
+      line: 47
+      version: 25.10.R1
+    status: draft
+    maps:
+      mpls.global.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-mpls-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.mpls
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls apply-groups
+      line: 73
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.mpls
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls apply-groups-exclude
+      line: 91
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-auto-bandwidth-multipliers
+    syntax: auto-bandwidth-multipliers
+    view: router.mpls
+    enters_view: opaque
+    undo: delete auto-bandwidth-multipliers
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls auto-bandwidth-multipliers
+      line: 109
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-auto-lsp
+    syntax: auto-lsp <template-name>
+    view: router.mpls
+    enters_view: opaque
+    undo: delete auto-lsp <template-name>
+    params:
+      template-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls auto-lsp
+      line: 125
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-aux-stats
+    syntax: aux-stats
+    view: router.mpls
+    enters_view: opaque
+    undo: delete aux-stats
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls aux-stats
+      line: 147
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-bypass-resignal-timer
+    syntax: bypass-resignal-timer <bypass-resignal-timer>
+    view: router.mpls
+    undo: delete bypass-resignal-timer
+    params:
+      bypass-resignal-timer:
+        type: integer
+        range:
+          - 1
+          - 10080
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls bypass-resignal-timer
+      line: 163
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-class-forwarding-policy
+    syntax: class-forwarding-policy <policy-name>
+    view: router.mpls
+    enters_view: opaque
+    undo: delete class-forwarding-policy <policy-name>
+    params:
+      policy-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls class-forwarding-policy
+      line: 185
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-cspf-on-loose-hop
+    syntax: cspf-on-loose-hop <cspf-on-loose-hop>
+    view: router.mpls
+    undo: delete cspf-on-loose-hop
+    params:
+      cspf-on-loose-hop:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls cspf-on-loose-hop
+      line: 207
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-dynamic-bypass
+    syntax: dynamic-bypass <dynamic-bypass>
+    view: router.mpls
+    undo: delete dynamic-bypass
+    params:
+      dynamic-bypass:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls dynamic-bypass
+      line: 233
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-entropy-label
+    syntax: entropy-label
+    view: router.mpls
+    enters_view: opaque
+    undo: delete entropy-label
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls entropy-label
+      line: 259
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-exponential-backoff-retry
+    syntax: exponential-backoff-retry <exponential-backoff-retry>
+    view: router.mpls
+    undo: delete exponential-backoff-retry
+    params:
+      exponential-backoff-retry:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls exponential-backoff-retry
+      line: 275
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-forwarding-policies
+    syntax: forwarding-policies
+    view: router.mpls
+    enters_view: opaque
+    undo: delete forwarding-policies
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls forwarding-policies
+      line: 301
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-frr-object
+    syntax: frr-object <frr-object>
+    view: router.mpls
+    undo: delete frr-object
+    params:
+      frr-object:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls frr-object
+      line: 317
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-hold-timer
+    syntax: hold-timer <hold-timer>
+    view: router.mpls
+    undo: delete hold-timer
+    params:
+      hold-timer:
+        type: integer
+        range:
+          - 0
+          - 1000
+    default: '1'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls hold-timer
+      line: 343
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-ingress-statistics
+    syntax: ingress-statistics
+    view: router.mpls
+    enters_view: opaque
+    undo: delete ingress-statistics
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls ingress-statistics
+      line: 369
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-interface
+    syntax: interface <interface-name>
+    view: router.mpls
+    enters_view: router.mpls.interface
+    undo: delete interface <interface-name>
+    params:
+      interface-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls interface
+      line: 385
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface{name=$interface-name}.mpls: _
+  - id: nokia-sros-md.router-mpls-interface-admin-group
+    syntax: admin-group <admin-group>
+    view: router.mpls.interface
+    undo: delete admin-group
+    params:
+      admin-group:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls interface admin-group
+      line: 407
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-interface-admin-state
+    syntax: admin-state <admin-state>
+    view: router.mpls.interface
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls interface admin-state
+      line: 429
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.mpls.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-mpls-interface-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.mpls.interface
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls interface apply-groups
+      line: 455
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-interface-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.mpls.interface
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls interface apply-groups-exclude
+      line: 473
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-interface-label-map
+    syntax: label-map <in-label>
+    view: router.mpls.interface
+    enters_view: opaque
+    undo: delete label-map <in-label>
+    params:
+      in-label:
+        type: integer
+        range:
+          - 32
+          - 1048575
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls interface label-map
+      line: 491
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-interface-srlg-group
+    syntax: srlg-group <srlg-group>
+    view: router.mpls.interface
+    undo: delete srlg-group
+    params:
+      srlg-group:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls interface srlg-group
+      line: 513
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-interface-te-metric
+    syntax: te-metric <te-metric>
+    view: router.mpls.interface
+    undo: delete te-metric
+    params:
+      te-metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls interface te-metric
+      line: 535
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-least-fill-min-thd
+    syntax: least-fill-min-thd <least-fill-min-thd>
+    view: router.mpls
+    undo: delete least-fill-min-thd
+    params:
+      least-fill-min-thd:
+        type: integer
+        range:
+          - 0
+          - 100
+    default: '5'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls least-fill-min-thd
+      line: 557
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-least-fill-reoptim-thd
+    syntax: least-fill-reoptim-thd <least-fill-reoptim-thd>
+    view: router.mpls
+    undo: delete least-fill-reoptim-thd
+    params:
+      least-fill-reoptim-thd:
+        type: integer
+        range:
+          - 0
+          - 100
+    default: '10'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls least-fill-reoptim-thd
+      line: 583
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-logger-event-bundling
+    syntax: logger-event-bundling <logger-event-bundling>
+    view: router.mpls
+    undo: delete logger-event-bundling
+    params:
+      logger-event-bundling:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls logger-event-bundling
+      line: 609
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp
+    syntax: lsp <lsp-name>
+    view: router.mpls
+    enters_view: router.mpls.lsp
+    undo: delete lsp <lsp-name>
+    params:
+      lsp-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp
+      line: 635
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-adaptive
+    syntax: adaptive <adaptive>
+    view: router.mpls.lsp
+    undo: delete adaptive
+    params:
+      adaptive:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp adaptive
+      line: 657
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-admin-state
+    syntax: admin-state <admin-state>
+    view: router.mpls.lsp
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp admin-state
+      line: 683
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-admin-tag
+    syntax: admin-tag <admin-tag>
+    view: router.mpls.lsp
+    undo: delete admin-tag
+    params:
+      admin-tag:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp admin-tag
+      line: 709
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-adspec
+    syntax: adspec <adspec>
+    view: router.mpls.lsp
+    undo: delete adspec
+    params:
+      adspec:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp adspec
+      line: 731
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.mpls.lsp
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp apply-groups
+      line: 757
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.mpls.lsp
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp apply-groups-exclude
+      line: 775
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-auto-bandwidth
+    syntax: auto-bandwidth
+    view: router.mpls.lsp
+    enters_view: opaque
+    undo: delete auto-bandwidth
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp auto-bandwidth
+      line: 793
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-bfd
+    syntax: bfd
+    view: router.mpls.lsp
+    enters_view: opaque
+    undo: delete bfd
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp bfd
+      line: 809
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-bgp-shortcut
+    syntax: bgp-shortcut <bgp-shortcut>
+    view: router.mpls.lsp
+    undo: delete bgp-shortcut
+    params:
+      bgp-shortcut:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp bgp-shortcut
+      line: 825
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-bgp-transport-tunnel
+    syntax: bgp-transport-tunnel <bgp-transport-tunnel>
+    view: router.mpls.lsp
+    undo: delete bgp-transport-tunnel
+    params:
+      bgp-transport-tunnel:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp bgp-transport-tunnel
+      line: 847
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-binding-sid
+    syntax: binding-sid <binding-sid>
+    view: router.mpls.lsp
+    undo: delete binding-sid
+    params:
+      binding-sid:
+        type: integer
+        range:
+          - 32
+          - 1048575
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp binding-sid
+      line: 869
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-class-forwarding
+    syntax: class-forwarding
+    view: router.mpls.lsp
+    enters_view: opaque
+    undo: delete class-forwarding
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp class-forwarding
+      line: 891
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-class-type
+    syntax: class-type <class-type>
+    view: router.mpls.lsp
+    undo: delete class-type
+    params:
+      class-type:
+        type: integer
+        range:
+          - 0
+          - 7
+    default: '0'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp class-type
+      line: 907
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-egress-statistics
+    syntax: egress-statistics
+    view: router.mpls.lsp
+    enters_view: opaque
+    undo: delete egress-statistics
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp egress-statistics
+      line: 933
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-entropy-label
+    syntax: entropy-label <entropy-label>
+    view: router.mpls.lsp
+    undo: delete entropy-label
+    params:
+      entropy-label:
+        type: enum
+        choices:
+          - 'false'
+          - 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp entropy-label
+      line: 949
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-exclude-admin-group
+    syntax: exclude-admin-group <exclude-admin-group>
+    view: router.mpls.lsp
+    undo: delete exclude-admin-group
+    params:
+      exclude-admin-group:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp exclude-admin-group
+      line: 971
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-exclude-node
+    syntax: exclude-node <exclude-node>
+    view: router.mpls.lsp
+    undo: delete exclude-node
+    params:
+      exclude-node:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp exclude-node
+      line: 993
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-fallback-path-computation-method
+    syntax: fallback-path-computation-method <fallback-path-computation-method>
+    view: router.mpls.lsp
+    undo: delete fallback-path-computation-method
+    params:
+      fallback-path-computation-method:
+        type: enum
+        choices:
+          - none
+          - local-cspf
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp fallback-path-computation-method
+      line: 1015
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-fast-reroute
+    syntax: fast-reroute
+    view: router.mpls.lsp
+    enters_view: opaque
+    undo: delete fast-reroute
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp fast-reroute
+      line: 1037
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-from
+    syntax: from <from>
+    view: router.mpls.lsp
+    undo: delete from
+    params:
+      from:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp from
+      line: 1053
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-hop-limit
+    syntax: hop-limit <hop-limit>
+    view: router.mpls.lsp
+    undo: delete hop-limit
+    params:
+      hop-limit:
+        type: integer
+        range:
+          - 2
+          - 255
+    default: '255'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp hop-limit
+      line: 1075
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-igp-shortcut
+    syntax: igp-shortcut
+    view: router.mpls.lsp
+    enters_view: opaque
+    undo: delete igp-shortcut
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp igp-shortcut
+      line: 1101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-include-admin-group
+    syntax: include-admin-group <include-admin-group>
+    view: router.mpls.lsp
+    undo: delete include-admin-group
+    params:
+      include-admin-group:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp include-admin-group
+      line: 1117
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-label-stack-reduction
+    syntax: label-stack-reduction <label-stack-reduction>
+    view: router.mpls.lsp
+    undo: delete label-stack-reduction
+    params:
+      label-stack-reduction:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp label-stack-reduction
+      line: 1139
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-ldp-over-rsvp
+    syntax: ldp-over-rsvp <ldp-over-rsvp>
+    view: router.mpls.lsp
+    undo: delete ldp-over-rsvp
+    params:
+      ldp-over-rsvp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp ldp-over-rsvp
+      line: 1165
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-least-fill
+    syntax: least-fill <least-fill>
+    view: router.mpls.lsp
+    undo: delete least-fill
+    params:
+      least-fill:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp least-fill
+      line: 1187
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-load-balancing-weight
+    syntax: load-balancing-weight <load-balancing-weight>
+    view: router.mpls.lsp
+    undo: delete load-balancing-weight
+    params:
+      load-balancing-weight:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp load-balancing-weight
+      line: 1213
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-local-sr-protection
+    syntax: local-sr-protection <local-sr-protection>
+    view: router.mpls.lsp
+    undo: delete local-sr-protection
+    params:
+      local-sr-protection:
+        type: enum
+        choices:
+          - none
+          - preferred
+          - mandatory
+    default: preferred
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp local-sr-protection
+      line: 1235
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-lsp-self-ping
+    syntax: lsp-self-ping <lsp-self-ping>
+    view: router.mpls.lsp
+    undo: delete lsp-self-ping
+    params:
+      lsp-self-ping:
+        type: enum
+        choices:
+          - 'false'
+          - 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp lsp-self-ping
+      line: 1261
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-main-ct-retry-limit
+    syntax: main-ct-retry-limit <main-ct-retry-limit>
+    view: router.mpls.lsp
+    undo: delete main-ct-retry-limit
+    params:
+      main-ct-retry-limit:
+        type: integer
+        range:
+          - 1
+          - 10000
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp main-ct-retry-limit
+      line: 1283
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-max-sr-labels
+    syntax: max-sr-labels
+    view: router.mpls.lsp
+    enters_view: opaque
+    undo: delete max-sr-labels
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp max-sr-labels
+      line: 1305
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-metric
+    syntax: metric <metric>
+    view: router.mpls.lsp
+    undo: delete metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 0
+          - 16777215
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp metric
+      line: 1321
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-metric-type
+    syntax: metric-type <metric-type>
+    view: router.mpls.lsp
+    undo: delete metric-type
+    params:
+      metric-type:
+        type: enum
+        choices:
+          - igp
+          - te
+          - delay
+    default: igp
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp metric-type
+      line: 1343
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-override-tunnel-elc
+    syntax: override-tunnel-elc <override-tunnel-elc>
+    view: router.mpls.lsp
+    undo: delete override-tunnel-elc
+    params:
+      override-tunnel-elc:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp override-tunnel-elc
+      line: 1369
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-p2mp-id
+    syntax: p2mp-id <p2mp-id>
+    view: router.mpls.lsp
+    undo: delete p2mp-id
+    params:
+      p2mp-id:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp p2mp-id
+      line: 1395
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-path-computation-method
+    syntax: path-computation-method <path-computation-method>
+    view: router.mpls.lsp
+    undo: delete path-computation-method
+    params:
+      path-computation-method:
+        type: enum
+        choices:
+          - local-cspf
+          - pce
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp path-computation-method
+      line: 1417
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-path-profile
+    syntax: path-profile <profile-id>
+    view: router.mpls.lsp
+    enters_view: opaque
+    undo: delete path-profile <profile-id>
+    params:
+      profile-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp path-profile
+      line: 1439
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-pce-associations
+    syntax: pce-associations
+    view: router.mpls.lsp
+    enters_view: opaque
+    undo: delete pce-associations
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp pce-associations
+      line: 1461
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-pce-control
+    syntax: pce-control <pce-control>
+    view: router.mpls.lsp
+    undo: delete pce-control
+    params:
+      pce-control:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp pce-control
+      line: 1477
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-pce-report
+    syntax: pce-report <pce-report>
+    view: router.mpls.lsp
+    undo: delete pce-report
+    params:
+      pce-report:
+        type: enum
+        choices:
+          - 'false'
+          - 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp pce-report
+      line: 1503
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-primary
+    syntax: primary <path-name>
+    view: router.mpls.lsp
+    enters_view: opaque
+    undo: delete primary <path-name>
+    params:
+      path-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp primary
+      line: 1525
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-primary-p2mp-instance
+    syntax: primary-p2mp-instance <instance-name>
+    view: router.mpls.lsp
+    enters_view: opaque
+    undo: delete primary-p2mp-instance <instance-name>
+    params:
+      instance-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp primary-p2mp-instance
+      line: 1547
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-propagate-admin-group
+    syntax: propagate-admin-group <propagate-admin-group>
+    view: router.mpls.lsp
+    undo: delete propagate-admin-group
+    params:
+      propagate-admin-group:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp propagate-admin-group
+      line: 1569
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-retry-limit
+    syntax: retry-limit <retry-limit>
+    view: router.mpls.lsp
+    undo: delete retry-limit
+    params:
+      retry-limit:
+        type: integer
+        range:
+          - 1
+          - 10000
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp retry-limit
+      line: 1595
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-retry-timer
+    syntax: retry-timer <retry-timer>
+    view: router.mpls.lsp
+    undo: delete retry-timer
+    params:
+      retry-timer:
+        type: integer
+        range:
+          - 1
+          - 600
+    default: '30'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp retry-timer
+      line: 1617
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-revert-timer
+    syntax: revert-timer <revert-timer>
+    view: router.mpls.lsp
+    undo: delete revert-timer
+    params:
+      revert-timer:
+        type: integer
+        range:
+          - 1
+          - 4320
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp revert-timer
+      line: 1643
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-rsvp-resv-style
+    syntax: rsvp-resv-style <rsvp-resv-style>
+    view: router.mpls.lsp
+    undo: delete rsvp-resv-style
+    params:
+      rsvp-resv-style:
+        type: enum
+        choices:
+          - se
+          - ff
+    default: se
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp rsvp-resv-style
+      line: 1665
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-secondary
+    syntax: secondary <path-name>
+    view: router.mpls.lsp
+    enters_view: opaque
+    undo: delete secondary <path-name>
+    params:
+      path-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp secondary
+      line: 1691
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-soft-preemption
+    syntax: soft-preemption <soft-preemption>
+    view: router.mpls.lsp
+    undo: delete soft-preemption
+    params:
+      soft-preemption:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp soft-preemption
+      line: 1713
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-to
+    syntax: to <to>
+    view: router.mpls.lsp
+    undo: delete to
+    params:
+      to:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp to
+      line: 1735
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-type
+    syntax: type <type>
+    view: router.mpls.lsp
+    undo: delete type
+    params:
+      type:
+        type: enum
+        choices:
+          - p2p-rsvp
+          - p2p-static-mpls
+          - p2p-rsvp-bypass
+          - p2mp-rsvp
+          - p2mp-rsvp-auto
+          - p2p-rsvp-mesh
+          - p2p-rsvp-one-hop
+          - p2p-sr-te
+          - p2p-sr-te-mesh
+          - p2p-sr-te-one-hop
+          - p2p-sr-te-pce-init
+          - p2p-sr-te-on-demand
+          - p2p-member
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp type
+      line: 1757
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-vprn-auto-bind
+    syntax: vprn-auto-bind <vprn-auto-bind>
+    view: router.mpls.lsp
+    undo: delete vprn-auto-bind
+    params:
+      vprn-auto-bind:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp vprn-auto-bind
+      line: 1783
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-bsid-block
+    syntax: lsp-bsid-block <lsp-bsid-block>
+    view: router.mpls
+    undo: delete lsp-bsid-block
+    params:
+      lsp-bsid-block:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp-bsid-block
+      line: 1805
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-container
+    syntax: lsp-container <container-name>
+    view: router.mpls
+    enters_view: opaque
+    undo: delete lsp-container <container-name>
+    params:
+      container-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp-container
+      line: 1827
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-history
+    syntax: lsp-history
+    view: router.mpls
+    enters_view: opaque
+    undo: delete lsp-history
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp-history
+      line: 1849
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-init-retry-timeout
+    syntax: lsp-init-retry-timeout <lsp-init-retry-timeout>
+    view: router.mpls
+    undo: delete lsp-init-retry-timeout
+    params:
+      lsp-init-retry-timeout:
+        type: integer
+        range:
+          - 10
+          - 600
+    default: '30'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp-init-retry-timeout
+      line: 1865
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-self-ping
+    syntax: lsp-self-ping
+    view: router.mpls
+    enters_view: opaque
+    undo: delete lsp-self-ping
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp-self-ping
+      line: 1891
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-lsp-template
+    syntax: lsp-template <template-name>
+    view: router.mpls
+    enters_view: opaque
+    undo: delete lsp-template <template-name>
+    params:
+      template-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls lsp-template
+      line: 1907
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-max-bypass-associations
+    syntax: max-bypass-associations <max-bypass-associations>
+    view: router.mpls
+    undo: delete max-bypass-associations
+    params:
+      max-bypass-associations:
+        type: integer
+        range:
+          - 100
+          - 131072
+    default: '1000'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls max-bypass-associations
+      line: 1929
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-max-bypass-plr-associations
+    syntax: max-bypass-plr-associations <max-bypass-plr-associations>
+    view: router.mpls
+    undo: delete max-bypass-plr-associations
+    params:
+      max-bypass-plr-associations:
+        type: integer
+        range:
+          - 1
+          - 16
+    default: '16'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls max-bypass-plr-associations
+      line: 1955
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-mbb-prefer-current-hops
+    syntax: mbb-prefer-current-hops <mbb-prefer-current-hops>
+    view: router.mpls
+    undo: delete mbb-prefer-current-hops
+    params:
+      mbb-prefer-current-hops:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls mbb-prefer-current-hops
+      line: 1981
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-p2mp-resignal-timer
+    syntax: p2mp-resignal-timer <p2mp-resignal-timer>
+    view: router.mpls
+    undo: delete p2mp-resignal-timer
+    params:
+      p2mp-resignal-timer:
+        type: integer
+        range:
+          - 60
+          - 10080
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls p2mp-resignal-timer
+      line: 2007
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-p2mp-s2l-fast-retry
+    syntax: p2mp-s2l-fast-retry <p2mp-s2l-fast-retry>
+    view: router.mpls
+    undo: delete p2mp-s2l-fast-retry
+    params:
+      p2mp-s2l-fast-retry:
+        type: integer
+        range:
+          - 1
+          - 10
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls p2mp-s2l-fast-retry
+      line: 2029
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-p2mp-ttl-propagate
+    syntax: p2mp-ttl-propagate <p2mp-ttl-propagate>
+    view: router.mpls
+    undo: delete p2mp-ttl-propagate
+    params:
+      p2mp-ttl-propagate:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls p2mp-ttl-propagate
+      line: 2051
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-p2p-active-path-fast-retry
+    syntax: p2p-active-path-fast-retry <p2p-active-path-fast-retry>
+    view: router.mpls
+    undo: delete p2p-active-path-fast-retry
+    params:
+      p2p-active-path-fast-retry:
+        type: integer
+        range:
+          - 1
+          - 10
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls p2p-active-path-fast-retry
+      line: 2077
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-path
+    syntax: path <path-name>
+    view: router.mpls
+    enters_view: router.mpls.path
+    undo: delete path <path-name>
+    params:
+      path-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls path
+      line: 2099
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-path-admin-state
+    syntax: admin-state <admin-state>
+    view: router.mpls.path
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls path admin-state
+      line: 2121
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-path-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.mpls.path
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls path apply-groups
+      line: 2147
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-path-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.mpls.path
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls path apply-groups-exclude
+      line: 2165
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-path-hop
+    syntax: hop <hop-index>
+    view: router.mpls.path
+    enters_view: router.mpls.path.hop
+    undo: delete hop <hop-index>
+    params:
+      hop-index:
+        type: integer
+        range:
+          - 1
+          - 1024
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls path hop
+      line: 2183
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-path-hop-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.mpls.path.hop
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls path hop apply-groups
+      line: 2205
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-path-hop-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.mpls.path.hop
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls path hop apply-groups-exclude
+      line: 2223
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-path-hop-ip-address
+    syntax: ip-address <ip-address>
+    view: router.mpls.path.hop
+    undo: delete ip-address
+    params:
+      ip-address:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls path hop ip-address
+      line: 2241
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-path-hop-sid-label
+    syntax: sid-label <sid-label>
+    view: router.mpls.path.hop
+    undo: delete sid-label
+    params:
+      sid-label:
+        type: integer
+        range:
+          - 32
+          - 1048575
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls path hop sid-label
+      line: 2267
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-path-hop-type
+    syntax: type <type>
+    view: router.mpls.path.hop
+    undo: delete type
+    params:
+      type:
+        type: enum
+        choices:
+          - strict
+          - loose
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls path hop type
+      line: 2293
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-pce-init-lsp
+    syntax: pce-init-lsp
+    view: router.mpls
+    enters_view: opaque
+    undo: delete pce-init-lsp
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls pce-init-lsp
+      line: 2319
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-pce-report
+    syntax: pce-report
+    view: router.mpls
+    enters_view: opaque
+    undo: delete pce-report
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls pce-report
+      line: 2335
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-resignal-on-igp-event
+    syntax: resignal-on-igp-event <resignal-on-igp-event>
+    view: router.mpls
+    undo: delete resignal-on-igp-event
+    params:
+      resignal-on-igp-event:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls resignal-on-igp-event
+      line: 2351
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-resignal-on-igp-overload
+    syntax: resignal-on-igp-overload <resignal-on-igp-overload>
+    view: router.mpls
+    undo: delete resignal-on-igp-overload
+    params:
+      resignal-on-igp-overload:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls resignal-on-igp-overload
+      line: 2377
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-resignal-timer
+    syntax: resignal-timer <resignal-timer>
+    view: router.mpls
+    undo: delete resignal-timer
+    params:
+      resignal-timer:
+        type: integer
+        range:
+          - 30
+          - 10080
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls resignal-timer
+      line: 2403
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-retry-on-igp-overload
+    syntax: retry-on-igp-overload <retry-on-igp-overload>
+    view: router.mpls
+    undo: delete retry-on-igp-overload
+    params:
+      retry-on-igp-overload:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls retry-on-igp-overload
+      line: 2425
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-secondary-fast-retry-timer
+    syntax: secondary-fast-retry-timer <secondary-fast-retry-timer>
+    view: router.mpls
+    undo: delete secondary-fast-retry-timer
+    params:
+      secondary-fast-retry-timer:
+        type: integer
+        range:
+          - 1
+          - 10
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls secondary-fast-retry-timer
+      line: 2451
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-shortcut-local-ttl-propagate
+    syntax: shortcut-local-ttl-propagate <shortcut-local-ttl-propagate>
+    view: router.mpls
+    undo: delete shortcut-local-ttl-propagate
+    params:
+      shortcut-local-ttl-propagate:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls shortcut-local-ttl-propagate
+      line: 2473
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-shortcut-transit-ttl-propagate
+    syntax: shortcut-transit-ttl-propagate <shortcut-transit-ttl-propagate>
+    view: router.mpls
+    undo: delete shortcut-transit-ttl-propagate
+    params:
+      shortcut-transit-ttl-propagate:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls shortcut-transit-ttl-propagate
+      line: 2499
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-sr-te-resignal
+    syntax: sr-te-resignal
+    view: router.mpls
+    enters_view: opaque
+    undo: delete sr-te-resignal
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls sr-te-resignal
+      line: 2525
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-srlg-database
+    syntax: srlg-database
+    view: router.mpls
+    enters_view: opaque
+    undo: delete srlg-database
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls srlg-database
+      line: 2541
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-srlg-frr
+    syntax: srlg-frr <srlg-frr>
+    view: router.mpls
+    undo: delete srlg-frr
+    params:
+      srlg-frr:
+        type: enum
+        choices:
+          - loose
+          - strict
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls srlg-frr
+      line: 2557
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-static-lsp
+    syntax: static-lsp <lsp-name>
+    view: router.mpls
+    enters_view: opaque
+    undo: delete static-lsp <lsp-name>
+    params:
+      lsp-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls static-lsp
+      line: 2579
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-static-lsp-fast-retry
+    syntax: static-lsp-fast-retry <static-lsp-fast-retry>
+    view: router.mpls
+    undo: delete static-lsp-fast-retry
+    params:
+      static-lsp-fast-retry:
+        type: integer
+        range:
+          - 1
+          - 30
+    default: '30'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls static-lsp-fast-retry
+      line: 2601
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-strict-ero-nhop-direct-resolution
+    syntax: strict-ero-nhop-direct-resolution <strict-ero-nhop-direct-resolution>
+    view: router.mpls
+    undo: delete strict-ero-nhop-direct-resolution
+    params:
+      strict-ero-nhop-direct-resolution:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls strict-ero-nhop-direct-resolution
+      line: 2627
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-tunnel-table-pref
+    syntax: tunnel-table-pref
+    view: router.mpls
+    enters_view: opaque
+    undo: delete tunnel-table-pref
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls tunnel-table-pref
+      line: 2653
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-user-srlg-db
+    syntax: user-srlg-db <user-srlg-db>
+    view: router.mpls
+    undo: delete user-srlg-db
+    params:
+      user-srlg-db:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls.md
+      title: router mpls user-srlg-db
+      line: 2669
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp
+    syntax: rsvp
+    view: router
+    enters_view: router.rsvp
+    undo: delete rsvp
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-admin-state
+    syntax: admin-state <admin-state>
+    view: router.rsvp
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp admin-state
+      line: 21
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.rsvp
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp apply-groups
+      line: 47
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.rsvp
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp apply-groups-exclude
+      line: 65
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-authentication-over-bypass
+    syntax: authentication-over-bypass <authentication-over-bypass>
+    view: router.rsvp
+    undo: delete authentication-over-bypass
+    params:
+      authentication-over-bypass:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp authentication-over-bypass
+      line: 83
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-dbw-accounting
+    syntax: dbw-accounting
+    view: router.rsvp
+    enters_view: opaque
+    undo: delete dbw-accounting
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp dbw-accounting
+      line: 109
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-diffserv-te
+    syntax: diffserv-te
+    view: router.rsvp
+    enters_view: opaque
+    undo: delete diffserv-te
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp diffserv-te
+      line: 125
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-entropy-label-capability
+    syntax: entropy-label-capability <entropy-label-capability>
+    view: router.rsvp
+    undo: delete entropy-label-capability
+    params:
+      entropy-label-capability:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp entropy-label-capability
+      line: 141
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-graceful-restart
+    syntax: graceful-restart
+    view: router.rsvp
+    enters_view: opaque
+    undo: delete graceful-restart
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp graceful-restart
+      line: 167
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-graceful-shutdown
+    syntax: graceful-shutdown <graceful-shutdown>
+    view: router.rsvp
+    undo: delete graceful-shutdown
+    params:
+      graceful-shutdown:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp graceful-shutdown
+      line: 183
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-implicit-null-label
+    syntax: implicit-null-label <implicit-null-label>
+    view: router.rsvp
+    undo: delete implicit-null-label
+    params:
+      implicit-null-label:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp implicit-null-label
+      line: 209
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-include-node-id-in-rro
+    syntax: include-node-id-in-rro <include-node-id-in-rro>
+    view: router.rsvp
+    undo: delete include-node-id-in-rro
+    params:
+      include-node-id-in-rro:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp include-node-id-in-rro
+      line: 235
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface
+    syntax: interface <interface-name>
+    view: router.rsvp
+    enters_view: router.rsvp.interface
+    undo: delete interface <interface-name>
+    params:
+      interface-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface
+      line: 261
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-admin-state
+    syntax: admin-state <admin-state>
+    view: router.rsvp.interface
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface admin-state
+      line: 283
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.rsvp.interface
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface apply-groups
+      line: 309
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.rsvp.interface
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface apply-groups-exclude
+      line: 327
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-authentication-key
+    syntax: authentication-key <authentication-key> [ hash | hash2 | custom ]
+    view: router.rsvp.interface
+    undo: delete authentication-key
+    params:
+      authentication-key:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface authentication-key
+      line: 345
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-authentication-keychain
+    syntax: authentication-keychain <authentication-keychain>
+    view: router.rsvp.interface
+    undo: delete authentication-keychain
+    params:
+      authentication-keychain:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface authentication-keychain
+      line: 367
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-bfd-liveness
+    syntax: bfd-liveness <bfd-liveness>
+    view: router.rsvp.interface
+    undo: delete bfd-liveness
+    params:
+      bfd-liveness:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface bfd-liveness
+      line: 389
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-class-type-bw
+    syntax: class-type-bw
+    view: router.rsvp.interface
+    enters_view: opaque
+    undo: delete class-type-bw
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface class-type-bw
+      line: 415
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-dbw-down-threshold
+    syntax: dbw-down-threshold
+    view: router.rsvp.interface
+    enters_view: opaque
+    undo: delete dbw-down-threshold
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface dbw-down-threshold
+      line: 431
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-dbw-multiplier
+    syntax: dbw-multiplier <dbw-multiplier>
+    view: router.rsvp.interface
+    undo: delete dbw-multiplier
+    params:
+      dbw-multiplier:
+        type: integer
+        range:
+          - 0
+          - 1000
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface dbw-multiplier
+      line: 447
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-dbw-up-threshold
+    syntax: dbw-up-threshold
+    view: router.rsvp.interface
+    enters_view: opaque
+    undo: delete dbw-up-threshold
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface dbw-up-threshold
+      line: 469
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-graceful-restart-helper-mode
+    syntax: graceful-restart-helper-mode <graceful-restart-helper-mode>
+    view: router.rsvp.interface
+    undo: delete graceful-restart-helper-mode
+    params:
+      graceful-restart-helper-mode:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface graceful-restart-helper-mode
+      line: 485
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-graceful-shutdown
+    syntax: graceful-shutdown <graceful-shutdown>
+    view: router.rsvp.interface
+    undo: delete graceful-shutdown
+    params:
+      graceful-shutdown:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface graceful-shutdown
+      line: 511
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-hello-interval
+    syntax: hello-interval <hello-interval>
+    view: router.rsvp.interface
+    undo: delete hello-interval
+    params:
+      hello-interval:
+        type: integer
+        range:
+          - 0
+          - 60
+    default: '3'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface hello-interval
+      line: 537
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-implicit-null-label
+    syntax: implicit-null-label <implicit-null-label>
+    view: router.rsvp.interface
+    undo: delete implicit-null-label
+    params:
+      implicit-null-label:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface implicit-null-label
+      line: 563
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-refresh-reduction
+    syntax: refresh-reduction
+    view: router.rsvp.interface
+    enters_view: opaque
+    undo: delete refresh-reduction
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface refresh-reduction
+      line: 585
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-subscription
+    syntax: subscription <subscription>
+    view: router.rsvp.interface
+    undo: delete subscription
+    params:
+      subscription:
+        type: integer
+        range:
+          - 0
+          - 1000
+    default: '100'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface subscription
+      line: 601
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-te-down-threshold
+    syntax: te-down-threshold
+    view: router.rsvp.interface
+    enters_view: opaque
+    undo: delete te-down-threshold
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface te-down-threshold
+      line: 627
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-interface-te-up-threshold
+    syntax: te-up-threshold
+    view: router.rsvp.interface
+    enters_view: opaque
+    undo: delete te-up-threshold
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp interface te-up-threshold
+      line: 643
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-keep-multiplier
+    syntax: keep-multiplier <keep-multiplier>
+    view: router.rsvp
+    undo: delete keep-multiplier
+    params:
+      keep-multiplier:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '3'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp keep-multiplier
+      line: 659
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-msg-pacing
+    syntax: msg-pacing
+    view: router.rsvp
+    enters_view: opaque
+    undo: delete msg-pacing
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp msg-pacing
+      line: 685
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-p2mp-merge-point-abort-timer
+    syntax: p2mp-merge-point-abort-timer <p2mp-merge-point-abort-timer>
+    view: router.rsvp
+    undo: delete p2mp-merge-point-abort-timer
+    params:
+      p2mp-merge-point-abort-timer:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp p2mp-merge-point-abort-timer
+      line: 701
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-p2p-merge-point-abort-timer
+    syntax: p2p-merge-point-abort-timer <p2p-merge-point-abort-timer>
+    view: router.rsvp
+    undo: delete p2p-merge-point-abort-timer
+    params:
+      p2p-merge-point-abort-timer:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp p2p-merge-point-abort-timer
+      line: 723
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-preemption-timer
+    syntax: preemption-timer <preemption-timer>
+    view: router.rsvp
+    undo: delete preemption-timer
+    params:
+      preemption-timer:
+        type: integer
+        range:
+          - 0
+          - 1800
+    default: '300'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp preemption-timer
+      line: 745
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-rapid-retransmit-time
+    syntax: rapid-retransmit-time <rapid-retransmit-time>
+    view: router.rsvp
+    undo: delete rapid-retransmit-time
+    params:
+      rapid-retransmit-time:
+        type: integer
+        range:
+          - 1
+          - 100
+    default: '5'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp rapid-retransmit-time
+      line: 771
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-rapid-retry-limit
+    syntax: rapid-retry-limit <rapid-retry-limit>
+    view: router.rsvp
+    undo: delete rapid-retry-limit
+    params:
+      rapid-retry-limit:
+        type: integer
+        range:
+          - 1
+          - 6
+    default: '3'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp rapid-retry-limit
+      line: 797
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-refresh-reduction-over-bypass
+    syntax: refresh-reduction-over-bypass <refresh-reduction-over-bypass>
+    view: router.rsvp
+    undo: delete refresh-reduction-over-bypass
+    params:
+      refresh-reduction-over-bypass:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp refresh-reduction-over-bypass
+      line: 823
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-refresh-time
+    syntax: refresh-time <refresh-time>
+    view: router.rsvp
+    undo: delete refresh-time
+    params:
+      refresh-time:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: '30'
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp refresh-time
+      line: 849
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-te-down-threshold
+    syntax: te-down-threshold <te-down-threshold>
+    view: router.rsvp
+    undo: delete te-down-threshold
+    params:
+      te-down-threshold:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp te-down-threshold
+      line: 875
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-te-threshold-update
+    syntax: te-threshold-update
+    view: router.rsvp
+    enters_view: opaque
+    undo: delete te-threshold-update
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp te-threshold-update
+      line: 901
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-rsvp-te-up-threshold
+    syntax: te-up-threshold <te-up-threshold>
+    view: router.rsvp
+    undo: delete te-up-threshold
+    params:
+      te-up-threshold:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.rsvp.md
+      title: router rsvp te-up-threshold
+      line: 917
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp
+    syntax: ldp
+    view: router
+    enters_view: router.ldp
+    undo: delete ldp
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      mpls.ldp: _
+  - id: nokia-sros-md.router-ldp-admin-state
+    syntax: admin-state <admin-state>
+    view: router.ldp
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp admin-state
+      line: 21
+      version: 25.10.R1
+    status: draft
+    maps:
+      mpls.ldp.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-ldp-aggregate-prefix-match
+    syntax: aggregate-prefix-match
+    view: router.ldp
+    enters_view: opaque
+    undo: delete aggregate-prefix-match
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp aggregate-prefix-match
+      line: 47
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.ldp
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp apply-groups
+      line: 63
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.ldp
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp apply-groups-exclude
+      line: 81
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-class-forwarding
+    syntax: class-forwarding <class-forwarding>
+    view: router.ldp
+    undo: delete class-forwarding
+    params:
+      class-forwarding:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp class-forwarding
+      line: 99
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-consider-system-ip-in-gep
+    syntax: consider-system-ip-in-gep <consider-system-ip-in-gep>
+    view: router.ldp
+    undo: delete consider-system-ip-in-gep
+    params:
+      consider-system-ip-in-gep:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp consider-system-ip-in-gep
+      line: 121
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-egress-statistics
+    syntax: egress-statistics
+    view: router.ldp
+    enters_view: opaque
+    undo: delete egress-statistics
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp egress-statistics
+      line: 147
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-entropy-label-capability
+    syntax: entropy-label-capability <entropy-label-capability>
+    view: router.ldp
+    undo: delete entropy-label-capability
+    params:
+      entropy-label-capability:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp entropy-label-capability
+      line: 163
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-export-policy
+    syntax: export-policy <export-policy>
+    view: router.ldp
+    undo: delete export-policy
+    params:
+      export-policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp export-policy
+      line: 189
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-export-tunnel-table
+    syntax: export-tunnel-table <export-tunnel-table>
+    view: router.ldp
+    undo: delete export-tunnel-table
+    params:
+      export-tunnel-table:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp export-tunnel-table
+      line: 215
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-fast-reroute
+    syntax: fast-reroute
+    view: router.ldp
+    enters_view: opaque
+    undo: delete fast-reroute
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp fast-reroute
+      line: 241
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-fec-originate
+    syntax: fec-originate <fec-prefix>
+    view: router.ldp
+    enters_view: opaque
+    undo: delete fec-originate <fec-prefix>
+    params:
+      fec-prefix:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp fec-originate
+      line: 257
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-generate-basic-fec-only
+    syntax: generate-basic-fec-only <generate-basic-fec-only>
+    view: router.ldp
+    undo: delete generate-basic-fec-only
+    params:
+      generate-basic-fec-only:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp generate-basic-fec-only
+      line: 279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-graceful-restart
+    syntax: graceful-restart
+    view: router.ldp
+    enters_view: opaque
+    undo: delete graceful-restart
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp graceful-restart
+      line: 305
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-implicit-null-label
+    syntax: implicit-null-label <implicit-null-label>
+    view: router.ldp
+    undo: delete implicit-null-label
+    params:
+      implicit-null-label:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp implicit-null-label
+      line: 321
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-import-mcast-policy
+    syntax: import-mcast-policy <import-mcast-policy>
+    view: router.ldp
+    undo: delete import-mcast-policy
+    params:
+      import-mcast-policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp import-mcast-policy
+      line: 347
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-import-pmsi-routes
+    syntax: import-pmsi-routes
+    view: router.ldp
+    enters_view: opaque
+    undo: delete import-pmsi-routes
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp import-pmsi-routes
+      line: 373
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-import-policy
+    syntax: import-policy <import-policy>
+    view: router.ldp
+    undo: delete import-policy
+    params:
+      import-policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp import-policy
+      line: 389
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-import-tunnel-table
+    syntax: import-tunnel-table <import-tunnel-table>
+    view: router.ldp
+    undo: delete import-tunnel-table
+    params:
+      import-tunnel-table:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp import-tunnel-table
+      line: 415
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters
+    syntax: interface-parameters
+    view: router.ldp
+    enters_view: router.ldp.interface-parameters
+    undo: delete interface-parameters
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters
+      line: 441
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface
+    syntax: interface <ip-int-name>
+    view: router.ldp.interface-parameters
+    enters_view: router.ldp.interface-parameters.interface
+    undo: delete interface <ip-int-name>
+    params:
+      ip-int-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface
+      line: 457
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface{name=$ip-int-name}.mpls: _
+      interface{name=$ip-int-name}.mpls.ldp: 'true'
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-admin-state
+    syntax: admin-state <admin-state>
+    view: router.ldp.interface-parameters.interface
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface admin-state
+      line: 479
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.mpls.ldp: kw:enable=true|disable=false
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.ldp.interface-parameters.interface
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface apply-groups
+      line: 505
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.ldp.interface-parameters.interface
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface apply-groups-exclude
+      line: 523
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-bfd-liveness
+    syntax: bfd-liveness
+    view: router.ldp.interface-parameters.interface
+    enters_view: opaque
+    undo: delete bfd-liveness
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface bfd-liveness
+      line: 541
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-ipv4
+    syntax: ipv4
+    view: router.ldp.interface-parameters.interface
+    enters_view: router.ldp.interface-parameters.interface.ipv4
+    undo: delete ipv4
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface ipv4
+      line: 557
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-ipv4-admin-state
+    syntax: admin-state <admin-state>
+    view: router.ldp.interface-parameters.interface.ipv4
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface ipv4 admin-state
+      line: 573
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.mpls.ldp: kw:enable=true|disable=false
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-ipv4-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.ldp.interface-parameters.interface.ipv4
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface ipv4 apply-groups
+      line: 599
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-ipv4-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.ldp.interface-parameters.interface.ipv4
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface ipv4 apply-groups-exclude
+      line: 617
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-ipv4-fec-type-capability
+    syntax: fec-type-capability
+    view: router.ldp.interface-parameters.interface.ipv4
+    enters_view: opaque
+    undo: delete fec-type-capability
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface ipv4 fec-type-capability
+      line: 635
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-ipv4-hello
+    syntax: hello
+    view: router.ldp.interface-parameters.interface.ipv4
+    enters_view: opaque
+    undo: delete hello
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface ipv4 hello
+      line: 651
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-ipv4-keepalive
+    syntax: keepalive
+    view: router.ldp.interface-parameters.interface.ipv4
+    enters_view: opaque
+    undo: delete keepalive
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface ipv4 keepalive
+      line: 667
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-ipv4-local-lsr-id
+    syntax: local-lsr-id
+    view: router.ldp.interface-parameters.interface.ipv4
+    enters_view: opaque
+    undo: delete local-lsr-id
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface ipv4 local-lsr-id
+      line: 683
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-ipv4-transport-address
+    syntax: transport-address <transport-address>
+    view: router.ldp.interface-parameters.interface.ipv4
+    undo: delete transport-address
+    params:
+      transport-address:
+        type: enum
+        choices:
+          - interface
+          - system
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface ipv4 transport-address
+      line: 699
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.mpls.ldp_transport_address: $transport-address
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-ipv6
+    syntax: ipv6
+    view: router.ldp.interface-parameters.interface
+    enters_view: opaque
+    undo: delete ipv6
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface ipv6
+      line: 721
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters-interface-load-balancing-weight
+    syntax: load-balancing-weight <load-balancing-weight>
+    view: router.ldp.interface-parameters.interface
+    undo: delete load-balancing-weight
+    params:
+      load-balancing-weight:
+        type: integer
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters interface load-balancing-weight
+      line: 737
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters-ipv4
+    syntax: ipv4
+    view: router.ldp.interface-parameters
+    enters_view: opaque
+    undo: delete ipv4
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters ipv4
+      line: 759
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-interface-parameters-ipv6
+    syntax: ipv6
+    view: router.ldp.interface-parameters
+    enters_view: opaque
+    undo: delete ipv6
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp interface-parameters ipv6
+      line: 775
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-label-withdrawal-delay
+    syntax: label-withdrawal-delay <label-withdrawal-delay>
+    view: router.ldp
+    undo: delete label-withdrawal-delay
+    params:
+      label-withdrawal-delay:
+        type: integer
+        range:
+          - 3
+          - 120
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp label-withdrawal-delay
+      line: 791
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-ldp-shortcut
+    syntax: ldp-shortcut
+    view: router.ldp
+    enters_view: opaque
+    undo: delete ldp-shortcut
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp ldp-shortcut
+      line: 813
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-legacy-ipv4-lsr-interop
+    syntax: legacy-ipv4-lsr-interop <legacy-ipv4-lsr-interop>
+    view: router.ldp
+    undo: delete legacy-ipv4-lsr-interop
+    params:
+      legacy-ipv4-lsr-interop:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp legacy-ipv4-lsr-interop
+      line: 829
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-lsp-bfd
+    syntax: lsp-bfd <prefix-list>
+    view: router.ldp
+    enters_view: opaque
+    undo: delete lsp-bfd <prefix-list>
+    params:
+      prefix-list:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp lsp-bfd
+      line: 855
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-max-ecmp-routes
+    syntax: max-ecmp-routes <max-ecmp-routes>
+    view: router.ldp
+    undo: delete max-ecmp-routes
+    params:
+      max-ecmp-routes:
+        type: integer
+        range:
+          - 1
+          - 64
+    default: '32'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp max-ecmp-routes
+      line: 877
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-mcast-upstream-asbr-frr
+    syntax: mcast-upstream-asbr-frr <mcast-upstream-asbr-frr>
+    view: router.ldp
+    undo: delete mcast-upstream-asbr-frr
+    params:
+      mcast-upstream-asbr-frr:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp mcast-upstream-asbr-frr
+      line: 903
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-mcast-upstream-frr
+    syntax: mcast-upstream-frr <mcast-upstream-frr>
+    view: router.ldp
+    undo: delete mcast-upstream-frr
+    params:
+      mcast-upstream-frr:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp mcast-upstream-frr
+      line: 929
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-mp-mbb-time
+    syntax: mp-mbb-time <mp-mbb-time>
+    view: router.ldp
+    undo: delete mp-mbb-time
+    params:
+      mp-mbb-time:
+        type: integer
+        range:
+          - 0
+          - 10
+    default: '3'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp mp-mbb-time
+      line: 955
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-prefer-mcast-tunnel-in-tunnel
+    syntax: prefer-mcast-tunnel-in-tunnel <prefer-mcast-tunnel-in-tunnel>
+    view: router.ldp
+    undo: delete prefer-mcast-tunnel-in-tunnel
+    params:
+      prefer-mcast-tunnel-in-tunnel:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp prefer-mcast-tunnel-in-tunnel
+      line: 981
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-prefer-protocol-stitching
+    syntax: prefer-protocol-stitching <prefer-protocol-stitching>
+    view: router.ldp
+    undo: delete prefer-protocol-stitching
+    params:
+      prefer-protocol-stitching:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp prefer-protocol-stitching
+      line: 1007
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-prefer-tunnel-in-tunnel
+    syntax: prefer-tunnel-in-tunnel <prefer-tunnel-in-tunnel>
+    view: router.ldp
+    undo: delete prefer-tunnel-in-tunnel
+    params:
+      prefer-tunnel-in-tunnel:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp prefer-tunnel-in-tunnel
+      line: 1033
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-resolve-root-using
+    syntax: resolve-root-using <resolve-root-using>
+    view: router.ldp
+    undo: delete resolve-root-using
+    params:
+      resolve-root-using:
+        type: enum
+        choices:
+          - ucast-rtm
+          - mcast-rtm
+    default: ucast-rtm
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp resolve-root-using
+      line: 1059
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-session-parameters
+    syntax: session-parameters
+    view: router.ldp
+    enters_view: opaque
+    undo: delete session-parameters
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp session-parameters
+      line: 1085
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-shortcut-local-ttl-propagate
+    syntax: shortcut-local-ttl-propagate <shortcut-local-ttl-propagate>
+    view: router.ldp
+    undo: delete shortcut-local-ttl-propagate
+    params:
+      shortcut-local-ttl-propagate:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp shortcut-local-ttl-propagate
+      line: 1101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-shortcut-transit-ttl-propagate
+    syntax: shortcut-transit-ttl-propagate <shortcut-transit-ttl-propagate>
+    view: router.ldp
+    undo: delete shortcut-transit-ttl-propagate
+    params:
+      shortcut-transit-ttl-propagate:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp shortcut-transit-ttl-propagate
+      line: 1127
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session
+    syntax: targeted-session
+    view: router.ldp
+    enters_view: router.ldp.targeted-session
+    undo: delete targeted-session
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session
+      line: 1153
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-ldp-targeted-session-auto-rx
+    syntax: auto-rx
+    view: router.ldp.targeted-session
+    enters_view: opaque
+    undo: delete auto-rx
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session auto-rx
+      line: 1169
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-auto-tx
+    syntax: auto-tx
+    view: router.ldp.targeted-session
+    enters_view: opaque
+    undo: delete auto-tx
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session auto-tx
+      line: 1185
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-export-prefixes
+    syntax: export-prefixes <export-prefixes>
+    view: router.ldp.targeted-session
+    undo: delete export-prefixes
+    params:
+      export-prefixes:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session export-prefixes
+      line: 1201
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-import-prefixes
+    syntax: import-prefixes <import-prefixes>
+    view: router.ldp.targeted-session
+    undo: delete import-prefixes
+    params:
+      import-prefixes:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session import-prefixes
+      line: 1227
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-ipv4
+    syntax: ipv4
+    view: router.ldp.targeted-session
+    enters_view: opaque
+    undo: delete ipv4
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session ipv4
+      line: 1253
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-ipv6
+    syntax: ipv6
+    view: router.ldp.targeted-session
+    enters_view: opaque
+    undo: delete ipv6
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session ipv6
+      line: 1269
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-peer
+    syntax: peer <ip-address>
+    view: router.ldp.targeted-session
+    enters_view: router.ldp.targeted-session.peer
+    undo: delete peer <ip-address>
+    params:
+      ip-address:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer
+      line: 1285
+      version: 25.10.R1
+    status: draft
+    maps:
+      mpls.ldp.remote_peer: $ip-address
+      mpls.ldp.remote_peer.remote_ip: $ip-address
+  - id: nokia-sros-md.router-ldp-targeted-session-peer-admin-state
+    syntax: admin-state <admin-state>
+    view: router.ldp.targeted-session.peer
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer admin-state
+      line: 1307
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-peer-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.ldp.targeted-session.peer
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer apply-groups
+      line: 1333
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-peer-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.ldp.targeted-session.peer
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer apply-groups-exclude
+      line: 1351
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-peer-bfd-liveness
+    syntax: bfd-liveness <bfd-liveness>
+    view: router.ldp.targeted-session.peer
+    undo: delete bfd-liveness
+    params:
+      bfd-liveness:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer bfd-liveness
+      line: 1369
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-peer-hello
+    syntax: hello
+    view: router.ldp.targeted-session.peer
+    enters_view: opaque
+    undo: delete hello
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer hello
+      line: 1395
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-peer-hello-reduction
+    syntax: hello-reduction
+    view: router.ldp.targeted-session.peer
+    enters_view: opaque
+    undo: delete hello-reduction
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer hello-reduction
+      line: 1411
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-peer-keepalive
+    syntax: keepalive
+    view: router.ldp.targeted-session.peer
+    enters_view: opaque
+    undo: delete keepalive
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer keepalive
+      line: 1427
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-peer-local-lsr-id
+    syntax: local-lsr-id
+    view: router.ldp.targeted-session.peer
+    enters_view: opaque
+    undo: delete local-lsr-id
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer local-lsr-id
+      line: 1443
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-peer-mcast-tunneling
+    syntax: mcast-tunneling
+    view: router.ldp.targeted-session.peer
+    enters_view: opaque
+    undo: delete mcast-tunneling
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer mcast-tunneling
+      line: 1459
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-peer-tunneling
+    syntax: tunneling
+    view: router.ldp.targeted-session.peer
+    enters_view: opaque
+    undo: delete tunneling
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer tunneling
+      line: 1475
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-peer-template
+    syntax: peer-template <template-name>
+    view: router.ldp.targeted-session
+    enters_view: opaque
+    undo: delete peer-template <template-name>
+    params:
+      template-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer-template
+      line: 1491
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-peer-template-map
+    syntax: peer-template-map <template-map-name>
+    view: router.ldp.targeted-session
+    enters_view: opaque
+    undo: delete peer-template-map <template-map-name>
+    params:
+      template-map-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session peer-template-map
+      line: 1513
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-resolve-v6-prefix-over-shortcut
+    syntax: resolve-v6-prefix-over-shortcut <resolve-v6-prefix-over-shortcut>
+    view: router.ldp.targeted-session
+    undo: delete resolve-v6-prefix-over-shortcut
+    params:
+      resolve-v6-prefix-over-shortcut:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session resolve-v6-prefix-over-shortcut
+      line: 1535
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-targeted-session-sdp-auto-targeted-session
+    syntax: sdp-auto-targeted-session <sdp-auto-targeted-session>
+    view: router.ldp.targeted-session
+    undo: delete sdp-auto-targeted-session
+    params:
+      sdp-auto-targeted-session:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp targeted-session sdp-auto-targeted-session
+      line: 1561
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-tcp-session-parameters
+    syntax: tcp-session-parameters
+    view: router.ldp
+    enters_view: opaque
+    undo: delete tcp-session-parameters
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp tcp-session-parameters
+      line: 1587
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-tunnel-down-damp-time
+    syntax: tunnel-down-damp-time <tunnel-down-damp-time>
+    view: router.ldp
+    undo: delete tunnel-down-damp-time
+    params:
+      tunnel-down-damp-time:
+        type: integer
+        range:
+          - 0
+          - 20
+    default: '3'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp tunnel-down-damp-time
+      line: 1603
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-tunnel-table-pref
+    syntax: tunnel-table-pref <tunnel-table-pref>
+    view: router.ldp
+    undo: delete tunnel-table-pref
+    params:
+      tunnel-table-pref:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '9'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp tunnel-table-pref
+      line: 1629
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ldp-weighted-ecmp
+    syntax: weighted-ecmp <weighted-ecmp>
+    view: router.ldp
+    undo: delete weighted-ecmp
+    params:
+      weighted-ecmp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.ldp.md
+      title: router ldp weighted-ecmp
+      line: 1655
+      version: 25.10.R1
+    status: draft

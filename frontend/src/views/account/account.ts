@@ -5,13 +5,17 @@ export const MIN_PASSWORD = 8
 export interface UserRow {
   id: number
   username: string
-  role: 'admin' | 'user'
+  role: 'admin' | 'maintainer' | 'user'
   disabled: boolean
   locked: boolean
   locked_until: string | null
   last_login_at: string | null
   password_changed_at: string | null
   created_at: string | null
+  /** 拥有的非空项目数（M6） */
+  projects?: number
+  /** 有效的个人 API 令牌数（M6） */
+  tokens?: number
 }
 
 export type Problem = 'short' | 'mismatch' | 'same'
@@ -79,11 +83,50 @@ export function shortTime(iso: string | null): string {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-export function counts(rows: UserRow[]): { all: number; admin: number; locked: number; disabled: number } {
+export function counts(rows: UserRow[]): { all: number; admin: number; maint: number; locked: number; disabled: number } {
   return {
     all: rows.length,
     admin: rows.filter((u) => u.role === 'admin').length,
+    maint: rows.filter((u) => u.role === 'maintainer').length,
     locked: rows.filter((u) => stateOf(u) === 'locked').length,
     disabled: rows.filter((u) => u.disabled).length,
   }
 }
+
+export const ROLES = ['user', 'maintainer', 'admin'] as const
+export type AccountRole = (typeof ROLES)[number]
+
+/** 账号拥有的非空项目（GET /users/{u}/projects）。 */
+export interface OwnedProject { id: number; slug: string; name: string; devices: number; scripts: number }
+
+/** 删除账号时可以接收项目的账号：启用中、不是被删除的账号本身。 */
+export function transferTargets(rows: UserRow[], deleting: string): string[] {
+  return rows.filter((u) => !u.disabled && u.username !== deleting).map((u) => u.username)
+}
+
+/** 删除账号的请求路径：拥有项目时必须选择转交（transfer_to）或一并删除（delete_projects）。 */
+export function deleteUserPath(username: string, owned: number, mode: 'transfer' | 'delete', to: string): string | null {
+  const base = `/users/${encodeURIComponent(username)}`
+  if (!owned) return base
+  if (mode === 'delete') return `${base}?delete_projects=true`
+  return to ? `${base}?transfer_to=${encodeURIComponent(to)}` : null
+}
+
+/**
+ * 角色权限矩阵（REQ-036，依据 docs/project-spec.md“权限模型”的实现结果与 api/access.py）：
+ * y 可修改 / c 可查看与计算 / r 只读 / s 只读、可提建议 / n 不可用。列：管理员、维护员、普通用户（属主 / 可编辑）、只读成员。
+ */
+export type Perm = 'y' | 'c' | 'r' | 's' | 'n'
+export const PERM_MATRIX: { key: string; cells: [Perm, Perm, Perm, Perm] }[] = [
+  { key: 'kb', cells: ['y', 'y', 's', 's'] },
+  { key: 'release', cells: ['y', 'y', 'r', 'r'] },
+  { key: 'shared', cells: ['y', 'y', 's', 's'] },
+  { key: 'ruleAdjust', cells: ['y', 'y', 'y', 'r'] },
+  { key: 'mine', cells: ['y', 'y', 'y', 'y'] },
+  { key: 'projWrite', cells: ['y', 'y', 'y', 'r'] },
+  { key: 'projCompute', cells: ['y', 'y', 'y', 'c'] },
+  { key: 'rebuildProject', cells: ['y', 'y', 'y', 'n'] },
+  { key: 'rebuildAll', cells: ['y', 'n', 'n', 'n'] },
+  { key: 'public', cells: ['y', 'r', 'r', 'r'] },
+  { key: 'system', cells: ['y', 'n', 'n', 'n'] },
+]

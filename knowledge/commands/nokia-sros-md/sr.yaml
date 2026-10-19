@@ -1,0 +1,744 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: sr
+cards:
+  - id: nokia-sros-md.router-isis-segment-routing
+    syntax: segment-routing
+    view: router.isis
+    enters_view: router.isis.segment-routing
+    undo: delete segment-routing
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-isis-segment-routing-adj-sid-hold
+    syntax: adj-sid-hold <adj-sid-hold>
+    view: router.isis.segment-routing
+    undo: delete adj-sid-hold
+    params:
+      adj-sid-hold:
+        type: word
+    default: '15'
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing adj-sid-hold
+      line: 21
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-adjacency-set
+    syntax: adjacency-set <id>
+    view: router.isis.segment-routing
+    enters_view: opaque
+    undo: delete adjacency-set <id>
+    params:
+      id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing adjacency-set
+      line: 47
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-adjacency-sid
+    syntax: adjacency-sid
+    view: router.isis.segment-routing
+    enters_view: opaque
+    undo: delete adjacency-sid
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing adjacency-sid
+      line: 69
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-admin-state
+    syntax: admin-state <admin-state>
+    view: router.isis.segment-routing
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing admin-state
+      line: 85
+      version: 25.10.R1
+    status: draft
+    maps:
+      isis.process.sr_mpls: kw:enable=true|disable=false
+  - id: nokia-sros-md.router-isis-segment-routing-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.isis.segment-routing
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing apply-groups
+      line: 111
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.isis.segment-routing
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing apply-groups-exclude
+      line: 129
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-class-forwarding
+    syntax: class-forwarding <class-forwarding>
+    view: router.isis.segment-routing
+    undo: delete class-forwarding
+    params:
+      class-forwarding:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing class-forwarding
+      line: 147
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-egress-statistics
+    syntax: egress-statistics
+    view: router.isis.segment-routing
+    enters_view: opaque
+    undo: delete egress-statistics
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing egress-statistics
+      line: 173
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-entropy-label
+    syntax: entropy-label <entropy-label>
+    view: router.isis.segment-routing
+    undo: delete entropy-label
+    params:
+      entropy-label:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing entropy-label
+      line: 189
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-export-tunnel-table
+    syntax: export-tunnel-table <export-tunnel-table>
+    view: router.isis.segment-routing
+    undo: delete export-tunnel-table
+    params:
+      export-tunnel-table:
+        type: enum
+        choices:
+          - ldp
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing export-tunnel-table
+      line: 211
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-ingress-statistics
+    syntax: ingress-statistics
+    view: router.isis.segment-routing
+    enters_view: opaque
+    undo: delete ingress-statistics
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing ingress-statistics
+      line: 233
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-mapping-server
+    syntax: mapping-server
+    view: router.isis.segment-routing
+    enters_view: opaque
+    undo: delete mapping-server
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing mapping-server
+      line: 249
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-maximum-sid-depth
+    syntax: maximum-sid-depth
+    view: router.isis.segment-routing
+    enters_view: opaque
+    undo: delete maximum-sid-depth
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing maximum-sid-depth
+      line: 265
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-micro-loop-avoidance
+    syntax: micro-loop-avoidance
+    view: router.isis.segment-routing
+    enters_view: opaque
+    undo: delete micro-loop-avoidance
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing micro-loop-avoidance
+      line: 281
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-multi-topology
+    syntax: multi-topology
+    view: router.isis.segment-routing
+    enters_view: opaque
+    undo: delete multi-topology
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing multi-topology
+      line: 297
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-prefix-sid-range
+    syntax: prefix-sid-range
+    view: router.isis.segment-routing
+    enters_view: opaque
+    undo: delete prefix-sid-range
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing prefix-sid-range
+      line: 313
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-srlb
+    syntax: srlb <srlb>
+    view: router.isis.segment-routing
+    undo: delete srlb
+    params:
+      srlb:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing srlb
+      line: 329
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-tunnel-mtu
+    syntax: tunnel-mtu <tunnel-mtu>
+    view: router.isis.segment-routing
+    undo: delete tunnel-mtu
+    params:
+      tunnel-mtu:
+        type: integer
+        range:
+          - 512
+          - 9786
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing tunnel-mtu
+      line: 351
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-tunnel-table-pref
+    syntax: tunnel-table-pref <tunnel-table-pref>
+    view: router.isis.segment-routing
+    undo: delete tunnel-table-pref
+    params:
+      tunnel-table-pref:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '11'
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing tunnel-table-pref
+      line: 373
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-segment-routing-v6
+    syntax: segment-routing-v6
+    view: router.isis
+    enters_view: opaque
+    undo: delete segment-routing-v6
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router isis segment-routing-v6
+      line: 399
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing
+    syntax: segment-routing
+    view: router.ospf
+    enters_view: router.ospf.segment-routing
+    undo: delete segment-routing
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing
+      line: 415
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-ospf-segment-routing-adj-sid-hold
+    syntax: adj-sid-hold <adj-sid-hold>
+    view: router.ospf.segment-routing
+    undo: delete adj-sid-hold
+    params:
+      adj-sid-hold:
+        type: word
+    default: '15'
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing adj-sid-hold
+      line: 431
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-adjacency-set
+    syntax: adjacency-set <id>
+    view: router.ospf.segment-routing
+    enters_view: opaque
+    undo: delete adjacency-set <id>
+    params:
+      id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing adjacency-set
+      line: 457
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-adjacency-sid
+    syntax: adjacency-sid
+    view: router.ospf.segment-routing
+    enters_view: opaque
+    undo: delete adjacency-sid
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing adjacency-sid
+      line: 479
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-admin-state
+    syntax: admin-state <admin-state>
+    view: router.ospf.segment-routing
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing admin-state
+      line: 495
+      version: 25.10.R1
+    status: draft
+    maps:
+      ospf.process.sr_mpls: kw:enable=true|disable=false
+  - id: nokia-sros-md.router-ospf-segment-routing-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.ospf.segment-routing
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing apply-groups
+      line: 521
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.ospf.segment-routing
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing apply-groups-exclude
+      line: 539
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-backup-node-sid
+    syntax: backup-node-sid
+    view: router.ospf.segment-routing
+    enters_view: opaque
+    undo: delete backup-node-sid
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing backup-node-sid
+      line: 557
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-class-forwarding
+    syntax: class-forwarding <class-forwarding>
+    view: router.ospf.segment-routing
+    undo: delete class-forwarding
+    params:
+      class-forwarding:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing class-forwarding
+      line: 573
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-egress-statistics
+    syntax: egress-statistics
+    view: router.ospf.segment-routing
+    enters_view: opaque
+    undo: delete egress-statistics
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing egress-statistics
+      line: 599
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-entropy-label
+    syntax: entropy-label <entropy-label>
+    view: router.ospf.segment-routing
+    undo: delete entropy-label
+    params:
+      entropy-label:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing entropy-label
+      line: 615
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-export-tunnel-table
+    syntax: export-tunnel-table <export-tunnel-table>
+    view: router.ospf.segment-routing
+    undo: delete export-tunnel-table
+    params:
+      export-tunnel-table:
+        type: enum
+        choices:
+          - ldp
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing export-tunnel-table
+      line: 637
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-ingress-statistics
+    syntax: ingress-statistics
+    view: router.ospf.segment-routing
+    enters_view: opaque
+    undo: delete ingress-statistics
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing ingress-statistics
+      line: 659
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-mapping-server
+    syntax: mapping-server
+    view: router.ospf.segment-routing
+    enters_view: opaque
+    undo: delete mapping-server
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing mapping-server
+      line: 675
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-maximum-sid-depth
+    syntax: maximum-sid-depth
+    view: router.ospf.segment-routing
+    enters_view: opaque
+    undo: delete maximum-sid-depth
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing maximum-sid-depth
+      line: 691
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-micro-loop-avoidance
+    syntax: micro-loop-avoidance
+    view: router.ospf.segment-routing
+    enters_view: opaque
+    undo: delete micro-loop-avoidance
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing micro-loop-avoidance
+      line: 707
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-prefix-sid-range
+    syntax: prefix-sid-range
+    view: router.ospf.segment-routing
+    enters_view: opaque
+    undo: delete prefix-sid-range
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing prefix-sid-range
+      line: 723
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-srlb
+    syntax: srlb <srlb>
+    view: router.ospf.segment-routing
+    undo: delete srlb
+    params:
+      srlb:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing srlb
+      line: 739
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-tunnel-mtu
+    syntax: tunnel-mtu <tunnel-mtu>
+    view: router.ospf.segment-routing
+    undo: delete tunnel-mtu
+    params:
+      tunnel-mtu:
+        type: integer
+        range:
+          - 512
+          - 9786
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing tunnel-mtu
+      line: 761
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-ospf-segment-routing-tunnel-table-pref
+    syntax: tunnel-table-pref <tunnel-table-pref>
+    view: router.ospf.segment-routing
+    undo: delete tunnel-table-pref
+    params:
+      tunnel-table-pref:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '10'
+    source:
+      doc: nokia-sros-md-md
+      file: router.sr.md
+      title: router ospf segment-routing tunnel-table-pref
+      line: 783
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-labels
+    syntax: mpls-labels
+    view: router
+    enters_view: router.mpls-labels
+    undo: delete mpls-labels
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls-labels.md
+      title: router mpls-labels
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-mpls-labels-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.mpls-labels
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls-labels.md
+      title: router mpls-labels apply-groups
+      line: 21
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-labels-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.mpls-labels
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls-labels.md
+      title: router mpls-labels apply-groups-exclude
+      line: 39
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-labels-bgp-labels-hold-timer
+    syntax: bgp-labels-hold-timer <bgp-labels-hold-timer>
+    view: router.mpls-labels
+    undo: delete bgp-labels-hold-timer
+    params:
+      bgp-labels-hold-timer:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: '0'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls-labels.md
+      title: router mpls-labels bgp-labels-hold-timer
+      line: 57
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-labels-reserved-label-block
+    syntax: reserved-label-block <label-block-name>
+    view: router.mpls-labels
+    enters_view: opaque
+    undo: delete reserved-label-block <label-block-name>
+    params:
+      label-block-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls-labels.md
+      title: router mpls-labels reserved-label-block
+      line: 83
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-mpls-labels-sr-labels
+    syntax: sr-labels
+    view: router.mpls-labels
+    enters_view: router.mpls-labels.sr-labels
+    undo: delete sr-labels
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls-labels.md
+      title: router mpls-labels sr-labels
+      line: 105
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-mpls-labels-sr-labels-end
+    syntax: end <end>
+    view: router.mpls-labels.sr-labels
+    undo: delete end
+    params:
+      end:
+        type: integer
+        range:
+          - 32
+          - 1048575
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls-labels.md
+      title: router mpls-labels sr-labels end
+      line: 121
+      version: 25.10.R1
+    status: draft
+    maps:
+      sr.global: _
+      sr.global.srgb_end: $end
+  - id: nokia-sros-md.router-mpls-labels-sr-labels-start
+    syntax: start <start>
+    view: router.mpls-labels.sr-labels
+    undo: delete start
+    params:
+      start:
+        type: integer
+        range:
+          - 32
+          - 1048575
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls-labels.md
+      title: router mpls-labels sr-labels start
+      line: 143
+      version: 25.10.R1
+    status: draft
+    maps:
+      sr.global: _
+      sr.global.srgb_begin: $start
+  - id: nokia-sros-md.router-mpls-labels-static-label-range
+    syntax: static-label-range <static-label-range>
+    view: router.mpls-labels
+    undo: delete static-label-range
+    params:
+      static-label-range:
+        type: integer
+        range:
+          - 0
+          - 1048544
+    default: '18400'
+    source:
+      doc: nokia-sros-md-md
+      file: router.mpls-labels.md
+      title: router mpls-labels static-label-range
+      line: 165
+      version: 25.10.R1
+    status: draft

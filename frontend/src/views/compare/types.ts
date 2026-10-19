@@ -76,6 +76,8 @@ export interface VersionInfo {
   kb_version: string
   lines: number
   latest: boolean
+  /** M6：设备在当前项目中的当前版本（公共设备固定版本时不是最新） */
+  current?: boolean
 }
 
 export interface GraphNode { id: string; kind: string; schema: string | null; key?: unknown; value?: unknown; origin?: string; lines?: number[] }

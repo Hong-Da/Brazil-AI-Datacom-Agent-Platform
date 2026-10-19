@@ -958,6 +958,8 @@ class _Translator:
             table[schema] = {str(k): str(v) for k, v in m.items()}
         for schema, m in dst.items():
             table.setdefault(schema, {}).update({str(v): str(k) for k, v in m.items()})
+        for schema in [x for x in table if src.get(x) and src.get(x) == dst.get(x)]:
+            del table[schema]  # 两边编号习惯相同（同一设备的两种配置格式：Nokia Classic ↔ MD-CLI，M7-4）：不改编号
         ren: dict[str, str] = {}
         if not table or not self.cross_family:
             return ren

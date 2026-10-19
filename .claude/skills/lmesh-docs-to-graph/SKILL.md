@@ -38,12 +38,12 @@ description: 透网 LucidMesh 从厂商产品文档（命令参考）到统一�
 
 | 键 | 作用（Nokia Classic 的取值） |
 |---|---|
-| `block` | `indent`（缺省：层级只看缩进差，分页痕迹按上一行视图判断）；`exit`：缩进按 `indent`（4）折算层级，每个块由与开头同列的 `exit` 关闭——原文块也一样，所以范围外块（OSPF 未抽取时的 `ospf` 块）里的 `exit` 不会提前退出外层；没有进入视图的命令下面若有更深的子行，子行按原文保留；多余的 `exit` 原文保留 |
+| `block` | `indent`（缺省：层级只看缩进差，分页痕迹按上一行视图判断）；`exit`：缩进按 `indent`（4）折算层级，每个块由与开头同列的 `exit` 关闭——原文块也一样，所以范围外块（OSPF 未抽取时的 `ospf` 块）里的 `exit` 不会提前退出外层；没有进入视图的命令下面若有更深的子行，子行按原文保留；多余的 `exit` 原文保留；`braces`（M7-4，Nokia MD-CLI）：按花括号进出块（`name … {` 进入、`}` 关闭、`name { }` 空块，缩进只是排版），行尾的花括号记在 `Line.tail`；当前视图整行匹配不上时按扁平格式（info flat 相对路径、full-context 的 `/configure …`）逐段消耗路径：每段是进入视图的卡，补一行 `virtual` 的块头（编号接在最后一行之后，相邻行的公共前缀共用），原文行记 `prefix`；往返跳过 virtual 行，原文行按 prefix + 命令 + tail 重放 |
 | `comment` / `layout` | 注释前缀（`#`）与版式行正则（`^echo "`）：不改变视图栈；`block: exit` 下分隔行也不清空视图栈（Nokia 的段落标记会夹在上下文中间） |
-| `begin` | 结构行（`configure`）：进入根视图、清空视图栈；`end`（`exit all`）同样清空 |
+| `begin` | 结构行（`configure`）：进入根视图、清空视图栈；`end`（`exit all`）同样清空；`block: braces` 时 `configure {` 打开的块下的行仍是顶层行 |
 | `quotes` | `true`：引号字符串是一个词（名称可含空格），参数取值去掉引号（图的键与引用不带引号），`Match.quoted` 记录原文引号，渲染时写回 |
 
-参数类型另有 `port`（`1/1/1`、`lag-1`、`esat-1/1/1`…）与 `sap`（`端口:VLAN[.VLAN]`、`:*`）。
+参数类型另有 `port`（`1/1/1`、`lag-1`、`esat-1/1/1`…）与 `sap`（`端口:VLAN[.VLAN]`、`:*`）；M7-4 加 `leaflist`（MD-CLI 叶子列表 `[ "a" "b" ]` 整段一个取值，映射用 `list:` 拆开）与 `string`（取值总写成引号字符串）。参数可写 `pattern`（附加正则限制，MD-CLI 的 `port` 排除 `lag-`）与 `fill`（语法必填、映射不记的参数，规范渲染缺省写它：ntp server 的 `router-instance "Base"`），都用修正文件的 `set: params` 写。
 
 ## 2. 准备文档并写抽取规则：`knowledge/extractors/<规则>.yaml`
 
@@ -83,6 +83,7 @@ lmesh kb ingest <文档目录> --rules <规则名> [--domain bgp]… [--version 
 - `--ai` 只处理规则失败的命令，结果必须能通过语法解析；AI 未配置时不用。
 - 新平台族或大批量补抽时在隔离环境里跑（M7-1 / M7-2 的 Nokia 做法）：`LMESH_KNOWLEDGE__DIR=tmp/<名>/knowledge`（不存在时自动从 `knowledge/` 复制）、`LMESH_DATABASE__URL=sqlite:///tmp/<名>/review.db`，规则改在仓库里、每次抽取前复制过去，满意后把 `commands/<平台族>/` 的卡复制回仓库；这样不往共享数据库写审核记录。`lmesh kb validate` 默认校验运行时知识库，校验仓库要加 `LMESH_KNOWLEDGE__DIR=knowledge`。抽取阶段不要运行 `kb map`；写映射时用 `kb map --family <平台族>`（M7-3 起，只处理该平台族的卡与 Profile）。
 - Nokia Classic 命令参考的特殊处理：文档先用 `DevelopDocs/设备产品文档/Nokia/tools/nokia_classic_to_md.py` 转换；`View path` 一行一个上下文，`views_map` 用 `^…$` 精确匹配；同一文件要分到两个功能域时（OSPF 文件里的 segment-routing 归 sr 域），在一个域的文件条目里把这些视图映射为 `view: null`，在另一个域的条目里只映射它们、最后加 `{match: '.', view: null}`；范围内视图里进入范围外子上下文的命令进入 `opaque`（名单由“命令的完整上下文又是别的命令的视图路径”生成）；转换痕迹（`[no]` 前缀、拆开的关键字、斜体的 `<|>`、参数名带空格被拆成两个参数、括号不配对）与列表写法 `<p> [ <p> ]`（改成重复组 `<p> [ <p> ] &<1-31>`，同名参数在匹配记录里会互相覆盖）都用 `syntax_rewrites` 统一改；`Values 0.0.0.0 to …` 这类点分 / 整数两用的取值会被按整数推断，用 `param_types` 按参数名改成 word。
+- Nokia MD-CLI 命令参考（M7-4）：`DevelopDocs/设备产品文档/Nokia/tools/nokia_md_to_md.py` 读 13 棵配置树 HTML（开头的 `<pre>` 树 + 每个元素的说明表），按范围文件 `tools/md-scope.txt`（去掉键的上下文路径）转成 Markdown：每个 YANG 元素一条命令，标题是去掉 configure 与键的完整路径（卡编号由它生成，不撞号），叶子 `**name** *name*`、列表 `**name** *键1* **键2名** *键2*`、加密叶子带 `[ hash | hash2 | custom ]`，另加 `**delete** **name**` 作取消形式；参数表的取值列写 `type=YANG 类型`、Options、Range、Max. instances、quoted，由抽取规则 `nokia-sros-md-md` 的 `enum_marker` / `param_types` 推断类型。视图编号 = 路径用 `.` 连接（`router.interface.ipv4.primary`），转换脚本同时生成 `views.yaml` 的视图、规则的 `views_map` 与 `enters`（范围外容器进 `opaque`）；扩大范围时改 md-scope.txt 重新转换、把生成的片段贴回去再抽取。
 - 修正文件（`.patches.yaml`）按**抽取批次里的编号**匹配：同名命令在不同功能域的批次里编号都可能是 `xxx`，一起抽取时第二个变成 `xxx~2`，修正就套不上；要修正的功能域分开抽取（M7-3：Base 与 VPRN 的 next-hop 取消写法）。
 - 合并时编号以内容为准：同名命令多了一个视图变体、抽取编号整体后移时，被别的卡按“语法 + 视图”认领的编号改用下一个空闲的 `~N`（在整个平台族内避让），不会覆盖已有的卡。抽完用 `lmesh kb validate` 确认没有重复编号与缺失的映射节点。
 
@@ -128,6 +129,7 @@ draft 卡同样参与解析（状态只表示可信度），所以可以先跑�
 - `param_types` 按参数名推断时注意后缀撞车（`virtual-router-id` 以 router-id 结尾会被当成 IPv4），把更具体的规则放前面。
 
 - M7-3（Nokia Classic）补充的写法：`ctx:<参数>`（父上下文行的参数：`static-route-entry <前缀>` 下 next-hop 的前缀、OSPF area、lag 编号）；目标固定键写表达式 `interface{name=$port-id}.lag`（对象键取自参数，用于“在 A 的块里写 B 的属性”：lag 下列成员口、协议块里列接口）；`sap:port|vlan|inner|tag|encap:`、`pfx:addr|len|wild:`、`pre:<词>:`、`via:<类型>:<属性>:`（按键取别的对象的属性，对象要先出现）、`!flag`；指令目标 `"@container"`（只进入视图的容器卡：不产生节点也不算 ext；规范渲染经容器路径写出，容器行由 `ctx:` 要求或 render 的 `containers` 模板给出）、`"@share"`（本行对象对后续兄弟行可见，同一容器的另一块也可见：Nokia 的 AS 号在 router 下、bgp 块在后面）、`"@frame"`（编辑会话 begin / commit，按 render 的 `wrap` 写出）。规则写进 YAML 时带 `{…}` 的目标要加引号、用块写法；参数名可含 `/`、`:`（`$ip-prefix/prefix-length`、`$sdp-id:vc-id`）。
+- M7-4（Nokia MD-CLI）补充的写法：`list:<表达式>`（叶子列表拆成列表）、`by:<类型>:<属性>:<表达式>`（`via:` 的反向：属性等于取值的对象的键，没有时取值本身；MD-CLI 按名称引用客户、QoS 策略、过滤器，图里仍以编号为键）、`scale:<倍数>:<表达式>`（单位换算：VRRP message-interval 的 0.1 秒）、`strip:<文字>:<表达式>`（去前缀：`lag-1` → `1`）；指令 `"@first"`（这一行先于兄弟行建图：MD-CLI 按字母序输出，`customer-id` / `filter-id` / `policy-id` 在描述与子块之后）。`via:` / `by:` 引用的对象在后面才出现时，建图自动做第二遍。admin-state 写成 `kw:disable=true|enable=false`（shutdown）或 `kw:enable=true|disable=false`（启用类），布尔叶子 `kw:true=true|false=false`。同一设备的另一种配置格式（MD-CLI 之于 Classic）映射到同一套 Schema 时，对象键与取值按已有格式对齐，用回归测试直接比较两种格式建出的图（`tests/unit/test_nokia_md.py`，列明允许的差异）。
 - 新平台族的三层接口形态不同（Nokia 路由器接口 + port）、IGP 写法不同（Nokia 没有 network 宣告、IS-IS 分 area-id / system-id）时，不改 Schema，而是在 render 写 `l3_form` / `instance_keys`，由 `core/translate.py` 换结构；对比校验时源图按同一函数换结构。
 - 新加的引用型属性一定写 deps 的 reference 规则（Nokia 的 OSPF / BGP export 策略、SAP 绑定的 VSI），否则配置检查与清理会把被引用的对象当成孤儿。指向接口的属性用类型 `interface` 而不是 `ref: interface`（`ref` 会让接口进入孤儿检查，改变已有平台族的结果）。
 
@@ -137,6 +139,7 @@ draft 卡同样参与解析（状态只表示可信度），所以可以先跑�
 
 - `match`（vendor、版本正则、`fallback`）、`inherits`（新版本继承旧版本，只写差异）、`platform`、`software`。
 - `entries` 由 `kb map` 生成；人工条目写 `manual: true`（缺省值 `default`、显示规则 `show_rule`、`supported: false` 等），重新汇总时保留。
+- `defaults_from: <另一个 Profile>`（M7-4）：复用另一个平台族 Profile 的人工条目（缺省值、when / else、assume、show_rule），本 Profile 自动汇总的条目只提供支持情况与命令卡（Nokia MD-CLI 复用 Classic；不用 `inherits`，它会让 `kb map` 不再汇总本 Profile）。
 - `when` 可带 `else`（条件不满足时的缺省值，M7-3：Nokia 端口与 LAG 缺省 shutdown、路由器接口缺省 no shutdown）。条目可写 `assume`：其他平台族没有这个节点（华为 / Cisco 的协议实例没有管理状态）时按这个取值理解，翻译成本平台时目标缺省值不同就显式写出并告警。
 - 缺省值只对部分对象成立时加 `when`：`{key: 正则}` / `{not_key: 正则}` 按所属对象编号（例如只对物理口），`{attr: {network_type: [broadcast, p2p]}}` 按兄弟属性的有效值。没有条件的缺省值会补到每个同类对象上，容易造成对比的假差异。
 - `side_effects`（如华为接口绑定 VPN 会清掉接口 IP）、`implicit`（被引用时隐式存在的对象，如 ASR 920 的桥域）。
@@ -144,7 +147,7 @@ draft 卡同样参与解析（状态只表示可信度），所以可以先跑�
 
 ## 6.5 规范渲染与下发习惯：`knowledge/render/<平台族>.yaml`、`knowledge/change/<平台族>.yaml`
 
-翻译、含默认值的完整配置、变更脚本都用规范渲染（命令卡 + 映射反推，再解析校验），新平台族要写这两份文件（字段说明见各文件开头）。块由 exit 关闭的平台族（Nokia Classic）另写：`exit_all`、`root_depth`、`prologue` / `epilogue`、`section_frame` + `sections`（echo 段落）、`containers`、`quote_params`、`create`、`wrap`（编辑会话）、`prefer`（块头优先的卡）、`avoid`（带密文的卡，同平台族按原文写回）、`infer`（`seq` 顺序编号、`write` 语法可选也写出）、`l3_form`、`instance_keys`；变更知识 `before_delete`（删除前先执行的命令）。检验：样本加进总清单后 `tests/roundtrip/test_translate.py` 自动做规范等价（含默认值），再在 `samples/change/manifest.yaml` 加变更用例、`samples/translate/manifest.yaml` 加双向翻译用例（未解释差异 0，写出比例写进 `min_rendered`）。
+翻译、含默认值的完整配置、变更脚本都用规范渲染（命令卡 + 映射反推，再解析校验），新平台族要写这两份文件（字段说明见各文件开头）。块由 exit 关闭的平台族（Nokia Classic）另写：`exit_all`、`root_depth`、`prologue` / `epilogue`、`section_frame` + `sections`（echo 段落）、`containers`、`quote_params`、`create`、`wrap`（编辑会话）、`prefer`（块头优先的卡）、`avoid`（带密文的卡，同平台族按原文写回）、`infer`（`seq` 顺序编号、`write` 语法可选也写出）、`l3_form`、`instance_keys`；变更知识 `before_delete`（删除前先执行的命令）。块由花括号关闭的平台族（Nokia MD-CLI，M7-4）写 `open: " {"`、`exit_all: "}"`、`prologue: ["configure {"]` / `epilogue: ["}"]`、`container_depth`（经容器到达视图的最多层数，缺省 3）、`containers` 模板（`route {ip-prefix} route-type unicast`）、`infer` 的 `key: true`（名称取对象自己的键）；顶层块按元素名排序后合并同一容器；变更知识写 `begin: [edit-config private]`、`finish: [commit, quit-config]`、`exit: "}"`，删除命令由卡的 `delete …` 取消语法生成。检验：样本加进总清单后 `tests/roundtrip/test_translate.py` 自动做规范等价（含默认值），再在 `samples/change/manifest.yaml` 加变更用例、`samples/translate/manifest.yaml` 加双向翻译用例（未解释差异 0，写出比例写进 `min_rendered`）。
 
 ## 7. 用真实配置检验
 

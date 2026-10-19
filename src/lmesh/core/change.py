@@ -538,6 +538,10 @@ class _Planner:
                 lines_target=[no],
             )
 
+    def requote(self, text: str, card: Any, ln: parsemod.Line) -> str:
+        """MD-CLI（M7-4）：取消命令里的取值按原文写回引号；其他平台族原样返回。"""
+        return cleanup.requote(text, card, ln) if self.fam.block == "braces" else text
+
     def deletes(self) -> None:
         negative = self.fam.negative
         seen: dict[tuple[tuple[str, ...], str], Op] = {}
@@ -550,6 +554,7 @@ class _Planner:
                 text, why = undo_text(
                     card, ln, negative, _key_tokens(self.cur, objs), self.extra_undo(str(ln.card)), self.fam.quotes
                 )
+                text = self.requote(text, card, ln)
                 root = max(objs, key=lambda n: n.count("/"), default=o)
                 if not self._under(root, o):
                     root = o
@@ -589,6 +594,7 @@ class _Planner:
             ln = self.cix.lines[no]
             card = self.kb.cards.get(str(ln.card))
             text, why = cleanup.render_undo_reason(card, ln, negative, self.fam.quotes)
+            text = self.requote(text, card, ln)
             ctx = self._ctx_current(no)
             key = (tuple(c.key for c in ctx), text)
             hit = seen.get(key)
@@ -669,6 +675,7 @@ class _Planner:
                     continue
                 ln = self.cix.lines[no]
                 text, why = cleanup.render_undo_reason(self.kb.cards.get(str(ln.card)), ln, negative, self.fam.quotes)
+                text = self.requote(text, self.kb.cards.get(str(ln.card)), ln)
                 dels.append(
                     self._new_op(
                         "delete",
@@ -921,9 +928,9 @@ def script_rows(ops: list[Op], kb: KnowledgeBase, family: str, rules: dict[str, 
     quit（退出视图）；depth 是缩进层级。script_lines 由它渲染成文本，两者逐行对应（不含说明行）。"""
     rows: list[dict[str, Any]] = [{"kind": "frame", "depth": 0, "text": t, "op": None} for t in rules["begin"]]
     stack: list[CtxLine] = []
-    wrap = canon.load_style(kb, family)[
-        "wrap"
-    ]  # 进入视图后先写、退出前再写的命令（Nokia policy-options 的 begin / commit）
+    style = canon.load_style(kb, family)
+    wrap = style["wrap"]  # 进入视图后先写、退出前再写的命令（Nokia policy-options 的 begin / commit）
+    opener = style["open"]  # 进入视图的行尾（MD-CLI 的 " {"，M7-4）
 
     def enter(c: CtxLine, depth: int) -> None:
         stack.append(c)
@@ -946,9 +953,10 @@ def script_rows(ops: list[Op], kb: KnowledgeBase, family: str, rules: dict[str, 
             quit_(i)
         stack = stack[:common]
         for i in range(common, len(ctx)):
-            rows.append({"kind": "enter", "depth": i, "text": ctx[i].text, "op": None})
+            rows.append({"kind": "enter", "depth": i, "text": ctx[i].text + opener, "op": None})
             enter(ctx[i], i)
-        rows.append({"kind": "cmd", "depth": len(stack), "text": op.text, "op": op.id})
+        opens = bool(op.opens and not op.negative)
+        rows.append({"kind": "cmd", "depth": len(stack), "text": op.text + (opener if opens else ""), "op": op.id})
         if op.opens and not op.negative:
             enter(op.as_ctx(), len(stack))
     for i in reversed(range(len(stack))):
@@ -986,6 +994,7 @@ class _Entry:
     refs: set[str] = field(default_factory=set)
     view: str = ""  # 这一行进入的视图
     children: list[_Entry] = field(default_factory=list)
+    block: bool = False  # 原文是花括号块的块头（MD-CLI 的范围外块，M7-4）
 
 
 def _base(card_id: str | None) -> str:
@@ -1010,10 +1019,13 @@ class _Sim:
         clinks: dict[str, set[str]] = defaultdict(set)
         for lk in p.clinks:
             clinks[lk.src].update(p.cids_c(lk.dst))
+        self.braces = p.fam.block == "braces"
         for st in p.cur.graph.get("statements", []):
             ln = st.line
             if ln.kind not in ("command", "raw", "unknown") or (ln.card or "").startswith("@"):
                 continue
+            if self.braces and ln.kind != "command" and ln.text == "}":
+                continue  # MD-CLI 原文块的 }：模拟结果按块结构重新写出
             card = p.kb.cards.get(str(ln.card)) if ln.card else None
             cids = {c for n in st.nodes for c in p.cids_c(n)}
             if any(p.cur.nodes.get(n, {}).get("kind") == "ext" for n in st.nodes):
@@ -1027,6 +1039,7 @@ class _Sim:
                 {c for n in st.nodes for c in clinks.get(n, set())},
                 str(card.enters_view) if card is not None and card.enters_view else "",
             )
+            e.block = "{" in ln.tail
             entries[ln.no] = e
             parent = entries.get(ln.parent) if ln.parent else None
             (parent or self.root).children.append(e)
@@ -1190,6 +1203,11 @@ class _Sim:
 
         def walk(e: _Entry, depth: int) -> None:
             for c in e.children:
+                if self.braces and (c.view or c.children or c.block):  # MD-CLI：块写成 { … }
+                    out.append(" " * (indent * depth) + c.text + " {")
+                    walk(c, depth + 1)
+                    out.append(" " * (indent * depth) + "}")
+                    continue
                 out.append(" " * (indent * depth) + c.text)
                 walk(c, depth + 1)
 

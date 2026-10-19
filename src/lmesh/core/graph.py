@@ -48,8 +48,14 @@ def _short(schema_id: str, parent_schema: str | None) -> str:
 
 
 class Builder:
-    def __init__(self, kb: KnowledgeBase, profile: Profile, device: str = "device"):
+    def __init__(
+        self, kb: KnowledgeBase, profile: Profile, device: str = "device", prior: nx.MultiDiGraph | None = None
+    ):
         self.kb, self.profile = kb, profile
+        # via: / by: 引用的对象在后面才出现时（MD-CLI 按字母序输出：epipe 的 spoke-sdp 在 sdp 之前），第一遍记下 missed，
+        # 第二遍用第一遍的图（prior）查（M7-4）
+        self.prior = prior
+        self.missed = False
         self.g = nx.MultiDiGraph(device=device, profile=profile.id, family=profile.family, kb_version=kb.version)
         self.g.add_node(DEVICE, kind="device", schema=None, value=device, origin="explicit", lines=[], cards=[])
         self.index: dict[tuple[str, str], str] = {}  # (Schema 对象类型, 键) → 节点编号（全局，用于依赖边）
@@ -132,8 +138,31 @@ class Builder:
 
     # ----- 主流程 -----
 
+    def _order(self, parsed: Parsed) -> list[Line]:
+        """处理顺序：带 @first 的行（M7-4）紧跟在父行之后、先于兄弟行处理；其余按原文顺序。"""
+        lines = parsed.lines
+        firsts = [
+            i
+            for i, ln in enumerate(lines)
+            if ln.kind == "command"
+            and ln.card
+            and ln.card in self.kb.cards
+            and mapping.FIRST in self.kb.cards[ln.card].maps
+        ]
+        if not firsts:
+            return lines
+        pos = {ln.no: i for i, ln in enumerate(lines)}
+        first = set(firsts)
+
+        def key(i: int) -> tuple[float, int]:
+            p = pos.get(lines[i].parent or 0) if i in first else None
+            return ((p + 0.5) if p is not None else float(i), i)
+
+        return [lines[i] for i in sorted(range(len(lines)), key=key)]
+
     def build(self, parsed: Parsed) -> nx.MultiDiGraph:
-        for ln in parsed.lines:
+        seq = {ln.no: i for i, ln in enumerate(parsed.lines)}
+        for ln in self._order(parsed):
             st = Statement(ln)
             self.statements.append(st)
             scope = dict(self.ctx.get(ln.parent, {})) if ln.parent else {}
@@ -171,6 +200,7 @@ class Builder:
                 key = (*self.ckey.get(ln.parent or 0, ()), ln.text)
                 self.ckey[ln.no] = key
                 scope.update(self.shared_by_key[key])
+        self.statements.sort(key=lambda st: seq.get(st.line.no, 0))  # 语句按原文顺序（渲染按它回放）
         self._defaults()
         self._dependencies()
         self.g.graph["statements"] = self.statements
@@ -189,7 +219,31 @@ class Builder:
     def lookup(self, schema: str, key: str, attr: str) -> Any:
         nid = self.index.get((schema, key))
         d = self.g.nodes.get(f"{nid}/{attr}") if nid else None
+        if d is None and self.prior is not None:
+            for n, pd in self.prior.nodes(data=True):
+                if pd.get("schema") == schema and pd.get("kind") == "object" and str(pd.get("key")) == key:
+                    d = self.prior.nodes.get(f"{n}/{attr}")
+                    break
+        if d is None:
+            self.missed = True
         return d.get("value") if d else None
+
+    def rlookup(self, schema: str, attr: str, want: str) -> list[str]:
+        """by: 表达式（M7-4）：属性 attr 等于 want 的 schema 对象的键（先查本图，再查第一遍的图）。"""
+        for g in (self.g, self.prior):
+            if g is None:
+                continue
+            out = [
+                str(d.get("key"))
+                for n, d in g.nodes(data=True)
+                if d.get("schema") == schema
+                and d.get("kind") == "object"
+                and str((g.nodes.get(f"{n}/{attr}") or {}).get("value")) == want
+            ]
+            if out:
+                return out
+        self.missed = True
+        return []
 
     def _nearest(self, scope: dict[str, str]) -> str:
         cands = [n for n in scope.values() if n not in self.shared]
@@ -211,7 +265,8 @@ class Builder:
         )
         if ln.parent and self.lparams.get(ln.parent):
             ctxv = {**(ctxv or {}), "params": self.lparams[ln.parent]}
-        ctxv = {**(ctxv or {}), "lookup": self.lookup}  # via: 表达式（Nokia）：按键找已有对象的属性
+        # via: / by: 表达式（Nokia）：按键找已有对象的属性 / 按属性找对象的键
+        ctxv = {**(ctxv or {}), "lookup": self.lookup, "rlookup": self.rlookup}
         targets = [
             (text, mapping.parse_target(text), expr)
             for text, expr in card.maps.items()
@@ -509,7 +564,12 @@ class Builder:
 
 
 def build(parsed: Parsed, kb: KnowledgeBase, profile_id: str, device: str = "device") -> nx.MultiDiGraph:
-    return Builder(kb, kb.profiles[profile_id], device).build(parsed)
+    b = Builder(kb, kb.profiles[profile_id], device)
+    g = b.build(parsed)
+    if b.missed:  # via: / by: 引用了后面才出现的对象：用第一遍的图再建一次（M7-4）
+        g2 = Builder(kb, kb.profiles[profile_id], device, prior=g).build(parsed)
+        return g2
+    return g
 
 
 def summary(g: nx.MultiDiGraph) -> dict[str, Any]:

@@ -16,12 +16,27 @@ import { edgePath, fitText, layoutGroups, PH, type PillPos } from './schema/layo
 import StyleForms from './schema/StyleForms.vue'
 import { styleForm } from './schema/styles'
 import { useTerms } from '@/stores/terms'
+import { useAuth } from '@/stores/auth'
+import KbRoRibbon from '@/components/kb-ro-ribbon.vue'
+import KbSuggest from '@/components/kb-suggest.vue'
+import type { SuggestKind } from '@/views/kbsugg/logic'
 
 type Mode = 'one' | 'cmp' | 'all'
 
 const { t, locale } = useI18n()
 const route = useRoute()
 const terms = useTerms()
+const auth = useAuth()
+// 普通用户只读，可以提建议（REQ-036）
+const suggest = ref<{ target: string; current: string; kind: SuggestKind } | null>(null)
+const ribbon = ref<InstanceType<typeof KbRoRibbon> | null>(null)
+const sent = ref('')
+function onSuggested(): void {
+  suggest.value = null
+  sent.value = t('kbsugg.submitted')
+  void ribbon.value?.reload()
+  setTimeout(() => { sent.value = '' }, 4000)
+}
 
 const loading = ref(true)
 const error = ref('')
@@ -262,10 +277,13 @@ function cmpValue(r: CompareRow): string {
         <div class="ph-actions">
           <span v-if="schema" class="tag mono">{{ $t('schema-view.kbVersion', { v: schema.kb_version }) }}</span>
           <router-link class="btn" :to="{ name: 'coverage' }" data-testid="sv-to-coverage"><Icon name="matrix" small />{{ $t('nav.coverage') }}</router-link>
-          <router-link class="btn" :to="{ name: 'schema-edit', query: sel ? { node: sel } : {} }" data-testid="sv-to-edit"><Icon name="tree" small />{{ $t('nav.schema-edit') }}</router-link>
+          <router-link v-if="auth.isKbEditor" class="btn" :to="{ name: 'schema-edit', query: sel ? { node: sel } : {} }" data-testid="sv-to-edit"><Icon name="tree" small />{{ $t('nav.schema-edit') }}</router-link>
         </div>
       </div>
 
+      <KbRoRibbon ref="ribbon" full />
+      <div v-if="sent" class="notice ok" style="margin-bottom: 10px" data-testid="kb-suggest-sent"><Icon name="check" /><div>{{ sent }}</div></div>
+      <KbSuggest v-if="suggest" :target="suggest.target" :current="suggest.current" :kind="suggest.kind" @close="suggest = null" @submitted="onSuggested" />
       <div v-if="loading" class="panel"><div class="empty"><p>{{ $t('c.loading') }}</p></div></div>
       <div v-else-if="error" class="notice err" data-testid="sv-error">
         <Icon name="err" />
@@ -411,6 +429,7 @@ function cmpValue(r: CompareRow): string {
                           </template>
                         </td>
                         <td class="mono small">{{ fmtValue(entryOf(selNode.id, p.id)?.default) }}</td>
+                        <td v-if="!auth.isKbEditor" class="right"><button class="btn btn-xs btn-ghost" type="button" :title="$t('kbsugg.button')" :data-testid="`sv-suggest-default-${p.id}`" @click="suggest = { target: `${p.id}:${selNode.id}`, current: fmtValue(entryOf(selNode.id, p.id)?.default), kind: 'default' }"><Icon name="chat" small /></button></td>
                       </tr>
                     </tbody>
                   </table>
@@ -425,7 +444,8 @@ function cmpValue(r: CompareRow): string {
                   </div>
                 </template>
                 <div class="row mt12">
-                  <router-link class="btn btn-sm" :to="{ name: 'schema-edit', query: { node: selNode.id } }" data-testid="sv-edit-node"><Icon name="tree" small />{{ $t('schema-view.editNode') }}</router-link>
+                  <router-link v-if="auth.isKbEditor" class="btn btn-sm" :to="{ name: 'schema-edit', query: { node: selNode.id } }" data-testid="sv-edit-node"><Icon name="tree" small />{{ $t('schema-view.editNode') }}</router-link>
+                  <button v-else class="btn btn-sm" type="button" data-testid="sv-suggest-node" @click="suggest = { target: selNode.id, current: '', kind: 'description' }"><Icon name="chat" small />{{ $t('kbsugg.objectButton') }}</button>
                 </div>
                 <hr style="margin: 16px 0" />
               </template>

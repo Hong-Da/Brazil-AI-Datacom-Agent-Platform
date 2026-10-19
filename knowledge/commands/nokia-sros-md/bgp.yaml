@@ -1,0 +1,5494 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: bgp
+cards:
+  - id: nokia-sros-md.router-bgp
+    syntax: bgp
+    view: router
+    enters_view: router.bgp
+    undo: delete bgp
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-bgp-add-paths
+    syntax: add-paths
+    view: router.bgp
+    enters_view: opaque
+    undo: delete add-paths
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp add-paths
+      line: 21
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-admin-state
+    syntax: admin-state <admin-state>
+    view: router.bgp
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp admin-state
+      line: 37
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.instance.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-bgp-advertise-external
+    syntax: advertise-external
+    view: router.bgp
+    enters_view: opaque
+    undo: delete advertise-external
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp advertise-external
+      line: 63
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-advertise-inactive
+    syntax: advertise-inactive <advertise-inactive>
+    view: router.bgp
+    undo: delete advertise-inactive
+    params:
+      advertise-inactive:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp advertise-inactive
+      line: 79
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-advertise-ipv6-next-hops
+    syntax: advertise-ipv6-next-hops
+    view: router.bgp
+    enters_view: opaque
+    undo: delete advertise-ipv6-next-hops
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp advertise-ipv6-next-hops
+      line: 105
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-aggregator-id-zero
+    syntax: aggregator-id-zero <aggregator-id-zero>
+    view: router.bgp
+    undo: delete aggregator-id-zero
+    params:
+      aggregator-id-zero:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp aggregator-id-zero
+      line: 121
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.bgp
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp apply-groups
+      line: 147
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.bgp
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp apply-groups-exclude
+      line: 165
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-asn-4-byte
+    syntax: asn-4-byte <asn-4-byte>
+    view: router.bgp
+    undo: delete asn-4-byte
+    params:
+      asn-4-byte:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp asn-4-byte
+      line: 183
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-authentication-key
+    syntax: authentication-key <authentication-key> [ hash | hash2 | custom ]
+    view: router.bgp
+    undo: delete authentication-key
+    params:
+      authentication-key:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp authentication-key
+      line: 209
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-authentication-keychain
+    syntax: authentication-keychain <authentication-keychain>
+    view: router.bgp
+    undo: delete authentication-keychain
+    params:
+      authentication-keychain:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp authentication-keychain
+      line: 231
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-backup-path
+    syntax: backup-path
+    view: router.bgp
+    enters_view: opaque
+    undo: delete backup-path
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp backup-path
+      line: 253
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-best-path-selection
+    syntax: best-path-selection
+    view: router.bgp
+    enters_view: opaque
+    undo: delete best-path-selection
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp best-path-selection
+      line: 269
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-bfd-liveness
+    syntax: bfd-liveness <bfd-liveness>
+    view: router.bgp
+    undo: delete bfd-liveness
+    params:
+      bfd-liveness:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp bfd-liveness
+      line: 285
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-bfd-strict-mode
+    syntax: bfd-strict-mode
+    view: router.bgp
+    enters_view: opaque
+    undo: delete bfd-strict-mode
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp bfd-strict-mode
+      line: 311
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-bgp-tunnel-metric
+    syntax: bgp-tunnel-metric
+    view: router.bgp
+    enters_view: opaque
+    undo: delete bgp-tunnel-metric
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp bgp-tunnel-metric
+      line: 327
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-bgp-tunnel-preference
+    syntax: bgp-tunnel-preference <bgp-tunnel-preference>
+    view: router.bgp
+    undo: delete bgp-tunnel-preference
+    params:
+      bgp-tunnel-preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '12'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp bgp-tunnel-preference
+      line: 343
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-block-prefix-sid
+    syntax: block-prefix-sid <block-prefix-sid>
+    view: router.bgp
+    undo: delete block-prefix-sid
+    params:
+      block-prefix-sid:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp block-prefix-sid
+      line: 369
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-client-reflect
+    syntax: client-reflect <client-reflect>
+    view: router.bgp
+    undo: delete client-reflect
+    params:
+      client-reflect:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp client-reflect
+      line: 395
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-cluster
+    syntax: cluster
+    view: router.bgp
+    enters_view: opaque
+    undo: delete cluster
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp cluster
+      line: 421
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-connect-retry
+    syntax: connect-retry <connect-retry>
+    view: router.bgp
+    undo: delete connect-retry
+    params:
+      connect-retry:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: '120'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp connect-retry
+      line: 437
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-convergence
+    syntax: convergence
+    view: router.bgp
+    enters_view: opaque
+    undo: delete convergence
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp convergence
+      line: 463
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-damp-peer-oscillations
+    syntax: damp-peer-oscillations
+    view: router.bgp
+    enters_view: opaque
+    undo: delete damp-peer-oscillations
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp damp-peer-oscillations
+      line: 479
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-damping
+    syntax: damping <damping>
+    view: router.bgp
+    undo: delete damping
+    params:
+      damping:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp damping
+      line: 495
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-def-recv-evpn-encap
+    syntax: def-recv-evpn-encap <def-recv-evpn-encap>
+    view: router.bgp
+    undo: delete def-recv-evpn-encap
+    params:
+      def-recv-evpn-encap:
+        type: enum
+        choices:
+          - mpls
+          - vxlan
+    default: mpls
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp def-recv-evpn-encap
+      line: 521
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-default-label-preference
+    syntax: default-label-preference
+    view: router.bgp
+    enters_view: opaque
+    undo: delete default-label-preference
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp default-label-preference
+      line: 547
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-default-preference
+    syntax: default-preference
+    view: router.bgp
+    enters_view: opaque
+    undo: delete default-preference
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp default-preference
+      line: 563
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-description
+    syntax: description <description>
+    view: router.bgp
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp description
+      line: 579
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-dynamic-neighbor-limit
+    syntax: dynamic-neighbor-limit <dynamic-neighbor-limit>
+    view: router.bgp
+    undo: delete dynamic-neighbor-limit
+    params:
+      dynamic-neighbor-limit:
+        type: integer
+        range:
+          - 1
+          - 8192
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp dynamic-neighbor-limit
+      line: 601
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-ebgp-default-reject-policy
+    syntax: ebgp-default-reject-policy
+    view: router.bgp
+    enters_view: opaque
+    undo: delete ebgp-default-reject-policy
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp ebgp-default-reject-policy
+      line: 623
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-egress-peer-engineering
+    syntax: egress-peer-engineering
+    view: router.bgp
+    enters_view: opaque
+    undo: delete egress-peer-engineering
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp egress-peer-engineering
+      line: 639
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-enforce-first-as
+    syntax: enforce-first-as <enforce-first-as>
+    view: router.bgp
+    undo: delete enforce-first-as
+    params:
+      enforce-first-as:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp enforce-first-as
+      line: 655
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-error-handling
+    syntax: error-handling
+    view: router.bgp
+    enters_view: opaque
+    undo: delete error-handling
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp error-handling
+      line: 681
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-export
+    syntax: export
+    view: router.bgp
+    enters_view: opaque
+    undo: delete export
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp export
+      line: 697
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-extended-nh-encoding
+    syntax: extended-nh-encoding
+    view: router.bgp
+    enters_view: opaque
+    undo: delete extended-nh-encoding
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp extended-nh-encoding
+      line: 713
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family
+    syntax: family
+    view: router.bgp
+    enters_view: router.bgp.family
+    undo: delete family
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family
+      line: 729
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-bgp-ls
+    syntax: bgp-ls <bgp-ls>
+    view: router.bgp.family
+    undo: delete bgp-ls
+    params:
+      bgp-ls:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family bgp-ls
+      line: 745
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-evpn
+    syntax: evpn <evpn>
+    view: router.bgp.family
+    undo: delete evpn
+    params:
+      evpn:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family evpn
+      line: 771
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-flow-ipv4
+    syntax: flow-ipv4 <flow-ipv4>
+    view: router.bgp.family
+    undo: delete flow-ipv4
+    params:
+      flow-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family flow-ipv4
+      line: 797
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-flow-ipv6
+    syntax: flow-ipv6 <flow-ipv6>
+    view: router.bgp.family
+    undo: delete flow-ipv6
+    params:
+      flow-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family flow-ipv6
+      line: 823
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-flow-vpn-ipv4
+    syntax: flow-vpn-ipv4 <flow-vpn-ipv4>
+    view: router.bgp.family
+    undo: delete flow-vpn-ipv4
+    params:
+      flow-vpn-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family flow-vpn-ipv4
+      line: 849
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-flow-vpn-ipv6
+    syntax: flow-vpn-ipv6 <flow-vpn-ipv6>
+    view: router.bgp.family
+    undo: delete flow-vpn-ipv6
+    params:
+      flow-vpn-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family flow-vpn-ipv6
+      line: 875
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-ipv4
+    syntax: ipv4 <ipv4>
+    view: router.bgp.family
+    undo: delete ipv4
+    params:
+      ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family ipv4
+      line: 901
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-ipv6
+    syntax: ipv6 <ipv6>
+    view: router.bgp.family
+    undo: delete ipv6
+    params:
+      ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family ipv6
+      line: 927
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-l2-vpn
+    syntax: l2-vpn <l2-vpn>
+    view: router.bgp.family
+    undo: delete l2-vpn
+    params:
+      l2-vpn:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family l2-vpn
+      line: 953
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-label-ipv4
+    syntax: label-ipv4 <label-ipv4>
+    view: router.bgp.family
+    undo: delete label-ipv4
+    params:
+      label-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family label-ipv4
+      line: 979
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-label-ipv6
+    syntax: label-ipv6 <label-ipv6>
+    view: router.bgp.family
+    undo: delete label-ipv6
+    params:
+      label-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family label-ipv6
+      line: 1005
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-mcast-ipv4
+    syntax: mcast-ipv4 <mcast-ipv4>
+    view: router.bgp.family
+    undo: delete mcast-ipv4
+    params:
+      mcast-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family mcast-ipv4
+      line: 1031
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-mcast-ipv6
+    syntax: mcast-ipv6 <mcast-ipv6>
+    view: router.bgp.family
+    undo: delete mcast-ipv6
+    params:
+      mcast-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family mcast-ipv6
+      line: 1057
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-mcast-vpn-ipv4
+    syntax: mcast-vpn-ipv4 <mcast-vpn-ipv4>
+    view: router.bgp.family
+    undo: delete mcast-vpn-ipv4
+    params:
+      mcast-vpn-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family mcast-vpn-ipv4
+      line: 1083
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-mcast-vpn-ipv6
+    syntax: mcast-vpn-ipv6 <mcast-vpn-ipv6>
+    view: router.bgp.family
+    undo: delete mcast-vpn-ipv6
+    params:
+      mcast-vpn-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family mcast-vpn-ipv6
+      line: 1109
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-mdt-safi
+    syntax: mdt-safi <mdt-safi>
+    view: router.bgp.family
+    undo: delete mdt-safi
+    params:
+      mdt-safi:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family mdt-safi
+      line: 1135
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-ms-pw
+    syntax: ms-pw <ms-pw>
+    view: router.bgp.family
+    undo: delete ms-pw
+    params:
+      ms-pw:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family ms-pw
+      line: 1161
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-mvpn-ipv4
+    syntax: mvpn-ipv4 <mvpn-ipv4>
+    view: router.bgp.family
+    undo: delete mvpn-ipv4
+    params:
+      mvpn-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family mvpn-ipv4
+      line: 1187
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-mvpn-ipv6
+    syntax: mvpn-ipv6 <mvpn-ipv6>
+    view: router.bgp.family
+    undo: delete mvpn-ipv6
+    params:
+      mvpn-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family mvpn-ipv6
+      line: 1213
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-route-target
+    syntax: route-target <route-target>
+    view: router.bgp.family
+    undo: delete route-target
+    params:
+      route-target:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family route-target
+      line: 1239
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-sr-policy-ipv4
+    syntax: sr-policy-ipv4 <sr-policy-ipv4>
+    view: router.bgp.family
+    undo: delete sr-policy-ipv4
+    params:
+      sr-policy-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family sr-policy-ipv4
+      line: 1265
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-sr-policy-ipv6
+    syntax: sr-policy-ipv6 <sr-policy-ipv6>
+    view: router.bgp.family
+    undo: delete sr-policy-ipv6
+    params:
+      sr-policy-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family sr-policy-ipv6
+      line: 1291
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-vpn-ipv4
+    syntax: vpn-ipv4 <vpn-ipv4>
+    view: router.bgp.family
+    undo: delete vpn-ipv4
+    params:
+      vpn-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family vpn-ipv4
+      line: 1317
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-family-vpn-ipv6
+    syntax: vpn-ipv6 <vpn-ipv6>
+    view: router.bgp.family
+    undo: delete vpn-ipv6
+    params:
+      vpn-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp family vpn-ipv6
+      line: 1343
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-fast-external-failover
+    syntax: fast-external-failover <fast-external-failover>
+    view: router.bgp
+    undo: delete fast-external-failover
+    params:
+      fast-external-failover:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp fast-external-failover
+      line: 1369
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-flowspec
+    syntax: flowspec
+    view: router.bgp
+    enters_view: opaque
+    undo: delete flowspec
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp flowspec
+      line: 1395
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-graceful-restart
+    syntax: graceful-restart
+    view: router.bgp
+    enters_view: opaque
+    undo: delete graceful-restart
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp graceful-restart
+      line: 1411
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group
+    syntax: group <group-name>
+    view: router.bgp
+    enters_view: router.bgp.group
+    undo: delete group <group-name>
+    params:
+      group-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group
+      line: 1427
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer_group: $group-name
+  - id: nokia-sros-md.router-bgp-group-add-paths
+    syntax: add-paths
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete add-paths
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group add-paths
+      line: 1449
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-admin-state
+    syntax: admin-state <admin-state>
+    view: router.bgp.group
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group admin-state
+      line: 1465
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-advertise-inactive
+    syntax: advertise-inactive <advertise-inactive>
+    view: router.bgp.group
+    undo: delete advertise-inactive
+    params:
+      advertise-inactive:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group advertise-inactive
+      line: 1491
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-advertise-ipv6-next-hops
+    syntax: advertise-ipv6-next-hops
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete advertise-ipv6-next-hops
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group advertise-ipv6-next-hops
+      line: 1513
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-aggregator-id-zero
+    syntax: aggregator-id-zero <aggregator-id-zero>
+    view: router.bgp.group
+    undo: delete aggregator-id-zero
+    params:
+      aggregator-id-zero:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group aggregator-id-zero
+      line: 1529
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-aigp
+    syntax: aigp <aigp>
+    view: router.bgp.group
+    undo: delete aigp
+    params:
+      aigp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group aigp
+      line: 1551
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.bgp.group
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group apply-groups
+      line: 1577
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.bgp.group
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group apply-groups-exclude
+      line: 1595
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-as-override
+    syntax: as-override <as-override>
+    view: router.bgp.group
+    undo: delete as-override
+    params:
+      as-override:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group as-override
+      line: 1613
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-asn-4-byte
+    syntax: asn-4-byte <asn-4-byte>
+    view: router.bgp.group
+    undo: delete asn-4-byte
+    params:
+      asn-4-byte:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group asn-4-byte
+      line: 1639
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-authentication-key
+    syntax: authentication-key <authentication-key> [ hash | hash2 | custom ]
+    view: router.bgp.group
+    undo: delete authentication-key
+    params:
+      authentication-key:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group authentication-key
+      line: 1661
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer_group.password: $authentication-key
+  - id: nokia-sros-md.router-bgp-group-authentication-keychain
+    syntax: authentication-keychain <authentication-keychain>
+    view: router.bgp.group
+    undo: delete authentication-keychain
+    params:
+      authentication-keychain:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group authentication-keychain
+      line: 1683
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-bfd-liveness
+    syntax: bfd-liveness <bfd-liveness>
+    view: router.bgp.group
+    undo: delete bfd-liveness
+    params:
+      bfd-liveness:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group bfd-liveness
+      line: 1705
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-bfd-strict-mode
+    syntax: bfd-strict-mode
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete bfd-strict-mode
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group bfd-strict-mode
+      line: 1727
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-block-prefix-sid
+    syntax: block-prefix-sid <block-prefix-sid>
+    view: router.bgp.group
+    undo: delete block-prefix-sid
+    params:
+      block-prefix-sid:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group block-prefix-sid
+      line: 1743
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-capability-negotiation
+    syntax: capability-negotiation <capability-negotiation>
+    view: router.bgp.group
+    undo: delete capability-negotiation
+    params:
+      capability-negotiation:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group capability-negotiation
+      line: 1769
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-client-reflect
+    syntax: client-reflect <client-reflect>
+    view: router.bgp.group
+    undo: delete client-reflect
+    params:
+      client-reflect:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group client-reflect
+      line: 1795
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-cluster
+    syntax: cluster
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete cluster
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group cluster
+      line: 1817
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-connect-retry
+    syntax: connect-retry <connect-retry>
+    view: router.bgp.group
+    undo: delete connect-retry
+    params:
+      connect-retry:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group connect-retry
+      line: 1833
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-damp-peer-oscillations
+    syntax: damp-peer-oscillations
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete damp-peer-oscillations
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group damp-peer-oscillations
+      line: 1855
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-damping
+    syntax: damping <damping>
+    view: router.bgp.group
+    undo: delete damping
+    params:
+      damping:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group damping
+      line: 1871
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-def-recv-evpn-encap
+    syntax: def-recv-evpn-encap <def-recv-evpn-encap>
+    view: router.bgp.group
+    undo: delete def-recv-evpn-encap
+    params:
+      def-recv-evpn-encap:
+        type: enum
+        choices:
+          - mpls
+          - vxlan
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group def-recv-evpn-encap
+      line: 1893
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-default-label-preference
+    syntax: default-label-preference
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete default-label-preference
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group default-label-preference
+      line: 1915
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-default-preference
+    syntax: default-preference
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete default-preference
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group default-preference
+      line: 1931
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-default-route-target
+    syntax: default-route-target <default-route-target>
+    view: router.bgp.group
+    undo: delete default-route-target
+    params:
+      default-route-target:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group default-route-target
+      line: 1947
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-description
+    syntax: description <description>
+    view: router.bgp.group
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group description
+      line: 1973
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer_group.description: $description
+  - id: nokia-sros-md.router-bgp-group-dynamic-neighbor
+    syntax: dynamic-neighbor
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete dynamic-neighbor
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group dynamic-neighbor
+      line: 1995
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-dynamic-neighbor-limit
+    syntax: dynamic-neighbor-limit <dynamic-neighbor-limit>
+    view: router.bgp.group
+    undo: delete dynamic-neighbor-limit
+    params:
+      dynamic-neighbor-limit:
+        type: integer
+        range:
+          - 1
+          - 8192
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group dynamic-neighbor-limit
+      line: 2011
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-ebgp-default-reject-policy
+    syntax: ebgp-default-reject-policy
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete ebgp-default-reject-policy
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group ebgp-default-reject-policy
+      line: 2033
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-egress-engineering
+    syntax: egress-engineering
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete egress-engineering
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group egress-engineering
+      line: 2049
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-egress-peer-engineering-label-unicast
+    syntax: egress-peer-engineering-label-unicast <egress-peer-engineering-label-unicast>
+    view: router.bgp.group
+    undo: delete egress-peer-engineering-label-unicast
+    params:
+      egress-peer-engineering-label-unicast:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group egress-peer-engineering-label-unicast
+      line: 2065
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-enforce-first-as
+    syntax: enforce-first-as <enforce-first-as>
+    view: router.bgp.group
+    undo: delete enforce-first-as
+    params:
+      enforce-first-as:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group enforce-first-as
+      line: 2091
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-error-handling
+    syntax: error-handling
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete error-handling
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group error-handling
+      line: 2113
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-export
+    syntax: export
+    view: router.bgp.group
+    enters_view: router.bgp.group.export
+    undo: delete export
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group export
+      line: 2129
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-bgp-group-export-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.bgp.group.export
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group export apply-groups
+      line: 2145
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-export-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.bgp.group.export
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group export apply-groups-exclude
+      line: 2163
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-export-policy
+    syntax: policy <policy>
+    view: router.bgp.group.export
+    undo: delete policy
+    params:
+      policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group export policy
+      line: 2181
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer_group.export_policy: list:$policy
+  - id: nokia-sros-md.router-bgp-group-extended-nh-encoding
+    syntax: extended-nh-encoding
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete extended-nh-encoding
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group extended-nh-encoding
+      line: 2207
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family
+    syntax: family
+    view: router.bgp.group
+    enters_view: router.bgp.group.family
+    undo: delete family
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family
+      line: 2223
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-bgp-ls
+    syntax: bgp-ls <bgp-ls>
+    view: router.bgp.group.family
+    undo: delete bgp-ls
+    params:
+      bgp-ls:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family bgp-ls
+      line: 2239
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-evpn
+    syntax: evpn <evpn>
+    view: router.bgp.group.family
+    undo: delete evpn
+    params:
+      evpn:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family evpn
+      line: 2265
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-flow-ipv4
+    syntax: flow-ipv4 <flow-ipv4>
+    view: router.bgp.group.family
+    undo: delete flow-ipv4
+    params:
+      flow-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family flow-ipv4
+      line: 2291
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-flow-ipv6
+    syntax: flow-ipv6 <flow-ipv6>
+    view: router.bgp.group.family
+    undo: delete flow-ipv6
+    params:
+      flow-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family flow-ipv6
+      line: 2317
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-flow-vpn-ipv4
+    syntax: flow-vpn-ipv4 <flow-vpn-ipv4>
+    view: router.bgp.group.family
+    undo: delete flow-vpn-ipv4
+    params:
+      flow-vpn-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family flow-vpn-ipv4
+      line: 2343
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-flow-vpn-ipv6
+    syntax: flow-vpn-ipv6 <flow-vpn-ipv6>
+    view: router.bgp.group.family
+    undo: delete flow-vpn-ipv6
+    params:
+      flow-vpn-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family flow-vpn-ipv6
+      line: 2369
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-ipv4
+    syntax: ipv4 <ipv4>
+    view: router.bgp.group.family
+    undo: delete ipv4
+    params:
+      ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family ipv4
+      line: 2395
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-ipv6
+    syntax: ipv6 <ipv6>
+    view: router.bgp.group.family
+    undo: delete ipv6
+    params:
+      ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family ipv6
+      line: 2421
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-l2-vpn
+    syntax: l2-vpn <l2-vpn>
+    view: router.bgp.group.family
+    undo: delete l2-vpn
+    params:
+      l2-vpn:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family l2-vpn
+      line: 2447
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-label-ipv4
+    syntax: label-ipv4 <label-ipv4>
+    view: router.bgp.group.family
+    undo: delete label-ipv4
+    params:
+      label-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family label-ipv4
+      line: 2473
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-label-ipv6
+    syntax: label-ipv6 <label-ipv6>
+    view: router.bgp.group.family
+    undo: delete label-ipv6
+    params:
+      label-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family label-ipv6
+      line: 2499
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-mcast-ipv4
+    syntax: mcast-ipv4 <mcast-ipv4>
+    view: router.bgp.group.family
+    undo: delete mcast-ipv4
+    params:
+      mcast-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family mcast-ipv4
+      line: 2525
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-mcast-ipv6
+    syntax: mcast-ipv6 <mcast-ipv6>
+    view: router.bgp.group.family
+    undo: delete mcast-ipv6
+    params:
+      mcast-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family mcast-ipv6
+      line: 2551
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-mcast-vpn-ipv4
+    syntax: mcast-vpn-ipv4 <mcast-vpn-ipv4>
+    view: router.bgp.group.family
+    undo: delete mcast-vpn-ipv4
+    params:
+      mcast-vpn-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family mcast-vpn-ipv4
+      line: 2577
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-mcast-vpn-ipv6
+    syntax: mcast-vpn-ipv6 <mcast-vpn-ipv6>
+    view: router.bgp.group.family
+    undo: delete mcast-vpn-ipv6
+    params:
+      mcast-vpn-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family mcast-vpn-ipv6
+      line: 2603
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-mdt-safi
+    syntax: mdt-safi <mdt-safi>
+    view: router.bgp.group.family
+    undo: delete mdt-safi
+    params:
+      mdt-safi:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family mdt-safi
+      line: 2629
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-ms-pw
+    syntax: ms-pw <ms-pw>
+    view: router.bgp.group.family
+    undo: delete ms-pw
+    params:
+      ms-pw:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family ms-pw
+      line: 2655
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-mvpn-ipv4
+    syntax: mvpn-ipv4 <mvpn-ipv4>
+    view: router.bgp.group.family
+    undo: delete mvpn-ipv4
+    params:
+      mvpn-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family mvpn-ipv4
+      line: 2681
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-mvpn-ipv6
+    syntax: mvpn-ipv6 <mvpn-ipv6>
+    view: router.bgp.group.family
+    undo: delete mvpn-ipv6
+    params:
+      mvpn-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family mvpn-ipv6
+      line: 2707
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-route-target
+    syntax: route-target <route-target>
+    view: router.bgp.group.family
+    undo: delete route-target
+    params:
+      route-target:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family route-target
+      line: 2733
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-sr-policy-ipv4
+    syntax: sr-policy-ipv4 <sr-policy-ipv4>
+    view: router.bgp.group.family
+    undo: delete sr-policy-ipv4
+    params:
+      sr-policy-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family sr-policy-ipv4
+      line: 2759
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-sr-policy-ipv6
+    syntax: sr-policy-ipv6 <sr-policy-ipv6>
+    view: router.bgp.group.family
+    undo: delete sr-policy-ipv6
+    params:
+      sr-policy-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family sr-policy-ipv6
+      line: 2785
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-vpn-ipv4
+    syntax: vpn-ipv4 <vpn-ipv4>
+    view: router.bgp.group.family
+    undo: delete vpn-ipv4
+    params:
+      vpn-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family vpn-ipv4
+      line: 2811
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-family-vpn-ipv6
+    syntax: vpn-ipv6 <vpn-ipv6>
+    view: router.bgp.group.family
+    undo: delete vpn-ipv6
+    params:
+      vpn-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group family vpn-ipv6
+      line: 2837
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-fast-external-failover
+    syntax: fast-external-failover <fast-external-failover>
+    view: router.bgp.group
+    undo: delete fast-external-failover
+    params:
+      fast-external-failover:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group fast-external-failover
+      line: 2863
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-graceful-restart
+    syntax: graceful-restart
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete graceful-restart
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group graceful-restart
+      line: 2885
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-hold-time
+    syntax: hold-time
+    view: router.bgp.group
+    enters_view: router.bgp.group.hold-time
+    undo: delete hold-time
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group hold-time
+      line: 2901
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-bgp-group-import
+    syntax: import
+    view: router.bgp.group
+    enters_view: router.bgp.group.import
+    undo: delete import
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group import
+      line: 2917
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-bgp-group-import-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.bgp.group.import
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group import apply-groups
+      line: 2933
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-import-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.bgp.group.import
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group import apply-groups-exclude
+      line: 2951
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-import-policy
+    syntax: policy <policy>
+    view: router.bgp.group.import
+    undo: delete policy
+    params:
+      policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group import policy
+      line: 2969
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer_group.import_policy: list:$policy
+  - id: nokia-sros-md.router-bgp-group-initial-send-delay-zero
+    syntax: initial-send-delay-zero <initial-send-delay-zero>
+    view: router.bgp.group
+    undo: delete initial-send-delay-zero
+    params:
+      initial-send-delay-zero:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group initial-send-delay-zero
+      line: 2995
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-keepalive
+    syntax: keepalive <keepalive>
+    view: router.bgp.group
+    undo: delete keepalive
+    params:
+      keepalive:
+        type: integer
+        range:
+          - 0
+          - 21845
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group keepalive
+      line: 3017
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer_group.keepalive: $keepalive
+  - id: nokia-sros-md.router-bgp-group-label-preference
+    syntax: label-preference <label-preference>
+    view: router.bgp.group
+    undo: delete label-preference
+    params:
+      label-preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group label-preference
+      line: 3039
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-link-bandwidth
+    syntax: link-bandwidth
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete link-bandwidth
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group link-bandwidth
+      line: 3061
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-local-address
+    syntax: local-address <local-address>
+    view: router.bgp.group
+    undo: delete local-address
+    params:
+      local-address:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group local-address
+      line: 3077
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer_group.update_source: $local-address
+  - id: nokia-sros-md.router-bgp-group-local-as
+    syntax: local-as
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete local-as
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group local-as
+      line: 3099
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-local-preference
+    syntax: local-preference <local-preference>
+    view: router.bgp.group
+    undo: delete local-preference
+    params:
+      local-preference:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group local-preference
+      line: 3115
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-loop-detect
+    syntax: loop-detect <loop-detect>
+    view: router.bgp.group
+    undo: delete loop-detect
+    params:
+      loop-detect:
+        type: enum
+        choices:
+          - drop-peer
+          - ignore-loop
+          - off
+          - discard-route
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group loop-detect
+      line: 3137
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-loop-detect-threshold
+    syntax: loop-detect-threshold <loop-detect-threshold>
+    view: router.bgp.group
+    undo: delete loop-detect-threshold
+    params:
+      loop-detect-threshold:
+        type: integer
+        range:
+          - 0
+          - 15
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group loop-detect-threshold
+      line: 3159
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-med-out
+    syntax: med-out <med-out>
+    view: router.bgp.group
+    undo: delete med-out
+    params:
+      med-out:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group med-out
+      line: 3181
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-min-route-advertisement
+    syntax: min-route-advertisement <min-route-advertisement>
+    view: router.bgp.group
+    undo: delete min-route-advertisement
+    params:
+      min-route-advertisement:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group min-route-advertisement
+      line: 3203
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-monitor
+    syntax: monitor
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete monitor
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group monitor
+      line: 3225
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-multihop
+    syntax: multihop <multihop>
+    view: router.bgp.group
+    undo: delete multihop
+    params:
+      multihop:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group multihop
+      line: 3241
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-multipath-eligible
+    syntax: multipath-eligible <multipath-eligible>
+    view: router.bgp.group
+    undo: delete multipath-eligible
+    params:
+      multipath-eligible:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group multipath-eligible
+      line: 3263
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-next-hop-self
+    syntax: next-hop-self <next-hop-self>
+    view: router.bgp.group
+    undo: delete next-hop-self
+    params:
+      next-hop-self:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group next-hop-self
+      line: 3289
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-next-hop-unchanged
+    syntax: next-hop-unchanged
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete next-hop-unchanged
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group next-hop-unchanged
+      line: 3315
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-origin-validation
+    syntax: origin-validation
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete origin-validation
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group origin-validation
+      line: 3331
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-outbound-route-filtering
+    syntax: outbound-route-filtering
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete outbound-route-filtering
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group outbound-route-filtering
+      line: 3347
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-passive
+    syntax: passive <passive>
+    view: router.bgp.group
+    undo: delete passive
+    params:
+      passive:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group passive
+      line: 3363
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-path-mtu-discovery
+    syntax: path-mtu-discovery <path-mtu-discovery>
+    view: router.bgp.group
+    undo: delete path-mtu-discovery
+    params:
+      path-mtu-discovery:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group path-mtu-discovery
+      line: 3389
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-peer-as
+    syntax: peer-as <peer-as>
+    view: router.bgp.group
+    undo: delete peer-as
+    params:
+      peer-as:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group peer-as
+      line: 3411
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer_group.remote_as: $peer-as
+  - id: nokia-sros-md.router-bgp-group-peer-ip-tracking
+    syntax: peer-ip-tracking <peer-ip-tracking>
+    view: router.bgp.group
+    undo: delete peer-ip-tracking
+    params:
+      peer-ip-tracking:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group peer-ip-tracking
+      line: 3433
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-preference
+    syntax: preference <preference>
+    view: router.bgp.group
+    undo: delete preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group preference
+      line: 3455
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-prefix-limit
+    syntax: prefix-limit <family>
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete prefix-limit <family>
+    params:
+      family:
+        type: enum
+        choices:
+          - ipv4
+          - vpn-ipv4
+          - ipv6
+          - mcast-ipv4
+          - vpn-ipv6
+          - l2-vpn
+          - mvpn-ipv4
+          - mdt-safi
+          - ms-pw
+          - flow-ipv4
+          - route-target
+          - mcast-vpn-ipv4
+          - mvpn-ipv6
+          - flow-ipv6
+          - evpn
+          - mcast-ipv6
+          - label-ipv4
+          - label-ipv6
+          - bgp-ls
+          - mcast-vpn-ipv6
+          - sr-policy-ipv4
+          - sr-policy-ipv6
+          - flow-vpn-ipv4
+          - flow-vpn-ipv6
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group prefix-limit
+      line: 3477
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-remove-private
+    syntax: remove-private
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete remove-private
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group remove-private
+      line: 3499
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-segment-routing-v6
+    syntax: segment-routing-v6
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete segment-routing-v6
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group segment-routing-v6
+      line: 3515
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-selective-label-ipv4-install
+    syntax: selective-label-ipv4-install <selective-label-ipv4-install>
+    view: router.bgp.group
+    undo: delete selective-label-ipv4-install
+    params:
+      selective-label-ipv4-install:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group selective-label-ipv4-install
+      line: 3531
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-send-communities
+    syntax: send-communities
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete send-communities
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group send-communities
+      line: 3553
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-send-default
+    syntax: send-default
+    view: router.bgp.group
+    enters_view: opaque
+    undo: delete send-default
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group send-default
+      line: 3569
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-split-horizon
+    syntax: split-horizon <split-horizon>
+    view: router.bgp.group
+    undo: delete split-horizon
+    params:
+      split-horizon:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group split-horizon
+      line: 3585
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-static-group
+    syntax: static-group <static-group>
+    view: router.bgp.group
+    undo: delete static-group
+    params:
+      static-group:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group static-group
+      line: 3607
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-tcp-mss
+    syntax: tcp-mss <tcp-mss>
+    view: router.bgp.group
+    undo: delete tcp-mss
+    params:
+      tcp-mss:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group tcp-mss
+      line: 3633
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-third-party-nexthop
+    syntax: third-party-nexthop <third-party-nexthop>
+    view: router.bgp.group
+    undo: delete third-party-nexthop
+    params:
+      third-party-nexthop:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group third-party-nexthop
+      line: 3655
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-ttl-security
+    syntax: ttl-security <ttl-security>
+    view: router.bgp.group
+    undo: delete ttl-security
+    params:
+      ttl-security:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group ttl-security
+      line: 3677
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-type
+    syntax: type <type>
+    view: router.bgp.group
+    undo: delete type
+    params:
+      type:
+        type: enum
+        choices:
+          - no-type
+          - internal
+          - external
+    default: no-type
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group type
+      line: 3699
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer_group.type: kw:internal|external
+  - id: nokia-sros-md.router-bgp-group-vpn-apply-export
+    syntax: vpn-apply-export <vpn-apply-export>
+    view: router.bgp.group
+    undo: delete vpn-apply-export
+    params:
+      vpn-apply-export:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group vpn-apply-export
+      line: 3725
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-vpn-apply-import
+    syntax: vpn-apply-import <vpn-apply-import>
+    view: router.bgp.group
+    undo: delete vpn-apply-import
+    params:
+      vpn-apply-import:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group vpn-apply-import
+      line: 3747
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-hold-time
+    syntax: hold-time
+    view: router.bgp
+    enters_view: router.bgp.hold-time
+    undo: delete hold-time
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp hold-time
+      line: 3817
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-bgp-ibgp-multipath
+    syntax: ibgp-multipath <ibgp-multipath>
+    view: router.bgp
+    undo: delete ibgp-multipath
+    params:
+      ibgp-multipath:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp ibgp-multipath
+      line: 3785
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-import
+    syntax: import
+    view: router.bgp
+    enters_view: opaque
+    undo: delete import
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp import
+      line: 3811
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-initial-send-delay-zero
+    syntax: initial-send-delay-zero <initial-send-delay-zero>
+    view: router.bgp
+    undo: delete initial-send-delay-zero
+    params:
+      initial-send-delay-zero:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp initial-send-delay-zero
+      line: 3827
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-inter-as-vpn
+    syntax: inter-as-vpn <inter-as-vpn>
+    view: router.bgp
+    undo: delete inter-as-vpn
+    params:
+      inter-as-vpn:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp inter-as-vpn
+      line: 3853
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-keepalive
+    syntax: keepalive <keepalive>
+    view: router.bgp
+    undo: delete keepalive
+    params:
+      keepalive:
+        type: integer
+        range:
+          - 0
+          - 21845
+    default: '30'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp keepalive
+      line: 3879
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.instance.keepalive: $keepalive
+  - id: nokia-sros-md.router-bgp-label-allocation
+    syntax: label-allocation
+    view: router.bgp
+    enters_view: opaque
+    undo: delete label-allocation
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp label-allocation
+      line: 3905
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-label-preference
+    syntax: label-preference <label-preference>
+    view: router.bgp
+    undo: delete label-preference
+    params:
+      label-preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '170'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp label-preference
+      line: 3921
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-link-state-route-export
+    syntax: link-state-route-export <link-state-route-export>
+    view: router.bgp
+    undo: delete link-state-route-export
+    params:
+      link-state-route-export:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp link-state-route-export
+      line: 3947
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-link-state-route-import
+    syntax: link-state-route-import <link-state-route-import>
+    view: router.bgp
+    undo: delete link-state-route-import
+    params:
+      link-state-route-import:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp link-state-route-import
+      line: 3973
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-local-as
+    syntax: local-as
+    view: router.bgp
+    enters_view: opaque
+    undo: delete local-as
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp local-as
+      line: 3999
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-local-preference
+    syntax: local-preference <local-preference>
+    view: router.bgp
+    undo: delete local-preference
+    params:
+      local-preference:
+        type: integer
+    default: '100'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp local-preference
+      line: 4015
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-loop-detect
+    syntax: loop-detect <loop-detect>
+    view: router.bgp
+    undo: delete loop-detect
+    params:
+      loop-detect:
+        type: enum
+        choices:
+          - drop-peer
+          - ignore-loop
+          - off
+          - discard-route
+    default: ignore-loop
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp loop-detect
+      line: 4041
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-loop-detect-threshold
+    syntax: loop-detect-threshold <loop-detect-threshold>
+    view: router.bgp
+    undo: delete loop-detect-threshold
+    params:
+      loop-detect-threshold:
+        type: integer
+        range:
+          - 0
+          - 15
+    default: '0'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp loop-detect-threshold
+      line: 4067
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-med-out
+    syntax: med-out <med-out>
+    view: router.bgp
+    undo: delete med-out
+    params:
+      med-out:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp med-out
+      line: 4093
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-min-route-advertisement
+    syntax: min-route-advertisement <min-route-advertisement>
+    view: router.bgp
+    undo: delete min-route-advertisement
+    params:
+      min-route-advertisement:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '30'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp min-route-advertisement
+      line: 4115
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-monitor
+    syntax: monitor
+    view: router.bgp
+    enters_view: opaque
+    undo: delete monitor
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp monitor
+      line: 4141
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-mp-bgp-keep
+    syntax: mp-bgp-keep <mp-bgp-keep>
+    view: router.bgp
+    undo: delete mp-bgp-keep
+    params:
+      mp-bgp-keep:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp mp-bgp-keep
+      line: 4157
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-multihop
+    syntax: multihop <multihop>
+    view: router.bgp
+    undo: delete multihop
+    params:
+      multihop:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp multihop
+      line: 4183
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-multipath
+    syntax: multipath
+    view: router.bgp
+    enters_view: opaque
+    undo: delete multipath
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp multipath
+      line: 4205
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-mvpn-vrf-import-subtype-new
+    syntax: mvpn-vrf-import-subtype-new <mvpn-vrf-import-subtype-new>
+    view: router.bgp
+    undo: delete mvpn-vrf-import-subtype-new
+    params:
+      mvpn-vrf-import-subtype-new:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp mvpn-vrf-import-subtype-new
+      line: 4221
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor
+    syntax: neighbor <ip-address>
+    view: router.bgp
+    enters_view: router.bgp.neighbor
+    undo: delete neighbor <ip-address>
+    params:
+      ip-address:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor
+      line: 4247
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer: $ip-address
+  - id: nokia-sros-md.router-bgp-neighbor-add-paths
+    syntax: add-paths
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete add-paths
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor add-paths
+      line: 4269
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-admin-state
+    syntax: admin-state <admin-state>
+    view: router.bgp.neighbor
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor admin-state
+      line: 4285
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-advertise-inactive
+    syntax: advertise-inactive <advertise-inactive>
+    view: router.bgp.neighbor
+    undo: delete advertise-inactive
+    params:
+      advertise-inactive:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor advertise-inactive
+      line: 4311
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-advertise-ipv6-next-hops
+    syntax: advertise-ipv6-next-hops
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete advertise-ipv6-next-hops
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor advertise-ipv6-next-hops
+      line: 4333
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-advertise-ldp-prefix
+    syntax: advertise-ldp-prefix <advertise-ldp-prefix>
+    view: router.bgp.neighbor
+    undo: delete advertise-ldp-prefix
+    params:
+      advertise-ldp-prefix:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor advertise-ldp-prefix
+      line: 4349
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-aggregator-id-zero
+    syntax: aggregator-id-zero <aggregator-id-zero>
+    view: router.bgp.neighbor
+    undo: delete aggregator-id-zero
+    params:
+      aggregator-id-zero:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor aggregator-id-zero
+      line: 4375
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-aigp
+    syntax: aigp <aigp>
+    view: router.bgp.neighbor
+    undo: delete aigp
+    params:
+      aigp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor aigp
+      line: 4397
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.bgp.neighbor
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor apply-groups
+      line: 4419
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.bgp.neighbor
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor apply-groups-exclude
+      line: 4437
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-as-override
+    syntax: as-override <as-override>
+    view: router.bgp.neighbor
+    undo: delete as-override
+    params:
+      as-override:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor as-override
+      line: 4455
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-asn-4-byte
+    syntax: asn-4-byte <asn-4-byte>
+    view: router.bgp.neighbor
+    undo: delete asn-4-byte
+    params:
+      asn-4-byte:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor asn-4-byte
+      line: 4477
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-authentication-key
+    syntax: authentication-key <authentication-key> [ hash | hash2 | custom ]
+    view: router.bgp.neighbor
+    undo: delete authentication-key
+    params:
+      authentication-key:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor authentication-key
+      line: 4499
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer.password: $authentication-key
+  - id: nokia-sros-md.router-bgp-neighbor-authentication-keychain
+    syntax: authentication-keychain <authentication-keychain>
+    view: router.bgp.neighbor
+    undo: delete authentication-keychain
+    params:
+      authentication-keychain:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor authentication-keychain
+      line: 4521
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-bfd-liveness
+    syntax: bfd-liveness <bfd-liveness>
+    view: router.bgp.neighbor
+    undo: delete bfd-liveness
+    params:
+      bfd-liveness:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor bfd-liveness
+      line: 4543
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-bfd-strict-mode
+    syntax: bfd-strict-mode
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete bfd-strict-mode
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor bfd-strict-mode
+      line: 4565
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-block-prefix-sid
+    syntax: block-prefix-sid <block-prefix-sid>
+    view: router.bgp.neighbor
+    undo: delete block-prefix-sid
+    params:
+      block-prefix-sid:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor block-prefix-sid
+      line: 4581
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-capability-negotiation
+    syntax: capability-negotiation <capability-negotiation>
+    view: router.bgp.neighbor
+    undo: delete capability-negotiation
+    params:
+      capability-negotiation:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor capability-negotiation
+      line: 4607
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-client-reflect
+    syntax: client-reflect <client-reflect>
+    view: router.bgp.neighbor
+    undo: delete client-reflect
+    params:
+      client-reflect:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor client-reflect
+      line: 4629
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-cluster
+    syntax: cluster
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete cluster
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor cluster
+      line: 4651
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-connect-retry
+    syntax: connect-retry <connect-retry>
+    view: router.bgp.neighbor
+    undo: delete connect-retry
+    params:
+      connect-retry:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor connect-retry
+      line: 4667
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-damp-peer-oscillations
+    syntax: damp-peer-oscillations
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete damp-peer-oscillations
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor damp-peer-oscillations
+      line: 4689
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-damping
+    syntax: damping <damping>
+    view: router.bgp.neighbor
+    undo: delete damping
+    params:
+      damping:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor damping
+      line: 4705
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-def-recv-evpn-encap
+    syntax: def-recv-evpn-encap <def-recv-evpn-encap>
+    view: router.bgp.neighbor
+    undo: delete def-recv-evpn-encap
+    params:
+      def-recv-evpn-encap:
+        type: enum
+        choices:
+          - mpls
+          - vxlan
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor def-recv-evpn-encap
+      line: 4727
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-default-label-preference
+    syntax: default-label-preference
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete default-label-preference
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor default-label-preference
+      line: 4749
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-default-preference
+    syntax: default-preference
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete default-preference
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor default-preference
+      line: 4765
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-default-route-target
+    syntax: default-route-target <default-route-target>
+    view: router.bgp.neighbor
+    undo: delete default-route-target
+    params:
+      default-route-target:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor default-route-target
+      line: 4781
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-description
+    syntax: description <description>
+    view: router.bgp.neighbor
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor description
+      line: 4803
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer.description: $description
+  - id: nokia-sros-md.router-bgp-neighbor-ebgp-default-reject-policy
+    syntax: ebgp-default-reject-policy
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete ebgp-default-reject-policy
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor ebgp-default-reject-policy
+      line: 4825
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-egress-engineering
+    syntax: egress-engineering
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete egress-engineering
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor egress-engineering
+      line: 4841
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-egress-peer-engineering-label-unicast
+    syntax: egress-peer-engineering-label-unicast <egress-peer-engineering-label-unicast>
+    view: router.bgp.neighbor
+    undo: delete egress-peer-engineering-label-unicast
+    params:
+      egress-peer-engineering-label-unicast:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor egress-peer-engineering-label-unicast
+      line: 4857
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-enforce-first-as
+    syntax: enforce-first-as <enforce-first-as>
+    view: router.bgp.neighbor
+    undo: delete enforce-first-as
+    params:
+      enforce-first-as:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor enforce-first-as
+      line: 4883
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-error-handling
+    syntax: error-handling
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete error-handling
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor error-handling
+      line: 4905
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-export
+    syntax: export
+    view: router.bgp.neighbor
+    enters_view: router.bgp.neighbor.export
+    undo: delete export
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor export
+      line: 4921
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-bgp-neighbor-export-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.bgp.neighbor.export
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor export apply-groups
+      line: 4937
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-export-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.bgp.neighbor.export
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor export apply-groups-exclude
+      line: 4955
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-export-policy
+    syntax: policy <policy>
+    view: router.bgp.neighbor.export
+    undo: delete policy
+    params:
+      policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor export policy
+      line: 4973
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer.export_policy: list:$policy
+  - id: nokia-sros-md.router-bgp-neighbor-extended-nh-encoding
+    syntax: extended-nh-encoding
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete extended-nh-encoding
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor extended-nh-encoding
+      line: 4999
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family
+    syntax: family
+    view: router.bgp.neighbor
+    enters_view: router.bgp.neighbor.family
+    undo: delete family
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family
+      line: 5015
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-bgp-ls
+    syntax: bgp-ls <bgp-ls>
+    view: router.bgp.neighbor.family
+    undo: delete bgp-ls
+    params:
+      bgp-ls:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family bgp-ls
+      line: 5031
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-evpn
+    syntax: evpn <evpn>
+    view: router.bgp.neighbor.family
+    undo: delete evpn
+    params:
+      evpn:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family evpn
+      line: 5057
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-flow-ipv4
+    syntax: flow-ipv4 <flow-ipv4>
+    view: router.bgp.neighbor.family
+    undo: delete flow-ipv4
+    params:
+      flow-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family flow-ipv4
+      line: 5083
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-flow-ipv6
+    syntax: flow-ipv6 <flow-ipv6>
+    view: router.bgp.neighbor.family
+    undo: delete flow-ipv6
+    params:
+      flow-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family flow-ipv6
+      line: 5109
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-flow-vpn-ipv4
+    syntax: flow-vpn-ipv4 <flow-vpn-ipv4>
+    view: router.bgp.neighbor.family
+    undo: delete flow-vpn-ipv4
+    params:
+      flow-vpn-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family flow-vpn-ipv4
+      line: 5135
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-flow-vpn-ipv6
+    syntax: flow-vpn-ipv6 <flow-vpn-ipv6>
+    view: router.bgp.neighbor.family
+    undo: delete flow-vpn-ipv6
+    params:
+      flow-vpn-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family flow-vpn-ipv6
+      line: 5161
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-ipv4
+    syntax: ipv4 <ipv4>
+    view: router.bgp.neighbor.family
+    undo: delete ipv4
+    params:
+      ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family ipv4
+      line: 5187
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-ipv6
+    syntax: ipv6 <ipv6>
+    view: router.bgp.neighbor.family
+    undo: delete ipv6
+    params:
+      ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family ipv6
+      line: 5213
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-l2-vpn
+    syntax: l2-vpn <l2-vpn>
+    view: router.bgp.neighbor.family
+    undo: delete l2-vpn
+    params:
+      l2-vpn:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family l2-vpn
+      line: 5239
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-label-ipv4
+    syntax: label-ipv4 <label-ipv4>
+    view: router.bgp.neighbor.family
+    undo: delete label-ipv4
+    params:
+      label-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family label-ipv4
+      line: 5265
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-label-ipv6
+    syntax: label-ipv6 <label-ipv6>
+    view: router.bgp.neighbor.family
+    undo: delete label-ipv6
+    params:
+      label-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family label-ipv6
+      line: 5291
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-mcast-ipv4
+    syntax: mcast-ipv4 <mcast-ipv4>
+    view: router.bgp.neighbor.family
+    undo: delete mcast-ipv4
+    params:
+      mcast-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family mcast-ipv4
+      line: 5317
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-mcast-ipv6
+    syntax: mcast-ipv6 <mcast-ipv6>
+    view: router.bgp.neighbor.family
+    undo: delete mcast-ipv6
+    params:
+      mcast-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family mcast-ipv6
+      line: 5343
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-mcast-vpn-ipv4
+    syntax: mcast-vpn-ipv4 <mcast-vpn-ipv4>
+    view: router.bgp.neighbor.family
+    undo: delete mcast-vpn-ipv4
+    params:
+      mcast-vpn-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family mcast-vpn-ipv4
+      line: 5369
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-mcast-vpn-ipv6
+    syntax: mcast-vpn-ipv6 <mcast-vpn-ipv6>
+    view: router.bgp.neighbor.family
+    undo: delete mcast-vpn-ipv6
+    params:
+      mcast-vpn-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family mcast-vpn-ipv6
+      line: 5395
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-mdt-safi
+    syntax: mdt-safi <mdt-safi>
+    view: router.bgp.neighbor.family
+    undo: delete mdt-safi
+    params:
+      mdt-safi:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family mdt-safi
+      line: 5421
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-ms-pw
+    syntax: ms-pw <ms-pw>
+    view: router.bgp.neighbor.family
+    undo: delete ms-pw
+    params:
+      ms-pw:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family ms-pw
+      line: 5447
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-mvpn-ipv4
+    syntax: mvpn-ipv4 <mvpn-ipv4>
+    view: router.bgp.neighbor.family
+    undo: delete mvpn-ipv4
+    params:
+      mvpn-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family mvpn-ipv4
+      line: 5473
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-mvpn-ipv6
+    syntax: mvpn-ipv6 <mvpn-ipv6>
+    view: router.bgp.neighbor.family
+    undo: delete mvpn-ipv6
+    params:
+      mvpn-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family mvpn-ipv6
+      line: 5499
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-route-target
+    syntax: route-target <route-target>
+    view: router.bgp.neighbor.family
+    undo: delete route-target
+    params:
+      route-target:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family route-target
+      line: 5525
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-sr-policy-ipv4
+    syntax: sr-policy-ipv4 <sr-policy-ipv4>
+    view: router.bgp.neighbor.family
+    undo: delete sr-policy-ipv4
+    params:
+      sr-policy-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family sr-policy-ipv4
+      line: 5551
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-sr-policy-ipv6
+    syntax: sr-policy-ipv6 <sr-policy-ipv6>
+    view: router.bgp.neighbor.family
+    undo: delete sr-policy-ipv6
+    params:
+      sr-policy-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family sr-policy-ipv6
+      line: 5577
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-vpn-ipv4
+    syntax: vpn-ipv4 <vpn-ipv4>
+    view: router.bgp.neighbor.family
+    undo: delete vpn-ipv4
+    params:
+      vpn-ipv4:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family vpn-ipv4
+      line: 5603
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-family-vpn-ipv6
+    syntax: vpn-ipv6 <vpn-ipv6>
+    view: router.bgp.neighbor.family
+    undo: delete vpn-ipv6
+    params:
+      vpn-ipv6:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor family vpn-ipv6
+      line: 5629
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-fast-external-failover
+    syntax: fast-external-failover <fast-external-failover>
+    view: router.bgp.neighbor
+    undo: delete fast-external-failover
+    params:
+      fast-external-failover:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor fast-external-failover
+      line: 5655
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-graceful-restart
+    syntax: graceful-restart
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete graceful-restart
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor graceful-restart
+      line: 5677
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-group
+    syntax: group <group>
+    view: router.bgp.neighbor
+    undo: delete group
+    params:
+      group:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor group
+      line: 5693
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer.group: $group
+  - id: nokia-sros-md.router-bgp-neighbor-hold-time
+    syntax: hold-time
+    view: router.bgp.neighbor
+    enters_view: router.bgp.neighbor.hold-time
+    undo: delete hold-time
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor hold-time
+      line: 5819
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-bgp-neighbor-import
+    syntax: import
+    view: router.bgp.neighbor
+    enters_view: router.bgp.neighbor.import
+    undo: delete import
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor import
+      line: 5735
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-bgp-neighbor-import-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.bgp.neighbor.import
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor import apply-groups
+      line: 5751
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-import-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.bgp.neighbor.import
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor import apply-groups-exclude
+      line: 5769
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-import-policy
+    syntax: policy <policy>
+    view: router.bgp.neighbor.import
+    undo: delete policy
+    params:
+      policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor import policy
+      line: 5787
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer.import_policy: list:$policy
+  - id: nokia-sros-md.router-bgp-neighbor-initial-send-delay-zero
+    syntax: initial-send-delay-zero <initial-send-delay-zero>
+    view: router.bgp.neighbor
+    undo: delete initial-send-delay-zero
+    params:
+      initial-send-delay-zero:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor initial-send-delay-zero
+      line: 5813
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-keepalive
+    syntax: keepalive <keepalive>
+    view: router.bgp.neighbor
+    undo: delete keepalive
+    params:
+      keepalive:
+        type: integer
+        range:
+          - 0
+          - 21845
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor keepalive
+      line: 5835
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer.keepalive: $keepalive
+  - id: nokia-sros-md.router-bgp-neighbor-l2vpn-cisco-interop
+    syntax: l2vpn-cisco-interop <l2vpn-cisco-interop>
+    view: router.bgp.neighbor
+    undo: delete l2vpn-cisco-interop
+    params:
+      l2vpn-cisco-interop:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor l2vpn-cisco-interop
+      line: 5857
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-label-preference
+    syntax: label-preference <label-preference>
+    view: router.bgp.neighbor
+    undo: delete label-preference
+    params:
+      label-preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor label-preference
+      line: 5883
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-link-bandwidth
+    syntax: link-bandwidth
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete link-bandwidth
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor link-bandwidth
+      line: 5905
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-local-address
+    syntax: local-address <local-address>
+    view: router.bgp.neighbor
+    undo: delete local-address
+    params:
+      local-address:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor local-address
+      line: 5921
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer.update_source: $local-address
+  - id: nokia-sros-md.router-bgp-neighbor-local-as
+    syntax: local-as
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete local-as
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor local-as
+      line: 5943
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-local-preference
+    syntax: local-preference <local-preference>
+    view: router.bgp.neighbor
+    undo: delete local-preference
+    params:
+      local-preference:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor local-preference
+      line: 5959
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-loop-detect
+    syntax: loop-detect <loop-detect>
+    view: router.bgp.neighbor
+    undo: delete loop-detect
+    params:
+      loop-detect:
+        type: enum
+        choices:
+          - drop-peer
+          - ignore-loop
+          - off
+          - discard-route
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor loop-detect
+      line: 5981
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-loop-detect-threshold
+    syntax: loop-detect-threshold <loop-detect-threshold>
+    view: router.bgp.neighbor
+    undo: delete loop-detect-threshold
+    params:
+      loop-detect-threshold:
+        type: integer
+        range:
+          - 0
+          - 15
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor loop-detect-threshold
+      line: 6003
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-med-out
+    syntax: med-out <med-out>
+    view: router.bgp.neighbor
+    undo: delete med-out
+    params:
+      med-out:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor med-out
+      line: 6025
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-min-route-advertisement
+    syntax: min-route-advertisement <min-route-advertisement>
+    view: router.bgp.neighbor
+    undo: delete min-route-advertisement
+    params:
+      min-route-advertisement:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor min-route-advertisement
+      line: 6047
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-monitor
+    syntax: monitor
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete monitor
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor monitor
+      line: 6069
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-multihop
+    syntax: multihop <multihop>
+    view: router.bgp.neighbor
+    undo: delete multihop
+    params:
+      multihop:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor multihop
+      line: 6085
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-multipath-eligible
+    syntax: multipath-eligible <multipath-eligible>
+    view: router.bgp.neighbor
+    undo: delete multipath-eligible
+    params:
+      multipath-eligible:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor multipath-eligible
+      line: 6107
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-next-hop-self
+    syntax: next-hop-self <next-hop-self>
+    view: router.bgp.neighbor
+    undo: delete next-hop-self
+    params:
+      next-hop-self:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor next-hop-self
+      line: 6129
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-next-hop-unchanged
+    syntax: next-hop-unchanged
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete next-hop-unchanged
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor next-hop-unchanged
+      line: 6151
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-origin-validation
+    syntax: origin-validation
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete origin-validation
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor origin-validation
+      line: 6167
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-outbound-route-filtering
+    syntax: outbound-route-filtering
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete outbound-route-filtering
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor outbound-route-filtering
+      line: 6183
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-passive
+    syntax: passive <passive>
+    view: router.bgp.neighbor
+    undo: delete passive
+    params:
+      passive:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor passive
+      line: 6199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-path-mtu-discovery
+    syntax: path-mtu-discovery <path-mtu-discovery>
+    view: router.bgp.neighbor
+    undo: delete path-mtu-discovery
+    params:
+      path-mtu-discovery:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor path-mtu-discovery
+      line: 6221
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-peer-as
+    syntax: peer-as <peer-as>
+    view: router.bgp.neighbor
+    undo: delete peer-as
+    params:
+      peer-as:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor peer-as
+      line: 6243
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer.remote_as: $peer-as
+  - id: nokia-sros-md.router-bgp-neighbor-peer-creation-type
+    syntax: peer-creation-type <peer-creation-type>
+    view: router.bgp.neighbor
+    undo: delete peer-creation-type
+    params:
+      peer-creation-type:
+        type: enum
+        choices:
+          - static
+          - dynamic
+          - dynamic-if-remote
+          - dynamic-if-local
+    default: static
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor peer-creation-type
+      line: 6265
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-peer-ip-tracking
+    syntax: peer-ip-tracking <peer-ip-tracking>
+    view: router.bgp.neighbor
+    undo: delete peer-ip-tracking
+    params:
+      peer-ip-tracking:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor peer-ip-tracking
+      line: 6291
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-preference
+    syntax: preference <preference>
+    view: router.bgp.neighbor
+    undo: delete preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor preference
+      line: 6313
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-prefix-limit
+    syntax: prefix-limit <family>
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete prefix-limit <family>
+    params:
+      family:
+        type: enum
+        choices:
+          - ipv4
+          - vpn-ipv4
+          - ipv6
+          - mcast-ipv4
+          - vpn-ipv6
+          - l2-vpn
+          - mvpn-ipv4
+          - mdt-safi
+          - ms-pw
+          - flow-ipv4
+          - route-target
+          - mcast-vpn-ipv4
+          - mvpn-ipv6
+          - flow-ipv6
+          - evpn
+          - mcast-ipv6
+          - label-ipv4
+          - label-ipv6
+          - bgp-ls
+          - mcast-vpn-ipv6
+          - sr-policy-ipv4
+          - sr-policy-ipv6
+          - flow-vpn-ipv4
+          - flow-vpn-ipv6
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor prefix-limit
+      line: 6335
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-remove-private
+    syntax: remove-private
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete remove-private
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor remove-private
+      line: 6357
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-segment-routing-v6
+    syntax: segment-routing-v6
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete segment-routing-v6
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor segment-routing-v6
+      line: 6373
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-selective-label-ipv4-install
+    syntax: selective-label-ipv4-install <selective-label-ipv4-install>
+    view: router.bgp.neighbor
+    undo: delete selective-label-ipv4-install
+    params:
+      selective-label-ipv4-install:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor selective-label-ipv4-install
+      line: 6389
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-send-communities
+    syntax: send-communities
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete send-communities
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor send-communities
+      line: 6411
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-send-default
+    syntax: send-default
+    view: router.bgp.neighbor
+    enters_view: opaque
+    undo: delete send-default
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor send-default
+      line: 6427
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-split-horizon
+    syntax: split-horizon <split-horizon>
+    view: router.bgp.neighbor
+    undo: delete split-horizon
+    params:
+      split-horizon:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor split-horizon
+      line: 6443
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-tcp-mss
+    syntax: tcp-mss <tcp-mss>
+    view: router.bgp.neighbor
+    undo: delete tcp-mss
+    params:
+      tcp-mss:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor tcp-mss
+      line: 6465
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-third-party-nexthop
+    syntax: third-party-nexthop <third-party-nexthop>
+    view: router.bgp.neighbor
+    undo: delete third-party-nexthop
+    params:
+      third-party-nexthop:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor third-party-nexthop
+      line: 6487
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-ttl-security
+    syntax: ttl-security <ttl-security>
+    view: router.bgp.neighbor
+    undo: delete ttl-security
+    params:
+      ttl-security:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor ttl-security
+      line: 6509
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-type
+    syntax: type <type>
+    view: router.bgp.neighbor
+    undo: delete type
+    params:
+      type:
+        type: enum
+        choices:
+          - no-type
+          - internal
+          - external
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor type
+      line: 6531
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-vpn-apply-export
+    syntax: vpn-apply-export <vpn-apply-export>
+    view: router.bgp.neighbor
+    undo: delete vpn-apply-export
+    params:
+      vpn-apply-export:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor vpn-apply-export
+      line: 6553
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-vpn-apply-import
+    syntax: vpn-apply-import <vpn-apply-import>
+    view: router.bgp.neighbor
+    undo: delete vpn-apply-import
+    params:
+      vpn-apply-import:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor vpn-apply-import
+      line: 6575
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-trust
+    syntax: neighbor-trust
+    view: router.bgp
+    enters_view: opaque
+    undo: delete neighbor-trust
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor-trust
+      line: 6597
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-next-hop-resolution
+    syntax: next-hop-resolution
+    view: router.bgp
+    enters_view: opaque
+    undo: delete next-hop-resolution
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp next-hop-resolution
+      line: 6613
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-optimal-route-reflection
+    syntax: optimal-route-reflection
+    view: router.bgp
+    enters_view: opaque
+    undo: delete optimal-route-reflection
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp optimal-route-reflection
+      line: 6629
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-outbound-route-filtering
+    syntax: outbound-route-filtering
+    view: router.bgp
+    enters_view: opaque
+    undo: delete outbound-route-filtering
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp outbound-route-filtering
+      line: 6645
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-override-tunnel-elc
+    syntax: override-tunnel-elc <override-tunnel-elc>
+    view: router.bgp
+    undo: delete override-tunnel-elc
+    params:
+      override-tunnel-elc:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp override-tunnel-elc
+      line: 6661
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-path-mtu-discovery
+    syntax: path-mtu-discovery <path-mtu-discovery>
+    view: router.bgp
+    undo: delete path-mtu-discovery
+    params:
+      path-mtu-discovery:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp path-mtu-discovery
+      line: 6687
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-peer-ip-tracking
+    syntax: peer-ip-tracking <peer-ip-tracking>
+    view: router.bgp
+    undo: delete peer-ip-tracking
+    params:
+      peer-ip-tracking:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp peer-ip-tracking
+      line: 6713
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-peer-tracking-policy
+    syntax: peer-tracking-policy <peer-tracking-policy>
+    view: router.bgp
+    undo: delete peer-tracking-policy
+    params:
+      peer-tracking-policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp peer-tracking-policy
+      line: 6739
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-preference
+    syntax: preference <preference>
+    view: router.bgp
+    undo: delete preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '170'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp preference
+      line: 6761
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-purge-timer
+    syntax: purge-timer <purge-timer>
+    view: router.bgp
+    undo: delete purge-timer
+    params:
+      purge-timer:
+        type: integer
+        range:
+          - 1
+          - 60
+    default: '10'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp purge-timer
+      line: 6787
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-rapid-update
+    syntax: rapid-update
+    view: router.bgp
+    enters_view: opaque
+    undo: delete rapid-update
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp rapid-update
+      line: 6813
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-rapid-withdrawal
+    syntax: rapid-withdrawal <rapid-withdrawal>
+    view: router.bgp
+    undo: delete rapid-withdrawal
+    params:
+      rapid-withdrawal:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp rapid-withdrawal
+      line: 6829
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-remove-private
+    syntax: remove-private
+    view: router.bgp
+    enters_view: opaque
+    undo: delete remove-private
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp remove-private
+      line: 6855
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-rib-management
+    syntax: rib-management
+    view: router.bgp
+    enters_view: opaque
+    undo: delete rib-management
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp rib-management
+      line: 6871
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-route-table-install
+    syntax: route-table-install <route-table-install>
+    view: router.bgp
+    undo: delete route-table-install
+    params:
+      route-table-install:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp route-table-install
+      line: 6887
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-route-target-list
+    syntax: route-target-list <route-target-list>
+    view: router.bgp
+    undo: delete route-target-list
+    params:
+      route-target-list:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp route-target-list
+      line: 6913
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-router-id
+    syntax: router-id <router-id>
+    view: router.bgp
+    undo: delete router-id
+    params:
+      router-id:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp router-id
+      line: 6935
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.instance.router_id: $router-id
+  - id: nokia-sros-md.router-bgp-rr-vpn-forwarding
+    syntax: rr-vpn-forwarding <rr-vpn-forwarding>
+    view: router.bgp
+    undo: delete rr-vpn-forwarding
+    params:
+      rr-vpn-forwarding:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp rr-vpn-forwarding
+      line: 6957
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-segment-routing
+    syntax: segment-routing
+    view: router.bgp
+    enters_view: opaque
+    undo: delete segment-routing
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp segment-routing
+      line: 6983
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-segment-routing-v6
+    syntax: segment-routing-v6
+    view: router.bgp
+    enters_view: opaque
+    undo: delete segment-routing-v6
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp segment-routing-v6
+      line: 6999
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-selective-label-ip
+    syntax: selective-label-ip <selective-label-ip>
+    view: router.bgp
+    undo: delete selective-label-ip
+    params:
+      selective-label-ip:
+        type: enum
+        choices:
+          - no-install
+          - route-table-install-only
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp selective-label-ip
+      line: 7015
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-selective-label-ip-prioritization
+    syntax: selective-label-ip-prioritization <selective-label-ip-prioritization>
+    view: router.bgp
+    undo: delete selective-label-ip-prioritization
+    params:
+      selective-label-ip-prioritization:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp selective-label-ip-prioritization
+      line: 7037
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-selective-label-ipv4-install
+    syntax: selective-label-ipv4-install <selective-label-ipv4-install>
+    view: router.bgp
+    undo: delete selective-label-ipv4-install
+    params:
+      selective-label-ipv4-install:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp selective-label-ipv4-install
+      line: 7063
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-send-communities
+    syntax: send-communities
+    view: router.bgp
+    enters_view: opaque
+    undo: delete send-communities
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp send-communities
+      line: 7089
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-send-default
+    syntax: send-default
+    view: router.bgp
+    enters_view: opaque
+    undo: delete send-default
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp send-default
+      line: 7105
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-split-horizon
+    syntax: split-horizon <split-horizon>
+    view: router.bgp
+    undo: delete split-horizon
+    params:
+      split-horizon:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp split-horizon
+      line: 7121
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-sr-policy-import
+    syntax: sr-policy-import <sr-policy-import>
+    view: router.bgp
+    undo: delete sr-policy-import
+    params:
+      sr-policy-import:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp sr-policy-import
+      line: 7147
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-subconfed-vpn-forwarding
+    syntax: subconfed-vpn-forwarding <subconfed-vpn-forwarding>
+    view: router.bgp
+    undo: delete subconfed-vpn-forwarding
+    params:
+      subconfed-vpn-forwarding:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp subconfed-vpn-forwarding
+      line: 7173
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-tcp-mss
+    syntax: tcp-mss <tcp-mss>
+    view: router.bgp
+    undo: delete tcp-mss
+    params:
+      tcp-mss:
+        type: integer
+        range:
+          - 384
+          - 9746
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp tcp-mss
+      line: 7199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-third-party-nexthop
+    syntax: third-party-nexthop <third-party-nexthop>
+    view: router.bgp
+    undo: delete third-party-nexthop
+    params:
+      third-party-nexthop:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp third-party-nexthop
+      line: 7221
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-vpn-apply-export
+    syntax: vpn-apply-export <vpn-apply-export>
+    view: router.bgp
+    undo: delete vpn-apply-export
+    params:
+      vpn-apply-export:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp vpn-apply-export
+      line: 7247
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-vpn-apply-import
+    syntax: vpn-apply-import <vpn-apply-import>
+    view: router.bgp
+    undo: delete vpn-apply-import
+    params:
+      vpn-apply-import:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp vpn-apply-import
+      line: 7273
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-autonomous-system
+    syntax: autonomous-system <autonomous-system>
+    view: router
+    undo: delete autonomous-system
+    params:
+      autonomous-system:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.autonomous-system.md
+      title: router autonomous-system
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.instance: $autonomous-system
+      '@share': ''
+  - id: nokia-sros-md.router-router-id
+    syntax: router-id <router-id>
+    view: router
+    undo: delete router-id
+    params:
+      router-id:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.router-id.md
+      title: router router-id
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      mgmt.system: _
+      mgmt.system.router_id: $router-id
+  - id: nokia-sros-md.router-confederation
+    syntax: confederation
+    view: router
+    enters_view: opaque
+    undo: delete confederation
+    source:
+      doc: nokia-sros-md-md
+      file: router.confederation.md
+      title: router confederation
+      line: 5
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-hold-time-minimum-hold-time
+    syntax: minimum-hold-time <minimum-hold-time>
+    view: router.bgp.group.hold-time
+    undo: delete minimum-hold-time
+    params:
+      minimum-hold-time:
+        type: integer
+    default: '0'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group hold-time minimum-hold-time
+      line: 2917
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-group-hold-time-seconds
+    syntax: seconds <seconds>
+    view: router.bgp.group.hold-time
+    undo: delete seconds
+    params:
+      seconds:
+        type: integer
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp group hold-time seconds
+      line: 2943
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer_group.hold: $seconds
+  - id: nokia-sros-md.router-bgp-hold-time-minimum-hold-time
+    syntax: minimum-hold-time <minimum-hold-time>
+    view: router.bgp.hold-time
+    undo: delete minimum-hold-time
+    params:
+      minimum-hold-time:
+        type: integer
+    default: '0'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp hold-time minimum-hold-time
+      line: 3833
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-hold-time-seconds
+    syntax: seconds <seconds>
+    view: router.bgp.hold-time
+    undo: delete seconds
+    params:
+      seconds:
+        type: integer
+    default: '90'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp hold-time seconds
+      line: 3859
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.instance.hold: $seconds
+  - id: nokia-sros-md.router-bgp-neighbor-hold-time-minimum-hold-time
+    syntax: minimum-hold-time <minimum-hold-time>
+    view: router.bgp.neighbor.hold-time
+    undo: delete minimum-hold-time
+    params:
+      minimum-hold-time:
+        type: integer
+    default: '0'
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor hold-time minimum-hold-time
+      line: 5835
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-bgp-neighbor-hold-time-seconds
+    syntax: seconds <seconds>
+    view: router.bgp.neighbor.hold-time
+    undo: delete seconds
+    params:
+      seconds:
+        type: integer
+    source:
+      doc: nokia-sros-md-md
+      file: router.bgp.md
+      title: router bgp neighbor hold-time seconds
+      line: 5861
+      version: 25.10.R1
+    status: draft
+    maps:
+      bgp.peer.hold: $seconds

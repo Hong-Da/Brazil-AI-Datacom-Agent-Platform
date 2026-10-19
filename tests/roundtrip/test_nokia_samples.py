@@ -1,4 +1,4 @@
-"""Nokia SR OS Classic 合成样本（knowledge/samples/nokia-sros-classic-synthetic/）的补充门槛。
+"""Nokia SR OS 合成样本（knowledge/samples/nokia-sros-classic-synthetic/，M7-4 起还有 nokia-sros-md-synthetic/）的补充门槛。
 
 M7-2 时样本有自己的清单、用临时 Profile；M7-3 建好 Profile `nokia-sros-classic-7750-25.10` 后样本并入总清单
 （往返与未识别行由 test_samples.py 检查，规范渲染等价由 test_translate.py 检查）。这里另外要求：
@@ -14,8 +14,8 @@ from lmesh.core import analysis, graph, roundtrip
 
 pytestmark = pytest.mark.roundtrip
 KB_ROOT = Path(__file__).resolve().parent.parent.parent / "knowledge"
-BASE = KB_ROOT / "samples" / "nokia-sros-classic-synthetic"
-SAMPLES = [s for s in roundtrip.manifest(KB_ROOT) if str(s["file"]).startswith("nokia-sros-classic-synthetic/")]
+DIRS = ("nokia-sros-classic-synthetic", "nokia-sros-md-synthetic")
+SAMPLES = [s for s in roundtrip.manifest(KB_ROOT) if str(s["file"]).split("/")[0] in DIRS]
 # 关键对象的入口命令：这些行必须映射到 Schema（不是 ext）
 KEY_COMMANDS = ("port ", "lag ", "interface ", "static-route-entry", "next-hop", "ospf", "isis", "group ", "neighbor ",
                 "policy-statement", "prefix-list ", "customer ", "sdp ", "epipe ", "vpls ", "vprn ", "ies ", "sap ",
@@ -43,14 +43,11 @@ def test_nokia_sample_replay_and_graph(item: dict, kb) -> None:  # type: ignore[
         ln.text
         for ln in parsed.lines
         # RSVP-TE（rsvp、LSP、路径）在统一 Schema 中还没有对象，按未映射命令保留（M7-3 说明）
-        if ln.no in ext_lines
-        and ln.view != "opaque"
-        and not ln.view.startswith("rsvp")
-        and ln.text.startswith(KEY_COMMANDS)
+        if ln.no in ext_lines and ln.view != "opaque" and "rsvp" not in ln.view and ln.text.startswith(KEY_COMMANDS)
     ]
     assert key_ext == [], f"关键对象没有映射：{key_ext}"
 
 
 def test_manifest_covers_nokia_samples() -> None:
-    files = {p.name for p in BASE.glob("*.cfg")}
-    assert files == {Path(s["file"]).name for s in SAMPLES}
+    files = {f"{d}/{p.name}" for d in DIRS for p in (KB_ROOT / "samples" / d).glob("*.cfg")}
+    assert files == {str(s["file"]) for s in SAMPLES}

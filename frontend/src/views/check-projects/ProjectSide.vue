@@ -4,6 +4,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import { errorText, get } from '@/api'
+import { useProject } from '@/stores/project'
 import type { Device } from '@/views/devices/logic'
 import type { VersionInfo } from '@/views/compare/types'
 import { fmtTime } from './logic'
@@ -25,6 +26,9 @@ const emit = defineEmits<{
   (e: 'baseline', deviceId: number | null, versionId: number | null): void
 }>()
 const { t } = useI18n()
+// 只读成员（REQ-036）：不能新建、改名、删除脚本，也不能改基线
+const proj = useProject()
+const canWrite = computed(() => proj.canWrite)
 const T = (k: string, p?: Record<string, unknown>) => t(`check-projects.${k}`, p ?? {})
 
 function badge(s: ScriptInfo): { cls: string; n: string } | null {
@@ -74,7 +78,8 @@ watch(() => [props.project.device_id, props.project.version_id], () => {
   pin.value = props.project.version_id !== null
   if (props.project.version_id !== null) verSel.value = props.project.version_id
 })
-const latestVer = computed(() => versions.value.find((v) => v.latest) ?? versions.value[0] ?? null)
+// 跟随时用设备在项目中的当前版本（项目固定了公共设备的版本时不是最新，M6）
+const latestVer = computed(() => versions.value.find((v) => v.current) ?? versions.value.find((v) => v.latest) ?? versions.value[0] ?? null)
 
 async function changeDevice(): Promise<void> {
   await loadVersions(devSel.value)
@@ -97,7 +102,7 @@ function changeVer(): void { if (pin.value && verSel.value !== null) emit('basel
     <section class="panel" style="flex: 1">
       <div class="panel-h">
         <h3>{{ T('scripts') }} <span class="faint">{{ scripts.length }}</span></h3>
-        <button class="btn btn-sm btn-icon btn-ghost" type="button" :title="T('newScript')" :aria-label="T('newScript')" data-testid="cp-new-script" @click="emit('new')"><Icon name="plus" small /></button>
+        <button v-if="canWrite" class="btn btn-sm btn-icon btn-ghost" type="button" :title="T('newScript')" :aria-label="T('newScript')" data-testid="cp-new-script" @click="emit('new')"><Icon name="plus" small /></button>
       </div>
       <div class="sb">
         <div class="scl" data-testid="cp-scripts">
@@ -113,7 +118,7 @@ function changeVer(): void { if (pin.value && verSel.value !== null) emit('basel
             </span>
             <span v-if="badge(s)" class="badge" :class="badge(s)!.cls">{{ badge(s)!.n }}</span><span v-else />
             <div class="meta"><span class="typetag" :class="s.kind">{{ s.kind }}</span><span>{{ T('linesN', { n: s.lines }) }}</span><span>#{{ s.revisions }}</span></div>
-            <span class="acts">
+            <span v-if="canWrite" class="acts">
               <button class="btn btn-xs btn-ghost btn-icon" type="button" :title="T('rename')" :aria-label="T('rename')" data-testid="cp-rename" @click.stop="startRename(s)"><Icon name="pencil" small /></button>
               <button class="btn btn-xs btn-ghost btn-icon" type="button" :title="$t('c.delete')" :aria-label="$t('c.delete')" data-testid="cp-delete-script" @click.stop="emit('delete', s)"><Icon name="trash" small /></button>
             </span>
@@ -126,7 +131,7 @@ function changeVer(): void { if (pin.value && verSel.value !== null) emit('basel
       <div class="pset" data-testid="cp-settings">
         <div class="field">
           <label class="row-k" for="cpDev">{{ T('baseDevice') }}</label>
-          <select id="cpDev" v-model="devSel" class="select" @change="changeDevice">
+          <select id="cpDev" v-model="devSel" class="select" :disabled="!canWrite" @change="changeDevice">
             <option :value="null">{{ T('noBaseline') }}</option>
             <option v-for="d in devices" :key="d.id" :value="d.id">{{ d.name }} · {{ d.profile }}</option>
           </select>
@@ -134,9 +139,9 @@ function changeVer(): void { if (pin.value && verSel.value !== null) emit('basel
         </div>
         <div v-if="devSel !== null" class="radio-line">
           <span class="row-k">{{ T('baseVersion') }}</span>
-          <label><input type="radio" name="bv" :checked="!pin" @change="changePin(false)"><span><span>{{ T('latest') }}</span><small v-if="latestVer">#{{ latestVer.seq }} · {{ fmtTime(latestVer.collected_at) }}</small></span></label>
-          <label><input type="radio" name="bv" :checked="pin" :disabled="!versions.length" @change="changePin(true)"><span><span>{{ T('pinned') }}</span><small>{{ T('pinnedTip') }}</small></span></label>
-          <select v-model="verSel" class="select" :disabled="!pin" :aria-label="T('pinned')" @change="changeVer">
+          <label><input type="radio" name="bv" :checked="!pin" :disabled="!canWrite" @change="changePin(false)"><span><span>{{ T('latest') }}</span><small v-if="latestVer">#{{ latestVer.seq }} · {{ fmtTime(latestVer.collected_at) }}</small></span></label>
+          <label><input type="radio" name="bv" :checked="pin" :disabled="!versions.length || !canWrite" @change="changePin(true)"><span><span>{{ T('pinned') }}</span><small>{{ T('pinnedTip') }}</small></span></label>
+          <select v-model="verSel" class="select" :disabled="!pin || !canWrite" :aria-label="T('pinned')" @change="changeVer">
             <option v-for="v in versions" :key="v.id" :value="v.id">#{{ v.seq }} · {{ fmtTime(v.collected_at) || v.source_name }}</option>
           </select>
         </div>

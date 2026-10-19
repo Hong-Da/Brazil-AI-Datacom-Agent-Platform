@@ -86,7 +86,16 @@ def detect_format(text: str, vendor: str | None) -> str:
         return ""
     if re.search(r"^(?:configure \{|/configure )", text, re.M):
         return "md"
+    # M7-4：Classic 的块总以 exit 结束；没有 exit、有花括号块（info）或一行写完整路径（info flat）的是 MD-CLI
+    if re.search(r"^\s*exit(?: all)?\s*$", text, re.M):
+        return "classic"
+    if re.search(r"\{\s*$|^\s*\}\s*$", text, re.M) or _MD_FLAT.search(text):
+        return "md"
     return "classic"
+
+
+# MD-CLI info flat（相对 configure 的完整路径，一行写完）：router "Base" interface …、port 1/1/1 admin-state …
+_MD_FLAT = re.compile(r'^(?:router "[^"]+"|port \S+|lag "[^"]+"|service \S+|system|log|policy-options) \S', re.M)
 
 
 def family_of(vendor: str, fmt: str) -> str | None:
@@ -152,13 +161,21 @@ _NOKIA_SECRET_RULES: list[tuple[re.Pattern[str], str]] = [
     ),
     # SNMP 团体字：community "…" r / rw / rwa / mgmt / vpls-mgmt（策略里的 community "名称" members … 不是秘密）
     (re.compile(r'^\s*community\s+"(?P<v>[^"]*)"\s+(?:r|rw|rwa|mgmt|vpls-mgmt)\b', re.I), "community"),
+    # MD-CLI 扁平格式（M7-4）：… security snmp community "…" access-permissions r / { }
+    (re.compile(r'\bsnmp\s+(?:usm-)?community\s+"(?P<v>[^"]*)"', re.I), "community"),
 ]
+# MD-CLI 花括号格式（M7-4）：security snmp { community "…" { … } } 里的团体字（policy-options 下的 community "名称" 不是秘密，
+# 按所在的块区分）
+_NOKIA_MD_COMMUNITY = re.compile(r'^\s*(?:usm-)?community\s+"(?P<v>[^"]*)"', re.I)
 _NOKIA_USER_DEFS = [
     re.compile(r'^\s*user\s+"(?P<v>[^"]+)"', re.I),
+    re.compile(r'\blocal-user\s+user\s+"(?P<v>[^"]+)"', re.I),  # MD-CLI 扁平格式（M7-4）
     re.compile(r"^# Generated .*\bby\s+(?P<v>[\w.\-]+)\s+from\b", re.I),  # 文件头 “# Generated … by admin from Console”
 ]
 _HOSTNAME = re.compile(r"^\s*(?:sysname|hostname)\s+(?P<v>\S+)", re.I)
 _NOKIA_HOSTNAME = re.compile(r'^ {8}name\s+"?(?P<v>[^"\s]+)"?\s*$')  # configure > system > name "PE1"
+# MD-CLI 扁平格式（M7-4）：system name "PE1"、/configure system name "PE1"
+_NOKIA_HOSTNAME_FLAT = re.compile(r'^(?:/configure\s+)?system\s+name\s+"?(?P<v>[^"\s]+)"?\s*$')
 # 行首的 description，以及行内的 … description X（例如 OSPF 的 network … description X）
 _DESCRIPTION = re.compile(r"^(?P<lead>(?:\s*|.*?\s)(?:description|desc)\s+)(?P<v>.+?)\s*$", re.I)
 # 用户名只在定义它的行里替换（全局替换会误伤 stp root 之类的关键字）
@@ -199,6 +216,7 @@ class Sanitizer:
         self.key = key or secrets.token_bytes(32)
         self.redact = [re.compile(r, re.I) for r in (redact or [])]
         self._maps: dict[str, dict[str, str]] = {c: {} for c in CATEGORIES}
+        self._snmp_ctx = False  # 当前行在 MD-CLI 的 snmp { … } 块里（M7-4）
 
     def _token(self, category: str, original: str, fmt: str) -> str:
         """占位符由密钥哈希得出：同一密钥下，同一原值在任何一批文件里都替换成同一个值。"""
@@ -244,7 +262,7 @@ class Sanitizer:
         if strict:
             host_pat = _NOKIA_HOSTNAME if vendor == "nokia" else _HOSTNAME
             for ln in lines:
-                m = host_pat.match(ln)
+                m = host_pat.match(ln) or (_NOKIA_HOSTNAME_FLAT.match(ln) if vendor == "nokia" else None)
                 if m:
                     hostnames[m.group("v")] = self._token("hostname", m.group("v"), "DEVICE-{h}")
         host_re = (
@@ -258,7 +276,15 @@ class Sanitizer:
         )
 
         in_block = False
+        heads: list[str] = []  # MD-CLI 花括号块的块头（M7-4：区分 SNMP 团体字与策略里的 community）
         for idx, line in enumerate(lines, start=1):
+            if vendor == "nokia":
+                st = line.strip()
+                self._snmp_ctx = "snmp" in heads
+                if st == "}" and heads:
+                    heads.pop()
+                elif st.endswith("{") and not st.endswith("{ }"):
+                    heads.append((st[:-1].split() or [""])[0])
             if in_block:
                 if _KEY_BLOCK_END.match(line):
                     in_block = False
@@ -317,6 +343,8 @@ class Sanitizer:
             for pat, cat in _NOKIA_SECRET_RULES if nokia else _SECRET_RULES:
                 fmt = "LMESH-SECRET-{h}" if cat == "secret" else "LMESH-COMM-{h}"
                 new = pat.sub(functools.partial(_apply, sub_value, cat, fmt), new)
+            if nokia and self._snmp_ctx:
+                new = _NOKIA_MD_COMMUNITY.sub(functools.partial(_apply, sub_value, "community", "LMESH-COMM-{h}"), new)
 
         if strict:
             md = _DESCRIPTION.match(new)

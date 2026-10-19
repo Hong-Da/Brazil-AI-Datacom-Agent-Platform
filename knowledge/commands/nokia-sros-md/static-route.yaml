@@ -1,0 +1,960 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: static-route
+cards:
+  - id: nokia-sros-md.router-static-routes
+    syntax: static-routes
+    view: router
+    enters_view: router.static-routes
+    undo: delete static-routes
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-static-routes-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.static-routes
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes apply-groups
+      line: 21
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.static-routes
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes apply-groups-exclude
+      line: 39
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-hold-down
+    syntax: hold-down
+    view: router.static-routes
+    enters_view: opaque
+    undo: delete hold-down
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes hold-down
+      line: 57
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route
+    syntax: route <ip-prefix> route-type <route-type>
+    view: router.static-routes
+    enters_view: router.static-routes.route
+    undo: delete route <ip-prefix>
+    params:
+      ip-prefix:
+        type: word
+      route-type:
+        type: enum
+        choices:
+          - unicast
+          - multicast
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route
+      line: 73
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-static-routes-route-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.static-routes.route
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route apply-groups
+      line: 96
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.static-routes.route
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route apply-groups-exclude
+      line: 114
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-backup-tag
+    syntax: backup-tag <backup-tag>
+    view: router.static-routes.route
+    undo: delete backup-tag
+    params:
+      backup-tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route backup-tag
+      line: 132
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-blackhole
+    syntax: blackhole
+    view: router.static-routes.route
+    enters_view: router.static-routes.route.blackhole
+    undo: delete blackhole
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route blackhole
+      line: 154
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route:
+        vrf: ''
+        prefix: ctx:ip-prefix
+        nexthop: ''
+      static.route.prefix: ctx:ip-prefix
+      static.route.interface: NULL0
+  - id: nokia-sros-md.router-static-routes-route-blackhole-admin-state
+    syntax: admin-state <admin-state>
+    view: router.static-routes.route.blackhole
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route blackhole admin-state
+      line: 170
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-static-routes-route-blackhole-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.static-routes.route.blackhole
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route blackhole apply-groups
+      line: 192
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-blackhole-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.static-routes.route.blackhole
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route blackhole apply-groups-exclude
+      line: 210
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-blackhole-community
+    syntax: community <community>
+    view: router.static-routes.route.blackhole
+    undo: delete community
+    params:
+      community:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route blackhole community
+      line: 228
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-blackhole-description
+    syntax: description <description>
+    view: router.static-routes.route.blackhole
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route blackhole description
+      line: 250
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.description: $description
+  - id: nokia-sros-md.router-static-routes-route-blackhole-dynamic-bgp
+    syntax: dynamic-bgp <dynamic-bgp>
+    view: router.static-routes.route.blackhole
+    undo: delete dynamic-bgp
+    params:
+      dynamic-bgp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route blackhole dynamic-bgp
+      line: 272
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-blackhole-generate-icmp
+    syntax: generate-icmp <generate-icmp>
+    view: router.static-routes.route.blackhole
+    undo: delete generate-icmp
+    params:
+      generate-icmp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route blackhole generate-icmp
+      line: 298
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-blackhole-metric
+    syntax: metric <metric>
+    view: router.static-routes.route.blackhole
+    undo: delete metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: '1'
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route blackhole metric
+      line: 324
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.metric: $metric
+  - id: nokia-sros-md.router-static-routes-route-blackhole-preference
+    syntax: preference <preference>
+    view: router.static-routes.route.blackhole
+    undo: delete preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '5'
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route blackhole preference
+      line: 350
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.preference: $preference
+  - id: nokia-sros-md.router-static-routes-route-blackhole-prefix-list
+    syntax: prefix-list
+    view: router.static-routes.route.blackhole
+    enters_view: opaque
+    undo: delete prefix-list
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route blackhole prefix-list
+      line: 376
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-blackhole-tag
+    syntax: tag <tag>
+    view: router.static-routes.route.blackhole
+    undo: delete tag
+    params:
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route blackhole tag
+      line: 392
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.tag: $tag
+  - id: nokia-sros-md.router-static-routes-route-community
+    syntax: community <community>
+    view: router.static-routes.route
+    undo: delete community
+    params:
+      community:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route community
+      line: 414
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-indirect
+    syntax: indirect <ip-address>
+    view: router.static-routes.route
+    enters_view: router.static-routes.route.indirect
+    undo: delete indirect <ip-address>
+    params:
+      ip-address:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect
+      line: 440
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route:
+        vrf: ''
+        prefix: ctx:ip-prefix
+        nexthop: $ip-address
+      static.route.prefix: ctx:ip-prefix
+      static.route.nexthop: $ip-address
+      static.route.recursive: 'true'
+  - id: nokia-sros-md.router-static-routes-route-indirect-admin-state
+    syntax: admin-state <admin-state>
+    view: router.static-routes.route.indirect
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect admin-state
+      line: 462
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-static-routes-route-indirect-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.static-routes.route.indirect
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect apply-groups
+      line: 484
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-indirect-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.static-routes.route.indirect
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect apply-groups-exclude
+      line: 502
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-indirect-community
+    syntax: community <community>
+    view: router.static-routes.route.indirect
+    undo: delete community
+    params:
+      community:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect community
+      line: 520
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-indirect-cpe-check
+    syntax: cpe-check <address>
+    view: router.static-routes.route.indirect
+    enters_view: opaque
+    undo: delete cpe-check <address>
+    params:
+      address:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect cpe-check
+      line: 542
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-indirect-description
+    syntax: description <description>
+    view: router.static-routes.route.indirect
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect description
+      line: 564
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.description: $description
+  - id: nokia-sros-md.router-static-routes-route-indirect-destination-class
+    syntax: destination-class <destination-class>
+    view: router.static-routes.route.indirect
+    undo: delete destination-class
+    params:
+      destination-class:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect destination-class
+      line: 586
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-indirect-metric
+    syntax: metric <metric>
+    view: router.static-routes.route.indirect
+    undo: delete metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: '1'
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect metric
+      line: 608
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.metric: $metric
+  - id: nokia-sros-md.router-static-routes-route-indirect-preference
+    syntax: preference <preference>
+    view: router.static-routes.route.indirect
+    undo: delete preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '5'
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect preference
+      line: 634
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.preference: $preference
+  - id: nokia-sros-md.router-static-routes-route-indirect-prefix-list
+    syntax: prefix-list
+    view: router.static-routes.route.indirect
+    enters_view: opaque
+    undo: delete prefix-list
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect prefix-list
+      line: 660
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-indirect-qos
+    syntax: qos
+    view: router.static-routes.route.indirect
+    enters_view: opaque
+    undo: delete qos
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect qos
+      line: 676
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-indirect-source-class
+    syntax: source-class <source-class>
+    view: router.static-routes.route.indirect
+    undo: delete source-class
+    params:
+      source-class:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect source-class
+      line: 692
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-indirect-tag
+    syntax: tag <tag>
+    view: router.static-routes.route.indirect
+    undo: delete tag
+    params:
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect tag
+      line: 714
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.tag: $tag
+  - id: nokia-sros-md.router-static-routes-route-indirect-tunnel-next-hop
+    syntax: tunnel-next-hop
+    view: router.static-routes.route.indirect
+    enters_view: opaque
+    undo: delete tunnel-next-hop
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route indirect tunnel-next-hop
+      line: 736
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-interface
+    syntax: interface <interface-name>
+    view: router.static-routes.route
+    enters_view: opaque
+    undo: delete interface <interface-name>
+    params:
+      interface-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route interface
+      line: 752
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-ipsec-tunnel
+    syntax: ipsec-tunnel <ipsec-tunnel-name>
+    view: router.static-routes.route
+    enters_view: opaque
+    undo: delete ipsec-tunnel <ipsec-tunnel-name>
+    params:
+      ipsec-tunnel-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route ipsec-tunnel
+      line: 774
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-leak-destination
+    syntax: leak-destination
+    view: router.static-routes.route
+    enters_view: opaque
+    undo: delete leak-destination
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route leak-destination
+      line: 796
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-next-hop
+    syntax: next-hop <ip-address>
+    view: router.static-routes.route
+    enters_view: router.static-routes.route.next-hop
+    undo: delete next-hop <ip-address>
+    params:
+      ip-address:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop
+      line: 812
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route:
+        vrf: ''
+        prefix: ctx:ip-prefix
+        nexthop: $ip-address
+      static.route.prefix: ctx:ip-prefix
+      static.route.nexthop: $ip-address
+  - id: nokia-sros-md.router-static-routes-route-next-hop-admin-state
+    syntax: admin-state <admin-state>
+    view: router.static-routes.route.next-hop
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop admin-state
+      line: 834
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-static-routes-route-next-hop-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.static-routes.route.next-hop
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop apply-groups
+      line: 856
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-next-hop-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.static-routes.route.next-hop
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop apply-groups-exclude
+      line: 874
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-next-hop-backup-next-hop
+    syntax: backup-next-hop
+    view: router.static-routes.route.next-hop
+    enters_view: opaque
+    undo: delete backup-next-hop
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop backup-next-hop
+      line: 892
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-next-hop-bfd-liveness
+    syntax: bfd-liveness <bfd-liveness>
+    view: router.static-routes.route.next-hop
+    undo: delete bfd-liveness
+    params:
+      bfd-liveness:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop bfd-liveness
+      line: 908
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.bfd: kw:true=true|false=false
+  - id: nokia-sros-md.router-static-routes-route-next-hop-community
+    syntax: community <community>
+    view: router.static-routes.route.next-hop
+    undo: delete community
+    params:
+      community:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop community
+      line: 934
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-next-hop-cpe-check
+    syntax: cpe-check <address>
+    view: router.static-routes.route.next-hop
+    enters_view: opaque
+    undo: delete cpe-check <address>
+    params:
+      address:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop cpe-check
+      line: 956
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-next-hop-description
+    syntax: description <description>
+    view: router.static-routes.route.next-hop
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop description
+      line: 978
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.description: $description
+  - id: nokia-sros-md.router-static-routes-route-next-hop-destination-class
+    syntax: destination-class <destination-class>
+    view: router.static-routes.route.next-hop
+    undo: delete destination-class
+    params:
+      destination-class:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop destination-class
+      line: 1000
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-next-hop-ldp-sync
+    syntax: ldp-sync <ldp-sync>
+    view: router.static-routes.route.next-hop
+    undo: delete ldp-sync
+    params:
+      ldp-sync:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop ldp-sync
+      line: 1022
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-next-hop-load-balancing-weight
+    syntax: load-balancing-weight <load-balancing-weight>
+    view: router.static-routes.route.next-hop
+    undo: delete load-balancing-weight
+    params:
+      load-balancing-weight:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop load-balancing-weight
+      line: 1048
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-next-hop-metric
+    syntax: metric <metric>
+    view: router.static-routes.route.next-hop
+    undo: delete metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: '1'
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop metric
+      line: 1070
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.metric: $metric
+  - id: nokia-sros-md.router-static-routes-route-next-hop-preference
+    syntax: preference <preference>
+    view: router.static-routes.route.next-hop
+    undo: delete preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: '5'
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop preference
+      line: 1096
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.preference: $preference
+  - id: nokia-sros-md.router-static-routes-route-next-hop-prefix-list
+    syntax: prefix-list
+    view: router.static-routes.route.next-hop
+    enters_view: opaque
+    undo: delete prefix-list
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop prefix-list
+      line: 1122
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-next-hop-qos
+    syntax: qos
+    view: router.static-routes.route.next-hop
+    enters_view: opaque
+    undo: delete qos
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop qos
+      line: 1138
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-next-hop-source-class
+    syntax: source-class <source-class>
+    view: router.static-routes.route.next-hop
+    undo: delete source-class
+    params:
+      source-class:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop source-class
+      line: 1154
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-next-hop-tag
+    syntax: tag <tag>
+    view: router.static-routes.route.next-hop
+    undo: delete tag
+    params:
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop tag
+      line: 1176
+      version: 25.10.R1
+    status: draft
+    maps:
+      static.route.tag: $tag
+  - id: nokia-sros-md.router-static-routes-route-next-hop-validate-next-hop
+    syntax: validate-next-hop <validate-next-hop>
+    view: router.static-routes.route.next-hop
+    undo: delete validate-next-hop
+    params:
+      validate-next-hop:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route next-hop validate-next-hop
+      line: 1198
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-static-routes-route-tag
+    syntax: tag <tag>
+    view: router.static-routes.route
+    undo: delete tag
+    params:
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.static-routes.md
+      title: router static-routes route tag
+      line: 1224
+      version: 25.10.R1
+    status: draft

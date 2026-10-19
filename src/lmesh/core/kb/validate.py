@@ -112,6 +112,8 @@ def validate(kb: KnowledgeBase) -> list[Issue]:
             err("profile.family", f"{p.id} 的平台族 {p.family} 不存在", p.file)
         if p.inherits and p.inherits not in kb.profiles:
             err("profile.inherits_missing", f"{p.id} 继承的 {p.inherits} 不存在", p.file)
+        if p.defaults_from and p.defaults_from not in kb.profiles:
+            err("profile.defaults_from_missing", f"{p.id} 复用缺省值的 {p.defaults_from} 不存在", p.file)
         chain: list[str] = []
         cur = p.id
         while cur in kb.profiles:

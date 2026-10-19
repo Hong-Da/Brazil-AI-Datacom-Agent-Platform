@@ -1,0 +1,202 @@
+# Nokia SR OS（7750 SR / 7450 ESS / 7950 XRS / VSR）MD-CLI 的书写习惯与视图树（M7-4，REQ-037）。
+# 依据：MD-CLI Command Reference Guide 25.10.R1（配置树由 YANG 模型生成），以及 MD-CLI User Guide 的 info / info flat /
+#       info full-context / admin show configuration 输出格式（见 docs/project-spec.md “接入 Nokia 7750 SR（REQ-037）（M7-1 分析结果）”）。
+#
+# 书写习惯：
+# - 层级以花括号为准（block: braces）：进入上下文的行以 “ {” 结尾，块由 “}” 关闭；没有子元素的列表项 / 容器写成 “name { }”；
+#   缩进只是排版（4 个空格），解析不看缩进。
+# - 扁平格式：info flat（相对当前上下文的完整路径，每行一个元素）与 info full-context / admin show configuration full-context
+#   （每行以 /configure 开头）；解析器按命令卡逐段消耗路径（进入视图的卡），剩余部分整行匹配，相邻行的公共前缀合并成同一块。
+# - 叶子列表写成 [ "a" "b" ]（参数类型 leaflist）；字符串（名称、描述、引用）写成引号字符串；admin-state enable | disable 代替 shutdown。
+# - 取消：MD-CLI 的配置输出里没有取消形式；变更时用 delete <元素>（命令卡的 undo），编辑会话 edit-config private … commit。
+# - admin show configuration 以 “configure {” 开始、“}” 结束（结构行，进入根视图）；# 开头是注释（文件头、# Finished）。
+# 视图编号 = 去掉 configure 与键的路径，用 . 连接（router.interface.ipv4.primary），由
+# DevelopDocs/设备产品文档/Nokia/tools/nokia_md_to_md.py 按范围文件 md-scope.txt 生成；opaque 收留范围外的容器（块内按原文保留）。
+vendor: nokia
+separator: ""
+end: ""
+indent: 4
+negative: delete
+root_view: configure
+block: braces
+comment: ["#"]
+begin: [configure]
+quotes: true
+views:
+  configure:
+    title: 配置根 (configure)
+  opaque: {parent: configure, title: 范围外的容器（按原文保留）}
+  filter: {parent: configure, title: 'configure filter'}
+  filter.ip-filter: {parent: filter, title: 'configure filter ip-filter'}
+  filter.ip-filter.entry: {parent: filter.ip-filter, title: 'configure filter ip-filter entry'}
+  filter.ip-filter.entry.action: {parent: filter.ip-filter.entry, title: 'configure filter ip-filter entry action'}
+  filter.ip-filter.entry.match: {parent: filter.ip-filter.entry, title: 'configure filter ip-filter entry match'}
+  filter.ip-filter.entry.match.dst-ip: {parent: filter.ip-filter.entry.match, title: 'configure filter ip-filter entry match dst-ip'}
+  filter.ip-filter.entry.match.dst-port: {parent: filter.ip-filter.entry.match, title: 'configure filter ip-filter entry match dst-port'}
+  filter.ip-filter.entry.match.dst-port.range: {parent: filter.ip-filter.entry.match.dst-port, title: 'configure filter ip-filter entry match dst-port range'}
+  filter.ip-filter.entry.match.src-ip: {parent: filter.ip-filter.entry.match, title: 'configure filter ip-filter entry match src-ip'}
+  filter.ip-filter.entry.match.src-port: {parent: filter.ip-filter.entry.match, title: 'configure filter ip-filter entry match src-port'}
+  filter.ip-filter.entry.match.src-port.range: {parent: filter.ip-filter.entry.match.src-port, title: 'configure filter ip-filter entry match src-port range'}
+  lag: {parent: configure, title: 'configure lag'}
+  lag.lacp: {parent: lag, title: 'configure lag lacp'}
+  lag.port: {parent: lag, title: 'configure lag port'}
+  log: {parent: configure, title: 'configure log'}
+  log.log-id: {parent: log, title: 'configure log log-id'}
+  log.log-id.destination: {parent: log.log-id, title: 'configure log log-id destination'}
+  log.log-id.source: {parent: log.log-id, title: 'configure log log-id source'}
+  log.syslog: {parent: log, title: 'configure log syslog'}
+  policy-options: {parent: configure, title: 'configure policy-options'}
+  policy-options.community: {parent: policy-options, title: 'configure policy-options community'}
+  policy-options.policy-statement: {parent: policy-options, title: 'configure policy-options policy-statement'}
+  policy-options.policy-statement.default-action: {parent: policy-options.policy-statement, title: 'configure policy-options policy-statement default-action'}
+  policy-options.policy-statement.entry: {parent: policy-options.policy-statement, title: 'configure policy-options policy-statement entry'}
+  policy-options.policy-statement.entry.action: {parent: policy-options.policy-statement.entry, title: 'configure policy-options policy-statement entry action'}
+  policy-options.policy-statement.entry.action.community: {parent: policy-options.policy-statement.entry.action, title: 'configure policy-options policy-statement entry action community'}
+  policy-options.policy-statement.entry.from: {parent: policy-options.policy-statement.entry, title: 'configure policy-options policy-statement entry from'}
+  policy-options.policy-statement.entry.from.protocol: {parent: policy-options.policy-statement.entry.from, title: 'configure policy-options policy-statement entry from protocol'}
+  policy-options.prefix-list: {parent: policy-options, title: 'configure policy-options prefix-list'}
+  policy-options.prefix-list.prefix: {parent: policy-options.prefix-list, title: 'configure policy-options prefix-list prefix'}
+  port: {parent: configure, title: 'configure port'}
+  port.ethernet: {parent: port, title: 'configure port ethernet'}
+  qos: {parent: configure, title: 'configure qos'}
+  qos.sap-egress: {parent: qos, title: 'configure qos sap-egress'}
+  qos.sap-ingress: {parent: qos, title: 'configure qos sap-ingress'}
+  router: {parent: configure, title: 'configure router'}
+  router.bgp: {parent: router, title: 'configure router bgp'}
+  router.bgp.family: {parent: router.bgp, title: 'configure router bgp family'}
+  router.bgp.group: {parent: router.bgp, title: 'configure router bgp group'}
+  router.bgp.group.export: {parent: router.bgp.group, title: 'configure router bgp group export'}
+  router.bgp.group.family: {parent: router.bgp.group, title: 'configure router bgp group family'}
+  router.bgp.group.hold-time: {parent: router.bgp.group, title: 'configure router bgp group hold-time'}
+  router.bgp.group.import: {parent: router.bgp.group, title: 'configure router bgp group import'}
+  router.bgp.hold-time: {parent: router.bgp, title: 'configure router bgp hold-time'}
+  router.bgp.neighbor: {parent: router.bgp, title: 'configure router bgp neighbor'}
+  router.bgp.neighbor.export: {parent: router.bgp.neighbor, title: 'configure router bgp neighbor export'}
+  router.bgp.neighbor.family: {parent: router.bgp.neighbor, title: 'configure router bgp neighbor family'}
+  router.bgp.neighbor.hold-time: {parent: router.bgp.neighbor, title: 'configure router bgp neighbor hold-time'}
+  router.bgp.neighbor.import: {parent: router.bgp.neighbor, title: 'configure router bgp neighbor import'}
+  router.interface: {parent: router, title: 'configure router interface'}
+  router.interface.ipv4: {parent: router.interface, title: 'configure router interface ipv4'}
+  router.interface.ipv4.bfd: {parent: router.interface.ipv4, title: 'configure router interface ipv4 bfd'}
+  router.interface.ipv4.primary: {parent: router.interface.ipv4, title: 'configure router interface ipv4 primary'}
+  router.interface.ipv4.secondary: {parent: router.interface.ipv4, title: 'configure router interface ipv4 secondary'}
+  router.interface.ipv4.vrrp: {parent: router.interface.ipv4, title: 'configure router interface ipv4 vrrp'}
+  router.isis: {parent: router, title: 'configure router isis'}
+  router.isis.interface: {parent: router.isis, title: 'configure router isis interface'}
+  router.isis.interface.ipv4-node-sid: {parent: router.isis.interface, title: 'configure router isis interface ipv4-node-sid'}
+  router.isis.interface.level: {parent: router.isis.interface, title: 'configure router isis interface level'}
+  router.isis.level: {parent: router.isis, title: 'configure router isis level'}
+  router.isis.segment-routing: {parent: router.isis, title: 'configure router isis segment-routing'}
+  router.ldp: {parent: router, title: 'configure router ldp'}
+  router.ldp.interface-parameters: {parent: router.ldp, title: 'configure router ldp interface-parameters'}
+  router.ldp.interface-parameters.interface: {parent: router.ldp.interface-parameters, title: 'configure router ldp interface-parameters interface'}
+  router.ldp.interface-parameters.interface.ipv4: {parent: router.ldp.interface-parameters.interface, title: 'configure router ldp interface-parameters interface ipv4'}
+  router.ldp.targeted-session: {parent: router.ldp, title: 'configure router ldp targeted-session'}
+  router.ldp.targeted-session.peer: {parent: router.ldp.targeted-session, title: 'configure router ldp targeted-session peer'}
+  router.mpls: {parent: router, title: 'configure router mpls'}
+  router.mpls-labels: {parent: router, title: 'configure router mpls-labels'}
+  router.mpls-labels.sr-labels: {parent: router.mpls-labels, title: 'configure router mpls-labels sr-labels'}
+  router.mpls.interface: {parent: router.mpls, title: 'configure router mpls interface'}
+  router.mpls.lsp: {parent: router.mpls, title: 'configure router mpls lsp'}
+  router.mpls.path: {parent: router.mpls, title: 'configure router mpls path'}
+  router.mpls.path.hop: {parent: router.mpls.path, title: 'configure router mpls path hop'}
+  router.ospf: {parent: router, title: 'configure router ospf'}
+  router.ospf.area: {parent: router.ospf, title: 'configure router ospf area'}
+  router.ospf.area.interface: {parent: router.ospf.area, title: 'configure router ospf area interface'}
+  router.ospf.area.interface.node-sid: {parent: router.ospf.area.interface, title: 'configure router ospf area interface node-sid'}
+  router.ospf.segment-routing: {parent: router.ospf, title: 'configure router ospf segment-routing'}
+  router.rsvp: {parent: router, title: 'configure router rsvp'}
+  router.rsvp.interface: {parent: router.rsvp, title: 'configure router rsvp interface'}
+  router.static-routes: {parent: router, title: 'configure router static-routes'}
+  router.static-routes.route: {parent: router.static-routes, title: 'configure router static-routes route'}
+  router.static-routes.route.blackhole: {parent: router.static-routes.route, title: 'configure router static-routes route blackhole'}
+  router.static-routes.route.indirect: {parent: router.static-routes.route, title: 'configure router static-routes route indirect'}
+  router.static-routes.route.next-hop: {parent: router.static-routes.route, title: 'configure router static-routes route next-hop'}
+  service: {parent: configure, title: 'configure service'}
+  service.customer: {parent: service, title: 'configure service customer'}
+  service.epipe: {parent: service, title: 'configure service epipe'}
+  service.epipe.sap: {parent: service.epipe, title: 'configure service epipe sap'}
+  service.epipe.sap.egress: {parent: service.epipe.sap, title: 'configure service epipe sap egress'}
+  service.epipe.sap.egress.filter: {parent: service.epipe.sap.egress, title: 'configure service epipe sap egress filter'}
+  service.epipe.sap.egress.qos: {parent: service.epipe.sap.egress, title: 'configure service epipe sap egress qos'}
+  service.epipe.sap.egress.qos.sap-egress: {parent: service.epipe.sap.egress.qos, title: 'configure service epipe sap egress qos sap-egress'}
+  service.epipe.sap.ingress: {parent: service.epipe.sap, title: 'configure service epipe sap ingress'}
+  service.epipe.sap.ingress.filter: {parent: service.epipe.sap.ingress, title: 'configure service epipe sap ingress filter'}
+  service.epipe.sap.ingress.qos: {parent: service.epipe.sap.ingress, title: 'configure service epipe sap ingress qos'}
+  service.epipe.sap.ingress.qos.sap-ingress: {parent: service.epipe.sap.ingress.qos, title: 'configure service epipe sap ingress qos sap-ingress'}
+  service.epipe.spoke-sdp: {parent: service.epipe, title: 'configure service epipe spoke-sdp'}
+  service.ies: {parent: service, title: 'configure service ies'}
+  service.ies.interface: {parent: service.ies, title: 'configure service ies interface'}
+  service.ies.interface.ipv4: {parent: service.ies.interface, title: 'configure service ies interface ipv4'}
+  service.ies.interface.ipv4.primary: {parent: service.ies.interface.ipv4, title: 'configure service ies interface ipv4 primary'}
+  service.ies.interface.ipv4.secondary: {parent: service.ies.interface.ipv4, title: 'configure service ies interface ipv4 secondary'}
+  service.ies.interface.sap: {parent: service.ies.interface, title: 'configure service ies interface sap'}
+  service.ies.interface.sap.egress: {parent: service.ies.interface.sap, title: 'configure service ies interface sap egress'}
+  service.ies.interface.sap.egress.filter: {parent: service.ies.interface.sap.egress, title: 'configure service ies interface sap egress filter'}
+  service.ies.interface.sap.egress.qos: {parent: service.ies.interface.sap.egress, title: 'configure service ies interface sap egress qos'}
+  service.ies.interface.sap.egress.qos.sap-egress: {parent: service.ies.interface.sap.egress.qos, title: 'configure service ies interface sap egress qos sap-egress'}
+  service.ies.interface.sap.ingress: {parent: service.ies.interface.sap, title: 'configure service ies interface sap ingress'}
+  service.ies.interface.sap.ingress.filter: {parent: service.ies.interface.sap.ingress, title: 'configure service ies interface sap ingress filter'}
+  service.ies.interface.sap.ingress.qos: {parent: service.ies.interface.sap.ingress, title: 'configure service ies interface sap ingress qos'}
+  service.ies.interface.sap.ingress.qos.sap-ingress: {parent: service.ies.interface.sap.ingress.qos, title: 'configure service ies interface sap ingress qos sap-ingress'}
+  service.sdp: {parent: service, title: 'configure service sdp'}
+  service.sdp.far-end: {parent: service.sdp, title: 'configure service sdp far-end'}
+  service.sdp.keep-alive: {parent: service.sdp, title: 'configure service sdp keep-alive'}
+  service.vpls: {parent: service, title: 'configure service vpls'}
+  service.vpls.mesh-sdp: {parent: service.vpls, title: 'configure service vpls mesh-sdp'}
+  service.vpls.sap: {parent: service.vpls, title: 'configure service vpls sap'}
+  service.vpls.sap.egress: {parent: service.vpls.sap, title: 'configure service vpls sap egress'}
+  service.vpls.sap.egress.filter: {parent: service.vpls.sap.egress, title: 'configure service vpls sap egress filter'}
+  service.vpls.sap.egress.qos: {parent: service.vpls.sap.egress, title: 'configure service vpls sap egress qos'}
+  service.vpls.sap.egress.qos.sap-egress: {parent: service.vpls.sap.egress.qos, title: 'configure service vpls sap egress qos sap-egress'}
+  service.vpls.sap.ingress: {parent: service.vpls.sap, title: 'configure service vpls sap ingress'}
+  service.vpls.sap.ingress.filter: {parent: service.vpls.sap.ingress, title: 'configure service vpls sap ingress filter'}
+  service.vpls.sap.ingress.qos: {parent: service.vpls.sap.ingress, title: 'configure service vpls sap ingress qos'}
+  service.vpls.sap.ingress.qos.sap-ingress: {parent: service.vpls.sap.ingress.qos, title: 'configure service vpls sap ingress qos sap-ingress'}
+  service.vpls.spoke-sdp: {parent: service.vpls, title: 'configure service vpls spoke-sdp'}
+  service.vprn: {parent: service, title: 'configure service vprn'}
+  service.vprn.bgp-ipvpn: {parent: service.vprn, title: 'configure service vprn bgp-ipvpn'}
+  service.vprn.bgp-ipvpn.mpls: {parent: service.vprn.bgp-ipvpn, title: 'configure service vprn bgp-ipvpn mpls'}
+  service.vprn.bgp-ipvpn.mpls.auto-bind-tunnel: {parent: service.vprn.bgp-ipvpn.mpls, title: 'configure service vprn bgp-ipvpn mpls auto-bind-tunnel'}
+  service.vprn.bgp-ipvpn.mpls.auto-bind-tunnel.resolution-filter: {parent: service.vprn.bgp-ipvpn.mpls.auto-bind-tunnel, title: 'configure service vprn bgp-ipvpn mpls auto-bind-tunnel resolution-filter'}
+  service.vprn.bgp-ipvpn.mpls.vrf-export: {parent: service.vprn.bgp-ipvpn.mpls, title: 'configure service vprn bgp-ipvpn mpls vrf-export'}
+  service.vprn.bgp-ipvpn.mpls.vrf-import: {parent: service.vprn.bgp-ipvpn.mpls, title: 'configure service vprn bgp-ipvpn mpls vrf-import'}
+  service.vprn.bgp-ipvpn.mpls.vrf-target: {parent: service.vprn.bgp-ipvpn.mpls, title: 'configure service vprn bgp-ipvpn mpls vrf-target'}
+  service.vprn.interface: {parent: service.vprn, title: 'configure service vprn interface'}
+  service.vprn.interface.ipv4: {parent: service.vprn.interface, title: 'configure service vprn interface ipv4'}
+  service.vprn.interface.ipv4.primary: {parent: service.vprn.interface.ipv4, title: 'configure service vprn interface ipv4 primary'}
+  service.vprn.interface.ipv4.secondary: {parent: service.vprn.interface.ipv4, title: 'configure service vprn interface ipv4 secondary'}
+  service.vprn.interface.sap: {parent: service.vprn.interface, title: 'configure service vprn interface sap'}
+  service.vprn.interface.sap.egress: {parent: service.vprn.interface.sap, title: 'configure service vprn interface sap egress'}
+  service.vprn.interface.sap.egress.filter: {parent: service.vprn.interface.sap.egress, title: 'configure service vprn interface sap egress filter'}
+  service.vprn.interface.sap.egress.qos: {parent: service.vprn.interface.sap.egress, title: 'configure service vprn interface sap egress qos'}
+  service.vprn.interface.sap.egress.qos.sap-egress: {parent: service.vprn.interface.sap.egress.qos, title: 'configure service vprn interface sap egress qos sap-egress'}
+  service.vprn.interface.sap.ingress: {parent: service.vprn.interface.sap, title: 'configure service vprn interface sap ingress'}
+  service.vprn.interface.sap.ingress.filter: {parent: service.vprn.interface.sap.ingress, title: 'configure service vprn interface sap ingress filter'}
+  service.vprn.interface.sap.ingress.qos: {parent: service.vprn.interface.sap.ingress, title: 'configure service vprn interface sap ingress qos'}
+  service.vprn.interface.sap.ingress.qos.sap-ingress: {parent: service.vprn.interface.sap.ingress.qos, title: 'configure service vprn interface sap ingress qos sap-ingress'}
+  service.vprn.maximum-ipv4-routes: {parent: service.vprn, title: 'configure service vprn maximum-ipv4-routes'}
+  service.vprn.static-routes: {parent: service.vprn, title: 'configure service vprn static-routes'}
+  service.vprn.static-routes.route: {parent: service.vprn.static-routes, title: 'configure service vprn static-routes route'}
+  service.vprn.static-routes.route.next-hop: {parent: service.vprn.static-routes.route, title: 'configure service vprn static-routes route next-hop'}
+  system: {parent: configure, title: 'configure system'}
+  system.login-control: {parent: system, title: 'configure system login-control'}
+  system.management-interface: {parent: system, title: 'configure system management-interface'}
+  system.management-interface.snmp: {parent: system.management-interface, title: 'configure system management-interface snmp'}
+  system.security: {parent: system, title: 'configure system security'}
+  system.security.aaa: {parent: system.security, title: 'configure system security aaa'}
+  system.security.aaa.remote-servers: {parent: system.security.aaa, title: 'configure system security aaa remote-servers'}
+  system.security.aaa.remote-servers.radius: {parent: system.security.aaa.remote-servers, title: 'configure system security aaa remote-servers radius'}
+  system.security.aaa.remote-servers.tacplus: {parent: system.security.aaa.remote-servers, title: 'configure system security aaa remote-servers tacplus'}
+  system.security.aaa.remote-servers.tacplus.server: {parent: system.security.aaa.remote-servers.tacplus, title: 'configure system security aaa remote-servers tacplus server'}
+  system.security.snmp: {parent: system.security, title: 'configure system security snmp'}
+  system.security.snmp.community: {parent: system.security.snmp, title: 'configure system security snmp community'}
+  system.security.ssh: {parent: system.security, title: 'configure system security ssh'}
+  system.security.user-params: {parent: system.security, title: 'configure system security user-params'}
+  system.security.user-params.local-user: {parent: system.security.user-params, title: 'configure system security user-params local-user'}
+  system.security.user-params.local-user.user: {parent: system.security.user-params.local-user, title: 'configure system security user-params local-user user'}
+  system.security.user-params.local-user.user.access: {parent: system.security.user-params.local-user.user, title: 'configure system security user-params local-user user access'}
+  system.security.user-params.local-user.user.console: {parent: system.security.user-params.local-user.user, title: 'configure system security user-params local-user user console'}
+  system.time: {parent: system, title: 'configure system time'}
+  system.time.ntp: {parent: system.time, title: 'configure system time ntp'}
+  system.time.ntp.server: {parent: system.time.ntp, title: 'configure system time ntp server'}

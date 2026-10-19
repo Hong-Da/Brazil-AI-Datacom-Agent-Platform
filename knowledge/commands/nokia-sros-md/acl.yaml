@@ -1,0 +1,1568 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: acl
+cards:
+  - id: nokia-sros-md.filter
+    syntax: filter
+    view: configure
+    enters_view: filter
+    undo: delete filter
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.filter-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: filter
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter apply-groups
+      line: 21
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: filter
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter apply-groups-exclude
+      line: 39
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-dhcp-filter
+    syntax: dhcp-filter <filter-id>
+    view: filter
+    enters_view: opaque
+    undo: delete dhcp-filter <filter-id>
+    params:
+      filter-id:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter dhcp-filter
+      line: 57
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-dhcp6-filter
+    syntax: dhcp6-filter <filter-id>
+    view: filter
+    enters_view: opaque
+    undo: delete dhcp6-filter <filter-id>
+    params:
+      filter-id:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter dhcp6-filter
+      line: 79
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-gre-tunnel-template
+    syntax: gre-tunnel-template <gre-tunnel-template-name>
+    view: filter
+    enters_view: opaque
+    undo: delete gre-tunnel-template <gre-tunnel-template-name>
+    params:
+      gre-tunnel-template-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter gre-tunnel-template
+      line: 101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-exception
+    syntax: ip-exception <filter-name>
+    view: filter
+    enters_view: opaque
+    undo: delete ip-exception <filter-name>
+    params:
+      filter-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-exception
+      line: 123
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter
+    syntax: ip-filter <filter-name>
+    view: filter
+    enters_view: filter.ip-filter
+    undo: delete ip-filter <filter-name>
+    params:
+      filter-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter
+      line: 145
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.filter-ip-filter-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: filter.ip-filter
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter apply-groups
+      line: 167
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: filter.ip-filter
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter apply-groups-exclude
+      line: 185
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-chain-to-system-filter
+    syntax: chain-to-system-filter <chain-to-system-filter>
+    view: filter.ip-filter
+    undo: delete chain-to-system-filter
+    params:
+      chain-to-system-filter:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter chain-to-system-filter
+      line: 203
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-default-action
+    syntax: default-action <default-action>
+    view: filter.ip-filter
+    undo: delete default-action
+    params:
+      default-action:
+        type: enum
+        choices:
+          - drop
+          - accept
+    default: drop
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter default-action
+      line: 229
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.default_action: kw:accept=permit|drop=deny
+  - id: nokia-sros-md.filter-ip-filter-description
+    syntax: description <description>
+    view: filter.ip-filter
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter description
+      line: 255
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.description: $description
+  - id: nokia-sros-md.filter-ip-filter-embed
+    syntax: embed
+    view: filter.ip-filter
+    enters_view: opaque
+    undo: delete embed
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter embed
+      line: 277
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry
+    syntax: entry <entry-id>
+    view: filter.ip-filter
+    enters_view: filter.ip-filter.entry
+    undo: delete entry <entry-id>
+    params:
+      entry-id:
+        type: integer
+        range:
+          - 1
+          - 2097151
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry
+      line: 293
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule: $entry-id
+  - id: nokia-sros-md.filter-ip-filter-entry-action
+    syntax: action
+    view: filter.ip-filter.entry
+    enters_view: filter.ip-filter.entry.action
+    undo: delete action
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action
+      line: 315
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.filter-ip-filter-entry-action-accept
+    syntax: accept
+    view: filter.ip-filter.entry.action
+    undo: delete accept
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action accept
+      line: 331
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.action: permit
+  - id: nokia-sros-md.filter-ip-filter-entry-action-accept-when
+    syntax: accept-when
+    view: filter.ip-filter.entry.action
+    enters_view: opaque
+    undo: delete accept-when
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action accept-when
+      line: 351
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: filter.ip-filter.entry.action
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action apply-groups
+      line: 367
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: filter.ip-filter.entry.action
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action apply-groups-exclude
+      line: 385
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-drop
+    syntax: drop
+    view: filter.ip-filter.entry.action
+    undo: delete drop
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action drop
+      line: 403
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.action: deny
+  - id: nokia-sros-md.filter-ip-filter-entry-action-drop-when
+    syntax: drop-when
+    view: filter.ip-filter.entry.action
+    enters_view: opaque
+    undo: delete drop-when
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action drop-when
+      line: 423
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-fc
+    syntax: fc <fc>
+    view: filter.ip-filter.entry.action
+    undo: delete fc
+    params:
+      fc:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action fc
+      line: 439
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-forward
+    syntax: forward
+    view: filter.ip-filter.entry.action
+    enters_view: opaque
+    undo: delete forward
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action forward
+      line: 461
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.action: permit
+  - id: nokia-sros-md.filter-ip-filter-entry-action-gtp-local-breakout
+    syntax: gtp-local-breakout
+    view: filter.ip-filter.entry.action
+    undo: delete gtp-local-breakout
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action gtp-local-breakout
+      line: 481
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-http-redirect
+    syntax: http-redirect
+    view: filter.ip-filter.entry.action
+    enters_view: opaque
+    undo: delete http-redirect
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action http-redirect
+      line: 501
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-ignore-match
+    syntax: ignore-match
+    view: filter.ip-filter.entry.action
+    undo: delete ignore-match
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action ignore-match
+      line: 521
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-l2-aware-nat-bypass
+    syntax: l2-aware-nat-bypass <l2-aware-nat-bypass>
+    view: filter.ip-filter.entry.action
+    undo: delete l2-aware-nat-bypass
+    params:
+      l2-aware-nat-bypass:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action l2-aware-nat-bypass
+      line: 541
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-nat
+    syntax: nat
+    view: filter.ip-filter.entry.action
+    enters_view: opaque
+    undo: delete nat
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action nat
+      line: 567
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-rate-limit
+    syntax: rate-limit
+    view: filter.ip-filter.entry.action
+    enters_view: opaque
+    undo: delete rate-limit
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action rate-limit
+      line: 587
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-reassemble
+    syntax: reassemble
+    view: filter.ip-filter.entry.action
+    undo: delete reassemble
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action reassemble
+      line: 603
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-remark
+    syntax: remark
+    view: filter.ip-filter.entry.action
+    enters_view: opaque
+    undo: delete remark
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action remark
+      line: 623
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-secondary
+    syntax: secondary
+    view: filter.ip-filter.entry.action
+    enters_view: opaque
+    undo: delete secondary
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action secondary
+      line: 639
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-action-tcp-mss-adjust
+    syntax: tcp-mss-adjust
+    view: filter.ip-filter.entry.action
+    undo: delete tcp-mss-adjust
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry action tcp-mss-adjust
+      line: 655
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: filter.ip-filter.entry
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry apply-groups
+      line: 675
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: filter.ip-filter.entry
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry apply-groups-exclude
+      line: 693
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-description
+    syntax: description <description>
+    view: filter.ip-filter.entry
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry description
+      line: 711
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.description: $description
+  - id: nokia-sros-md.filter-ip-filter-entry-egress-pbr
+    syntax: egress-pbr <egress-pbr>
+    view: filter.ip-filter.entry
+    undo: delete egress-pbr
+    params:
+      egress-pbr:
+        type: enum
+        choices:
+          - 'true'
+          - true-with-l4lb
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry egress-pbr
+      line: 733
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-filter-sample
+    syntax: filter-sample <filter-sample>
+    view: filter.ip-filter.entry
+    undo: delete filter-sample
+    params:
+      filter-sample:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry filter-sample
+      line: 755
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-interface-sample
+    syntax: interface-sample <interface-sample>
+    view: filter.ip-filter.entry
+    undo: delete interface-sample
+    params:
+      interface-sample:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry interface-sample
+      line: 781
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-log
+    syntax: log <log>
+    view: filter.ip-filter.entry
+    undo: delete log
+    params:
+      log:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry log
+      line: 807
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match
+    syntax: match
+    view: filter.ip-filter.entry
+    enters_view: filter.ip-filter.entry.match
+    undo: delete match
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match
+      line: 829
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.filter-ip-filter-entry-match-destination-class
+    syntax: destination-class <destination-class>
+    view: filter.ip-filter.entry.match
+    undo: delete destination-class
+    params:
+      destination-class:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match destination-class
+      line: 845
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dscp
+    syntax: dscp <dscp>
+    view: filter.ip-filter.entry.match
+    undo: delete dscp
+    params:
+      dscp:
+        type: enum
+        choices:
+          - be
+          - cp1
+          - cp2
+          - cp3
+          - cp4
+          - cp5
+          - cp6
+          - cp7
+          - cs1
+          - cp9
+          - af11
+          - cp11
+          - af12
+          - cp13
+          - af13
+          - cp15
+          - cs2
+          - cp17
+          - af21
+          - cp19
+          - af22
+          - cp21
+          - af23
+          - cp23
+          - cs3
+          - cp25
+          - af31
+          - cp27
+          - af32
+          - cp29
+          - af33
+          - cp31
+          - cs4
+          - cp33
+          - af41
+          - cp35
+          - af42
+          - cp37
+          - af43
+          - cp39
+          - cs5
+          - cp41
+          - cp42
+          - cp43
+          - cp44
+          - cp45
+          - ef
+          - cp47
+          - nc1
+          - cp49
+          - cp50
+          - cp51
+          - cp52
+          - cp53
+          - cp54
+          - cp55
+          - nc2
+          - cp57
+          - cp58
+          - cp59
+          - cp60
+          - cp61
+          - cp62
+          - cp63
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dscp
+      line: 867
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dst-ip
+    syntax: dst-ip
+    view: filter.ip-filter.entry.match
+    enters_view: filter.ip-filter.entry.match.dst-ip
+    undo: delete dst-ip
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dst-ip
+      line: 889
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dst-ip-address
+    syntax: address <address>
+    view: filter.ip-filter.entry.match.dst-ip
+    undo: delete address
+    params:
+      address:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dst-ip address
+      line: 909
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.destination_ip: pfx:addr:$address
+      acl.instance.rule.destination_wildcard: pfx:wild:$address
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dst-ip-ip-prefix-list
+    syntax: ip-prefix-list <ip-prefix-list>
+    view: filter.ip-filter.entry.match.dst-ip
+    undo: delete ip-prefix-list
+    params:
+      ip-prefix-list:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dst-ip ip-prefix-list
+      line: 935
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dst-ip-mask
+    syntax: mask <mask>
+    view: filter.ip-filter.entry.match.dst-ip
+    undo: delete mask
+    params:
+      mask:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dst-ip mask
+      line: 961
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dst-port
+    syntax: dst-port
+    view: filter.ip-filter.entry.match
+    enters_view: filter.ip-filter.entry.match.dst-port
+    undo: delete dst-port
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dst-port
+      line: 987
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dst-port-eq
+    syntax: eq <eq>
+    view: filter.ip-filter.entry.match.dst-port
+    undo: delete eq
+    params:
+      eq:
+        type: integer
+        range:
+          - 0
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dst-port eq
+      line: 1007
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.destination_port: fmt:eq {eq}
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dst-port-gt
+    syntax: gt <gt>
+    view: filter.ip-filter.entry.match.dst-port
+    undo: delete gt
+    params:
+      gt:
+        type: integer
+        range:
+          - 0
+          - 65534
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dst-port gt
+      line: 1033
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dst-port-lt
+    syntax: lt <lt>
+    view: filter.ip-filter.entry.match.dst-port
+    undo: delete lt
+    params:
+      lt:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dst-port lt
+      line: 1059
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dst-port-port-list
+    syntax: port-list <port-list>
+    view: filter.ip-filter.entry.match.dst-port
+    undo: delete port-list
+    params:
+      port-list:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dst-port port-list
+      line: 1085
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dst-port-range
+    syntax: range
+    view: filter.ip-filter.entry.match.dst-port
+    enters_view: filter.ip-filter.entry.match.dst-port.range
+    undo: delete range
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dst-port range
+      line: 1111
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dst-port-range-end
+    syntax: end <end>
+    view: filter.ip-filter.entry.match.dst-port.range
+    undo: delete end
+    params:
+      end:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dst-port range end
+      line: 1131
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-dst-port-range-start
+    syntax: start <start>
+    view: filter.ip-filter.entry.match.dst-port.range
+    undo: delete start
+    params:
+      start:
+        type: integer
+        range:
+          - 0
+          - 65534
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match dst-port range start
+      line: 1157
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-fragment
+    syntax: fragment <fragment>
+    view: filter.ip-filter.entry.match
+    undo: delete fragment
+    params:
+      fragment:
+        type: enum
+        choices:
+          - 'false'
+          - 'true'
+          - first-only
+          - non-first-only
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match fragment
+      line: 1183
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-icmp
+    syntax: icmp
+    view: filter.ip-filter.entry.match
+    enters_view: opaque
+    undo: delete icmp
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match icmp
+      line: 1205
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-ip
+    syntax: ip
+    view: filter.ip-filter.entry.match
+    enters_view: opaque
+    undo: delete ip
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match ip
+      line: 1221
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-ip-option
+    syntax: ip-option
+    view: filter.ip-filter.entry.match
+    enters_view: opaque
+    undo: delete ip-option
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match ip-option
+      line: 1241
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-multiple-option
+    syntax: multiple-option <multiple-option>
+    view: filter.ip-filter.entry.match
+    undo: delete multiple-option
+    params:
+      multiple-option:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match multiple-option
+      line: 1257
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-option-present
+    syntax: option-present <option-present>
+    view: filter.ip-filter.entry.match
+    undo: delete option-present
+    params:
+      option-present:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match option-present
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-packet-length
+    syntax: packet-length
+    view: filter.ip-filter.entry.match
+    enters_view: opaque
+    undo: delete packet-length
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match packet-length
+      line: 1301
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-port
+    syntax: port
+    view: filter.ip-filter.entry.match
+    enters_view: opaque
+    undo: delete port
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match port
+      line: 1317
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-protocol
+    syntax: protocol <protocol>
+    view: filter.ip-filter.entry.match
+    undo: delete protocol
+    params:
+      protocol:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match protocol
+      line: 1337
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.protocol: $protocol
+  - id: nokia-sros-md.filter-ip-filter-entry-match-protocol-list
+    syntax: protocol-list <protocol-list>
+    view: filter.ip-filter.entry.match
+    undo: delete protocol-list
+    params:
+      protocol-list:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match protocol-list
+      line: 1363
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-ip
+    syntax: src-ip
+    view: filter.ip-filter.entry.match
+    enters_view: filter.ip-filter.entry.match.src-ip
+    undo: delete src-ip
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-ip
+      line: 1389
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-ip-address
+    syntax: address <address>
+    view: filter.ip-filter.entry.match.src-ip
+    undo: delete address
+    params:
+      address:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-ip address
+      line: 1409
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.source_ip: pfx:addr:$address
+      acl.instance.rule.source_wildcard: pfx:wild:$address
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-ip-ip-prefix-list
+    syntax: ip-prefix-list <ip-prefix-list>
+    view: filter.ip-filter.entry.match.src-ip
+    undo: delete ip-prefix-list
+    params:
+      ip-prefix-list:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-ip ip-prefix-list
+      line: 1435
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-ip-mask
+    syntax: mask <mask>
+    view: filter.ip-filter.entry.match.src-ip
+    undo: delete mask
+    params:
+      mask:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-ip mask
+      line: 1461
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-mac
+    syntax: src-mac
+    view: filter.ip-filter.entry.match
+    enters_view: opaque
+    undo: delete src-mac
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-mac
+      line: 1487
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-port
+    syntax: src-port
+    view: filter.ip-filter.entry.match
+    enters_view: filter.ip-filter.entry.match.src-port
+    undo: delete src-port
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-port
+      line: 1503
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-port-eq
+    syntax: eq <eq>
+    view: filter.ip-filter.entry.match.src-port
+    undo: delete eq
+    params:
+      eq:
+        type: integer
+        range:
+          - 0
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-port eq
+      line: 1523
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.source_port: fmt:eq {eq}
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-port-gt
+    syntax: gt <gt>
+    view: filter.ip-filter.entry.match.src-port
+    undo: delete gt
+    params:
+      gt:
+        type: integer
+        range:
+          - 0
+          - 65534
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-port gt
+      line: 1549
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-port-lt
+    syntax: lt <lt>
+    view: filter.ip-filter.entry.match.src-port
+    undo: delete lt
+    params:
+      lt:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-port lt
+      line: 1575
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-port-port-list
+    syntax: port-list <port-list>
+    view: filter.ip-filter.entry.match.src-port
+    undo: delete port-list
+    params:
+      port-list:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-port port-list
+      line: 1601
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-port-range
+    syntax: range
+    view: filter.ip-filter.entry.match.src-port
+    enters_view: filter.ip-filter.entry.match.src-port.range
+    undo: delete range
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-port range
+      line: 1627
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-port-range-end
+    syntax: end <end>
+    view: filter.ip-filter.entry.match.src-port.range
+    undo: delete end
+    params:
+      end:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-port range end
+      line: 1647
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-port-range-start
+    syntax: start <start>
+    view: filter.ip-filter.entry.match.src-port.range
+    undo: delete start
+    params:
+      start:
+        type: integer
+        range:
+          - 0
+          - 65534
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-port range start
+      line: 1673
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-src-route-option
+    syntax: src-route-option <src-route-option>
+    view: filter.ip-filter.entry.match
+    undo: delete src-route-option
+    params:
+      src-route-option:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match src-route-option
+      line: 1699
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-tcp-established
+    syntax: tcp-established
+    view: filter.ip-filter.entry.match
+    undo: delete tcp-established
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match tcp-established
+      line: 1721
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-tcp-flags
+    syntax: tcp-flags
+    view: filter.ip-filter.entry.match
+    enters_view: opaque
+    undo: delete tcp-flags
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match tcp-flags
+      line: 1741
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-match-ttl
+    syntax: ttl
+    view: filter.ip-filter.entry.match
+    enters_view: opaque
+    undo: delete ttl
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry match ttl
+      line: 1761
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-pbr-down-action-override
+    syntax: pbr-down-action-override <pbr-down-action-override>
+    view: filter.ip-filter.entry
+    undo: delete pbr-down-action-override
+    params:
+      pbr-down-action-override:
+        type: enum
+        choices:
+          - drop
+          - forward
+          - filter-default-action
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry pbr-down-action-override
+      line: 1777
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-sample-profile
+    syntax: sample-profile <sample-profile>
+    view: filter.ip-filter.entry
+    undo: delete sample-profile
+    params:
+      sample-profile:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry sample-profile
+      line: 1799
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-entry-sticky-dest
+    syntax: sticky-dest <sticky-dest>
+    view: filter.ip-filter.entry
+    undo: delete sticky-dest
+    params:
+      sticky-dest:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter entry sticky-dest
+      line: 1821
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-filter-id
+    syntax: filter-id <filter-id>
+    view: filter.ip-filter
+    undo: delete filter-id
+    params:
+      filter-id:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter filter-id
+      line: 1843
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance: $filter-id
+      acl.instance.type: advanced
+      acl.instance.filter_name: ctx:filter-name
+      '@share': ''
+      '@first': ''
+  - id: nokia-sros-md.filter-ip-filter-scope
+    syntax: scope <scope>
+    view: filter.ip-filter
+    undo: delete scope
+    params:
+      scope:
+        type: enum
+        choices:
+          - exclusive
+          - template
+          - embedded
+          - system
+          - cpm
+    default: template
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter scope
+      line: 1865
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-shared-policer
+    syntax: shared-policer <shared-policer>
+    view: filter.ip-filter
+    undo: delete shared-policer
+    params:
+      shared-policer:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter shared-policer
+      line: 1891
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-subscriber-mgmt
+    syntax: subscriber-mgmt
+    view: filter.ip-filter
+    enters_view: opaque
+    undo: delete subscriber-mgmt
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter subscriber-mgmt
+      line: 1917
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ip-filter-type
+    syntax: type <type>
+    view: filter.ip-filter
+    undo: delete type
+    params:
+      type:
+        type: enum
+        choices:
+          - normal
+          - src-mac
+          - packet-length
+          - destination-class
+    default: normal
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ip-filter type
+      line: 1933
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ipv6-exception
+    syntax: ipv6-exception <filter-name>
+    view: filter
+    enters_view: opaque
+    undo: delete ipv6-exception <filter-name>
+    params:
+      filter-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ipv6-exception
+      line: 1959
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-ipv6-filter
+    syntax: ipv6-filter <filter-name>
+    view: filter
+    enters_view: opaque
+    undo: delete ipv6-filter <filter-name>
+    params:
+      filter-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter ipv6-filter
+      line: 1981
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-log
+    syntax: log <log-id>
+    view: filter
+    enters_view: opaque
+    undo: delete log <log-id>
+    params:
+      log-id:
+        type: integer
+        range:
+          - 101
+          - 199
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter log
+      line: 2003
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-mac-filter
+    syntax: mac-filter <filter-name>
+    view: filter
+    enters_view: opaque
+    undo: delete mac-filter <filter-name>
+    params:
+      filter-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter mac-filter
+      line: 2025
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-match-list
+    syntax: match-list
+    view: filter
+    enters_view: opaque
+    undo: delete match-list
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter match-list
+      line: 2047
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-md-auto-id
+    syntax: md-auto-id
+    view: filter
+    enters_view: opaque
+    undo: delete md-auto-id
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter md-auto-id
+      line: 2063
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-policer
+    syntax: policer <policer-name>
+    view: filter
+    enters_view: opaque
+    undo: delete policer <policer-name>
+    params:
+      policer-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter policer
+      line: 2079
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-redirect-policy
+    syntax: redirect-policy <redirect-policy-name>
+    view: filter
+    enters_view: opaque
+    undo: delete redirect-policy <redirect-policy-name>
+    params:
+      redirect-policy-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter redirect-policy
+      line: 2101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-redirect-policy-binding
+    syntax: redirect-policy-binding <binding-name>
+    view: filter
+    enters_view: opaque
+    undo: delete redirect-policy-binding <binding-name>
+    params:
+      binding-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter redirect-policy-binding
+      line: 2123
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.filter-system-filter
+    syntax: system-filter
+    view: filter
+    enters_view: opaque
+    undo: delete system-filter
+    source:
+      doc: nokia-sros-md-md
+      file: filter.md
+      title: filter system-filter
+      line: 2145
+      version: 25.10.R1
+    status: draft

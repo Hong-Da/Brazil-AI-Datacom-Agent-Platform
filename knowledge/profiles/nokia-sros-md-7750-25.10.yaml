@@ -1,0 +1,1118 @@
+# Nokia 7750 SR，SR OS 25.10.R1，MD-CLI（M7-4，REQ-037）。命令卡来自 Nokia 公开的 MD-CLI Command Reference 25.10.R1。
+# 与 Classic CLI 是同一设备软件的两种配置格式：缺省值、条件缺省值（when / else）、assume 复用 Classic 的 Profile
+# （defaults_from，只维护一份）；这里的 entries 只是本平台族命令卡的支持情况，由 kb map 汇总。
+# MD-CLI 特有、与 Classic 不同的缺省值写人工条目（manual: true），优先于复用的条目。
+profile: nokia-sros-md-7750-25.10
+title: Nokia 7750 SR SR OS 25.10（MD-CLI）
+vendor: nokia
+family: nokia-sros-md
+platform: 7750 SR
+software: 25.10.R1
+defaults_from: nokia-sros-classic-7750-25.10
+match:
+  vendor: nokia
+  version: ^25\.10
+  fallback: "true"
+implicit: []
+side_effects: []
+entries:
+  acl.instance:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-filter-id
+  acl.instance.default_action:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-default-action
+  acl.instance.description:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-description
+  acl.instance.filter_name:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-filter-id
+  acl.instance.rule:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-entry
+  acl.instance.rule.action:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-entry-action-accept
+      - nokia-sros-md.filter-ip-filter-entry-action-drop
+      - nokia-sros-md.filter-ip-filter-entry-action-forward
+  acl.instance.rule.description:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-entry-description
+  acl.instance.rule.destination_ip:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-entry-match-dst-ip-address
+  acl.instance.rule.destination_port:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-entry-match-dst-port-eq
+  acl.instance.rule.destination_wildcard:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-entry-match-dst-ip-address
+  acl.instance.rule.protocol:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-entry-match-protocol
+  acl.instance.rule.source_ip:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-entry-match-src-ip-address
+  acl.instance.rule.source_port:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-entry-match-src-port-eq
+  acl.instance.rule.source_wildcard:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-entry-match-src-ip-address
+  acl.instance.type:
+    supported: true
+    cards:
+      - nokia-sros-md.filter-ip-filter-filter-id
+  bgp.instance:
+    supported: true
+    cards:
+      - nokia-sros-md.router-autonomous-system
+  bgp.instance.hold:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-hold-time-seconds
+  bgp.instance.keepalive:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-keepalive
+  bgp.instance.router_id:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-router-id
+  bgp.instance.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-admin-state
+  bgp.peer:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-neighbor
+  bgp.peer.description:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-neighbor-description
+  bgp.peer.export_policy:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-neighbor-export-policy
+  bgp.peer.group:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-neighbor-group
+  bgp.peer.hold:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-neighbor-hold-time-seconds
+  bgp.peer.import_policy:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-neighbor-import-policy
+  bgp.peer.keepalive:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-neighbor-keepalive
+  bgp.peer.password:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-neighbor-authentication-key
+  bgp.peer.remote_as:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-neighbor-peer-as
+  bgp.peer.update_source:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-neighbor-local-address
+  bgp.peer_group:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-group
+  bgp.peer_group.description:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-group-description
+  bgp.peer_group.export_policy:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-group-export-policy
+  bgp.peer_group.hold:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-group-hold-time-seconds
+  bgp.peer_group.import_policy:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-group-import-policy
+  bgp.peer_group.keepalive:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-group-keepalive
+  bgp.peer_group.password:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-group-authentication-key
+  bgp.peer_group.remote_as:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-group-peer-as
+  bgp.peer_group.type:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-group-type
+  bgp.peer_group.update_source:
+    supported: true
+    cards:
+      - nokia-sros-md.router-bgp-group-local-address
+  interface:
+    supported: true
+    cards:
+      - nokia-sros-md.lag
+      - nokia-sros-md.lag-port
+      - nokia-sros-md.port
+      - nokia-sros-md.router-interface
+      - nokia-sros-md.router-isis-interface
+      - nokia-sros-md.router-ldp-interface-parameters-interface
+      - nokia-sros-md.router-mpls-interface
+      - nokia-sros-md.router-ospf-area-interface
+      - nokia-sros-md.service-epipe-sap
+      - nokia-sros-md.service-ies-interface
+      - nokia-sros-md.service-vpls-sap
+      - nokia-sros-md.service-vprn-interface
+  interface.access:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-sap
+      - nokia-sros-md.service-vpls-sap
+  interface.access.acl_in:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-sap-ingress-filter-ip
+      - nokia-sros-md.service-vpls-sap-ingress-filter-ip
+  interface.access.acl_out:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-sap-egress-filter-ip
+      - nokia-sros-md.service-vpls-sap-egress-filter-ip
+  interface.access.description:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-sap-description
+      - nokia-sros-md.service-vpls-sap-description
+  interface.access.encapsulation:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-sap
+      - nokia-sros-md.service-vpls-sap
+  interface.access.inner_vlan:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-sap
+      - nokia-sros-md.service-vpls-sap
+  interface.access.qos_in:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-sap-ingress-qos-sap-ingress-policy-name
+      - nokia-sros-md.service-vpls-sap-ingress-qos-sap-ingress-policy-name
+  interface.access.qos_out:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-sap-egress-qos-sap-egress-policy-name
+      - nokia-sros-md.service-vpls-sap-egress-qos-sap-egress-policy-name
+  interface.access.vlan:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-sap
+      - nokia-sros-md.service-vpls-sap
+  interface.access.vsi:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vpls-sap
+  interface.acl_in:
+    supported: true
+    cards:
+      - nokia-sros-md.service-ies-interface-sap-ingress-filter-ip
+      - nokia-sros-md.service-vprn-interface-sap-ingress-filter-ip
+  interface.acl_out:
+    supported: true
+    cards:
+      - nokia-sros-md.service-ies-interface-sap-egress-filter-ip
+      - nokia-sros-md.service-vprn-interface-sap-egress-filter-ip
+  interface.bfd:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-bfd
+  interface.bfd.min_rx:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-bfd-receive
+  interface.bfd.min_tx:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-bfd-transmit-interval
+  interface.bfd.multiplier:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-bfd-multiplier
+  interface.bind_port:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-port
+      - nokia-sros-md.service-ies-interface-sap
+      - nokia-sros-md.service-vprn-interface-sap
+  interface.description:
+    supported: true
+    cards:
+      - nokia-sros-md.lag-description
+      - nokia-sros-md.port-description
+      - nokia-sros-md.router-interface-description
+      - nokia-sros-md.service-ies-interface-description
+      - nokia-sros-md.service-vprn-interface-description
+  interface.dot1q_termination:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-port
+      - nokia-sros-md.service-ies-interface-sap
+      - nokia-sros-md.service-vprn-interface-sap
+  interface.duplex:
+    supported: true
+    cards:
+      - nokia-sros-md.port-ethernet-duplex
+  interface.encap_type:
+    supported: true
+    cards:
+      - nokia-sros-md.lag-encap-type
+      - nokia-sros-md.port-ethernet-encap-type
+  interface.ies:
+    supported: true
+    cards:
+      - nokia-sros-md.service-ies-interface
+  interface.ipv4:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-primary-address
+      - nokia-sros-md.router-interface-ipv4-secondary
+      - nokia-sros-md.service-ies-interface-ipv4-primary-address
+      - nokia-sros-md.service-ies-interface-ipv4-secondary
+      - nokia-sros-md.service-vprn-interface-ipv4-primary-address
+      - nokia-sros-md.service-vprn-interface-ipv4-secondary
+  interface.ipv4.address:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-primary-address
+      - nokia-sros-md.router-interface-ipv4-secondary
+      - nokia-sros-md.service-ies-interface-ipv4-primary-address
+      - nokia-sros-md.service-ies-interface-ipv4-secondary
+      - nokia-sros-md.service-vprn-interface-ipv4-primary-address
+      - nokia-sros-md.service-vprn-interface-ipv4-secondary
+  interface.ipv4.prefix_length:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-primary-prefix-length
+      - nokia-sros-md.router-interface-ipv4-secondary-prefix-length
+      - nokia-sros-md.service-ies-interface-ipv4-primary-prefix-length
+      - nokia-sros-md.service-ies-interface-ipv4-secondary-prefix-length
+      - nokia-sros-md.service-vprn-interface-ipv4-primary-prefix-length
+      - nokia-sros-md.service-vprn-interface-ipv4-secondary-prefix-length
+  interface.ipv4.secondary:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-primary-address
+      - nokia-sros-md.router-interface-ipv4-secondary
+      - nokia-sros-md.service-ies-interface-ipv4-primary-address
+      - nokia-sros-md.service-ies-interface-ipv4-secondary
+      - nokia-sros-md.service-vprn-interface-ipv4-primary-address
+      - nokia-sros-md.service-vprn-interface-ipv4-secondary
+  interface.isis:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-interface
+  interface.isis.bfd:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-interface-bfd-liveness
+  interface.isis.circuit_type:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-interface-level-capability
+  interface.isis.level:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-interface-level
+  interface.isis.level.metric:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-interface-level-metric
+  interface.isis.p2p:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-interface-interface-type
+  interface.isis.passive:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-interface-passive
+  interface.isis.process:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-interface
+  interface.isis.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-interface-admin-state
+  interface.lag:
+    supported: true
+    cards:
+      - nokia-sros-md.lag-port
+  interface.lag_mode:
+    supported: true
+    cards:
+      - nokia-sros-md.lag-lacp-mode
+  interface.loopback:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-loopback
+      - nokia-sros-md.service-ies-interface-loopback
+      - nokia-sros-md.service-vprn-interface-loopback
+  interface.mpls:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ldp-interface-parameters-interface
+      - nokia-sros-md.router-mpls-interface
+  interface.mpls.ldp:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ldp-interface-parameters-interface
+      - nokia-sros-md.router-ldp-interface-parameters-interface-admin-state
+      - nokia-sros-md.router-ldp-interface-parameters-interface-ipv4-admin-state
+  interface.mpls.ldp_transport_address:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ldp-interface-parameters-interface-ipv4-transport-address
+  interface.mpls.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.router-mpls-interface-admin-state
+  interface.mtu:
+    supported: true
+    cards:
+      - nokia-sros-md.port-ethernet-mtu
+  interface.negotiation:
+    supported: true
+    cards:
+      - nokia-sros-md.port-ethernet-autonegotiate
+  interface.ospf:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area-interface
+  interface.ospf.area:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area-interface
+  interface.ospf.bfd:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area-interface-bfd-liveness
+  interface.ospf.cost:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area-interface-metric
+  interface.ospf.dead:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area-interface-dead-interval
+  interface.ospf.hello:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area-interface-hello-interval
+  interface.ospf.network_type:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area-interface-interface-type
+  interface.ospf.priority:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area-interface-priority
+  interface.ospf.process:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area-interface
+  interface.ospf.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area-interface-admin-state
+  interface.port_mode:
+    supported: true
+    cards:
+      - nokia-sros-md.lag-mode
+      - nokia-sros-md.port-ethernet-mode
+  interface.prefix_sid:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-interface-ipv4-node-sid-index
+      - nokia-sros-md.router-ospf-area-interface-node-sid-index
+  interface.prefix_sid.index:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-interface-ipv4-node-sid-index
+      - nokia-sros-md.router-ospf-area-interface-node-sid-index
+  interface.prefix_sid.node_disable:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-interface-ipv4-node-sid-index
+      - nokia-sros-md.router-ospf-area-interface-node-sid-index
+  interface.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.lag-admin-state
+      - nokia-sros-md.port-admin-state
+      - nokia-sros-md.router-interface-admin-state
+      - nokia-sros-md.service-ies-interface-admin-state
+      - nokia-sros-md.service-vprn-interface-admin-state
+  interface.speed:
+    supported: true
+    cards:
+      - nokia-sros-md.port-ethernet-speed
+  interface.vrf:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-interface
+  interface.vrrp:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-vrrp
+  interface.vrrp.advertise_interval:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-vrrp-message-interval
+  interface.vrrp.owner:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-vrrp-owner
+  interface.vrrp.priority:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-vrrp-priority
+  interface.vrrp.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-vrrp-admin-state
+  interface.vrrp.virtual_ip:
+    supported: true
+    cards:
+      - nokia-sros-md.router-interface-ipv4-vrrp-backup
+  isis.process:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis
+  isis.process.area_id:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-area-address
+  isis.process.export_policy:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-export-policy
+  isis.process.level:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-level-capability
+  isis.process.metric_style:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-level-wide-metrics-only
+  isis.process.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-admin-state
+  isis.process.sr_mpls:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-segment-routing-admin-state
+  isis.process.system_id:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-system-id
+  isis.process.te:
+    supported: true
+    cards:
+      - nokia-sros-md.router-isis-traffic-engineering
+  l2vpn.vsi:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vpls
+  l2vpn.vsi.customer:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vpls-customer
+  l2vpn.vsi.description:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vpls-description
+  l2vpn.vsi.mtu:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vpls-service-mtu
+  l2vpn.vsi.peer:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vpls-mesh-sdp
+      - nokia-sros-md.service-vpls-spoke-sdp
+  l2vpn.vsi.peer.role:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vpls-mesh-sdp
+      - nokia-sros-md.service-vpls-spoke-sdp
+  l2vpn.vsi.peer.sdp:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vpls-mesh-sdp
+      - nokia-sros-md.service-vpls-spoke-sdp
+  l2vpn.vsi.peer.vc_id:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vpls-mesh-sdp
+      - nokia-sros-md.service-vpls-spoke-sdp
+  l2vpn.vsi.service_id:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vpls-service-id
+  l2vpn.vsi.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vpls-admin-state
+  l2vpn.xconnect:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe
+  l2vpn.xconnect.ac:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-sap
+  l2vpn.xconnect.customer:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-customer
+  l2vpn.xconnect.description:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-description
+  l2vpn.xconnect.mtu:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-service-mtu
+  l2vpn.xconnect.pw:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-spoke-sdp
+  l2vpn.xconnect.pw.sdp:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-spoke-sdp
+  l2vpn.xconnect.service_id:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-service-id
+  l2vpn.xconnect.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.service-epipe-admin-state
+  mgmt.aaa.user:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-user-params-local-user-user
+  mgmt.aaa.user.password_set:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-user-params-local-user-user-password
+  mgmt.ftp:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-ftp-server
+  mgmt.ftp.enabled:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-ftp-server
+  mgmt.ntp:
+    supported: true
+    cards:
+      - nokia-sros-md.system-time-ntp
+  mgmt.ntp.server:
+    supported: true
+    cards:
+      - nokia-sros-md.system-time-ntp-server
+  mgmt.ntp.server.key:
+    supported: true
+    cards:
+      - nokia-sros-md.system-time-ntp-server-key-id
+  mgmt.ntp.server.prefer:
+    supported: true
+    cards:
+      - nokia-sros-md.system-time-ntp-server-prefer
+  mgmt.ntp.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.system-time-ntp-admin-state
+  mgmt.radius:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-aaa-remote-servers-radius
+  mgmt.snmp:
+    supported: true
+    cards:
+      - nokia-sros-md.system-contact
+      - nokia-sros-md.system-location
+      - nokia-sros-md.system-management-interface-snmp-admin-state
+      - nokia-sros-md.system-security-snmp-community
+  mgmt.snmp.community:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-snmp-community
+  mgmt.snmp.community.access:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-snmp-community-access-permissions
+  mgmt.snmp.contact:
+    supported: true
+    cards:
+      - nokia-sros-md.system-contact
+  mgmt.snmp.enabled:
+    supported: true
+    cards:
+      - nokia-sros-md.system-management-interface-snmp-admin-state
+  mgmt.snmp.location:
+    supported: true
+    cards:
+      - nokia-sros-md.system-location
+  mgmt.ssh:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-ssh
+  mgmt.ssh.enabled:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-ssh-server-admin-state
+  mgmt.syslog.host:
+    supported: true
+    cards:
+      - nokia-sros-md.log-syslog-address
+  mgmt.syslog.host.facility:
+    supported: true
+    cards:
+      - nokia-sros-md.log-syslog-facility
+  mgmt.syslog.host.level:
+    supported: true
+    cards:
+      - nokia-sros-md.log-syslog-severity
+  mgmt.syslog.host.target_id:
+    supported: true
+    cards:
+      - nokia-sros-md.log-syslog-address
+  mgmt.system:
+    supported: true
+    cards:
+      - nokia-sros-md.router-router-id
+      - nokia-sros-md.system-name
+  mgmt.system.name:
+    supported: true
+    cards:
+      - nokia-sros-md.system-name
+  mgmt.system.router_id:
+    supported: true
+    cards:
+      - nokia-sros-md.router-router-id
+  mgmt.tacacs:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-aaa-remote-servers-tacplus
+  mgmt.tacacs.key_set:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-aaa-remote-servers-tacplus-server-secret
+  mgmt.tacacs.server:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-aaa-remote-servers-tacplus-server-address
+  mgmt.tacacs.timeout:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-aaa-remote-servers-tacplus-server-timeout
+  mgmt.telnet:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-telnet-server
+  mgmt.telnet.enabled:
+    supported: true
+    cards:
+      - nokia-sros-md.system-security-telnet-server
+  mpls.global:
+    supported: true
+    cards:
+      - nokia-sros-md.router-mpls
+  mpls.global.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.router-mpls-admin-state
+  mpls.ldp:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ldp
+  mpls.ldp.remote_peer:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ldp-targeted-session-peer
+  mpls.ldp.remote_peer.remote_ip:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ldp-targeted-session-peer
+  mpls.ldp.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ldp-admin-state
+  ospf.process:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf
+  ospf.process.area:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area
+  ospf.process.export_policy:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-export-policy
+  ospf.process.passive:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area-interface-passive
+  ospf.process.passive.enabled:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-area-interface-passive
+  ospf.process.router_id:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-router-id
+  ospf.process.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-admin-state
+  ospf.process.sr_mpls:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-segment-routing-admin-state
+  ospf.process.te:
+    supported: true
+    cards:
+      - nokia-sros-md.router-ospf-traffic-engineering
+  qos.sap_egress:
+    supported: true
+    cards:
+      - nokia-sros-md.qos-sap-egress-policy-id
+  qos.sap_egress.description:
+    supported: true
+    cards:
+      - nokia-sros-md.qos-sap-egress-description
+  qos.sap_egress.name:
+    supported: true
+    cards:
+      - nokia-sros-md.qos-sap-egress-policy-id
+  qos.sap_ingress:
+    supported: true
+    cards:
+      - nokia-sros-md.qos-sap-ingress-policy-id
+  qos.sap_ingress.description:
+    supported: true
+    cards:
+      - nokia-sros-md.qos-sap-ingress-description
+  qos.sap_ingress.name:
+    supported: true
+    cards:
+      - nokia-sros-md.qos-sap-ingress-policy-id
+  rp.policy:
+    supported: true
+    cards:
+      - nokia-sros-md.policy-options-policy-statement
+  rp.policy.default_action:
+    supported: true
+    cards:
+      - nokia-sros-md.policy-options-policy-statement-default-action-action-type
+  rp.policy.node:
+    supported: true
+    cards:
+      - nokia-sros-md.policy-options-policy-statement-entry
+  rp.policy.node.action:
+    supported: true
+    cards:
+      - nokia-sros-md.policy-options-policy-statement-entry-action-action-type
+  rp.policy.node.match_prefix_list:
+    supported: true
+    cards:
+      - nokia-sros-md.policy-options-policy-statement-entry-from-prefix-list
+  rp.policy.node.match_protocol:
+    supported: true
+    cards:
+      - nokia-sros-md.policy-options-policy-statement-entry-from-protocol-name
+  rp.policy.node.set_local_preference:
+    supported: true
+    cards:
+      - nokia-sros-md.policy-options-policy-statement-entry-action-local-preference
+  rp.prefix_list:
+    supported: true
+    cards:
+      - nokia-sros-md.policy-options-prefix-list
+  rp.prefix_list.entry:
+    supported: true
+    cards:
+      - nokia-sros-md.policy-options-prefix-list-prefix
+  rp.prefix_list.entry.action:
+    supported: true
+    cards:
+      - nokia-sros-md.policy-options-prefix-list-prefix
+  rp.prefix_list.entry.match_type:
+    supported: true
+    cards:
+      - nokia-sros-md.policy-options-prefix-list-prefix
+  rp.prefix_list.entry.prefix:
+    supported: true
+    cards:
+      - nokia-sros-md.policy-options-prefix-list-prefix
+  service.customer:
+    supported: true
+    cards:
+      - nokia-sros-md.service-customer-customer-id
+  service.customer.description:
+    supported: true
+    cards:
+      - nokia-sros-md.service-customer-description
+  service.customer.name:
+    supported: true
+    cards:
+      - nokia-sros-md.service-customer-customer-id
+  service.ies:
+    supported: true
+    cards:
+      - nokia-sros-md.service-ies
+  service.ies.customer:
+    supported: true
+    cards:
+      - nokia-sros-md.service-ies-customer
+  service.ies.description:
+    supported: true
+    cards:
+      - nokia-sros-md.service-ies-description
+  service.ies.service_id:
+    supported: true
+    cards:
+      - nokia-sros-md.service-ies-service-id
+  service.ies.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.service-ies-admin-state
+  service.sdp:
+    supported: true
+    cards:
+      - nokia-sros-md.service-sdp
+  service.sdp.delivery:
+    supported: true
+    cards:
+      - nokia-sros-md.service-sdp-delivery-type
+  service.sdp.description:
+    supported: true
+    cards:
+      - nokia-sros-md.service-sdp-description
+  service.sdp.far_end:
+    supported: true
+    cards:
+      - nokia-sros-md.service-sdp-far-end-ip-address
+  service.sdp.keep_alive:
+    supported: true
+    cards:
+      - nokia-sros-md.service-sdp-keep-alive-admin-state
+  service.sdp.ldp:
+    supported: true
+    cards:
+      - nokia-sros-md.service-sdp-ldp
+  service.sdp.lsp:
+    supported: true
+    cards:
+      - nokia-sros-md.service-sdp-lsp
+  service.sdp.path_mtu:
+    supported: true
+    cards:
+      - nokia-sros-md.service-sdp-path-mtu
+  service.sdp.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.service-sdp-admin-state
+  sr.global:
+    supported: true
+    cards:
+      - nokia-sros-md.router-mpls-labels-sr-labels-end
+      - nokia-sros-md.router-mpls-labels-sr-labels-start
+  sr.global.srgb_begin:
+    supported: true
+    cards:
+      - nokia-sros-md.router-mpls-labels-sr-labels-start
+  sr.global.srgb_end:
+    supported: true
+    cards:
+      - nokia-sros-md.router-mpls-labels-sr-labels-end
+  static.route:
+    supported: true
+    cards:
+      - nokia-sros-md.router-static-routes-route-blackhole
+      - nokia-sros-md.router-static-routes-route-indirect
+      - nokia-sros-md.router-static-routes-route-next-hop
+      - nokia-sros-md.service-vprn-static-routes-route-next-hop
+  static.route.bfd:
+    supported: true
+    cards:
+      - nokia-sros-md.router-static-routes-route-next-hop-bfd-liveness
+  static.route.description:
+    supported: true
+    cards:
+      - nokia-sros-md.router-static-routes-route-blackhole-description
+      - nokia-sros-md.router-static-routes-route-indirect-description
+      - nokia-sros-md.router-static-routes-route-next-hop-description
+      - nokia-sros-md.service-vprn-static-routes-route-next-hop-description
+  static.route.interface:
+    supported: true
+    cards:
+      - nokia-sros-md.router-static-routes-route-blackhole
+  static.route.metric:
+    supported: true
+    cards:
+      - nokia-sros-md.router-static-routes-route-blackhole-metric
+      - nokia-sros-md.router-static-routes-route-indirect-metric
+      - nokia-sros-md.router-static-routes-route-next-hop-metric
+      - nokia-sros-md.service-vprn-static-routes-route-next-hop-metric
+  static.route.nexthop:
+    supported: true
+    cards:
+      - nokia-sros-md.router-static-routes-route-indirect
+      - nokia-sros-md.router-static-routes-route-next-hop
+      - nokia-sros-md.service-vprn-static-routes-route-next-hop
+  static.route.preference:
+    supported: true
+    cards:
+      - nokia-sros-md.router-static-routes-route-blackhole-preference
+      - nokia-sros-md.router-static-routes-route-indirect-preference
+      - nokia-sros-md.router-static-routes-route-next-hop-preference
+      - nokia-sros-md.service-vprn-static-routes-route-next-hop-preference
+  static.route.prefix:
+    supported: true
+    cards:
+      - nokia-sros-md.router-static-routes-route-blackhole
+      - nokia-sros-md.router-static-routes-route-indirect
+      - nokia-sros-md.router-static-routes-route-next-hop
+      - nokia-sros-md.service-vprn-static-routes-route-next-hop
+  static.route.recursive:
+    supported: true
+    cards:
+      - nokia-sros-md.router-static-routes-route-indirect
+  static.route.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.router-static-routes-route-blackhole-admin-state
+      - nokia-sros-md.router-static-routes-route-indirect-admin-state
+      - nokia-sros-md.router-static-routes-route-next-hop-admin-state
+      - nokia-sros-md.service-vprn-static-routes-route-next-hop-admin-state
+  static.route.tag:
+    supported: true
+    cards:
+      - nokia-sros-md.router-static-routes-route-blackhole-tag
+      - nokia-sros-md.router-static-routes-route-indirect-tag
+      - nokia-sros-md.router-static-routes-route-next-hop-tag
+      - nokia-sros-md.service-vprn-static-routes-route-next-hop-tag
+  static.route.vrf:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-static-routes-route-next-hop
+  vrf.instance:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn
+  vrf.instance.af:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-route-distinguisher
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-export-policy
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-import-policy
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-target-community
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-target-export-community
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-target-import-community
+      - nokia-sros-md.service-vprn-maximum-ipv4-routes-log-only
+      - nokia-sros-md.service-vprn-maximum-ipv4-routes-threshold
+      - nokia-sros-md.service-vprn-maximum-ipv4-routes-value
+  vrf.instance.af.export_policy:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-export-policy
+  vrf.instance.af.import_policy:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-import-policy
+  vrf.instance.af.prefix_limit:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-maximum-ipv4-routes-value
+  vrf.instance.af.prefix_limit_threshold:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-maximum-ipv4-routes-threshold
+  vrf.instance.af.prefix_limit_warn_only:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-maximum-ipv4-routes-log-only
+  vrf.instance.af.rd:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-route-distinguisher
+  vrf.instance.af.rt:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-target-community
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-target-export-community
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-target-import-community
+  vrf.instance.af.rt.direction:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-target-community
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-target-export-community
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-target-import-community
+  vrf.instance.af.rt.value:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-target-community
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-target-export-community
+      - nokia-sros-md.service-vprn-bgp-ipvpn-mpls-vrf-target-import-community
+  vrf.instance.customer:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-customer
+  vrf.instance.description:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-description
+  vrf.instance.service_id:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-service-id
+  vrf.instance.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-md.service-vprn-admin-state

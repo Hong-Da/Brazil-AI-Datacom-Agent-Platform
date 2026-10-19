@@ -61,6 +61,7 @@
 | REQ-036 | 权限模型：新增“知识库维护员”角色；知识库与共享的规则、基线、模板只有管理员和维护员可改，普通用户只读并可提交建议；用户可建私有模板、在项目中调整规则；全部设备重新解析仅管理员 | 用户 2026-10-19 | M6（0.6.0） | 角色、权限检查、审核队列“建议”、项目级规则覆盖 | 待开发 | 设计见“权限模型（REQ-036）”一节，经用户确认 |
 | REQ-037 | 接入 Nokia 7750 SR（SR OS）：Classic CLI 与 MD-CLI 两种格式，映射到统一 Schema，支持解析、往返、对比、检查、翻译等 | 用户 2026-10-19 | M7（0.7.0） | `knowledge/` 新平台族、解析器 MD-CLI 分块扩展、Profile | 进行中 | 文档与知识准备先行，与 M6 并行 |
 | REQ-038 | 删除设备与单个配置版本（确认对话列出连带删除的内容；被配置检查项目作基线时提示；最后一个版本不能单独删除）；CLI `lmesh device delete`、`DELETE /api/v1/devices/{id}`；所有登录账号都可删除（删除记入日志），M6 起项目属主与“可编辑”成员可删除项目内的设备与配置（只读成员不可，公共设备库仅管理员，引用的公共设备为解除引用） | 用户 2026-10-19 | M5 补充（问题修复） | 设备接口、设备列表与版本历史页 | 已完成 | 用户确认现在做；用户随后要求每个用户都可以删除项目下的配置；现阶段所有登录账号都可删除，M6 项目权限另做；实现见“删除设备与配置版本（REQ-038）”一节 |
+| REQ-039 | 用户自助注册：设置中开启 / 关闭注册（默认关闭）；可选注册后直接生效或需管理员审核（默认需审核）；注册频率限制 | 用户 2026-10-19 | M6（0.6.0） | 设置项、登录页注册入口、注册接口、账号管理“待审核”、注册后自动建工作空间与默认项目 | 待开发 | 设计见“用户自助注册（REQ-039）”一节，经用户确认 |
 
 ## 待确认
 
@@ -1275,6 +1276,18 @@ M6-2（用户工作空间与项目）与 M6-4（个人 API 令牌）的后端；
 - 测试：单元 `tests/unit/test_projects.py`（迁移 0007 从 0006 样本升级、项目内可见性、引用与固定版本、复制、删除项目、成员与转交、规则调整、默认项目与第一个管理员接管、检查项目归属、个人令牌；SQLite 与 PostgreSQL 各一次）；API 用例 `tests/cases/api_cases.projects.toml`（新准备方式 `configured-projects`）与流程用例 `tests/api/test_projects_api.py`（项目流程、公共设备库与固定版本、兼容别名与响应头、个人令牌、知识库权限与建议、私有模板与规则集、删除账号、权限矩阵）；CLI 用例 `tests/cases/cli_cases.projects.toml`。
 - 留给 M6-5（界面）：项目切换器与 `/p/<项目>/…` 路由（D-0172）调用项目路径接口；设备列表行的 `source` / `policy` / `newer_available` / `origin_note` 支撑“添加设备”“公共 · 跟随最新 / 固定”等标记；`GET /projects` 的 `counts` 与 `last_activity`（`action` 为“方法 路由”，界面按路由给出三语说明）支撑“我的项目”卡片；`GET /admin/projects`、`GET /admin/audit`、`GET /public-devices` 支撑管理员页面；`GET /workspace` 支撑顶栏。
 
+### 实现结果（M6 前端）
+
+M6-5 的界面，按 `DevelopDocs/ui-preview/M6/` 的预览实现。决策 D-0214～D-0222。
+
+- 当前项目（D-0214、D-0215）：`frontend/src/project/scope.ts` 保存与后端 `api/access.py` 一致的项目接口清单，`api.ts` 把旧路径自动改写为 `/api/v1/projects/<当前项目>/…`（管理员“重新解析全部设备”显式走旧路径）；`stores/project.ts` 记录当前项目、我的角色与权限（`canWrite`、`canManage`、`foreign`），最近用过的项目按账号记在浏览器，取不到时用工作空间的默认项目。
+- 路由：设备、配置图、设备分析、版本历史、未识别行、对比、检查、清理、翻译、变更、项目脚本、割接迁移、影响分析、拓扑、一致性、基线、表格导出、添加设备、项目设置在 `/p/<项目>/…`；首页、AI 查询、模板、知识库等保持原地址，数据来自当前项目；旧地址（含 `/check-projects`）重定向到当前项目的对应页；项目不存在或无权访问时回到“我的项目”并说明。
+- 外壳：顶栏项目切换器（搜索、我的 / 共享给我的、管理员的所有项目，进入他人项目前确认）；导航里的“当前项目”带；管理员在他人项目、只读成员、只读令牌时显示提示条；用户菜单加“我的 API 令牌”“我的项目”；管理员分组加“公共设备库”“所有项目”。
+- 新页面：我的项目、项目设置（常规、默认设置、规则调整、成员、转交与删除）、添加设备（公共库引用 / 复制、其他项目复制、上传，可混合，逐条执行并报告）、项目脚本（原配置检查项目并入）、个人 API 令牌、升级说明、公共设备库、所有项目（含访问审计）。
+- 改动的页面：设备页（来源与版本标记、固定版本有新版本时的提示、行尾菜单：改版本策略、复制为私有、解除引用、重新解析、复制到我的其他项目、删除）；账号管理（维护员角色、拥有的项目与令牌数、删除时转交或一并删除、权限矩阵）；模板（我的 / 共享、复制为我的、提建议）；翻译规则集（内置 / 共享 / 我的）；知识库各页对普通用户只读并可提建议，审核队列加“建议”页签，发布与回滚对维护员开放；只读成员看不到导入、重新解析、删除、忽略、贴标签、脚本保存等修改操作（以后端 403 为准）。
+- 后端小补丁：设备行增加 `pinned_seq`（固定版本的序号，D-0216），API 测试已补。
+- 测试：vitest（路径改写、旧网址、最近活动映射、设备行菜单、各新页面的纯逻辑）；e2e `frontend/e2e/m6.spec.ts`（新建项目 → 引用公共设备并固定版本 → 邀请只读成员 → 只读成员看不到修改按钮；旧网址重定向），`req031.spec.ts` 改为从项目脚本页新建。
+
 ## 权限模型（REQ-036）
 
 用户 2026-10-19 询问哪些功能用户可以查看修改（如知识库）。现状：除知识库发布 / 回滚 / 放弃草稿、账号、系统设置、AI 接口与 AI skill 管理外，普通用户可以修改 Schema、Profile、审核命令卡、导入知识库包、改检查规则与模板、重新解析全部设备——共享内容会被任何人改动。以下经用户确认（【用户确认】），随 M6 实现：
@@ -1299,6 +1312,17 @@ M6-3（权限模型）的后端。决策 D-0178、D-0197、D-0198、D-0205、D-0
 - 共享内容（D-0205）：共享检查规则（`PUT /kb/rules/{id}`）只限管理员与维护员；项目里可以关闭某条规则或改级别（`project_rule_overrides`，原因必填，只影响该项目，`checks.check` 在当前项目内套用，发现带 `project_override`）。模板分共享模板（运行时知识库，管理员与维护员修改）与我的模板（`data/user-templates/`，只有自己与管理员能看到和修改，`POST /templates/{id}/copy` 复制为我的模板）；翻译规则集按 `user_assets` 区分我的（自己与管理员）与共享（没有属主，所有人可用，管理员与维护员修改）。
 - 建议（D-0206）：普通用户 `POST /kb/suggestions` 提交（审核类型 `suggestion`），维护员在审核队列通过（只记录结论，知识库由维护员修改）或驳回（`note` 为原因）；提出人 `GET /kb/suggestions` 查看结果。
 - 测试：`tests/api/test_projects_api.py::test_permission_matrix`（管理员、维护员、属主、可编辑、只读、非成员 × 查看、计算、导入、改设置、规则调整、重新解析本项目、邀请成员、复制项目、全部重新解析、改共享规则、公共设备库导入、所有项目）与 `test_kb_permissions_and_suggestions`、`test_private_templates_and_rulesets`。
+
+## 用户自助注册（REQ-039）
+
+用户 2026-10-19 提出：设置中可以开启、关闭用户注册功能。以下做法经用户在对话中确认（【用户确认】），排期 M6（0.6.0），先做预览页再编码。
+
+- 开关：配置项 `auth.registration`（`false` 默认关闭）；管理员在设置页开关，首次运行向导与 `config.example.toml` 同步。【用户确认：默认关闭】
+- 生效方式：配置项 `auth.registration_approval`（`true` 默认需审核）。需审核时，注册后账号处于“待审核”，不能登录，管理员在账号管理中批准或拒绝；不需审核时注册后直接可用。【用户确认：可选，默认需审核】
+- 限制：同一来源地址注册频率限制（默认每小时 5 次，可配置）；用户名与密码规则沿用账号管理；不设邀请码、邮箱域名限制。【用户确认：只要频率限制】
+- 新账号：角色为普通用户；首次登录（或批准时）自动建工作空间与默认项目（与 REQ-035 一致）。
+- 关闭注册时：登录页不显示注册入口，注册接口返回明确错误；已注册的待审核账号仍可由管理员处理。
+- 审计：注册、批准、拒绝都记入审计日志（不记录密码）。
 
 ## 接入 Nokia 7750 SR（REQ-037）
 
@@ -1487,3 +1511,73 @@ M6-3（权限模型）的后端。决策 D-0178、D-0197、D-0198、D-0205、D-0
 - M7-5 检查规则与基线：现有规则多按华为 / Cisco 的节点写，要检查 Nokia 特有节点（端口缺省关闭、SDP keep-alive、业务 shutdown、SAP 的过滤器 / QoS）；安全基线（telnet-server、ftp-server、SNMP 团体字、口令策略）按 Nokia 的节点补条目与修复命令（`rules` 的 remedy 现在允许 nokia 风格）。
 - 待补：RSVP-TE 的 LSP / path（Schema 新对象）、VPRN 下的 BGP / OSPF（现在进 opaque）、SAP 的 shutdown 与 description 之外的属性、vrf-target 的 `export X import Y` 只记了 export、L3 SAP 的内层 VLAN（graph 只记外层）、`router management` 等非 Base 路由器实例（现在当 Base）、IS-IS 级别 metric 与华为 / Cisco 的对应、BGP 地址族与 Nokia family 的互译、display-config 的两遍业务顺序；待真机核实：删除前 shutdown 的范围、policy-statement action 块里的动作。
 - 运行 `lmesh kb map` 会在 `knowledge/.git`（知识库自己的版本库）提交一次，属正常行为。
+
+## 接入 Nokia 7750 SR（REQ-037）（M7-4 结果）
+
+2026-10-19 完成 M7-4（MD-CLI 格式：命令卡、解析、映射、Profile、规范渲染、往返，以及翻译与变更回归）。决策 D-0223～D-0229。
+
+**命令卡**（D-0223、D-0224）：来源是已下载的 MD-CLI Command Reference 25.10.R1 的 13 棵配置树 HTML，没有另下 YANG 模型。新转换脚本 `DevelopDocs/设备产品文档/Nokia/tools/nokia_md_to_md.py` 按范围文件 `tools/md-scope.txt`（去掉键的上下文路径，与 Classic 的功能域对应，共 175 个）把每个 YANG 元素转成一条命令：标题是去掉 configure 与键的完整路径（卡编号由它生成，同名元素不撞号），叶子 `name <name>`、列表 `name <键1> 键2名 <键2>`（与 info 输出一致，第一个键不写键名）、加密叶子带 `[ hash | hash2 | custom ]`，另加 `delete name [<键>]` 作取消形式；参数表的取值列写 YANG 类型、选项、范围、叶子列表上限、是否字符串。抽取规则 `knowledge/extractors/nokia-sros-md-md.yaml` 的 `views_map` / `enters` 与 `views.yaml` 的视图都由脚本生成（视图编号 = 路径用 . 连接，例如 `router.interface.ipv4.primary`；范围内上下文里的范围外容器进入 `opaque`，块内原文保留）。隔离环境 `tmp/nokia-m74/` 抽取后复制到 `knowledge/commands/nokia-sros-md/`：
+
+| 功能域 | 命令卡 | 功能域 | 命令卡 |
+|---|---|---|---|
+| service | 798 | isis | 145 |
+| bgp | 343 | acl | 101 |
+| mgmt | 298 | ospf | 88 |
+| mpls | 245 | qos | 66 |
+| interface | 175 | static-route | 59 |
+| routing-policy | 170 | sr | 50 |
+| vrrp | 24 | 合计 | 2 562（其中进入 opaque 的 863） |
+
+重复抽取全部 unchanged；修正文件 `nokia-sros-md-md.patches.yaml` 4 条（configure port 的键排除 lag-、configure lag 的键限定 lag-…、ntp server 的 router-instance 与 prefix-list prefix 的 type 规范渲染缺省值）；`lmesh kb validate` 0 错误（警告只有 card.unmapped）。
+
+**解析器**（D-0225）：`views.yaml` 新增 `block: braces`（华为 / Cisco / Classic 的解析循环未改）。`parser._parse_brace_blocks` 按花括号进出块，行尾的 ` {` / ` { }` 记在 `Line.tail`；`configure {` 是结构行（其下的行仍是顶层行）；范围外的块整块原文保留。扁平格式（info flat 相对路径、info full-context 与 admin show configuration full-context 的 `/configure …`）在当前视图整行匹配不上时，按命令卡逐段消耗路径（进入视图的卡，最长匹配，多个键的列表也能消耗），每段补一行 `virtual` 的块头（编号接在最后一行之后，相邻行的公共前缀共用同一行），原文行记 `prefix`；往返时跳过 virtual 行，原文行按 prefix + 命令 + tail 重放，所以扁平格式与花括号格式建出的图相同、往返逐字一致。新参数类型 `leaflist`（叶子列表 `[ "a" "b" ]` 整段一个取值）与 `string`；参数可写 `pattern`（附加正则）与 `fill`（规范渲染缺省值）。`detect_format`：没有 exit 而有花括号块或 info flat 路径的识别为 md。脱敏补 MD-CLI 写法：`security snmp` 块里的 `community "…" {`（按所在块区分策略里的 community 名称）、扁平格式的团体字、用户、主机名。
+
+**映射**（D-0226、D-0228）：`knowledge/mappings/nokia-sros-md.yaml` 261 条规则，写入 367 张卡（其中容器 103 张），与 Classic 映射到同一套 Schema。admin-state 写成 `kw:disable=true|enable=false`（shutdown）或 `kw:enable=true|disable=false`；地址与前缀长度分两行（address 建立接口地址对象，`@share` 给 prefix-length）。新表达式与指令（`core/kb/mapping.py`）：
+
+| 写法 | 作用（MD-CLI 用例） |
+|---|---|
+| `list:<表达式>` | 叶子列表拆成列表（export-policy、backup、area-address、prefix-list） |
+| `by:<类型>:<属性>:<表达式>` | `via:` 的反向：属性等于取值的对象的键，没有时取值本身（业务与 SAP 按名称引用客户、QoS 策略、过滤器，图里仍以编号为键，同 Classic） |
+| `scale:<倍数>:<表达式>` | 单位换算（VRRP message-interval 的 0.1 秒 → 秒） |
+| `strip:<文字>:<表达式>` | 去前缀（LAG 名 lag-1 → Classic 的编号 1） |
+| `"@first"` | 这一行先于兄弟行建图（MD-CLI 按字母序输出，customer-id / filter-id / policy-id 写在描述与子块之后） |
+
+`via:` / `by:` 引用的对象在后面才出现时（epipe 的 spoke-sdp 在 sdp 之前），建图记下后用第一遍的图再建一次。Schema 新增 `acl.instance.filter_name`（过滤器名称，alias）。
+
+**Profile**（D-0227）：`knowledge/profiles/nokia-sros-md-7750-25.10.yaml` 用新键 `defaults_from: nokia-sros-classic-7750-25.10` 复用 Classic 的人工条目（缺省值、when / else、assume），本 Profile 的 247 个条目由 `kb map --family nokia-sros-md` 汇总（只有支持情况与命令卡），缺省值只维护一份。importer 的缺省 Profile 名称（M7-2）与按格式选平台族（`match_profile` 的 family）照常起作用。
+
+**规范渲染与变更**（D-0229）：`knowledge/render/nokia-sros-md.yaml`（`open: " {"`、`exit_all: "}"`、`configure {` … `}`、`container_depth: 5`、容器模板 `route {ip-prefix} route-type unicast`、`infer` 新选项 `key: true` 用对象自己的键作名称）与 `knowledge/change/nokia-sros-md.yaml`（`edit-config private` … `commit` / `quit-config`，块写成 `name { … }`，删除用 `delete <元素>`，删除前先 `admin-state disable`）。`core/canon.py`：进入视图的行加行尾、字符串参数加引号、叶子列表写成 `[ … ]`，顶层块按元素名排序并合并同一容器（含不相邻的），原文写回只在原来的视图里写，lag 下的成员口块只写原来在块里的原文；同一行顺带建立的不在链上的对象（Epipe 的 sap 同时建立接入电路）可以写出（这一改动对 Classic 目标同样生效，现有回归结果不变）。`core/change.py`：脚本块头加 ` {`、模拟执行按花括号写出、取消命令的取值按原文写回引号；`core/cleanup.py`：清理脚本用同样的编辑会话与花括号，容器里由编号行建立的对象删除整个容器（`delete customer "ACME"`），验证时去掉被删块的 `}` 与扁平格式的路径行；`core/script_check.py`：认 MD-CLI 的块头花括号、`}` 与 `edit-config` / `quit-config`。`core/translate.py`：两边协议实例编号习惯相同（Classic ↔ MD-CLI）时不改编号。
+
+**样本与回归**：`knowledge/samples/nokia-sros-md-synthetic/` 四份合成样本登记进总清单（gate: true）：`md-pe-basic` / `md-pe-services` / `md-pe-routing-mgmt` 与 Classic 三份一一对应，`md-pe-basic-flat` 是 basic 的 info flat 格式；过了 `lmesh sanitize`（basic 级别只替换文档保留网段的地址，样本保留原地址以便对照）。四份往返逐字一致、未识别 0、没有 fmt 兜底、无悬空引用，规范渲染等价（含默认值）。Classic 版与 MD-CLI 版建出的图直接比较（`tests/unit/test_nokia_md.py`），basic 无差异，允许的差异只有：
+
+| 差异 | 原因 |
+|---|---|
+| `acl.instance.filter_name`（MD 有） | Classic 的映射不记 ip-filter 的 name（M7-3 结果不能变） |
+| 过滤器条目的 `dst-port range 161 162` | MD-CLI 拆成 range { start end } 两个叶子，暂不归并 |
+| `bgp.instance.family` | MD-CLI 的 family 是逐个地址族的布尔叶子，暂不归并（MD 取缺省值 ipv4） |
+| VPRN 3002 的 import RT | Classic 的 `vrf-target export X import Y` 只记了 export（M7-3 已知限制） |
+| 本地用户的 `service_type` | MD-CLI 的 access 是逐个布尔叶子，暂不归并 |
+
+翻译回归加 6 个用例（未解释差异都是 0）：
+
+| 用例 | 写出 / 要写出 | 下限 |
+|---|---|---|
+| nokia-md-services-to-classic | 152 / 153 | 0.99 |
+| nokia-md-flat-to-classic | 103 / 103 | 0.99 |
+| nokia-classic-routing-mgmt-to-md | 117 / 122 | 0.95 |
+| nokia-md-routing-mgmt-to-atn | 91 / 120 | 0.75 |
+| nokia-md-services-to-atn | 82 / 157 | 0.52 |
+| asr920-to-nokia-md | 88 / 137 | 0.64 |
+
+变更回归加 3 个用例（`md-base.cfg` → 修改 / 删除邻居 / 新增 VPRN，下发与回滚都通过模拟执行）。
+
+**华为 / Cisco / Classic 结果不变**：改动前后对 22 份样本（解析结果、图 JSON、往返文本、规范渲染与含默认值的规范渲染）、20 个翻译用例、20 个变更用例共 150 项输出做比较，逐字节相同（`tmp/os/m74/baseline.py`）。
+
+**测试**：单元 `tests/unit/test_nokia_md.py`（花括号 / 扁平 / full-context 解析与往返、叶子列表、格式识别、新表达式、@first 与第二遍建图、Classic 与 MD 的图等价、Profile 复用缺省值、规范渲染、变更脚本、清理与脚本检查、脱敏）；`tests/roundtrip/test_nokia_samples.py` 覆盖两个样本目录；CLI 用例 `nokia-md-render-canonical`、`nokia-md-translate-to-classic`；Profile 计数断言 4 → 5（`tests/api/test_workbench.py`、`cli_cases.toml` 的 kb-validate）。
+
+**留给 M7-5**：
+- 显示风格与检查规则同 M7-3 的说明（MD-CLI 的节点与 Classic 相同，规则不用分格式）。
+- 暂不归并的写法：BGP family 与用户 access 的布尔叶子、过滤器端口范围（range start / end）、VPRN 下的 BGP / OSPF（同 Classic 进 opaque）、RSVP-TE 的 LSP / path。
+- 规范渲染里同一对象的属性行先后按图中的顺序，不完全是 info 的字母序（不影响解析与执行）。
+
+**待真机核实**：info / info flat / full-context 的细节（空列表项写 `{ }` 还是换行的 `{` `}`、叶子列表单个取值是否总带括号、字符串取值什么时候加引号）、`edit-config private` 脚本在 `[pr:/configure]` 下按相对路径粘贴的写法、删除业务前是否必须 `admin-state disable`、VRRP message-interval 的单位（文档缺省值 10 推断为 0.1 秒）。

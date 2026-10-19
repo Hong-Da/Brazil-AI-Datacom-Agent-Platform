@@ -1,6 +1,6 @@
 /** 报告导出（POST /api/v1/reports）与目标（设备 / 粘贴的配置）的共享状态。 */
 import { reactive } from 'vue'
-import { ApiError } from '@/api'
+import { ApiError, apiUrl } from '@/api'
 import { i18n } from '@/i18n'
 
 export type ReportLang = 'zh-CN' | 'en'
@@ -41,7 +41,7 @@ export const reportName = (kind: string, device: string | null, lang: ReportLang
 
 /** POST 后拿文件：成功时返回 blob 与文件名；失败时按 {code, message} 抛 ApiError。 */
 export async function postFile(path: string, body: unknown, fallback: string): Promise<{ blob: Blob; name: string }> {
-  const res = await fetch(`/api/v1${path}`, {
+  const res = await fetch(apiUrl(path), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

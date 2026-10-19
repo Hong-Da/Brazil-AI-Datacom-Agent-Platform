@@ -109,6 +109,21 @@ def render_undo_reason(card: Any, line: Line, negative: str, quotes: bool = Fals
     return f"{negative} {line.text}", reason
 
 
+def requote(text: str, card: Any, line: Line) -> str:
+    """MD-CLI（M7-4）：取消命令里的取值按原文写回引号（delete interface "to CE1"；字符串参数总加引号）。"""
+    if card is None or not card.undo or line.match is None:
+        return text
+    try:
+        usyn = syn.parse(card.undo)
+    except syn.SyntaxErrorKB:
+        return text
+    m = syn.match(usyn, text, card.params, True)
+    if m is None:
+        return text
+    m.quoted |= {k for k in m.values if k in line.match.quoted or (card.params.get(k) or {}).get("type") == "string"}
+    return syn.render(usyn, m)
+
+
 def render_undo(card: Any, line: Line, negative: str, quotes: bool = False) -> tuple[str, bool]:
     """返回 (取消命令, 是否兜底)。"""
     text, reason = render_undo_reason(card, line, negative, quotes)
@@ -133,8 +148,24 @@ def _entry_lines(g: nx.MultiDiGraph, ix: checks.Index, obj: str) -> list[int]:
             if ln is None or ln.kind != "command" or not ln.card or ln.card.startswith("@"):
                 continue
             if not any(p in lines for p in ix.context(first)):
-                out.add(first)
+                out.add(_container_of(ix, first))
     return sorted(out)
+
+
+def _container_of(ix: checks.Index, no: int) -> int:
+    """MD-CLI（M7-4）：对象由容器里先处理的编号行建立（@first：customer "ACME" { customer-id 100 }）时，
+    删除整个对象要删容器（delete customer "ACME"），而不是删编号叶子。"""
+    from lmesh.core.kb import mapping
+
+    ln = ix.lines.get(no)
+    if ln is None or not ln.card or not ln.parent:
+        return no
+    card = ix.kb.cards.get(str(ln.card))
+    if card is None or mapping.FIRST not in card.maps:
+        return no
+    parent = ix.lines.get(ln.parent)
+    pcard = ix.kb.cards.get(str(parent.card)) if parent is not None and parent.card else None
+    return int(ln.parent) if pcard is not None and mapping.is_container(pcard.maps) else no
 
 
 def _order(g: nx.MultiDiGraph, ix: checks.Index, objs: list[str]) -> list[str]:
@@ -156,6 +187,11 @@ def _order(g: nx.MultiDiGraph, ix: checks.Index, objs: list[str]) -> list[str]:
 
 
 def _exit_word(kb: KnowledgeBase, family: str) -> str:
+    from lmesh.core import canon
+
+    style = canon.load_style(kb, family)
+    if style["open"]:
+        return style["exit_all"] or "}"  # MD-CLI（M7-4）：块以 } 结束
     return "quit" if kb.families[family].negative == "undo" else "exit"
 
 
@@ -227,6 +263,8 @@ def cleanup(
             ln = ix.lines[no]
             card = kb.cards.get(str(ln.card))
             text, why = render_undo_reason(card, ln, negative, quotes)
+            if kb.families[family].block == "braces":
+                text = requote(text, card, ln)
             ctx = tuple(ix.lines[p].text for p in ix.context(no))
             views = [str(getattr(kb.cards.get(str(ix.lines[p].card)), "enters_view", "") or "") for p in ix.context(no)]
             hit = seen.get((ctx, text))
@@ -277,6 +315,17 @@ def _frame(kb: KnowledgeBase, family: str) -> dict[str, Any] | None:
     style = canon.load_style(kb, family)
     if not style["prologue"]:
         return None
+    if style["open"]:  # MD-CLI（M7-4）：与变更脚本相同的编辑会话（edit-config private … commit），块头写 “ {”
+        from lmesh.core import change
+
+        rules = change.load_rules(kb, family)
+        return {
+            "begin": rules["begin"],
+            "finish": rules["finish"],
+            "indent": kb.families[family].indent,
+            "wrap": style["wrap"],
+            "open": style["open"],
+        }
     return {
         "begin": style["prologue"],
         "finish": style["epilogue"],
@@ -304,7 +353,7 @@ def script_text(
         lines = ",".join(str(n) for n in c["lines"])
         out.append(f"{comment} [{c['seq']}] {c['object']} @{lines}" + (" FALLBACK" if c["fallback"] else ""))
         for i, t in enumerate(c["context"]):
-            out.append(" " * (unit * i) + t)
+            out.append(" " * (unit * i) + t + ((frame or {}).get("open") or ""))
             if len(wrap.get(views[i]) or []) >= 2:
                 out.append(" " * (unit * (i + 1)) + wrap[views[i]][0])
         out.append(" " * (unit * depth) + c["text"])
@@ -326,7 +375,12 @@ def removal_text(g: nx.MultiDiGraph, kb: KnowledgeBase, objs: list[str]) -> str:
     drop: set[int] = set()
     for o in objs:
         drop |= ix.subtree_lines(ix.subtree(o))
-    return "\n".join(st.line.raw for st in g.graph.get("statements", []) if st.line.no not in drop)
+    stmts = g.graph.get("statements", [])
+    if any(st.line.tail or st.line.virtual for st in stmts):
+        # MD-CLI（M7-4）：被删块的 } 一并去掉；扁平格式补出的路径行不是原文
+        drop |= {st.line.no for st in stmts if st.line.card == "@exit:}" and st.line.parent in drop}
+        return "\n".join(st.line.raw for st in stmts if st.line.no not in drop and not st.line.virtual)
+    return "\n".join(st.line.raw for st in stmts if st.line.no not in drop)
 
 
 def _dangling_keys(g: nx.MultiDiGraph, kb: KnowledgeBase) -> set[tuple[str, str, str]]:

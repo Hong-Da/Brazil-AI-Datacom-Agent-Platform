@@ -1,0 +1,1151 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: qos
+cards:
+  - id: nokia-sros-md.qos
+    syntax: qos
+    view: configure
+    enters_view: qos
+    undo: delete qos
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.qos-adv-config-policy
+    syntax: adv-config-policy <adv-config-policy-name>
+    view: qos
+    enters_view: opaque
+    undo: delete adv-config-policy <adv-config-policy-name>
+    params:
+      adv-config-policy-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos adv-config-policy
+      line: 21
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: qos
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos apply-groups
+      line: 43
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: qos
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos apply-groups-exclude
+      line: 61
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-fp-resource-policy
+    syntax: fp-resource-policy <fp-resource-policy-name>
+    view: qos
+    enters_view: opaque
+    undo: delete fp-resource-policy <fp-resource-policy-name>
+    params:
+      fp-resource-policy-name:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos fp-resource-policy
+      line: 79
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-hs-attachment-policy
+    syntax: hs-attachment-policy <name>
+    view: qos
+    enters_view: opaque
+    undo: delete hs-attachment-policy <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos hs-attachment-policy
+      line: 101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-hs-pool-policy
+    syntax: hs-pool-policy <name>
+    view: qos
+    enters_view: opaque
+    undo: delete hs-pool-policy <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos hs-pool-policy
+      line: 123
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-hs-port-pool-policy
+    syntax: hs-port-pool-policy <name>
+    view: qos
+    enters_view: opaque
+    undo: delete hs-port-pool-policy <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos hs-port-pool-policy
+      line: 145
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-hs-scheduler-policy
+    syntax: hs-scheduler-policy <name>
+    view: qos
+    enters_view: opaque
+    undo: delete hs-scheduler-policy <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos hs-scheduler-policy
+      line: 167
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-hw-agg-shaper-scheduler-policy
+    syntax: hw-agg-shaper-scheduler-policy <name>
+    view: qos
+    enters_view: opaque
+    undo: delete hw-agg-shaper-scheduler-policy <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos hw-agg-shaper-scheduler-policy
+      line: 189
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-match-list
+    syntax: match-list
+    view: qos
+    enters_view: opaque
+    undo: delete match-list
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos match-list
+      line: 211
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-md-auto-id
+    syntax: md-auto-id
+    view: qos
+    enters_view: opaque
+    undo: delete md-auto-id
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos md-auto-id
+      line: 227
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-network
+    syntax: network <network-policy-name>
+    view: qos
+    enters_view: opaque
+    undo: delete network <network-policy-name>
+    params:
+      network-policy-name:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos network
+      line: 243
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-network-queue
+    syntax: network-queue <network-queue-policy>
+    view: qos
+    enters_view: opaque
+    undo: delete network-queue <network-queue-policy>
+    params:
+      network-queue-policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos network-queue
+      line: 265
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-policer-control-policy
+    syntax: policer-control-policy <policer-control-policy-name>
+    view: qos
+    enters_view: opaque
+    undo: delete policer-control-policy <policer-control-policy-name>
+    params:
+      policer-control-policy-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos policer-control-policy
+      line: 287
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-port-scheduler-policy
+    syntax: port-scheduler-policy <name>
+    view: qos
+    enters_view: opaque
+    undo: delete port-scheduler-policy <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos port-scheduler-policy
+      line: 309
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-post-policer-mapping
+    syntax: post-policer-mapping <name>
+    view: qos
+    enters_view: opaque
+    undo: delete post-policer-mapping <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos post-policer-mapping
+      line: 331
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-queue-group-redirect-list
+    syntax: queue-group-redirect-list <name>
+    view: qos
+    enters_view: opaque
+    undo: delete queue-group-redirect-list <name>
+    params:
+      name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos queue-group-redirect-list
+      line: 353
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-queue-group-templates
+    syntax: queue-group-templates
+    view: qos
+    enters_view: opaque
+    undo: delete queue-group-templates
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos queue-group-templates
+      line: 375
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress
+    syntax: sap-egress <sap-egress-policy-name>
+    view: qos
+    enters_view: qos.sap-egress
+    undo: delete sap-egress <sap-egress-policy-name>
+    params:
+      sap-egress-policy-name:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress
+      line: 391
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.qos-sap-egress-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: qos.sap-egress
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress apply-groups
+      line: 413
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: qos.sap-egress
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress apply-groups-exclude
+      line: 431
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-description
+    syntax: description <description>
+    view: qos.sap-egress
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress description
+      line: 449
+      version: 25.10.R1
+    status: draft
+    maps:
+      qos.sap_egress.description: $description
+  - id: nokia-sros-md.qos-sap-egress-dot1p
+    syntax: dot1p <dot1p-value>
+    view: qos.sap-egress
+    enters_view: opaque
+    undo: delete dot1p <dot1p-value>
+    params:
+      dot1p-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress dot1p
+      line: 471
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-dscp
+    syntax: dscp <dscp-name>
+    view: qos.sap-egress
+    enters_view: opaque
+    undo: delete dscp <dscp-name>
+    params:
+      dscp-name:
+        type: enum
+        choices:
+          - be
+          - cp1
+          - cp2
+          - cp3
+          - cp4
+          - cp5
+          - cp6
+          - cp7
+          - cs1
+          - cp9
+          - af11
+          - cp11
+          - af12
+          - cp13
+          - af13
+          - cp15
+          - cs2
+          - cp17
+          - af21
+          - cp19
+          - af22
+          - cp21
+          - af23
+          - cp23
+          - cs3
+          - cp25
+          - af31
+          - cp27
+          - af32
+          - cp29
+          - af33
+          - cp31
+          - cs4
+          - cp33
+          - af41
+          - cp35
+          - af42
+          - cp37
+          - af43
+          - cp39
+          - cs5
+          - cp41
+          - cp42
+          - cp43
+          - cp44
+          - cp45
+          - ef
+          - cp47
+          - nc1
+          - cp49
+          - cp50
+          - cp51
+          - cp52
+          - cp53
+          - cp54
+          - cp55
+          - nc2
+          - cp57
+          - cp58
+          - cp59
+          - cp60
+          - cp61
+          - cp62
+          - cp63
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress dscp
+      line: 493
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-ethernet-ctag
+    syntax: ethernet-ctag <ethernet-ctag>
+    view: qos.sap-egress
+    undo: delete ethernet-ctag
+    params:
+      ethernet-ctag:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress ethernet-ctag
+      line: 515
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-fc
+    syntax: fc <fc-name>
+    view: qos.sap-egress
+    enters_view: opaque
+    undo: delete fc <fc-name>
+    params:
+      fc-name:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress fc
+      line: 541
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-hs-attachment-policy
+    syntax: hs-attachment-policy <hs-attachment-policy>
+    view: qos.sap-egress
+    undo: delete hs-attachment-policy
+    params:
+      hs-attachment-policy:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress hs-attachment-policy
+      line: 563
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-hs-wrr-group
+    syntax: hs-wrr-group <group-id>
+    view: qos.sap-egress
+    enters_view: opaque
+    undo: delete hs-wrr-group <group-id>
+    params:
+      group-id:
+        type: integer
+        range:
+          - 1
+          - 2
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress hs-wrr-group
+      line: 585
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-hw-agg-shaper-queues
+    syntax: hw-agg-shaper-queues
+    view: qos.sap-egress
+    enters_view: opaque
+    undo: delete hw-agg-shaper-queues
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress hw-agg-shaper-queues
+      line: 607
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-ip-criteria
+    syntax: ip-criteria
+    view: qos.sap-egress
+    enters_view: opaque
+    undo: delete ip-criteria
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress ip-criteria
+      line: 623
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-ipv6-criteria
+    syntax: ipv6-criteria
+    view: qos.sap-egress
+    enters_view: opaque
+    undo: delete ipv6-criteria
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress ipv6-criteria
+      line: 639
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-parent-location
+    syntax: parent-location <parent-location>
+    view: qos.sap-egress
+    undo: delete parent-location
+    params:
+      parent-location:
+        type: enum
+        choices:
+          - auto
+          - sla
+    default: auto
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress parent-location
+      line: 655
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-policer
+    syntax: policer <policer-id>
+    view: qos.sap-egress
+    enters_view: opaque
+    undo: delete policer <policer-id>
+    params:
+      policer-id:
+        type: integer
+        range:
+          - 1
+          - 63
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress policer
+      line: 681
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-policers-hqos-manageable
+    syntax: policers-hqos-manageable <policers-hqos-manageable>
+    view: qos.sap-egress
+    undo: delete policers-hqos-manageable
+    params:
+      policers-hqos-manageable:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress policers-hqos-manageable
+      line: 703
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-policy-id
+    syntax: policy-id <policy-id>
+    view: qos.sap-egress
+    undo: delete policy-id
+    params:
+      policy-id:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress policy-id
+      line: 729
+      version: 25.10.R1
+    status: draft
+    maps:
+      qos.sap_egress: $policy-id
+      qos.sap_egress.name: ctx:sap-egress-policy-name
+      '@share': ''
+      '@first': ''
+  - id: nokia-sros-md.qos-sap-egress-post-policer-mapping
+    syntax: post-policer-mapping <post-policer-mapping>
+    view: qos.sap-egress
+    undo: delete post-policer-mapping
+    params:
+      post-policer-mapping:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress post-policer-mapping
+      line: 751
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-prec
+    syntax: prec <prec-value>
+    view: qos.sap-egress
+    enters_view: opaque
+    undo: delete prec <prec-value>
+    params:
+      prec-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress prec
+      line: 773
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-queue
+    syntax: queue <queue-id>
+    view: qos.sap-egress
+    enters_view: opaque
+    undo: delete queue <queue-id>
+    params:
+      queue-id:
+        type: integer
+        range:
+          - 1
+          - 8
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress queue
+      line: 795
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-sched-class-elevation
+    syntax: sched-class-elevation
+    view: qos.sap-egress
+    enters_view: opaque
+    undo: delete sched-class-elevation
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress sched-class-elevation
+      line: 817
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-scope
+    syntax: scope <scope>
+    view: qos.sap-egress
+    undo: delete scope
+    params:
+      scope:
+        type: enum
+        choices:
+          - exclusive
+          - template
+    default: template
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress scope
+      line: 833
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-subscriber-mgmt
+    syntax: subscriber-mgmt
+    view: qos.sap-egress
+    enters_view: opaque
+    undo: delete subscriber-mgmt
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress subscriber-mgmt
+      line: 859
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-egress-use-policer-result-marking-dot1p-inner
+    syntax: use-policer-result-marking-dot1p-inner <use-policer-result-marking-dot1p-inner>
+    view: qos.sap-egress
+    undo: delete use-policer-result-marking-dot1p-inner
+    params:
+      use-policer-result-marking-dot1p-inner:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-egress use-policer-result-marking-dot1p-inner
+      line: 875
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress
+    syntax: sap-ingress <sap-ingress-policy-name>
+    view: qos
+    enters_view: qos.sap-ingress
+    undo: delete sap-ingress <sap-ingress-policy-name>
+    params:
+      sap-ingress-policy-name:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress
+      line: 901
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.qos-sap-ingress-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: qos.sap-ingress
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress apply-groups
+      line: 923
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: qos.sap-ingress
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress apply-groups-exclude
+      line: 941
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-default-fc
+    syntax: default-fc <default-fc>
+    view: qos.sap-ingress
+    undo: delete default-fc
+    params:
+      default-fc:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress default-fc
+      line: 959
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-default-priority
+    syntax: default-priority <default-priority>
+    view: qos.sap-ingress
+    undo: delete default-priority
+    params:
+      default-priority:
+        type: enum
+        choices:
+          - low
+          - high
+    default: low
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress default-priority
+      line: 981
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-description
+    syntax: description <description>
+    view: qos.sap-ingress
+    undo: delete description
+    params:
+      description:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress description
+      line: 1007
+      version: 25.10.R1
+    status: draft
+    maps:
+      qos.sap_ingress.description: $description
+  - id: nokia-sros-md.qos-sap-ingress-dot1p
+    syntax: dot1p <dot1p-value>
+    view: qos.sap-ingress
+    enters_view: opaque
+    undo: delete dot1p <dot1p-value>
+    params:
+      dot1p-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress dot1p
+      line: 1029
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-dscp
+    syntax: dscp <dscp-name>
+    view: qos.sap-ingress
+    enters_view: opaque
+    undo: delete dscp <dscp-name>
+    params:
+      dscp-name:
+        type: enum
+        choices:
+          - be
+          - cp1
+          - cp2
+          - cp3
+          - cp4
+          - cp5
+          - cp6
+          - cp7
+          - cs1
+          - cp9
+          - af11
+          - cp11
+          - af12
+          - cp13
+          - af13
+          - cp15
+          - cs2
+          - cp17
+          - af21
+          - cp19
+          - af22
+          - cp21
+          - af23
+          - cp23
+          - cs3
+          - cp25
+          - af31
+          - cp27
+          - af32
+          - cp29
+          - af33
+          - cp31
+          - cs4
+          - cp33
+          - af41
+          - cp35
+          - af42
+          - cp37
+          - af43
+          - cp39
+          - cs5
+          - cp41
+          - cp42
+          - cp43
+          - cp44
+          - cp45
+          - ef
+          - cp47
+          - nc1
+          - cp49
+          - cp50
+          - cp51
+          - cp52
+          - cp53
+          - cp54
+          - cp55
+          - nc2
+          - cp57
+          - cp58
+          - cp59
+          - cp60
+          - cp61
+          - cp62
+          - cp63
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress dscp
+      line: 1051
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-fc
+    syntax: fc <fc-name>
+    view: qos.sap-ingress
+    enters_view: opaque
+    undo: delete fc <fc-name>
+    params:
+      fc-name:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress fc
+      line: 1073
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-ip-criteria
+    syntax: ip-criteria
+    view: qos.sap-ingress
+    enters_view: opaque
+    undo: delete ip-criteria
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress ip-criteria
+      line: 1095
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-ipv6-criteria
+    syntax: ipv6-criteria
+    view: qos.sap-ingress
+    enters_view: opaque
+    undo: delete ipv6-criteria
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress ipv6-criteria
+      line: 1111
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-lsp-exp
+    syntax: lsp-exp <lsp-exp-value>
+    view: qos.sap-ingress
+    enters_view: opaque
+    undo: delete lsp-exp <lsp-exp-value>
+    params:
+      lsp-exp-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress lsp-exp
+      line: 1127
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-mac-criteria
+    syntax: mac-criteria
+    view: qos.sap-ingress
+    enters_view: opaque
+    undo: delete mac-criteria
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress mac-criteria
+      line: 1149
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-policer
+    syntax: policer <policer-id>
+    view: qos.sap-ingress
+    enters_view: opaque
+    undo: delete policer <policer-id>
+    params:
+      policer-id:
+        type: integer
+        range:
+          - 1
+          - 63
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress policer
+      line: 1165
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-policers-hqos-manageable
+    syntax: policers-hqos-manageable <policers-hqos-manageable>
+    view: qos.sap-ingress
+    undo: delete policers-hqos-manageable
+    params:
+      policers-hqos-manageable:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress policers-hqos-manageable
+      line: 1187
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-policy-id
+    syntax: policy-id <policy-id>
+    view: qos.sap-ingress
+    undo: delete policy-id
+    params:
+      policy-id:
+        type: integer
+        range:
+          - 1
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress policy-id
+      line: 1213
+      version: 25.10.R1
+    status: draft
+    maps:
+      qos.sap_ingress: $policy-id
+      qos.sap_ingress.name: ctx:sap-ingress-policy-name
+      '@share': ''
+      '@first': ''
+  - id: nokia-sros-md.qos-sap-ingress-prec
+    syntax: prec <prec-value>
+    view: qos.sap-ingress
+    enters_view: opaque
+    undo: delete prec <prec-value>
+    params:
+      prec-value:
+        type: integer
+        range:
+          - 0
+          - 7
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress prec
+      line: 1235
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-queue
+    syntax: queue <queue-id>
+    view: qos.sap-ingress
+    enters_view: opaque
+    undo: delete queue <queue-id>
+    params:
+      queue-id:
+        type: integer
+        range:
+          - 1
+          - 32
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress queue
+      line: 1257
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-scope
+    syntax: scope <scope>
+    view: qos.sap-ingress
+    undo: delete scope
+    params:
+      scope:
+        type: enum
+        choices:
+          - exclusive
+          - template
+    default: template
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress scope
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-sap-ingress-subscriber-mgmt
+    syntax: subscriber-mgmt
+    view: qos.sap-ingress
+    enters_view: opaque
+    undo: delete subscriber-mgmt
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos sap-ingress subscriber-mgmt
+      line: 1305
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-scheduler-policy
+    syntax: scheduler-policy <scheduler-policy-name>
+    view: qos
+    enters_view: opaque
+    undo: delete scheduler-policy <scheduler-policy-name>
+    params:
+      scheduler-policy-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos scheduler-policy
+      line: 1321
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-shared-queue
+    syntax: shared-queue <shared-queue-policy-name>
+    view: qos
+    enters_view: opaque
+    undo: delete shared-queue <shared-queue-policy-name>
+    params:
+      shared-queue-policy-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos shared-queue
+      line: 1343
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.qos-slope-policy
+    syntax: slope-policy <slope-policy-name>
+    view: qos
+    enters_view: opaque
+    undo: delete slope-policy <slope-policy-name>
+    params:
+      slope-policy-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: qos.md
+      title: qos slope-policy
+      line: 1365
+      version: 25.10.R1
+    status: draft

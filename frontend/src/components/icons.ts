@@ -1,5 +1,16 @@
 /** 线性图标（来自界面预览），stroke 跟随 currentColor。 */
 export const ICONS: Record<string, string> = {
+  pin: '<path d="M9 3.5h6M10 3.5v6l-3 3.5h10l-3-3.5v-6M12 13v7.5"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/><circle cx="12" cy="12" r="6.5"/>',
+  folders: '<path d="M7 8.5A1.5 1.5 0 0 1 8.5 7H12l1.8 2h6.7A1.5 1.5 0 0 1 22 10.5v7a1.5 1.5 0 0 1-1.5 1.5h-12A1.5 1.5 0 0 1 7 17.5z"/><path d="M4 15.5V6.5A1.5 1.5 0 0 1 5.5 5H9l1.6 2"/>',
+  enter: '<path d="M14 4h4.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14"/><path d="M9 8l4 4-4 4M13 12H3"/>',
+  transfer: '<circle cx="6.5" cy="8" r="3"/><path d="M1.5 19a5 5 0 0 1 10 0"/><path d="M14 9h7M18 6l3 3-3 3"/><circle cx="17.5" cy="15.5" r="1.6"/>',
+  userPlus: '<circle cx="10" cy="8" r="4"/><path d="M3 20a7 7 0 0 1 14 0"/><path d="M19 8v6M16 11h6"/>',
+  timeline: '<path d="M3 12h18"/><circle cx="6" cy="12" r="2"/><circle cx="13" cy="12" r="2"/><circle cx="19" cy="12" r="1.4"/><path d="M6 10V5M13 14v5"/>',
+  rules: '<path d="M4 6h7M4 12h5M4 18h7"/><path d="M14 6h6M17 3l3 3-3 3"/><path d="M14 18h6M17 15l3 3-3 3"/>',
+  grip: '<circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/>',
+  variable: '<path d="M8 4c-2 0-3 1-3 3v2c0 1.5-1 2.5-2 3 1 .5 2 1.5 2 3v2c0 2 1 3 3 3M16 4c2 0 3 1 3 3v2c0 1.5 1 2.5 2 3-1 .5-2 1.5-2 3v2c0 2-1 3-3 3"/><circle cx="12" cy="12" r="1.6"/>',
+  bracket: '<path d="M9 4H6v16h3M15 4h3v16h-3"/>',
   home: '<path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   server: '<rect x="3" y="4" width="18" height="7" rx="1.5"/><rect x="3" y="13" width="18" height="7" rx="1.5"/><path d="M7 7.5h.01M7 16.5h.01M11 7.5h6M11 16.5h6"/>',
   graph: '<circle cx="5" cy="12" r="2.2"/><circle cx="18" cy="5.5" r="2.2"/><circle cx="18" cy="18.5" r="2.2"/><path d="M7 11l9-4.5M7 13l9 4.5"/>',

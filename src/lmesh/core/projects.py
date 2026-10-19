@@ -244,12 +244,20 @@ def source_info(s: Any, dev: Device, latest_id: int | None) -> dict[str, Any]:
     sc = current()
     ref = _ref(s, sc.project_id, dev.id) if sc is not None else None
     pinned = ref.version_id if ref is not None else None
+    # 固定版本的序号（第几版，界面显示“固定在 vN”）：按版本编号排序后的位置
+    pinned_seq = None
+    if pinned:
+        ids = list(
+            s.scalars(select(ConfigVersion.id).where(ConfigVersion.device_id == dev.id).order_by(ConfigVersion.id))
+        )
+        pinned_seq = ids.index(pinned) + 1 if pinned in ids else None
     return {
         "source": "public",
         "origin": dev.origin,
         "origin_note": dev.origin_note,
         "policy": "pin" if pinned else "follow",
         "pinned_version_id": pinned,
+        "pinned_seq": pinned_seq,
         "public_latest_version_id": latest_id,
         "newer_available": bool(pinned and latest_id and latest_id != pinned),
     }

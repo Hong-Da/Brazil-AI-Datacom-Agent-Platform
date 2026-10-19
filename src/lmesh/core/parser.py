@@ -44,9 +44,18 @@ class Line:
     domain: str = ""
     negated: bool = False  # undo / no 形式
     fmt: str | None = None  # 渲染结果与原文只差空白时，记录原文（保证往返逐字一致）
+    # M7-4（Nokia MD-CLI，block: braces）：prefix 是扁平格式里命令前面的路径（/configure router "Base" interface "x" ），
+    # tail 是行尾的花括号（" {" 进入块，" { }" 空块）；virtual 是扁平格式按路径补出的容器 / 列表行（原文里没有单独的一行，
+    # 编号接在最后一行之后，往返时不输出）。text 是去掉 prefix 与 tail 的命令本身
+    prefix: str = ""
+    tail: str = ""
+    virtual: bool = False
 
     @property
     def text(self) -> str:
+        if self.prefix or self.tail:
+            body = self.raw[len(self.indent) + len(self.prefix) :]
+            return (body[: len(body) - len(self.tail)] if self.tail else body).strip()
         return self.raw.strip()
 
     def values(self) -> dict[str, Any]:
@@ -60,6 +69,8 @@ class Line:
                 d["negated"] = True
         if self.parent:
             d["parent"] = self.parent
+        if self.virtual:
+            d["virtual"] = True
         return d
 
 
@@ -71,7 +82,8 @@ class Parsed:
     def counts(self) -> dict[str, int]:
         out: dict[str, int] = defaultdict(int)
         for ln in self.lines:
-            out[ln.kind] += 1
+            if not ln.virtual:  # 扁平格式补出的路径行不是原文的行
+                out[ln.kind] += 1
         return dict(out)
 
     def unknown(self) -> list[Line]:
@@ -144,6 +156,7 @@ class _Frame:
     view: str
     line: int
     raw: bool = False  # raw 块：下面的子行都是 raw
+    begin: bool = False  # 结构行打开的块（MD-CLI 的 configure {）
 
 
 def match_undo(index: CardIndex, view: str, text: str) -> tuple[Card, syn.Match, syn.Syntax] | None:
@@ -219,6 +232,8 @@ def parse(text: str, kb: KnowledgeBase, family: str) -> Parsed:
     index = CardIndex(kb, family)
     if fam.block == "exit":
         return _parse_exit_blocks(text, fam, index, Parsed(family))
+    if fam.block == "braces":
+        return _parse_brace_blocks(text, fam, index, Parsed(family))
     out = Parsed(family)
     stack: list[_Frame] = []
     prev_indent = 0
@@ -409,6 +424,170 @@ def _parse_exit_blocks(text: str, fam: Family, index: CardIndex, out: Parsed) ->
         kind = "unknown" if index.known_prefix(view, stripped.split()) else "raw"
         out.lines.append(Line(no, raw, kind, lead, view, parent=parent))
         stack.append(_Frame(level, view, no, raw=True))
+    return out
+
+
+_BRACE_TAIL = re.compile(r"\s*\{\s*\}?\s*$")
+
+
+def _match_core(index: CardIndex, view: str, core: str) -> tuple[Card, syn.Match, bool, syn.Syntax] | None:
+    """在视图里整行匹配命令本身（先取消形式，再普通形式）：(卡, 匹配, 是否取消形式, 用来渲染的语法)。"""
+    if core.split()[0].lower() == index.negative:
+        neg = match_undo(index, view, core)
+        if neg:
+            return neg[0], neg[1], True, neg[2]
+    hit = match_line(index, view, core)
+    return (hit[0], hit[1], False, hit[0].parsed) if hit else None
+
+
+def _consume_path(
+    index: CardIndex, view: str, core: str
+) -> tuple[list[tuple[str, Card, syn.Match, str, str]], int, tuple[Card, syn.Match, bool, syn.Syntax] | None]:
+    """扁平格式（info flat / full-context）：从 view 起逐段消耗路径。每段是一张进入视图的卡（容器、列表项），
+    能整行匹配剩余部分时停止。返回 ([(段落原文, 卡, 匹配, 所在视图, 进入的视图)], 剩余部分在 core 中的起点, 剩余部分的匹配)。"""
+    toks = syn.tokenize_line(core, index.quotes)
+    segs: list[tuple[str, Card, syn.Match, str, str]] = []
+    i = 0
+    while i < len(toks):
+        if i > 0:  # 第一段就整行匹配的情况调用方已经试过
+            whole = _match_core(index, view, core[toks[i][1] :])
+            if whole is not None:
+                return segs, toks[i][1], whole
+        found = None
+        for k in range(min(len(toks) - 1, i + 7), i, -1):  # 最长的一段（多个键：route <前缀> route-type <类型>）
+            piece = core[toks[i][1] : toks[k - 1][1] + len(toks[k - 1][0])]
+            hit = match_line(index, view, piece)
+            if hit and index.enters.get(hit[0].id):
+                found = (piece, hit[0], hit[1], view, index.enters[hit[0].id], k)
+                break
+        if found is None:
+            break
+        segs.append(found[:5])
+        view, i = found[4], found[5]
+    return segs, (toks[i][1] if i < len(toks) else len(core)), None
+
+
+def _parse_brace_blocks(text: str, fam: Family, index: CardIndex, out: Parsed) -> Parsed:
+    """Nokia MD-CLI 的分块（block: braces）：层级以花括号为准，缩进只是排版。
+    - “name … {” 进入块（命令卡进入的视图；匹配不上或卡不进入视图时块内按原文保留），“}” 关闭最近的块，“name … { }” 是空块；
+    - 结构行（configure {）进入根视图，它的 } 也是结构行；# 开头是注释；
+    - 扁平格式（info flat 的相对路径、full-context 的 /configure …）：当前视图里整行匹配不上时按命令卡逐段消耗路径，
+      路径上的每一段补一行 virtual 的命令行（相邻行的公共前缀共用同一行，相当于花括号格式的块头），剩余部分整行匹配；
+      原文的行记下路径前缀（prefix），往返时原样输出。"""
+    raws = text.split("\n")
+    vno = len(raws)  # 补出的路径行编号接在最后一行之后
+    stack: list[_Frame] = []
+    flat: list[tuple[str, str, int, str]] = []  # 当前扁平块的路径：(段落原文, 所在视图, 行号, 进入的视图)
+    flat_base: tuple[int, str] | None = None  # 扁平块的起点（所在块的行号、起始视图）
+    for no, raw in enumerate(raws, start=1):
+        stripped = raw.strip()
+        lead = raw[: len(raw) - len(raw.lstrip())]
+        if not stripped:
+            out.lines.append(Line(no, raw, "blank", lead))
+            continue
+        if any(stripped.startswith(c) for c in fam.comment):
+            out.lines.append(Line(no, raw, "comment", lead))
+            continue
+        if stripped == "}":
+            flat, flat_base = [], None
+            if not stack:  # 多余的 }：原文保留
+                out.lines.append(Line(no, raw, "raw", lead, fam.root_view))
+                continue
+            fr = stack.pop()
+            if fr.begin:
+                out.lines.append(Line(no, raw, "separator", lead))
+            elif fr.raw:
+                out.lines.append(Line(no, raw, "raw", lead, fr.view, parent=fr.line))
+            else:
+                out.lines.append(Line(no, raw, "command", lead, fr.view, card="@exit:}", parent=fr.line))
+            continue
+        body = raw[len(lead) :]
+        tm = _BRACE_TAIL.search(body)
+        tail = tm.group(0) if tm and tm.start() > 0 else ""
+        opens = bool(tail) and "}" not in tail
+        core = body[: len(body) - len(tail)].strip() if tail else stripped
+        frame = stack[-1] if stack else None
+        view = frame.view if frame else fam.root_view
+        parent = frame.line if frame and not frame.begin else None  # configure { 下的行与没有它时一样是顶层行
+        if frame is not None and frame.raw:
+            out.lines.append(Line(no, raw, "raw", lead, view, parent=parent, tail=tail))
+            if opens:
+                stack.append(_Frame(0, view, no, raw=True))
+            continue
+        if core in fam.begin and frame is None:
+            flat, flat_base = [], None
+            out.lines.append(Line(no, raw, "separator", lead, tail=tail))
+            if opens:
+                stack.append(_Frame(0, fam.root_view, no, begin=True))
+            continue
+        prefix0 = ""
+        base_view, base_parent = view, parent
+        first = core.split()[0]
+        if first.startswith("/") and first[1:] in fam.begin:  # full-context：/configure … 从根视图起
+            rest0 = body[len(first) :]
+            prefix0 = first + rest0[: len(rest0) - len(rest0.lstrip())]
+            core = body[len(prefix0) : len(body) - len(tail)].strip()
+            base_view, base_parent = fam.root_view, None
+        whole = _match_core(index, base_view, core) if not prefix0 else None
+        if whole is not None:
+            flat, flat_base = [], None
+            card, m, neg, usyn = whole
+            line = Line(
+                no, raw, "command", lead, base_view, card.id, m, base_parent, card.domain, negated=neg, tail=tail
+            )
+            if syn.render(usyn, m) != core:
+                line.fmt = core
+            out.lines.append(line)
+            if opens:
+                enters = index_card_enters(index, line)
+                stack.append(_Frame(0, enters or base_view, no, raw=not enters))
+            continue
+        if prefix0:
+            whole = _match_core(index, base_view, core)
+            segs, at, final = ([], 0, whole) if whole is not None else _consume_path(index, base_view, core)
+        else:
+            segs, at, final = _consume_path(index, base_view, core)
+        if not segs and final is None:
+            flat, flat_base = [], None
+            kind = "unknown" if index.known_prefix(base_view, core.split()) else "raw"
+            out.lines.append(Line(no, raw, kind, lead, base_view, parent=base_parent, prefix=prefix0, tail=tail))
+            if opens:
+                stack.append(_Frame(0, base_view, no, raw=True))
+            continue
+        # 路径上的段：与上一行相同的前缀共用已补出的行，其余新补
+        key = (base_parent or 0, base_view)
+        if flat_base != key:
+            flat, flat_base = [], key
+        keep = 0
+        while (
+            keep < len(flat) and keep < len(segs) and flat[keep][0] == segs[keep][0] and flat[keep][1] == segs[keep][3]
+        ):
+            keep += 1
+        del flat[keep:]
+        pno = flat[-1][2] if flat else base_parent
+        for piece, card, m, v_from, v_to in segs[keep:]:
+            vno += 1
+            out.lines.append(Line(vno, piece, "command", "", v_from, card.id, m, pno, card.domain, virtual=True))
+            flat.append((piece, v_from, vno, v_to))
+            pno = vno
+        view = flat[-1][3] if flat else base_view
+        full_prefix = prefix0 + core[:at]
+        if final is not None:
+            card, m, neg, usyn = final
+            line = Line(no, raw, "command", lead, view, card.id, m, pno, card.domain, negated=neg)
+            line.prefix, line.tail = full_prefix, tail
+            if syn.render(usyn, m) != line.text:
+                line.fmt = line.text
+            out.lines.append(line)
+            if opens:
+                enters = index_card_enters(index, line)
+                stack.append(_Frame(0, enters or view, no, raw=not enters))
+            continue
+        rest = core[at:]
+        kind = "unknown" if rest and index.known_prefix(view, rest.split()) else "raw"
+        out.lines.append(Line(no, raw, kind, lead, view, parent=pno, prefix=full_prefix, tail=tail))
+        if opens:
+            stack.append(_Frame(0, view, no, raw=True))
     return out
 
 

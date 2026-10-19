@@ -1,0 +1,876 @@
+# Nokia SR OS MD-CLI 命令卡 → 统一 Schema 的映射规则（M7-4，REQ-037）。lmesh kb map --family nokia-sros-md 把规则写进命令卡。
+# 与 Classic（mappings/nokia-sros-classic.yaml）映射到同一套 Schema：同一配置的两种格式建出的图等价（tests/unit/test_nokia_md.py 比较）。
+# 写法见 lmesh/core/kb/mapping.py；MD-CLI 与 Classic 的不同：
+#   - 视图编号是去掉键的路径（router.interface.ipv4.primary），由 views.yaml 给出；容器多（ipv4、primary、static-routes…），都是 @container
+#   - admin-state enable / disable 代替 shutdown：&down（disable 为 true）写 *.shutdown，&en（enable 为 true）写启用类开关
+#   - 布尔叶子 true / false：&tf；叶子列表 [ "a" "b" ]：list:$参数（M7-4）
+#   - 地址与前缀长度分开（primary 下的 address 建立接口地址对象，@share 给后面的 prefix-length）
+#   - 客户、QoS 策略、过滤器的列表键是名称，编号是子叶子（customer-id / policy-id / filter-id）：容器行给出名称（ctx:），编号行建立对象
+#     （@first：MD-CLI 按字母序输出，编号写在描述之后，建图时先处理编号行），业务与 SAP 按名称引用（by:类型:属性:$参数，M7-4）
+#   - VRRP message-interval 的单位是 0.1 秒（scale:0.1，M7-4）；LAG 名 lag-1 去掉 lag- 即 Classic 的编号（strip:，M7-4）
+family: nokia-sros-md
+
+_down: &down "kw:disable=true|enable=false"
+_en: &en "kw:enable=true|disable=false"
+_tf: &tf "kw:true=true|false=false"
+
+rules:
+  # ---------- 容器（只进入视图）----------
+  - {view: ^configure$, syntax: '^router <router-name>$', maps: {"@container": ""}}
+  - {view: ^configure$, syntax: '^(system|log|service|filter|qos|policy-options)$', maps: {"@container": ""}}
+  - {view: ^port$, syntax: '^ethernet$', maps: {"@container": ""}}
+  - {view: ^lag$, syntax: '^lacp$', maps: {"@container": ""}}
+  - {view: \.interface$, syntax: '^ipv4$', maps: {"@container": ""}}
+  - {view: \.interface\.ipv4$, syntax: '^primary$', maps: {"@container": ""}}
+  - {view: ^(router|service\.vprn)$, syntax: '^static-routes$', maps: {"@container": ""}}
+  - {view: \.static-routes$, syntax: '^route <ip-prefix> route-type <route-type>$', maps: {"@container": ""}}
+  - {view: ^router$, syntax: '^(bgp|mpls-labels)$', maps: {"@container": ""}}
+  - {view: ^router\.mpls-labels$, syntax: '^sr-labels$', maps: {"@container": ""}}
+  - {view: ^router\.ldp$, syntax: '^(interface-parameters|targeted-session)$', maps: {"@container": ""}}
+  - {view: ^router\.bgp\.(group|neighbor)$, syntax: '^(import|export)$', maps: {"@container": ""}}
+  - {view: ^router\.(ospf|isis)$, syntax: '^segment-routing$', maps: {"@container": ""}}
+  - {view: ^router\.isis$, syntax: '^level <level-number>$', maps: {"@container": ""}}
+  - {view: ^router\.ospf\.area\.interface$, syntax: '^node-sid$', maps: {"@container": ""}}
+  - {view: ^router\.isis\.interface$, syntax: '^ipv4-node-sid$', maps: {"@container": ""}}
+  - {view: ^policy-options\.policy-statement$, syntax: '^default-action$', maps: {"@container": ""}}
+  - {view: ^policy-options\.policy-statement\.entry$, syntax: '^(from|action)$', maps: {"@container": ""}}
+  - {view: ^policy-options\.policy-statement\.entry\.from$, syntax: '^protocol$', maps: {"@container": ""}}
+  - {view: ^system$, syntax: '^(time|security|login-control|management-interface)$', maps: {"@container": ""}}
+  - {view: ^system\.security$, syntax: '^(snmp|aaa|user-params)$', maps: {"@container": ""}}
+  - {view: ^system\.security\.aaa$, syntax: '^remote-servers$', maps: {"@container": ""}}
+  - {view: ^system\.security\.user-params$, syntax: '^local-user$', maps: {"@container": ""}}
+  - {view: ^system\.management-interface$, syntax: '^snmp$', maps: {"@container": ""}}
+  - {view: ^system\.security\.aaa\.remote-servers\.tacplus$, syntax: '^server <index>$', maps: {"@container": ""}}
+  - {view: ^log$, syntax: '^syslog <syslog-name>$', maps: {"@container": ""}}
+  - {view: ^service$, syntax: '^customer <customer-name>$', maps: {"@container": ""}}
+  - {view: ^service\.sdp$, syntax: '^(far-end|keep-alive)$', maps: {"@container": ""}}
+  - {view: \.sap$, syntax: '^(ingress|egress)$', maps: {"@container": ""}}
+  - {view: \.sap\.(ingress|egress)$, syntax: '^(qos|filter)$', maps: {"@container": ""}}
+  - {view: \.sap\.ingress\.qos$, syntax: '^sap-ingress$', maps: {"@container": ""}}
+  - {view: \.sap\.egress\.qos$, syntax: '^sap-egress$', maps: {"@container": ""}}
+  - {view: ^service\.vprn$, syntax: '^(bgp-ipvpn|maximum-ipv4-routes)$', maps: {"@container": ""}}
+  - {view: ^service\.vprn\.bgp-ipvpn$, syntax: '^mpls$', maps: {"@container": ""}}
+  - {view: ^service\.vprn\.bgp-ipvpn\.mpls$, syntax: '^(vrf-target|vrf-import|vrf-export)$', maps: {"@container": ""}}
+  - {view: ^filter$, syntax: '^ip-filter <filter-name>$', maps: {"@container": ""}}
+  - {view: ^filter\.ip-filter\.entry$, syntax: '^(match|action)$', maps: {"@container": ""}}
+  - {view: ^filter\.ip-filter\.entry\.match$, syntax: '^(src-ip|dst-ip|src-port|dst-port)$', maps: {"@container": ""}}
+  - {view: ^qos$, syntax: '^sap-(ingress|egress) <', maps: {"@container": ""}}
+
+  # ---------- 端口、LAG ----------
+  - view: ^configure$
+    syntax: '^port <port-id>$'
+    maps: {interface: $port-id}
+  - view: ^configure$
+    syntax: '^lag <lag-name>$'
+    maps: {interface: $lag-name}
+  - view: ^(port|lag)$
+    syntax: '^description '
+    maps: {interface.description: $description}
+  - view: ^(port|lag)$
+    syntax: '^admin-state '
+    maps: {interface.shutdown: *down}
+  - view: ^(port\.ethernet|lag)$
+    syntax: '^mode <mode>$'
+    maps: {interface.port_mode: $mode}
+  - view: ^(port\.ethernet|lag)$
+    syntax: '^encap-type '
+    maps: {interface.encap_type: $encap-type}
+  - view: ^port\.ethernet$
+    syntax: '^mtu <mtu>$'
+    maps: {interface.mtu: $mtu}
+  - view: ^port\.ethernet$
+    syntax: '^speed '
+    maps: {interface.speed: $speed}
+  - view: ^port\.ethernet$
+    syntax: '^duplex '
+    maps: {interface.duplex: $duplex}
+  - view: ^port\.ethernet$
+    syntax: '^autonegotiate '
+    maps: {interface.negotiation: "kw:true=true|limited=true|false=false"}
+  # LAG 成员口：lag 下的 port 写到成员口的 interface.lag（取值同 Classic 的 LAG 编号：lag-1 → 1）
+  - view: ^lag$
+    syntax: '^port <port-id>$'
+    maps: {"interface{name=$port-id}.lag": "strip:lag-:ctx:lag-name"}
+  - view: ^lag\.lacp$
+    syntax: '^mode '
+    maps: {interface.lag_mode: $mode}
+
+  # ---------- 路由器接口（三层逻辑接口）----------
+  - view: ^router$
+    syntax: '^interface <interface-name>$'
+    maps: {interface: $interface-name}
+  - view: ^(router|service\.(vprn|ies))\.interface$
+    syntax: '^description '
+    maps: {interface.description: $description}
+  - view: ^(router|service\.(vprn|ies))\.interface$
+    syntax: '^admin-state '
+    maps: {interface.shutdown: *down}
+  - view: ^router\.interface$
+    syntax: '^loopback$'
+    maps: {interface.loopback: "true"}
+  - view: ^service\.(vprn|ies)\.interface$
+    syntax: '^loopback <loopback>$'
+    maps: {interface.loopback: *tf}
+  # port <端口[:VLAN]>：绑定的端口与终结的 VLAN（翻译成华为 / Cisco 时换成端口本身或子接口，见 render 的 l3_form）
+  - view: ^router\.interface$
+    syntax: '^port <port>$'
+    maps:
+      interface.bind_port: "sap:port:$port"
+      interface.dot1q_termination: "sap:vlan:$port"
+  # 主地址：address 建立接口地址对象（@share：后面的 prefix-length 写在它上面）
+  - view: \.interface\.ipv4\.primary$
+    syntax: '^address <address>$'
+    maps:
+      interface.ipv4: $address
+      interface.ipv4.address: $address
+      interface.ipv4.secondary: "false"
+      "@share": ""
+  - view: \.interface\.ipv4\.(primary|secondary)$
+    syntax: '^prefix-length <prefix-length>$'
+    maps: {interface.ipv4.prefix_length: $prefix-length}
+  - view: \.interface\.ipv4$
+    syntax: '^secondary <address>$'
+    maps:
+      interface.ipv4: $address
+      interface.ipv4.address: $address
+      interface.ipv4.secondary: "true"
+  - view: ^router\.interface\.ipv4$
+    syntax: '^bfd$'
+    maps: {interface.bfd: "_"}
+  - view: ^router\.interface\.ipv4\.bfd$
+    syntax: '^transmit-interval '
+    maps: {interface.bfd.min_tx: $transmit-interval}
+  - view: ^router\.interface\.ipv4\.bfd$
+    syntax: '^receive '
+    maps: {interface.bfd.min_rx: $receive}
+  - view: ^router\.interface\.ipv4\.bfd$
+    syntax: '^multiplier '
+    maps: {interface.bfd.multiplier: $multiplier}
+
+  # ---------- 路由器级：AS 号、全局 Router ID ----------
+  - view: ^router$
+    syntax: '^autonomous-system <autonomous-system>$'
+    maps: {bgp.instance: $autonomous-system, "@share": ""}
+  - view: ^router$
+    syntax: '^router-id <router-id>$'
+    maps: {mgmt.system: "_", mgmt.system.router_id: $router-id}
+
+  # ---------- 静态路由：route <前缀> route-type unicast 下的 next-hop / indirect / blackhole 各是一条路由 ----------
+  - view: ^router\.static-routes\.route$
+    syntax: '^next-hop <ip-address>$'
+    maps:
+      static.route: {vrf: "", prefix: "ctx:ip-prefix", nexthop: $ip-address}
+      static.route.prefix: "ctx:ip-prefix"
+      static.route.nexthop: $ip-address
+  - view: ^router\.static-routes\.route$
+    syntax: '^indirect <ip-address>$'
+    maps:
+      static.route: {vrf: "", prefix: "ctx:ip-prefix", nexthop: $ip-address}
+      static.route.prefix: "ctx:ip-prefix"
+      static.route.nexthop: $ip-address
+      static.route.recursive: "true"
+  - view: ^router\.static-routes\.route$
+    syntax: '^blackhole$'
+    maps:
+      static.route: {vrf: "", prefix: "ctx:ip-prefix", nexthop: ""}
+      static.route.prefix: "ctx:ip-prefix"
+      static.route.interface: "NULL0"
+  - view: \.static-routes\.route\.(next-hop|indirect|blackhole)$
+    syntax: '^preference <preference>$'
+    maps: {static.route.preference: $preference}
+  - view: \.static-routes\.route\.(next-hop|indirect|blackhole)$
+    syntax: '^metric <metric>$'
+    maps: {static.route.metric: $metric}
+  - view: \.static-routes\.route\.(next-hop|indirect|blackhole)$
+    syntax: '^tag <tag>$'
+    maps: {static.route.tag: $tag}
+  - view: \.static-routes\.route\.(next-hop|indirect|blackhole)$
+    syntax: '^description '
+    maps: {static.route.description: $description}
+  - view: \.static-routes\.route\.(next-hop|indirect|blackhole)$
+    syntax: '^admin-state '
+    maps: {static.route.shutdown: *down}
+  - view: ^router\.static-routes\.route\.next-hop$
+    syntax: '^bfd-liveness <bfd-liveness>$'
+    maps: {static.route.bfd: *tf}
+
+  # ---------- OSPF ----------
+  - view: ^router$
+    syntax: '^ospf <ospf-instance>$'
+    maps: {ospf.process: $ospf-instance}
+  - view: ^router\.ospf$
+    syntax: '^router-id '
+    maps: {ospf.process.router_id: $router-id}
+  - view: ^router\.ospf$
+    syntax: '^traffic-engineering '
+    maps: {ospf.process.te: *tf}
+  - view: ^router\.ospf$
+    syntax: '^export-policy '
+    maps: {ospf.process.export_policy: "list:$export-policy"}
+  - view: ^router\.ospf$
+    syntax: '^admin-state '
+    maps: {ospf.process.shutdown: *down}
+  - view: ^router\.ospf$
+    syntax: '^area <area-id>$'
+    maps: {ospf.process.area: $area-id}
+  # OSPF 区域下的接口：写到该接口的 OSPF 参数上（华为接口下 ospf enable <进程> area <区域>）
+  - view: ^router\.ospf\.area$
+    syntax: '^interface <interface-name>$'
+    maps:
+      "interface{name=$interface-name}.ospf": "_"
+      "interface{name=$interface-name}.ospf.process": "ctx:ospf-instance"
+      "interface{name=$interface-name}.ospf.area": "ctx:area-id"
+  - view: ^router\.ospf\.area\.interface$
+    syntax: '^interface-type '
+    maps: {interface.ospf.network_type: "kw:point-to-point=p2p|broadcast|non-broadcast=nbma|p2mp-nbma=p2mp"}
+  - view: ^router\.ospf\.area\.interface$
+    syntax: '^metric <metric>$'
+    maps: {interface.ospf.cost: $metric}
+  - view: ^router\.ospf\.area\.interface$
+    syntax: '^hello-interval '
+    maps: {interface.ospf.hello: $hello-interval}
+  - view: ^router\.ospf\.area\.interface$
+    syntax: '^dead-interval '
+    maps: {interface.ospf.dead: $dead-interval}
+  - view: ^router\.ospf\.area\.interface$
+    syntax: '^priority '
+    maps: {interface.ospf.priority: $priority}
+  # bfd-liveness 是容器（出现即启用）
+  - view: ^router\.ospf\.area\.interface$
+    syntax: '^bfd-liveness$'
+    maps: {interface.ospf.bfd: "true"}
+  - view: ^router\.ospf\.area\.interface$
+    syntax: '^passive '
+    maps:
+      ospf.process.passive: "ctx:interface-name"
+      ospf.process.passive.enabled: *tf
+  - view: ^router\.ospf\.area\.interface$
+    syntax: '^admin-state '
+    maps: {interface.ospf.shutdown: *down}
+  - view: ^router\.ospf\.area\.interface\.node-sid$
+    syntax: '^index '
+    maps:
+      interface.prefix_sid: ospf
+      interface.prefix_sid.index: $index
+      interface.prefix_sid.node_disable: "false"
+  - view: ^router\.ospf\.segment-routing$
+    syntax: '^admin-state '
+    maps: {ospf.process.sr_mpls: *en}
+
+  # ---------- IS-IS ----------
+  - view: ^router$
+    syntax: '^isis <isis-instance>$'
+    maps: {isis.process: $isis-instance}
+  - view: ^router\.isis$
+    syntax: '^area-address '
+    maps: {isis.process.area_id: "list:$area-address"}
+  - view: ^router\.isis$
+    syntax: '^system-id '
+    maps: {isis.process.system_id: $system-id}
+  - view: ^router\.isis$
+    syntax: '^level-capability '
+    maps: {isis.process.level: "kw:1=level-1|2=level-2|1/2=level-1-2"}
+  - view: ^router\.isis$
+    syntax: '^traffic-engineering '
+    maps: {isis.process.te: *tf}
+  - view: ^router\.isis$
+    syntax: '^export-policy '
+    maps: {isis.process.export_policy: "list:$export-policy"}
+  - view: ^router\.isis$
+    syntax: '^admin-state '
+    maps: {isis.process.shutdown: *down}
+  - view: ^router\.isis\.level$
+    syntax: '^wide-metrics-only '
+    maps: {isis.process.metric_style: "kw:true=wide"}
+  - view: ^router\.isis$
+    syntax: '^interface <interface-name>$'
+    maps:
+      "interface{name=$interface-name}.isis": "_"
+      "interface{name=$interface-name}.isis.process": "ctx:isis-instance"
+  - view: ^router\.isis\.interface$
+    syntax: '^interface-type '
+    maps: {interface.isis.p2p: "kw:point-to-point=true|broadcast=false"}
+  - view: ^router\.isis\.interface$
+    syntax: '^passive '
+    maps: {interface.isis.passive: *tf}
+  - view: ^router\.isis\.interface$
+    syntax: '^level-capability '
+    maps: {interface.isis.circuit_type: "kw:1=level-1|2=level-2|1/2=level-1-2"}
+  - view: ^router\.isis\.interface$
+    syntax: '^bfd-liveness$'
+    maps: {interface.isis.bfd: "true"}
+  - view: ^router\.isis\.interface$
+    syntax: '^admin-state '
+    maps: {interface.isis.shutdown: *down}
+  - view: ^router\.isis\.interface$
+    syntax: '^level <level-number>$'
+    maps: {interface.isis.level: $level-number}
+  - view: ^router\.isis\.interface\.level$
+    syntax: '^metric <metric>$'
+    maps: {interface.isis.level.metric: $metric}
+  - view: ^router\.isis\.interface\.ipv4-node-sid$
+    syntax: '^index '
+    maps:
+      interface.prefix_sid: isis
+      interface.prefix_sid.index: $index
+      interface.prefix_sid.node_disable: "false"
+  - view: ^router\.isis\.segment-routing$
+    syntax: '^admin-state '
+    maps: {isis.process.sr_mpls: *en}
+
+  # ---------- BGP（AS 号在 router 下，见上；bgp 是容器；地址族 family 下是逐个布尔叶子，暂不归并到 family）----------
+  - view: ^router\.bgp$
+    syntax: '^router-id '
+    maps: {bgp.instance.router_id: $router-id}
+  - view: ^router\.bgp$
+    syntax: '^keepalive '
+    maps: {bgp.instance.keepalive: $keepalive}
+  - view: ^router\.bgp$
+    syntax: '^admin-state '
+    maps: {bgp.instance.shutdown: *down}
+  - {view: '^router.bgp(.(group|neighbor))?$', syntax: '^hold-time$', maps: {"@container": ""}}
+  - view: ^router\.bgp\.hold-time$
+    syntax: '^seconds '
+    maps: {bgp.instance.hold: $seconds}
+  - view: ^router\.bgp\.group\.hold-time$
+    syntax: '^seconds '
+    maps: {bgp.peer_group.hold: $seconds}
+  - view: ^router\.bgp\.neighbor\.hold-time$
+    syntax: '^seconds '
+    maps: {bgp.peer.hold: $seconds}
+  - view: ^router\.bgp$
+    syntax: '^group <group-name>$'
+    maps: {bgp.peer_group: $group-name}
+  - view: ^router\.bgp\.group$
+    syntax: '^description '
+    maps: {bgp.peer_group.description: $description}
+  - view: ^router\.bgp\.group$
+    syntax: '^type '
+    maps: {bgp.peer_group.type: "kw:internal|external"}
+  - view: ^router\.bgp\.group$
+    syntax: '^peer-as '
+    maps: {bgp.peer_group.remote_as: $peer-as}
+  - view: ^router\.bgp\.group$
+    syntax: '^local-address '
+    maps: {bgp.peer_group.update_source: $local-address}
+  - view: ^router\.bgp\.group\.export$
+    syntax: '^policy '
+    maps: {bgp.peer_group.export_policy: "list:$policy"}
+  - view: ^router\.bgp\.group\.import$
+    syntax: '^policy '
+    maps: {bgp.peer_group.import_policy: "list:$policy"}
+  - view: ^router\.bgp\.group$
+    syntax: '^authentication-key '
+    maps: {bgp.peer_group.password: $authentication-key}
+  - view: ^router\.bgp\.group$
+    syntax: '^keepalive '
+    maps: {bgp.peer_group.keepalive: $keepalive}
+  - view: ^router\.bgp$
+    syntax: '^neighbor <ip-address>$'
+    maps: {bgp.peer: $ip-address}
+  - view: ^router\.bgp\.neighbor$
+    syntax: '^group '
+    maps: {bgp.peer.group: $group}
+  - view: ^router\.bgp\.neighbor$
+    syntax: '^description '
+    maps: {bgp.peer.description: $description}
+  - view: ^router\.bgp\.neighbor$
+    syntax: '^peer-as '
+    maps: {bgp.peer.remote_as: $peer-as}
+  - view: ^router\.bgp\.neighbor$
+    syntax: '^local-address '
+    maps: {bgp.peer.update_source: $local-address}
+  - view: ^router\.bgp\.neighbor$
+    syntax: '^authentication-key '
+    maps: {bgp.peer.password: $authentication-key}
+  - view: ^router\.bgp\.neighbor\.export$
+    syntax: '^policy '
+    maps: {bgp.peer.export_policy: "list:$policy"}
+  - view: ^router\.bgp\.neighbor\.import$
+    syntax: '^policy '
+    maps: {bgp.peer.import_policy: "list:$policy"}
+  - view: ^router\.bgp\.neighbor$
+    syntax: '^keepalive '
+    maps: {bgp.peer.keepalive: $keepalive}
+
+  # ---------- 路由策略（policy-options 在 configure 下，没有 begin / commit）----------
+  - view: ^policy-options$
+    syntax: '^prefix-list <name>$'
+    maps: {rp.prefix_list: $name}
+  # 前缀列表的条目没有序号与动作：按出现顺序编号（10、20…），动作为 permit（同 Classic）
+  - view: ^policy-options\.prefix-list$
+    syntax: '^prefix <ip-prefix> type <type>$'
+    maps:
+      rp.prefix_list.entry: auto
+      rp.prefix_list.entry.action: permit
+      rp.prefix_list.entry.prefix: $ip-prefix
+      rp.prefix_list.entry.match_type: "kw:exact|longer|through|range=prefix-length-range|to|address-mask"
+  - view: ^policy-options$
+    syntax: '^policy-statement <name>$'
+    maps: {rp.policy: $name}
+  - view: ^policy-options\.policy-statement\.default-action$
+    syntax: '^action-type '
+    maps: {rp.policy.default_action: "kw:accept|reject|next-entry|next-policy"}
+  - view: ^policy-options\.policy-statement$
+    syntax: '^entry <entry-id>$'
+    maps: {rp.policy.node: $entry-id}
+  - view: ^policy-options\.policy-statement\.entry\.action$
+    syntax: '^action-type '
+    maps: {rp.policy.node.action: "kw:accept=permit|reject=deny"}
+  - view: ^policy-options\.policy-statement\.entry\.from$
+    syntax: '^prefix-list '
+    maps: {rp.policy.node.match_prefix_list: "list:$prefix-list"}
+  - view: ^policy-options\.policy-statement\.entry\.from\.protocol$
+    syntax: '^name '
+    maps: {rp.policy.node.match_protocol: "list:$name"}
+  - view: ^policy-options\.policy-statement\.entry\.action$
+    syntax: '^local-preference '
+    maps: {rp.policy.node.set_local_preference: $local-preference}
+
+  # ---------- MPLS / LDP / SR ----------
+  - view: ^router$
+    syntax: '^mpls$'
+    maps: {mpls.global: "_"}
+  - view: ^router\.mpls$
+    syntax: '^admin-state '
+    maps: {mpls.global.shutdown: *down}
+  - view: ^router\.mpls$
+    syntax: '^interface <interface-name>$'
+    maps: {"interface{name=$interface-name}.mpls": "_"}
+  - view: ^router\.mpls\.interface$
+    syntax: '^admin-state '
+    maps: {interface.mpls.shutdown: *down}
+  - view: ^router$
+    syntax: '^ldp$'
+    maps: {mpls.ldp: "_"}
+  - view: ^router\.ldp$
+    syntax: '^admin-state '
+    maps: {mpls.ldp.shutdown: *down}
+  # LDP 接口：写到该接口的 MPLS 参数上（华为接口下 mpls ldp、Cisco mpls ip）
+  - view: ^router\.ldp\.interface-parameters$
+    syntax: '^interface <ip-int-name>$'
+    maps:
+      "interface{name=$ip-int-name}.mpls": "_"
+      "interface{name=$ip-int-name}.mpls.ldp": "true"
+  - view: ^router\.ldp\.interface-parameters\.interface(\.ipv4)?$
+    syntax: '^admin-state '
+    maps: {interface.mpls.ldp: *en}
+  - view: ^router\.ldp\.interface-parameters\.interface\.ipv4$
+    syntax: '^transport-address '
+    maps: {interface.mpls.ldp_transport_address: $transport-address}
+  - view: ^router\.ldp\.targeted-session$
+    syntax: '^peer <ip-address>$'
+    maps:
+      mpls.ldp.remote_peer: $ip-address
+      mpls.ldp.remote_peer.remote_ip: $ip-address
+  - view: ^router\.mpls-labels\.sr-labels$
+    syntax: '^start '
+    maps: {sr.global: "_", sr.global.srgb_begin: $start}
+  - view: ^router\.mpls-labels\.sr-labels$
+    syntax: '^end '
+    maps: {sr.global: "_", sr.global.srgb_end: $end}
+
+  # ---------- 系统与管理面 ----------
+  - view: ^system$
+    syntax: '^name <name>$'
+    maps: {mgmt.system: "_", mgmt.system.name: $name}
+  - view: ^system$
+    syntax: '^contact <contact>$'
+    maps: {mgmt.snmp: "_", mgmt.snmp.contact: $contact}
+  - view: ^system$
+    syntax: '^location <location>$'
+    maps: {mgmt.snmp: "_", mgmt.snmp.location: $location}
+  - view: ^system\.management-interface\.snmp$
+    syntax: '^admin-state '
+    maps: {mgmt.snmp: "_", mgmt.snmp.enabled: *en}
+  - view: ^system\.security\.snmp$
+    syntax: '^community <community-string>$'
+    maps: {mgmt.snmp: "_", mgmt.snmp.community: $community-string}
+  - view: ^system\.security\.snmp\.community$
+    syntax: '^access-permissions '
+    maps: {mgmt.snmp.community.access: "kw:r=read|rw=write|rwa=write|mgmt=read|vpls-mgmt=read"}
+  - view: ^system\.time$
+    syntax: '^ntp$'
+    maps: {mgmt.ntp: "_"}
+  - view: ^system\.time\.ntp$
+    syntax: '^server <ip-address> router-instance '
+    maps: {mgmt.ntp.server: $ip-address}
+  - view: ^system\.time\.ntp\.server$
+    syntax: '^prefer '
+    maps: {mgmt.ntp.server.prefer: *tf}
+  - view: ^system\.time\.ntp\.server$
+    syntax: '^key-id '
+    maps: {mgmt.ntp.server.key: $key-id}
+  - view: ^system\.time\.ntp$
+    syntax: '^admin-state '
+    maps: {mgmt.ntp.shutdown: *down}
+  - view: ^system\.security$
+    syntax: '^telnet-server '
+    maps: {mgmt.telnet: "_", mgmt.telnet.enabled: *tf}
+  - view: ^system\.security$
+    syntax: '^ftp-server '
+    maps: {mgmt.ftp: "_", mgmt.ftp.enabled: *tf}
+  - view: ^system\.security$
+    syntax: '^ssh$'
+    maps: {mgmt.ssh: "_"}
+  - view: ^system\.security\.ssh$
+    syntax: '^server-admin-state '
+    maps: {mgmt.ssh.enabled: *en}
+  - view: ^system\.security\.user-params\.local-user$
+    syntax: '^user <user-name>$'
+    maps: {mgmt.aaa.user: $user-name}
+  - view: ^system\.security\.user-params\.local-user\.user$
+    syntax: '^password '
+    maps: {mgmt.aaa.user.password_set: "true"}
+  - view: ^system\.security\.aaa\.remote-servers$
+    syntax: '^tacplus$'
+    maps: {mgmt.tacacs: "_"}
+  - view: ^system\.security\.aaa\.remote-servers\.tacplus\.server$
+    syntax: '^address '
+    maps: {mgmt.tacacs.server: {role: all, address: $address}}
+  - view: ^system\.security\.aaa\.remote-servers\.tacplus\.server$
+    syntax: '^secret '
+    maps: {mgmt.tacacs.key_set: "true"}
+  - view: ^system\.security\.aaa\.remote-servers\.tacplus$
+    syntax: '^server-timeout '
+    maps: {mgmt.tacacs.timeout: $server-timeout}
+  - view: ^system\.security\.aaa\.remote-servers$
+    syntax: '^radius$'
+    maps: {mgmt.radius: "_"}
+  # syslog <名称> 是容器；address 建立日志服务器（@share：后面的 facility、severity 写在它上面），名称记为 target_id
+  - view: ^log\.syslog$
+    syntax: '^address '
+    maps: {mgmt.syslog.host: $address, mgmt.syslog.host.target_id: "ctx:syslog-name", "@share": ""}
+  - view: ^log\.syslog$
+    syntax: '^facility '
+    maps: {mgmt.syslog.host.facility: $facility}
+  - view: ^log\.syslog$
+    syntax: '^severity '
+    maps: {mgmt.syslog.host.level: $severity}
+
+  # ---------- VRRP（路由器接口 ipv4 下）----------
+  - view: ^router\.interface\.ipv4$
+    syntax: '^vrrp <virtual-router-id>$'
+    maps: {interface.vrrp: $virtual-router-id}
+  - view: ^router\.interface\.ipv4\.vrrp$
+    syntax: '^owner '
+    maps: {interface.vrrp.owner: *tf}
+  - view: ^router\.interface\.ipv4\.vrrp$
+    syntax: '^backup '
+    maps: {interface.vrrp.virtual_ip: "list:$backup"}
+  - view: ^router\.interface\.ipv4\.vrrp$
+    syntax: '^priority '
+    maps: {interface.vrrp.priority: $priority}
+  # message-interval 的单位是 0.1 秒（Classic 是秒）
+  - view: ^router\.interface\.ipv4\.vrrp$
+    syntax: '^message-interval '
+    maps: {interface.vrrp.advertise_interval: "scale:0.1:$message-interval"}
+  - view: ^router\.interface\.ipv4\.vrrp$
+    syntax: '^admin-state '
+    maps: {interface.vrrp.shutdown: *down}
+
+  # ---------- 过滤器（ACL）：ip-filter "名称" 是容器，filter-id 建立对象（以编号为键，同 Classic）----------
+  - view: ^filter\.ip-filter$
+    syntax: '^filter-id '
+    maps:
+      acl.instance: $filter-id
+      acl.instance.type: advanced
+      acl.instance.filter_name: "ctx:filter-name"
+      "@share": ""
+      "@first": ""
+  - view: ^filter\.ip-filter$
+    syntax: '^default-action '
+    maps: {acl.instance.default_action: "kw:accept=permit|drop=deny"}
+  - view: ^filter\.ip-filter$
+    syntax: '^description '
+    maps: {acl.instance.description: $description}
+  - view: ^filter\.ip-filter$
+    syntax: '^entry <entry-id>$'
+    maps: {acl.instance.rule: $entry-id}
+  - view: ^filter\.ip-filter\.entry$
+    syntax: '^description '
+    maps: {acl.instance.rule.description: $description}
+  - view: ^filter\.ip-filter\.entry\.action$
+    syntax: '^drop$'
+    maps: {acl.instance.rule.action: deny}
+  - view: ^filter\.ip-filter\.entry\.action$
+    syntax: '^(accept|forward)$'
+    maps: {acl.instance.rule.action: permit}
+  - view: ^filter\.ip-filter\.entry\.match$
+    syntax: '^protocol '
+    maps: {acl.instance.rule.protocol: $protocol}
+  - view: ^filter\.ip-filter\.entry\.match\.src-ip$
+    syntax: '^address '
+    maps:
+      acl.instance.rule.source_ip: "pfx:addr:$address"
+      acl.instance.rule.source_wildcard: "pfx:wild:$address"
+  - view: ^filter\.ip-filter\.entry\.match\.dst-ip$
+    syntax: '^address '
+    maps:
+      acl.instance.rule.destination_ip: "pfx:addr:$address"
+      acl.instance.rule.destination_wildcard: "pfx:wild:$address"
+  - view: ^filter\.ip-filter\.entry\.match\.src-port$
+    syntax: '^eq '
+    maps: {acl.instance.rule.source_port: "fmt:eq {eq}"}
+  - view: ^filter\.ip-filter\.entry\.match\.dst-port$
+    syntax: '^eq '
+    maps: {acl.instance.rule.destination_port: "fmt:eq {eq}"}
+
+  # ---------- QoS：SAP 入 / 出方向策略（策略名是容器，policy-id 建立对象；只记编号、名称与描述）----------
+  - view: ^qos\.sap-ingress$
+    syntax: '^policy-id '
+    maps:
+      qos.sap_ingress: $policy-id
+      qos.sap_ingress.name: "ctx:sap-ingress-policy-name"
+      "@share": ""
+      "@first": ""
+  - view: ^qos\.sap-egress$
+    syntax: '^policy-id '
+    maps:
+      qos.sap_egress: $policy-id
+      qos.sap_egress.name: "ctx:sap-egress-policy-name"
+      "@share": ""
+      "@first": ""
+  - view: ^qos\.sap-ingress$
+    syntax: '^description '
+    maps: {qos.sap_ingress.description: $description}
+  - view: ^qos\.sap-egress$
+    syntax: '^description '
+    maps: {qos.sap_egress.description: $description}
+
+  # ---------- 业务：客户（名称是容器，customer-id 建立对象）、SDP ----------
+  - view: ^service\.customer$
+    syntax: '^customer-id '
+    maps:
+      service.customer: $customer-id
+      service.customer.name: "ctx:customer-name"
+      "@share": ""
+      "@first": ""
+  - view: ^service\.customer$
+    syntax: '^description '
+    maps: {service.customer.description: $description}
+  - view: ^service$
+    syntax: '^sdp <sdp-id>$'
+    maps: {service.sdp: $sdp-id}
+  - view: ^service\.sdp$
+    syntax: '^delivery-type '
+    maps: {service.sdp.delivery: $delivery-type}
+  - view: ^service\.sdp$
+    syntax: '^description '
+    maps: {service.sdp.description: $description}
+  - view: ^service\.sdp\.far-end$
+    syntax: '^ip-address '
+    maps: {service.sdp.far_end: $ip-address}
+  - view: ^service\.sdp$
+    syntax: '^ldp '
+    maps: {service.sdp.ldp: *tf}
+  - view: ^service\.sdp$
+    syntax: '^lsp '
+    maps: {service.sdp.lsp: "list:$lsp"}
+  - view: ^service\.sdp$
+    syntax: '^path-mtu '
+    maps: {service.sdp.path_mtu: $path-mtu}
+  - view: ^service\.sdp$
+    syntax: '^admin-state '
+    maps: {service.sdp.shutdown: *down}
+  - view: ^service\.sdp\.keep-alive$
+    syntax: '^admin-state '
+    maps: {service.sdp.keep_alive: *en}
+
+  # ---------- Epipe → l2vpn.xconnect（SAP → 端口上的接入点 + 接入电路；spoke-sdp → 伪线，对端取 SDP 的 far-end）----------
+  - view: ^service$
+    syntax: '^epipe <service-name>$'
+    maps: {l2vpn.xconnect: $service-name}
+  - view: ^service\.epipe$
+    syntax: '^service-id '
+    maps: {l2vpn.xconnect.service_id: $service-id}
+  - view: ^service\.epipe$
+    syntax: '^customer '
+    maps: {l2vpn.xconnect.customer: "by:service.customer:name:$customer"}
+  - view: ^service\.epipe$
+    syntax: '^description '
+    maps: {l2vpn.xconnect.description: $description}
+  - view: ^service\.epipe$
+    syntax: '^service-mtu '
+    maps: {l2vpn.xconnect.mtu: $service-mtu}
+  - view: ^service\.epipe$
+    syntax: '^admin-state '
+    maps: {l2vpn.xconnect.shutdown: *down}
+  - view: ^service\.epipe$
+    syntax: '^sap <sap-id>$'
+    maps:
+      "interface{name=sap:port:$sap-id}.access": "sap:tag:$sap-id"
+      "interface{name=sap:port:$sap-id}.access.encapsulation": "sap:encap:$sap-id"
+      "interface{name=sap:port:$sap-id}.access.vlan": "sap:vlan:$sap-id"
+      "interface{name=sap:port:$sap-id}.access.inner_vlan": "sap:inner:$sap-id"
+      l2vpn.xconnect.ac: {interface: "sap:port:$sap-id", instance: "sap:tag:$sap-id"}
+  - view: ^service\.epipe$
+    syntax: '^spoke-sdp <sdp-bind-id>$'
+    maps:
+      l2vpn.xconnect.pw: {peer: "via:service.sdp:far_end:sap:port:$sdp-bind-id", vc_id: "sap:tag:$sdp-bind-id"}
+      l2vpn.xconnect.pw.sdp: "sap:port:$sdp-bind-id"
+
+  # ---------- VPLS → l2vpn.vsi（SAP → 端口上的接入点，绑定该 VSI；mesh / spoke-sdp → 对等体）----------
+  - view: ^service$
+    syntax: '^vpls <service-name>$'
+    maps: {l2vpn.vsi: $service-name}
+  - view: ^service\.vpls$
+    syntax: '^service-id '
+    maps: {l2vpn.vsi.service_id: $service-id}
+  - view: ^service\.vpls$
+    syntax: '^customer '
+    maps: {l2vpn.vsi.customer: "by:service.customer:name:$customer"}
+  - view: ^service\.vpls$
+    syntax: '^description '
+    maps: {l2vpn.vsi.description: $description}
+  - view: ^service\.vpls$
+    syntax: '^service-mtu '
+    maps: {l2vpn.vsi.mtu: $service-mtu}
+  - view: ^service\.vpls$
+    syntax: '^admin-state '
+    maps: {l2vpn.vsi.shutdown: *down}
+  - view: ^service\.vpls$
+    syntax: '^sap <sap-id>$'
+    maps:
+      "interface{name=sap:port:$sap-id}.access": "sap:tag:$sap-id"
+      "interface{name=sap:port:$sap-id}.access.encapsulation": "sap:encap:$sap-id"
+      "interface{name=sap:port:$sap-id}.access.vlan": "sap:vlan:$sap-id"
+      "interface{name=sap:port:$sap-id}.access.inner_vlan": "sap:inner:$sap-id"
+      "interface{name=sap:port:$sap-id}.access.vsi": "ctx:service-name"
+  - view: ^service\.vpls$
+    syntax: '^mesh-sdp <sdp-bind-id>$'
+    maps:
+      l2vpn.vsi.peer: "via:service.sdp:far_end:sap:port:$sdp-bind-id"
+      l2vpn.vsi.peer.vc_id: "sap:tag:$sdp-bind-id"
+      l2vpn.vsi.peer.role: mesh
+      l2vpn.vsi.peer.sdp: "sap:port:$sdp-bind-id"
+  - view: ^service\.vpls$
+    syntax: '^spoke-sdp <sdp-bind-id>$'
+    maps:
+      l2vpn.vsi.peer: "via:service.sdp:far_end:sap:port:$sdp-bind-id"
+      l2vpn.vsi.peer.vc_id: "sap:tag:$sdp-bind-id"
+      l2vpn.vsi.peer.role: spoke
+      l2vpn.vsi.peer.sdp: "sap:port:$sdp-bind-id"
+
+  # ---------- SAP 的入 / 出方向（ingress / egress / qos / filter 是容器）：QoS 策略与过滤器按名称引用 ----------
+  - view: ^service\.(epipe|vpls)\.sap$
+    syntax: '^description '
+    maps: {interface.access.description: $description}
+  - view: ^service\.(epipe|vpls)\.sap\.ingress\.qos\.sap-ingress$
+    syntax: '^policy-name '
+    maps: {interface.access.qos_in: "by:qos.sap_ingress:name:$policy-name"}
+  - view: ^service\.(epipe|vpls)\.sap\.egress\.qos\.sap-egress$
+    syntax: '^policy-name '
+    maps: {interface.access.qos_out: "by:qos.sap_egress:name:$policy-name"}
+  - view: ^service\.(epipe|vpls)\.sap\.ingress\.filter$
+    syntax: '^ip '
+    maps: {interface.access.acl_in: "by:acl.instance:filter_name:$ip"}
+  - view: ^service\.(epipe|vpls)\.sap\.egress\.filter$
+    syntax: '^ip '
+    maps: {interface.access.acl_out: "by:acl.instance:filter_name:$ip"}
+  - view: ^service\.(vprn|ies)\.interface\.sap\.ingress\.filter$
+    syntax: '^ip '
+    maps: {interface.acl_in: "by:acl.instance:filter_name:$ip"}
+  - view: ^service\.(vprn|ies)\.interface\.sap\.egress\.filter$
+    syntax: '^ip '
+    maps: {interface.acl_out: "by:acl.instance:filter_name:$ip"}
+
+  # ---------- VPRN → vrf.instance（接口 → 绑定该 VRF 的三层接口；RD / RT 在 IPv4 地址族）----------
+  - view: ^service$
+    syntax: '^vprn <service-name>$'
+    maps: {vrf.instance: $service-name}
+  - view: ^service\.vprn$
+    syntax: '^service-id '
+    maps: {vrf.instance.service_id: $service-id}
+  - view: ^service\.vprn$
+    syntax: '^customer '
+    maps: {vrf.instance.customer: "by:service.customer:name:$customer"}
+  - view: ^service\.vprn$
+    syntax: '^description '
+    maps: {vrf.instance.description: $description}
+  - view: ^service\.vprn$
+    syntax: '^admin-state '
+    maps: {vrf.instance.shutdown: *down}
+  - view: ^service\.vprn\.bgp-ipvpn\.mpls$
+    syntax: '^route-distinguisher '
+    maps:
+      "vrf.instance.af{afi=ipv4}.rd": $route-distinguisher
+  - view: ^service\.vprn\.bgp-ipvpn\.mpls\.vrf-target$
+    syntax: '^community '
+    maps:
+      "vrf.instance.af{afi=ipv4}.rt": {value: "pre:target:$community", direction: both}
+      "vrf.instance.af{afi=ipv4}.rt.value": "pre:target:$community"
+      "vrf.instance.af{afi=ipv4}.rt.direction": both
+  - view: ^service\.vprn\.bgp-ipvpn\.mpls\.vrf-target$
+    syntax: '^export-community '
+    maps:
+      "vrf.instance.af{afi=ipv4}.rt": {value: "pre:target:$export-community", direction: export}
+      "vrf.instance.af{afi=ipv4}.rt.value": "pre:target:$export-community"
+      "vrf.instance.af{afi=ipv4}.rt.direction": export
+  - view: ^service\.vprn\.bgp-ipvpn\.mpls\.vrf-target$
+    syntax: '^import-community '
+    maps:
+      "vrf.instance.af{afi=ipv4}.rt": {value: "pre:target:$import-community", direction: import}
+      "vrf.instance.af{afi=ipv4}.rt.value": "pre:target:$import-community"
+      "vrf.instance.af{afi=ipv4}.rt.direction": import
+  - view: ^service\.vprn\.bgp-ipvpn\.mpls\.vrf-import$
+    syntax: '^policy '
+    maps:
+      "vrf.instance.af{afi=ipv4}.import_policy": "list:$policy"
+  - view: ^service\.vprn\.bgp-ipvpn\.mpls\.vrf-export$
+    syntax: '^policy '
+    maps:
+      "vrf.instance.af{afi=ipv4}.export_policy": "list:$policy"
+  - view: ^service\.vprn\.maximum-ipv4-routes$
+    syntax: '^value '
+    maps:
+      "vrf.instance.af{afi=ipv4}.prefix_limit": $value
+  - view: ^service\.vprn\.maximum-ipv4-routes$
+    syntax: '^threshold '
+    maps:
+      "vrf.instance.af{afi=ipv4}.prefix_limit_threshold": $threshold
+  - view: ^service\.vprn\.maximum-ipv4-routes$
+    syntax: '^log-only '
+    maps:
+      "vrf.instance.af{afi=ipv4}.prefix_limit_warn_only": *tf
+  - view: ^service\.vprn$
+    syntax: '^interface <interface-name>$'
+    maps:
+      interface: $interface-name
+      interface.vrf: "ctx:service-name"
+  - view: ^service\.vprn\.static-routes\.route$
+    syntax: '^next-hop <ip-address>$'
+    maps:
+      static.route: {vrf: "ctx:service-name", prefix: "ctx:ip-prefix", nexthop: $ip-address}
+      static.route.vrf: "ctx:service-name"
+      static.route.prefix: "ctx:ip-prefix"
+      static.route.nexthop: $ip-address
+
+  # ---------- IES → service.ies（接口是公网的三层接口，记所属 IES）----------
+  - view: ^service$
+    syntax: '^ies <service-name>$'
+    maps: {service.ies: $service-name}
+  - view: ^service\.ies$
+    syntax: '^service-id '
+    maps: {service.ies.service_id: $service-id}
+  - view: ^service\.ies$
+    syntax: '^customer '
+    maps: {service.ies.customer: "by:service.customer:name:$customer"}
+  - view: ^service\.ies$
+    syntax: '^description '
+    maps: {service.ies.description: $description}
+  - view: ^service\.ies$
+    syntax: '^admin-state '
+    maps: {service.ies.shutdown: *down}
+  - view: ^service\.ies$
+    syntax: '^interface <interface-name>$'
+    maps:
+      interface: $interface-name
+      interface.ies: "ctx:service-name"
+
+  # ---------- VPRN / IES 接口的 SAP（端口与终结的 VLAN）----------
+  - view: ^service\.(vprn|ies)\.interface$
+    syntax: '^sap <sap-id>$'
+    maps:
+      interface.bind_port: "sap:port:$sap-id"
+      interface.dot1q_termination: "sap:vlan:$sap-id"

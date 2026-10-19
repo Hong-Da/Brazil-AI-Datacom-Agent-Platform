@@ -5,6 +5,8 @@ import { useI18n } from 'vue-i18n'
 import { ApiError, download, errorText, get, post, waitTask, type Task } from '@/api'
 import Icon from '@/components/Icon.vue'
 import { useStatus } from '@/stores/status'
+import { useAuth } from '@/stores/auth'
+import KbRoRibbon from '@/components/kb-ro-ribbon.vue'
 import {
   DOMAINS, STAGES, TASK_TAG, canApply, durationSec, fmtBytes, fmtDuration, fmtTime, groupByDir, ingestBody, ingestStats,
   isImportPlan, parseIso, stageStates, validateIngest, type Extractor, type ImportPlan, type IngestForm, type IngestResult,
@@ -15,6 +17,8 @@ const { t } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const status = useStatus()
+// 文档抽取与导入知识库包只限管理员与维护员（REQ-036）；普通用户可以导出知识库包
+const auth = useAuth()
 
 // ---------- 标签页 ----------
 const tab = ref<'docs' | 'pkg'>(route.query.tab === 'pkg' ? 'pkg' : 'docs')
@@ -230,6 +234,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
+      <KbRoRibbon />
       <div class="tabs" role="tablist">
         <button role="tab" :aria-selected="tab === 'docs'" data-testid="ingest-tab-docs" @click="tab = 'docs'">
           <Icon name="book" small /><span>{{ $t('ingest.tabDocs') }}</span>
@@ -338,7 +343,7 @@ onBeforeUnmount(() => {
               </div>
               <div class="panel-f">
                 <span class="small faint">{{ $t('ingest.startHint') }}</span>
-                <button class="btn btn-primary ml-auto" :disabled="starting" data-testid="ingest-start" @click="start">
+                <button class="btn btn-primary ml-auto" :disabled="starting || !auth.isKbEditor" :title="auth.isKbEditor ? undefined : $t('kbsugg.kbEditorOnly')" data-testid="ingest-start" @click="start">
                   <Icon name="play" small /><span>{{ $t('ingest.start') }}</span>
                 </button>
               </div>
@@ -520,7 +525,8 @@ onBeforeUnmount(() => {
             <div class="panel-h"><h2>{{ $t('ingest.importT') }}</h2></div>
             <div class="panel-b">
               <p class="small muted">{{ $t('ingest.importD') }}</p>
-              <label class="srcbox mt12 pick">
+              <p v-if="!auth.isKbEditor" class="small faint mt8" data-testid="pkg-import-ro"><Icon name="lock" small /> {{ $t('kbsugg.kbEditorOnly') }}</p>
+              <label v-else class="srcbox mt12 pick">
                 <Icon name="zip" />
                 <div style="flex: 1; min-width: 0">
                   <div class="p">{{ pkgFile ? pkgFile.name : $t('ingest.pickFile') }}</div>
@@ -592,7 +598,7 @@ onBeforeUnmount(() => {
             <div class="panel-f">
               <span v-if="plan && errorIssues.length" class="small" style="color: var(--red-ink)">{{ $t('ingest.fixFirst', { n: errorIssues.length }) }}</span>
               <span v-else-if="plan && !canApply(plan)" class="small faint">{{ $t('ingest.nothingToImport') }}</span>
-              <button class="btn btn-primary ml-auto" :disabled="!canApply(plan) || importing" data-testid="pkg-import-btn" @click="doImport">
+              <button v-if="auth.isKbEditor" class="btn btn-primary ml-auto" :disabled="!canApply(plan) || importing" data-testid="pkg-import-btn" @click="doImport">
                 <Icon name="upload" small /><span>{{ $t('c.import') }}</span>
               </button>
             </div>

@@ -1,4 +1,4 @@
-# Nokia SR OS Classic CLI（M7-3，REQ-037）的 CLI 用例：规范渲染、翻译、只处理一个平台族的 kb map（加载器与主文件 cli_cases.toml 合并）。
+# Nokia SR OS Classic CLI（M7-3，REQ-037）与 MD-CLI（M7-4）的 CLI 用例：规范渲染、翻译、只处理一个平台族的 kb map（加载器与主文件 cli_cases.toml 合并）。
 
 [[case]]
 id = "nokia-render-canonical"
@@ -25,4 +25,22 @@ args = ["--output", "json", "kb", "map", "--family", "nokia-sros-classic"]
 setup = "configured-fullkb"
 expect_exit = 0
 expect_json = { "ok" = true, "data.families.nokia-sros-classic.unused_rules" = [], "data.profiles.nokia-sros-classic-7750-25.10.manual" = 40 }
+in_docs = true
+
+[[case]]
+id = "nokia-md-render-canonical"
+title = { zh-CN = "Nokia MD-CLI 规范模式渲染（configure { 开头，块写成 name { … }，字符串加引号，叶子列表写成 [ … ]）", en = "Canonical rendering of a Nokia MD-CLI configuration", pt-BR = "Renderização canônica de uma configuração Nokia MD-CLI" }
+args = ["--output", "json", "render", "{samples}/nokia-sros-md-synthetic/md-pe-basic.cfg", "--canonical"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.mode" = "canonical", "data.profile" = "nokia-sros-md-7750-25.10", "data.family" = "nokia-sros-md", "data.uncovered" = [], "data.lines.0.text" = "configure {" }
+in_docs = true
+
+[[case]]
+id = "nokia-md-translate-to-classic"
+title = { zh-CN = "Nokia MD-CLI 配置翻译成 Classic CLI（同一设备的两种格式，按名称的引用换成编号）", en = "Translate a Nokia MD-CLI configuration to Classic CLI", pt-BR = "Traduzir uma configuração Nokia MD-CLI para a CLI clássica" }
+args = ["--output", "json", "translate", "{samples}/nokia-sros-md-synthetic/md-pe-services.cfg", "--to", "nokia-sros-classic-7750-25.10"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.source.profile" = "nokia-sros-md-7750-25.10", "data.target.family" = "nokia-sros-classic", "data.verify.checked" = true, "data.verify.unexplained" = 0 }
 in_docs = true

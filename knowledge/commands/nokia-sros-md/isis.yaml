@@ -1,0 +1,2364 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: isis
+cards:
+  - id: nokia-sros-md.router-isis
+    syntax: isis <isis-instance>
+    view: router
+    enters_view: router.isis
+    undo: delete isis <isis-instance>
+    params:
+      isis-instance:
+        type: integer
+        range:
+          - 0
+          - 127
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis
+      line: 5
+      version: 25.10.R1
+    status: draft
+    maps:
+      isis.process: $isis-instance
+  - id: nokia-sros-md.router-isis-admin-state
+    syntax: admin-state <admin-state>
+    view: router.isis
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: disable
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis admin-state
+      line: 27
+      version: 25.10.R1
+    status: draft
+    maps:
+      isis.process.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-isis-advertise-passive-only
+    syntax: advertise-passive-only <advertise-passive-only>
+    view: router.isis
+    undo: delete advertise-passive-only
+    params:
+      advertise-passive-only:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis advertise-passive-only
+      line: 53
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-advertise-router-capability
+    syntax: advertise-router-capability <advertise-router-capability>
+    view: router.isis
+    undo: delete advertise-router-capability
+    params:
+      advertise-router-capability:
+        type: enum
+        choices:
+          - area
+          - as
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis advertise-router-capability
+      line: 79
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-advertise-tunnel-link
+    syntax: advertise-tunnel-link <advertise-tunnel-link>
+    view: router.isis
+    undo: delete advertise-tunnel-link
+    params:
+      advertise-tunnel-link:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis advertise-tunnel-link
+      line: 101
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-all-l1isis
+    syntax: all-l1isis <all-l1isis>
+    view: router.isis
+    undo: delete all-l1isis
+    params:
+      all-l1isis:
+        type: word
+    default: 01:80:C2:00:00:14
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis all-l1isis
+      line: 127
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-all-l2isis
+    syntax: all-l2isis <all-l2isis>
+    view: router.isis
+    undo: delete all-l2isis
+    params:
+      all-l2isis:
+        type: word
+    default: 01:80:C2:00:00:15
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis all-l2isis
+      line: 153
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.isis
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis apply-groups
+      line: 179
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.isis
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis apply-groups-exclude
+      line: 197
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-area-address
+    syntax: area-address <area-address>
+    view: router.isis
+    undo: delete area-address
+    params:
+      area-address:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis area-address
+      line: 215
+      version: 25.10.R1
+    status: draft
+    maps:
+      isis.process.area_id: list:$area-address
+  - id: nokia-sros-md.router-isis-authentication-check
+    syntax: authentication-check <authentication-check>
+    view: router.isis
+    undo: delete authentication-check
+    params:
+      authentication-check:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis authentication-check
+      line: 237
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-authentication-key
+    syntax: authentication-key <authentication-key> [ hash | hash2 | custom ]
+    view: router.isis
+    undo: delete authentication-key
+    params:
+      authentication-key:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis authentication-key
+      line: 263
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-authentication-keychain
+    syntax: authentication-keychain <authentication-keychain>
+    view: router.isis
+    undo: delete authentication-keychain
+    params:
+      authentication-keychain:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis authentication-keychain
+      line: 285
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-authentication-type
+    syntax: authentication-type <authentication-type>
+    view: router.isis
+    undo: delete authentication-type
+    params:
+      authentication-type:
+        type: enum
+        choices:
+          - password
+          - message-digest
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis authentication-type
+      line: 307
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-csnp-authentication
+    syntax: csnp-authentication <csnp-authentication>
+    view: router.isis
+    undo: delete csnp-authentication
+    params:
+      csnp-authentication:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis csnp-authentication
+      line: 329
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-csnp-on-p2p
+    syntax: csnp-on-p2p <csnp-on-p2p>
+    view: router.isis
+    undo: delete csnp-on-p2p
+    params:
+      csnp-on-p2p:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis csnp-on-p2p
+      line: 355
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-database-export
+    syntax: database-export
+    view: router.isis
+    enters_view: opaque
+    undo: delete database-export
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis database-export
+      line: 381
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-default-route-tag
+    syntax: default-route-tag <default-route-tag>
+    view: router.isis
+    undo: delete default-route-tag
+    params:
+      default-route-tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis default-route-tag
+      line: 397
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-entropy-label
+    syntax: entropy-label
+    view: router.isis
+    enters_view: opaque
+    undo: delete entropy-label
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis entropy-label
+      line: 419
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-export-limit
+    syntax: export-limit
+    view: router.isis
+    enters_view: opaque
+    undo: delete export-limit
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis export-limit
+      line: 435
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-export-policy
+    syntax: export-policy <export-policy>
+    view: router.isis
+    undo: delete export-policy
+    params:
+      export-policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis export-policy
+      line: 451
+      version: 25.10.R1
+    status: draft
+    maps:
+      isis.process.export_policy: list:$export-policy
+  - id: nokia-sros-md.router-isis-flexible-algorithms
+    syntax: flexible-algorithms
+    view: router.isis
+    enters_view: opaque
+    undo: delete flexible-algorithms
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis flexible-algorithms
+      line: 477
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-graceful-restart
+    syntax: graceful-restart
+    view: router.isis
+    enters_view: opaque
+    undo: delete graceful-restart
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis graceful-restart
+      line: 493
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-hello-authentication
+    syntax: hello-authentication <hello-authentication>
+    view: router.isis
+    undo: delete hello-authentication
+    params:
+      hello-authentication:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis hello-authentication
+      line: 509
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-hello-padding
+    syntax: hello-padding <hello-padding>
+    view: router.isis
+    undo: delete hello-padding
+    params:
+      hello-padding:
+        type: enum
+        choices:
+          - adaptive
+          - loose
+          - strict
+          - none
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis hello-padding
+      line: 535
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-ignore-attached-bit
+    syntax: ignore-attached-bit <ignore-attached-bit>
+    view: router.isis
+    undo: delete ignore-attached-bit
+    params:
+      ignore-attached-bit:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis ignore-attached-bit
+      line: 557
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-ignore-lsp-errors
+    syntax: ignore-lsp-errors <ignore-lsp-errors>
+    view: router.isis
+    undo: delete ignore-lsp-errors
+    params:
+      ignore-lsp-errors:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis ignore-lsp-errors
+      line: 583
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-ignore-narrow-metric
+    syntax: ignore-narrow-metric <ignore-narrow-metric>
+    view: router.isis
+    undo: delete ignore-narrow-metric
+    params:
+      ignore-narrow-metric:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis ignore-narrow-metric
+      line: 609
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-igp-shortcut
+    syntax: igp-shortcut
+    view: router.isis
+    enters_view: opaque
+    undo: delete igp-shortcut
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis igp-shortcut
+      line: 635
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-iid-tlv
+    syntax: iid-tlv <iid-tlv>
+    view: router.isis
+    undo: delete iid-tlv
+    params:
+      iid-tlv:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis iid-tlv
+      line: 651
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-import-policy
+    syntax: import-policy <import-policy>
+    view: router.isis
+    undo: delete import-policy
+    params:
+      import-policy:
+        type: leaflist
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis import-policy
+      line: 677
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface
+    syntax: interface <interface-name>
+    view: router.isis
+    enters_view: router.isis.interface
+    undo: delete interface <interface-name>
+    params:
+      interface-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface
+      line: 703
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface{name=$interface-name}.isis: _
+      interface{name=$interface-name}.isis.process: ctx:isis-instance
+  - id: nokia-sros-md.router-isis-interface-adjacency-set
+    syntax: adjacency-set <adjacency-set>
+    view: router.isis.interface
+    undo: delete adjacency-set
+    params:
+      adjacency-set:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface adjacency-set
+      line: 725
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-admin-state
+    syntax: admin-state <admin-state>
+    view: router.isis.interface
+    undo: delete admin-state
+    params:
+      admin-state:
+        type: enum
+        choices:
+          - enable
+          - disable
+    default: enable
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface admin-state
+      line: 747
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.isis.shutdown: kw:disable=true|enable=false
+  - id: nokia-sros-md.router-isis-interface-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.isis.interface
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface apply-groups
+      line: 773
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.isis.interface
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface apply-groups-exclude
+      line: 791
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-bfd-liveness
+    syntax: bfd-liveness
+    view: router.isis.interface
+    enters_view: opaque
+    undo: delete bfd-liveness
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface bfd-liveness
+      line: 809
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.isis.bfd: 'true'
+  - id: nokia-sros-md.router-isis-interface-conditional-advertise-prefix
+    syntax: conditional-advertise-prefix <conditional-advertise-prefix>
+    view: router.isis.interface
+    undo: delete conditional-advertise-prefix
+    params:
+      conditional-advertise-prefix:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface conditional-advertise-prefix
+      line: 825
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-csnp-interval
+    syntax: csnp-interval <csnp-interval>
+    view: router.isis.interface
+    undo: delete csnp-interval
+    params:
+      csnp-interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: '10'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface csnp-interval
+      line: 847
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-default-instance
+    syntax: default-instance <default-instance>
+    view: router.isis.interface
+    undo: delete default-instance
+    params:
+      default-instance:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface default-instance
+      line: 873
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-delay-normalization
+    syntax: delay-normalization
+    view: router.isis.interface
+    enters_view: opaque
+    undo: delete delay-normalization
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface delay-normalization
+      line: 899
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-flex-algo
+    syntax: flex-algo <flex-algo-id>
+    view: router.isis.interface
+    enters_view: opaque
+    undo: delete flex-algo <flex-algo-id>
+    params:
+      flex-algo-id:
+        type: integer
+        range:
+          - 128
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface flex-algo
+      line: 915
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-hello-authentication
+    syntax: hello-authentication <hello-authentication>
+    view: router.isis.interface
+    undo: delete hello-authentication
+    params:
+      hello-authentication:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface hello-authentication
+      line: 937
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-hello-authentication-key
+    syntax: hello-authentication-key <hello-authentication-key> [ hash | hash2 | custom ]
+    view: router.isis.interface
+    undo: delete hello-authentication-key
+    params:
+      hello-authentication-key:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface hello-authentication-key
+      line: 963
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-hello-authentication-keychain
+    syntax: hello-authentication-keychain <hello-authentication-keychain>
+    view: router.isis.interface
+    undo: delete hello-authentication-keychain
+    params:
+      hello-authentication-keychain:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface hello-authentication-keychain
+      line: 985
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-hello-authentication-type
+    syntax: hello-authentication-type <hello-authentication-type>
+    view: router.isis.interface
+    undo: delete hello-authentication-type
+    params:
+      hello-authentication-type:
+        type: enum
+        choices:
+          - password
+          - message-digest
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface hello-authentication-type
+      line: 1007
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-hello-padding
+    syntax: hello-padding <hello-padding>
+    view: router.isis.interface
+    undo: delete hello-padding
+    params:
+      hello-padding:
+        type: enum
+        choices:
+          - adaptive
+          - loose
+          - strict
+          - none
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface hello-padding
+      line: 1029
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-interface-type
+    syntax: interface-type <interface-type>
+    view: router.isis.interface
+    undo: delete interface-type
+    params:
+      interface-type:
+        type: enum
+        choices:
+          - point-to-point
+          - broadcast
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface interface-type
+      line: 1051
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.isis.p2p: kw:point-to-point=true|broadcast=false
+  - id: nokia-sros-md.router-isis-interface-ipv4-adjacency-sid
+    syntax: ipv4-adjacency-sid
+    view: router.isis.interface
+    enters_view: opaque
+    undo: delete ipv4-adjacency-sid
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface ipv4-adjacency-sid
+      line: 1073
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-ipv4-multicast
+    syntax: ipv4-multicast <ipv4-multicast>
+    view: router.isis.interface
+    undo: delete ipv4-multicast
+    params:
+      ipv4-multicast:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface ipv4-multicast
+      line: 1089
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-ipv4-node-sid
+    syntax: ipv4-node-sid
+    view: router.isis.interface
+    enters_view: router.isis.interface.ipv4-node-sid
+    undo: delete ipv4-node-sid
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface ipv4-node-sid
+      line: 1115
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-isis-interface-ipv4-node-sid-clear-n-flag
+    syntax: clear-n-flag <clear-n-flag>
+    view: router.isis.interface.ipv4-node-sid
+    undo: delete clear-n-flag
+    params:
+      clear-n-flag:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface ipv4-node-sid clear-n-flag
+      line: 1131
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-ipv4-node-sid-index
+    syntax: index <index>
+    view: router.isis.interface.ipv4-node-sid
+    undo: delete index
+    params:
+      index:
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface ipv4-node-sid index
+      line: 1157
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.prefix_sid: isis
+      interface.prefix_sid.index: $index
+      interface.prefix_sid.node_disable: 'false'
+  - id: nokia-sros-md.router-isis-interface-ipv4-node-sid-label
+    syntax: label <label>
+    view: router.isis.interface.ipv4-node-sid
+    undo: delete label
+    params:
+      label:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface ipv4-node-sid label
+      line: 1183
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-ipv6-adjacency-sid
+    syntax: ipv6-adjacency-sid
+    view: router.isis.interface
+    enters_view: opaque
+    undo: delete ipv6-adjacency-sid
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface ipv6-adjacency-sid
+      line: 1209
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-ipv6-multicast
+    syntax: ipv6-multicast <ipv6-multicast>
+    view: router.isis.interface
+    undo: delete ipv6-multicast
+    params:
+      ipv6-multicast:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface ipv6-multicast
+      line: 1225
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-ipv6-node-sid
+    syntax: ipv6-node-sid
+    view: router.isis.interface
+    enters_view: opaque
+    undo: delete ipv6-node-sid
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface ipv6-node-sid
+      line: 1251
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-ipv6-unicast
+    syntax: ipv6-unicast <ipv6-unicast>
+    view: router.isis.interface
+    undo: delete ipv6-unicast
+    params:
+      ipv6-unicast:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface ipv6-unicast
+      line: 1267
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level
+    syntax: level <level-number>
+    view: router.isis.interface
+    enters_view: router.isis.interface.level
+    undo: delete level <level-number>
+    params:
+      level-number:
+        type: enum
+        choices:
+          - '1'
+          - '2'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level
+      line: 1293
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.isis.level: $level-number
+  - id: nokia-sros-md.router-isis-interface-level-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.isis.interface.level
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level apply-groups
+      line: 1315
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.isis.interface.level
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level apply-groups-exclude
+      line: 1333
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-hello-authentication-key
+    syntax: hello-authentication-key <hello-authentication-key> [ hash | hash2 | custom ]
+    view: router.isis.interface.level
+    undo: delete hello-authentication-key
+    params:
+      hello-authentication-key:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level hello-authentication-key
+      line: 1351
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-hello-authentication-keychain
+    syntax: hello-authentication-keychain <hello-authentication-keychain>
+    view: router.isis.interface.level
+    undo: delete hello-authentication-keychain
+    params:
+      hello-authentication-keychain:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level hello-authentication-keychain
+      line: 1373
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-hello-authentication-type
+    syntax: hello-authentication-type <hello-authentication-type>
+    view: router.isis.interface.level
+    undo: delete hello-authentication-type
+    params:
+      hello-authentication-type:
+        type: enum
+        choices:
+          - password
+          - message-digest
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level hello-authentication-type
+      line: 1395
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-hello-interval
+    syntax: hello-interval <hello-interval>
+    view: router.isis.interface.level
+    undo: delete hello-interval
+    params:
+      hello-interval:
+        type: integer
+        range:
+          - 1
+          - 20000
+    default: '9'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level hello-interval
+      line: 1417
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-hello-multiplier
+    syntax: hello-multiplier <hello-multiplier>
+    view: router.isis.interface.level
+    undo: delete hello-multiplier
+    params:
+      hello-multiplier:
+        type: integer
+        range:
+          - 2
+          - 100
+    default: '3'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level hello-multiplier
+      line: 1443
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-hello-padding
+    syntax: hello-padding <hello-padding>
+    view: router.isis.interface.level
+    undo: delete hello-padding
+    params:
+      hello-padding:
+        type: enum
+        choices:
+          - adaptive
+          - loose
+          - strict
+          - none
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level hello-padding
+      line: 1469
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-ipv4-multicast-metric
+    syntax: ipv4-multicast-metric <ipv4-multicast-metric>
+    view: router.isis.interface.level
+    undo: delete ipv4-multicast-metric
+    params:
+      ipv4-multicast-metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level ipv4-multicast-metric
+      line: 1491
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-ipv6-multicast-metric
+    syntax: ipv6-multicast-metric <ipv6-multicast-metric>
+    view: router.isis.interface.level
+    undo: delete ipv6-multicast-metric
+    params:
+      ipv6-multicast-metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level ipv6-multicast-metric
+      line: 1513
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-ipv6-unicast-metric
+    syntax: ipv6-unicast-metric <ipv6-unicast-metric>
+    view: router.isis.interface.level
+    undo: delete ipv6-unicast-metric
+    params:
+      ipv6-unicast-metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level ipv6-unicast-metric
+      line: 1535
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-metric
+    syntax: metric <metric>
+    view: router.isis.interface.level
+    undo: delete metric
+    params:
+      metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level metric
+      line: 1557
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.isis.level.metric: $metric
+  - id: nokia-sros-md.router-isis-interface-level-passive
+    syntax: passive <passive>
+    view: router.isis.interface.level
+    undo: delete passive
+    params:
+      passive:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level passive
+      line: 1579
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-priority
+    syntax: priority <priority>
+    view: router.isis.interface.level
+    undo: delete priority
+    params:
+      priority:
+        type: integer
+        range:
+          - 0
+          - 127
+    default: '64'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level priority
+      line: 1605
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-sd-offset
+    syntax: sd-offset <sd-offset>
+    view: router.isis.interface.level
+    undo: delete sd-offset
+    params:
+      sd-offset:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level sd-offset
+      line: 1631
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-sf-offset
+    syntax: sf-offset <sf-offset>
+    view: router.isis.interface.level
+    undo: delete sf-offset
+    params:
+      sf-offset:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level sf-offset
+      line: 1653
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-level-capability
+    syntax: level-capability <level-capability>
+    view: router.isis.interface
+    undo: delete level-capability
+    params:
+      level-capability:
+        type: enum
+        choices:
+          - '1'
+          - '2'
+          - 1/2
+    default: 1/2
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface level-capability
+      line: 1675
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.isis.circuit_type: kw:1=level-1|2=level-2|1/2=level-1-2
+  - id: nokia-sros-md.router-isis-interface-load-balancing-weight
+    syntax: load-balancing-weight <load-balancing-weight>
+    view: router.isis.interface
+    undo: delete load-balancing-weight
+    params:
+      load-balancing-weight:
+        type: integer
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface load-balancing-weight
+      line: 1701
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-loopfree-alternate
+    syntax: loopfree-alternate
+    view: router.isis.interface
+    enters_view: opaque
+    undo: delete loopfree-alternate
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface loopfree-alternate
+      line: 1723
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-lsp-pacing-interval
+    syntax: lsp-pacing-interval <lsp-pacing-interval>
+    view: router.isis.interface
+    undo: delete lsp-pacing-interval
+    params:
+      lsp-pacing-interval:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: '100'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface lsp-pacing-interval
+      line: 1739
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-mesh-group
+    syntax: mesh-group
+    view: router.isis.interface
+    enters_view: opaque
+    undo: delete mesh-group
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface mesh-group
+      line: 1765
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-passive
+    syntax: passive <passive>
+    view: router.isis.interface
+    undo: delete passive
+    params:
+      passive:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface passive
+      line: 1781
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.isis.passive: kw:true=true|false=false
+  - id: nokia-sros-md.router-isis-interface-retransmit-interval
+    syntax: retransmit-interval <retransmit-interval>
+    view: router.isis.interface
+    undo: delete retransmit-interval
+    params:
+      retransmit-interval:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: '5'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface retransmit-interval
+      line: 1807
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-sid-protection
+    syntax: sid-protection <sid-protection>
+    view: router.isis.interface
+    undo: delete sid-protection
+    params:
+      sid-protection:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface sid-protection
+      line: 1833
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-interface-tag
+    syntax: tag <tag>
+    view: router.isis.interface
+    undo: delete tag
+    params:
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis interface tag
+      line: 1859
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-ipv4-multicast-routing
+    syntax: ipv4-multicast-routing <ipv4-multicast-routing>
+    view: router.isis
+    undo: delete ipv4-multicast-routing
+    params:
+      ipv4-multicast-routing:
+        type: enum
+        choices:
+          - 'false'
+          - native
+          - mt
+    default: native
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis ipv4-multicast-routing
+      line: 1881
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-ipv4-routing
+    syntax: ipv4-routing <ipv4-routing>
+    view: router.isis
+    undo: delete ipv4-routing
+    params:
+      ipv4-routing:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis ipv4-routing
+      line: 1907
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-ipv6-multicast-routing
+    syntax: ipv6-multicast-routing <ipv6-multicast-routing>
+    view: router.isis
+    undo: delete ipv6-multicast-routing
+    params:
+      ipv6-multicast-routing:
+        type: enum
+        choices:
+          - 'false'
+          - native
+          - mt
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis ipv6-multicast-routing
+      line: 1933
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-ipv6-routing
+    syntax: ipv6-routing <ipv6-routing>
+    view: router.isis
+    undo: delete ipv6-routing
+    params:
+      ipv6-routing:
+        type: enum
+        choices:
+          - 'false'
+          - native
+          - mt
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis ipv6-routing
+      line: 1955
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-ldp-over-rsvp
+    syntax: ldp-over-rsvp <ldp-over-rsvp>
+    view: router.isis
+    undo: delete ldp-over-rsvp
+    params:
+      ldp-over-rsvp:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis ldp-over-rsvp
+      line: 1981
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-ldp-sync
+    syntax: ldp-sync <ldp-sync>
+    view: router.isis
+    undo: delete ldp-sync
+    params:
+      ldp-sync:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis ldp-sync
+      line: 2007
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level
+    syntax: level <level-number>
+    view: router.isis
+    enters_view: router.isis.level
+    undo: delete level <level-number>
+    params:
+      level-number:
+        type: enum
+        choices:
+          - '1'
+          - '2'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level
+      line: 2033
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-md.router-isis-level-advertise-router-capability
+    syntax: advertise-router-capability <advertise-router-capability>
+    view: router.isis.level
+    undo: delete advertise-router-capability
+    params:
+      advertise-router-capability:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level advertise-router-capability
+      line: 2055
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-apply-groups
+    syntax: apply-groups <apply-groups>
+    view: router.isis.level
+    undo: delete apply-groups
+    params:
+      apply-groups:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level apply-groups
+      line: 2081
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-apply-groups-exclude
+    syntax: apply-groups-exclude <apply-groups-exclude>
+    view: router.isis.level
+    undo: delete apply-groups-exclude
+    params:
+      apply-groups-exclude:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level apply-groups-exclude
+      line: 2099
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-authentication-key
+    syntax: authentication-key <authentication-key> [ hash | hash2 | custom ]
+    view: router.isis.level
+    undo: delete authentication-key
+    params:
+      authentication-key:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level authentication-key
+      line: 2117
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-authentication-keychain
+    syntax: authentication-keychain <authentication-keychain>
+    view: router.isis.level
+    undo: delete authentication-keychain
+    params:
+      authentication-keychain:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level authentication-keychain
+      line: 2139
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-authentication-type
+    syntax: authentication-type <authentication-type>
+    view: router.isis.level
+    undo: delete authentication-type
+    params:
+      authentication-type:
+        type: enum
+        choices:
+          - password
+          - message-digest
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level authentication-type
+      line: 2161
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-bier
+    syntax: bier
+    view: router.isis.level
+    enters_view: opaque
+    undo: delete bier
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level bier
+      line: 2183
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-csnp-authentication
+    syntax: csnp-authentication <csnp-authentication>
+    view: router.isis.level
+    undo: delete csnp-authentication
+    params:
+      csnp-authentication:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level csnp-authentication
+      line: 2199
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-database-export-exclude
+    syntax: database-export-exclude <database-export-exclude>
+    view: router.isis.level
+    undo: delete database-export-exclude
+    params:
+      database-export-exclude:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level database-export-exclude
+      line: 2225
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-default-ipv4-multicast-metric
+    syntax: default-ipv4-multicast-metric <default-ipv4-multicast-metric>
+    view: router.isis.level
+    undo: delete default-ipv4-multicast-metric
+    params:
+      default-ipv4-multicast-metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: '10'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level default-ipv4-multicast-metric
+      line: 2251
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-default-ipv6-multicast-metric
+    syntax: default-ipv6-multicast-metric <default-ipv6-multicast-metric>
+    view: router.isis.level
+    undo: delete default-ipv6-multicast-metric
+    params:
+      default-ipv6-multicast-metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: '10'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level default-ipv6-multicast-metric
+      line: 2277
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-default-ipv6-unicast-metric
+    syntax: default-ipv6-unicast-metric <default-ipv6-unicast-metric>
+    view: router.isis.level
+    undo: delete default-ipv6-unicast-metric
+    params:
+      default-ipv6-unicast-metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: '10'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level default-ipv6-unicast-metric
+      line: 2303
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-default-metric
+    syntax: default-metric <default-metric>
+    view: router.isis.level
+    undo: delete default-metric
+    params:
+      default-metric:
+        type: integer
+        range:
+          - 1
+          - 16777215
+    default: '10'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level default-metric
+      line: 2329
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-external-preference
+    syntax: external-preference <external-preference>
+    view: router.isis.level
+    undo: delete external-preference
+    params:
+      external-preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level external-preference
+      line: 2355
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-hello-authentication
+    syntax: hello-authentication <hello-authentication>
+    view: router.isis.level
+    undo: delete hello-authentication
+    params:
+      hello-authentication:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level hello-authentication
+      line: 2377
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-hello-padding
+    syntax: hello-padding <hello-padding>
+    view: router.isis.level
+    undo: delete hello-padding
+    params:
+      hello-padding:
+        type: enum
+        choices:
+          - adaptive
+          - loose
+          - strict
+          - none
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level hello-padding
+      line: 2403
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-loopfree-alternate-exclude
+    syntax: loopfree-alternate-exclude <loopfree-alternate-exclude>
+    view: router.isis.level
+    undo: delete loopfree-alternate-exclude
+    params:
+      loopfree-alternate-exclude:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level loopfree-alternate-exclude
+      line: 2425
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-lsp-mtu-size
+    syntax: lsp-mtu-size <lsp-mtu-size>
+    view: router.isis.level
+    undo: delete lsp-mtu-size
+    params:
+      lsp-mtu-size:
+        type: integer
+        range:
+          - 490
+          - 9778
+    default: '1492'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level lsp-mtu-size
+      line: 2451
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-preference
+    syntax: preference <preference>
+    view: router.isis.level
+    undo: delete preference
+    params:
+      preference:
+        type: integer
+        range:
+          - 1
+          - 255
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level preference
+      line: 2477
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-psnp-authentication
+    syntax: psnp-authentication <psnp-authentication>
+    view: router.isis.level
+    undo: delete psnp-authentication
+    params:
+      psnp-authentication:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level psnp-authentication
+      line: 2499
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-level-wide-metrics-only
+    syntax: wide-metrics-only <wide-metrics-only>
+    view: router.isis.level
+    undo: delete wide-metrics-only
+    params:
+      wide-metrics-only:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level wide-metrics-only
+      line: 2525
+      version: 25.10.R1
+    status: draft
+    maps:
+      isis.process.metric_style: kw:true=wide
+  - id: nokia-sros-md.router-isis-level-capability
+    syntax: level-capability <level-capability>
+    view: router.isis
+    undo: delete level-capability
+    params:
+      level-capability:
+        type: enum
+        choices:
+          - '1'
+          - '2'
+          - 1/2
+    default: 1/2
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis level-capability
+      line: 2551
+      version: 25.10.R1
+    status: draft
+    maps:
+      isis.process.level: kw:1=level-1|2=level-2|1/2=level-1-2
+  - id: nokia-sros-md.router-isis-link-group
+    syntax: link-group <link-group-name>
+    view: router.isis
+    enters_view: opaque
+    undo: delete link-group <link-group-name>
+    params:
+      link-group-name:
+        type: string
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis link-group
+      line: 2577
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-loopfree-alternate
+    syntax: loopfree-alternate
+    view: router.isis
+    enters_view: opaque
+    undo: delete loopfree-alternate
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis loopfree-alternate
+      line: 2599
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-lsp-lifetime
+    syntax: lsp-lifetime <lsp-lifetime>
+    view: router.isis
+    undo: delete lsp-lifetime
+    params:
+      lsp-lifetime:
+        type: integer
+        range:
+          - 350
+          - 65535
+    default: '1200'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis lsp-lifetime
+      line: 2615
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-lsp-minimum-remaining-lifetime
+    syntax: lsp-minimum-remaining-lifetime <lsp-minimum-remaining-lifetime>
+    view: router.isis
+    undo: delete lsp-minimum-remaining-lifetime
+    params:
+      lsp-minimum-remaining-lifetime:
+        type: integer
+        range:
+          - 350
+          - 65535
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis lsp-minimum-remaining-lifetime
+      line: 2641
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-lsp-mtu-size
+    syntax: lsp-mtu-size <lsp-mtu-size>
+    view: router.isis
+    undo: delete lsp-mtu-size
+    params:
+      lsp-mtu-size:
+        type: integer
+        range:
+          - 490
+          - 9778
+    default: '1492'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis lsp-mtu-size
+      line: 2663
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-lsp-refresh
+    syntax: lsp-refresh
+    view: router.isis
+    enters_view: opaque
+    undo: delete lsp-refresh
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis lsp-refresh
+      line: 2689
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-mru-mismatch-detection
+    syntax: mru-mismatch-detection <mru-mismatch-detection>
+    view: router.isis
+    undo: delete mru-mismatch-detection
+    params:
+      mru-mismatch-detection:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis mru-mismatch-detection
+      line: 2705
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-multi-topology
+    syntax: multi-topology
+    view: router.isis
+    enters_view: opaque
+    undo: delete multi-topology
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis multi-topology
+      line: 2731
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-multicast-import
+    syntax: multicast-import
+    view: router.isis
+    enters_view: opaque
+    undo: delete multicast-import
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis multicast-import
+      line: 2747
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-overload
+    syntax: overload
+    view: router.isis
+    enters_view: opaque
+    undo: delete overload
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis overload
+      line: 2763
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-overload-export-external
+    syntax: overload-export-external <overload-export-external>
+    view: router.isis
+    undo: delete overload-export-external
+    params:
+      overload-export-external:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis overload-export-external
+      line: 2779
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-overload-export-interlevel
+    syntax: overload-export-interlevel <overload-export-interlevel>
+    view: router.isis
+    undo: delete overload-export-interlevel
+    params:
+      overload-export-interlevel:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis overload-export-interlevel
+      line: 2805
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-overload-fib-error-notify-only
+    syntax: overload-fib-error-notify-only
+    view: router.isis
+    enters_view: opaque
+    undo: delete overload-fib-error-notify-only
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis overload-fib-error-notify-only
+      line: 2831
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-overload-include-locators
+    syntax: overload-include-locators <overload-include-locators>
+    view: router.isis
+    undo: delete overload-include-locators
+    params:
+      overload-include-locators:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis overload-include-locators
+      line: 2847
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-overload-on-boot
+    syntax: overload-on-boot
+    view: router.isis
+    enters_view: opaque
+    undo: delete overload-on-boot
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis overload-on-boot
+      line: 2873
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-poi-tlv
+    syntax: poi-tlv <poi-tlv>
+    view: router.isis
+    undo: delete poi-tlv
+    params:
+      poi-tlv:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis poi-tlv
+      line: 2889
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-prefix-attributes-tlv
+    syntax: prefix-attributes-tlv <prefix-attributes-tlv>
+    view: router.isis
+    undo: delete prefix-attributes-tlv
+    params:
+      prefix-attributes-tlv:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis prefix-attributes-tlv
+      line: 2915
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-prefix-limit
+    syntax: prefix-limit
+    view: router.isis
+    enters_view: opaque
+    undo: delete prefix-limit
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis prefix-limit
+      line: 2941
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-prefix-unreachable
+    syntax: prefix-unreachable
+    view: router.isis
+    enters_view: opaque
+    undo: delete prefix-unreachable
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis prefix-unreachable
+      line: 2957
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-psnp-authentication
+    syntax: psnp-authentication <psnp-authentication>
+    view: router.isis
+    undo: delete psnp-authentication
+    params:
+      psnp-authentication:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'true'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis psnp-authentication
+      line: 2973
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-reference-bandwidth
+    syntax: reference-bandwidth <reference-bandwidth>
+    view: router.isis
+    undo: delete reference-bandwidth
+    params:
+      reference-bandwidth:
+        type: integer
+        range:
+          - 1
+          - 18446744073709551615
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis reference-bandwidth
+      line: 2999
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-rib-priority
+    syntax: rib-priority
+    view: router.isis
+    enters_view: opaque
+    undo: delete rib-priority
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis rib-priority
+      line: 3021
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-router-id
+    syntax: router-id <router-id>
+    view: router.isis
+    undo: delete router-id
+    params:
+      router-id:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis router-id
+      line: 3037
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-standard-multi-instance
+    syntax: standard-multi-instance <standard-multi-instance>
+    view: router.isis
+    undo: delete standard-multi-instance
+    params:
+      standard-multi-instance:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis standard-multi-instance
+      line: 3059
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-strict-adjacency-check
+    syntax: strict-adjacency-check <strict-adjacency-check>
+    view: router.isis
+    undo: delete strict-adjacency-check
+    params:
+      strict-adjacency-check:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis strict-adjacency-check
+      line: 3085
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-summary-address
+    syntax: summary-address <ip-prefix>
+    view: router.isis
+    enters_view: opaque
+    undo: delete summary-address <ip-prefix>
+    params:
+      ip-prefix:
+        type: word
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis summary-address
+      line: 3111
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-suppress-attached-bit
+    syntax: suppress-attached-bit <suppress-attached-bit>
+    view: router.isis
+    undo: delete suppress-attached-bit
+    params:
+      suppress-attached-bit:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis suppress-attached-bit
+      line: 3133
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-system-id
+    syntax: system-id <system-id>
+    view: router.isis
+    undo: delete system-id
+    params:
+      system-id:
+        type: word
+    default: 0000.0000.0000
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis system-id
+      line: 3159
+      version: 25.10.R1
+    status: draft
+    maps:
+      isis.process.system_id: $system-id
+  - id: nokia-sros-md.router-isis-timers
+    syntax: timers
+    view: router.isis
+    enters_view: opaque
+    undo: delete timers
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis timers
+      line: 3185
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-traffic-engineering
+    syntax: traffic-engineering <traffic-engineering>
+    view: router.isis
+    undo: delete traffic-engineering
+    params:
+      traffic-engineering:
+        type: enum
+        choices:
+          - 'true'
+          - 'false'
+    default: 'false'
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis traffic-engineering
+      line: 3201
+      version: 25.10.R1
+    status: draft
+    maps:
+      isis.process.te: kw:true=true|false=false
+  - id: nokia-sros-md.router-isis-traffic-engineering-options
+    syntax: traffic-engineering-options
+    view: router.isis
+    enters_view: opaque
+    undo: delete traffic-engineering-options
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis traffic-engineering-options
+      line: 3227
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-md.router-isis-unicast-import
+    syntax: unicast-import
+    view: router.isis
+    enters_view: opaque
+    undo: delete unicast-import
+    source:
+      doc: nokia-sros-md-md
+      file: router.isis.md
+      title: router isis unicast-import
+      line: 3243
+      version: 25.10.R1
+    status: draft

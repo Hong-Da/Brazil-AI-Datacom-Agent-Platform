@@ -7,6 +7,9 @@ import Icon from '@/components/Icon.vue'
 import { useStatus } from '@/stores/status'
 import ReviewDetail from './review/ReviewDetail.vue'
 import BatchDialog from './review/BatchDialog.vue'
+import SuggestionsPane from './review/SuggestionsPane.vue'
+import KbRoRibbon from '@/components/kb-ro-ribbon.vue'
+import { useAuth } from '@/stores/auth'
 import {
   KIND_TONE, age, isAi, nextId, offsetAfterRemoval, pageRange, sortedKinds, sourceLine, splitTitle, totalCount,
   type ReviewList,
@@ -17,6 +20,8 @@ const { t, te } = useI18n()
 const route = useRoute()
 const router = useRouter()
 const status = useStatus()
+// 审核只限管理员与维护员（REQ-036）；普通用户只能查看队列
+const auth = useAuth()
 
 const kind = ref(typeof route.query.kind === 'string' ? route.query.kind : '')
 const offset = ref(0)
@@ -105,6 +110,11 @@ async function onDecided(id: number, approved: boolean): Promise<void> {
   await load(true)
   void status.refresh()
 }
+function onSuggestionDecided(approved: boolean): void {
+  showToast(t(approved ? 'review.sg.accepted' : 'review.sg.rejected'))
+  void load(true)
+  void status.refresh()
+}
 function onBatchDone(n: number): void {
   if (n) showToast(t('review.batchToast', { n }))
   void load(false)
@@ -122,7 +132,7 @@ function move(step: 1 | -1): void {
 }
 function onKey(e: KeyboardEvent): void {
   const el = e.target as HTMLElement | null
-  if (showBatch.value || e.ctrlKey || e.metaKey || e.altKey) return
+  if (showBatch.value || kind.value === 'suggestion' || e.ctrlKey || e.metaKey || e.altKey) return
   if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return
   const k = e.key.toLowerCase()
   if (k === 'j') move(1)
@@ -150,17 +160,25 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); clearTimeo
         </div>
         <div class="ph-actions">
           <button class="btn btn-sm" type="button" :disabled="loading" data-testid="review-refresh" @click="load(true)"><Icon name="refresh" small />{{ $t('c.refresh') }}</button>
-          <button v-if="!isEmpty && data" class="btn btn-sm btn-primary" type="button" data-testid="review-batch-open" @click="showBatch = true">
+          <button v-if="!isEmpty && data && auth.isKbEditor && kind !== 'suggestion'" class="btn btn-sm btn-primary" type="button" data-testid="review-batch-open" @click="showBatch = true">
             <Icon name="check" small />{{ $t('review.batchOpen') }}
           </button>
         </div>
       </div>
 
+      <KbRoRibbon />
+      <div v-if="auth.isKbEditor && data && (counts.suggestion || kind === 'suggestion')" class="tabs" role="tablist" data-testid="review-tabs">
+        <button role="tab" type="button" :aria-selected="kind !== 'suggestion'" data-testid="review-tab-queue" @click="setKind('')">{{ $t('review.tabQueue') }}</button>
+        <button role="tab" type="button" :aria-selected="kind === 'suggestion'" data-testid="review-tab-suggestions" @click="setKind('suggestion')">
+          {{ $t('review.tabSugg') }} <span class="count">{{ counts.suggestion ?? 0 }}</span>
+        </button>
+      </div>
       <div v-if="error && !data" class="panel" style="flex: 1">
         <div class="empty" data-testid="review-error-state"><p>{{ error }}</p><button class="btn btn-sm" type="button" @click="load(false)">{{ $t('c.retry') }}</button></div>
       </div>
       <div v-else-if="!data" class="panel" style="flex: 1"><div class="empty"><p>{{ $t('c.loading') }}</p></div></div>
 
+      <SuggestionsPane v-else-if="kind === 'suggestion' && auth.isKbEditor" @decided="onSuggestionDecided" />
       <!-- 队列为空 -->
       <div v-else-if="isEmpty" class="panel" style="flex: 1" data-testid="review-empty">
         <div class="empty" style="padding: 70px 24px">

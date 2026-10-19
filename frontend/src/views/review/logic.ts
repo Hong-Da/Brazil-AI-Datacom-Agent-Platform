@@ -34,7 +34,7 @@ export interface ReviewList {
 }
 
 /** 已知类型的显示顺序与配色（未知类型按原名显示，排在后面）。 */
-export const KIND_ORDER = ['card', 'schema_node', 'unknown_line', 'mapping', 'conflict', 'profile_entry'] as const
+export const KIND_ORDER = ['card', 'schema_node', 'unknown_line', 'mapping', 'conflict', 'profile_entry', 'suggestion'] as const
 export const KIND_TONE: Record<string, string> = {
   card: 'card',
   schema_node: 'node',
@@ -42,10 +42,11 @@ export const KIND_TONE: Record<string, string> = {
   mapping: 'node',
   conflict: 'conflict',
   profile_entry: 'card',
+  suggestion: 'node',
 }
 
 /** 后端已注册通过动作的类型；其他类型通过时后端会返回 review.no_action。 */
-export const APPROVABLE = new Set(['card', 'conflict', 'unknown_line'])
+export const APPROVABLE = new Set(['card', 'conflict', 'unknown_line', 'suggestion'])
 
 export function sortedKinds(counts: Record<string, number>): string[] {
   const known = KIND_ORDER.filter((k) => (counts[k] ?? 0) > 0) as string[]

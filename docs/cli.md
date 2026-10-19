@@ -303,7 +303,7 @@ lmesh --output json kb validate
 JSON 输出中的关键字段：
 
 - `data.errors` = `0`
-- `data.counts.profiles` = `4`
+- `data.counts.profiles` = `5`
 
 ### 发布知识库版本（版本号按差异自动建议）
 
@@ -436,7 +436,7 @@ lmesh --output json roundtrip --samples
 JSON 输出中的关键字段：
 
 - `data.failed` = `0`
-- `data.samples` = `22`
+- `data.samples` = `26`
 
 ### 查看配置图的 VRF 部分
 
@@ -1315,6 +1315,39 @@ JSON 输出中的关键字段：
 - `ok` = `true`
 - `data.families.nokia-sros-classic.unused_rules` = `[]`
 - `data.profiles.nokia-sros-classic-7750-25.10.manual` = `40`
+
+### Nokia MD-CLI 规范模式渲染（configure { 开头，块写成 name { … }，字符串加引号，叶子列表写成 [ … ]）
+
+```bash
+lmesh --output json render knowledge/samples/nokia-sros-md-synthetic/md-pe-basic.cfg --canonical
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.mode` = `"canonical"`
+- `data.profile` = `"nokia-sros-md-7750-25.10"`
+- `data.family` = `"nokia-sros-md"`
+- `data.uncovered` = `[]`
+- `data.lines.0.text` = `"configure {"`
+
+### Nokia MD-CLI 配置翻译成 Classic CLI（同一设备的两种格式，按名称的引用换成编号）
+
+```bash
+lmesh --output json translate knowledge/samples/nokia-sros-md-synthetic/md-pe-services.cfg --to nokia-sros-classic-7750-25.10
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.source.profile` = `"nokia-sros-md-7750-25.10"`
+- `data.target.family` = `"nokia-sros-classic"`
+- `data.verify.checked` = `true`
+- `data.verify.unexplained` = `0`
 
 ### 项目列表（--as 账号的视角）
 

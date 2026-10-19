@@ -1,0 +1,39 @@
+# 增量变更脚本（core/change.py）在 Nokia SR OS MD-CLI 上的下发习惯（M7-4，字段说明见 huawei-vrp8.yaml）。
+# MD-CLI 的修改在候选配置里进行、commit 后生效：脚本以 edit-config private（进入私有候选配置，位置在 /configure）开头，
+# commit、quit-config 结尾；块写成 “name {” … “}”（与 info 输出相同，相对 /configure）；删除用 delete <元素>（命令卡的 undo）。
+# 命令本身由规范渲染器（命令卡 + 映射规则 + knowledge/render/nokia-sros-md.yaml）生成。
+family: nokia-sros-md
+begin: [edit-config private]
+finish: [commit, quit-config]
+exit: "}"
+comment: "#"
+side_effects: []
+undo_first: []
+replace_first: [interface.ipv4]
+risk_high:
+  - interface.vrf
+  - interface.ipv4
+  - interface.shutdown
+  - interface.bind_port
+  - interface.access
+  - interface.mtu
+  - vrf.instance
+  - l2vpn.xconnect
+  - l2vpn.vsi
+  - service.sdp
+  - bgp.instance
+  - bgp.peer
+  - bgp.peer_group
+  - mpls.ldp
+  - isis.process
+  - ospf.process
+undo_extra: {}
+# 删除这些对象之前先在对象里执行的命令：与 Classic 相同，业务、SDP、SAP、接口先 admin-state disable 再 delete（已经 disable 的不再写）
+before_delete:
+  vrf.instance: admin-state disable
+  l2vpn.xconnect: admin-state disable
+  l2vpn.vsi: admin-state disable
+  service.ies: admin-state disable
+  service.sdp: admin-state disable
+  interface: admin-state disable
+  interface.access: admin-state disable

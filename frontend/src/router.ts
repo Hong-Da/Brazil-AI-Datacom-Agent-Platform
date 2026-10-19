@@ -1,6 +1,50 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { api } from '@/api'
+import { createRouter, createWebHistory, type RouteComponent, type RouteRecordRaw, type RouteLocationRaw } from 'vue-router'
+import { defineComponent } from 'vue'
+import { api, ApiError } from '@/api'
 import { useAuth } from '@/stores/auth'
+import { useProject } from '@/stores/project'
+import { legacyTarget, PROJECT_PAGES, withProject } from '@/project/scope'
+import { shouldShowUpgrade, upgradeSeen } from '@/project/upgrade'
+
+/** 项目页面（/p/<项目>/…，REQ-035）的组件；consistency 是拓扑页的另一个视图。 */
+const PROJECT_VIEWS: Record<string, () => Promise<RouteComponent | { default: RouteComponent }>> = {
+  devices: () => import('@/views/DevicesView.vue'),
+  'add-device': () => import('@/views/AddDeviceView.vue'),
+  'device-graph': () => import('@/views/DeviceGraphView.vue'),
+  'device-analysis': () => import('@/views/DeviceAnalysisView.vue'),
+  history: () => import('@/views/HistoryView.vue'),
+  'unknown-lines': () => import('@/views/UnknownLinesView.vue'),
+  compare: () => import('@/views/CompareView.vue'),
+  check: () => import('@/views/CheckView.vue'),
+  cleanup: () => import('@/views/CleanupView.vue'),
+  translate: () => import('@/views/TranslateView.vue'),
+  change: () => import('@/views/ChangeView.vue'),
+  scripts: () => import('@/views/ScriptsView.vue'),
+  'check-project': () => import('@/views/CheckProjectView.vue'),
+  migration: () => import('@/views/MigrationView.vue'),
+  impact: () => import('@/views/ImpactView.vue'),
+  topology: () => import('@/views/TopologyView.vue'),
+  consistency: () => import('@/views/TopologyView.vue'),
+  baseline: () => import('@/views/BaselineView.vue'),
+  export: () => import('@/views/ExportView.vue'),
+  'project-settings': () => import('@/views/ProjectSettingsView.vue'),
+}
+
+/** 旧网址只用来跳到当前项目的对应页面（守卫里处理），不渲染内容。 */
+const Legacy = defineComponent({ render: () => null })
+
+const projectRoutes: RouteRecordRaw[] = PROJECT_PAGES.map((p) => ({
+  path: `/p/:project/${p.path}`,
+  name: p.name,
+  component: PROJECT_VIEWS[p.name],
+  meta: { project: true, ...(p.name === 'consistency' ? { view: 'consistency' } : {}) },
+}))
+const legacyRoutes: RouteRecordRaw[] = PROJECT_PAGES.filter((p) => p.legacy).map((p) => ({
+  path: p.legacy as string,
+  name: `legacy-${p.name}`,
+  component: Legacy,
+  meta: { legacy: true },
+}))
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -9,27 +53,16 @@ export const router = createRouter({
     { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue'), meta: { bare: true } },
     { path: '/', name: 'dashboard', component: () => import('@/views/DashboardView.vue') },
     { path: '/ask', name: 'ask', component: () => import('@/views/AskView.vue') },
-    { path: '/devices', name: 'devices', component: () => import('@/views/DevicesView.vue') },
-    { path: '/graph/:id?', name: 'device-graph', component: () => import('@/views/DeviceGraphView.vue') },
-    { path: '/analysis/:id?', name: 'device-analysis', component: () => import('@/views/DeviceAnalysisView.vue') },
-    { path: '/history/:id?', name: 'history', component: () => import('@/views/HistoryView.vue') },
-    { path: '/unknown-lines', name: 'unknown-lines', component: () => import('@/views/UnknownLinesView.vue') },
-    { path: '/compare', name: 'compare', component: () => import('@/views/CompareView.vue') },
-    { path: '/check', name: 'check', component: () => import('@/views/CheckView.vue') },
-    { path: '/cleanup', name: 'cleanup', component: () => import('@/views/CleanupView.vue') },
-    { path: '/translate', name: 'translate', component: () => import('@/views/TranslateView.vue') },
+    ...projectRoutes,
+    ...legacyRoutes,
+    { path: '/projects', name: 'projects', component: () => import('@/views/ProjectsView.vue') },
+    { path: '/tokens', name: 'tokens', component: () => import('@/views/TokensView.vue') },
+    { path: '/upgrade', name: 'upgrade', component: () => import('@/views/UpgradeView.vue') },
+    { path: '/public-devices', name: 'public-devices', component: () => import('@/views/PublicDevicesView.vue'), meta: { admin: true } },
+    { path: '/admin/projects', name: 'all-projects', component: () => import('@/views/AllProjectsView.vue'), meta: { admin: true } },
     { path: '/templates', name: 'templates', component: () => import('@/views/TemplatesView.vue') },
     { path: '/generate', name: 'generate', component: () => import('@/views/GenerateView.vue') },
     { path: '/translate-rules', name: 'translate-rules', component: () => import('@/views/TranslateRulesView.vue') },
-    { path: '/change', name: 'change', component: () => import('@/views/ChangeView.vue') },
-    { path: '/check-projects', name: 'check-projects', component: () => import('@/views/CheckProjectsView.vue') },
-    { path: '/check-projects/:id', name: 'check-project', component: () => import('@/views/CheckProjectView.vue') },
-    { path: '/migration', name: 'migration', component: () => import('@/views/MigrationView.vue') },
-    { path: '/impact', name: 'impact', component: () => import('@/views/ImpactView.vue') },
-    { path: '/topology', name: 'topology', component: () => import('@/views/TopologyView.vue') },
-    { path: '/consistency', name: 'consistency', component: () => import('@/views/TopologyView.vue'), meta: { view: 'consistency' } },
-    { path: '/baseline', name: 'baseline', component: () => import('@/views/BaselineView.vue') },
-    { path: '/export', name: 'export', component: () => import('@/views/ExportView.vue') },
     { path: '/schema', name: 'schema-view', component: () => import('@/views/SchemaViewView.vue') },
     { path: '/schema/edit', name: 'schema-edit', component: () => import('@/views/SchemaEditView.vue') },
     { path: '/profiles', name: 'profiles', component: () => import('@/views/ProfilesView.vue') },
@@ -47,7 +80,14 @@ export const router = createRouter({
   ],
 })
 
+// 从非项目页面按名称跳到项目页面（{ name: 'devices' }）时补上当前项目；在项目页面之间跳转时 vue-router 自己沿用
+const { resolve, push, replace } = router
+router.resolve = ((to: RouteLocationRaw, current?: Parameters<typeof resolve>[1]) => resolve(withProject(to, useProject().slug), current)) as typeof resolve
+router.push = ((to: RouteLocationRaw) => push(withProject(to, useProject().slug))) as typeof push
+router.replace = ((to: RouteLocationRaw) => replace(withProject(to, useProject().slug))) as typeof replace
+
 let configured: boolean | null = null
+let upgradeChecked = false
 
 /** 未配置时进入向导；已配置但没登录时进入登录页；管理员页面只对管理员开放。 */
 router.beforeEach(async (to) => {
@@ -66,6 +106,36 @@ router.beforeEach(async (to) => {
   const me = await auth.load()
   if (!me) return { name: 'login', query: { next: to.fullPath } }
   if (to.meta.admin && me.role !== 'admin') return { name: 'dashboard' }
+  const project = useProject()
+  // 旧网址（/devices、/graph/12、/check-projects…）：跳到当前项目（没有时为默认项目）的对应页面
+  if (to.meta.legacy) {
+    const slug = await project.ensure()
+    return slug ? legacyTarget(to.fullPath, slug) : { name: 'projects' }
+  }
+  if (to.meta.project) {
+    const want = String(to.params.project)
+    try {
+      await project.enter(want)
+    } catch (e) {
+      // 不存在或不是成员（后端 404 不区分）：回到“我的项目”并说明
+      if (e instanceof ApiError && (e.status === 404 || e.status === 403)) {
+        project.missing = want
+        return { name: 'projects', query: { missing: want } }
+      }
+      throw e
+    }
+    return true
+  }
+  // 其他页面（首页、AI 查询、模板……）的设备数据也来自当前项目
+  await project.ensure()
+  // 升级到 0.6.0 后第一次登录：说明现有数据移入了哪些项目（每次打开网页最多检查一次；看过的账号不再查）
+  if (!upgradeChecked && to.name !== 'upgrade') {
+    upgradeChecked = true
+    if (!upgradeSeen(me.username)) {
+      const lists = project.lists ?? (await project.loadLists().catch(() => null))
+      if (shouldShowUpgrade(me.username, lists)) return { name: 'upgrade' }
+    }
+  }
   return true
 })
 

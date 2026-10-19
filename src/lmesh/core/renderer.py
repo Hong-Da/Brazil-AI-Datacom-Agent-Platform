@@ -41,12 +41,14 @@ def _render_command(st: Statement, g: nx.MultiDiGraph, kb: KnowledgeBase) -> str
             body = " ".join([ln.text.split()[0], *card.parsed.leading_keywords()])
     else:
         body = syn.render(card.parsed, m)
-    return ln.indent + body
+    return ln.indent + ln.prefix + body + ln.tail  # prefix / tail：MD-CLI 扁平格式的路径前缀与行尾花括号（M7-4）
 
 
 def render_roundtrip(g: nx.MultiDiGraph, kb: KnowledgeBase) -> str:
     out: list[str] = []
     for st in g.graph.get("statements", []):
+        if st.line.virtual:  # MD-CLI 扁平格式按路径补出的行，原文里没有
+            continue
         if st.line.kind == "command":
             out.append(_render_command(st, g, kb))
         else:

@@ -2,12 +2,17 @@
 /**
  * 配置模板（预览 DevelopDocs/ui-preview/M3/templates.html）：模板列表（GET /templates）、模板详情（GET /templates/{id}）、
  * 编辑模板文件并保存（PUT /templates/{id}，有问题时 409 与问题清单）、校验配置（POST /templates/check）、从设备生成草稿（POST /templates/draft）。
+ * M6（REQ-036，预览 DevelopDocs/ui-preview/M6/templates.html）：分“我的模板 / 共享模板”；共享模板对普通用户只读，
+ * 可复制为我的模板（POST /templates/{id}/copy）或提建议（POST /kb/suggestions）；我的模板可删除；新建默认保存为我的模板。
  */
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
-import { ApiError, errorText, get, put } from '@/api'
+import { ApiError, del, errorText, get, post, put } from '@/api'
+import { useAuth } from '@/stores/auth'
+import KbSuggest from '@/components/kb-suggest.vue'
+import { canEdit, copyId, initialTab, splitByTab, tabOf, validAssetId, type AssetTab } from './templates/scope'
 import { pickLang } from '@/i18n'
 import type { Device } from '@/views/devices/logic'
 import { msg } from '@/views/m3/texts'
@@ -21,6 +26,7 @@ type Tab = 'text' | 'check' | 'draft'
 interface ProfileLite { id: string; family: string; vendor: string }
 
 const route = useRoute()
+const auth = useAuth()
 const router = useRouter()
 const { t, locale } = useI18n()
 const lang = computed(() => String(locale.value))
@@ -33,6 +39,7 @@ const devices = ref<Device[]>([])
 const profiles = ref<ProfileLite[]>([])
 const q = ref('')
 const selId = ref<string | null>((route.query.id as string) || null)
+const listTab = ref<AssetTab>('mine')
 const tab = ref<Tab>(['text', 'check', 'draft'].includes(String(route.query.tab)) ? (route.query.tab as Tab) : 'text')
 
 async function loadList(): Promise<void> {
@@ -40,17 +47,22 @@ async function loadList(): Promise<void> {
   listError.value = ''
   try {
     list.value = (await get<{ templates: TemplateInfo[] }>('/templates')).templates
-    if (!selId.value && list.value.length && tab.value !== 'draft') selId.value = list.value[0].id
+    if (!listLoaded) { listTab.value = initialTab(list.value, selId.value); listLoaded = true }
+    const first = groups.value[listTab.value][0] ?? list.value[0]
+    if (!selId.value && first && tab.value !== 'draft') selId.value = first.id
   } catch (e) {
     listError.value = errorText(e)
   } finally {
     listLoading.value = false
   }
 }
+let listLoaded = false
+const groups = computed(() => splitByTab(list.value))
 const shown = computed(() => {
   const s = q.value.trim().toLowerCase()
-  if (!s) return list.value
-  return list.value.filter((x) => x.id.toLowerCase().includes(s) || Object.values(x.title ?? {}).some((v) => v.toLowerCase().includes(s)) || x.profile.includes(s))
+  const rows = groups.value[listTab.value]
+  if (!s) return rows
+  return rows.filter((x) => x.id.toLowerCase().includes(s) || Object.values(x.title ?? {}).some((v) => v.toLowerCase().includes(s)) || x.profile.includes(s))
 })
 
 // ---------------- 详情与编辑 ----------------
@@ -65,6 +77,11 @@ const saving = ref(false)
 const saveErr = ref('')
 const issues = ref<TemplateIssue[]>([])
 const savedMsg = ref('')
+// 共享模板对普通用户只读；我的模板（与管理员看到的别人的模板）可以删除
+const readonly = computed(() => !isNew.value && !!detail.value && !canEdit(detail.value))
+const deletable = computed(() => !isNew.value && (detail.value?.scope === 'mine' || detail.value?.scope === 'user'))
+const ownerOf = (id: string) => list.value.find((x) => x.id === id)?.owner ?? null
+const newShared = ref(false)
 const dirty = computed(() => (isNew.value ? !!yaml.value.trim() : !!detail.value && yaml.value !== detail.value.source))
 
 async function loadDetail(id: string | null): Promise<void> {
@@ -106,6 +123,7 @@ function pick(id: string): void {
 }
 function startNew(): void {
   if (dirty.value && !window.confirm(t('templates.discard'))) return
+  newShared.value = false
   const p = profiles.value[0]
   isNew.value = true
   detail.value = null
@@ -135,9 +153,12 @@ async function save(): Promise<void> {
   saveErr.value = ''
   issues.value = []
   try {
-    await put(`/templates/${encodeURIComponent(id)}`, { source: yaml.value })
+    const shared = isNew.value && auth.isKbEditor && newShared.value
+    await put(`/templates/${encodeURIComponent(id)}`, shared ? { source: yaml.value, shared: true } : { source: yaml.value })
     isNew.value = false
     await loadList()
+    const saved = list.value.find((x) => x.id === id)
+    if (saved) listTab.value = tabOf(saved)
     if (selId.value === id) await loadDetail(id)
     else selId.value = id
     savedMsg.value = t('templates.savedAs', { id })
@@ -148,6 +169,66 @@ async function save(): Promise<void> {
     saving.value = false
   }
 }
+// ---------------- 复制为我的模板、删除、提建议 ----------------
+const copyOpen = ref(false)
+const copyNew = ref('')
+const copyBusy = ref(false)
+const copyErr = ref('')
+const delOpen = ref(false)
+const delBusy = ref(false)
+const delErr = ref('')
+const suggestOpen = ref(false)
+const toast = ref('')
+function flash(m: string): void {
+  toast.value = m
+  setTimeout(() => { if (toast.value === m) toast.value = '' }, 2600)
+}
+function openCopy(): void {
+  if (!detail.value) return
+  copyNew.value = copyId(detail.value.id, list.value.map((x) => x.id))
+  copyErr.value = ''
+  copyOpen.value = true
+}
+async function doCopy(): Promise<void> {
+  if (!detail.value || !validAssetId(copyNew.value)) return
+  copyBusy.value = true
+  copyErr.value = ''
+  try {
+    const id = copyNew.value.trim()
+    await post(`/templates/${encodeURIComponent(detail.value.id)}/copy`, { new_id: id })
+    copyOpen.value = false
+    await loadList()
+    listTab.value = 'mine'
+    selId.value = id
+    flash(t('templates.copied', { id }))
+  } catch (e) {
+    copyErr.value = errorText(e)
+  } finally {
+    copyBusy.value = false
+  }
+}
+async function doDelete(): Promise<void> {
+  if (!detail.value) return
+  delBusy.value = true
+  delErr.value = ''
+  try {
+    const id = detail.value.id
+    await del(`/templates/${encodeURIComponent(id)}`)
+    delOpen.value = false
+    selId.value = null
+    await loadList()
+    flash(t('templates.deleted', { id }))
+  } catch (e) {
+    delErr.value = errorText(e)
+  } finally {
+    delBusy.value = false
+  }
+}
+function onSuggested(id: number): void {
+  suggestOpen.value = false
+  flash(t('templates.suggested', { id }))
+}
+
 const issueText = (i: TemplateIssue) => `${i.where ? i.where + '：' : ''}${msg(i.key, i.args ?? {}, lang.value)}`
 async function onDraftSaved(id: string): Promise<void> {
   await loadList()
@@ -184,11 +265,20 @@ onMounted(async () => {
       <div class="tp">
         <section class="panel tlist" aria-label="Templates">
           <div class="panel-h"><h2>{{ $t('templates.list') }}</h2><span class="meta">{{ list.length }}</span></div>
+          <div class="tabs scope-tabs" role="tablist" data-testid="tpl-scope-tabs">
+            <button type="button" role="tab" :aria-selected="listTab === 'mine'" data-testid="tpl-scope-mine" @click="listTab = 'mine'">{{ $t('templates.tabMine') }} <span class="count">{{ groups.mine.length }}</span></button>
+            <button type="button" role="tab" :aria-selected="listTab === 'shared'" data-testid="tpl-scope-shared" @click="listTab = 'shared'">{{ $t('templates.tabShared') }} <span class="count">{{ groups.shared.length }}</span></button>
+          </div>
           <div class="panel-b">
+            <p class="small faint scope-hint" data-testid="tpl-scope-hint">
+              <template v-if="listTab === 'mine'">{{ $t('templates.hintMine') }}</template>
+              <template v-else-if="auth.isKbEditor">{{ $t('templates.hintSharedEditor') }}</template>
+              <template v-else><Icon name="lock" small /> {{ $t('templates.hintSharedRo') }}</template>
+            </p>
             <label class="input-wrap" style="margin-bottom: 8px"><Icon name="search" small /><input v-model="q" class="input" type="search" :placeholder="$t('templates.search')"></label>
             <div v-if="listLoading" class="empty small">{{ $t('c.loading') }}</div>
             <div v-else-if="listError" class="notice err"><Icon name="err" /><div class="grow">{{ listError }}</div><button class="btn btn-sm" type="button" @click="loadList">{{ $t('c.retry') }}</button></div>
-            <div v-else-if="!list.length" class="empty small">{{ $t('templates.noTemplates') }}</div>
+            <div v-else-if="!groups[listTab].length" class="empty small" data-testid="tpl-empty">{{ listTab === 'mine' ? $t('templates.noMine') : $t('templates.noTemplates') }}</div>
             <div v-else data-testid="tpl-list">
               <div v-if="isNew" class="ti-row is-sel"><div class="nm">{{ $t('templates.newRow') }}</div><div class="id">{{ newId }}</div></div>
               <div
@@ -202,6 +292,8 @@ onMounted(async () => {
                   <span class="vendor"><i :class="x.family.startsWith('huawei') ? 'hw' : 'cs'">{{ x.family.startsWith('huawei') ? 'HW' : 'CS' }}</i></span>
                   <span>{{ $t('templates.varsN', { n: x.vars }) }}</span>
                   <span v-if="x.blocks">{{ $t('templates.blocksN', { n: x.blocks }) }}</span>
+                  <span v-if="x.scope === 'user'" class="tag" :title="$t('templates.ownerTip')">{{ $t('templates.ownerIs', { u: x.owner ?? '—' }) }}</span>
+                  <span v-else-if="x.scope === 'shared' && !canEdit(x)" class="ro-lock"><Icon name="lock" small /></span>
                 </div>
               </div>
             </div>
@@ -226,7 +318,16 @@ onMounted(async () => {
                 <p v-if="detail?.description && !isNew" class="small muted mt8">{{ title(detail.description) }}</p>
               </div>
               <div class="row wrap">
+                <template v-if="!editing && !isNew && detail">
+                  <span v-if="readonly" class="ro-lock" data-testid="tpl-readonly"><Icon name="lock" small />{{ $t('templates.readonly') }}</span>
+                  <span v-else-if="detail.scope === 'user'" class="tag">{{ $t('templates.ownerIs', { u: ownerOf(detail.id) ?? '—' }) }}</span>
+                  <button v-if="detail.scope !== 'mine'" class="btn btn-sm" type="button" data-testid="tpl-copy" @click="openCopy"><Icon name="copy" small />{{ $t('templates.copyMine') }}</button>
+                  <button v-if="readonly" class="btn btn-sm btn-ghost" type="button" data-testid="tpl-suggest" @click="suggestOpen = true"><Icon name="pencil" small />{{ $t('templates.suggest') }}</button>
+                  <button v-if="deletable" class="btn btn-sm btn-ghost btn-danger btn-icon" type="button" :title="$t('templates.delete')" :aria-label="$t('templates.delete')" data-testid="tpl-delete" @click="delErr = ''; delOpen = true"><Icon name="trash" small /></button>
+                </template>
                 <template v-if="editing || isNew">
+                  <label v-if="isNew && auth.isKbEditor" class="check small" :title="$t('templates.sharedTip')"><input v-model="newShared" type="checkbox" data-testid="tpl-new-shared"> {{ $t('templates.saveShared') }}</label>
+                  <span v-else-if="isNew" class="small faint">{{ $t('templates.saveMine') }}</span>
                   <button class="btn btn-sm" type="button" @click="cancelEdit">{{ $t('c.cancel') }}</button>
                   <button class="btn btn-sm btn-primary" type="button" :disabled="saving || !dirty" data-testid="tpl-save" @click="save"><Icon name="check" small />{{ saving ? $t('templates.saving') : $t('c.save') }}</button>
                 </template>
@@ -240,7 +341,7 @@ onMounted(async () => {
             <div class="td-b">
               <div v-if="saveErr" class="notice err" style="margin-bottom: 12px" data-testid="tpl-save-error"><Icon name="err" /><div class="grow">{{ saveErr }}<ul v-if="issues.length" class="issues"><li v-for="(i, k) in issues" :key="k">{{ issueText(i) }}</li></ul></div></div>
               <div v-if="savedMsg" class="notice ok" style="margin-bottom: 12px"><Icon name="ok" /><div>{{ savedMsg }}</div></div>
-              <TemplateTab v-if="tab === 'text'" v-model:yaml="yaml" :detail="isNew ? null : detail" :editing="editing" :is-new="isNew" @edit="(v) => (editing = v)" />
+              <TemplateTab v-if="tab === 'text'" v-model:yaml="yaml" :detail="isNew ? null : detail" :editing="editing" :is-new="isNew" :readonly="readonly" @edit="(v) => (editing = v)" />
               <CheckTab v-else-if="tab === 'check' && detail" :detail="detail" :devices="devices" :yaml="yaml" :dirty="dirty" />
             </div>
           </template>
@@ -250,6 +351,43 @@ onMounted(async () => {
         </section>
       </div>
     </div>
+
+    <div v-if="copyOpen && detail" class="modal-back" data-testid="tpl-copy-dialog" @click.self="copyOpen = false" @keydown.esc="copyOpen = false">
+      <form class="modal" style="width: min(480px, 100%)" role="dialog" aria-modal="true" novalidate @submit.prevent="doCopy">
+        <div class="modal-h"><h2>{{ $t('templates.copyTitle') }}</h2><button class="btn btn-ghost btn-icon" type="button" :aria-label="$t('c.close')" @click="copyOpen = false"><Icon name="x" /></button></div>
+        <div class="modal-b" style="display: flex; flex-direction: column; gap: 12px">
+          <p class="small muted">{{ $t('templates.copyNote', { id: detail.id }) }}</p>
+          <div class="field">
+            <label for="tplCopyId">{{ $t('templates.copyId') }}</label>
+            <input id="tplCopyId" v-model="copyNew" class="input mono" spellcheck="false" data-testid="tpl-copy-id">
+            <span v-if="copyNew && !validAssetId(copyNew)" class="hint" style="color: var(--red-ink)">{{ $t('templates.badId') }}</span>
+          </div>
+          <div v-if="copyErr" class="notice err"><Icon name="err" /><div class="grow small">{{ copyErr }}</div></div>
+        </div>
+        <div class="modal-f">
+          <button class="btn" type="button" @click="copyOpen = false">{{ $t('c.cancel') }}</button>
+          <button class="btn btn-primary" type="submit" :disabled="copyBusy || !validAssetId(copyNew)" data-testid="tpl-copy-ok"><Icon name="copy" small />{{ $t('templates.copyMine') }}</button>
+        </div>
+      </form>
+    </div>
+
+    <div v-if="delOpen && detail" class="modal-back" data-testid="tpl-delete-dialog" @click.self="delOpen = false" @keydown.esc="delOpen = false">
+      <div class="modal" style="width: min(440px, 100%)" role="dialog" aria-modal="true">
+        <div class="modal-h"><h2>{{ $t('templates.deleteTitle') }}</h2><button class="btn btn-ghost btn-icon" type="button" :aria-label="$t('c.close')" @click="delOpen = false"><Icon name="x" /></button></div>
+        <div class="modal-b">
+          <p>{{ $t('templates.deleteNote') }}</p>
+          <p class="mt8"><b class="mono">{{ detail.id }}</b></p>
+          <div v-if="delErr" class="notice err mt12"><Icon name="err" /><div class="grow small">{{ delErr }}</div></div>
+        </div>
+        <div class="modal-f">
+          <button class="btn" type="button" @click="delOpen = false">{{ $t('c.cancel') }}</button>
+          <button class="btn btn-danger-solid" type="button" :disabled="delBusy" data-testid="tpl-delete-ok" @click="doDelete"><Icon name="trash" small />{{ $t('templates.delete') }}</button>
+        </div>
+      </div>
+    </div>
+
+    <KbSuggest v-if="suggestOpen && detail" :target="`template:${detail.id}`" kind="other" @close="suggestOpen = false" @submitted="onSuggested" />
+    <div v-if="toast" class="toast" role="status" data-testid="tpl-toast"><Icon name="check" small /><span>{{ toast }}</span></div>
   </main>
 </template>
 
@@ -257,6 +395,10 @@ onMounted(async () => {
 .tp { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 14px; align-items: start; }
 @media (max-width: 1100px) { .tp { grid-template-columns: minmax(0, 1fr); } }
 .tlist .panel-b { padding: 8px; }
+.scope-tabs { margin: 0; padding: 0 8px; }
+.scope-tabs .count { font-size: 11px; color: var(--ink-3); }
+.scope-hint { display: flex; align-items: center; gap: 4px; margin: 0 2px 8px; }
+.ro-lock { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink-3); }
 .ti-row { display: block; padding: 9px 10px; border-radius: 6px; cursor: pointer; border: 1px solid transparent; }
 .ti-row + .ti-row { margin-top: 2px; }
 .ti-row:hover { background: var(--surface-2); }

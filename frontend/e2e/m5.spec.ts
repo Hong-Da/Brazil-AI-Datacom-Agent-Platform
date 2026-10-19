@@ -128,7 +128,8 @@ test('AI 查询（未配置 AI）：降级说明 + 校验粘贴的配置（拦�
 test('AI 查询（假 AI）：三步过程、引用角标、逐句核对、更正文字、发送内容', async ({ page }) => {
   await login(page)
   await page.route('**/api/v1/ask/status', (r) => r.fulfill({ json: { code: 0, message: 'ok', data: FIX.status } }))
-  await page.route('**/api/v1/ask', (r) => r.fulfill({ json: { code: 0, message: 'ok', data: FIX.ask } }))
+  // AI 查询属于项目接口（M6）：/api/v1/projects/<项目>/ask
+  await page.route(/\/api\/v1\/(projects\/[^/]+\/)?ask$/, (r) => r.fulfill({ json: { code: 0, message: 'ok', data: FIX.ask } }))
   await page.goto('/ask')
   await expect(page.getByTestId('ask-on')).toBeVisible()
   await page.getByTestId('ask-input').fill(FIX.ask.question)

@@ -18,6 +18,8 @@ export interface Rules {
 export interface RuleSetInfo {
   id: string; title?: Texts; description?: Texts; from?: string | null; to?: string | null; builtin: boolean; file: string
   counts?: { names: number; naming: number; ports: number }; valid?: boolean; issues?: Issue[]; updated?: number
+  /** 归属（M6）：builtin 内置 / shared 共享 / mine 我的 / user 别人的（管理员可见）；editable 是否可修改 */
+  scope?: 'builtin' | 'shared' | 'mine' | 'user'; owner?: string | null; editable?: boolean
 }
 export interface RuleSetDetail extends RuleSetInfo { rules: Rules; source: string }
 export interface TypeInfo { id: string; domain: string; title: Texts }

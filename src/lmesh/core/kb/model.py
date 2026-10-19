@@ -212,6 +212,9 @@ class Profile:
     entries: dict[str, ProfileEntry] = field(default_factory=dict)
     side_effects: list[DepRule] = field(default_factory=list)
     implicit: list[str] = field(default_factory=list)  # 被引用时隐式创建的对象类型（派生节点），例如 ASR 920 的桥域
+    # M7-4：复用另一个平台族 Profile 的人工条目（缺省值、when、assume、show_rule）——同一设备软件的两种配置格式
+    # （Nokia MD-CLI 复用 Classic），缺省值只维护一份；支持情况与命令卡仍按本平台族汇总
+    defaults_from: str | None = None
 
 
 @dataclass

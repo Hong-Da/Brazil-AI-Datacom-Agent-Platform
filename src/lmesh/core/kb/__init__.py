@@ -91,6 +91,20 @@ class KnowledgeBase:
             for node, e in p.entries.items():
                 merged[node] = ProfileEntry(**{**e.__dict__, "origin": pid})
             side.extend(p.side_effects)
+        src = base.defaults_from
+        if src and src in self.profiles and src != profile_id and not self.profiles[src].defaults_from:
+            # M7-4：复用另一个平台族 Profile 的人工条目（缺省值、条件、assume）；本 Profile 自己的人工条目优先，
+            # 自动汇总的条目只提供支持情况与命令卡
+            for node, e in self.resolve_profile(src).entries.items():
+                if not e.manual:
+                    continue
+                own = merged.get(node)
+                if own is None:
+                    merged[node] = ProfileEntry(**{**e.__dict__, "cards": [], "origin": src})
+                elif not own.manual:
+                    merged[node] = ProfileEntry(
+                        **{**e.__dict__, "supported": own.supported, "cards": list(own.cards), "origin": own.origin}
+                    )
         return Profile(
             id=base.id,
             vendor=base.vendor,
@@ -99,6 +113,7 @@ class KnowledgeBase:
             platform=base.platform,
             software=base.software,
             inherits=base.inherits,
+            defaults_from=base.defaults_from,
             match=base.match,
             title=base.title,
             entries=merged,
@@ -280,6 +295,7 @@ def _load_profile(kb: KnowledgeBase, f: Path, issues: list[Issue]) -> None:
             platform=str(doc.get("platform", "")),
             software=str(doc.get("software", "")),
             inherits=doc.get("inherits"),
+            defaults_from=doc.get("defaults_from"),
             match={str(k): str(v) for k, v in (doc.get("match") or {}).items()},
             title=str(doc.get("title", "")),
         )
