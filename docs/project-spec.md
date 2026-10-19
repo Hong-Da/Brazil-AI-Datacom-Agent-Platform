@@ -56,7 +56,11 @@
 | REQ-031 | 配置检查项目：用户创建项目（一台设备 + 多份脚本，脚本可以是下发用的变更脚本或完整配置），在页面编辑器中边写边查，问题标在对应行；可开启 / 关闭配置顺序核查 | 用户 2026-10-18 | M4 补充 | `core/script_check.py`、`/api/v1/check-projects`、CLI `lmesh script-check`、配置检查项目页 | 进行中 | 设计见“配置检查项目（REQ-031）”一节 |
 | REQ-032 | 配置翻译自定义规则：命名规范、名称映射（支持模糊规则）、端口映射规则；翻译、割接迁移、批量生成共用 | 用户 2026-10-18 | M4 补充 | `core/naming.py`、规则集文件、`/api/v1/translate-rules`、CLI `--rules`、翻译页规则编辑与预览 | 进行中 | 设计见“翻译自定义规则（REQ-032）”一节 |
 | REQ-033 | 内置 AI skill：内置 AI 的能力以 skill 形式管理；管理员有 skill 管理界面；提供 skill 学习进化功能 | 用户 2026-10-18 | M5 补充 | `core/skills.py`、`knowledge/ai-skills/`、`data/ai-skills/`、`/api/v1/ai/skills`、CLI `lmesh skill`、skill 管理页 | 进行中 | 设计见“内置 AI skill（REQ-033）”一节 |
-| REQ-034 | 设备配置分析：结构化脚本显示、配置分层视图、TCP/IP 模型视图、配置关系视图（图结构）与分析摘要，集中在一个页面 | 用户 2026-10-18 | M5 补充 | `core/layers.py`、`knowledge/layers.yaml`、`/api/v1/devices/{id}/analysis`、设备配置分析页 | 进行中 | 设计见“设备配置分析（REQ-034）”一节 |
+| REQ-034 | 设备配置分析：结构化脚本显示、配置分层视图、TCP/IP 模型视图、配置关系视图（图结构）与分析摘要，集中在一个页面 | 用户 2026-10-18 | M5 补充 | `core/layers.py`、`core/config_analysis.py`、`knowledge/layers.yaml`、`/api/v1/devices/{id}/analysis`、`POST /api/v1/analysis`、`lmesh analyze`、设备配置分析页 | 已实现（预览待评审） | 设计与实现结果见“设备配置分析（REQ-034）”一节 |
+| REQ-035 | 用户工作空间与项目：每个账号有独立的工作空间，可创建项目，每个项目有自己的设备与脚本；公共设备库；项目成员；个人 API 令牌 | 用户 2026-10-19 | M6（0.6.0） | 数据库（工作空间、项目、成员、公共设备库）、所有设备相关接口按项目隔离、项目切换器 | 待开发 | 设计见“用户工作空间与项目（REQ-035）”一节，经用户确认 |
+| REQ-036 | 权限模型：新增“知识库维护员”角色；知识库与共享的规则、基线、模板只有管理员和维护员可改，普通用户只读并可提交建议；用户可建私有模板、在项目中调整规则；全部设备重新解析仅管理员 | 用户 2026-10-19 | M6（0.6.0） | 角色、权限检查、审核队列“建议”、项目级规则覆盖 | 待开发 | 设计见“权限模型（REQ-036）”一节，经用户确认 |
+| REQ-037 | 接入 Nokia 7750 SR（SR OS）：Classic CLI 与 MD-CLI 两种格式，映射到统一 Schema，支持解析、往返、对比、检查、翻译等 | 用户 2026-10-19 | M7（0.7.0） | `knowledge/` 新平台族、解析器 MD-CLI 分块扩展、Profile | 进行中 | 文档与知识准备先行，与 M6 并行 |
+| REQ-038 | 删除设备与单个配置版本（确认对话列出连带删除的内容；被配置检查项目作基线时提示；最后一个版本不能单独删除）；CLI `lmesh device delete`、`DELETE /api/v1/devices/{id}`；所有登录账号都可删除（删除记入日志），M6 起项目属主与“可编辑”成员可删除项目内的设备与配置（只读成员不可，公共设备库仅管理员，引用的公共设备为解除引用） | 用户 2026-10-19 | M5 补充（问题修复） | 设备接口、设备列表与版本历史页 | 待开发 | 用户确认现在做；用户随后要求每个用户都可以删除项目下的配置 |
 
 ## 待确认
 
@@ -76,7 +80,7 @@
 - A4 文本编码：UTF-8（bat 文件 UTF-8 无 BOM + chcp 65001 + CRLF）【默认】
 - A5 编码行为准则：Karpathy guidelines（已安装）【默认】
 - A6 一键运行脚本：`start.bat` / `start.sh`【默认】
-- A7 版本号：语义化版本（用户已确认）。M1 开发期间用 `0.0.x`，M1 验收打 `0.1.0`，M2–M5 依次对应 `0.2.0`–`0.5.0`；开发阶段完成、新需求、问题修复升修订号【默认 + 第二轮 Q8】
+- A7 版本号：语义化版本（用户已确认）。M1 开发期间用 `0.0.x`，M1 验收打 `0.1.0`，M2–M7 依次对应 `0.2.0`–`0.7.0`（M6、M7 为用户 2026-10-19 新增）；开发阶段完成、新需求、问题修复升修订号【默认 + 第二轮 Q8】
 - A8 文档语言：中文【用户修改】
 
 ## 技术栈
@@ -952,6 +956,7 @@ lmesh/
 │   ├── export/                 审计表格导出的预置模板
 │   ├── templates/              配置模板
 │   ├── translate-rules/        翻译规则集的内置示例（用户的在 data/translate-rules/）
+│   ├── ai-skills/              内置 AI skill 定义（管理员修改的版本在 data/ai-skills/；REQ-033）
 │   └── samples/                已脱敏的配置样本与往返期望结果
 ├── assets/brand/               Logo 源文件与导出的图标
 ├── docs/
@@ -1016,6 +1021,7 @@ lmesh/
 - 会话：登录成功后发放 32 字节随机令牌，只放在 Cookie `lmesh_session`（HttpOnly、SameSite=Strict、Path=/，HTTPS 访问时加 Secure，Max-Age = `security.session_hours` 小时），数据库只存 SHA-256；固定有效期，不滑动续期。停用账号、重置密码时该账号全部会话失效；自己改密码时除当前会话外全部失效；创建新会话时顺便清理过期会话。
 - 认证依赖：`api/common.py` 的 `require_token` 同时接受 Bearer 令牌（视为管理员，显示名 `api-token`）与会话 Cookie，带了 `Authorization` 头时以令牌为准（令牌错误直接 401，不再看 Cookie）；`require_admin` 用于管理员接口：`/users*`、`GET /config`、`GET|PUT /ai/settings`、`POST /ai/test`、`POST /kb/releases`、`POST /kb/rollback`，普通用户返回 403（新错误码 1006）。知识库包导入、审核、Schema 与 Profile 编辑仍对普通用户开放。
 - 第一个管理员：Web 向导在确认页之前新增“管理员账号”一步（`POST /setup` 的 `admin` 字段，校验错误键 `admin.username` / `admin.password`），提交后直接以该管理员登录；没有账号的旧安装，登录页（`GET /auth/status` 的 `has_users` 为 false 时）改为“API 令牌 + 管理员用户名与密码”，调用 `POST /auth/bootstrap` 一次创建并登录，已有账号后该接口返回 409；也可用 `lmesh user add <名称> --role admin`。命令行向导 `lmesh setup` 不创建账号，完成后用 `lmesh user add`。
+- 第一个管理员的提示（用户 2026-10-18 反馈修复，决策 D-0166）：还没有账号时 `GET /auth/status` 另返回 `config_file`（实例实际读取的配置文件绝对路径，受 `LMESH_ROOT` 与 `--config` 影响）与 `token_set`（是否设置了 API 令牌，不返回令牌内容），有账号后不再返回；登录页在提示中显示实际路径，`token_set` 为 false 时不显示令牌输入框，改为说明在服务器上运行 `lmesh user add <用户名> --role admin`，或在该配置文件中设置 `security.api_token` 后重启服务再刷新本页。
 - 管理员保护：最后一个启用的管理员不能停用、降级、删除（409 / 退出码 1）；网页会话不能停用、降级或删除自己（409）。
 - 新配置项（`[security]`，向导“安全”一步与 `config/config.example.toml` 同步）：`session_hours = 12`（1–720）、`login_max_failures = 5`（1–100）、`login_lock_minutes = 15`（1–1440）。
 - 日志：`lmesh.auth` 记录登录成功、失败（含第几次）、锁定、被拒（停用 / 锁定中）、登出、创建 / 停用 / 启用 / 改角色 / 重置密码 / 删除账号、用令牌创建第一个管理员，带客户端地址；不记录密码与令牌。
@@ -1150,6 +1156,51 @@ ports:                       # 端口映射：按顺序，第一条命中生效
 - 未配置 AI 时：管理界面仍可查看与编辑，试运行与进化不可用并说明原因；核心功能照常。
 
 
+### 实现结果（REQ-033 后端）
+
+代码：`core/skills.py`（skill 模型、内置定义与管理员版本、保存 / 回滚 / 恢复内置、渲染、调用记录、反馈、回归集与候选示例、统计、进化记录）、`core/skill_runners.py`（每个 skill 的运行器：渲染 + 代码校验；试运行、回归运行、进化）、`api/routes_skills.py`（`/api/v1/ai/skills`）、`cli/cmd_skill.py`（`lmesh skill list|show|test|versions|rollback|evolve|approve`）；表 `skill_runs`、`skill_cases`、`skill_evolutions`（迁移 `0006_ai_skills`，接在 `0005` 之后）；新配置项 `ai.skill_log_days = 90`（1–3650，向导“AI 接口”一步与 `config/config.example.toml` 已同步）。预览页 `DevelopDocs/ui-preview/REQ-033/`（评审前先编码，D-0146）。实现中的取舍见决策 D-0153～D-0159。
+
+**内置 skill**（`knowledge/ai-skills/*.yaml`，只读，D-0147）：
+
+| 编号 | 能力 | 任务（模型配置键） | 必须通过的代码校验 |
+|---|---|---|---|
+| `card-extract` | 文档导入时修正命令卡语法（`core/ingest/service.py`） | `extract`（`ai.model_extract`） | 命令语法解析器能解析 |
+| `ask-query` | 问答第一步：写图查询（`core/ask.py`） | `ask`（`ai.model_ask`） | 查询语法、对象类型、字段路径、设备名 |
+| `ask-answer` | 问答第二步：只根据结果组织回答 | `ask`（`ai.model_ask`） | 逐句核对 facts / count |
+| `config-generate` | 配置生成（经护栏） | `generate`（`ai.model_generate`） | 护栏：解析、入图、依赖、冲突 |
+| `script-review` | 配置检查项目的 AI 一起校验（`core/script_check_ai.py`） | `script_check`（默认模型） | 规则、行、入图、适用对象、代码断言、证据 |
+| `skill-evolve` | 进化用的元 skill | `merge`（`ai.model_merge`） | 回复是规定的 JSON，候选保留全部变量 |
+
+**定义**：`id`、`version`（内置版本号）、三语 `title` / `description`、`task`、`used_by`、`enabled`、`system`、`prompt`、`templates`（附加模板：问答与生成的 `retry`）、`variables`（变量名、所在模板、三语说明）、`examples`（few-shot）、`tools`（gquery / schema / guard / rules / syntax / sanitize，说明性）、`output`（`format` json / text / config、`schema`）、`checks`（只读，由代码实现）、`samples`（试运行样例：输入 + 示例回复，每个 skill 一条通过、一条被拦截 / 被更正）。提示词里 `{变量}` 由代码填入，只替换登记过的变量名，其余花括号原样保留，`{{` / `}}` 是字面花括号；取值中的花括号不再展开。示例不为空时以 `Examples:` 块附在系统提示词之后。
+
+**行为一致**：四项能力的提示词全部改为从生效的 skill 读取；内置定义由改造前的代码常量生成，`tests/unit/test_skills.py::test_builtin_prompts_identical_to_previous_code` 用逐字复制的旧常量与旧拼接函数比对系统提示与正文（含重试、空脚本等边界），原有测试全部通过。生成内置文件后，四个模块里的提示词常量删除（`_Q_SYSTEM`、`_A_SYSTEM`、`_G_SYSTEM`、`script_check_ai.SYSTEM`、`ingest.AI_SYSTEM`）。
+
+**版本**：管理员保存 → `data/ai-skills/<编号>/versions/0001.yaml …`（只存可编辑字段 + `meta`：版本号、时间、作者、来源 edit / example / evolution、说明、基于哪个版本、进化编号），并设为生效；内容与生效版本相同时不新建版本。生效状态 `state.yaml`（`active`、`enabled`）；回滚只改指针、不新增版本，恢复内置 = 指向 builtin，版本文件不删除；生效的版本文件丢失时退回内置版本并写日志。保存时校验：系统提示与模板非空且不超过 50000 字、模板名与内置一致（不能增删）、不能出现未登记的变量（422 列出问题）；去掉了原来用到的变量只提醒（`warnings`，AI 会少一部分上下文）。停用 skill：问答与生成返回 409（`data.status: skill_disabled`），脚本审查 `ai.status = skill_disabled`，命令卡抽取跳过 AI；其余功能不受影响。
+
+**调用记录与反馈**（D-0149）：每次实际调用 AI 记一条 `skill_runs`——skill、版本、来源（ask / generate / ingest / script_check；test 试运行、regression 回归、evolve 进化不计入统计）、调用者（网页账号编号与用户名，令牌为 `api-token`，命令行为 `cli:<系统用户>`）、代码校验结论（passed 通过 / corrected 被更正 / rejected 被拦截 / unverifiable 无法校验 / error 调用失败）、输入（重建提示所需的变量）、回复、校验明细、模型与 token；输入与回复写入前经 `ask.sanitize_text` 脱敏（同一密钥，脱敏是幂等的，回归运行再发送时不会二次变形）。结论的取法：查询每次尝试一条（校验通过 / 拦截）；回答按核对汇总（有被更正 → corrected，有通过 → passed，否则 unverifiable）；生成每轮一条（护栏通过 / 拦截）；脚本审查有被拦截的发现 → rejected，只有无法校验的 → unverifiable，其余 passed；命令卡抽取按能否解析。结果中 `skill_runs`（问答、生成）与 `ai.skill_run`（脚本审查；进程内缓存命中时沿用上次的记录）给出记录编号。反馈 `POST /ai/skills/feedback`：点赞 / 点踩 / 更正，`rating` 为空且没有更正时撤销；普通账号只能评价自己发起的调用（令牌发起的调用任何账号都可评价）。超过 `ai.skill_log_days` 天的调用记录在写入时顺带清理（每个数据库每小时最多一次）。
+
+**回归集与候选示例**：线上调用被拦截或被更正时自动加入该 skill 的回归集；点踩、用户更正也加入（更正写在 `expect`）；校验通过且点赞的成为候选示例；同样的输入只留一条（按输入的哈希），每种最多 200 条；案例保存输入、回复与明细的副本，不随调用记录清理。案例“加入示例”：输入为当前版本渲染出的正文（脱敏后），输出取更正、没有时取原回复，形成来源为 example 的新版本。
+
+**试运行**：样例 / 回归案例 / 手填输入，可带未保存的草稿定义（版本显示 `draft`）或指定版本；`mode: ai` 真实调用（未配置 AI 时 409），`mode: replay` 用样例或案例记下的回复（或给出的回复）走一遍渲染与代码校验，不需要 AI（“未配置 AI 时用假客户端演示流程”按回放实现）。回归运行不重新建图：问答查询按当前知识库与数据库中的设备校验；回答按记下的查询结果核对；生成按设备名取数据库中该设备的最新配置作为护栏基准（没有时按空配置）；脚本审查按记下的行类型、勾选的规则、调用时与图有关的拦截结论（not_in_graph / target_mismatch / code_disagrees，代码同样报出的记为 confirmed）与证据核对。
+
+**进化**（D-0148）：管理员发起（需要配置 AI，回归集至少 1 条，skill-evolve 本身不能进化）→ skill-evolve 读取当前定义与最近 N 条回归案例（输入、回复、校验结论、更正，均为脱敏后）→ 返回候选的 system / prompt / templates / examples 与改动说明 → 代码检查候选保留了原模板中的全部变量并通过定义校验（不通过时进化记为 failed，不进入待批准）→ 回归集每条案例分别用旧版本与候选各调用一次，按代码校验打分（通过 1、无法校验 0.5、其余 0），记录每条的旧 / 新结论、得分与变好 / 变差 / 不变 → 存为 pending。管理员批准后候选保存为来源 evolution 的新版本并生效，放弃只改状态；已处理过的再次决定返回 409。API 默认后台任务（`task_id`，`GET /tasks/{id}` 轮询），`wait: true` 时同步返回；CLI 同步执行。
+
+**测试**：单元 `tests/unit/test_skills.py`（提示词逐字回归、渲染、版本 / 回滚 / 恢复内置 / 校验、调用记录与反馈与统计与清理（SQLite 与 PostgreSQL）、脱敏、五个 skill 的回放样例、线上问答与生成的记录与停用、进化打分与批准、候选变量丢失时失败、案例加入示例，AI 都是假的客户端）；CLI 用例 `tests/cases/cli_cases.skills.toml`；API 用例 `tests/cases/api_cases.skills.toml`（普通账号 403、反馈对普通账号开放）与 `tests/api/test_skills_api.py`（假的 AI：问答 → 普通账号反馈 → 回归集与统计、试运行、同步与后台任务进化、批准、回滚，生成与停用）。
+
+**已知限制**：`tools` 只是说明，代码按每个 skill 固定的流程调用工具，改动不影响实际行为；脚本审查的回归运行不重新建图，用调用时的结论近似；进化只改提示词与示例，不改输出格式与代码校验；统计按调用条数计，一次问答的两步分别计入两个 skill；一次进化在回归集上的调用次数是案例数的 2 倍，加 1 次提出候选。
+
+
+### 实现结果（REQ-033 界面）
+
+按预览页 `DevelopDocs/ui-preview/REQ-033/` 实现（评审前先编码，D-0146）。导航“系统”组（仅管理员）新增“AI skill”：`/ai-skills`（列表）与 `/ai-skills/:id?tab=def|test|stats|cases|versions|evolve`（详情），普通用户直接打开回到首页。代码：`frontend/src/views/AiSkillsView.vue`、`AiSkillView.vue`、`views/ai-skills/`（定义、试运行、统计、回归集、版本、进化六个标签页，变量高亮编辑器 `PromptEditor.vue`、差异 `DiffList.vue`，纯逻辑 `logic.ts` 与 vitest），反馈组件 `components/ai-feedback.vue`，样式 `styles/req033.css`（明暗两套），文案 `i18n/pages/ai-skills.json`（三语）。
+
+- 列表：skill 数、近 30 天调用、平均通过率、待批准进化；每行启用开关（停用前确认）、生效版本、调用数、通过率条、被拦截比例、评价、回归集与候选数；未配置 AI 时顶部说明。
+- 定义：系统提示词与模板编辑时高亮 `{变量}`，未登记的变量标红且不能保存；示例增删排序、工具、输出格式、只读的代码校验；保存说明写入版本历史。试运行：样例 / 回归案例 / 手填 JSON 输入，真实 AI 或回放（未配置 AI 时只能回放），显示发送内容、回复与逐项校验。统计：7 / 30 / 90 天每日堆叠条、按版本表、最近调用（详情弹窗读取单次调用）。回归集与候选：入集原因、加入示例、删除。版本：时间线、两版本逐字段对比（统一 / 并排）、回滚与恢复内置（只改生效指针）。进化：步骤条、后台任务进度、候选与基础版本差异、AI 说明（标明来自 AI）、回归集逐条新旧对比与总分、批准发布 / 放弃；未配置 AI 或回归集为空时不可用并说明原因。
+- 反馈按钮（点赞 / 点踩 / 更正，可撤销）：AI 查询的回答下（记在回答一步）、AI 生成配置结果下（记在最终轮）、配置检查项目 AI 一起校验的摘要处（一次检查一组）。
+- 与预览页的差异：版本与进化做成详情页的标签页；回滚不新增版本记录、没有说明框；去掉“每天生效的版本色带”（后端没有），换成按版本表；调用记录没有“问题”列（列表接口不带输入摘要），改为详情弹窗；进化不显示模型名、运行中只显示任务百分比与当前步骤；工具只显示名称；配置检查项目的反馈按次检查而不是按每条 AI 发现。
+- 测试：vitest `views/ai-skills/logic.test.ts`；e2e `frontend/e2e/req033.spec.ts`（管理员：列表 → 编辑保存为 v1 → 未配置 AI 时进化不可用、试运行只能回放 → 版本对比 → 恢复内置 → 回滚；普通用户看不到入口），`playwright.req033.config.ts` 用独立端口（后端 9333、Vite 5333）与独立数据目录 `tests/output/e2e-req033-root`，后端由 `frontend/e2e/req033_server.py` 启动（`--fake-ai` 用假 AI 供本地查看“已配置”状态）。
+
+
 ## 设备配置分析（REQ-034）
 
 用户 2026-10-18 提出：设备配置分析，结构化脚本显示，查看配置分层视图、TCP/IP 模型视图、配置关系视图（图结构）等。自动模式下按以下推荐做法实现（决策 D-0150 起），用户回来后可改。
@@ -1161,3 +1212,117 @@ ports:                       # 端口映射：按顺序，第一条命中生效
   4. 配置关系视图：沿用关系图谱（力导向，可拖动），另加按 TCP/IP 层分带的布局。
   5. 分析摘要：各功能域对象数量、配置检查发现、未识别行与原文行数量、依赖默认值的关键配置、安全基线得分、与上一版本相比的变化；每项可跳到对应视图。
 - 计算都在后端由代码完成（`core/layers.py` 与分析接口），前端只负责显示；不需要 AI。
+
+### 实现结果（REQ-034）
+
+- 层的归类（决策 D-0160、D-0161）：`knowledge/layers.yaml` 分 `layers`（自下而上 physical、datalink、mpls（2.5 层）、network、transport、application，三语名称与说明）、`features`（QoS、时钟同步：按编号前缀 `match` 标记，`span` 是作用的层）、`objects`（每个对象类型必须登记，现有 112 个全部登记）、`attrs`（作用层与所属对象不同的属性，例如 `interface.vrf` 在网络层、`interface.mtu` 在数据链路层、BGP 计时器在传输层、路由协议里的 SR 参数在 2.5 层）、`keys`（同一对象按键正则细分，不分大小写：子接口与 Eth-Trunk / Port-channel 在数据链路层，LoopBack / Vlanif / VBDIF / BDI / Tunnel 在网络层）、`domains`（功能域缺省层，只在对象没有登记时兜底）。`core/layers.py` 计算：对象按 objects + keys，属性按 attrs 否则跟随所属对象，ext / raw / unknown 跟随所属对象（不在对象下的原文行不归层，计入 `outside`）；跨层依赖 = 引用与前置依赖边两端所属的对象、以及包含关系中的父子对象，层不同的按（对象对, 边类型）合并计数，副作用与互斥不算。`lmesh kb validate` 对没有登记的对象给警告 `layers.unclassified`（运行时知识库没有 layers.yaml 时用程序自带的，此时不报“登记了不存在的节点”）。
+- 接口（决策 D-0162）：`GET /api/v1/devices/{id}/analysis?parts=summary,layers,script,graph&version_id=&defaults=true` 与 `POST /api/v1/analysis`（文本），`parts` 写错 422，没有能解析该配置的 Profile 时 422；CLI `lmesh analyze <文件|设备名> [--part summary|layers|script]… --output json`（默认 summary 与 layers）。实现在 `core/config_analysis.py`（摘要、结构化脚本）与 `core/layers.py`，CLI 与 API 共用。
+- 分析摘要：`lines`（各类行数与覆盖率）、`domains`（各功能域对象 / 显式属性 / 默认值 / 涉及行数）、`layers`、`cross_layer`、`dangling`、`defaults`（依赖默认值的关键配置：取值来自 Profile 默认值、而其他平台族默认值不同的属性，决策 D-0163）、`unknown_lines`、`check`（与配置检查相同的规则、内置检查覆盖与设备的忽略记录，列前 20 条）、`baseline`（basic 基线的得分与不符合项；基线文件有错时为 null）、`history`（与上一快照相比的对象级变化，第一个版本时 previous 为 null；文本分析时为 null）。
+- 结构化脚本（决策 D-0164）：每行 `no`、`kind`、`text`、`depth`、`parent`、`node`（这一行产生的最深节点）、`layer`、`domain`、`card`、`spans`（`s` / `e` 字符区间、`t` kw / param / ref、`p` 参数名、`ref` 引用目标）；`refs`（目标 → 引用行）、`defs`（目标 → 定义行，隐式对象为 null）、`defaults`（隐藏的默认值：所属对象、插在哪一行之后、该平台的命令写法）。区间按命令卡匹配出的参数取值在原文中定位，不重复解析；默认值行的写法取规范渲染 include_defaults 的结果（现网 ATN 约 2 秒，`defaults=false` 时约 0.5 秒）。
+- 界面（决策 D-0165，预览 `DevelopDocs/ui-preview/REQ-034/`）：导航“设备配置”组新增“设备配置分析”（`/analysis/:id`，query `view`、`node`、`line`），设备列表每行与设备配置图页头有入口。五个页签 + 右侧常驻“选中对象”面板（命令写法随显示风格、规范编号、层与跨层特性、配置行、被引用处、定义行、跨层依赖、在其他视图中查看），选中跨页签保持并自动定位。结构化脚本虚拟滚动（只渲染窗口内的行，现网 2267 行渲染约 50 行）、折叠 / 全部折叠、按功能域筛选、显示默认配置（REQ-028 样式）、点引用跳到定义并闪烁；配置分层复用设备配置图的树状图（华为按视图、Cisco 按功能域）；TCP/IP 模型六条横带（应用在上，2.5 层斜纹缩进），同层子对象由父对象代表，作用层不同的属性单独成组，跨层依赖按对象类型汇总画细线、选中对象画自己的带箭头连线并描边对端，右侧竖条是 QoS、时钟同步；配置关系复用关系图谱组件（`ForceGraph` 新增 `layout="bands"`、`bands`、`colorOf`），“按层分带”用预设位置网格与每层背景带，跨层的引用 / 前置依赖橙色加粗；分析摘要六格与各段列表都可跳到对应视图或脚本行。层的颜色 `--ly-*` 借用功能域分类色，明暗两套。
+- 测试：`tests/unit/test_layers.py`（全部 Schema 对象已归层、未归层提示、按键细分、跨层边、现网样本分层、区间与引用、默认值行位置、摘要数值、跨平台默认值）、`tests/cases/cli_cases.analysis.toml`、`tests/cases/api_cases.analysis.toml`、前端 `src/views/device-analysis/*.test.ts`、端到端 `frontend/e2e/req034.spec.ts`（从设备列表进入 → 点引用跳到定义 → TCP/IP 选中与跨层描边 → 关系视图按层分带联动 → 摘要跳回脚本；现网大配置虚拟滚动、显示风格切换、暗色主题）。
+
+
+## 用户工作空间与项目（REQ-035）
+
+用户 2026-10-19 提出：每个账号有单独的用户工作空间数据，可以创建项目，每个项目有单独的脚本。以下设计经用户在对话中确认（【用户确认】），排期为新里程碑 M6（0.6.0），M5 开发收尾后开始，先做预览页确认再编码。
+
+- 三层结构：
+  - 系统（全员共享，管理员维护）：知识库（命令卡、Schema、Profile、检查规则、术语表）、内置模板 / 翻译规则集 / AI skill、系统设置、账号、**公共设备库**。
+  - 用户工作空间（每个账号一个，登录后自动拥有）：我的翻译规则集、我的模板（跨项目复用）、我的项目。
+  - 项目：设备（私有设备与对公共设备的引用）、配置版本与版本历史、配置图、脚本（变更脚本与完整配置，含边写边查、修订、重排、diff、AI 校验——即现有配置检查项目并入）、检查忽略项、对比 / 检查 / 基线结果、报告与导出记录、项目设置（默认显示风格、选用的规则集、基线等）。
+- 设备归属【用户确认：两者都有】：公共设备库 + 项目私有设备。项目可以引用公共设备，也可以导入自己的设备；可以把公共设备或其他项目的设备复制成项目私有的一份。
+  - 公共设备库只由管理员维护（导入设备与新版本）【用户确认】；普通账号只能引用或复制。
+  - 引用的版本【用户确认】：默认跟随公共库的最新版本；项目可以固定到某个版本（例如割接前的基线），公共库有新版本时提示。
+- 项目共享【用户确认：可以邀请成员】：项目属主可以邀请其他账号为成员，角色为“可编辑”或“只读”；不邀请就只有自己能看。项目可以转交给其他账号。
+- 管理员【用户确认：可以查看和修改】：管理员对所有工作空间和项目有完全权限；管理员访问他人项目的操作记入日志；删除账号时可以把其项目转交给别人或一并删除。
+- 现有数据【用户确认】：升级时自动为第一个管理员建“默认项目”，现有设备、配置版本、导入记录、检查忽略项都移入其中（私有设备）；已有的配置检查项目按属主各自转为项目（属主为空的归第一个管理员）。
+- 页面：顶栏项目切换器；设备列表、配置图、对比、检查、清理、翻译、变更、影响分析、拓扑与一致性、割接迁移、基线、版本历史、表格导出、设备配置分析等页面只看当前项目的数据；“我的项目”页（新建、成员、转交、复制、删除）；管理员的“所有项目”与“公共设备库”页。
+- API 与命令行：每个账号可以生成自己的 API 令牌（只存哈希，可撤销），用它调用只能访问自己有权限的项目；原全局令牌保留，等同管理员；设备相关接口带项目参数（路径或查询参数，实现时定）；命令行加 `--project <项目>`。
+
+
+## 权限模型（REQ-036）
+
+用户 2026-10-19 询问哪些功能用户可以查看修改（如知识库）。现状：除知识库发布 / 回滚 / 放弃草稿、账号、系统设置、AI 接口与 AI skill 管理外，普通用户可以修改 Schema、Profile、审核命令卡、导入知识库包、改检查规则与模板、重新解析全部设备——共享内容会被任何人改动。以下经用户确认（【用户确认】），随 M6 实现：
+
+- 角色：管理员、知识库维护员（新增）、普通用户。管理员可以给账号设置维护员角色。
+- 知识库（Schema、Profile、命令卡审核、映射、知识库包导入、术语表）：管理员与维护员可以修改和审核；发布、回滚、放弃草稿仍为管理员与维护员（实现时确认是否只限管理员）；普通用户只读，可以提交建议（未识别行送审、对节点或默认值提修改建议），建议进入审核队列由维护员处理。
+- 共享的检查规则、安全基线、内置 / 共享模板：只有管理员与维护员可以修改；普通用户可以在自己的工作空间建私有模板，在项目中关闭某条规则或调整级别（只影响该项目）。
+- 重新解析：全部设备只限管理员；用户可以重新解析单台设备或本项目的设备。
+- 删除设备与配置（REQ-038）：属主与“可编辑”成员可以删除项目内的设备与配置版本；只读成员不可；公共设备库只有管理员可删；项目中引用的公共设备“删除”即解除引用。
+- 其余功能（设备导入、对比、检查、翻译、变更、拓扑、基线、版本历史、表格导出、AI 查询、脚本、翻译规则集）按项目权限：属主与“可编辑”成员可修改，“只读”成员只能查看。
+
+
+## 接入 Nokia 7750 SR（REQ-037）
+
+用户 2026-10-19 提出：开始分析构建 Nokia 7750 产品配置的知识。经用户确认（【用户确认】）：Classic CLI 与 MD-CLI 两种格式都支持（先 Classic、再 MD-CLI，映射到同一套 Schema）；按公开文档里较新的稳定版本做基线 Profile，其他版本以后用继承 Profile 只写差异；产品文档由 Claude 从 Nokia 公开文档下载（需要登录的部分告知用户），放在 DevelopDocs/设备产品文档/Nokia/；没有现网样本时用合成配置做往返测试，有现网样本时先脱敏；作为新里程碑 M7（0.7.0），文档与知识准备现在开始、与 M6 并行。按项目 skill `lmesh-docs-to-graph` 的流程做。
+
+- 平台族：`nokia-sros-classic` 与 `nokia-sros-md`（两种格式各一个平台族，共用 Schema；名称以实现为准）。
+- 主要差异：Classic CLI 为缩进 + `exit` 层级、`no` 取消；MD-CLI 为花括号层级或 `/configure …` 扁平路径，需要解析器增加分块方式；很多对象默认 shutdown；服务模型（Epipe、VPLS、VPRN、SAP、SDP、客户）需要在统一 Schema 中找到对应或新增节点。
+
+
+## 接入 Nokia 7750 SR（REQ-037）（M7-1 分析结果）
+
+2026-10-19 完成 M7-1（文档准备与分析、Classic 视图树与抽取规则起步）。文档清单见 `DevelopDocs/设备产品文档/Nokia/README.md`；决策 D-0167～D-0171。
+
+**文档**：SR OS **25.10.R1** 公开文档（documentation.nokia.com/sr/25-10/，无需登录）：Classic CLI Command Reference（54 个 HTML 页＋PDF）、MD-CLI Command Reference（PDF＋13 棵配置树 HTML）、12 本配置指南 PDF（Basic System、Interface、Router、Unicast Routing、MPLS、Segment Routing、Services Overview、Layer 2 Services and EVPN、Layer 3 Services、QoS、System Management、MD-CLI User Guide）。需要登录、未获取：Security Best Practices and Hardening Guide、Pay-as-You-Grow Licensing、发布说明列表。选 25.10 而不是 26.3 / 26.7：最近一个 .10 年度版本、发布近一年（D-0167）。
+
+**转换**：Classic 命令参考用专用脚本 `DevelopDocs/设备产品文档/Nokia/tools/nokia_classic_to_md.py` 转 Markdown（D-0169）。原因：Nokia 的关键字是 `span.cmdname` 不是 `<b>`（通用转换器不加粗，`no shutdown` 这类无参数语法行会被抽取器丢弃）、参数表是 `<dl>`、按字母分的大页无法按功能域选文件。转换后 10 513 条命令条目，按完整上下文（Full Context 前 3 个词，`configure service …` 取 4 个）分成 1 177 个文件，并推导 `View path` 小节（Full Context 去掉命令名）。配置指南 PDF 用 `convert.py` 的 `pdf_to_md` 转换，仅供检索（PDF 转换丢失缩进）。若以后要把这种转换并入 `convert.py`，需要支持 cmdname 加粗与 dl 参数表（改 src/）。
+
+**Classic CLI 书写习惯**：缩进 4 空格；每个块以与开头同列的 `exit` 结束；整份以 `exit all` / `configure` 开头、`exit all` 结尾；文件头 `# TiMOS-B-25.10.R1 …` 五行与文件尾 `# Finished …`；段落标记 `#--------------------------------------------------` / `echo "… Configuration"` 总在第 0 列，且会出现在上下文中间（`router Base` 与其下的 `ospf` 之间）；`no` 取消；端口、业务、SAP、SDP、协议实例等缺省 shutdown，display-config 写出 `no shutdown`；名称带引号（可含空格）；新建对象带 `create`；同一上下文会多次出现（业务先建壳、后填 SAP / SDP 绑定；`router Base` 跨多个段落）。`admin display-config` 只输出非缺省值，`info detail` 含缺省值。
+
+**MD-CLI 书写习惯**：花括号格式（`info`、`admin show configuration`：`router "Base" {` … `}`，层级以花括号为准，叶子列表 `[ a b ]`，`#` 注释，文件头同 Classic）；扁平格式（`info flat` 相对路径、`info full-context` / `admin show configuration full-context` 每行 `/configure …` 完整路径）；另有 JSON / XML 输出。`admin-state enable | disable` 代替 shutdown；地址拆为 `address` 与 `prefix-length`；`apply-groups` 模板需展开。
+
+**解析器要求**（M7-2 / M7-4 改 `core/parser.py`、`core/kb/syntax.py`，由协调者安排）：
+
+1. 按平台族缩进单位（views.yaml `indent: 4`，解析器目前未使用）折算层级，再判断分页痕迹。
+2. 注释前缀 `#` 与版式行（`^echo "`、`^#-+$`）不改变视图栈（当前第 0 列分隔符会清空栈）。
+3. `configure` 为结构行（进入根视图），`exit all` 清空。
+4. Classic 的 `exit` 关闭与它同列的块，包括原文块（当前跳过原文块、退出最近的非原文视图，导致 OSPF 等范围外块里的 `exit` 提前退出 `router`）。
+5. 卡没有 `enters_view` 而下一行缩进更深时，子行按原文块保留。
+6. 分词支持引号字符串，图的键与引用去引号，渲染按原文。
+7. 新参数类型 `port`（`1/1/1`、`1/1/c1/1`、`lag-1`、`esat-…`、`pxc-…`）与 `sap`（`端口:VLAN[.VLAN]`、`:*`）。
+8. `sanitize.detect_vendor` 识别 `^# TiMOS-` 为 nokia；`exit all` / `echo "` → Classic，`configure {` / `/configure ` → MD-CLI；版本 `TiMOS-[A-Z]-(\d+\.\d+\.R\d+)`；Nokia 密文写法 `password "…" hash2`、`authentication-key "…" hash2`、`community "…"`。
+9. MD-CLI 分块扩展：花括号格式按 `{` / `}` 进出（`block: braces`，忽略缩进）；扁平格式先预处理成块树——在 `syntax.py` 加前缀匹配 `match_prefix`，从根视图逐段消耗路径（容器 / 列表项卡进入视图，剩余部分整行匹配叶子卡），相邻行公共前缀合并成块，记录来源行号，渲染时按原格式输出。
+
+**命令条目与抽取规则**：Classic 每条命令有 Syntax（关键字 / 参数 / `[ ]` / `{ | }` / `[{ }]`）、Context、Full Context（可多行）、Description、Default、Parameters（取值写作 `Values 1 to 255`）、Platforms。规则 `knowledge/extractors/nokia-sros-classic-md.yaml`：`views` 取 `View path`，`views_map` 用 `^…$` 精确匹配；`enters` 除进入范围内子视图外，把范围内视图里进入范围外子上下文的命令（router interface 下的 `ipv6`、`icmp`、`vrrp` 等）进入 `opaque` 视图、块内按原文保留（D-0170，名单由“该命令的完整上下文又是别的命令的 View path”自动得出）；`param_types` 中 `virtual-router-id` 放在 `router-id` 前；`syntax_rewrites` 把三种前缀写法合成一个参数。文档错误修正 2 条（port ethernet `mode` 缺 access、lag `lacp` 的 active / passive 被标成关键字）。MD-CLI 命令参考每个 YANG 元素一条（Synopsis、Context、Range / Options、Default、键 / 必选），嵌套到第 9 层而标题只到 h6，只能按 Context 路径建树；建议 M7-4 从 Nokia 公开 YANG 模型（github.com/nokia/7x50_YangModels）生成命令卡（新增抽取器）。
+
+**平台族与视图树**：`knowledge/commands/nokia-sros-classic/views.yaml`（D-0168）：`separator` 为 50 个连字符的分隔行、`end: exit all`、`indent: 4`、`negative: no`、`root_view: configure`；视图：configure、opaque、port、port-ethernet、lag、router、router-if、static-route-entry / static-nh / static-indirect / static-bh，以及后续功能域先定好编号的 system / NTP / security / SNMP / SSH / user / TACACS+ / RADIUS / log / sync-if-timing / PTP、OSPF / IS-IS / BGP / policy-options、MPLS / RSVP / LDP、service / customer / sdp / epipe / vpls / vprn / ies 及其 SAP / SDP 绑定、qos / filter，共 90 余个。
+
+**试抽取**（D-0171：用 `LMESH_KNOWLEDGE__DIR` / `LMESH_DATABASE__URL` 把运行时知识库与审核库指向 `tmp/nokia-m71/`，结果复制到 `knowledge/commands/nokia-sros-classic/`）：
+
+| 功能域 | 命令条目 | 命令卡 | 按视图 | 跳过 |
+|---|---|---|---|---|
+| interface | — | 158 | router-if 59、port-ethernet 48、lag 29、port 17、configure 3、router 2 | — |
+| static-route | — | 45 | static-nh 16、static-indirect 12、static-bh 9、static-route-entry 7、router 1 | — |
+| 合计 | 759（52 个文件） | 203 | | 视图不在范围 581（全部为范围外子上下文：efm-oam、ipsec、port access、eth-cfm、ipv6、dot1x、TDM / OTU 等）；语法错误 0 |
+
+重复抽取全部 unchanged；`lmesh kb validate` 0 错误（新增警告仅 203 条 card.unmapped）。用合成样本检验：按当前解析器视图跟踪全部错位（4 空格缩进被当作分页痕迹）；预处理模拟上面第 1～3 条改动后，`classic-pe-basic.cfg` 的端口、LAG、路由器接口、静态路由 92 行全部识别为命令、0 行未识别，剩下第 4 条（原文块里的 `exit`）的问题。合成样本草稿在 `DevelopDocs/设备产品文档/Nokia/samples-draft/`（`classic-pe-basic.cfg`、`classic-pe-services.cfg`），暂不进 `knowledge/samples/`。
+
+**服务模型与统一 Schema 的对应**（不改已有 Schema 文件，M7-3 统一加）：
+
+| Nokia 对象 | 现有 Schema | 需要新增 |
+|---|---|---|
+| customer | 无 | `service.customer`（新文件 `schema/service.yaml`；业务对象加 customer 引用；华为 / Cisco Profile 标 `supported: false`） |
+| SDP | 语义 = PW 对端＋隧道选择（`tunnel_policy` / `l2vpn.pw_class.preferred_path`） | `service.sdp`（far_end、delivery、transport ldp / lsp / sr、keep_alive、path_mtu）；翻译时 far-end 展开到每条伪线的 peer |
+| Epipe | `l2vpn.xconnect`；SAP → `xconnect.ac`；spoke-sdp `S:V` → `xconnect.pw`（peer 取 SDP far-end） | — |
+| VPLS | `l2vpn.vsi`；mesh-sdp → `vsi.peer`；SAP → `interface.access`＋桥域（VPLS 隐式桥域，Profile `implicit`） | `l2vpn.vsi.peer.role`（mesh / spoke） |
+| VPRN | `vrf.instance`；RD → `af.rd`；vrf-target → `af.rt`；vrf-import / export → `af.import/export_policy`；auto-bind-tunnel → `af.tunnel_policy`；maximum-routes → `af.prefix_limit` | — |
+| VPRN / IES / 路由器接口 | `interface`（逻辑名）＋`interface.vrf`＋`interface.ipv4`＋`dot1q_termination`（取 SAP 的 VLAN） | `interface.bind_port`；render 增加三层接口形态 `logical / subinterface`（翻译成华为 / Cisco 子接口） |
+| SAP | `interface.access`（父接口＋VLAN） | `interface.access.inner_vlan`、`qos_in/out`、`acl_in/out` |
+| 端口 / LAG | `interface`（LAG 名规范为 `lag-1`）、`mtu`、`shutdown`、`lag`、`lag_mode` | `interface.port_mode`（access / network / hybrid）、`interface.encap_type`；LAG 下的成员 `port` 方向与华为 / Cisco 相反 |
+| 静态路由 | `static.route`（black-hole → nexthop `NULL0`） | `static.route.metric`、`static.route.bfd`、`static.route.recursive`（indirect） |
+| OSPF / IS-IS | `ospf.process`、`area`、`interface.ospf.*`；`isis.process`、`interface.isis.*` | `ospf.process.export_policy`（Nokia 用 export 策略代替 redistribute）；`isis.process.area_id`、`system_id`（翻译时拼 NET）；IS-IS 分级别 metric |
+| BGP | `bgp.instance`（ASN 在 `router autonomous-system`）、`peer_group`、`peer`、`af.peer.*` | `bgp.peer_group.family` |
+| 路由策略 | `rp.policy` / `node`（accept / reject）/ `prefix_list` / `community_list` | `rp.policy.default_action`、`rp.policy.node.match_protocol`、`rp.prefix_list.entry.match_type`（exact / longer / through） |
+| MPLS / SR | `interface.mpls(.ldp)`、`mpls.ldp.remote_peer`、`sr.global.srgb_*`、`isis.process.ti_lfa`、`interface.prefix_sid.index` | RSVP-TE LSP / path（`mpls.te_lsp`、`mpls.te_path`，或先记原文） |
+| QoS | 基本无法直接对应（分类近似 classifier＋service_class） | `qos.sap_ingress`、`qos.sap_egress`、`qos.network_policy`、`qos.network_queue`、`interface.qos_network` |
+| ACL | `acl.instance`（ip-filter）、`rule`（forward / drop → permit / deny） | `acl.instance.default_action` |
+| 管理面 | `mgmt.ntp / snmp / syslog / ssh / telnet / ftp / aaa / tacacs / radius / line` | `mgmt.system.name`（主机名，三家都未建模）、`mgmt.syslog.stream`（log-id 来源→目标）、`mgmt.aaa.user.profile` |
+| BFD / VRRP / 时钟 | `interface.bfd.*`、`interface.vrrp.*`、`clock.sync / ptp` 基本可直接映射 | `interface.vrrp.owner` |
+
+新对象类型还要登记 `knowledge/terms.yaml` 与 `knowledge/layers.yaml`（与 REQ-034 协调）。
+
+**映射表达式需要的扩展**（M7-3）：`ctx:<参数>` 取父上下文行的参数（静态路由 next-hop 的键要带父行前缀、OSPF 接口的 area、SAP 所属业务）；目标对象键取自参数（LAG 下 `port 1/1/2` → `interface{1/1/2}.lag`）；拆分 SAP（`1/1/4:1001` → 接口＋VLAN）。渲染需要 `knowledge/render/nokia-sros-classic.yaml`：每块写 `exit`、按段落顺序与 `echo` 标题输出、业务两遍顺序、`create`、引号。
+
+**后续**：M7-2 解析器改动（上面 1～8）＋补 system / mgmt、OSPF / IS-IS / BGP / 路由策略、MPLS / LDP / SR 的抽取；M7-3 Schema 新节点、映射规则、Profile `nokia-sros-classic-7750-25.10`、render 与往返、合成样本进门槛；M7-4 MD-CLI 分块扩展与 YANG 抽取器。

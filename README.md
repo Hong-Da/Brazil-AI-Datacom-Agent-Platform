@@ -70,6 +70,8 @@ lmesh/
 │   ├── export/                 审计表格导出的预置模板（tables.yaml：IP 地址表、VLAN / 桥域表、BGP 邻居表等；M5-3 起）
 │   ├── templates/              配置模板（M3-4 起）
 │   ├── translate-rules/        翻译规则集的内置示例（名称映射、命名规范、端口映射；只读；REQ-032 起）
+│   ├── ai-skills/              内置 AI skill 定义（提示词、提示模板、示例、工具、代码校验、试运行样例；只读；REQ-033 起）
+│   ├── layers.yaml             Schema 对象 → TCP/IP 层（含 2.5 层与跨层特性 QoS、时钟同步），设备配置分析用（REQ-034 起）
 │   └── samples/                已脱敏的配置样本与往返期望结果（M1-3 起）
 │       ├── compare/            配置对比基准：由样本派生的变体与期望差异（manifest.yaml；M2-3 起）
 │       ├── translate/          配置翻译回归：用例、接口映射表与合成样本（manifest.yaml；M3-3 起）
@@ -92,7 +94,7 @@ lmesh/
 ├── tests/                      测试（见 tests/README.md）
 ├── .claude/settings.json       SessionStart 钩子
 ├── .claude/skills/             项目专属 skill（lmesh-docs-to-graph：产品文档 → 配置图）
-├── data/ logs/ cache/ tmp/     运行时文件（不入库；用户的翻译规则集在 data/translate-rules/）
+├── data/ logs/ cache/ tmp/     运行时文件（不入库；用户的翻译规则集在 data/translate-rules/，管理员修改的 AI skill 版本在 data/ai-skills/）
 ├── .toolchain/                 依赖缓存与项目内的 Python、Node（不入库）
 └── dist/                       打包结果（不入库）
 ```

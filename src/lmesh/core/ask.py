@@ -7,6 +7,8 @@ unverifiable 无法校验（不是配置事实，只作参考）。
 生成：需求 →（AI）配置文本 →（代码）护栏（core/guard）解析、入图、依赖、模板、冲突检查；被拦截时把问题交回 AI 再改，最多 rounds 轮。
 
 发给 AI 的内容一律先脱敏（配置导入时已脱敏；问题、需求与上下文再过一遍脱敏器），实际发送的内容在结果的 sent 中返回供查看。
+提示词来自 AI skill（REQ-033，core/skills）：ask-query、ask-answer、config-generate；每次调用按代码校验的结论记入 skill 调用记录，
+结果的 skill_runs 给出记录编号，供用户反馈（点赞 / 点踩 / 更正）。
 未配置 AI 时抛出 AskError("ai.not_configured")，调用方返回明确的“未配置”状态；核心功能不受影响。
 """
 
@@ -18,7 +20,7 @@ import re
 import time
 from typing import Any
 
-from lmesh.core import ai, compare, config, gquery, i18n
+from lmesh.core import ai, compare, config, gquery, i18n, skills
 from lmesh.core.kb import KnowledgeBase
 from lmesh.core.objtable import display, fields_of
 from lmesh.core.sanitize import Sanitizer, local_key
@@ -96,6 +98,41 @@ class _Session:
         }
 
 
+def skill_or_error(sid: str) -> skills.Skill:
+    """取生效的 skill；停用时按“未配置”同样的方式返回状态（kind=state）。"""
+    try:
+        return skills.require_enabled(sid)
+    except skills.SkillError as e:
+        raise AskError(e.key, "state" if e.kind == "state" else "param", data=e.data, **e.fmt) from e
+
+
+def call_logged(
+    sess: _Session,
+    skill: skills.Skill,
+    step: str,
+    system: str,
+    prompt: str,
+    source: str,
+    inp: dict[str, Any],
+    actor: skills.Actor | None,
+) -> str:
+    """调用 AI；调用失败时记一条 error 的 skill 调用记录再抛出。"""
+    try:
+        return sess.call(step, system, prompt)
+    except AskError:
+        skills.log_run(sess.settings, skill, source, "error", inp, "", {"step": step}, sess.info(), actor)
+        raise
+
+
+def last_info(sess: _Session) -> dict[str, Any]:
+    """会话到目前为止的模型、token 与耗时（写入 skill 调用记录）。"""
+    return {"model": sess.model, "tokens_in": sess.tokens_in, "tokens_out": sess.tokens_out, "ms": sess.ms}
+
+
+def _run_ref(step: str, skill: skills.Skill, run_id: int | None, status: str) -> dict[str, Any]:
+    return {"step": step, "skill": skill.id, "version": skill.active, "run_id": run_id, "status": status}
+
+
 def _json_reply(text: str) -> dict[str, Any]:
     m = _CODE.search(text)
     body = m.group(1) if m else text
@@ -124,32 +161,61 @@ def catalog(kb: KnowledgeBase, limit_types: int = 400) -> str:
     return "\n".join(lines)
 
 
-_Q_SYSTEM = """You turn a network engineer's question about router configurations into ONE read-only query in the
-LucidMesh graph query language. The query is validated and executed by code; never answer the question yourself.
-Grammar: {syntax}
-Operators: {ops}
-Notes: {notes}
-Reply with JSON only: {{"query": "<query text>"}}"""
+def devices_list(devices: list[Any]) -> list[dict[str, Any]]:
+    """查询范围的设备（给 AI 的上下文与 skill 调用记录）：名称、Profile、平台族。"""
+    return [{"name": d.name, "profile": d.g.graph.get("profile"), "family": d.g.graph.get("family")} for d in devices]
 
 
-def _q_prompt(question: str, devices: list[Any], kb: KnowledgeBase, error: str | None) -> str:
-    devs = "\n".join(
-        f"- {d.name} (profile {d.g.graph.get('profile')}, family {d.g.graph.get('family')})" for d in devices
-    )
-    out = f"Devices:\n{devs}\n\nSchema (object -> fields):\n{catalog(kb)}\n\nQuestion: {question}"
+def query_messages(
+    skill: skills.Skill, question: str, devices: list[dict[str, Any]], kb: KnowledgeBase, error: str | None
+) -> tuple[str, str]:
+    """ask-query 的系统提示与正文。"""
+    g = gquery.grammar()
+    system = skill.system_text(syntax=g["syntax"], ops=", ".join(g["ops"]), notes="; ".join(g["notes"]))
+    devs = "\n".join(f"- {d['name']} (profile {d.get('profile')}, family {d.get('family')})" for d in devices)
+    prompt = skill.prompt_text(devices=devs, catalog=catalog(kb), question=question)
     if error:
-        out += f"\n\nYour previous query was rejected by the validator: {error}\nWrite a corrected query."
-    return out
+        prompt += "\n\n" + skill.prompt_text("retry", error=error)
+    return system, prompt
 
 
-_A_SYSTEM = """You answer a network engineer's question using ONLY the query result below. Every statement must cite the
-result rows it relies on (row numbers), and list the facts it states as {{"row": n, "field": "<column>", "value": "<value>"}};
-a statement about how many rows match uses "count". Statements that are not configuration facts (advice, opinions)
-have no facts. Answer in {lang}. Reply with JSON only:
-{{"statements": [{{"text": "...", "cites": [1], "facts": [{{"row": 1, "field": "description", "value": "..."}}], "count": null}}]}}"""
+LANG_NAMES = {"zh-CN": "Simplified Chinese", "en": "English", "pt-BR": "Brazilian Portuguese"}
 
 
-def _a_prompt(question: str, result: dict[str, Any]) -> str:
+def answer_messages(skill: skills.Skill, question: str, result: dict[str, Any], lang: str) -> tuple[str, str]:
+    """ask-answer 的系统提示与正文。"""
+    system = skill.system_text(lang=LANG_NAMES.get(lang, "English"))
+    return system, skill.prompt_text(question=question, query=result["text"], result=result_body(result))
+
+
+def slim_result(result: dict[str, Any], limit: int = 500) -> dict[str, Any]:
+    """核对回答所需的查询结果（skill 调用记录与回归集用）。"""
+    rows = [
+        {
+            "n": r["n"],
+            "device": r["device"],
+            "label": r["label"],
+            "node": r["node"],
+            "cells": {
+                f: {k: c.get(k) for k in ("value", "origin", "secret") if k in c}
+                for f, c in (r.get("cells") or {}).items()
+            },
+        }
+        for r in result["rows"][:limit]
+    ]
+    cols = [{"field": c["field"]} for c in result["columns"]]
+    return {"text": result["text"], "columns": cols, "rows": rows, "count": result["count"]}
+
+
+def answer_status(summary: dict[str, int]) -> str:
+    if summary.get("corrected"):
+        return "corrected"
+    if summary.get("passed"):
+        return "passed"
+    return "unverifiable"
+
+
+def result_body(result: dict[str, Any]) -> str:
     cols = [c["field"] for c in result["columns"]]
     rows = []
     for r in result["rows"]:
@@ -163,10 +229,9 @@ def _a_prompt(question: str, result: dict[str, Any]) -> str:
             else:
                 cells[f] = display(c["value"]) + (" (default)" if c["origin"] == "default" else "")
         rows.append({"row": r["n"], "device": r["device"], "object": r["label"], **cells})
-    body = json.dumps(
+    return json.dumps(
         {"columns": ["device", "object", *cols], "rows": rows, "count": result["count"]}, ensure_ascii=False
     )
-    return f"Question: {question}\n\nQuery:\n{result['text']}\n\nResult:\n{body}"
 
 
 def _norm(v: Any) -> str:
@@ -294,6 +359,7 @@ def ask(
     settings: config.Settings,
     lang: str = "zh-CN",
     attempts: int = 2,
+    actor: skills.Actor | None = None,
 ) -> dict[str, Any]:
     """自然语言查询。devices：topology.Device 列表（查询范围）。"""
     _require(settings)
@@ -301,16 +367,21 @@ def ask(
         raise AskError("ask.empty")
     if not devices:
         raise AskError("ask.no_devices", "not_found")
+    sk_q = skill_or_error("ask-query")
+    sk_a = skill_or_error("ask-answer")
     sess = _Session(settings, "ask")
-    g = gquery.grammar()
-    system = _Q_SYSTEM.format(syntax=g["syntax"], ops=", ".join(g["ops"]), notes="; ".join(g["notes"]))
+    devs = devices_list(devices)
     tried: list[dict[str, Any]] = []
+    runs: list[dict[str, Any]] = []
     query: gquery.Query | None = None
     result: dict[str, Any] | None = None
     error: str | None = None
     for _ in range(max(1, attempts)):
-        reply = sess.call("query", system, _q_prompt(question, devices, kb, error))
+        system, prompt = query_messages(sk_q, question, devs, kb, error)
+        inp: dict[str, Any] = {"question": question, "devices": devs, "error": error}
+        reply = call_logged(sess, sk_q, "query", system, prompt, "ask", inp, actor)
         q_text = reply
+        failure: dict[str, Any] | None = None
         try:
             data = _json_reply(reply)
             q = data.get("query")
@@ -318,13 +389,20 @@ def ask(
             query = gquery.from_dict(q) if isinstance(q, dict) else gquery.parse(q_text)
             result = gquery.execute(query, devices, kb)
             tried.append({"query": query.text(), "error": None})
-            break
         except gquery.QueryError as e:
             error = i18n.t(e.key, "en", **e.fmt)
-            tried.append({"query": q_text[:2000], "error": {"key": e.key, "params": e.fmt}})
+            failure = {"key": e.key, "params": e.fmt}
+            tried.append({"query": q_text[:2000], "error": failure})
         except (ValueError, json.JSONDecodeError):
             error = "the reply was not JSON with a query field"
-            tried.append({"query": reply[:2000], "error": {"key": "ask.bad_reply", "params": {}}})
+            failure = {"key": "ask.bad_reply", "params": {}}
+            tried.append({"query": reply[:2000], "error": failure})
+        st = "rejected" if failure else "passed"
+        det = {"query": tried[-1]["query"], "error": failure, "summary": {"status": st}}
+        rid = skills.log_run(settings, sk_q, "ask", st, inp, reply, det, last_info(sess), actor)
+        runs.append(_run_ref("query", sk_q, rid, st))
+        if failure is None:
+            break
         query = None
     base = {
         "question": question,
@@ -333,14 +411,27 @@ def ask(
         "sent": sess.sent,
     }
     if query is None or result is None:
-        return {**base, "status": "query_invalid", "query": None, "result": None, "answer": None, "ai": sess.info()}
-    lang_name = {"zh-CN": "Simplified Chinese", "en": "English", "pt-BR": "Brazilian Portuguese"}.get(lang, "English")
-    reply = sess.call("answer", _A_SYSTEM.format(lang=lang_name), _a_prompt(question, result))
+        return {
+            **base,
+            "status": "query_invalid",
+            "query": None,
+            "result": None,
+            "answer": None,
+            "ai": sess.info(),
+            "skill_runs": runs,
+        }
+    system, prompt = answer_messages(sk_a, question, result, lang)
+    inp = {"question": question, "lang": lang, "result": slim_result(result)}
+    reply = call_logged(sess, sk_a, "answer", system, prompt, "ask", inp, actor)
     try:
         answer = _json_reply(reply)
     except (ValueError, json.JSONDecodeError):
         answer = {"statements": [{"text": reply.strip()[:4000], "cites": [], "facts": []}]}
     checked = verify(answer, result, lang)
+    st = answer_status(checked["summary"])
+    det = {"summary": checked["summary"], "issues": [i for x in checked["statements"] for i in x["issues"]][:50]}
+    rid = skills.log_run(settings, sk_a, "ask", st, inp, reply, det, last_info(sess), actor)
+    runs.append(_run_ref("answer", sk_a, rid, st))
     return {
         **base,
         "status": "answered",
@@ -349,16 +440,27 @@ def ask(
         "result": result,
         "answer": checked,
         "ai": sess.info(),
+        "skill_runs": runs,
     }
 
 
 # ---------------------------------------------------------------- 生成配置
 
 
-_G_SYSTEM = """You write router configuration for the platform family {family} (profile {profile}). Output only the
-configuration lines to add, in the device's own syntax, inside one ``` code block, without session commands
-(no system-view / configure terminal / commit / end). The configuration will be parsed and checked by code before
-anyone sees it."""
+def generate_messages(
+    skill: skills.Skill, family: str, profile: str, device: str, inventory: str, request: str, feedback: str
+) -> tuple[str, str]:
+    """config-generate 的系统提示与正文。"""
+    system = skill.system_text(family=family, profile=profile)
+    prompt = skill.prompt_text(device=device, inventory=inventory or "(empty configuration)", request=request)
+    if feedback:
+        prompt += "\n\n" + skill.prompt_text("retry", feedback=feedback)
+    return system, prompt
+
+
+def code_block(reply: str) -> str:
+    m = _CODE.search(reply)
+    return (m.group(1) if m else reply).strip("\n")
 
 
 def inventory(g: Any, kb: KnowledgeBase, limit: int = 60) -> str:
@@ -384,6 +486,18 @@ def inventory(g: Any, kb: KnowledgeBase, limit: int = 60) -> str:
     return "\n".join(parts)
 
 
+def guard_issues(checked: dict[str, Any]) -> list[dict[str, Any]]:
+    """护栏拦截的问题（skill 调用记录用）。"""
+    out = [
+        {"line": i.get("line"), "rule": i.get("rule"), "message": i.get("message")}
+        for i in checked.get("issues", [])
+        if i.get("status") == "bad"
+    ]
+    if checked.get("error"):
+        out.insert(0, {"line": None, "rule": "error", "message": checked["error"]})
+    return out[:50]
+
+
 def generate(
     request: str,
     kb: KnowledgeBase,
@@ -395,6 +509,7 @@ def generate(
     template: Any = None,
     lang: str = "zh-CN",
     rounds: int = 2,
+    actor: skills.Actor | None = None,
 ) -> dict[str, Any]:
     """AI 生成配置 → 护栏校验；被拦截时把问题交回 AI 修改，最多 rounds 轮。"""
     from lmesh.core import analysis, guard
@@ -415,22 +530,32 @@ def generate(
     if not pid or pid not in kb.profiles:
         raise AskError("ask.need_profile")
     fam = kb.profiles[pid].family
+    skill = skill_or_error("config-generate")
     sess = _Session(settings, "generate")
-    system = _G_SYSTEM.format(family=fam, profile=pid)
     out_rounds = []
+    runs: list[dict[str, Any]] = []
     feedback = ""
     for n in range(1, max(1, rounds) + 1):
-        prompt = f"Device: {device}\nExisting objects:\n{ctx or '(empty configuration)'}\n\nRequest: {request}"
-        if feedback:
-            prompt += f"\n\nThe previous attempt was blocked by the checks:\n{feedback}\nReturn the full corrected configuration."
-        reply = sess.call(f"generate.{n}", system, prompt)
-        m = _CODE.search(reply)
-        text = (m.group(1) if m else reply).strip("\n")
+        system, prompt = generate_messages(skill, fam, pid, device, ctx, request, feedback)
+        inp = {
+            "device": device,
+            "profile": pid,
+            "family": fam,
+            "request": request,
+            "inventory": ctx,
+            "feedback": feedback,
+        }
+        reply = call_logged(sess, skill, f"generate.{n}", system, prompt, "generate", inp, actor)
+        text = code_block(reply)
         try:
             checked = guard.guard(text, kb, pid, base_text, device, others, template, lang)
         except guard.GuardError as e:
             checked = {"verdict": "blocked", "error": {"key": e.key, "params": e.fmt}, "issues": [], "lines": []}
-        out_rounds.append({"round": n, "text": text, "guard": checked})
+        st = "passed" if checked.get("verdict") == "passed" else "rejected"
+        det = {"verdict": checked.get("verdict"), "summary": checked.get("summary"), "issues": guard_issues(checked)}
+        rid = skills.log_run(settings, skill, "generate", st, inp, reply, det, last_info(sess), actor)
+        runs.append(_run_ref(f"generate.{n}", skill, rid, st))
+        out_rounds.append({"round": n, "text": text, "guard": checked, "skill_run": rid})
         if checked.get("verdict") == "passed":
             break
         feedback = (
@@ -452,4 +577,5 @@ def generate(
         "verdict": final["guard"].get("verdict"),
         "sent": sess.sent,
         "ai": sess.info(),
+        "skill_runs": runs,
     }

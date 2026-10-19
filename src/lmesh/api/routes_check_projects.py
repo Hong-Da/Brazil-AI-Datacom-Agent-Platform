@@ -21,6 +21,7 @@ from lmesh.api.common import (
     require_token,
     settings_of,
 )
+from lmesh.api.routes_skills import skill_actor
 from lmesh.core import ai, analysis, checkproj, i18n, kbservice, script_check, terms, textdiff
 
 router = APIRouter(dependencies=[Depends(require_token)])
@@ -285,7 +286,7 @@ def check(request: Request, pid: int, sid: int, body: CheckBody) -> dict[str, An
     try:
         if body.ai:
             rules = body.ai_rules if body.ai_rules is not None else checkproj.settings_of(db, actor, pid)["ai_rules"]
-            ai_cfg = {"settings": settings_of(request), "rules": rules}
+            ai_cfg = {"settings": settings_of(request), "rules": rules, "actor": skill_actor(request)}
         r = checkproj.check(
             db,
             kb,

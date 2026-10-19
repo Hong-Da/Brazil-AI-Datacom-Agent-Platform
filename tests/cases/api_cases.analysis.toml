@@ -1,0 +1,56 @@
+# 设备配置分析接口的 API 用例（REQ-034；加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-fullkb-history：设备 ATN-CHANGE-01（编号 1）有两个快照，第二个改了接口描述与 MTU。
+
+[[case]]
+id = "analysis-summary"
+title = { zh-CN = "设备的分析摘要（含与上一版本的变化、安全基线得分）", en = "Device analysis summary (with changes since the previous version and the baseline score)", pt-BR = "Resumo da análise do dispositivo (mudanças desde a versão anterior e pontuação da linha de base)" }
+method = "GET"
+path = "/api/v1/devices/1/analysis?parts=summary"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.parts" = ["summary"], "data.device_id" = 1, "data.version_id" = 2, "data.summary.device" = "ATN-CHANGE-01", "data.summary.lines.unknown" = 0, "data.summary.history.previous.seq" = 1, "data.summary.history.current.seq" = 2, "data.summary.history.summary.modified" = 1, "data.summary.history.items.0.object" = "interface[GigabitEthernet0/2/0]", "data.summary.baseline.baseline" = "basic", "data.layer_info.layers.0.id" = "physical" }
+in_docs = true
+
+[[case]]
+id = "analysis-layers-script"
+title = { zh-CN = "TCP/IP 分层与结构化脚本（界面一次取齐配置图）", en = "TCP/IP layers and the structured script (the UI also fetches the graph)", pt-BR = "Camadas TCP/IP e script estruturado (a interface também busca o grafo)" }
+method = "GET"
+path = "/api/v1/devices/1/analysis?parts=graph,layers,script&defaults=false"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.parts" = ["graph", "layers", "script"], "data.layers.layers.5.id" = "application", "data.layers.unclassified" = [], "data.script.lines.0.no" = 1, "data.script.defaults" = [], "data.graph.version_id" = 2, "data.graph.device" = "ATN-CHANGE-01" }
+in_docs = true
+
+[[case]]
+id = "analysis-text"
+title = { zh-CN = "分析一段配置文本：引用的区间、定义行与被引用处", en = "Analyze config text: reference spans, definition and references", pt-BR = "Analisar um texto: intervalos de referência, definição e referências" }
+method = "POST"
+path = "/api/v1/analysis"
+setup = "configured-fullkb"
+auth = true
+body = { text = "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\ninterface GigabitEthernet0/2/1\n ip binding vpn-instance RAN\n#\nreturn", parts = ["script", "layers"] }
+expect_status = 200
+expect_json = { "code" = 0, "data.script.refs" = { "vrf.instance[RAN]" = [8] }, "data.script.defs" = { "vrf.instance[RAN]" = 3 }, "data.script.lines.7.spans.3.t" = "ref", "data.script.lines.7.spans.3.s" = 25, "data.script.lines.7.layer" = "network", "data.layers.nodes.interface[GigabitEthernet0/2/1]" = "physical", "data.layers.cross_by_layers" = [{ "a" = "physical", "b" = "network", "count" = 2 }] }
+in_docs = true
+
+[[case]]
+id = "analysis-bad-part"
+title = { zh-CN = "parts 写错", en = "Invalid parts", pt-BR = "parts inválido" }
+method = "GET"
+path = "/api/v1/devices/1/analysis?parts=summary,chart"
+setup = "configured-fullkb-history"
+auth = true
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "analysis-no-device"
+title = { zh-CN = "设备不存在", en = "Device not found", pt-BR = "Dispositivo não encontrado" }
+method = "GET"
+path = "/api/v1/devices/99/analysis"
+setup = "configured"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }

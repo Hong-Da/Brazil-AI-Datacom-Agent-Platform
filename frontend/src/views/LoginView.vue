@@ -7,9 +7,8 @@ import { useAuth } from '@/stores/auth'
 import Icon from '@/components/Icon.vue'
 import { LOGO_SVG } from '@/components/icons'
 import BareTopbar from '@/components/wizard-bare-topbar.vue'
-import { passwordProblems, safeNext } from './account/account'
+import { bootMode, passwordProblems, safeNext, type AuthStatus } from './account/account'
 
-interface Status { configured: boolean; has_users: boolean; session_hours: number }
 interface LoginResult { user: { username: string; role: string }; expires_at: string }
 
 const prefs = usePrefs()
@@ -17,7 +16,7 @@ const auth = useAuth()
 const router = useRouter()
 const route = useRoute()
 
-const status = ref<Status | null>(null)
+const status = ref<AuthStatus | null>(null)
 const loadError = ref('')
 const username = ref('')
 const password = ref('')
@@ -30,9 +29,12 @@ const busy = ref(false)
 
 const expired = computed(() => route.query.expired === '1')
 const bootstrap = computed(() => status.value !== null && !status.value.has_users)
+const noToken = computed(() => bootMode(status.value) === 'cli')
+const configFile = computed(() => status.value?.config_file || 'config/config.toml')
+const CLI_ADD = 'lmesh user add <username> --role admin'
 const bootProblems = computed(() => passwordProblems(password.value, password2.value))
 const canSubmit = computed(() => {
-  if (busy.value || !username.value.trim() || !password.value) return false
+  if (busy.value || noToken.value || !username.value.trim() || !password.value) return false
   if (bootstrap.value) return !!token.value.trim() && bootProblems.value.length === 0
   return true
 })
@@ -43,7 +45,7 @@ watch(() => prefs.lang, () => { error.value = '' })
 async function loadStatus(): Promise<void> {
   loadError.value = ''
   try {
-    status.value = await api<Status>('/auth/status')
+    status.value = await api<AuthStatus>('/auth/status')
   } catch (e) {
     loadError.value = e instanceof Error ? e.message : String(e)
   }
@@ -83,7 +85,7 @@ async function submit(): Promise<void> {
         <span class="login-logo" v-html="LOGO_SVG" />
         <template v-if="bootstrap">
           <h1>{{ $t('login.bootTitle') }}</h1>
-          <p class="muted">{{ $t('login.bootHint') }}</p>
+          <p v-if="!noToken" class="muted" data-testid="login-boot-hint">{{ $t('login.bootHint', { file: configFile }) }}</p>
         </template>
         <template v-else>
           <h1>{{ $t('login.title') }}</h1>
@@ -101,6 +103,15 @@ async function submit(): Promise<void> {
           <Icon name="lock" /><div class="grow small"><b>{{ $t('login.lockedTitle') }}</b><br />{{ error }}</div>
         </div>
 
+        <div v-if="noToken" class="notoken" data-testid="login-no-token">
+          <div class="notice warn"><Icon name="warn" /><div class="grow small">{{ $t('login.noTokenHint') }}</div></div>
+          <ol class="ways">
+            <li>{{ $t('login.noTokenCli') }}<code class="mono cmd" data-testid="login-cli">{{ CLI_ADD }}</code><span class="hint">{{ $t('login.noTokenCliNote') }}</span></li>
+            <li>{{ $t('login.noTokenSet') }}<code class="mono cmd path" data-testid="login-config-file">{{ configFile }}</code><span class="hint">{{ $t('login.noTokenSetNote') }}</span></li>
+          </ol>
+          <button type="button" class="btn go" data-testid="login-refresh" @click="loadStatus"><Icon name="refresh" small />{{ $t('login.refresh') }}</button>
+        </div>
+        <template v-else>
         <div v-if="bootstrap" class="field">
           <label for="login-token">{{ $t('login.token') }}</label>
           <input id="login-token" v-model="token" type="password" class="input mono" autocomplete="off" spellcheck="false" data-testid="login-token" @input="error = ''" />
@@ -136,6 +147,7 @@ async function submit(): Promise<void> {
           {{ busy ? $t('login.checking') : bootstrap ? $t('login.bootSubmit') : $t('login.submit') }}
         </button>
         <div class="foot">{{ bootstrap ? $t('login.bootFoot') : $t('login.foot') }}</div>
+        </template>
       </form>
     </div>
   </div>
@@ -159,6 +171,13 @@ async function submit(): Promise<void> {
 .tk .reveal[aria-pressed="true"] { color: var(--teal-ink); }
 .sep { border-top: 1px solid var(--line); margin: 2px 0; }
 .go { width: 100%; justify-content: center; height: 34px; }
+.notoken { display: flex; flex-direction: column; gap: 12px; }
+.ways { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 13px; color: var(--ink-2); }
+.ways li { display: flex; flex-direction: column; gap: 4px; }
+.cmd {
+  display: block; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg);
+  color: var(--ink); font-size: 12px; overflow-wrap: anywhere; user-select: all;
+}
 .foot { font-size: 12px; color: var(--ink-3); text-align: center; overflow-wrap: anywhere; }
 @media (max-width: 520px) { .login-card { padding: 22px 18px 20px; } }
 </style>

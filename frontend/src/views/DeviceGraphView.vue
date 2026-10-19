@@ -477,6 +477,9 @@ onMounted(async () => {
           <button class="btn btn-sm" :disabled="!!busy || !graph?.text" data-testid="btn-roundtrip" @click="roundtrip">
             <Icon name="play" small /><span>{{ busy === 'roundtrip' ? $t('c.running') : $t('device-graph.roundtrip') }}</span>
           </button>
+          <router-link class="btn btn-sm" :to="{ name: 'device-analysis', params: { id: deviceId }, query: selected ? { node: selected } : {} }" data-testid="btn-analysis">
+            <Icon name="strata" small /><span>{{ $t('nav.device-analysis') }}</span>
+          </router-link>
           <button class="btn btn-sm" :disabled="!graph" data-testid="btn-export" @click="exportJson">
             <Icon name="download" small /><span>{{ $t('device-graph.exportJson') }}</span>
           </button>

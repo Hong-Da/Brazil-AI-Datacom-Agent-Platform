@@ -38,7 +38,7 @@
 | `GET /health` | 否 | 健康检查：版本、是否已配置、数据库、知识库、AI 接口 |
 | `GET /setup` | 否（仅未配置时） | 首次运行向导的参数定义 |
 | `POST /setup` | 否（仅未配置时） | 提交向导结果；`dry_run: true` 时只校验；`admin: {"username", "password"}` 同时创建第一个管理员并登录（设置会话 Cookie），错误键为 `admin.username` / `admin.password` |
-| `GET /auth/status` | 否 | 登录页需要的状态：`configured`、`has_users`（还没有账号时登录页改为用 API 令牌创建管理员）、`session_hours` |
+| `GET /auth/status` | 否 | 登录页需要的状态：`configured`、`has_users`（还没有账号时登录页改为用 API 令牌创建管理员）、`session_hours`；已配置且还没有账号时另返回 `config_file`（实例实际读取的配置文件绝对路径）与 `token_set`（是否设置了 API 令牌，布尔，不返回令牌内容），有账号后不返回这两项 |
 | `POST /auth/login` | 否 | 用户名 + 密码登录：`{"username", "password"}`；成功返回 `user` 与 `expires_at` 并设置会话 Cookie；用户名或密码错误 401（不区分用户不存在），账号停用 403，连续失败 `security.login_max_failures` 次（默认 5）锁定 `security.login_lock_minutes` 分钟（默认 15），锁定期间 429 |
 | `POST /auth/bootstrap` | 否（仅没有任何账号时） | 用 API 令牌创建第一个管理员并登录：`{"token", "username", "password"}`；已有账号时 409，令牌不对 401 |
 | `POST /auth/logout` | 否 | 登出：删除会话、清除 Cookie；`data.logged_out` 表示是否确实结束了一个会话 |
@@ -108,6 +108,18 @@
 | `POST /ask` | 是 | AI 自然语言查询：`{"question", "devices": null, "lang": null}`；返回 `status`（answered / query_invalid）、`question_sent`（脱敏后）、`attempts`、`query` / `query_text`、`result`（同 `POST /query`）、`answer`（`statements`：`text`、`cites`、`facts`（`row`、`field`、`value`、`actual`、`ok`、`node`）、`count`、`status` passed / corrected / unverifiable、`corrected_text`、`nodes`；`summary`）、`sent`（发给 AI 的内容，已脱敏）、`ai`（`model`、`calls`、`tokens_in`、`tokens_out`、`ms`）；未配置 AI 时 409，`data.status` = not_configured；AI 调用失败时 502 |
 | `POST /guard` | 是 | 配置护栏（不需要 AI）：`{"text", "device" 或 "base_text", "profile", "template", "cross_device": true, "script": true, "merged": false, "lang"}`（`merged: true` 时另返回合并后的完整配置 `merged_text`，界面交给增量变更时用）；返回 `verdict` passed / blocked、`lines`（每行 `status` ok / bad / warn / ctx / skip、`issues`、`nodes`）、`issues`（`id`、`status` bad / warn / ok、`stage` parse / deps / template / conflict、`rule`、`line`、`message`（文案键与参数）、`text`）、`stages`、`summary`、`script`（通过时的增量变更脚本） |
 | `POST /generate` | 是 | AI 生成配置：`{"request", "device", "profile", "template", "rounds": 2, "merged": false, "lang"}`（`merged: true` 时最后一轮的 `guard` 附 `merged_text`）；返回 `rounds`（每轮 `text` 与 `guard` 结果）、`final`、`verdict`、`request_sent`、`sent`、`ai`；未配置 AI 时 409 |
+| `GET /ai/skills?days=30` | 管理员 | 内置 AI skill（REQ-033）列表：`ai`（`configured`、`provider`、`status`）、`days`、`skills`（`id`、三语 `title` / `description`、`task`、`used_by`、`model_key`、`model`、`enabled`、`active`（`builtin` 或版本号）、`builtin_version`、`versions`、`modified`、`tools`、`checks`、`examples`、`stats`（近 N 天线上调用：`calls`、`passed` / `corrected` / `rejected` / `unverifiable` / `error`、`pass_rate`、`reject_rate`、`up`、`down`、`corrections`、`regression_cases`、`candidates`、`pending_evolutions`））；普通账号 403 |
+| `GET /ai/skills/{id}` | 管理员 | skill 详情：列表字段 + `definition`（生效的 `system`、`prompt`、`templates`、`examples`、`tools`、`output`）、`builtin`（内置定义）、`variables`（`name`、`in`、三语 `desc`）、`samples`（试运行样例：`index`、`title`、`input`、`reply`）、`tool_choices`、`check_titles`、`output_formats`、`stats`、`ai`；不存在 404 |
+| `PUT /ai/skills/{id}` | 管理员 | 保存为新版本并生效：`{"system", "prompt", "templates", "examples": [{"input", "output", "note"}], "tools", "output": {"format", "schema"}, "note"}`（只给要改的字段）；返回 `version`、`unchanged`（与生效版本相同时不新建）、`warnings`（`skills.warn.var_dropped`）、`skill`；校验不通过 422（`data.issues`：`field`、`key`、`params`——未登记的变量、缺少或多出的模板、示例缺输入输出、工具或输出格式不在可选范围） |
+| `PUT /ai/skills/{id}/enabled` | 管理员 | 启用 / 停用 `{"enabled": false}`；停用后对应的 AI 功能返回 409（`data.status: skill_disabled`），脚本审查的 `ai.status` 为 `skill_disabled`，命令卡抽取跳过 AI |
+| `GET /ai/skills/{id}/versions` / `GET …/versions/{version}` / `GET …/diff?a=&b=` | 管理员 | 版本历史（`version`、`label`、`source` builtin / edit / example / evolution、`saved_at`、`author`、`note`、`based_on`、`evolution`、`active`）；某版本的 `definition`；两个版本逐字段对比（`fields`：`field`、`changed`、`lines` 逐行 `op` same / del / add 与两侧行号，`examples` / `tools` / `output` 另给 `a`、`b`），`b` 可写 `current` |
+| `POST /ai/skills/{id}/rollback` / `POST …/restore` | 管理员 | 回滚 `{"version": "2"}`（生效版本指向该版本，版本文件不删除）；恢复内置版本；返回 `active`；版本不存在 404 |
+| `POST /ai/skills/{id}/test` | 管理员 | 试运行：`{"sample": 0 或 "case_id": 1 或 "input": {…}, "definition": {…草稿}, "version": null, "mode": "ai"\|"replay", "reply": null}`；返回 `mode`、`version`（草稿为 `draft`）、`sent`（实际发送的内容，脱敏后）、`reply`、`check`（`status`、`score`、`items`：`ok`、`reason`、`text`、`line`）、`ai`、`run_id`（真实调用时的调用记录，来源 test，不计入统计）；`mode: ai` 而未配置 AI 时 409 `not_configured`，回放不需要 AI |
+| `GET /ai/skills/{id}/stats?days=` / `GET …/runs?limit=&status=&source=` / `GET …/runs/{run_id}` | 管理员 | 统计：`totals`、`daily`（每天按校验结论计数与评价）、`by_version`、`runs`（最近调用）；调用记录列表；一次调用的详情（`input`、`reply` 均为脱敏后，`detail` 校验明细） |
+| `POST /ai/skills/feedback` | 是 | 对一次 AI 结果的反馈（所有登录账号；结果中的 `skill_runs[].run_id`，脚本审查为 `ai.skill_run`）：`{"run_id", "rating": "up"\|"down"\|null, "correction": ""}`；点踩或更正进入该 skill 的回归集，校验通过且点赞的成为候选示例，`rating` 为空且没有更正时撤销评价；返回 `case`（`id`、`kind`、`reason`、`existing`）；普通账号只能评价自己发起的调用，不存在 404 |
+| `GET /ai/skills/{id}/cases` / `POST …/cases` / `DELETE …/cases/{cid}` / `POST …/cases/{cid}/example` | 管理员 | 回归集（`regression`：被拦截 / 被更正的线上调用自动入集，点踩、更正、手动加入）与候选示例（`candidates`）；`{"run_id", "kind", "note"}` 手动加入（同样的输入只留一条）；删除；把案例加入示例（输入为发给 AI 的正文，输出取更正，没有时取原回复），形成新版本并生效 |
+| `POST /ai/skills/{id}/evolve` | 管理员 | 发起进化 `{"limit": 20, "wait": false}`：AI（skill-evolve）根据回归集与更正提出候选版本 → 代码检查保留全部变量 → 回归集上分别运行旧版本与候选、按代码校验打分（通过 1、无法校验 0.5、其余 0）→ 待批准；默认后台任务返回 `task_id`，`wait: true` 返回 `evolution`；未配置 AI 409 `not_configured`，回归集为空 409 `no_cases` |
+| `GET /ai/skills/{id}/evolutions` / `GET …/evolutions/{eid}` / `POST …/approve` / `POST …/reject` | 管理员 | 进化记录（`status` pending / approved / rejected / failed、`base_version`、`rationale`（AI 的说明）、`summary`：`old`、`new`、`better`、`worse`、`same`）；详情另有 `candidate`、`diff`、`scores.cases`（每条案例旧 / 新的 `status`、`score`、`items`、`reply`、`delta`）；批准后候选保存为新版本并生效（`published_version`），放弃只改状态；已处理过 409 |
 | `GET /check-projects` | 是 | 配置检查项目列表（REQ-031；普通账号只看到自己的，管理员与 API 令牌看到全部）：`id`、`name`、`description`、`device`（`id`、`name`、`vendor`、`platform`、`profile`）、`version_id`（为空表示跟随最新版本）、`default_kind` change / full、`order_check`、`ai_check`、`ai_rules`、`owner`、`scripts`、`last_check`（`errors`、`warnings`、`checked`、`at`）、`created_at`、`updated_at` |
 | `POST /check-projects` / `GET` / `PUT` / `DELETE /check-projects/{id}` | 是 | 新建 / 详情（带 `script_list`）/ 修改 / 删除项目：`{"name", "description", "device_id", "version_id", "profile", "default_kind", "order_check": true, "ai_check": false, "ai_rules": []}`；设备或版本不存在 404，名称为空 422 |
 | `GET /check-projects/ai-rules` | 是 | 可交给 AI 参与校验的规则（规则文件中 `ai: true`）：`rules`（`id`、`title`、`severity`、`target`、`domain`、`code`（是否也有代码断言））与 `configured`（AI 是否已配置；未配置时界面隐藏“AI 一起校验”） |
@@ -120,6 +132,8 @@
 | `POST /impact` | 是 | 变更影响分析：`{"text" 或 "device_id" 或 "version_id", "profile": null, "nodes": ["<节点编号>"], "direction": "up"}`（up 谁受影响 / down 依赖谁 / both）；返回 `seeds`、`nodes`（遍历到的节点：`node`、`schema`、`kind`、`domain`、`depth`、`via`（从哪个节点到达）、`edge`、`direction`、`business`）、`objects`、`business`（业务对象与从起点出发的 `path`）、`by_domain`、`by_business`、`summary`；节点不存在时 404 |
 | `POST /roundtrip` | 是 | 往返测试：给出 `text` 时同步返回差异；`{"samples": true}` 时作为后台任务跑全部样本，返回 `task_id` |
 | `GET /devices/{id}/graph?domain=D&raw=false&version_id=V` | 是 | 设备最新配置版本（给出 `version_id` 时为该版本，不属于该设备时 404）的配置图：节点、边（`note` 为三语说明对象 `{zh-CN, en, pt-BR}`，没有时为 `{}`）、悬空引用、统计；`raw=true` 时包含功能域外的原文节点与原始配置文本 |
+| `GET /devices/{id}/analysis?parts=&version_id=&defaults=true` | 是 | 设备配置分析（REQ-034）：`parts` 为 `summary`、`layers`、`script`、`graph` 中的若干个（逗号分隔，默认全部；写错时 422）。总有 `device`、`device_id`、`version_id`、`profile`、`family`、`kb_version`、`layer_info`（层与跨层特性的三语名称）。`summary`：`lines`（`total`、各类行数、`coverage`）、`domains`（`domain`、`objects`、`attrs`、`defaults`、`lines`）、`layers`、`cross_layer`、`dangling`、`defaults`（`total` 默认值节点数、`key` 其他平台族默认值不同的个数、`items`：`node`、`owner`、`schema`、`value`、`others`）、`unknown_lines`、`check`（`summary`、`top`、`texts`）、`baseline`（`score`、`summary`、`failures`、`failure_count`、`texts`；基线规则有错时为 null）、`history`（`current`、`previous`（第一个版本时为 null）、`summary`、`items`）。`layers`：`layers`（各层对象 / 属性 / 默认值计数）、`features`、`nodes`（节点 → 层）、`features_of`、`cross`（`from`、`to`、`kind` contains / reference / prerequisite、`from_layer`、`to_layer`、`via`、`count`）、`cross_by_layers`、`outside`、`unclassified`。`script`：`lines`（`no`、`kind`、`text`、`depth`、`parent`、`node`、`layer`、`domain`、`card`、`spans`：`s` / `e` 字符区间、`t` kw / param / ref、`p` 参数名、`ref` 目标节点）、`refs`（目标 → 引用行）、`defs`（目标 → 定义行）、`defaults`（`node`、`owner`、`schema`、`value`、`after` 插在哪一行之后、`depth`、`text` 该平台的命令写法；`defaults=false` 时为空）。`graph`：同 `GET /devices/{id}/graph?raw=true` |
+| `POST /analysis` | 是 | 分析一份配置文本（不需要先导入）：`{"text", "profile", "name", "parts", "defaults": true}`；返回结构同上（没有版本历史与忽略记录，`summary.history` 为 null） |
 | `POST /compare` | 是 | 配置对比：`{"a": {"text": "…" \| "version_id": 1 \| "device_id": 1, "profile": null}, "b": {…}, "domain": null, "include_raw": false, "interface_map": {"GE0/2/1": "Gi0/0/1"}, "rename_threshold": 1.0, "hide_identity": false}`（每边给 `text`、`version_id`、`device_id`（最新版本）之一；同时给 `device_id` 与 `version_id` 时检查版本属于该设备）；返回 `diffs`（`kind` added / removed / changed / renamed、`node_kind` object / attr / ext / raw、`node` 规范编号、`schema`、`domain`、`a` / `b` 各自的 `node` 原始编号、`value` 有效值、`origin`、`lines`，改名的 `from` / `to` / `similarity`，删除或新增对象的 `count`，`related` 关联差异）、`renames`、`summary`（`total`、`by_kind`、`by_domain`、`by_object`、`unknown`、`default_only`）、`unknown`（两边的未识别行）、`default_only`（只有一侧 Profile 有默认值、不可比的属性）、`a` / `b`（来源、设备、Profile、版本）与 `options`；`hide_identity: true` 时隐藏设备身份差异（Router ID、接口 IPv4 地址、BGP 对等体地址、IS-IS NET、主机名等，清单见 `options.hidden_identity`），被隐藏的差异放在 `hidden_diffs`，个数为 `summary.hidden_identity`；设备或版本不存在时 404 |
 | `GET /devices/{id}/versions` | 是 | 设备的配置版本列表（新的在前）：`id`、`seq`（设备内序号）、`source_name`、`collected_at`、`kb_version`、`lines`、`latest`；对比界面选“变更前后”用 |
 | `POST /check` | 是 | 配置检查：`{"text": "…" 或 "device_id": 1, "profile": null, "severity": "info", "domain": null}`（`text` 与 `device_id` 二选一）；返回 `findings`（`rule`、`severity`、`domain`、`node`、`nodes`、`lines`、`message` / `suggestion` 为文案键 + 参数）、`summary`（`total` 含被忽略的发现，`ignored` 被忽略的个数；按级别、规则、功能域的计数与 `has_errors` 不含被忽略的）；按设备检查时每条发现带 `ignored`、`ignore_reason`、`ignore_id`、`texts`（规则文件文案的三种语言）；规则文件写错时 409，`data.issues` 为问题清单 |
@@ -829,6 +843,102 @@ HTTP 状态：`200`；返回中的关键字段：
 
 - `code` = `0`
 - `data.patterns` = `[]`
+
+### 设备的分析摘要（含与上一版本的变化、安全基线得分）
+
+`GET /api/v1/devices/1/analysis?parts=summary`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/devices/1/analysis?parts=summary' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/devices/1/analysis?parts=summary' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/devices/1/analysis?parts=summary', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.parts` = `["summary"]`
+- `data.device_id` = `1`
+- `data.version_id` = `2`
+- `data.summary.device` = `"ATN-CHANGE-01"`
+- `data.summary.lines.unknown` = `0`
+- `data.summary.history.previous.seq` = `1`
+- `data.summary.history.current.seq` = `2`
+- `data.summary.history.summary.modified` = `1`
+- `data.summary.history.items.0.object` = `"interface[GigabitEthernet0/2/0]"`
+- `data.summary.baseline.baseline` = `"basic"`
+- `data.layer_info.layers.0.id` = `"physical"`
+
+### TCP/IP 分层与结构化脚本（界面一次取齐配置图）
+
+`GET /api/v1/devices/1/analysis?parts=graph,layers,script&defaults=false`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/devices/1/analysis?parts=graph,layers,script&defaults=false' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/devices/1/analysis?parts=graph,layers,script&defaults=false' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/devices/1/analysis?parts=graph,layers,script&defaults=false', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.parts` = `["graph", "layers", "script"]`
+- `data.layers.layers.5.id` = `"application"`
+- `data.layers.unclassified` = `[]`
+- `data.script.lines.0.no` = `1`
+- `data.script.defaults` = `[]`
+- `data.graph.version_id` = `2`
+- `data.graph.device` = `"ATN-CHANGE-01"`
+
+### 分析一段配置文本：引用的区间、定义行与被引用处
+
+`POST /api/v1/analysis`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/analysis' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\ninterface GigabitEthernet0/2/1\n ip binding vpn-instance RAN\n#\nreturn", "parts": ["script", "layers"]}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/analysis' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\ninterface GigabitEthernet0/2/1\n ip binding vpn-instance RAN\n#\nreturn", "parts": ["script", "layers"]}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/analysis', headers={'Authorization': 'Bearer <令牌>'}, json={'text': 'sysname R1\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:1\n#\ninterface GigabitEthernet0/2/1\n ip binding vpn-instance RAN\n#\nreturn', 'parts': ['script', 'layers']})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.script.refs` = `{"vrf.instance[RAN]": [8]}`
+- `data.script.defs` = `{"vrf.instance[RAN]": 3}`
+- `data.script.lines.7.spans.3.t` = `"ref"`
+- `data.script.lines.7.spans.3.s` = `25`
+- `data.script.lines.7.layer` = `"network"`
+- `data.layers.nodes.interface[GigabitEthernet0/2/1]` = `"physical"`
+- `data.layers.cross_by_layers` = `[{"a": "physical", "b": "network", "count": 2}]`
 
 ### AI 查询是否可用（未配置时界面隐藏入口）
 
@@ -2423,6 +2533,223 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.skipped.0.node` = `"vrf.instance[NOPE]"`
 - `data.skipped.0.reason` = `"not_orphan"`
 - `data.verify.ok` = `true`
+
+### skill 列表：启用状态、当前版本、统计；ai.configured 表示能否试运行与进化
+
+`GET /api/v1/ai/skills`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/ai/skills' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/ai/skills' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/ai/skills', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.ai.configured` = `false`
+- `data.days` = `30`
+- `data.skills.0.id` = `"card-extract"`
+- `data.skills.2.id` = `"ask-answer"`
+- `data.skills.2.active` = `"builtin"`
+- `data.skills.2.stats.calls` = `0`
+
+### 普通账号不能管理 skill（403）
+
+`GET /api/v1/ai/skills`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/ai/skills'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/ai/skills'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/ai/skills')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`403`；返回中的关键字段：
+
+- `code` = `1006`
+
+### skill 详情：生效定义、内置定义、变量说明、试运行样例
+
+`GET /api/v1/ai/skills/config-generate`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/ai/skills/config-generate' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/ai/skills/config-generate' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/ai/skills/config-generate', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.id` = `"config-generate"`
+- `data.task` = `"generate"`
+- `data.model_key` = `"ai.model_generate"`
+- `data.checks` = `["guard"]`
+- `data.variables.0.name` = `"family"`
+- `data.samples.0.index` = `0`
+- `data.definition.output.format` = `"config"`
+
+### 保存为新版本并生效
+
+`PUT /api/v1/ai/skills/card-extract`（需要令牌）
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/ai/skills/card-extract' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"examples": [{"input": "**undo shutdown**", "output": "undo shutdown"}], "note": "加一个示例"}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/ai/skills/card-extract' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"examples": [{"input": "**undo shutdown**", "output": "undo shutdown"}], "note": "加一个示例"}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/ai/skills/card-extract', headers={'Authorization': 'Bearer <令牌>'}, json={'examples': [{'input': '**undo shutdown**', 'output': 'undo shutdown'}], 'note': '加一个示例'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.version` = `"1"`
+- `data.unchanged` = `false`
+- `data.skill.active` = `"1"`
+- `data.skill.examples` = `1`
+
+### 版本历史
+
+`GET /api/v1/ai/skills/ask-answer/versions`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/ai/skills/ask-answer/versions' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/ai/skills/ask-answer/versions' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/ai/skills/ask-answer/versions', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.active` = `"builtin"`
+- `data.versions.0.version` = `"builtin"`
+- `data.versions.0.label` = `"builtin v1"`
+
+### 试运行（回放，不需要 AI）：渲染提示词、代码校验样例回复
+
+`POST /api/v1/ai/skills/ask-answer/test`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/ai/skills/ask-answer/test' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"sample": 1, "mode": "replay"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/ai/skills/ask-answer/test' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"sample": 1, "mode": "replay"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/ai/skills/ask-answer/test', headers={'Authorization': 'Bearer <令牌>'}, json={'sample': 1, 'mode': 'replay'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.mode` = `"replay"`
+- `data.check.status` = `"corrected"`
+- `data.check.score` = `0.0`
+- `data.sent.0.step` = `"replay"`
+
+### 统计：近 N 天合计、每日调用、按版本、最近调用
+
+`GET /api/v1/ai/skills/ask-query/stats?days=7`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/ai/skills/ask-query/stats?days=7' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/ai/skills/ask-query/stats?days=7' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/ai/skills/ask-query/stats?days=7', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.days` = `7`
+- `data.totals.calls` = `0`
+- `data.runs` = `[]`
+
+### 未配置 AI：进化返回 409
+
+`POST /api/v1/ai/skills/ask-query/evolve`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/ai/skills/ask-query/evolve' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/ai/skills/ask-query/evolve' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/ai/skills/ask-query/evolve', headers={'Authorization': 'Bearer <令牌>'}, json={})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`409`；返回中的关键字段：
+
+- `code` = `1003`
+- `data.status` = `"not_configured"`
 
 ### 模板列表
 

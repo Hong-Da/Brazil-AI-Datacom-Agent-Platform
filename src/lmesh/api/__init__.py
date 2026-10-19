@@ -12,6 +12,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from lmesh import __version__, paths
 from lmesh.api.common import E_INTERNAL, E_NOT_FOUND, E_PARAM, ApiError, error_response
+from lmesh.api.routes_analysis import router as analysis_router
 from lmesh.api.routes_ask import router as ask_router
 from lmesh.api.routes_auth import admin as users_router
 from lmesh.api.routes_auth import router as auth_router
@@ -29,6 +30,8 @@ from lmesh.api.routes_kb import router as kb_router
 from lmesh.api.routes_migrate import router as migrate_router
 from lmesh.api.routes_report import router as report_router
 from lmesh.api.routes_rules import router as rules_router
+from lmesh.api.routes_skills import admin as skills_admin_router
+from lmesh.api.routes_skills import router as skills_router
 from lmesh.api.routes_system import router as system_router
 from lmesh.api.routes_tasks_ai import router as tasks_ai_router
 from lmesh.api.routes_template import router as template_router
@@ -85,6 +88,7 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     app.include_router(tasks_ai_router, prefix=API_PREFIX, tags=["tasks-ai"])
     app.include_router(kb_router, prefix=API_PREFIX, tags=["knowledge"])
     app.include_router(graph_router, prefix=API_PREFIX, tags=["graph"])
+    app.include_router(analysis_router, prefix=API_PREFIX, tags=["analysis"])
     app.include_router(compare_router, prefix=API_PREFIX, tags=["compare"])
     app.include_router(check_router, prefix=API_PREFIX, tags=["check"])
     app.include_router(rules_router, prefix=API_PREFIX, tags=["check"])
@@ -102,6 +106,8 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     app.include_router(export_router, prefix=API_PREFIX, tags=["export"])
     app.include_router(features_router, prefix=API_PREFIX, tags=["features"])
     app.include_router(ask_router, prefix=API_PREFIX, tags=["ask"])
+    app.include_router(skills_router, prefix=API_PREFIX, tags=["ai-skills"])
+    app.include_router(skills_admin_router, prefix=API_PREFIX, tags=["ai-skills"])
     _mount_web(app)
     return app
 

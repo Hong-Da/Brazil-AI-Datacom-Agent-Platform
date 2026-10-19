@@ -109,3 +109,17 @@ def test_setup_with_admin_signs_in(tmp_root: Path) -> None:
     me = c.get("/api/v1/auth/me").json()["data"]
     assert me == {"username": "admin", "role": "admin", "via": "session", "expires_at": me["expires_at"]}
     assert c.get("/api/v1/auth/status").json()["data"]["has_users"] is True
+
+
+def test_status_config_file_only_before_first_admin(configured_root: Path) -> None:
+    """还没有账号时返回实际读取的配置文件（LMESH_ROOT 下）与 token_set；有账号后不再返回，令牌内容始终不返回。"""
+    from lmesh.core import config, users
+
+    c = _client()
+    d = c.get("/api/v1/auth/status").json()["data"]
+    assert Path(d["config_file"]) == (configured_root / "config" / "config.toml").resolve()
+    assert d["token_set"] is True
+    assert TEST_TOKEN not in str(d)
+    users.create_user(config.load().database_url, "admin", "Admin-pass-1", "admin")
+    d = c.get("/api/v1/auth/status").json()["data"]
+    assert "config_file" not in d and "token_set" not in d

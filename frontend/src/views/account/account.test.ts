@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { counts, isLastAdmin, passwordProblems, safeNext, shortTime, stateOf, validName, type UserRow } from './account'
+import { bootMode, counts, isLastAdmin, passwordProblems, safeNext, shortTime, stateOf, validName, type UserRow } from './account'
 
 const row = (p: Partial<UserRow>): UserRow => ({
   id: 1, username: 'u', role: 'user', disabled: false, locked: false, locked_until: null,
@@ -40,5 +40,13 @@ describe('账号逻辑', () => {
     expect(shortTime(null)).toBe('')
     expect(shortTime('bad')).toBe('bad')
     expect(shortTime('2026-10-18T09:12:00')).toMatch(/^2026-10-18 09:12$/)
+  })
+  it('第一个管理员的创建方式', () => {
+    const base = { configured: true, session_hours: 12 }
+    expect(bootMode(null)).toBeNull()
+    expect(bootMode({ ...base, has_users: true })).toBeNull()
+    expect(bootMode({ ...base, has_users: false, token_set: true, config_file: '/x/config/config.toml' })).toBe('token')
+    expect(bootMode({ ...base, has_users: false, token_set: false, config_file: '/x/config/config.toml' })).toBe('cli')
+    expect(bootMode({ ...base, has_users: false })).toBe('token') // 旧版后端没有 token_set
   })
 })

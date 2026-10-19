@@ -1,0 +1,254 @@
+# 配置分层（REQ-034）：每个 Schema 节点归到 TCP/IP 模型的哪一层，供设备配置分析页的“TCP/IP 模型视图”使用。
+#
+# 规则（由 src/lmesh/core/layers.py 计算，只影响显示，不影响解析、建图、对比与检查）：
+#   - objects：每个对象类型（Schema 中 type: object 的节点）必须在这里登记所属的层；新增对象没有登记时
+#     lmesh kb validate 给出警告 layers.unclassified，运行时先按 domains 的功能域缺省层归类。
+#   - attrs：属性默认跟随所属对象；作用层与对象不同的属性在这里单独登记（例如接口的 vrf 属于网络层）。
+#   - keys：同一种对象按键再细分（例如子接口属于数据链路层、Loopback 属于网络层），按顺序取第一条匹配的正则（不分大小写）。
+#   - domains：功能域的缺省层，只在对象没有登记时兜底。
+#   - features：跨层特性（QoS、时钟同步），按节点编号前缀标记，span 是它作用的层，界面上可跨层显示。
+# 层的顺序自下而上；mpls 是“2.5 层”（MPLS / SR / L2VPN / EVPN），单列在数据链路层与网络层之间。
+
+version: 1
+
+layers:
+  - id: physical
+    order: 1
+    name: { zh-CN: 物理层, en: Physical, pt-BR: Física }
+    desc: { zh-CN: 端口、速率、双工、自协商、时钟同步（SyncE）, en: "Ports, speed, duplex, negotiation, clock sync (SyncE)", pt-BR: "Portas, velocidade, duplex, negociação, sincronismo (SyncE)" }
+  - id: datalink
+    order: 2
+    name: { zh-CN: 数据链路层, en: Data link, pt-BR: Enlace }
+    desc: { zh-CN: 链路聚合、VLAN、子接口封装、二层业务、桥域、MTU, en: "Link aggregation, VLAN, sub-interface encapsulation, L2 services, bridge domains, MTU", pt-BR: "Agregação, VLAN, encapsulamento de subinterface, serviços L2, bridge domains, MTU" }
+  - id: mpls
+    order: 3
+    name: { zh-CN: 2.5 层（MPLS）, en: Layer 2.5 (MPLS), pt-BR: Camada 2.5 (MPLS) }
+    desc: { zh-CN: MPLS、LDP、SR、L2VPN、EVPN、隧道策略, en: "MPLS, LDP, SR, L2VPN, EVPN, tunnel policies", pt-BR: "MPLS, LDP, SR, L2VPN, EVPN, políticas de túnel" }
+  - id: network
+    order: 4
+    name: { zh-CN: 网络层, en: Network, pt-BR: Rede }
+    desc: { zh-CN: IP 地址、VRF、静态路由与路由协议、路由策略、ACL、VRRP, en: "IP addresses, VRF, static and dynamic routing, routing policy, ACL, VRRP", pt-BR: "Endereços IP, VRF, rotas estáticas e protocolos, políticas, ACL, VRRP" }
+  - id: transport
+    order: 5
+    name: { zh-CN: 传输层, en: Transport, pt-BR: Transporte }
+    desc: { zh-CN: BFD、BGP 会话与计时器、基于 UDP 的 PTP, en: "BFD, BGP sessions and timers, PTP over UDP", pt-BR: "BFD, sessões e temporizadores BGP, PTP sobre UDP" }
+  - id: application
+    order: 6
+    name: { zh-CN: 应用层, en: Application, pt-BR: Aplicação }
+    desc: { zh-CN: SNMP、NTP、SSH、Telnet、FTP、AAA、TACACS+、RADIUS、日志、登录线路, en: "SNMP, NTP, SSH, Telnet, FTP, AAA, TACACS+, RADIUS, logging, login lines", pt-BR: "SNMP, NTP, SSH, Telnet, FTP, AAA, TACACS+, RADIUS, logs, linhas de acesso" }
+
+features:
+  - id: qos
+    name: { zh-CN: QoS, en: QoS, pt-BR: QoS }
+    desc: { zh-CN: 分类、标记、限速、调度：802.1p 在二层、EXP 在 2.5 层、DSCP 在三层, en: "Classification, marking, policing, scheduling: 802.1p at L2, EXP at L2.5, DSCP at L3", pt-BR: "Classificação, marcação, policiamento, escalonamento: 802.1p em L2, EXP em L2.5, DSCP em L3" }
+    span: [datalink, mpls, network]
+    match: [qos., interface.qos_policy, interface.qos_profile, interface.port_queue, interface.trust_upstream]
+  - id: clock
+    name: { zh-CN: 时钟同步, en: Clock sync, pt-BR: Sincronismo }
+    desc: { zh-CN: SyncE 在物理层、PTP 在二层、自适应 PTP 走 UDP, en: "SyncE at the physical layer, PTP at L2, adaptive PTP over UDP", pt-BR: "SyncE na camada física, PTP em L2, PTP adaptativo sobre UDP" }
+    span: [physical, datalink, transport]
+    match: [clock., interface.ptp, interface.clock]
+
+domains:
+  interface: physical
+  acl: network
+  bfd: transport
+  bgp: network
+  clock: datalink
+  evpn: mpls
+  isis: network
+  l2vpn: mpls
+  mgmt: application
+  mpls: mpls
+  ospf: network
+  qos: network
+  routing-policy: network
+  sr: mpls
+  static-route: network
+  vrf: network
+  vrrp: network
+
+objects:
+  # 接口与二层
+  interface: physical
+  interface.ipv4: network
+  interface.access: datalink
+  interface.access.pw: mpls
+  bridge_domain: datalink
+  bridge_domain.member: datalink
+  # ACL
+  acl.instance: network
+  acl.instance.rule: network
+  # BFD
+  bfd.global: transport
+  bfd.session: transport
+  interface.bfd: transport
+  # BGP：实例与地址族在网络层，对等体（TCP 会话）在传输层
+  bgp.instance: network
+  bgp.peer: transport
+  bgp.peer_group: transport
+  bgp.af: network
+  bgp.af.network: network
+  bgp.af.redistribute: network
+  bgp.af.peer: network
+  # 时钟同步
+  clock.ptp: datalink
+  clock.ptp.port: datalink
+  interface.ptp: datalink
+  clock.ptp_adaptive: transport
+  clock.ptp_adaptive.server: transport
+  clock.sync: physical
+  clock.sync.source: physical
+  interface.clock: physical
+  # EVPN
+  evpn.global: mpls
+  evpn.instance: mpls
+  evpn.instance.rt: mpls
+  evpn.evpl: mpls
+  # IS-IS
+  isis.process: network
+  isis.process.net: network
+  isis.process.passive: network
+  interface.isis: network
+  # L2VPN
+  l2vpn.global: mpls
+  l2vpn.pw_class: mpls
+  l2vpn.xconnect: mpls
+  l2vpn.xconnect.ac: mpls
+  l2vpn.xconnect.pw: mpls
+  l2vpn.vsi: mpls
+  l2vpn.vsi.peer: mpls
+  # 管理面
+  mgmt.ntp: application
+  mgmt.ntp.server: application
+  mgmt.ntp.access: application
+  mgmt.snmp: application
+  mgmt.snmp.community: application
+  mgmt.snmp.host: application
+  mgmt.snmp.group: application
+  mgmt.snmp.user: application
+  mgmt.syslog: application
+  mgmt.syslog.host: application
+  mgmt.ssh: application
+  mgmt.ssh.user: application
+  mgmt.telnet: application
+  mgmt.ftp: application
+  mgmt.aaa: application
+  mgmt.aaa.user: application
+  mgmt.aaa.scheme: application
+  mgmt.aaa.domain: application
+  mgmt.tacacs: application
+  mgmt.tacacs.server: application
+  mgmt.radius: application
+  mgmt.radius.server: application
+  mgmt.line: application
+  # MPLS / LDP
+  mpls.global: mpls
+  mpls.ldp: mpls
+  mpls.ldp.auth: mpls
+  mpls.ldp.remote_peer: mpls
+  interface.mpls: mpls
+  # OSPF
+  ospf.process: network
+  ospf.process.passive: network
+  ospf.process.redistribute: network
+  ospf.process.area: network
+  ospf.process.area.network: network
+  interface.ospf: network
+  # QoS（跨层特性，见 features）
+  qos.classifier: network
+  qos.classifier.match: network
+  qos.behavior: network
+  qos.policy: network
+  qos.policy.rule: network
+  interface.qos_policy: network
+  interface.qos_profile: datalink
+  interface.port_queue: datalink
+  qos.profile: datalink
+  qos.profile.user_queue: datalink
+  qos.flow_queue: datalink
+  qos.flow_queue.queue: datalink
+  qos.flow_wred: datalink
+  qos.flow_wred.color: datalink
+  qos.port_wred: datalink
+  qos.port_wred.color: datalink
+  # 路由策略与静态路由
+  rp.policy: network
+  rp.policy.node: network
+  rp.prefix_list: network
+  rp.prefix_list.entry: network
+  rp.community_list: network
+  rp.community_list.entry: network
+  static.route: network
+  # SR
+  sr.global: mpls
+  sr.prefix_sid_map: mpls
+  sr.global.conn_map: mpls
+  sr.global.conn_map.af: mpls
+  sr.global.conn_map.af.prefix: mpls
+  interface.prefix_sid: mpls
+  # VRF 与隧道策略
+  vrf.instance: network
+  vrf.instance.af: network
+  vrf.instance.af.rt: network
+  tunnel_policy: mpls
+  # VRRP
+  vrrp.global: network
+  interface.vrrp: network
+  interface.vrrp.virtual_ip: network
+  interface.vrrp.track: network
+
+attrs:
+  # 接口：物理属性留在物理层，其余按作用层
+  interface.mtu: datalink
+  interface.l2: datalink
+  interface.lag: datalink
+  interface.lag_mode: datalink
+  interface.dot1q_termination: datalink
+  interface.vrf: network
+  interface.acl_in: network
+  interface.acl_out: network
+  interface.evpn_instance: mpls
+  interface.evpl: mpls
+  interface.vsi: mpls
+  interface.trust_upstream: datalink
+  bridge_domain.evpn_instance: mpls
+  bridge_domain.vsi: mpls
+  # BGP 计时器与会话参数
+  bgp.instance.keepalive: transport
+  bgp.instance.hold: transport
+  bgp.af.peer.password: transport
+  bgp.af.peer.update_source: transport
+  # 路由协议里的 BFD、SR、LDP 联动
+  isis.process.bfd_all: transport
+  isis.process.sr_mpls: mpls
+  isis.process.srgb_begin: mpls
+  isis.process.srgb_end: mpls
+  isis.process.ti_lfa: mpls
+  isis.process.microloop_avoidance: mpls
+  interface.isis.bfd: transport
+  ospf.process.bfd_all: transport
+  ospf.process.bfd_min_tx: transport
+  ospf.process.bfd_min_rx: transport
+  ospf.process.sr_mpls: mpls
+  ospf.process.srgb_begin: mpls
+  ospf.process.srgb_end: mpls
+  ospf.process.ti_lfa: mpls
+  ospf.process.microloop_avoidance: mpls
+  interface.ospf.bfd: transport
+  interface.ospf.ldp_sync: mpls
+  # VRF 的 MPLS 相关参数
+  vrf.instance.af.label_mode: mpls
+  vrf.instance.af.tunnel_policy: mpls
+  vrf.instance.af.vpn_frr: mpls
+  # QoS 标记按所在层
+  qos.behavior.remark_8021p: datalink
+  qos.behavior.remark_mpls_exp: mpls
+  qos.policy.rule.remark_8021p: datalink
+  qos.policy.rule.remark_mpls_exp: mpls
+
+keys:
+  interface:
+    - { pattern: '\.\d+$', layer: datalink }  # 子接口
+    - { pattern: '^(eth-trunk|port-channel|bundle-ether)', layer: datalink }  # 聚合口
+    - { pattern: '^(loopback|vlanif|vbdif|bdi|vlan\d|null|tunnel)', layer: network }  # 三层逻辑口

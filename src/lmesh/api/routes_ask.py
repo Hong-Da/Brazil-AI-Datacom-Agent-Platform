@@ -23,6 +23,7 @@ from lmesh.api.common import (
     settings_of,
 )
 from lmesh.api.routes_export import load_devices, targets_of
+from lmesh.api.routes_skills import skill_actor
 from lmesh.api.routes_topology import ConfigText
 from lmesh.core import analysis, ask, gquery, guard, history, importer, kbservice, store, template
 from lmesh.core.kb import KnowledgeBase
@@ -85,7 +86,8 @@ def post_ask(request: Request, body: AskBody) -> dict[str, Any]:
     kb, _ = _kb(request)
     devices = load_devices(request, kb, [], targets_of([], body.devices))
     try:
-        return ok(request, ask.ask(body.question, devices, kb, settings, body.lang or lang_of(request)))
+        lang = body.lang or lang_of(request)
+        return ok(request, ask.ask(body.question, devices, kb, settings, lang, actor=skill_actor(request)))
     except ask.AskError as e:
         raise _ask_error(e) from e
 
@@ -189,6 +191,7 @@ def post_generate(request: Request, body: GenerateBody) -> dict[str, Any]:
             _template(root, kb, body.template),
             body.lang or lang_of(request),
             body.rounds,
+            actor=skill_actor(request),
         )
     except ask.AskError as e:
         raise _ask_error(e) from e

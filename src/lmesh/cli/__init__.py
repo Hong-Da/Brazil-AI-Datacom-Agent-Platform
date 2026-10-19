@@ -290,6 +290,14 @@ from lmesh.cli import cmd_naming  # noqa: E402
 
 cmd_naming.register(app)
 
+from lmesh.cli import cmd_skill  # noqa: E402
+
+cmd_skill.register(app)
+
+from lmesh.cli import cmd_analyze  # noqa: E402
+
+cmd_analyze.register(app)
+
 
 def main() -> None:
     if os.name == "nt":  # Windows 控制台输出中文与葡语

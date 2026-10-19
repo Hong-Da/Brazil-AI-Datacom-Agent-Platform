@@ -1,0 +1,107 @@
+# 内置 AI skill（REQ-033）的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 真实 AI 的试运行与进化用假的 AI 客户端在 tests/unit/test_skills.py 中验证；这里验证查看、回放试运行、版本、回滚与未配置 AI 时的状态。
+
+[[case]]
+id = "skill-list"
+title = { zh-CN = "skill 列表：启用状态、当前版本、近 30 天调用与校验通过率", en = "Skill list: enabled, version, calls and pass rate in the last 30 days", pt-BR = "Lista de skills: ativa, versão, chamadas e aprovação nos últimos 30 dias" }
+args = ["--output", "json", "skill", "list"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "ok" = true, "data.days" = 30, "data.skills.0.id" = "card-extract", "data.skills.1.id" = "ask-query", "data.skills.1.active" = "builtin", "data.skills.1.enabled" = true, "data.skills.1.model_key" = "ai.model_ask", "data.skills.1.stats.calls" = 0, "data.skills.5.id" = "skill-evolve" }
+in_docs = true
+
+[[case]]
+id = "skill-list-text"
+title = { zh-CN = "skill 列表（文字输出）", en = "Skill list (text)", pt-BR = "Lista de skills (texto)" }
+args = ["--lang", "zh-CN", "skill", "list"]
+setup = "configured"
+expect_exit = 0
+expect_stdout = ["ask-query", "问答：写图查询", "builtin", "回归集"]
+
+[[case]]
+id = "skill-list-not-configured"
+title = { zh-CN = "未完成首次配置时 skill 列表需要数据库", en = "Skill list needs the database (not configured)", pt-BR = "A lista de skills precisa do banco (não configurado)" }
+args = ["skill", "list"]
+setup = "fresh"
+expect_exit = 3
+
+[[case]]
+id = "skill-show"
+title = { zh-CN = "显示 skill 的生效定义：系统提示词、提示模板、工具、代码校验", en = "Show a skill's effective definition", pt-BR = "Mostrar a definição em vigor de uma skill" }
+args = ["--output", "json", "skill", "show", "ask-query"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "ok" = true, "data.id" = "ask-query", "data.task" = "ask", "data.active" = "builtin", "data.checks" = ["gquery.validate"], "data.definition.templates.retry" = "Your previous query was rejected by the validator: {error}\nWrite a corrected query.", "data.variables.0.name" = "syntax" }
+in_docs = true
+
+[[case]]
+id = "skill-show-missing"
+title = { zh-CN = "skill 不存在", en = "Unknown skill", pt-BR = "Skill inexistente" }
+args = ["skill", "show", "nope"]
+setup = "fresh"
+expect_exit = 4
+
+[[case]]
+id = "skill-test-replay"
+title = { zh-CN = "试运行（回放，不需要 AI）：用样例记下的回复走一遍渲染与代码校验", en = "Test run in replay mode (no AI): render and code check with the sample reply", pt-BR = "Teste em modo reprodução (sem IA): renderização e verificação com a resposta da amostra" }
+args = ["--output", "json", "skill", "test", "card-extract", "--replay"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "ok" = true, "data.mode" = "replay", "data.version" = "builtin", "data.check.status" = "passed", "data.check.score" = 1.0 }
+in_docs = true
+
+[[case]]
+id = "skill-test-replay-rejected"
+title = { zh-CN = "回放一个不合语法的回复：代码校验拦截", en = "Replay an unparseable reply: blocked by the code check", pt-BR = "Reproduzir resposta inválida: bloqueada pela verificação" }
+args = ["--lang", "en", "skill", "test", "card-extract", "--sample", "1", "--replay"]
+setup = "configured"
+expect_exit = 0
+expect_stdout = ["Replay (no AI call)", "Blocked", "✕"]
+
+[[case]]
+id = "skill-test-ai-not-configured"
+title = { zh-CN = "未配置 AI：真实试运行返回“未配置”（可改用 --replay）", en = "AI not configured: a real test run reports not configured", pt-BR = "IA não configurada: o teste real informa não configurada" }
+args = ["--output", "json", "skill", "test", "ask-query"]
+setup = "configured"
+expect_exit = 3
+expect_json = { "ok" = false, "error.data.status" = "not_configured" }
+
+[[case]]
+id = "skill-versions"
+title = { zh-CN = "版本历史：只有内置版本", en = "Version history: built-in only", pt-BR = "Histórico de versões: só a embutida" }
+args = ["--output", "json", "skill", "versions", "ask-answer"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "ok" = true, "data.versions.0.version" = "builtin", "data.versions.0.active" = true, "data.versions.0.source" = "builtin" }
+in_docs = true
+
+[[case]]
+id = "skill-rollback-builtin"
+title = { zh-CN = "恢复内置版本（rollback 到 builtin）", en = "Restore the built-in version (roll back to builtin)", pt-BR = "Restaurar a versão embutida (reverter para builtin)" }
+args = ["--output", "json", "skill", "rollback", "ask-answer", "builtin"]
+setup = "fresh"
+expect_exit = 0
+expect_json = { "ok" = true, "data.active" = "builtin" }
+
+[[case]]
+id = "skill-rollback-missing"
+title = { zh-CN = "回滚到不存在的版本", en = "Roll back to a missing version", pt-BR = "Reverter para uma versão inexistente" }
+args = ["skill", "rollback", "ask-answer", "7"]
+setup = "fresh"
+expect_exit = 4
+
+[[case]]
+id = "skill-evolve-not-configured"
+title = { zh-CN = "未配置 AI：进化不可用", en = "AI not configured: evolution unavailable", pt-BR = "IA não configurada: evolução indisponível" }
+args = ["--output", "json", "skill", "evolve", "ask-query"]
+setup = "configured"
+expect_exit = 3
+expect_json = { "ok" = false, "error.data.status" = "not_configured" }
+in_docs = true
+
+[[case]]
+id = "skill-approve-missing"
+title = { zh-CN = "批准不存在的进化", en = "Approve a missing evolution", pt-BR = "Aprovar evolução inexistente" }
+args = ["skill", "approve", "ask-query", "1"]
+setup = "configured"
+expect_exit = 4

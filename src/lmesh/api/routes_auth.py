@@ -63,18 +63,24 @@ def _start_session(request: Request, response: Response, user: dict[str, Any]) -
 # ---------- 登录、登出、当前用户 ----------
 
 
-@router.get("/auth/status", summary="登录页需要的状态：是否已配置、是否已有账号（不需要认证）")
+@router.get(
+    "/auth/status",
+    summary="登录页需要的状态：是否已配置、是否已有账号；还没有账号时另给配置文件路径与是否设置了令牌（不需要认证）",
+)
 def auth_status(request: Request) -> dict[str, Any]:
     configured = config.is_configured()
     has_users = users.count(db_of(request)) > 0 if configured else False
-    return ok(
-        request,
-        {
-            "configured": configured,
-            "has_users": has_users,
-            "session_hours": settings_of(request).get("security.session_hours"),
-        },
-    )
+    s = settings_of(request)
+    data: dict[str, Any] = {
+        "configured": configured,
+        "has_users": has_users,
+        "session_hours": s.get("security.session_hours"),
+    }
+    if configured and not has_users:
+        # 只在创建第一个管理员之前返回：实际读取的配置文件路径与是否设置了令牌（不返回令牌内容）
+        data["config_file"] = str(config.config_path().resolve())
+        data["token_set"] = bool(str(s.get("security.api_token") or "").strip())
+    return ok(request, data)
 
 
 class LoginBody(BaseModel):

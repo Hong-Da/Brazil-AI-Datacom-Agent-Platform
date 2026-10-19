@@ -1,0 +1,70 @@
+# 内置 AI skill（只读）：配置问答第一步：把问题改写成一条只读的图查询；查询由代码校验并执行，AI 不直接回答问题。
+# 管理员修改后的版本保存在 data/ai-skills/ask-query/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。
+id: ask-query
+version: 1
+title: {zh-CN: 问答：写图查询, en: 'Ask: write a graph query', pt-BR: 'Perguntar: escrever a consulta'}
+description: {zh-CN: 配置问答的第一步：把工程师的问题改写成一条只读的图查询（FIND … WHERE … RETURN …）。代码校验查询语法、对象类型、字段路径与设备名后执行；不通过时把错误交回 AI 再写一次。, en: "First step of Ask: turn the engineer's question into one read-only graph query (FIND … WHERE … RETURN …). Code validates syntax, object type, field paths and device names before running it; on failure the error goes back to the AI for another try.", pt-BR: 'Primeiro passo do Perguntar: transformar a pergunta numa consulta somente leitura (FIND … WHERE … RETURN …). O código valida sintaxe, tipo de objeto, campos e dispositivos antes de executar; se falhar, o erro volta para a IA tentar de novo.'}
+task: ask
+used_by: ask
+enabled: true
+system: |-
+  You turn a network engineer's question about router configurations into ONE read-only query in the
+  LucidMesh graph query language. The query is validated and executed by code; never answer the question yourself.
+  Grammar: {syntax}
+  Operators: {ops}
+  Notes: {notes}
+  Reply with JSON only: {{"query": "<query text>"}}
+prompt: |-
+  Devices:
+  {devices}
+
+  Schema (object -> fields):
+  {catalog}
+
+  Question: {question}
+templates:
+  retry: |-
+    Your previous query was rejected by the validator: {error}
+    Write a corrected query.
+variables:
+  - name: syntax
+    in: system
+    desc: {zh-CN: 查询语法（代码给出）, en: Query grammar (from code), pt-BR: Gramática da consulta (do código)}
+  - name: ops
+    in: system
+    desc: {zh-CN: 可用运算符, en: Available operators, pt-BR: Operadores disponíveis}
+  - name: notes
+    in: system
+    desc: {zh-CN: 查询语言说明, en: Notes on the query language, pt-BR: Notas sobre a linguagem}
+  - name: devices
+    in: prompt
+    desc: {zh-CN: 查询范围内的设备（名称、Profile、平台族）, en: 'Devices in scope (name, profile, family)', pt-BR: 'Dispositivos no escopo (nome, profile, família)'}
+  - name: catalog
+    in: prompt
+    desc: {zh-CN: Schema 目录：对象类型 → 字段（不含敏感字段与配置取值）, en: 'Schema catalogue: object → fields (no secrets, no values)', pt-BR: 'Catálogo do Schema: objeto → campos (sem segredos nem valores)'}
+  - name: question
+    in: prompt
+    desc: {zh-CN: 用户的问题（脱敏后）, en: The user's question (sanitised), pt-BR: A pergunta do usuário (anonimizada)}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上一次查询被校验拒绝的原因, en: Why the previous query was rejected, pt-BR: Por que a consulta anterior foi rejeitada}
+examples: []
+tools:
+  - gquery
+  - schema
+  - sanitize
+output:
+  format: json
+  schema: '{"query": "<query text>"}'
+checks:
+  - gquery.validate
+samples:
+  - title: {zh-CN: MTU 为 9216 的接口, en: Interfaces with MTU 9216, pt-BR: Interfaces com MTU 9216}
+    input:
+      question: 哪些接口的 MTU 是 9216？
+    reply: '{"query": "FIND interface WHERE mtu = 9216 RETURN name, description, mtu"}'
+  - title: {zh-CN: 字段不存在（演示拦截）, en: Unknown field (shows a rejection), pt-BR: Campo inexistente (mostra a rejeição)}
+    input:
+      question: 哪些接口开了巨型帧？
+    reply: '{"query": "FIND interface WHERE jumbo = true RETURN name"}'

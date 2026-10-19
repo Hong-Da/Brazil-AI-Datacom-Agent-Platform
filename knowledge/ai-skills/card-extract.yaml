@@ -1,0 +1,42 @@
+# 内置 AI skill（只读）：命令卡语法修正：文档导入时规则抽取失败的命令语法交给 AI 改写成命令卡记法，结果必须能被语法解析器解析才采用。
+# 管理员修改后的版本保存在 data/ai-skills/card-extract/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。
+id: card-extract
+version: 1
+title: {zh-CN: 命令卡语法修正, en: Command card syntax repair, pt-BR: Correção de sintaxe de cartões de comando}
+description: {zh-CN: '文档导入时，规则抽取失败的命令语法交给 AI 改写成命令卡记法；结果必须能被命令语法解析器解析才采用，并标明 extracted_by: ai。', en: 'During document import, command syntax the extraction rules could not handle is rewritten by AI into card notation; it is used only if the syntax parser accepts it, marked extracted_by: ai.', pt-BR: 'Na importação de documentos, a sintaxe que as regras não conseguiram extrair é reescrita pela IA na notação de cartões; só é usada se o analisador de sintaxe aceitar, marcada extracted_by: ai.'}
+task: extract
+used_by: ingest
+enabled: true
+system: 'You convert router command syntax from vendor documentation into a strict notation: keywords as plain words, parameters as <name>, optional parts in [ ], required choices in { a | b }, repetition as &<1-N> after an element. Reply with the corrected syntax only, on one line, nothing else.'
+prompt: |
+  Command: {title}
+  Documentation syntax line (Markdown, bold = keyword, italic = parameter):
+  {format}
+templates: {}
+variables:
+  - name: title
+    in: prompt
+    desc: {zh-CN: 命令标题（文档中的命令名）, en: Command title from the document, pt-BR: Título do comando no documento}
+  - name: format
+    in: prompt
+    desc: {zh-CN: 文档中的语法行（Markdown，粗体是关键字、斜体是参数）, en: 'Syntax line from the document (Markdown: bold = keyword, italic = parameter)', pt-BR: 'Linha de sintaxe do documento (Markdown: negrito = palavra-chave, itálico = parâmetro)'}
+examples: []
+tools:
+  - syntax
+output:
+  format: text
+  schema: one line of command syntax
+checks:
+  - syntax.parse
+samples:
+  - title: {zh-CN: 接口 IP 地址, en: Interface IP address, pt-BR: Endereço IP da interface}
+    input:
+      title: ip address (interface view)
+      format: '**ip address** *ip-address* { *mask* | *mask-length* } [ **sub** ]'
+    reply: ip address <ip-address> { <mask> | <mask-length> } [ sub ]
+  - title: {zh-CN: 回复不合语法（演示拦截）, en: Unparseable reply (shows a rejection), pt-BR: Resposta inválida (mostra a rejeição)}
+    input:
+      title: peer as-number
+      format: '**peer** *ipv4-address* **as-number** *as-number*'
+    reply: peer <ipv4-address> as-number { <as-number>

@@ -293,6 +293,19 @@ FIELDS: tuple[Field, ...] = (
         maximum=200000,
         wizard=False,
     ),
+    Field(
+        "ai.skill_log_days",
+        90,
+        "ai",
+        "int",
+        _d(
+            "AI skill 调用记录与反馈保留多少天（只存数据库，内容已脱敏；用于统计与学习进化）",
+            "Days to keep AI skill call records and feedback (database only, sanitised; used for statistics and evolution)",
+            "Dias para manter registros de chamadas e avaliações das skills de IA (só no banco, anonimizados; para estatísticas e evolução)",
+        ),
+        minimum=1,
+        maximum=3650,
+    ),
 )
 
 FIELD_MAP = {f.key: f for f in FIELDS}

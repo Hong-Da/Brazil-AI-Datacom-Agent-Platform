@@ -121,7 +121,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "登录页需要的状态：是否已配置、是否已有账号（不需要认证）",
+        "summary": "登录页需要的状态：是否已配置、是否已有账号；还没有账号时另给配置文件路径与是否设置了令牌（不需要认证）",
         "operationId": "auth_status_api_v1_auth_status_get",
         "responses": {
           "200": {
@@ -1085,7 +1085,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RollbackBody"
+                "$ref": "#/components/schemas/lmesh__api__routes_kb__RollbackBody"
               }
             }
           },
@@ -1315,7 +1315,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/DecideBody"
+                "$ref": "#/components/schemas/lmesh__api__routes_kb__DecideBody"
               }
             }
           }
@@ -1594,6 +1594,141 @@
                   "type": "object",
                   "additionalProperties": true,
                   "title": "Response Unknown Lines Api V1 Unknown Lines Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/analysis": {
+      "get": {
+        "tags": [
+          "analysis"
+        ],
+        "summary": "设备配置分析：分析摘要、TCP/IP 分层、结构化脚本、配置图（parts 选择，默认全部）",
+        "operationId": "device_analysis_api_v1_devices__device_id__analysis_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "parts",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "summary,layers,script,graph 中的若干个，逗号分隔；默认全部",
+              "title": "Parts"
+            },
+            "description": "summary,layers,script,graph 中的若干个，逗号分隔；默认全部"
+          },
+          {
+            "name": "version_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "指定配置版本（默认最新版本）",
+              "title": "Version Id"
+            },
+            "description": "指定配置版本（默认最新版本）"
+          },
+          {
+            "name": "defaults",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "结构化脚本带上隐藏的默认值行",
+              "default": true,
+              "title": "Defaults"
+            },
+            "description": "结构化脚本带上隐藏的默认值行"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Device Analysis Api V1 Devices  Device Id  Analysis Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/analysis": {
+      "post": {
+        "tags": [
+          "analysis"
+        ],
+        "summary": "分析一份配置文本（不需要先导入；没有版本历史与忽略记录）",
+        "operationId": "text_analysis_api_v1_analysis_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalysisBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Text Analysis Api V1 Analysis Post"
                 }
               }
             }
@@ -4438,7 +4573,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/TestBody"
+                "$ref": "#/components/schemas/lmesh__api__routes_translate_rules__TestBody"
               }
             }
           },
@@ -6036,6 +6171,1249 @@
           }
         }
       }
+    },
+    "/api/v1/ai/skills/feedback": {
+      "post": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "对一次 AI 结果的反馈：点赞 / 点踩 / 更正（所有登录账号）；点踩与更正进入回归集，校验通过且点赞的成为候选示例",
+        "operationId": "post_feedback_api_v1_ai_skills_feedback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Post Feedback Api V1 Ai Skills Feedback Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills": {
+      "get": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "skill 列表：启用状态、当前版本、近 N 天的调用数、代码校验通过率、被拦截比例、评价、回归集",
+        "operationId": "list_skills_api_v1_ai_skills_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 3650,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Skills Api V1 Ai Skills Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}": {
+      "get": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "skill 详情：生效定义、内置定义、变量说明、试运行样例、可选工具、代码校验",
+        "operationId": "get_skill_api_v1_ai_skills__sid__get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Skill Api V1 Ai Skills  Sid  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "保存为新版本并生效（校验变量、模板、示例、工具、输出格式）；内容没变时不新建版本",
+        "operationId": "put_skill_api_v1_ai_skills__sid__put",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/lmesh__api__routes_skills__SaveBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Skill Api V1 Ai Skills  Sid  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/enabled": {
+      "put": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "启用 / 停用（停用后对应的 AI 功能返回 skill_disabled，核心功能不受影响）",
+        "operationId": "put_enabled_api_v1_ai_skills__sid__enabled_put",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EnabledBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Enabled Api V1 Ai Skills  Sid  Enabled Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/versions": {
+      "get": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "版本历史：内置版本与每次保存的版本（来源、作者、时间、说明、是否生效）",
+        "operationId": "get_versions_api_v1_ai_skills__sid__versions_get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Versions Api V1 Ai Skills  Sid  Versions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/versions/{version}": {
+      "get": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "某个版本的定义（builtin 或版本号）",
+        "operationId": "get_version_api_v1_ai_skills__sid__versions__version__get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Version Api V1 Ai Skills  Sid  Versions  Version  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/diff": {
+      "get": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "两个版本逐字段对比（文本字段逐行差异）",
+        "operationId": "get_diff_api_v1_ai_skills__sid__diff_get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "a",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "builtin",
+              "title": "A"
+            }
+          },
+          {
+            "name": "b",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "current",
+              "title": "B"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Diff Api V1 Ai Skills  Sid  Diff Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/rollback": {
+      "post": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "回滚：把生效版本指向任一历史版本（版本文件不删除）",
+        "operationId": "post_rollback_api_v1_ai_skills__sid__rollback_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/lmesh__api__routes_skills__RollbackBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Rollback Api V1 Ai Skills  Sid  Rollback Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/restore": {
+      "post": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "恢复内置版本",
+        "operationId": "post_restore_api_v1_ai_skills__sid__restore_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Restore Api V1 Ai Skills  Sid  Restore Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/test": {
+      "post": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "试运行：渲染提示词 → 调用 AI（或回放）→ 代码校验；返回实际发送的内容（脱敏后）、回复与校验结果",
+        "operationId": "post_test_api_v1_ai_skills__sid__test_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/lmesh__api__routes_skills__TestBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Test Api V1 Ai Skills  Sid  Test Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/stats": {
+      "get": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "统计：近 N 天合计、每日调用（按校验结论）、按版本、最近调用",
+        "operationId": "get_stats_api_v1_ai_skills__sid__stats_get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Stats Api V1 Ai Skills  Sid  Stats Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/runs": {
+      "get": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "调用记录（新的在前；可按状态、来源筛选）",
+        "operationId": "get_runs_api_v1_ai_skills__sid__runs_get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          },
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Runs Api V1 Ai Skills  Sid  Runs Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/runs/{run_id}": {
+      "get": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "一次调用的详情：输入、回复（均为脱敏后）与校验明细",
+        "operationId": "get_run_api_v1_ai_skills__sid__runs__run_id__get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Run Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Run Api V1 Ai Skills  Sid  Runs  Run Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/cases": {
+      "get": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "回归集（失败案例自动入集）与候选示例（校验通过且点赞）",
+        "operationId": "get_cases_api_v1_ai_skills__sid__cases_get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Cases Api V1 Ai Skills  Sid  Cases Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "把一次调用手动加入回归集或候选示例（同样的输入只留一条）",
+        "operationId": "post_case_api_v1_ai_skills__sid__cases_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Case Api V1 Ai Skills  Sid  Cases Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/cases/{cid}": {
+      "delete": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "删除案例",
+        "operationId": "delete_case_api_v1_ai_skills__sid__cases__cid__delete",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Cid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Case Api V1 Ai Skills  Sid  Cases  Cid  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/cases/{cid}/example": {
+      "post": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "把案例加入示例（few-shot），形成新版本并生效；输出取用户更正，没有时取原回复",
+        "operationId": "post_case_example_api_v1_ai_skills__sid__cases__cid__example_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Cid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Case Example Api V1 Ai Skills  Sid  Cases  Cid  Example Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/evolve": {
+      "post": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "发起进化（需要配置 AI、回归集至少 1 条）：AI 提出候选版本 → 回归集新旧对比打分 → 待管理员批准（不自动上线）",
+        "operationId": "post_evolve_api_v1_ai_skills__sid__evolve_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvolveBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Evolve Api V1 Ai Skills  Sid  Evolve Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/evolutions": {
+      "get": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "进化记录（待批准 / 已批准 / 已放弃 / 失败）",
+        "operationId": "get_evolutions_api_v1_ai_skills__sid__evolutions_get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Evolutions Api V1 Ai Skills  Sid  Evolutions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/evolutions/{eid}": {
+      "get": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "一次进化的详情：候选版本、与旧版本的差异、回归集逐条对比与得分、AI 的改动说明",
+        "operationId": "get_evolution_api_v1_ai_skills__sid__evolutions__eid__get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Evolution Api V1 Ai Skills  Sid  Evolutions  Eid  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/evolutions/{eid}/approve": {
+      "post": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "批准发布：候选版本保存为新版本并生效",
+        "operationId": "post_approve_api_v1_ai_skills__sid__evolutions__eid__approve_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/lmesh__api__routes_skills__DecideBody"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Approve Api V1 Ai Skills  Sid  Evolutions  Eid  Approve Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/skills/{sid}/evolutions/{eid}/reject": {
+      "post": {
+        "tags": [
+          "ai-skills"
+        ],
+        "summary": "放弃这次进化（候选版本不发布）",
+        "operationId": "post_reject_api_v1_ai_skills__sid__evolutions__eid__reject_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "eid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Eid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/lmesh__api__routes_skills__DecideBody"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Reject Api V1 Ai Skills  Sid  Evolutions  Eid  Reject Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6154,6 +7532,61 @@
         },
         "type": "object",
         "title": "AdminBody"
+      },
+      "AnalysisBody": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 20971520,
+            "title": "Text",
+            "description": "配置文本"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile",
+            "description": "知识库 Profile；不填时自动识别"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Name",
+            "description": "设备名（结果中显示）",
+            "default": "device"
+          },
+          "parts": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parts",
+            "description": "summary / layers / script / graph；默认全部"
+          },
+          "defaults": {
+            "type": "boolean",
+            "title": "Defaults",
+            "description": "结构化脚本带上隐藏的默认值行",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "AnalysisBody"
       },
       "AskBody": {
         "properties": {
@@ -6439,6 +7872,34 @@
           "password"
         ],
         "title": "BootstrapBody"
+      },
+      "CaseBody": {
+        "properties": {
+          "run_id": {
+            "type": "integer",
+            "title": "Run Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "regression",
+              "candidate"
+            ],
+            "title": "Kind",
+            "default": "regression"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id"
+        ],
+        "title": "CaseBody"
       },
       "ChangeBody": {
         "properties": {
@@ -6813,40 +8274,6 @@
         "type": "object",
         "title": "ConsistencyBody"
       },
-      "DecideBody": {
-        "properties": {
-          "action": {
-            "type": "string",
-            "enum": [
-              "approve",
-              "reject"
-            ],
-            "title": "Action"
-          },
-          "note": {
-            "type": "string",
-            "title": "Note",
-            "default": ""
-          },
-          "edited": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Edited"
-          }
-        },
-        "type": "object",
-        "required": [
-          "action"
-        ],
-        "title": "DecideBody"
-      },
       "DiffBody": {
         "properties": {
           "a": {
@@ -7108,6 +8535,19 @@
         ],
         "title": "DraftConfig"
       },
+      "EnabledBody": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          }
+        },
+        "type": "object",
+        "required": [
+          "enabled"
+        ],
+        "title": "EnabledBody"
+      },
       "EntryBody": {
         "properties": {
           "supported": {
@@ -7171,6 +8611,63 @@
         },
         "type": "object",
         "title": "EntryBody"
+      },
+      "EvolveBody": {
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "description": "最多用回归集里最近的多少条案例",
+            "default": 20
+          },
+          "wait": {
+            "type": "boolean",
+            "title": "Wait",
+            "description": "在请求中等待完成（默认后台任务，返回 task_id）",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "EvolveBody"
+      },
+      "FeedbackBody": {
+        "properties": {
+          "run_id": {
+            "type": "integer",
+            "title": "Run Id",
+            "description": "结果中 skill_runs[].run_id / skill_run"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "up",
+                  "down"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating",
+            "description": "点赞 / 点踩；为空且没有更正时撤销评价"
+          },
+          "correction": {
+            "type": "string",
+            "maxLength": 20000,
+            "title": "Correction",
+            "description": "更正：写出正确的内容（进入回归集）",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id"
+        ],
+        "title": "FeedbackBody"
       },
       "GuardBody": {
         "properties": {
@@ -8517,19 +10014,6 @@
         ],
         "title": "RestoreBody"
       },
-      "RollbackBody": {
-        "properties": {
-          "ref": {
-            "type": "string",
-            "title": "Ref"
-          }
-        },
-        "type": "object",
-        "required": [
-          "ref"
-        ],
-        "title": "RollbackBody"
-      },
       "RoundtripBody": {
         "properties": {
           "text": {
@@ -9256,110 +10740,6 @@
         "title": "TargetBody",
         "description": "配置来源：text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
       },
-      "TestBody": {
-        "properties": {
-          "rule_set": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 80
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rule Set",
-            "description": "规则集编号（内置或我的）"
-          },
-          "rules": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rules",
-            "description": "规则集内容（与 YAML 文件结构相同），不保存"
-          },
-          "text": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 20971520
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Text"
-          },
-          "device_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Device Id"
-          },
-          "version_id": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Version Id"
-          },
-          "profile": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Profile",
-            "description": "源配置的 Profile（不给时自动识别）"
-          },
-          "to": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "To",
-            "description": "目标 Profile（取名称长度上限）"
-          },
-          "target_text": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 20971520
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Target Text",
-            "description": "目标设备现有配置（新名与其中已有的名称重名时报冲突）"
-          }
-        },
-        "type": "object",
-        "title": "TestBody",
-        "description": "配置来源：text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
-      },
       "TextBody": {
         "properties": {
           "text": {
@@ -9833,6 +11213,261 @@
         "type": "object",
         "title": "CheckBody"
       },
+      "lmesh__api__routes_kb__DecideBody": {
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "approve",
+              "reject"
+            ],
+            "title": "Action"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note",
+            "default": ""
+          },
+          "edited": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edited"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "DecideBody"
+      },
+      "lmesh__api__routes_kb__RollbackBody": {
+        "properties": {
+          "ref": {
+            "type": "string",
+            "title": "Ref"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ref"
+        ],
+        "title": "RollbackBody"
+      },
+      "lmesh__api__routes_skills__DecideBody": {
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "DecideBody"
+      },
+      "lmesh__api__routes_skills__RollbackBody": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "builtin 或版本号"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "title": "RollbackBody"
+      },
+      "lmesh__api__routes_skills__SaveBody": {
+        "properties": {
+          "system": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "System"
+          },
+          "prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt"
+          },
+          "templates": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Templates"
+          },
+          "examples": {
+            "anyOf": [
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Examples"
+          },
+          "tools": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tools"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Note",
+            "description": "保存说明（写入版本历史）",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "SaveBody"
+      },
+      "lmesh__api__routes_skills__TestBody": {
+        "properties": {
+          "sample": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sample",
+            "description": "内置样例的序号"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id",
+            "description": "回归集或候选示例的编号"
+          },
+          "input": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input",
+            "description": "手填的输入（与样例的 input 结构相同）"
+          },
+          "definition": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Definition",
+            "description": "未保存的定义（编辑中的草稿），不给时用 version 或生效版本"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "ai",
+              "replay"
+            ],
+            "title": "Mode",
+            "description": "ai 真实调用；replay 回放样例 / 案例记下的回复或 reply（不需要 AI）",
+            "default": "ai"
+          },
+          "reply": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reply",
+            "description": "回放用的回复"
+          }
+        },
+        "type": "object",
+        "title": "TestBody"
+      },
       "lmesh__api__routes_template__GenerateBody": {
         "properties": {
           "rule_set": {
@@ -9997,6 +11632,110 @@
         "type": "object",
         "title": "SaveBody",
         "description": "rules（结构化，合并进已有文件、保留注释）或 source（YAML 原文，原样写入）二选一。"
+      },
+      "lmesh__api__routes_translate_rules__TestBody": {
+        "properties": {
+          "rule_set": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rule Set",
+            "description": "规则集编号（内置或我的）"
+          },
+          "rules": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rules",
+            "description": "规则集内容（与 YAML 文件结构相同），不保存"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "device_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Device Id"
+          },
+          "version_id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version Id"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile",
+            "description": "源配置的 Profile（不给时自动识别）"
+          },
+          "to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To",
+            "description": "目标 Profile（取名称长度上限）"
+          },
+          "target_text": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20971520
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Text",
+            "description": "目标设备现有配置（新名与其中已有的名称重名时报冲突）"
+          }
+        },
+        "type": "object",
+        "title": "TestBody",
+        "description": "配置来源：text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
       }
     }
   }

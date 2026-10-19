@@ -110,3 +110,58 @@ export function domainCounts(nodes: FNode[]): Map<string, number> {
   for (const n of nodes) c.set(n.domain, (c.get(n.domain) ?? 0) + 1)
   return c
 }
+
+export interface Band {
+  id: string
+  /** 带的上边与高度（模型坐标） */
+  y: number
+  h: number
+}
+
+/**
+ * 按层分带的布局（设备配置分析的关系视图，REQ-034）：同一层的圆点排在同一条横带里，带按 order 自上而下；
+ * 带内按功能域、名称排成网格，奇数列错开半行，避免标签重叠。不属于任何层的圆点放在最下面一条带。
+ */
+export function bandLayout(
+  nodes: FNode[],
+  bandOf: (id: string) => string | null,
+  order: string[],
+  width: number,
+  opt: { colW?: number; rowH?: number; pad?: number; left?: number } = {},
+): { pos: Map<string, { x: number; y: number }>; bands: Band[] } {
+  const colW = opt.colW ?? 74
+  const rowH = opt.rowH ?? 44
+  const pad = opt.pad ?? 26
+  const left = opt.left ?? 120
+  const by = new Map<string, FNode[]>()
+  const rest: FNode[] = []
+  for (const n of nodes) {
+    const b = bandOf(n.id)
+    if (b && order.includes(b)) {
+      const arr = by.get(b) ?? []
+      arr.push(n)
+      by.set(b, arr)
+    } else rest.push(n)
+  }
+  const ids = [...order, ...(rest.length ? ['__other'] : [])]
+  if (rest.length) by.set('__other', rest)
+  const cols = Math.max(1, Math.floor((width - left) / colW))
+  const pos = new Map<string, { x: number; y: number }>()
+  const bands: Band[] = []
+  let y = 0
+  for (const b of ids) {
+    const items = [...(by.get(b) ?? [])].sort((p, q) => p.domain.localeCompare(q.domain) || p.label.localeCompare(q.label))
+    const rows = Math.max(1, Math.ceil(items.length / cols))
+    const h = rows * rowH + pad * 2 - rowH / 2
+    items.forEach((n, i) => {
+      const r = Math.floor(i / cols)
+      const c = i % cols
+      const inRow = Math.min(cols, items.length - r * cols)
+      const span = (width - left) / Math.max(inRow, 1)
+      pos.set(n.id, { x: left + (c + 0.5) * Math.min(span, colW * 1.6), y: y + pad + r * rowH + (c % 2 ? rowH / 3 : 0) })
+    })
+    bands.push({ id: b, y, h })
+    y += h + 8
+  }
+  return { pos, bands }
+}

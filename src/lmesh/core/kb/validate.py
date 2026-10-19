@@ -136,6 +136,12 @@ def validate(kb: KnowledgeBase) -> list[Issue]:
                     f"{p.id} 的副作用规则 {d.src} → {d.dst} 的说明缺少语言：{', '.join(d.note.missing())}",
                     p.file,
                 )
+
+    # 配置分层（REQ-034）：新增的对象类型要在 layers.yaml 归层
+    from lmesh.core import layers
+
+    for code, msg in layers.problems(kb, layers.load(kb.root), check_nodes=(kb.root / layers.FILE).exists()):
+        warn(code, msg, layers.FILE)
     return issues
 
 

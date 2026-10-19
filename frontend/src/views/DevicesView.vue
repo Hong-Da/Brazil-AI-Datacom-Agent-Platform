@@ -236,7 +236,7 @@ function onImported(): void {
                 <td><input type="checkbox" class="ck" :checked="checked.has(d.id)" :aria-label="d.name" @change="toggle(d.id, ($event.target as HTMLInputElement).checked)"></td>
                 <td class="nm nowrap">
                   <router-link class="trunc" style="display: block; max-width: 220px" :title="d.name" :to="{ name: 'device-graph', params: { id: d.id } }" data-testid="device-link">{{ d.name }}</router-link>
-                  <div class="mono faint src" :title="d.source_name">{{ d.source_name }}<template v-if="d.versions > 1"> · <router-link :to="{ name: 'history', params: { id: d.id } }" :title="$t('nav.history')" data-testid="device-history">{{ $t('devices.versions', { n: d.versions }) }}</router-link></template></div>
+                  <div class="mono faint src" :title="d.source_name">{{ d.source_name }}<template v-if="d.parsed"> · <router-link :to="{ name: 'device-analysis', params: { id: d.id } }" :title="$t('nav.device-analysis')" data-testid="device-analysis-link">{{ $t('devices.analyze') }}</router-link></template><template v-if="d.versions > 1"> · <router-link :to="{ name: 'history', params: { id: d.id } }" :title="$t('nav.history')" data-testid="device-history">{{ $t('devices.versions', { n: d.versions }) }}</router-link></template></div>
                 </td>
                 <td class="nowrap">
                   <span v-if="d.vendor" class="vendor"><i :class="d.vendor === 'huawei' ? 'hw' : d.vendor === 'cisco' ? 'cs' : ''">{{ d.vendor === 'huawei' ? 'HW' : d.vendor === 'cisco' ? 'CS' : '?' }}</i>{{ vendorLabel(d.vendor) }}</span>

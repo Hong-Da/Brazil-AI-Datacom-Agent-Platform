@@ -147,7 +147,7 @@ def full_kb_root(tmp_root: Path) -> Path:
 
 
 def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
-    """用例的准备方式：fresh / configured / fresh-fullkb / configured-fullkb / configured-fullkb-history / configured-users。"""
+    """用例的准备方式：fresh / configured / fresh-fullkb / configured-fullkb / configured-fullkb-history / configured-users / configured-notoken。"""
     if setup and "fullkb" in setup:
         request.getfixturevalue("full_kb_root")
     if setup and setup.startswith("configured"):
@@ -158,6 +158,8 @@ def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
         request.getfixturevalue("users_root")
     if setup and setup.endswith("-checkproj"):
         request.getfixturevalue("checkproj_root")
+    if setup and setup.endswith("-notoken"):  # 实例没有设置 API 令牌（环境变量覆盖为空）
+        request.getfixturevalue("monkeypatch").setenv("LMESH_SECURITY__API_TOKEN", "")
 
 
 HISTORY_DEVICE = "ATN-CHANGE-01"

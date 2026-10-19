@@ -1,0 +1,35 @@
+# 设备配置分析 lmesh analyze 的 CLI 用例（REQ-034；加载器与主文件 cli_cases.toml 合并）。
+
+[[case]]
+id = "analyze-file"
+title = { zh-CN = "分析现网 ATN 配置：摘要与 TCP/IP 分层", en = "Analyze the field ATN config: summary and TCP/IP layers", pt-BR = "Analisar a configuração ATN de campo: resumo e camadas TCP/IP" }
+args = ["--output", "json", "analyze", "{samples}/huawei-atn-v800r023/atn-access-01.cfg"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.parts" = ["summary", "layers"], "data.summary.lines.total" = 2267, "data.summary.lines.raw" = 180, "data.summary.lines.unknown" = 0, "data.summary.domains.0.domain" = "qos", "data.summary.check.summary.by_severity.warning" = 65, "data.summary.baseline.score" = 95, "data.summary.defaults.total" = 229, "data.layers.layers.0.id" = "physical", "data.layers.layers.2.id" = "mpls", "data.layers.unclassified" = [] }
+in_docs = true
+
+[[case]]
+id = "analyze-script"
+title = { zh-CN = "结构化脚本：关键字、参数与引用的字符区间", en = "Structured script: keyword, parameter and reference spans", pt-BR = "Script estruturado: intervalos de palavra-chave, parâmetro e referência" }
+args = ["--output", "json", "analyze", "{inputs}/configs/huawei/analysis-small.cfg", "--part", "script"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.parts" = ["script"], "data.script.refs" = { "vrf.instance[RAN]" = [9] }, "data.script.defs" = { "vrf.instance[RAN]" = 3 }, "data.script.lines.8.spans.3.t" = "ref", "data.script.lines.8.spans.3.ref" = ["vrf.instance[RAN]"], "data.script.lines.3.depth" = 1, "data.script.lines.11.layer" = "datalink" }
+in_docs = true
+
+[[case]]
+id = "analyze-device-text"
+title = { zh-CN = "已导入的设备：文字摘要含与上一版本的变化", en = "Imported device: text summary with changes since the previous version", pt-BR = "Dispositivo importado: resumo em texto com as mudanças desde a versão anterior" }
+args = ["--lang", "zh-CN", "analyze", "ATN-CHANGE-01"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_stdout = ["设备配置分析：ATN-CHANGE-01", "与上一版本（#1 → #2）：新增 0，修改 1，删除 0", "TCP/IP 分层（跨层依赖", "数据链路层"]
+
+[[case]]
+id = "analyze-bad-part"
+title = { zh-CN = "--part 写错", en = "Invalid --part", pt-BR = "--part inválido" }
+args = ["--lang", "en", "analyze", "{inputs}/configs/huawei/analysis-small.cfg", "--part", "graph"]
+setup = "fresh-fullkb"
+expect_exit = 2
+expect_stderr = ["Unsupported part: graph"]

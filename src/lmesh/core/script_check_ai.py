@@ -10,6 +10,7 @@ AI 返回 {"findings": [{"rule", "line", "evidence", "message", "suggestion"}]}�
     证据        evidence 必须是该行（脱敏后）原文的一部分             → 不符拦截 evidence_mismatch；没有给出证据 → unverifiable（无法校验）
 通过的发现 status=passed，来源 source=ai；被拦截的只计数并列出原因，不作为结论展示。
 同一份脱敏后的请求在进程内缓存回复（边写边查时重复提交不重复调用）。
+提示词来自 AI skill script-review（REQ-033，core/skills）；每次实际调用按校验结论记入 skill 调用记录（info.skill_run），供用户反馈。
 """
 
 from __future__ import annotations
@@ -19,7 +20,7 @@ import threading
 from collections import OrderedDict
 from typing import Any
 
-from lmesh.core import ai, ask, i18n
+from lmesh.core import ai, ask, i18n, skills
 from lmesh.core import rules as rulesmod
 from lmesh.core.kb import KnowledgeBase
 from lmesh.core.objtable import GraphIndex
@@ -34,31 +35,41 @@ REJECT_REASONS = (
     "evidence_mismatch",
     "bad_reply",
 )
-_cache: OrderedDict[str, str] = OrderedDict()
+_cache: OrderedDict[str, tuple[str, int | None]] = OrderedDict()
 _lock = threading.Lock()
 
-SYSTEM = (
-    "You review router configuration scripts (Huawei VRP / Cisco IOS-XE) against the given rules only. "
-    "Values in the script were anonymised; never guess real values. "
-    'Reply with JSON only: {"findings": [{"rule": "<rule id>", "line": <line number>, '
-    '"evidence": "<exact text copied from that line>", "message": "<one sentence>", "suggestion": "<one sentence>"}]}. '
-    "Report only lines that violate a listed rule; an empty list is fine. Every finding must quote evidence from its line."
-)
+SKILL = "script-review"
 
 
-def _prompt(text: str, rules: list[rulesmod.Rule]) -> str:
-    parts = ["Rules:"]
-    for r in rules:
-        title = r.title.get("en") or r.title.get("zh-CN") or r.id
-        msg = r.message.get("en") or ""
-        sug = r.suggestion.get("en") or ""
-        parts.append(f"- {r.id} (applies to: {r.target}; severity {r.severity}): {title}. {msg} {sug}".strip())
-    parts.append("")
-    parts.append("Script (line number | text):")
-    for i, ln in enumerate(text.split("\n"), start=1):
-        if ln.strip():
-            parts.append(f"{i} | {ln}")
-    return "\n".join(parts)
+def rule_info(r: rulesmod.Rule) -> dict[str, str]:
+    """给 AI 的规则说明（也存入 skill 调用记录，回归运行时重建提示）。"""
+    return {
+        "id": r.id,
+        "target": r.target,
+        "severity": r.severity,
+        "title": r.title.get("en") or r.title.get("zh-CN") or r.id,
+        "message": r.message.get("en") or "",
+        "suggestion": r.suggestion.get("en") or "",
+    }
+
+
+def messages(skill: skills.Skill, text: str, rules: list[dict[str, str]]) -> tuple[str, str]:
+    """script-review 的系统提示与正文：规则清单 + 带行号的脚本（只列非空行）。"""
+    rl = [
+        f"- {r['id']} (applies to: {r['target']}; severity {r['severity']}): {r['title']}. {r['message']} {r['suggestion']}".strip()
+        for r in rules
+    ]
+    sl = [f"{i} | {ln}" for i, ln in enumerate(text.split("\n"), start=1) if ln.strip()]
+    return skill.system_text(), skill.prompt_text(rules="\n".join(rl), script="\n".join(sl)).rstrip("\n")
+
+
+def review_status(passed: int, unverifiable: int, rejected: int) -> str:
+    """一次审查的结论：有被拦截的发现 → rejected；只有无法校验的 → unverifiable；其余（含没有发现）→ passed。"""
+    if rejected:
+        return "rejected"
+    if unverifiable and not passed:
+        return "unverifiable"
+    return "passed"
 
 
 def _norm(s: str) -> str:
@@ -92,28 +103,48 @@ def run(
     if not selected:
         info["status"] = "no_rules"
         return info
+    skill = skills.current(SKILL)
+    if not skill.enabled:
+        info["status"] = "skill_disabled"
+        return info
     sanitized = ask.sanitize_text(text)
     s_lines = sanitized.split("\n")
     o_lines = text.replace("\r\n", "\n").split("\n")
     check_lines = s_lines if len(s_lines) == len(o_lines) else o_lines
-    prompt = _prompt(sanitized, selected)
-    key = hashlib.sha256((SYSTEM + "\n" + prompt).encode("utf-8")).hexdigest()
+    rinfo = [rule_info(r) for r in selected]
+    system, prompt = messages(skill, sanitized, rinfo)
+    key = hashlib.sha256((system + "\n" + prompt).encode("utf-8")).hexdigest()
     sess = ask._Session(settings, TASK)
     with _lock:
-        reply = _cache.get(key)
-    info["cached"] = reply is not None
-    if reply is None:
+        hit = _cache.get(key)
+    info["cached"] = hit is not None
+    reply, run_id = hit if hit is not None else ("", None)
+    actor = cfg.get("actor")
+    inp: dict[str, Any] = {"script": sanitized, "rules": rinfo, "line_kinds": list(out["line_kinds"])}
+    if hit is None:
         try:
-            reply = sess.call("check", SYSTEM, prompt)
+            reply = sess.call("check", system, prompt)
         except ask.AskError as e:
             info.update(status="error", error=str(e), sent=sess.sent)
+            skills.log_run(settings, skill, "script_check", "error", inp, "", {"step": "check"}, sess.info(), actor)
             return info
-        with _lock:
-            _cache[key] = reply
-            while len(_cache) > 64:
-                _cache.popitem(last=False)
     info.update(sess.info())
-    info["sent"] = sess.sent or [{"step": "check", "system": SYSTEM, "prompt": prompt, "reply": reply}]
+    info["sent"] = sess.sent or [{"step": "check", "system": system, "prompt": prompt, "reply": reply}]
+
+    def finish(status: str, blocked: list[dict[str, Any]], counts: dict[str, int]) -> None:
+        """实际调用了 AI 时记一条 skill 调用记录；缓存命中时沿用上次的记录编号。"""
+        nonlocal run_id
+        if hit is None:
+            inp["blocked"] = blocked
+            det = {"summary": counts, "rejected": info["rejected"][:100], "confirmed": info.get("confirmed", [])}
+            run_id = skills.log_run(settings, skill, "script_check", status, inp, reply, det, sess.info(), actor)
+            with _lock:
+                _cache[key] = (reply, run_id)
+                while len(_cache) > 64:
+                    _cache.popitem(last=False)
+        info["skill_run"] = run_id
+        info["skill"] = {"id": skill.id, "version": skill.active}
+
     try:
         data = ask._json_reply(reply)
         items = data.get("findings") or []
@@ -122,6 +153,7 @@ def run(
     except (ValueError, TypeError):
         info["status"] = "bad_reply"
         info["rejected"].append({"rule": None, "line": None, "reason": "bad_reply"})
+        finish("rejected", [], {"passed": 0, "unverifiable": 0, "rejected": 1})
         return info
     info["status"] = "ok"
 
@@ -208,4 +240,15 @@ def run(
             }
         )
     info["accepted"] = n
+    ai_issues = [i for i in out["issues"] if i.get("source") == "ai"]
+    counts = {
+        "passed": sum(1 for i in ai_issues if i["status"] == "passed"),
+        "unverifiable": sum(1 for i in ai_issues if i["status"] == "unverifiable"),
+        "rejected": len(info["rejected"]),
+    }
+    # 回归运行时不重新建图：与图有关的拦截原因按这次的结论记下来
+    graph_reasons = ("not_in_graph", "target_mismatch", "code_disagrees")
+    blocked = [x for x in info["rejected"] if x["reason"] in graph_reasons]
+    blocked += [{**x, "reason": "confirmed"} for x in info.get("confirmed", [])]
+    finish(review_status(counts["passed"], counts["unverifiable"], counts["rejected"]), blocked, counts)
     return info

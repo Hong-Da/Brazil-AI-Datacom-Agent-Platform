@@ -22,6 +22,8 @@ export interface AskResult {
   answer: { statements: Statement[]; summary: Record<string, number> } | null
   sent: Sent[]
   ai: AiInfo
+  /** REQ-033：本次用到的 skill 调用（反馈用） */
+  skill_runs?: SkillRunRef[]
 }
 export interface GuardIssue { id: string; status: 'bad' | 'warn' | 'ok'; stage: 'parse' | 'deps' | 'template' | 'conflict'; rule: string; line: number | null; lines: number[]; message: { key: string; params: Record<string, unknown> }; text: string; fix?: string }
 export interface GuardLine { no: number; text: string; status: 'ok' | 'bad' | 'warn' | 'ctx' | 'skip'; kind: string; card: string | null; issues: string[]; nodes: string[] }
@@ -38,7 +40,9 @@ export interface GuardResult {
   merged_text?: string
   error?: { key: string; params: Record<string, unknown> }
 }
-export interface GenerateResult { request: string; request_sent: string; device: string; profile: string; rounds: { round: number; text: string; guard: GuardResult }[]; final: { round: number; text: string; guard: GuardResult }; verdict: string; sent: Sent[]; ai: AiInfo }
+export interface GenerateResult { request: string; request_sent: string; device: string; profile: string; rounds: { round: number; text: string; guard: GuardResult; skill_run?: number | null }[]; final: { round: number; text: string; guard: GuardResult }; verdict: string; sent: Sent[]; ai: AiInfo; skill_runs?: SkillRunRef[] }
+/** REQ-033：结果中的 skill 调用（skill_runs[]） */
+export interface SkillRunRef { step: string; skill: string; version: string; run_id: number | null; status: string }
 
 export type Vs = 'ok' | 'bad' | 'fix' | 'na'
 /** 逐句核对状态 → 样式：通过 ✓、被更正（原句划掉）✕、无法校验 ?。 */

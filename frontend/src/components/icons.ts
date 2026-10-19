@@ -5,6 +5,7 @@ export const ICONS: Record<string, string> = {
   graph: '<circle cx="5" cy="12" r="2.2"/><circle cx="18" cy="5.5" r="2.2"/><circle cx="18" cy="18.5" r="2.2"/><path d="M7 11l9-4.5M7 13l9 4.5"/>',
   unknown: '<path d="M4 6h10M4 12h7M4 18h9"/><circle cx="18" cy="14" r="4"/><path d="M18 12.2v2M18 16.3h.01"/>',
   layers: '<path d="M12 3 2.5 8 12 13l9.5-5z"/><path d="M2.5 12.5 12 17.5l9.5-5"/><path d="M2.5 16.5 12 21.5l9.5-5"/>',
+  strata: '<path d="M3 5h18M3 12h18M3 19h18"/><circle cx="8" cy="5" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="19" r="1.7"/><path d="m9.3 6.1 4.4 4.8M13.8 13.3l-3.6 4.4"/>',
   tree: '<rect x="3" y="3" width="6" height="5" rx="1"/><rect x="15" y="10" width="6" height="5" rx="1"/><rect x="15" y="17" width="6" height="4" rx="1"/><path d="M6 8v11h9M6 12.5h9"/>',
   sliders: '<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
   matrix: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
@@ -84,6 +85,13 @@ export const ICONS: Record<string, string> = {
   // REQ-031：配置检查项目（重排移动、改名）
   move: '<path d="M7 4v13M3.5 13.5 7 17l3.5-3.5"/><path d="M17 20V7M13.5 10.5 17 7l3.5 3.5"/>',
   pencil: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
+  // REQ-033 内置 AI skill
+  skill: '<path d="M5 4.5h9l5 5V19.5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1z"/><path d="M14 4.5v5h5"/><path d="m9.5 12.5 1 2.2 2.2 1-2.2 1-1 2.2-1-2.2-2.2-1 2.2-1z"/>',
+  thumbUp: '<path d="M7 10.5v9H4.5a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1z"/><path d="M7 10.5 10.5 3.5a2 2 0 0 1 2.5 1.8V9h5.2a2 2 0 0 1 2 2.3l-1.1 6.5a2 2 0 0 1-2 1.7H7"/>',
+  thumbDown: '<path d="M7 13.5v-9H4.5a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1z"/><path d="M7 13.5l3.5 7a2 2 0 0 0 2.5-1.8V15h5.2a2 2 0 0 0 2-2.3l-1.1-6.5a2 2 0 0 0-2-1.7H7"/>',
+  flask: '<path d="M9.5 3.5h5M10 3.5v6L4.8 18.6A1.3 1.3 0 0 0 6 20.5h12a1.3 1.3 0 0 0 1.2-1.9L14 9.5v-6"/><path d="M7.5 14.5h9"/>',
+  dna: '<path d="M7 3c0 6 10 6 10 12s-10 3-10 6M17 3c0 6-10 6-10 12M17 21c0-2-2-3.2-4.5-4"/><path d="M8.5 6.5h7M8.5 17.5h7M10 12h4"/>',
+  up: '<path d="m6 15 6-6 6 6"/>',
 }
 
 export const LOGO_SVG = '<svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#E3EFF7"/><path d="M106 343 L256 399 L256 417 L106 361 Z" fill="#235C84" stroke="#235C84" stroke-linejoin="round" stroke-width="10"/><path d="M256 399 L406 343 L406 361 L256 417 Z" fill="#1D4D6F" stroke="#1D4D6F" stroke-linejoin="round" stroke-width="10"/><path d="M256 287 L406 343 L256 399 L106 343 Z" fill="#2B6F9E" stroke="#2B6F9E" stroke-linejoin="round" stroke-width="10"/><path d="M106 247 L256 303 L256 321 L106 265 Z" fill="#22867A" stroke="#22867A" stroke-linejoin="round" stroke-width="10"/><path d="M256 303 L406 247 L406 265 L256 321 Z" fill="#1C7166" stroke="#1C7166" stroke-linejoin="round" stroke-width="10"/><path d="M256 191 L406 247 L256 303 L106 247 Z" fill="#2A9D8F" stroke="#2A9D8F" stroke-linejoin="round" stroke-width="10"/><path d="M106 151 L256 207 L256 225 L106 169 Z" fill="#D9962B" stroke="#D9962B" stroke-linejoin="round" stroke-width="10"/><path d="M256 207 L406 151 L406 169 L256 225 Z" fill="#C4831F" stroke="#C4831F" stroke-linejoin="round" stroke-width="10"/><path d="M256 95 L406 151 L256 207 L106 151 Z" fill="#F2B33D" stroke="#F2B33D" stroke-linejoin="round" stroke-width="10"/><path d="M206 159 L256 129 L306 159 Z" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linejoin="round"/><circle cx="206" cy="159" r="17" fill="#FFFFFF"/><circle cx="256" cy="129" r="17" fill="#FFFFFF"/><circle cx="306" cy="159" r="17" fill="#FFFFFF"/></svg>'

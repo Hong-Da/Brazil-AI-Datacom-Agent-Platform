@@ -24,6 +24,7 @@ const NAV: { g: string; s: string; admin?: boolean; items: Item[] }[] = [
     g: 'dev', s: 'dev', items: [
       { name: 'devices', icon: 'server' },
       { name: 'device-graph', icon: 'graph' },
+      { name: 'device-analysis', icon: 'strata' },
       { name: 'history', icon: 'history' },
       { name: 'compare', icon: 'compare' },
       { name: 'translate', icon: 'swap' },
@@ -54,7 +55,7 @@ const NAV: { g: string; s: string; admin?: boolean; items: Item[] }[] = [
       { name: 'releases', icon: 'tag' },
     ],
   },
-  { g: 'sys', s: 'sys', admin: true, items: [{ name: 'ai-settings', icon: 'spark' }, { name: 'users', icon: 'users' }] },
+  { g: 'sys', s: 'sys', admin: true, items: [{ name: 'ai-settings', icon: 'spark' }, { name: 'ai-skills', icon: 'skill' }, { name: 'users', icon: 'users' }] },
 ]
 const THEMES: { v: Theme; icon: string }[] = [
   { v: 'auto', icon: 'monitor' },
@@ -146,7 +147,7 @@ watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void
           :to="{ name: it.name }"
           :data-stratum="g.s"
           :title="$t(`nav.${it.name}`)"
-          :aria-current="route.name === it.name || (it.name === 'check' && route.name === 'cleanup') || (it.name === 'check-projects' && route.name === 'check-project') ? 'page' : undefined"
+          :aria-current="route.name === it.name || (it.name === 'check' && route.name === 'cleanup') || (it.name === 'check-projects' && route.name === 'check-project') || (it.name === 'ai-skills' && route.name === 'ai-skill') ? 'page' : undefined"
           :data-testid="`nav-${it.name}`"
         >
           <Icon :name="it.icon" />

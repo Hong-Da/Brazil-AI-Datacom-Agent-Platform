@@ -1,0 +1,67 @@
+# 内置 AI skill（只读）：配置检查项目的“AI 一起校验”：只按勾选的 ai: true 规则审查脚本；每条发现由代码校验后才展示。
+# 管理员修改后的版本保存在 data/ai-skills/script-review/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。
+id: script-review
+version: 1
+title: {zh-CN: 脚本审查, en: Script review, pt-BR: Revisão de scripts}
+description: {zh-CN: '配置检查项目的“AI 一起校验”：只按勾选的 ai: true 规则（命名、描述规范等）审查脚本，每条发现必须引用该行原文作为证据。代码校验规则、行号、入图、适用对象、代码断言与证据后才展示。', en: 'AI co-check of check projects: reviews the script only against the selected ai: true rules (naming, descriptions…); every finding quotes its line as evidence. Code checks rule, line, graph node, target object, code assertion and evidence before showing it.', pt-BR: 'Verificação com IA dos projetos: revisa o script só pelas regras ai: true marcadas (nomes, descrições…); cada achado cita a linha como evidência. O código confere regra, linha, nó no grafo, objeto alvo, asserção e evidência antes de mostrar.'}
+task: script_check
+used_by: script_check
+enabled: true
+system: 'You review router configuration scripts (Huawei VRP / Cisco IOS-XE) against the given rules only. Values in the script were anonymised; never guess real values. Reply with JSON only: {"findings": [{"rule": "<rule id>", "line": <line number>, "evidence": "<exact text copied from that line>", "message": "<one sentence>", "suggestion": "<one sentence>"}]}. Report only lines that violate a listed rule; an empty list is fine. Every finding must quote evidence from its line.'
+prompt: |-
+  Rules:
+  {rules}
+
+  Script (line number | text):
+  {script}
+templates: {}
+variables:
+  - name: rules
+    in: prompt
+    desc: {zh-CN: 勾选的规则（编号、适用对象、级别、标题、说明）, en: 'Selected rules (id, target, severity, title, message)', pt-BR: 'Regras marcadas (id, alvo, severidade, título, mensagem)'}
+  - name: script
+    in: prompt
+    desc: {zh-CN: 脚本（脱敏后，带行号，只列非空行）, en: 'The script (sanitised, numbered, non-blank lines)', pt-BR: 'O script (anonimizado, numerado, linhas não vazias)'}
+examples: []
+tools:
+  - rules
+  - sanitize
+output:
+  format: json
+  schema: '{"findings": [{"rule": "...", "line": 1, "evidence": "...", "message": "...", "suggestion": "..."}]}'
+checks:
+  - review.verify
+samples:
+  - title: {zh-CN: 接口描述规范, en: Interface description rule, pt-BR: Regra de descrição de interface}
+    input:
+      script: "interface GigabitEthernet0/2/3\n description to-agg\n#"
+      line_kinds:
+        - command
+        - command
+        - separator
+      rules:
+        - id: style.interface_description
+          target: interface
+          severity: info
+          title: Interface description convention
+          message: ''
+          suggestion: ''
+      blocked: []
+    reply: '{"findings": [{"rule": "style.interface_description", "line": 2, "evidence": "description to-agg", "message": "Description should be upper case with the peer name.", "suggestion": "description TO-AGG-01"}]}'
+  - title: {zh-CN: 证据不在该行（演示拦截）, en: Evidence not on the line (shows a rejection), pt-BR: Evidência fora da linha (mostra a rejeição)}
+    input:
+      script: "interface GigabitEthernet0/2/3\n description to-agg\n#"
+      line_kinds:
+        - command
+        - command
+        - separator
+      rules:
+        - id: style.interface_description
+          target: interface
+          severity: info
+          title: Interface description convention
+          message: ''
+          suggestion: ''
+      blocked: []
+    reply: '{"findings": [{"rule": "style.interface_description", "line": 1, "evidence": "description uplink", "message": "Bad description.", "suggestion": ""}]}'

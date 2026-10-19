@@ -1,0 +1,222 @@
+# 内置 AI skill（REQ-033）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 管理类接口只对管理员开放（普通账号 alice 返回 403）；反馈接口对所有登录账号开放。
+# 真实 AI 的试运行、反馈、进化与批准用假的 AI 客户端在 tests/api/test_skills_api.py 中验证。
+
+[[case]]
+id = "skills-list"
+title = { zh-CN = "skill 列表：启用状态、当前版本、统计；ai.configured 表示能否试运行与进化", en = "Skill list with status, version and statistics", pt-BR = "Lista de skills com estado, versão e estatísticas" }
+method = "GET"
+path = "/api/v1/ai/skills"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.ai.configured" = false, "data.days" = 30, "data.skills.0.id" = "card-extract", "data.skills.2.id" = "ask-answer", "data.skills.2.active" = "builtin", "data.skills.2.stats.calls" = 0 }
+in_docs = true
+
+[[case]]
+id = "skills-list-forbidden"
+title = { zh-CN = "普通账号不能管理 skill（403）", en = "Ordinary accounts cannot manage skills (403)", pt-BR = "Contas comuns não gerenciam skills (403)" }
+method = "GET"
+path = "/api/v1/ai/skills"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+expect_status = 403
+expect_json = { "code" = 1006 }
+in_docs = true
+
+[[case]]
+id = "skills-detail"
+title = { zh-CN = "skill 详情：生效定义、内置定义、变量说明、试运行样例", en = "Skill detail: definitions, variables, samples", pt-BR = "Detalhe da skill: definições, variáveis, amostras" }
+method = "GET"
+path = "/api/v1/ai/skills/config-generate"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.id" = "config-generate", "data.task" = "generate", "data.model_key" = "ai.model_generate", "data.checks" = ["guard"], "data.variables.0.name" = "family", "data.samples.0.index" = 0, "data.definition.output.format" = "config" }
+in_docs = true
+
+[[case]]
+id = "skills-detail-missing"
+title = { zh-CN = "skill 不存在", en = "Unknown skill", pt-BR = "Skill inexistente" }
+method = "GET"
+path = "/api/v1/ai/skills/nope"
+setup = "configured"
+auth = true
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "skills-save"
+title = { zh-CN = "保存为新版本并生效", en = "Save as a new version and activate it", pt-BR = "Salvar como nova versão e ativá-la" }
+method = "PUT"
+path = "/api/v1/ai/skills/card-extract"
+setup = "configured"
+auth = true
+body = { examples = [{ input = "**undo shutdown**", output = "undo shutdown" }], note = "加一个示例" }
+expect_status = 200
+expect_json = { "code" = 0, "data.version" = "1", "data.unchanged" = false, "data.skill.active" = "1", "data.skill.examples" = 1 }
+in_docs = true
+
+[[case]]
+id = "skills-save-invalid"
+title = { zh-CN = "保存时校验：未登记的变量、不认识的工具", en = "Validation on save: unknown placeholder and tool", pt-BR = "Validação ao salvar: variável e ferramenta desconhecidas" }
+method = "PUT"
+path = "/api/v1/ai/skills/ask-query"
+setup = "configured"
+auth = true
+body = { system = "Write a query for {nope}.", tools = ["shell"] }
+expect_status = 422
+expect_json = { "code" = 1001, "data.issues.0.key" = "skills.issue.unknown_var", "data.issues.0.params.name" = "nope", "data.issues.1.key" = "skills.issue.tools" }
+
+[[case]]
+id = "skills-save-forbidden"
+title = { zh-CN = "普通账号不能保存 skill（403）", en = "Ordinary accounts cannot save skills (403)", pt-BR = "Contas comuns não salvam skills (403)" }
+method = "PUT"
+path = "/api/v1/ai/skills/card-extract"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+body = { note = "x" }
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "skills-enabled"
+title = { zh-CN = "停用 skill（对应的 AI 功能返回 skill_disabled）", en = "Disable a skill", pt-BR = "Desativar uma skill" }
+method = "PUT"
+path = "/api/v1/ai/skills/script-review/enabled"
+setup = "configured"
+auth = true
+body = { enabled = false }
+expect_status = 200
+expect_json = { "code" = 0, "data.enabled" = false }
+
+[[case]]
+id = "skills-versions"
+title = { zh-CN = "版本历史", en = "Version history", pt-BR = "Histórico de versões" }
+method = "GET"
+path = "/api/v1/ai/skills/ask-answer/versions"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.active" = "builtin", "data.versions.0.version" = "builtin", "data.versions.0.label" = "builtin v1" }
+in_docs = true
+
+[[case]]
+id = "skills-diff"
+title = { zh-CN = "两个版本逐字段对比", en = "Field-by-field diff of two versions", pt-BR = "Diferença campo a campo entre versões" }
+method = "GET"
+path = "/api/v1/ai/skills/ask-answer/diff?a=builtin&b=current"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.a" = "builtin", "data.b" = "builtin", "data.changed" = 0, "data.fields.0.field" = "system" }
+
+[[case]]
+id = "skills-rollback-missing"
+title = { zh-CN = "回滚到不存在的版本", en = "Roll back to a missing version", pt-BR = "Reverter para versão inexistente" }
+method = "POST"
+path = "/api/v1/ai/skills/ask-answer/rollback"
+setup = "configured"
+auth = true
+body = { version = "3" }
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "skills-restore"
+title = { zh-CN = "恢复内置版本", en = "Restore the built-in version", pt-BR = "Restaurar a versão embutida" }
+method = "POST"
+path = "/api/v1/ai/skills/ask-answer/restore"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.active" = "builtin" }
+
+[[case]]
+id = "skills-test-replay"
+title = { zh-CN = "试运行（回放，不需要 AI）：渲染提示词、代码校验样例回复", en = "Test run in replay mode (no AI)", pt-BR = "Teste em modo reprodução (sem IA)" }
+method = "POST"
+path = "/api/v1/ai/skills/ask-answer/test"
+setup = "configured"
+auth = true
+body = { sample = 1, mode = "replay" }
+expect_status = 200
+expect_json = { "code" = 0, "data.mode" = "replay", "data.check.status" = "corrected", "data.check.score" = 0.0, "data.sent.0.step" = "replay" }
+in_docs = true
+
+[[case]]
+id = "skills-test-ai-not-configured"
+title = { zh-CN = "未配置 AI：真实试运行返回 409（可改用回放）", en = "AI not configured: real test run returns 409", pt-BR = "IA não configurada: teste real retorna 409" }
+method = "POST"
+path = "/api/v1/ai/skills/ask-query/test"
+setup = "configured"
+auth = true
+body = { sample = 0 }
+expect_status = 409
+expect_json = { "code" = 1003, "data.status" = "not_configured" }
+
+[[case]]
+id = "skills-stats"
+title = { zh-CN = "统计：近 N 天合计、每日调用、按版本、最近调用", en = "Statistics: totals, daily, by version, recent calls", pt-BR = "Estatísticas: totais, diário, por versão, recentes" }
+method = "GET"
+path = "/api/v1/ai/skills/ask-query/stats?days=7"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.days" = 7, "data.totals.calls" = 0, "data.runs" = [] }
+in_docs = true
+
+[[case]]
+id = "skills-cases"
+title = { zh-CN = "回归集与候选示例", en = "Regression set and candidate examples", pt-BR = "Conjunto de regressão e exemplos candidatos" }
+method = "GET"
+path = "/api/v1/ai/skills/ask-query/cases"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.regression" = [], "data.candidates" = [] }
+
+[[case]]
+id = "skills-evolve-not-configured"
+title = { zh-CN = "未配置 AI：进化返回 409", en = "AI not configured: evolution returns 409", pt-BR = "IA não configurada: evolução retorna 409" }
+method = "POST"
+path = "/api/v1/ai/skills/ask-query/evolve"
+setup = "configured"
+auth = true
+body = {}
+expect_status = 409
+expect_json = { "code" = 1003, "data.status" = "not_configured" }
+in_docs = true
+
+[[case]]
+id = "skills-evolve-forbidden"
+title = { zh-CN = "普通账号不能发起进化（403）", en = "Ordinary accounts cannot start an evolution (403)", pt-BR = "Contas comuns não iniciam evolução (403)" }
+method = "POST"
+path = "/api/v1/ai/skills/ask-query/evolve"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+body = {}
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "skills-approve-missing"
+title = { zh-CN = "批准不存在的进化", en = "Approve a missing evolution", pt-BR = "Aprovar evolução inexistente" }
+method = "POST"
+path = "/api/v1/ai/skills/ask-query/evolutions/1/approve"
+setup = "configured"
+auth = true
+body = {}
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "skills-feedback-user"
+title = { zh-CN = "反馈对普通账号开放：调用记录不存在时 404", en = "Feedback is open to ordinary accounts: 404 for an unknown call", pt-BR = "Avaliação aberta a contas comuns: 404 para chamada desconhecida" }
+method = "POST"
+path = "/api/v1/ai/skills/feedback"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+body = { run_id = 999, rating = "up" }
+expect_status = 404
+expect_json = { "code" = 1004 }

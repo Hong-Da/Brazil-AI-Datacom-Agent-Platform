@@ -105,6 +105,7 @@ draft 卡同样参与解析（状态只表示可信度），所以可以先跑�
 - M3 收尾补充：`ctx:subif`（上下文中接口的子接口编号，主接口为 `_`；接入点在接口视图里按它编号，与 Cisco service instance 编号对应）。Schema 节点可标 `secret: true`（取值或对象键是密码、密钥、团体字，跨平台族翻译时不写）、`alias: true`（属性取值也是所属对象的别名键，引用按它也能找到，例如 `acl.instance.number`）。两家结构形态不同的对象（接入点）在 `knowledge/render/<平台族>.yaml` 的 `access_form` 说明，翻译时换结构。
 - 原来是字符串的属性实际引用了新功能域的对象时（SNMP / VTY / NTP 引用的 ACL），把 Schema 类型改成 `ref` 并在新功能域的 `deps` 里写 reference 规则，配置检查才能发现悬空 / 孤儿。
 - 新的对象类型要在 `knowledge/terms.yaml` 登记华为与 Cisco 两种显示写法（`core/terms.py` 的 `check()` 与 `tests/unit/test_terms.py` 会检查）。
+- 新的对象类型还要在 `knowledge/layers.yaml` 的 `objects` 归到 TCP/IP 的某一层（physical / datalink / mpls（2.5 层）/ network / transport / application）；作用层与所属对象不同的属性写在 `attrs`（例如接口的 `vrf` 在网络层），同一对象按键细分写在 `keys`，QoS、时钟同步这类跨层特性在 `features` 的 `match` 里加前缀。没有归层时 `lmesh kb validate` 给出警告 `layers.unclassified`（运行时暂按 `domains` 的功能域缺省层），`tests/unit/test_layers.py` 不通过；新功能域还要在 `domains` 加一行。
 - M4-2 补充：`unless:关键字:表达式`（行里没有该关键字时才取值，例如 `timers advertise [ msec ] <间隔>` 的秒与毫秒分开记）。文档在同一页另列的取消写法（`undo rule <rule-id>`、`no <序号>`）用修正文件把它与原 undo 合并成一条多选一语法（`undo rule { <rule-id> | … }`），多出的参数用修正条目的 `add_params` 补（只补、不替换）。
 - 对象的 Schema 编号要以父对象编号为前缀（`sr.global.conn_map`，不是 `sr.conn_map`），否则图里的节点编号会带上完整类型名（`sr.global[_]/sr.conn_map[_]`）。
 - 一家有、另一家没有的开关（Cisco 没有 Telnet / SSH 服务开关）在 Profile 标 `supported: false`：规则用条件 `supported: <节点>` 判断平台能力（不要写 `family`），翻译校验也不把这类差异计为未解释。

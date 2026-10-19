@@ -20,7 +20,16 @@ method = "GET"
 path = "/api/v1/auth/status"
 setup = "configured"
 expect_status = 200
-expect_json = { "code" = 0, "data.has_users" = false }
+expect_json = { "code" = 0, "data.has_users" = false, "data.token_set" = true }
+
+[[case]]
+id = "auth-status-no-token"
+title = { zh-CN = "还没有账号且没有设置 API 令牌：token_set 为 false（登录页改为提示用命令行创建管理员）", en = "No accounts and no API token: token_set is false (the sign-in page points to the CLI)", pt-BR = "Sem contas e sem token da API: token_set é false (a página de login indica a CLI)" }
+method = "GET"
+path = "/api/v1/auth/status"
+setup = "configured-notoken"
+expect_status = 200
+expect_json = { "code" = 0, "data.has_users" = false, "data.token_set" = false }
 
 [[case]]
 id = "auth-login"

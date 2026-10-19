@@ -19,7 +19,7 @@ from typing import Any
 
 from sqlalchemy import select
 
-from lmesh.core import ai, config, review, store
+from lmesh.core import ai, config, review, skills, store
 from lmesh.core.ingest.extractor import ExtractResult, extract, load_rules
 from lmesh.core.kb import files as kbfiles
 from lmesh.core.kb import repo
@@ -28,12 +28,6 @@ from lmesh.core.store.models import ReviewItem
 
 Progress = Callable[[int, str], None]
 HEADER = "命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。"
-
-AI_SYSTEM = (
-    "You convert router command syntax from vendor documentation into a strict notation: keywords as plain words, "
-    "parameters as <name>, optional parts in [ ], required choices in { a | b }, repetition as &<1-N> after an element. "
-    "Reply with the corrected syntax only, on one line, nothing else."
-)
 
 
 def find_rules(kb_root: Path, name: str) -> Path:
@@ -57,19 +51,30 @@ def _pending_cards(db_url: str) -> set[str]:
 
 
 def _ai_fix(settings: config.Settings, res: ExtractResult, family: str, progress: Progress) -> list[dict[str, Any]]:
+    """规则抽取失败的命令交给 AI skill card-extract 改写语法；停用该 skill 时跳过。每次调用记入 skill 调用记录。"""
     out: list[dict[str, Any]] = []
+    skill = skills.current("card-extract")
+    if not skill.enabled:
+        return out
+    system = skill.system_text()
     for i, f in enumerate(res.failed):
         progress(60 + int(20 * i / max(1, len(res.failed))), f"AI：{f['title']}")
-        prompt = f"Command: {f['title']}\nDocumentation syntax line (Markdown, bold = keyword, italic = parameter):\n{f['format']}\n"
+        prompt = skill.prompt_text(title=f["title"], format=f["format"])
+        inp = {"title": f["title"], "format": f["format"]}
         try:
-            reply = ai.complete(settings, "extract", prompt, AI_SYSTEM)
+            reply = ai.complete(settings, skill.task, prompt, system)
         except ai.AIError:
+            skills.log_run(settings, skill, "ingest", "error", inp, "", {})
             break  # AI 不可用时整批停止，保留规则抽取的结果
         fixed = reply.text.strip().strip("`").splitlines()[0].strip() if reply.text.strip() else ""
+        meta = {"model": reply.model, "tokens_in": reply.tokens_in, "tokens_out": reply.tokens_out}
         try:
             parsed = syn.parse(fixed)
-        except syn.SyntaxErrorKB:
+        except syn.SyntaxErrorKB as e:
+            det = {"syntax": fixed, "error": str(e)[:500], "summary": {"status": "rejected"}}
+            skills.log_run(settings, skill, "ingest", "rejected", inp, reply.text, det, meta)
             continue
+        skills.log_run(settings, skill, "ingest", "passed", inp, reply.text, {"syntax": fixed}, meta)
         slug = re.sub(r"[^a-z0-9]+", "-", re.sub(r"\s*\(.*?\)\s*", " ", f["title"].lower())).strip("-")
         for view in f["views"]:
             out.append(

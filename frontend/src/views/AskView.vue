@@ -16,6 +16,8 @@ import { useStatus } from '@/stores/status'
 import { useTerms } from '@/stores/terms'
 import type { Device } from '@/views/devices/logic'
 import GuardResult from './m5/GuardResult.vue'
+import AiFeedback from '@/components/ai-feedback.vue'
+import { askRunId, askRunSkill, genRunId } from './ai-skills/logic'
 import {
   cellShow, queryParts, rowOf, saveHandoff, stmtCls, stmtCounts,
   type AskResult, type AskStatus, type GenerateResult, type GuardResult as Guard, type QRow, type Sent,
@@ -316,6 +318,7 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
                     </table>
                   </details>
                 </div>
+                <AiFeedback v-if="askRunId(tn.res)" :run-id="askRunId(tn.res)!" :skill="askRunSkill(tn.res)" kind="answer" boxed />
                 <div class="afoot">
                   <span><Icon name="sanitize" small />{{ $t('ask.sentSanitized') }}</span>
                   <span><Icon name="spark" small />{{ tn.res.ai.model }} · {{ $t('ask.calls', { n: tn.res.ai.calls }) }} · {{ tn.res.ai.tokens_in + tn.res.ai.tokens_out }} tokens · {{ (tn.res.ai.ms / 1000).toFixed(1) }} s</span>
@@ -434,6 +437,7 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
           :rounds="on && mode === 'ai' ? gen?.rounds.map((r) => r.round) : undefined" :round="genRound"
           @round="(n) => (genRound = n)" @regen="generate" @edit="editRecheck" @handoff="handoff" @copy="copy"
         />
+        <AiFeedback v-if="on && mode === 'ai' && gen && genRunId(gen)" :run-id="genRunId(gen)!" skill="config-generate" kind="config" boxed />
         <div v-if="on && mode === 'ai' && gen" class="afoot" style="margin-left: 0">
           <span><Icon name="sanitize" small />{{ $t('ask.sentSanitized') }}</span>
           <span><Icon name="spark" small />{{ gen.ai.model }} · {{ $t('ask.calls', { n: gen.ai.calls }) }} · {{ gen.ai.tokens_in + gen.ai.tokens_out }} tokens</span>

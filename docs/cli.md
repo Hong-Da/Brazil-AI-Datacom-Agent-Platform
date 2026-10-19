@@ -88,6 +88,7 @@
 | `lmesh parse <文件> [--profile P] [--lines/--summary]` | 解析配置：每行的视图、命令卡、参数、类别（command / raw 功能域外 / unknown 未识别 / separator / comment / blank / end）；不填 `--profile` 时按厂商与版本自动选择，识别不了时退出码 2 |
 | `lmesh unknown list [--limit N]` | 已导入配置中的未识别行，按归一化后的模式与出现次数汇总（用来补命令卡） |
 | `lmesh graph show <文件\|设备名> [--domain D] [--profile P]` | 显示配置图：语义节点（含 Profile 补出的隐藏默认节点）、依赖边（contains / reference / prerequisite / side_effect / mutex）、悬空引用 |
+| `lmesh analyze <文件\|设备名> [--part summary\|layers\|script]… [--profile P]` | 设备配置分析（REQ-034，默认 `summary` 与 `layers`）：`summary` 为各功能域对象数、行的分类计数与覆盖率、配置检查发现（按级别）、安全基线（basic）得分与不符合项、依赖默认值的关键配置（取值来自 Profile 默认值、而其他平台族默认值不同的属性）、悬空引用数，目标是已导入的设备时另有与上一版本相比的变化；`layers` 按 `knowledge/layers.yaml` 把节点归到 TCP/IP 各层（物理、数据链路、2.5 层 MPLS、网络、传输、应用，QoS 与时钟同步为跨层特性）并列出跨层依赖；`script` 为结构化脚本（每行的层级、所属节点、功能域与层、关键字 / 参数 / 引用的字符区间、被引用处、隐藏的默认值行）。`--part` 写错时退出码 2 |
 | `lmesh render <文件\|设备名> [--profile P] [--canonical] [--with-defaults]` | 解析建图后按图渲染回配置文本。默认往返模式：保留原有顺序、缩进与写法；`--canonical` 规范模式：只看图中的语义节点，按平台族写法重新生成命令（按视图分块、被引用的先出现，华为 `#` 分隔、`return` 结尾，Cisco `!` 与 `end`），未映射命令与功能域外原文按原文写回原位置；`--with-defaults` 含默认值的完整配置（规范模式，Profile 默认值也写成命令，集中放在所在块的显式行之后，前面一行注释 `! default`）。`--output json` 时 `lines` 给出每一行的来源节点、`origin`（explicit / default）、`kind`（command / original 按原文写回的命令 / extra 原文行 / separator / comment / exit / end），`default_lines` 为默认值行的行号，`uncovered` 为没能写成命令的节点（在 stderr 提示个数） |
 | `lmesh translate <文件\|设备名> --to <Profile> [--interface-map 文件] [-o 文件] [--profile P] [--no-verify] [--rules 规则集]` | 配置翻译：按有效值把配置翻译到目标 Profile（另一个平台族），接口名按映射表改写（子接口按父接口映射，没给映射表时同名）。默认值差异：源设备依赖默认值而目标默认值不同时显式写出并告警（`default_differs`），目标没有登记默认值时只提示（`default_unknown`），两边相同时不写；源设备显式值等于目标默认值时省略（`defaults`）。目标 Profile 不支持或写不出命令的节点、跨平台族的密码类取值（需重新设置）、未映射命令、功能域外原文、未识别行列在 `unsupported`（附原文行号），人工处理；目标写法必须给出、源配置没有的取值按推导规则写出并告警（`inferred_value`）；接口类型不属于目标平台族时告警（`interface_type`）。译文再解析建图后与源图按有效值对比（`verify`），列出项之外的差异记为 `verify_diff`。不给 `-o` 时译文写到 stdout、摘要与告警写到 stderr；**校验发现没有解释的差异时退出码 1**；`--rules <规则集编号或文件>` 先按翻译规则集改名（REQ-032，对象与引用一起改、端口按规则映射，显式映射表优先），结果另有 `naming` |
 | `lmesh migrate <文件\|设备名> --to <Profile> [--interface-map 文件] [--target-config 文件] [--model 型号] [--on-conflict migrate\|keep] [-o 目录] [--suggest-only] [--profile P] [--no-verify] [--rules 规则集]` | 割接迁移：翻译 + 接口映射，一次完成整机迁移。接口映射表可以只给部分（CSV / JSON / YAML / 两列文本，新接口写 `-` 表示不迁移），其余自动建议：逻辑接口（聚合口、环回口、桥域三层口等）编号不变换类型写法，物理口按同名 → 同速率同端口号 → 同速率依次 → 更高速率在端口清单中分配，每条附依据（`basis`）与置信度（`confidence`）；端口清单依次取 `--model` 指定型号的知识库清单（`knowledge/migration/ports/`）、`--target-config` 中的接口、知识库默认型号（提示 `port_inventory_assumed`）。管理口不迁移；没有映射的接口连同子接口、引用它们的配置不迁移；子接口跟随主接口；聚合口编号变化时成员口跟着改。给出新设备现有配置时在其上合并，只生成需要新增 / 修改的部分（`delta.cfg`），冲突按 `--on-conflict` 处理并告警。新配置再解析与旧设备按有效值对比（`verify`）。`-o` 目录里写 `new-config.cfg`、`delta.cfg`（有现有配置时）、`interface-map.csv`（可修改后用 `--interface-map` 传回）、`warnings.csv`、`steps.txt`（割接步骤：文字 + 命令，含回退）、`migration.json`，复用增量变更模块生成的下发与回滚脚本 `script.txt`、`rollback.txt`；`--suggest-only` 只给映射建议。不给 `-o` 时新配置写到 stdout、摘要与步骤写到 stderr；**校验发现没有解释的差异时退出码 1**，型号不存在等参数错误 2，文件不存在 4；`--rules` 按翻译规则集改名并把端口映射规则并入映射表（用户映射表 > 规则集 > 自动建议，REQ-032） |
@@ -128,6 +129,13 @@
 | `lmesh ask "<问题>" [设备名…] [--show-sent]` | AI 自然语言查询（需要配置 AI，未配置时退出码 3）：AI 写图查询 → 代码校验并执行 → AI 只根据结果回答 → 代码逐句核对（通过 / 已按图更正 / 无法校验）；发给 AI 的内容先脱敏，`--show-sent` 打印实际发送的内容；AI 写不出合法查询时退出码 1 |
 | `lmesh guard <配置片段> [--device 设备名\|当前配置文件] [--profile P] [--template T] [--no-cross-device] [--no-script]` | 配置护栏（不需要 AI）：片段合并到目标设备当前配置后解析、入图、依赖（悬空引用、互斥、前置、副作用顺序）、模板约束、冲突（地址、RD 跨设备查重，dot1q 重复）检查，逐行标出通过 / 拦截 / 注意；被拦截时退出码 1，通过时附增量变更脚本 |
 | `lmesh generate "<需求>" --device <设备> [--profile P] [--template T] [--rounds 2] [-o 文件]` | AI 生成配置（需要配置 AI）：生成后经护栏检查，被拦截时把问题交回 AI 修改，最多 `--rounds` 轮；最终仍被拦截时退出码 1 |
+| `lmesh skill list [--days N]` | 内置 AI skill（REQ-033）列表：编号、名称、启用、生效版本（builtin / vN）、近 N 天调用数、代码校验通过率、被拦截比例、评价、回归集条数；需要数据库（未配置退出码 3） |
+| `lmesh skill show <skill> [--version builtin\|N]` | 显示 skill 的定义：任务与模型配置键、工具、代码校验、系统提示词、提示模板、示例数；不存在退出码 4 |
+| `lmesh skill test <skill> [--sample N \| --case 编号] [--replay [--reply 文本]] [--version V]` | 试运行：渲染提示词 → 调用 AI → 代码校验，输出状态、得分与逐项结果；`--replay` 不调用 AI，用样例 / 案例记下的回复（或 `--reply`）走一遍校验；真实调用而未配置 AI 时退出码 3 |
+| `lmesh skill versions <skill>` | 版本历史（`*` 为生效版本）：来源（内置 / 编辑 / 加入示例 / 进化批准）、作者、时间、说明 |
+| `lmesh skill rollback <skill> <版本号\|builtin>` | 回滚到某个版本，`builtin` 恢复内置版本；版本不存在退出码 4 |
+| `lmesh skill evolve <skill> [--limit N]` | 发起进化：AI 根据回归集提出候选版本，回归集上新旧版本对比打分，结果待批准（不自动上线）；未配置 AI 退出码 3，回归集为空退出码 1，候选没有通过代码检查退出码 1 |
+| `lmesh skill approve <skill> <进化编号> [--reject] [--note 说明]` | 批准进化的候选版本并发布为新版本（`--reject` 放弃）；不存在退出码 4，已处理过退出码 1 |
 | `lmesh script-check <脚本> [--device 设备名[@版本]\|配置文件] [--version N] [--kind change\|full] [--order/--no-order] [--reorder [-o 文件]] [--rules 目录] [--profile P]` | 检查变更脚本 / 完整配置（REQ-031）：变更脚本逐行跟踪视图、在基线上模拟执行（取消匹配、覆盖、副作用），执行后的配置跑配置检查规则并查地址 / RD 冲突；顺序核查开启时报出“引用了后面才创建的对象”“删除时引用方在后面才处理”“先配的值被后面命令的副作用删除”，并附按依赖重排的建议；`--no-order` 只看按依赖顺序执行后的结果；完整配置检查未识别行、规则并与基线按有效值对比；`--reorder` 输出重排后的脚本与每条命令移动的原因；有 error 时退出码 1，变更脚本没有基线退出码 2 |
 | `lmesh script-diff <a> <b> [--ignore-order] [--kind full\|change] [--device 基线] [--format text\|unified\|html] [--report-lang zh-CN\|en] [--no-semantic] [-o 文件]` | 脚本 / 配置的文本差异：逐行对比、行内字符级标记，位置变化识别为移动（第几行 → 第几行），`--ignore-order` 按视图路径 + 内容只看内容差异；同时给出语义差异（按有效值比较；`--kind change` 时比较两份脚本在基线上执行后的结果）；可输出统一 diff 或中 / 英 HTML 报告 |
 
@@ -443,6 +451,48 @@ lmesh --output json unknown list
 JSON 输出中的关键字段：
 
 - `data.patterns` = `[]`
+
+### 分析现网 ATN 配置：摘要与 TCP/IP 分层
+
+```bash
+lmesh --output json analyze knowledge/samples/huawei-atn-v800r023/atn-access-01.cfg
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.parts` = `["summary", "layers"]`
+- `data.summary.lines.total` = `2267`
+- `data.summary.lines.raw` = `180`
+- `data.summary.lines.unknown` = `0`
+- `data.summary.domains.0.domain` = `"qos"`
+- `data.summary.check.summary.by_severity.warning` = `65`
+- `data.summary.baseline.score` = `95`
+- `data.summary.defaults.total` = `229`
+- `data.layers.layers.0.id` = `"physical"`
+- `data.layers.layers.2.id` = `"mpls"`
+- `data.layers.unclassified` = `[]`
+
+### 结构化脚本：关键字、参数与引用的字符区间
+
+```bash
+lmesh --output json analyze tests/inputs/configs/huawei/analysis-small.cfg --part script
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.parts` = `["script"]`
+- `data.script.refs` = `{"vrf.instance[RAN]": [9]}`
+- `data.script.defs` = `{"vrf.instance[RAN]": 3}`
+- `data.script.lines.8.spans.3.t` = `"ref"`
+- `data.script.lines.8.spans.3.ref` = `["vrf.instance[RAN]"]`
+- `data.script.lines.3.depth` = `1`
+- `data.script.lines.11.layer` = `"datalink"`
 
 ### 图查询（不需要 AI）：绑定了 VPN 实例的接口及其地址与 MTU（含默认值）
 
@@ -1272,6 +1322,88 @@ JSON 输出中的关键字段：
 - `data.stats.change` = `1`
 - `data.semantic.equal` = `true`
 - `data.unordered.only_b` = `[]`
+
+### skill 列表：启用状态、当前版本、近 30 天调用与校验通过率
+
+```bash
+lmesh --output json skill list
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.days` = `30`
+- `data.skills.0.id` = `"card-extract"`
+- `data.skills.1.id` = `"ask-query"`
+- `data.skills.1.active` = `"builtin"`
+- `data.skills.1.enabled` = `true`
+- `data.skills.1.model_key` = `"ai.model_ask"`
+- `data.skills.1.stats.calls` = `0`
+- `data.skills.5.id` = `"skill-evolve"`
+
+### 显示 skill 的生效定义：系统提示词、提示模板、工具、代码校验
+
+```bash
+lmesh --output json skill show ask-query
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.id` = `"ask-query"`
+- `data.task` = `"ask"`
+- `data.active` = `"builtin"`
+- `data.checks` = `["gquery.validate"]`
+- `data.definition.templates.retry` = `"Your previous query was rejected by the validator: {error}\nWrite a corrected query."`
+- `data.variables.0.name` = `"syntax"`
+
+### 试运行（回放，不需要 AI）：用样例记下的回复走一遍渲染与代码校验
+
+```bash
+lmesh --output json skill test card-extract --replay
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.mode` = `"replay"`
+- `data.version` = `"builtin"`
+- `data.check.status` = `"passed"`
+- `data.check.score` = `1.0`
+
+### 版本历史：只有内置版本
+
+```bash
+lmesh --output json skill versions ask-answer
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.versions.0.version` = `"builtin"`
+- `data.versions.0.active` = `true`
+- `data.versions.0.source` = `"builtin"`
+
+### 未配置 AI：进化不可用
+
+```bash
+lmesh --output json skill evolve ask-query
+```
+
+退出码：`3`
+
+JSON 输出中的关键字段：
+
+- `ok` = `false`
+- `error.data.status` = `"not_configured"`
 
 ### 列出模板
 

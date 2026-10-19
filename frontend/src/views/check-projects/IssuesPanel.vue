@@ -3,6 +3,7 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import AiFeedback from '@/components/ai-feedback.vue'
 import { pickLang } from '@/i18n'
 import { aiStats, categoriesFor, countByCat, countBySev, filterIssues, SEVERITIES, sortIssues } from './logic'
 import type { AiInfo, AiRule, Category, Issue, Kind, Severity } from './types'
@@ -101,6 +102,7 @@ watch(() => props.sel, (id) => {
             </details>
             <template v-else>{{ T('ai.noneBlocked') }}</template>
           </template>
+          <AiFeedback v-if="aiInfo.skill_run" :run-id="aiInfo.skill_run" :skill="aiInfo.skill?.id ?? 'script-review'" kind="finding" style="margin-top: 6px" />
         </div>
       </div>
       <div v-else-if="aiActive && aiStale" class="order-off"><Icon name="spark" /><span>{{ T('ai.stale') }}</span></div>

@@ -59,7 +59,7 @@ export interface Palette { [k: string]: string }
 const VARS = [
   'ink', 'ink-2', 'ink-3', 'surface', 'surface-2', 'surface-3', 'canvas', 'line', 'line-strong',
   'blue', 'blue-soft', 'blue-line', 'teal', 'teal-soft', 'teal-line', 'teal-ink', 'amber', 'red', 'red-soft', 'red-ink',
-  'violet', 'e-ref', 'e-pre', 'e-side', 'e-mutex', 'font-ui', 'font-mono',
+  'violet', 'e-ref', 'e-pre', 'e-side', 'e-mutex', 'e-cross', 'font-ui', 'font-mono',
 ]
 
 export function readPalette(el: Element = document.documentElement): Palette {

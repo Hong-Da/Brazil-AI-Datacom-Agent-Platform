@@ -263,3 +263,72 @@ class CheckRevision(Base):
     author: Mapped[str] = mapped_column(String(200), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     __table_args__ = (UniqueConstraint("script_id", "seq", name="uq_check_revisions_script_seq"),)
+
+
+class SkillRun(Base):
+    """AI skill 的一次调用（REQ-033）：输入与回复都是脱敏后的；status 是代码校验的结论；评价与更正来自用户反馈。
+    按 ai.skill_log_days 天清理；试运行（test）与回归运行（regression）不计入统计。"""
+
+    __tablename__ = "skill_runs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    skill: Mapped[str] = mapped_column(String(60), index=True)
+    version: Mapped[str] = mapped_column(String(20), default="builtin")  # builtin / 版本号 / candidate
+    task: Mapped[str] = mapped_column(String(40), default="")
+    # ask / generate / ingest / script_check / test / regression / evolve
+    source: Mapped[str] = mapped_column(String(20), default="")
+    # passed / corrected / rejected / unverifiable / error
+    status: Mapped[str] = mapped_column(String(20), default="passed")
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    actor: Mapped[str] = mapped_column(String(200), default="")
+    input: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    reply: Mapped[str] = mapped_column(Text, default="")
+    detail: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    model: Mapped[str] = mapped_column(String(120), default="")
+    tokens_in: Mapped[int] = mapped_column(Integer, default=0)
+    tokens_out: Mapped[int] = mapped_column(Integer, default=0)
+    ms: Mapped[int] = mapped_column(Integer, default=0)
+    rating: Mapped[str | None] = mapped_column(String(10), nullable=True)  # up / down
+    correction: Mapped[str] = mapped_column(Text, default="")
+    feedback_by: Mapped[str] = mapped_column(String(200), default="")
+    feedback_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+
+
+class SkillCase(Base):
+    """skill 的案例：regression 回归集（失败案例自动入集）/ candidate 候选示例（校验通过且用户认可）。"""
+
+    __tablename__ = "skill_cases"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    skill: Mapped[str] = mapped_column(String(60), index=True)
+    kind: Mapped[str] = mapped_column(String(20))  # regression / candidate
+    # rejected / corrected / down / correction / up / manual
+    reason: Mapped[str] = mapped_column(String(20), default="manual")
+    run_id: Mapped[int | None] = mapped_column(ForeignKey("skill_runs.id", ondelete="SET NULL"), nullable=True)
+    input: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    reply: Mapped[str] = mapped_column(Text, default="")
+    detail: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    expect: Mapped[str] = mapped_column(Text, default="")  # 用户写的更正
+    input_hash: Mapped[str] = mapped_column(String(64))
+    note: Mapped[str] = mapped_column(Text, default="")
+    created_by: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (UniqueConstraint("skill", "kind", "input_hash", name="uq_skill_cases_skill_kind_hash"),)
+
+
+class SkillEvolution(Base):
+    """一次进化：AI 提出的候选版本、回归集上新旧版本的得分；管理员批准后才发布为新版本。"""
+
+    __tablename__ = "skill_evolutions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    skill: Mapped[str] = mapped_column(String(60), index=True)
+    status: Mapped[str] = mapped_column(String(20), default="pending")  # pending / approved / rejected / failed
+    base_version: Mapped[str] = mapped_column(String(20), default="builtin")
+    candidate: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    rationale: Mapped[str] = mapped_column(Text, default="")
+    scores: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    error: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    created_by: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    decided_by: Mapped[str] = mapped_column(String(200), default="")
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    published_version: Mapped[str] = mapped_column(String(20), default="")

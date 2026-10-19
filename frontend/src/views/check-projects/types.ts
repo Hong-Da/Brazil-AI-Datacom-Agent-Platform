@@ -132,6 +132,9 @@ export interface AiInfo {
   error?: string
   cached?: boolean
   rules?: string[]
+  /** REQ-033：脚本审查 skill 的调用记录编号（反馈用）与 skill 版本 */
+  skill_run?: number | null
+  skill?: { id: string; version: string }
 }
 
 export interface Baseline { device: string; device_id: number | null; version_id: number | null; profile: string; family: string; lines: number; label: string }

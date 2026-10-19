@@ -1,0 +1,81 @@
+# 内置 AI skill（只读）：配置生成：按需求写出要新增的配置行；结果一律先经配置护栏检查，被拦截时把原因交回 AI 修改。
+# 管理员修改后的版本保存在 data/ai-skills/config-generate/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。
+id: config-generate
+version: 1
+title: {zh-CN: 配置生成, en: Config generation, pt-BR: Geração de configuração}
+description: {zh-CN: 按自然语言需求写出要新增的配置行（设备自己的语法）。结果一律先经配置护栏（解析、入图、依赖、冲突）检查，被拦截时把原因交回 AI 修改，最多若干轮。, en: "Writes the configuration lines to add for a natural-language request (in the device's own syntax). Output always goes through the guardrail (parse, graph, dependencies, conflicts); blocked attempts go back to the AI with the reasons, for a few rounds.", pt-BR: 'Escreve as linhas de configuração a adicionar para um pedido em linguagem natural (na sintaxe do dispositivo). A saída sempre passa pela barreira (análise, grafo, dependências, conflitos); tentativas bloqueadas voltam à IA com os motivos.'}
+task: generate
+used_by: generate
+enabled: true
+system: |-
+  You write router configuration for the platform family {family} (profile {profile}). Output only the
+  configuration lines to add, in the device's own syntax, inside one ``` code block, without session commands
+  (no system-view / configure terminal / commit / end). The configuration will be parsed and checked by code before
+  anyone sees it.
+prompt: |-
+  Device: {device}
+  Existing objects:
+  {inventory}
+
+  Request: {request}
+templates:
+  retry: |-
+    The previous attempt was blocked by the checks:
+    {feedback}
+    Return the full corrected configuration.
+variables:
+  - name: family
+    in: system
+    desc: {zh-CN: 目标平台族, en: Target platform family, pt-BR: Família da plataforma}
+  - name: profile
+    in: system
+    desc: {zh-CN: 目标 Profile, en: Target profile, pt-BR: Profile de destino}
+  - name: device
+    in: prompt
+    desc: {zh-CN: 目标设备名, en: Target device name, pt-BR: Nome do dispositivo}
+  - name: inventory
+    in: prompt
+    desc: {zh-CN: 目标设备现有对象的名字清单（不含取值与原文）, en: 'Names of existing objects on the device (no values, no raw text)', pt-BR: Nomes dos objetos existentes (sem valores nem texto bruto)}
+  - name: request
+    in: prompt
+    desc: {zh-CN: 用户的需求（脱敏后）, en: The user's request (sanitised), pt-BR: O pedido do usuário (anonimizado)}
+  - name: feedback
+    in: retry
+    desc: {zh-CN: 上一轮被护栏拦截的原因, en: Why the guardrail blocked the previous round, pt-BR: Por que a barreira bloqueou a rodada anterior}
+examples: []
+tools:
+  - guard
+  - sanitize
+output:
+  format: config
+  schema: configuration lines inside one ``` code block
+checks:
+  - guard
+samples:
+  - title: {zh-CN: 新增子接口（空配置）, en: Add a sub-interface (empty config), pt-BR: Adicionar subinterface (configuração vazia)}
+    input:
+      device: ATN-DEMO-01
+      profile: huawei-atn-v800r025
+      request: 新增 GigabitEthernet0/2/2.105 子接口，dot1q 105，地址 10.3.5.1/30
+      inventory: ''
+    reply: |-
+      ```
+      interface GigabitEthernet0/2/2.105
+       vlan-type dot1q 105
+       ip address 10.3.5.1 255.255.255.252
+      #
+      ```
+  - title: {zh-CN: 引用不存在的 VPN 实例（演示拦截）, en: References a missing VPN instance (shows a block), pt-BR: Referencia VPN inexistente (mostra o bloqueio)}
+    input:
+      device: ATN-DEMO-01
+      profile: huawei-atn-v800r025
+      request: 把子接口 105 绑定到 VPN 实例 RAN-5G
+      inventory: ''
+    reply: |-
+      ```
+      interface GigabitEthernet0/2/2.105
+       vlan-type dot1q 105
+       ip binding vpn-instance RAN-5G
+      #
+      ```

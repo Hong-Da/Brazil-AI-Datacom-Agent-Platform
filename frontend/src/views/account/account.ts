@@ -37,6 +37,21 @@ export function safeNext(next: unknown): string {
   return s
 }
 
+/** 登录页状态（GET /auth/status）；config_file、token_set 只在还没有账号时返回。 */
+export interface AuthStatus {
+  configured: boolean
+  has_users: boolean
+  session_hours: number
+  config_file?: string
+  token_set?: boolean
+}
+
+/** 还没有账号时怎样创建第一个管理员：token = 网页上用 API 令牌创建；cli = 令牌未设置，只能用命令行或先设置令牌。 */
+export function bootMode(s: AuthStatus | null): 'token' | 'cli' | null {
+  if (!s || s.has_users) return null
+  return s.token_set === false ? 'cli' : 'token'
+}
+
 export type UserState = 'enabled' | 'locked' | 'disabled'
 
 export function stateOf(u: UserRow): UserState {

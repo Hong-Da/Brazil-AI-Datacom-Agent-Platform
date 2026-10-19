@@ -1,0 +1,81 @@
+# 内置 AI skill（只读）：配置问答第二步：只根据查询结果组织回答，每句话写明引用的行与事实，由代码逐句核对。
+# 管理员修改后的版本保存在 data/ai-skills/ask-answer/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。
+id: ask-answer
+version: 1
+title: {zh-CN: 问答：组织回答, en: 'Ask: compose the answer', pt-BR: 'Perguntar: compor a resposta'}
+description: {zh-CN: 配置问答的第二步：只根据代码执行的查询结果组织回答，每句话写明引用的行（cites）与事实（facts）或行数（count）。代码逐句核对：相符为通过，不符为被更正（由代码按图上的取值改写），没有事实的为无法校验。, en: 'Second step of Ask: answer only from the query result run by code; every statement cites rows and lists facts or a count. Code checks each statement: matching = passed, mismatching = corrected (rewritten by code from graph values), no facts = cannot verify.', pt-BR: 'Segundo passo do Perguntar: responder só com o resultado da consulta executada pelo código; cada frase cita linhas e lista fatos ou contagem. O código confere cada frase: confere = aprovada, diverge = corrigida (reescrita pelo código com os valores do grafo), sem fatos = sem verificação.'}
+task: ask
+used_by: ask
+enabled: true
+system: |-
+  You answer a network engineer's question using ONLY the query result below. Every statement must cite the
+  result rows it relies on (row numbers), and list the facts it states as {{"row": n, "field": "<column>", "value": "<value>"}};
+  a statement about how many rows match uses "count". Statements that are not configuration facts (advice, opinions)
+  have no facts. Answer in {lang}. Reply with JSON only:
+  {{"statements": [{{"text": "...", "cites": [1], "facts": [{{"row": 1, "field": "description", "value": "..."}}], "count": null}}]}}
+prompt: |-
+  Question: {question}
+
+  Query:
+  {query}
+
+  Result:
+  {result}
+templates: {}
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 回答语言（按界面语言）, en: Answer language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}
+  - name: question
+    in: prompt
+    desc: {zh-CN: 用户的问题（脱敏后）, en: The user's question (sanitised), pt-BR: A pergunta do usuário (anonimizada)}
+  - name: query
+    in: prompt
+    desc: {zh-CN: 代码执行的查询, en: The query run by code, pt-BR: A consulta executada pelo código}
+  - name: result
+    in: prompt
+    desc: {zh-CN: 查询结果（JSON：列、行、行数；敏感字段只写是否配置，默认值标 default）, en: 'Query result (JSON: columns, rows, count; secrets only as configured / not configured; defaults marked)', pt-BR: 'Resultado (JSON: colunas, linhas, contagem; segredos só como configurado / não; padrões marcados)'}
+examples: []
+tools:
+  - gquery
+  - sanitize
+output:
+  format: json
+  schema: '{"statements": [{"text": "...", "cites": [1], "facts": [{"row": 1, "field": "...", "value": "..."}], "count": null}]}'
+checks:
+  - answer.facts
+samples:
+  - title: {zh-CN: 正确的回答, en: A correct answer, pt-BR: Uma resposta correta}
+    input:
+      question: 哪些接口的 MTU 是 9216？
+      lang: zh-CN
+      result: &id001
+        text: "FIND interface\nON *\nWHERE mtu = 9216\nRETURN name, description, mtu"
+        columns:
+          - field: name
+          - field: description
+          - field: mtu
+        rows:
+          - n: 1
+            device: ATN-DEMO-01
+            label: GigabitEthernet0/2/0
+            node: interface[GigabitEthernet0/2/0]
+            cells:
+              name:
+                value: GigabitEthernet0/2/0
+                origin: explicit
+              description:
+                value: UPLINK-TO-AGG-01
+                origin: explicit
+              mtu:
+                value: 9216
+                origin: explicit
+        count: 1
+    reply: '{"statements": [{"text": "ATN-DEMO-01 的 GigabitEthernet0/2/0 MTU 是 9216。", "cites": [1], "facts": [{"row": 1, "field": "mtu", "value": "9216"}], "count": null}]}'
+  - title: {zh-CN: 取值写错（演示被更正）, en: Wrong value (shows a correction), pt-BR: Valor errado (mostra a correção)}
+    input:
+      question: 上联口的描述是什么？
+      lang: zh-CN
+      result: *id001
+    reply: '{"statements": [{"text": "描述是 UPLINK-TO-CORE。", "cites": [1], "facts": [{"row": 1, "field": "description", "value": "UPLINK-TO-CORE"}]}]}'
