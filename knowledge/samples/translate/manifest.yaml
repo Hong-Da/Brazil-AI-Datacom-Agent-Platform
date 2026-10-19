@@ -77,3 +77,44 @@ cases:
     dst_profile: huawei-atn-v800r025
     min_rendered: 0.6
     note: VRRP / SR-MPLS / EVPN / QoS / 时钟同步 / 管理面补充（M4-2）；policy-map 下的动作、connected-prefix-sid-map、PTP clock-port 在华为上结构不同，报不支持（107 / 170）
+  # ---------- Nokia 7750 SR（SR OS 25.10 Classic CLI，M7-3）----------
+  # 三层接口换结构（render 的 l3_form：Nokia 的路由器逻辑接口 + port ↔ 华为 / Cisco 的端口 / 子接口）；OSPF network 宣告换成接口所在区域；
+  # IS-IS 的 area-id（+ system-id，不写时按 Router ID 推出）↔ NET；协议基本实例 0 ↔ 进程 1（render 的 instance_keys）；
+  # Nokia 缺省关闭的协议实例、NTP、端口在译文里显式写 no shutdown（Profile 的 assume / 缺省值差异，告警 default_differs）。
+  - id: nokia-basic-to-atn
+    src: ../nokia-sros-classic-synthetic/classic-pe-basic.cfg
+    src_profile: nokia-sros-classic-7750-25.10
+    dst_profile: huawei-atn-v800r025
+    interface_map: nokia-to-atn.ifmap.yaml
+    min_rendered: 0.79
+    expect_warnings: [default_differs]
+    note: Nokia 端口、LAG、路由器接口（并到端口 / Eth-Trunk）、VRRP、静态路由、OSPF、LDP → ATN（81 / 102）；端口模式与封装、静态路由的 indirect / bfd-enable、syslog 编号与级别等 Nokia 特有节点报不支持
+  - id: nokia-routing-mgmt-to-atn
+    src: ../nokia-sros-classic-synthetic/classic-pe-routing-mgmt.cfg
+    src_profile: nokia-sros-classic-7750-25.10
+    dst_profile: huawei-atn-v800r025
+    interface_map: nokia-to-atn.ifmap.yaml
+    min_rendered: 0.74
+    note: 管理面、OSPF（export 策略）、IS-IS（area-id 拼成 NET）、BGP 组、路由策略（default-action、from protocol）、MPLS / LDP、SR → ATN（91 / 122）；RSVP-TE 与 Nokia 特有节点报不支持
+  - id: nokia-services-to-atn
+    src: ../nokia-sros-classic-synthetic/classic-pe-services.cfg
+    src_profile: nokia-sros-classic-7750-25.10
+    dst_profile: huawei-atn-v800r025
+    interface_map: nokia-to-atn.ifmap.yaml
+    min_rendered: 0.5
+    note: 过滤器、VPRN（VPN 实例、接口 SAP 换成子接口）、VPLS（SAP 换成二层子接口）→ ATN（79 / 155）；客户、SDP、Epipe 的伪线（对端取 SDP）、IES、SAP 的 QoS 策略在华为上没有对应结构，报不支持
+  - id: asr920-to-nokia
+    src: ../cisco-iosxe-asr920-synthetic/pe-asr920-01.cfg
+    src_profile: cisco-iosxe-asr920-17.15
+    dst_profile: nokia-sros-classic-7750-25.10
+    interface_map: asr920-to-nokia.ifmap.yaml
+    min_rendered: 0.65
+    expect_warnings: [inferred_value]
+    note: ASR 920 L3VPN PE → Nokia（90 / 137）：三层口换成路由器接口 "if-<源接口名>" + port，VRF 换成 VPRN（业务编号按顺序推出、客户 1，告警 inferred_value），channel-group 写成 lag 下的 port；BGP 地址族、业务实例（EFP）、BDI 的桥域、prefix-list 的 ge 在 Nokia 上结构不同，报不支持
+  - id: asr920-igp-mgmt-to-nokia
+    src: ../cisco-iosxe-asr920-synthetic/pe-asr920-02-igp-mgmt.cfg
+    src_profile: cisco-iosxe-asr920-17.15
+    dst_profile: nokia-sros-classic-7750-25.10
+    interface_map: asr920-to-nokia.ifmap.yaml
+    min_rendered: 0.48
+    note: OSPF（network 宣告换成区域下的接口）、IS-IS、BFD、管理面 → Nokia（64 / 132）；IS-IS 区域标签（CORE）不是 Nokia 的实例编号、AAA 方法列表、登录线路、TACACS+ 服务器名、SSH 参数在 Nokia 上没有对应写法，报不支持

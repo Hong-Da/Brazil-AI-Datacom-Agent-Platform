@@ -188,6 +188,44 @@ nodes:
     type: ref
     ref: rp.policy
     semantic: {zh-CN: 下一跳迭代时应用的路由策略（华为 nexthop recursive-lookup route-policy）, en: Next-hop recursive lookup policy}
+  # ---------- M7-3（Nokia SR OS）----------
+  bgp.instance.family:
+    parent: bgp.instance
+    type: string
+    semantic: {zh-CN: BGP 全局启用的地址族（Nokia bgp 下的 family，多个以空格分隔；华为 / Cisco 按地址族视图与 peer enable 表达，平台特有）, en: Address families enabled globally (Nokia), pt-BR: Famílias de endereços habilitadas globalmente (Nokia)}
+  bgp.peer_group.family:
+    parent: bgp.peer_group
+    type: string
+    semantic: {zh-CN: 组启用的地址族（Nokia group 下的 family；华为 / Cisco 按地址族视图与 peer enable 表达，平台特有）, en: Address families of the group (Nokia), pt-BR: Famílias de endereços do grupo (Nokia)}
+  bgp.peer_group.description:
+    parent: bgp.peer_group
+    type: text
+    semantic: {zh-CN: 组描述（Nokia group 下的 description；华为 peer <组> description、Cisco neighbor <组> description 有对应写法，未归并）, en: Group description, pt-BR: Descrição do grupo}
+  bgp.peer_group.import_policy:
+    parent: bgp.peer_group
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 组的入方向路由策略（Nokia group import，对全部地址族生效；华为 / Cisco 按地址族配置，平台特有）, en: Group import policy (Nokia), pt-BR: Política de importação do grupo (Nokia)}
+  bgp.peer_group.export_policy:
+    parent: bgp.peer_group
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 组的出方向路由策略（Nokia group export，对全部地址族生效；华为 / Cisco 按地址族配置，平台特有）, en: Group export policy (Nokia), pt-BR: Política de exportação do grupo (Nokia)}
+  bgp.peer.import_policy:
+    parent: bgp.peer
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 对等体的入方向路由策略（Nokia neighbor import；华为 / Cisco 按地址族配置，平台特有）, en: Peer import policy (Nokia), pt-BR: Política de importação do par (Nokia)}
+  bgp.peer.export_policy:
+    parent: bgp.peer
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 对等体的出方向路由策略（Nokia neighbor export；华为 / Cisco 按地址族配置，平台特有）, en: Peer export policy (Nokia), pt-BR: Política de exportação do par (Nokia)}
+  # ---------- M7-3（Nokia SR OS）：管理状态 ----------
+  bgp.instance.shutdown:
+    parent: bgp.instance
+    type: boolean
+    semantic: {zh-CN: BGP 管理关闭（Nokia shutdown / no shutdown；Cisco bgp shutdown 有对应写法，未归并；华为没有对应）, en: BGP administratively down, pt-BR: BGP desativado administrativamente}
 deps:
   - {kind: reference, from: bgp.af.nexthop_policy, to: rp.policy}
   - {kind: reference, from: bgp.peer.group, to: bgp.peer_group}

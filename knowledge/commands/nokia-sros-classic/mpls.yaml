@@ -828,6 +828,8 @@ cards:
       line: 3859
       version: 25.10.R1
     status: draft
+    maps:
+      interface{name=$ip-int-name}.mpls: _
   - id: nokia-sros-classic.label-map
     syntax: label-map <in-label>
     view: mpls-if
@@ -1281,6 +1283,8 @@ cards:
       line: 5767
       version: 25.10.R1
     status: draft
+    maps:
+      mpls.global: _
   - id: nokia-sros-classic.mpls-tp
     syntax: mpls-tp
     view: mpls
@@ -1859,6 +1863,8 @@ cards:
       line: 9494
       version: 25.10.R1
     status: draft
+    maps:
+      interface.mpls.shutdown: flag
   - id: nokia-sros-classic.shutdown@mpls-lsp-secondary
     syntax: shutdown
     view: mpls-lsp-secondary
@@ -1895,6 +1901,8 @@ cards:
       line: 9494
       version: 25.10.R1
     status: draft
+    maps:
+      mpls.global.shutdown: flag
   - id: nokia-sros-classic.shutdown~11
     syntax: shutdown
     view: mpls-lsp
@@ -2183,12 +2191,50 @@ cards:
       version: 25.10.R1
     status: draft
   - id: nokia-sros-classic.class-type-bw
-    syntax: class-type-bw ct0 <%-link-bandwidth> ct1 <%-link-bandwidth> ct2 <%-link-bandwidth> ct3 <%-link-bandwidth> ct4 <%-link-bandwidth> ct5 <%-link-bandwidth> ct6 <%-link-bandwidth> ct7 <%-link-bandwidth>
+    syntax: class-type-bw ct0 <ct0-percent> ct1 <ct1-percent> ct2 <ct2-percent> ct3 <ct3-percent> ct4 <ct4-percent> ct5 <ct5-percent> ct6 <ct6-percent> ct7 <ct7-percent>
     view: rsvp-if
     undo: no class-type-bw
     params:
-      '%-link-bandwidth':
-        type: word
+      ct0-percent:
+        type: integer
+        range:
+          - 0
+          - 100
+      ct1-percent:
+        type: integer
+        range:
+          - 0
+          - 100
+      ct2-percent:
+        type: integer
+        range:
+          - 0
+          - 100
+      ct3-percent:
+        type: integer
+        range:
+          - 0
+          - 100
+      ct4-percent:
+        type: integer
+        range:
+          - 0
+          - 100
+      ct5-percent:
+        type: integer
+        range:
+          - 0
+          - 100
+      ct6-percent:
+        type: integer
+        range:
+          - 0
+          - 100
+      ct7-percent:
+        type: integer
+        range:
+          - 0
+          - 100
     source:
       doc: nokia-sros-classic-md
       file: configure_router_rsvp.md
@@ -3161,6 +3207,9 @@ cards:
       line: 2030
       version: 25.10.R1
     status: draft
+    maps:
+      interface{name=$ip-int-name}.mpls: _
+      interface{name=$ip-int-name}.mpls.ldp: 'true'
   - id: nokia-sros-classic.interface-parameters
     syntax: interface-parameters
     view: ldp
@@ -3172,6 +3221,8 @@ cards:
       line: 2073
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.ipv4
     syntax: ipv4
     view: ldp-if
@@ -3183,6 +3234,8 @@ cards:
       line: 2101
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.ipv4~2
     syntax: ipv4
     view: ldp-if-params
@@ -3306,6 +3359,8 @@ cards:
       line: 2480
       version: 25.10.R1
     status: draft
+    maps:
+      mpls.ldp: _
   - id: nokia-sros-classic.legacy-ipv4-lsr-interop
     syntax: legacy-ipv4-lsr-interop
     view: ldp
@@ -3480,6 +3535,9 @@ cards:
       line: 3497
       version: 25.10.R1
     status: draft
+    maps:
+      mpls.ldp.remote_peer: $ip-address
+      mpls.ldp.remote_peer.remote_ip: $ip-address
   - id: nokia-sros-classic.peer-template
     syntax: peer-template <template-name>
     view: ldp-targeted
@@ -3621,6 +3679,8 @@ cards:
       line: 4137
       version: 25.10.R1
     status: draft
+    maps:
+      interface.mpls.ldp: '!flag'
   - id: nokia-sros-classic.shutdown@ldp-if-ipv4
     syntax: shutdown
     view: ldp-if-ipv4
@@ -3633,6 +3693,8 @@ cards:
       line: 4137
       version: 25.10.R1
     status: draft
+    maps:
+      interface.mpls.ldp: '!flag'
   - id: nokia-sros-classic.shutdown@ldp-targeted-peer
     syntax: shutdown
     view: ldp-targeted-peer
@@ -3657,6 +3719,8 @@ cards:
       line: 4137
       version: 25.10.R1
     status: draft
+    maps:
+      mpls.ldp.shutdown: flag
   - id: nokia-sros-classic.targeted-session
     syntax: targeted-session
     view: ldp
@@ -3668,6 +3732,8 @@ cards:
       line: 4299
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.tcp-session-parameters
     syntax: tcp-session-parameters
     view: ldp
@@ -3691,6 +3757,8 @@ cards:
       line: 4357
       version: 25.10.R1
     status: draft
+    maps:
+      interface.mpls.ldp_transport_address: kw:interface|system
   - id: nokia-sros-classic.tunnel-down-damp-time
     syntax: tunnel-down-damp-time <seconds>
     view: ldp

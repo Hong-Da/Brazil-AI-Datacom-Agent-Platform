@@ -39,15 +39,11 @@ def test_diff_downloads(full_kb_root: Path, checkproj_root: Path) -> None:
 
 
 def test_projects_belong_to_their_user(full_kb_root: Path, users_root: Path) -> None:
-    from lmesh.core import config, importer, kbservice, users
+    """M6 起检查项目属于项目：alice 在自己的默认项目里导入设备并建检查项目；不是成员的 bob 看不到；
+    管理员的旧路径落到自己的默认项目（看不到），经项目路径访问 alice 的项目可以看到。"""
+    from lmesh.core import config, users
 
     s = config.load()
-    importer.import_sources(
-        [("atn-base.cfg", (full_kb_root / "knowledge" / "samples" / "change" / "atn-base.cfg").read_bytes())],
-        s.database_url,
-        "basic",
-        kbservice.runtime_root(s),
-    )
     users.create_user(s.database_url, "bob", "Bob-pass-12", "user")
     alice, bob, admin = _client(), _client(), _client()
     for cl, name, pw in (
@@ -56,13 +52,19 @@ def test_projects_belong_to_their_user(full_kb_root: Path, users_root: Path) -> 
         (admin, "admin", TEST_USERS["admin"][0]),
     ):
         assert cl.post("/api/v1/auth/login", json={"username": name, "password": pw}).status_code == 200
-    r = alice.post("/api/v1/check-projects", json={"name": "alice 的项目", "device_id": 1})
+    text = (full_kb_root / "knowledge" / "samples" / "change" / "atn-base.cfg").read_bytes()
+    r = alice.post("/api/v1/configs", files=[("files", ("atn-base.cfg", text, "text/plain"))])
+    assert r.status_code == 200 and r.json()["data"]["files"][0]["ok"], r.text
+    dev = alice.get("/api/v1/devices").json()["data"]["devices"][0]["id"]
+    r = alice.post("/api/v1/check-projects", json={"name": "alice 的项目", "device_id": dev})
     assert r.status_code == 200 and r.json()["data"]["owner"]["username"] == "alice"
     pid = r.json()["data"]["id"]
     assert [p["id"] for p in alice.get("/api/v1/check-projects").json()["data"]["projects"]] == [pid]
     assert bob.get("/api/v1/check-projects").json()["data"]["projects"] == []
     assert bob.get(f"/api/v1/check-projects/{pid}").status_code == 404
-    assert len(admin.get("/api/v1/check-projects").json()["data"]["projects"]) == 1
+    slug = alice.get("/api/v1/workspace").json()["data"]["default_project"]
+    assert admin.get("/api/v1/check-projects").json()["data"]["projects"] == []
+    assert len(admin.get(f"/api/v1/projects/{slug}/check-projects").json()["data"]["projects"]) == 1
     sc = alice.post(f"/api/v1/check-projects/{pid}/scripts", json={"name": "s", "content": "system-view\n"}).json()
     revs = alice.get(f"/api/v1/check-projects/{pid}/scripts/{sc['data']['id']}/revisions").json()["data"]["revisions"]
     assert revs[0]["author"] == "alice"

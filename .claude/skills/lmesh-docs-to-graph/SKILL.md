@@ -81,8 +81,9 @@ lmesh kb ingest <文档目录> --rules <规则名> [--domain bgp]… [--version 
 - 可以只抽部分功能域（`--domain`）：编号会避开其他功能域已有的卡，合并时先按“语法 + 视图”对上已有的卡，所以分批抽取与整体抽取结果一致。抽完重跑一次，合并结果应全部是 unchanged。
 - 看输出里的跳过统计：“视图不在范围”多 → 补 `views_map`；“文档语法有错”多 → 补 `syntax_rewrites` 或 patches；参数类型不对 → 补 `param_types`。改规则后再抽一次，直到跳过的都是该跳过的。
 - `--ai` 只处理规则失败的命令，结果必须能通过语法解析；AI 未配置时不用。
-- 新平台族或大批量补抽时在隔离环境里跑（M7-1 / M7-2 的 Nokia 做法）：`LMESH_KNOWLEDGE__DIR=tmp/<名>/knowledge`（不存在时自动从 `knowledge/` 复制）、`LMESH_DATABASE__URL=sqlite:///tmp/<名>/review.db`，规则改在仓库里、每次抽取前复制过去，满意后把 `commands/<平台族>/` 的卡复制回仓库；这样不往共享数据库写审核记录。`lmesh kb validate` 默认校验运行时知识库，校验仓库要加 `LMESH_KNOWLEDGE__DIR=knowledge`。不要为了新平台族运行 `kb map`（会重写其他平台族的卡与 Profile）。
+- 新平台族或大批量补抽时在隔离环境里跑（M7-1 / M7-2 的 Nokia 做法）：`LMESH_KNOWLEDGE__DIR=tmp/<名>/knowledge`（不存在时自动从 `knowledge/` 复制）、`LMESH_DATABASE__URL=sqlite:///tmp/<名>/review.db`，规则改在仓库里、每次抽取前复制过去，满意后把 `commands/<平台族>/` 的卡复制回仓库；这样不往共享数据库写审核记录。`lmesh kb validate` 默认校验运行时知识库，校验仓库要加 `LMESH_KNOWLEDGE__DIR=knowledge`。抽取阶段不要运行 `kb map`；写映射时用 `kb map --family <平台族>`（M7-3 起，只处理该平台族的卡与 Profile）。
 - Nokia Classic 命令参考的特殊处理：文档先用 `DevelopDocs/设备产品文档/Nokia/tools/nokia_classic_to_md.py` 转换；`View path` 一行一个上下文，`views_map` 用 `^…$` 精确匹配；同一文件要分到两个功能域时（OSPF 文件里的 segment-routing 归 sr 域），在一个域的文件条目里把这些视图映射为 `view: null`，在另一个域的条目里只映射它们、最后加 `{match: '.', view: null}`；范围内视图里进入范围外子上下文的命令进入 `opaque`（名单由“命令的完整上下文又是别的命令的视图路径”生成）；转换痕迹（`[no]` 前缀、拆开的关键字、斜体的 `<|>`、参数名带空格被拆成两个参数、括号不配对）与列表写法 `<p> [ <p> ]`（改成重复组 `<p> [ <p> ] &<1-31>`，同名参数在匹配记录里会互相覆盖）都用 `syntax_rewrites` 统一改；`Values 0.0.0.0 to …` 这类点分 / 整数两用的取值会被按整数推断，用 `param_types` 按参数名改成 word。
+- 修正文件（`.patches.yaml`）按**抽取批次里的编号**匹配：同名命令在不同功能域的批次里编号都可能是 `xxx`，一起抽取时第二个变成 `xxx~2`，修正就套不上；要修正的功能域分开抽取（M7-3：Base 与 VPRN 的 next-hop 取消写法）。
 - 合并时编号以内容为准：同名命令多了一个视图变体、抽取编号整体后移时，被别的卡按“语法 + 视图”认领的编号改用下一个空闲的 `~N`（在整个平台族内避让），不会覆盖已有的卡。抽完用 `lmesh kb validate` 确认没有重复编号与缺失的映射节点。
 
 ## 4. 审核
@@ -126,15 +127,24 @@ draft 卡同样参与解析（状态只表示可信度），所以可以先跑�
 - 抽取后检查样本里原来是原文（raw）的行：新功能域的卡可能让范围外的同前缀命令变成未识别（SR 一章 MPLS 视图下的 `mpls te path verification` 让 `mpls te` 变成未识别），在功能域文件条目的 `views_map` 里把该视图映射为 `view: null` 丢弃，并删除已写入的这些卡。
 - `param_types` 按参数名推断时注意后缀撞车（`virtual-router-id` 以 router-id 结尾会被当成 IPv4），把更具体的规则放前面。
 
-然后 `lmesh kb map`：把规则写进命令卡（`maps_manual: true` 的卡不覆盖），并按命令卡汇总各 Profile 的 `entries`。输出里的 `unused_rules` 是没命中任何卡的规则，要查。
+- M7-3（Nokia Classic）补充的写法：`ctx:<参数>`（父上下文行的参数：`static-route-entry <前缀>` 下 next-hop 的前缀、OSPF area、lag 编号）；目标固定键写表达式 `interface{name=$port-id}.lag`（对象键取自参数，用于“在 A 的块里写 B 的属性”：lag 下列成员口、协议块里列接口）；`sap:port|vlan|inner|tag|encap:`、`pfx:addr|len|wild:`、`pre:<词>:`、`via:<类型>:<属性>:`（按键取别的对象的属性，对象要先出现）、`!flag`；指令目标 `"@container"`（只进入视图的容器卡：不产生节点也不算 ext；规范渲染经容器路径写出，容器行由 `ctx:` 要求或 render 的 `containers` 模板给出）、`"@share"`（本行对象对后续兄弟行可见，同一容器的另一块也可见：Nokia 的 AS 号在 router 下、bgp 块在后面）、`"@frame"`（编辑会话 begin / commit，按 render 的 `wrap` 写出）。规则写进 YAML 时带 `{…}` 的目标要加引号、用块写法；参数名可含 `/`、`:`（`$ip-prefix/prefix-length`、`$sdp-id:vc-id`）。
+- 新平台族的三层接口形态不同（Nokia 路由器接口 + port）、IGP 写法不同（Nokia 没有 network 宣告、IS-IS 分 area-id / system-id）时，不改 Schema，而是在 render 写 `l3_form` / `instance_keys`，由 `core/translate.py` 换结构；对比校验时源图按同一函数换结构。
+- 新加的引用型属性一定写 deps 的 reference 规则（Nokia 的 OSPF / BGP export 策略、SAP 绑定的 VSI），否则配置检查与清理会把被引用的对象当成孤儿。指向接口的属性用类型 `interface` 而不是 `ref: interface`（`ref` 会让接口进入孤儿检查，改变已有平台族的结果）。
+
+然后 `lmesh kb map`：把规则写进命令卡（`maps_manual: true` 的卡不覆盖），并按命令卡汇总各 Profile 的 `entries`。输出里的 `unused_rules` 是没命中任何卡的规则，要查。接入新平台族时用 `lmesh kb map --family <平台族>`（只处理这个平台族的卡与 Profile），运行后 `git diff --stat knowledge/commands knowledge/profiles` 确认其他平台族没有变化。
 
 ## 6. Profile：`knowledge/profiles/<Profile>.yaml`
 
 - `match`（vendor、版本正则、`fallback`）、`inherits`（新版本继承旧版本，只写差异）、`platform`、`software`。
 - `entries` 由 `kb map` 生成；人工条目写 `manual: true`（缺省值 `default`、显示规则 `show_rule`、`supported: false` 等），重新汇总时保留。
+- `when` 可带 `else`（条件不满足时的缺省值，M7-3：Nokia 端口与 LAG 缺省 shutdown、路由器接口缺省 no shutdown）。条目可写 `assume`：其他平台族没有这个节点（华为 / Cisco 的协议实例没有管理状态）时按这个取值理解，翻译成本平台时目标缺省值不同就显式写出并告警。
 - 缺省值只对部分对象成立时加 `when`：`{key: 正则}` / `{not_key: 正则}` 按所属对象编号（例如只对物理口），`{attr: {network_type: [broadcast, p2p]}}` 按兄弟属性的有效值。没有条件的缺省值会补到每个同类对象上，容易造成对比的假差异。
 - `side_effects`（如华为接口绑定 VPN 会清掉接口 IP）、`implicit`（被引用时隐式存在的对象，如 ASR 920 的桥域）。
 - 检查：`lmesh kb coverage --profile <P>`（支持 / 不支持 / 未填写）。界面：Profile 管理、覆盖矩阵。
+
+## 6.5 规范渲染与下发习惯：`knowledge/render/<平台族>.yaml`、`knowledge/change/<平台族>.yaml`
+
+翻译、含默认值的完整配置、变更脚本都用规范渲染（命令卡 + 映射反推，再解析校验），新平台族要写这两份文件（字段说明见各文件开头）。块由 exit 关闭的平台族（Nokia Classic）另写：`exit_all`、`root_depth`、`prologue` / `epilogue`、`section_frame` + `sections`（echo 段落）、`containers`、`quote_params`、`create`、`wrap`（编辑会话）、`prefer`（块头优先的卡）、`avoid`（带密文的卡，同平台族按原文写回）、`infer`（`seq` 顺序编号、`write` 语法可选也写出）、`l3_form`、`instance_keys`；变更知识 `before_delete`（删除前先执行的命令）。检验：样本加进总清单后 `tests/roundtrip/test_translate.py` 自动做规范等价（含默认值），再在 `samples/change/manifest.yaml` 加变更用例、`samples/translate/manifest.yaml` 加双向翻译用例（未解释差异 0，写出比例写进 `min_rendered`）。
 
 ## 7. 用真实配置检验
 

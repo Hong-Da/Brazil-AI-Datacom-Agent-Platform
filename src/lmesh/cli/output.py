@@ -27,6 +27,8 @@ class Ctx:
     verbose: bool = False
     yes: bool = False
     config_path: str | None = None
+    project: str | None = None  # --project（M6）
+    as_user: str | None = None  # --as
 
     def t(self, key: str, **kw: Any) -> str:
         return i18n.t(key, self.lang, **kw)

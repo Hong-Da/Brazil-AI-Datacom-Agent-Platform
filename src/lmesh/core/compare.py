@@ -949,13 +949,17 @@ def side_from_text(text: str, kb: KnowledgeBase, profile: str | None = None, lab
 def side_from_version(
     db_url: str, kb: KnowledgeBase, version_id: int, profile: str | None = None, device_id: int | None = None
 ) -> Side:
-    from lmesh.core import analysis, store
+    from lmesh.core import analysis, projects, store
     from lmesh.core import graph as graphmod
     from lmesh.core.store.models import ConfigVersion, Device
 
     with store.session(db_url) as s:
         ver = s.get(ConfigVersion, version_id)
-        if ver is None or (device_id is not None and ver.device_id != device_id):
+        if (
+            ver is None
+            or (device_id is not None and ver.device_id != device_id)
+            or not projects.visible(s, ver.device_id)
+        ):
             raise CompareError("compare.version_not_found", "not_found", version=version_id)
         dev = s.get(Device, ver.device_id)
         assert dev is not None
@@ -969,33 +973,36 @@ def side_from_version(
 
 
 def side_from_device(db_url: str, kb: KnowledgeBase, device_id: int, profile: str | None = None) -> Side:
+    """设备在当前项目中的当前版本（引用固定了版本时为该版本，否则最新）。"""
     vers = versions(db_url, device_id)
     if not vers:
         raise CompareError("compare.device_not_found", "not_found", target=str(device_id))
-    return side_from_version(db_url, kb, vers[0]["id"], profile, device_id)
+    cur = next((v for v in vers if v.get("current")), vers[0])
+    return side_from_version(db_url, kb, cur["id"], profile, device_id)
 
 
 def device_id_by_name(db_url: str, name: str) -> int | None:
     from sqlalchemy import select
 
-    from lmesh.core import store
+    from lmesh.core import projects, store
     from lmesh.core.store.models import Device
 
     with store.session(db_url) as s:
-        return s.scalar(select(Device.id).where(Device.name == name))
+        return s.scalar(projects.scoped_devices(select(Device.id).where(Device.name == name)).limit(1))
 
 
 def versions(db_url: str, device_id: int) -> list[dict[str, Any]] | None:
     """设备的配置版本，新的在前；设备不存在时返回 None。seq 是该设备内的序号（从 1 开始）。"""
     from sqlalchemy import select
 
-    from lmesh.core import store
+    from lmesh.core import projects, store
     from lmesh.core.store.models import ConfigVersion, Device, iso
 
     with store.session(db_url) as s:
         dev = s.get(Device, device_id)
-        if dev is None:
+        if dev is None or not projects.visible(s, device_id):
             return None
+        cur = projects.current_version_id(s, device_id)
         rows = list(s.scalars(select(ConfigVersion).where(ConfigVersion.device_id == device_id)))
         rows.sort(key=lambda v: v.id)
         out = [
@@ -1007,6 +1014,7 @@ def versions(db_url: str, device_id: int) -> list[dict[str, Any]] | None:
                 "kb_version": v.kb_version,
                 "lines": len(v.raw_text.split("\n")),
                 "latest": i == len(rows) - 1,
+                "current": v.id == cur,
             }
             for i, v in enumerate(rows)
         ]
@@ -1015,12 +1023,12 @@ def versions(db_url: str, device_id: int) -> list[dict[str, Any]] | None:
 
 def version_text(db_url: str, device_id: int, version_id: int) -> dict[str, Any] | None:
     """配置版本的原文；版本不存在或不属于该设备时返回 None。"""
-    from lmesh.core import store
+    from lmesh.core import projects, store
     from lmesh.core.store.models import ConfigVersion
 
     with store.session(db_url) as s:
         ver = s.get(ConfigVersion, version_id)
-        if ver is None or ver.device_id != device_id:
+        if ver is None or ver.device_id != device_id or not projects.visible(s, device_id):
             return None
         return {"version_id": ver.id, "device_id": ver.device_id, "source_name": ver.source_name, "text": ver.raw_text}
 

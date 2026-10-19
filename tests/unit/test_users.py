@@ -71,7 +71,7 @@ def test_crud_and_last_admin(db: str) -> None:
     # 已停用的管理员不算：alice 现在是唯一启用的管理员
     with pytest.raises(users.UserError, match="users.last_admin"):
         users.update_user(db, "alice", role="user")
-    assert users.delete_user(db, "admin") == {"deleted": "admin"}
+    assert users.delete_user(db, "admin")["deleted"] == "admin"
     with pytest.raises(users.UserError) as e:
         users.get_user(db, "admin")
     assert e.value.kind == "not_found"

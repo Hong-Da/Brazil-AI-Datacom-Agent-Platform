@@ -141,8 +141,12 @@ def import_sources(
     source_kind: str = "file",
     actor: str = "",
     keep: int | None = None,
+    public: bool = False,
 ) -> list[ImportResult]:
     """一批文件共用一个脱敏器：同一原值在不同设备上替换成同一个值，跨设备的引用关系保持。
+
+    项目（M6）：设备导入到当前项目（没有当前项目时为默认项目），同名设备在项目内作为新版本；public=True 时导入到
+    公共设备库（管理员）。项目里引用的公共设备与新导入的设备同名时拒绝（import.name_is_public_ref）。
 
     版本历史（M5-2）：每个配置版本是一个快照（原文 + 当时的图 + 知识库版本 + 内容指纹）；内容与该设备最新快照相同的
     重复导入不存新快照，只记导入记录（source_kind：file / dir / zip / api，actor：导入人或令牌说明）。
@@ -155,16 +159,30 @@ def import_sources(
         from lmesh.core.analysis import load_kb
 
         kb = load_kb(kb_root)
+    from lmesh.core import projects
+
     results: list[ImportResult] = []
     graphs: list[tuple[int, Any]] = []
     new_versions: list[int] = []
+    project_id = None if public else projects.target_project_id(db_url)
     with store.session(db_url) as s:
         for name, raw in sources:
             res, text = sanitize_one(name, raw, sanitizer, kb)
             if res.ok:
-                dev = s.scalar(select(Device).where(Device.name == res.device))
+                owner = Device.project_id.is_(None) if project_id is None else Device.project_id == project_id
+                dev = s.scalar(select(Device).where(owner, Device.name == res.device))
+                if dev is None and project_id is not None and _ref_named(s, project_id, res.device):
+                    res.ok, res.error = False, "import.name_is_public_ref"
+                    results.append(res)
+                    continue
                 if dev is None:
-                    dev = Device(name=res.device, vendor=res.vendor, sw_version=res.version, profile=res.profile)
+                    dev = Device(
+                        name=res.device,
+                        vendor=res.vendor,
+                        sw_version=res.version,
+                        profile=res.profile,
+                        project_id=project_id,
+                    )
                     s.add(dev)
                     s.flush()
                 else:
@@ -234,11 +252,24 @@ def import_sources(
     return results
 
 
+def _ref_named(s: Any, project_id: int, name: str) -> bool:
+    from lmesh.core.store.models import ProjectDeviceRef
+
+    refs = select(ProjectDeviceRef.device_id).where(ProjectDeviceRef.project_id == project_id)
+    return s.scalar(select(Device.id).where(Device.id.in_(refs), Device.name == name)) is not None
+
+
 def list_devices(db_url: str) -> list[dict[str, Any]]:
+    """当前项目的设备（私有设备与引用的公共设备）；latest_version_id 是设备在项目中的当前版本（引用固定了版本时为该版本）。"""
+    from lmesh.core import projects
+
     with store.session(db_url) as s:
+        pinned = projects.pins(s)
         out = []
-        for d in s.scalars(select(Device).order_by(Device.name)):
-            latest = max(d.versions, key=lambda v: v.id, default=None)
+        for d in s.scalars(projects.scoped_devices(select(Device)).order_by(Device.name)):
+            newest = max(d.versions, key=lambda v: v.id, default=None)
+            pin = pinned.get(d.id)
+            latest = next((v for v in d.versions if v.id == pin), newest) if pin else newest
             out.append(
                 {
                     "id": d.id,
@@ -249,6 +280,7 @@ def list_devices(db_url: str) -> list[dict[str, Any]]:
                     "versions": len(d.versions),
                     "latest_version_id": latest.id if latest else None,
                     "collected_at": iso(latest.collected_at) if latest else None,
+                    "source": "private" if d.project_id is not None else "public",
                 }
             )
         return out

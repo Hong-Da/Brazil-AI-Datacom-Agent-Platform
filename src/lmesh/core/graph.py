@@ -56,6 +56,12 @@ class Builder:
         self.ctx: dict[int, dict[str, str]] = {}  # 行号 → 该行可见的对象实例（Schema 类型 → 节点编号）
         self.auto: dict[tuple[str, str], int] = defaultdict(int)  # 自动编号
         self.statements: list[Statement] = []
+        fam = kb.families.get(profile.family)
+        self.quotes = bool(fam and fam.quotes)
+        self.lparams: dict[int, dict[str, Any]] = {}  # 行号 → 这一行及其祖先行的参数（ctx:参数 用，近的优先）
+        self.shared: set[str] = set()  # @share 带给兄弟行的对象：只作为所属对象，不作为原文与未映射命令的挂靠对象
+        self.ckey: dict[int, tuple[str, ...]] = {}  # 容器行 → 由外到内的容器写法
+        self.shared_by_key: dict[tuple[str, ...], dict[str, str]] = defaultdict(dict)
 
     # ----- 节点 -----
 
@@ -141,8 +147,18 @@ class Builder:
                 continue
             if ln.kind != "command" or not ln.card or ln.card.startswith("@"):
                 continue
+            self.lparams[ln.no] = {**self.lparams.get(ln.parent or 0, {}), **ln.values()}
             card = self.kb.cards[ln.card]
             created = self._apply(card, ln, scope, st)
+            if mapping.SHARE in card.maps and ln.parent in self.ctx:
+                # @share（Nokia）：这一行建立的对象也给后面的兄弟行用（router 下的 autonomous-system 是 bgp 块的 BGP 实例，
+                # syslog 块里 address 建立的日志服务器是后面 facility 的所属对象）
+                for n in st.nodes:
+                    if self.g.nodes[n].get("kind") == "object" and self.g.nodes[n].get("schema"):
+                        self.ctx[ln.parent][str(self.g.nodes[n]["schema"])] = n
+                        self.shared.add(n)
+                        if ln.parent in self.ckey:  # 同一容器（router Base）另起的块里也可见
+                            self.shared_by_key[self.ckey[ln.parent]][str(self.g.nodes[n]["schema"])] = n
             if not created:
                 owner = self._nearest(scope)
                 nid = f"{owner}/ext[{card.id}@{ln.no}]" if owner != DEVICE else f"ext[{card.id}@{ln.no}]"
@@ -150,6 +166,11 @@ class Builder:
                 self._touch(nid, ln, card)
                 st.nodes.append(nid)
             self.ctx[ln.no] = scope
+            if mapping.is_container(card.maps):
+                # 容器行（Nokia 的 router Base 在配置里会多次出现）：同一容器的块共用 @share 带出的对象
+                key = (*self.ckey.get(ln.parent or 0, ()), ln.text)
+                self.ckey[ln.no] = key
+                scope.update(self.shared_by_key[key])
         self._defaults()
         self._dependencies()
         self.g.graph["statements"] = self.statements
@@ -165,21 +186,37 @@ class Builder:
                 return parent_unknown
         return self._nearest(scope)
 
+    def lookup(self, schema: str, key: str, attr: str) -> Any:
+        nid = self.index.get((schema, key))
+        d = self.g.nodes.get(f"{nid}/{attr}") if nid else None
+        return d.get("value") if d else None
+
     def _nearest(self, scope: dict[str, str]) -> str:
-        if not scope:
+        cands = [n for n in scope.values() if n not in self.shared]
+        if not cands:
             return DEVICE
         # 层级最深的那个对象
-        return max(scope.values(), key=lambda n: n.count("/"))
+        return max(cands, key=lambda n: n.count("/"))
 
     def _apply(self, card: Card, ln: Line, scope: dict[str, str], st: Statement) -> bool:
         if not card.maps:
             return False
         values = ln.values()
-        tokens = ln.text.split()
-        created = False
-        # ctx: 表达式用的上下文（所在接口的键：接入点按子接口编号）
-        ctxv = {"interface": self.g.nodes[scope["interface"]].get("key")} if "interface" in scope else None
-        targets = [(text, mapping.parse_target(text), expr) for text, expr in card.maps.items()]
+        tokens = mapping.tokens(ln.text, self.quotes)
+        # 容器卡（Nokia 的 system、router Base）与编辑会话的框架命令（begin / commit）：不产生节点，也不算未映射
+        created = mapping.is_container(card.maps) or mapping.is_frame(card.maps)
+        # ctx: 表达式用的上下文（所在接口的键：接入点按子接口编号；父上下文行的参数）
+        ctxv: dict[str, Any] | None = (
+            {"interface": self.g.nodes[scope["interface"]].get("key")} if "interface" in scope else None
+        )
+        if ln.parent and self.lparams.get(ln.parent):
+            ctxv = {**(ctxv or {}), "params": self.lparams[ln.parent]}
+        ctxv = {**(ctxv or {}), "lookup": self.lookup}  # via: 表达式（Nokia）：按键找已有对象的属性
+        targets = [
+            (text, mapping.parse_target(text), expr)
+            for text, expr in card.maps.items()
+            if not mapping.is_directive(text)
+        ]
         # 二选一：按第一个“对象”目标的取值决定走哪一支
         branch = 0
         for _, alts, expr in targets:
@@ -198,10 +235,33 @@ class Builder:
             ),
         )
         skipped: set[str] = set()
+        # 固定键取自参数的对象（interface{name=$port-id}.lag）：先按取值找到 / 建立该对象，本行用它而不是上下文中的同类对象
+        for _, alts, _expr in targets:
+            t = alts[min(branch, len(alts) - 1)]
+            for path, kv in t.dynamic().items():
+                dsn = self.kb.nodes.get(path)
+                dkeys = {k: mapping.evaluate(v, values, tokens, ln.negated, ctx=ctxv) for k, v in kv.items()}
+                if dsn is None or any(v in (None, "", []) for v in dkeys.values()):
+                    skipped.add(path)
+                    continue
+                n = max((len(v) for v in dkeys.values() if isinstance(v, list)), default=0)
+                expanded = (
+                    [
+                        {k: (v[i] if isinstance(v, list) and i < len(v) else v) for k, v in dkeys.items()}
+                        for i in range(n)
+                    ]
+                    if n
+                    else [dkeys]
+                )  # 重复组（lag 下 port 1/1/2 1/1/3）：每个取值一个对象
+                for k in expanded:
+                    key = dict(k) if len(dsn.key) > 1 else mapping.normalize("string", dsn.id, next(iter(k.values())))
+                    nid = self._object(dsn, key, scope, {}, ln, card, raw=key)
+                    if nid not in st.nodes:
+                        st.nodes.append(nid)
         for _, alts, expr in ordered:
             t = alts[min(branch, len(alts) - 1)]
             schema = self.kb.nodes.get(t.node)
-            if schema is None:
+            if schema is None or any(p in skipped for p in t.dynamic()):
                 continue
             key = (schema.id, str(len(self.auto)))
             value: Any = None
@@ -311,9 +371,12 @@ class Builder:
         for nid, data in list(self.g.nodes(data=True)):
             if data.get("kind") != "object" or data.get("schema") not in by_owner:
                 continue
-            for sn, default, when in by_owner[data["schema"]]:
+            for sn, default0, when in by_owner[data["schema"]]:
                 child = f"{nid}/{_short(sn.id, data['schema'])}"
-                if child in self.g or not self._when(nid, data, when):
+                if child in self.g:
+                    continue
+                default = self.default_for(nid, data, default0, when)
+                if default is None:
                     continue
                 self.g.add_node(
                     child,
@@ -327,6 +390,13 @@ class Builder:
                     negated=False,
                 )
                 self.g.add_edge(nid, child, kind="contains")
+
+    def default_for(self, nid: str, data: dict[str, Any], default: Any, when: dict[str, Any]) -> Any:
+        """对象 nid 上该属性的缺省值：条件不满足时取 when 的 else（M7-3：Nokia 端口缺省 shutdown、逻辑接口缺省
+        no shutdown，同一个节点按对象编号取两种缺省值），没有 else 时为 None（不补默认节点）。"""
+        if self._when(nid, data, when):
+            return default
+        return (when or {}).get("else")
 
     def _when(self, nid: str, data: dict[str, Any], when: dict[str, Any]) -> bool:
         """缺省值的适用条件：对象编号匹配正则、兄弟属性的有效值相等。"""

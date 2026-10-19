@@ -18,20 +18,23 @@ from lmesh.core.kb import files as kbfiles
 from lmesh.core.kb import mapping
 
 
-def generate(kb_root: Path) -> dict[str, Any]:
+def generate(kb_root: Path, families: list[str] | None = None) -> dict[str, Any]:
+    """families：只汇总这些平台族的 Profile（不给时全部）。"""
     kb = kbmod.load(kb_root)
     by_family: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
     for c in kb.cards.values():
         if c.status == "rejected":
             continue
         for target in c.maps:
+            if mapping.is_directive(target):
+                continue
             for t in mapping.parse_target(target):
                 by_family[c.family][t.node].append(c.id)
                 for obj in t.fixed:
                     by_family[c.family][obj].append(c.id)
     stats: dict[str, Any] = {}
     for p in kb.profiles.values():
-        if p.inherits:
+        if p.inherits or (families and p.family not in families):
             continue
         f = kb_root / p.file
         doc = kbfiles.load_rt(f)

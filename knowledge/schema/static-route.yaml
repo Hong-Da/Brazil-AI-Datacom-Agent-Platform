@@ -35,6 +35,24 @@ nodes:
     parent: static.route
     type: text
     semantic: {zh-CN: 路由描述, en: Route description}
+  # ---------- M7-3（Nokia SR OS）----------
+  static.route.metric:
+    parent: static.route
+    type: integer
+    semantic: {zh-CN: 路由开销（Nokia next-hop / indirect 下的 metric；华为 / Cisco 没有对应，平台特有）, en: Route metric (Nokia), pt-BR: Métrica da rota (Nokia)}
+  static.route.bfd:
+    parent: static.route
+    type: boolean
+    semantic: {zh-CN: 下一跳 BFD 检测（Nokia bfd-enable；华为 ip route-static … bfd enable、Cisco ip route static bfd 有对应写法，未归并）, en: BFD for the next hop, pt-BR: BFD para o próximo salto}
+  static.route.recursive:
+    parent: static.route
+    type: boolean
+    semantic: {zh-CN: 下一跳需要迭代（Nokia indirect；华为 / Cisco 的下一跳缺省按路由表迭代，没有单独写法，平台特有）, en: Recursive (indirect) next hop (Nokia), pt-BR: Próximo salto recursivo (indireto) (Nokia)}
+  # ---------- M7-3（Nokia SR OS）：管理状态 ----------
+  static.route.shutdown:
+    parent: static.route
+    type: boolean
+    semantic: {zh-CN: 静态路由（下一跳）管理关闭（Nokia shutdown / no shutdown；华为 / Cisco 的静态路由没有管理状态，平台特有）, en: Static route (next hop) administratively down, pt-BR: Rota estática (próximo salto) desativada administrativamente}
 deps:
   - {kind: reference, from: static.route.vrf, to: vrf.instance}
   - {kind: prerequisite, from: static.route.vrf, to: vrf.instance, note: {zh-CN: VRF 静态路由要求 VRF 已存在, en: 'A VRF static route requires the VRF to exist', pt-BR: 'Uma rota estática de VRF exige que a VRF exista'}}

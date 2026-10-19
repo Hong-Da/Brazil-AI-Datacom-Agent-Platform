@@ -21,6 +21,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 import re
 from collections import Counter, defaultdict
 from typing import Any
@@ -154,6 +155,230 @@ def reshape_access(g: nx.MultiDiGraph, to_form: str) -> dict[str, str]:
     return ren
 
 
+# ---------------------------------------------------------------- 三层接口形态（M7-3，Nokia）
+
+# 三层属性：Nokia 写在路由器逻辑接口上，华为 / Cisco 写在端口（或子接口）上
+L3_ATTRS = (
+    "ipv4", "vrf", "ospf", "isis", "mpls", "bfd", "vrrp", "acl_in", "acl_out", "prefix_sid", "dot1q_termination",
+    "loopback", "ies",
+)  # fmt: skip
+NOKIA_PORT = re.compile(r"^(\d+/\d+/|lag-\d+$|esat-|pxc-)")
+
+
+def _children(g: nx.MultiDiGraph, nid: str) -> list[str]:
+    return [c for _, c, d in g.out_edges(nid, data=True) if d.get("kind") == "contains"]
+
+
+def _rel(g: nx.MultiDiGraph, owner: str, child: str) -> str:
+    return child[len(owner) + 1 :]
+
+
+def _rename_refs(g: nx.MultiDiGraph, kb: KnowledgeBase, old: str, new: str, skip: tuple[str, ...]) -> None:
+    """接口改名后，其他节点里按名称引用它的取值一并改（静态路由出接口、源接口…）；skip 中的 Schema 节点不改。"""
+    for _n, d in g.nodes(data=True):
+        if d.get("kind") != "attr" or d.get("schema") in skip or str(d.get("value")) != old:
+            continue
+        sn = kb.nodes.get(str(d.get("schema")))
+        if sn is not None and (sn.type == "interface" or (sn.type == "ref" and sn.ref == "interface")):
+            d["value"] = d["raw"] = new
+
+
+def reshape_l3(
+    g: nx.MultiDiGraph,
+    kb: KnowledgeBase,
+    to_form: str,
+    name_of: Any = None,
+    orig_key: Any = None,
+) -> dict[str, str]:
+    """三层接口在两种形态间换结构（就地修改图，返回 {旧编号: 新编号}；新建节点带 reshaped_from）：
+
+    logical（Nokia）：三层配置在路由器逻辑接口上，port 绑定端口（端口:VLAN 时终结该 VLAN）；
+    physical（华为 / Cisco）：三层配置就在端口或子接口上。
+    换成 physical：逻辑接口的节点并到它绑定的端口（带 VLAN 时是子接口 <端口>.<VLAN>），端口上已有的同名属性保留端口的；
+    换成 logical：端口（或子接口）上的三层属性移到新的逻辑接口 "if-<原接口名>"（子接口的 . 换成 -），port 指向端口；
+    环回口不移，补 loopback；目标名是 system 的不动（Nokia 的 system 接口）。
+    name_of：对象键 → 目标平台的接口名（判断是不是 Nokia 端口）；orig_key：节点 → 源配置里的接口名（逻辑接口取名用）。
+    """
+    ren: dict[str, str] = {}
+    name_of = name_of or (lambda k: k)
+    orig_key = orig_key or (lambda n: str(g.nodes[n].get("key")))
+    ifaces = [n for n, d in g.nodes(data=True) if d.get("schema") == "interface" and d.get("kind") == "object"]
+    for itf in ifaces:
+        if itf not in g:
+            continue
+        key = str(g.nodes[itf].get("key"))
+        kids = _children(g, itf)
+        lines = list(g.nodes[itf].get("lines") or [])
+        parent = _contains_parent(g, itf) or DEVICE
+        if to_form == "physical":
+            bp = _attr(g, f"{itf}/bind_port")
+            if bp is None:
+                continue
+            port = str(bp.get("value"))
+            vlan = _attr(g, f"{itf}/dot1q_termination")
+            tkey = f"{port}.{vlan.get('value')}" if vlan is not None else port
+            tgt = f"interface[{tkey}]"
+            if tgt == itf:
+                continue
+            if tgt not in g:
+                _add(g, parent, tgt, "object", "interface", lines, key=tkey, raw=tkey, reshaped_from=itf)
+            for c in kids:
+                if c == f"{itf}/bind_port":
+                    ren[c] = tgt
+                    g.remove_node(c)
+                    continue
+                dest = f"{tgt}/{_rel(g, itf, c)}"
+                if dest in g:  # 端口上已有（描述、管理状态）：保留端口的
+                    ren[c] = dest
+                    g.remove_nodes_from([n for n in list(g.nodes) if n == c or n.startswith(c + "/")])
+                    continue
+                _move(g, c, dest, tgt, ren)
+            ren[itf] = tgt
+            g.remove_node(itf)
+            _rename_refs(g, kb, key, tkey, ("interface.bind_port",))
+            continue
+        # → logical
+        if f"{itf}/bind_port" in g:
+            continue
+        l3 = [
+            c
+            for c in kids
+            if str(g.nodes[c].get("schema", "")).split(".")[1:2] and _rel(g, itf, c).split("[")[0] in L3_ATTRS
+            and g.nodes[c].get("origin") != "default"
+        ]  # fmt: skip
+        if not l3:
+            continue
+        tname = str(name_of(key))
+        base, dot, sub = tname.partition(".")
+        if tname == "system":
+            continue
+        if not NOKIA_PORT.match(base):
+            if re.match(r"(?i)^loop", key) and f"{itf}/loopback" not in g:
+                _set_attr(g, itf, "loopback", "interface.loopback", True, [], itf)
+            continue
+        name = "if-" + str(orig_key(itf)).replace(".", "-")
+        new = f"interface[{name}]"
+        if new in g:
+            continue
+        _add(g, parent, new, "object", "interface", lines, key=name, raw=name, reshaped_from=itf)
+        _set_attr(g, new, "bind_port", "interface.bind_port", base, [], itf)
+        movable = l3 + ([c for c in kids if c not in l3] if dot else [])  # 子接口整个并到逻辑接口
+        for c in movable:
+            if c == f"{itf}/shutdown" or g.nodes[c].get("origin") == "default":
+                continue
+            _move(g, c, f"{new}/{_rel(g, itf, c)}", new, ren)
+        if dot and f"{new}/dot1q_termination" not in g and sub.isdigit():
+            _set_attr(g, new, "dot1q_termination", "interface.dot1q_termination", int(sub), [], itf)
+        if dot:
+            ren[itf] = new
+            g.remove_nodes_from([n for n in list(g.nodes) if n == itf or n.startswith(itf + "/")])
+        _rename_refs(g, kb, key, name, ("interface.bind_port",))
+    return ren
+
+
+def reshape_ospf_networks(g: nx.MultiDiGraph) -> dict[str, str]:
+    """OSPF 的 network 宣告（华为 / Cisco）换成接口所属区域（Nokia 只在区域下列接口，M7-3）：
+    接口地址落在某个 network 里时，接口上的 OSPF 参数记进程与区域（已有的不改），network 对象去掉。就地修改，返回 {旧编号: 新编号}。"""
+    ren: dict[str, str] = {}
+    addrs: list[tuple[str, ipaddress.IPv4Address]] = []
+    for n, d in g.nodes(data=True):
+        if d.get("schema") == "interface.ipv4.address" and d.get("kind") == "attr":
+            itf = n.split("/ipv4[")[0]
+            try:
+                addrs.append((itf, ipaddress.IPv4Address(str(d.get("value")))))
+            except ValueError:
+                continue
+    nets = [
+        n for n, d in g.nodes(data=True) if d.get("schema") == "ospf.process.area.network" and d.get("kind") == "object"
+    ]
+    for net in nets:
+        area = _contains_parent(g, net)
+        proc = _contains_parent(g, area) if area else None
+        if not area or not proc:
+            continue
+        key = str(g.nodes[net].get("key"))
+        addr, _, wild = key.replace("/", " ").partition(" ")
+        length = mapping.wildcard_len(wild) if "." in wild else (wild or "32")
+        try:
+            network = ipaddress.IPv4Network(f"{addr}/{length}", strict=False)
+        except ValueError:
+            continue
+        hits = [itf for itf, a in addrs if a in network]
+        for itf in hits:
+            o = f"{itf}/ospf[_]"
+            if o not in g:
+                _add(g, itf, o, "object", "interface.ospf", list(g.nodes[net].get("lines") or []), key="_", raw="_",
+                     reshaped_from=net)  # fmt: skip
+            if f"{o}/process" not in g:
+                _set_attr(g, o, "process", "interface.ospf.process", g.nodes[proc].get("key"), [], net)
+            if f"{o}/area" not in g:
+                _set_attr(g, o, "area", "interface.ospf.area", g.nodes[area].get("key"), [], net)
+        if hits:
+            ren[net] = f"{hits[0]}/ospf[_]"
+            g.remove_nodes_from([x for x in list(g.nodes) if x == net or x.startswith(net + "/")])
+    return ren
+
+
+def _sysid_from_ip(ip: str) -> str | None:
+    """Router ID 推出 IS-IS 系统 ID（10.255.0.2 → 0102.5500.0002，各段补到三位后每四位一组）。"""
+    parts = str(ip).split(".")
+    if len(parts) != 4 or not all(p.isdigit() for p in parts):
+        return None
+    digits = "".join(f"{int(p):03d}" for p in parts)
+    return ".".join(digits[i : i + 4] for i in range(0, 12, 4))
+
+
+def reshape_isis_net(g: nx.MultiDiGraph, to_net: bool) -> dict[str, str]:
+    """IS-IS 的区域与系统 ID：华为 / Cisco 写成 NET（isis.process.net），Nokia 分成 area-id 与 system-id。
+    to_net：area_id（+ system_id，不写时按 Router ID 推出）拼成 NET；否则把 NET 拆开。就地修改，返回 {旧编号: 新编号}。"""
+    ren: dict[str, str] = {}
+    procs = [n for n, d in g.nodes(data=True) if d.get("schema") == "isis.process" and d.get("kind") == "object"]
+    for p in procs:
+        if to_net:
+            area = _attr(g, f"{p}/area_id")
+            if area is None or any(str(c).startswith(f"{p}/net[") for c in _children(g, p)):
+                continue
+            sysid = _attr(g, f"{p}/system_id")
+            sid = str(sysid.get("value")) if sysid else None
+            if sid is None:
+                rid = next(
+                    (
+                        d.get("value")
+                        for n, d in g.nodes(data=True)
+                        if d.get("schema") in ("mgmt.system.router_id", "isis.process.router_id")
+                        and d.get("kind") == "attr"
+                    ),
+                    None,
+                )
+                sid = _sysid_from_ip(str(rid)) if rid else None
+            if sid is None:
+                continue
+            net = f"{area.get('value')}.{sid}.00"
+            nid = f"{p}/net[{net}]"
+            _add(g, p, nid, "object", "isis.process.net", list(area.get("lines") or []), key=net, raw=net,
+                 reshaped_from=f"{p}/area_id")  # fmt: skip
+            ren[f"{p}/area_id"] = nid
+            g.remove_node(f"{p}/area_id")
+            if sysid is not None:
+                ren[f"{p}/system_id"] = nid
+                g.remove_node(f"{p}/system_id")
+        else:
+            nets = [c for c in _children(g, p) if g.nodes[c].get("schema") == "isis.process.net"]
+            if not nets or _attr(g, f"{p}/area_id") is not None:
+                continue
+            net = str(g.nodes[nets[0]].get("key"))
+            parts = net.split(".")
+            if len(parts) < 5:
+                continue
+            area_s, sid = ".".join(parts[:-4]), ".".join(parts[-4:-1])
+            lines = list(g.nodes[nets[0]].get("lines") or [])
+            ren[nets[0]] = _set_attr(g, p, "area_id", "isis.process.area_id", area_s, lines, nets[0])
+            _set_attr(g, p, "system_id", "isis.process.system_id", sid, lines, nets[0])
+            for n in nets:
+                g.remove_nodes_from([x for x in list(g.nodes) if x == n or x.startswith(n + "/")])
+    return ren
+
+
 class TranslateError(ValueError):
     """翻译参数错误（文案键 + 参数）。"""
 
@@ -188,6 +413,7 @@ class _Translator:
         # 键按统一写法（GE0/2/1 与 GigabitEthernet0/2/1 是同一个口），值保留映射表里的写法
         self.ifmap = {cmp.interface_name(k).lower(): str(v).strip() for k, v in self.raw_map.items()}
         self.dst_res = kb.resolve_profile(dst_profile)
+        self.src_res = kb.resolve_profile(src_profile)
         self.cross_family = kb.profiles[src_profile].family != kb.profiles[dst_profile].family
         self.children: dict[str, list[str]] = defaultdict(list)
         for a, b, d in g_src.edges(data=True):
@@ -198,6 +424,7 @@ class _Translator:
         self.defaults: list[dict[str, Any]] = []
         self.unmapped: set[str] = set()  # 映射表中没有的接口（保持原名）
         self.secret_shells: set[str] = set()  # 只装着敏感对象的占位对象（源图编号）：不写，校验时视为已说明
+        self.omitted: set[str] = set()  # 目标平台族没有、源设备是“启用”的管理状态（源图编号）：省略，校验时视为已说明
 
     # ----- 接口名 -----
 
@@ -305,9 +532,8 @@ class _Translator:
         e = self.dst_res.entries.get(sn.id)
         if e is None or not e.supported or e.default is None:
             return None
-        if not self.builder._when(owner, gt.nodes[owner], e.when):
-            return None
-        return mapping.normalize(sn.type, sn.id, e.default)
+        v = self.builder.default_for(owner, gt.nodes[owner], e.default, e.when)
+        return None if v is None else mapping.normalize(sn.type, sn.id, v)
 
     # ----- 2、3. 默认值与支持情况 -----
 
@@ -385,6 +611,28 @@ class _Translator:
                 # 密码类取值是源平台的密文（或脱敏后的占位），换平台后不能直接用：不写，人工重新设置
                 self.unsupported.append(self.secret_item(src, sn, d))
                 continue
+            src_e = self.src_res.entries.get(sn.id)
+            if (
+                self.cross_family
+                and e is None
+                and src_e is not None
+                and src_e.assume is not None
+                and canon._same(d.get("value"), src_e.assume, sn.type)
+            ):
+                # 源平台族显式写了“启用”（Nokia 的 no shutdown），目标平台族没有这个开关、本来就是这个状态：省略并说明
+                self.omitted.add(src)
+                self.defaults.append(
+                    _item(
+                        "explicit_equals_default",
+                        "translate.default.omitted",
+                        src,
+                        schema=sn.id,
+                        value=d.get("value"),
+                        profile=self.dst,
+                        lines=list(d.get("lines") or []),
+                    )
+                )
+                continue
             dd = self.dst_default(gt, sn, parent[nid])
             if dd is not None and canon._same(d.get("value"), dd, sn.type):
                 self.defaults.append(
@@ -452,6 +700,7 @@ class _Translator:
             gt.add_edge(owner, nid, kind="contains")
             self.to_src[nid] = src_nid
             facts.add(nid)
+            self.omitted.add(nid)  # 显式写出的默认值差异（已告警）：译文里按目标编号出现，校验时视为已说明
             self.default_counts["differs"] += 1
             self.warnings.append(
                 _item(
@@ -465,9 +714,53 @@ class _Translator:
                     profile=self.dst,
                 )
             )
+        self.assumed(gt, facts, parent, dead)
         # 目标 Profile 的默认节点（渲染时判断顺带写出的取值是否等于默认值）
         self.builder._defaults()
         return facts
+
+    def assumed(self, gt: nx.MultiDiGraph, facts: set[str], parent: dict[str, str], dead: set[str]) -> None:
+        """目标 Profile 标了 assume 的节点（M7-3：Nokia 的协议实例、NTP、静态路由缺省关闭）：源平台族没有这个节点时
+        按 assume 理解源设备的状态，目标缺省值与它不同（或没有登记）就显式写出并告警 default_differs。"""
+        for node_id, e in self.dst_res.entries.items():
+            if e.assume is None or not e.supported:
+                continue
+            src_e = self.src_res.entries.get(node_id)
+            if src_e is not None and src_e.supported:
+                continue
+            sn = self.kb.nodes.get(node_id)
+            if sn is None or sn.parent is None:
+                continue
+            owner_schema = sn.parent
+            while owner_schema and self.kb.nodes[owner_schema].type != "object":
+                owner_schema = str(self.kb.nodes[owner_schema].parent)
+            for owner, d in list(gt.nodes(data=True)):
+                if d.get("schema") != owner_schema or d.get("kind") != "object" or owner in dead or owner not in facts:
+                    continue
+                nid = f"{owner}/{_short(sn.id, owner_schema)}"
+                if nid in gt:
+                    continue
+                dd = self.dst_default(gt, sn, owner)
+                value = mapping.normalize(sn.type, sn.id, e.assume)
+                if dd is not None and canon._same(dd, value, sn.type):
+                    continue
+                gt.add_node(nid, kind="attr", schema=sn.id, value=value, raw=value, origin="explicit", lines=[],
+                            cards=[], negated=False)  # fmt: skip
+                gt.add_edge(owner, nid, kind="contains")
+                parent[nid] = owner
+                facts.add(nid)
+                self.warnings.append(
+                    _item(
+                        "default_differs",
+                        "translate.warn.default_differs",
+                        nid,
+                        level="warning",
+                        schema=sn.id,
+                        src_default=value,
+                        dst_default=dd,
+                        profile=self.dst,
+                    )
+                )
 
     def extras(self) -> None:
         """源图中不翻译的行：未映射命令、功能域外原文、未识别行（原文块只列块的第一行，附整块的行号）。"""
@@ -519,10 +812,13 @@ class _Translator:
             return {"checked": False, "equal": False, "diffs": 0, "unexplained": 0}
         back: dict[str, str] = {}  # 换结构后的编号 → 源图中的编号
         src_form, dst_form = self.forms()
-        if src_form and dst_form and src_form != dst_form:
-            # 源图按目标平台族的接入点形态换结构后再对比（单向换，不要求两种形态互逆）
+        s3, d3 = self.l3_forms()
+        if (src_form and dst_form and src_form != dst_form) or s3 != d3:
+            # 源图按目标平台族的形态换结构后再对比（单向换，不要求两种形态互逆）
             ga = self.g.copy()
-            ren = reshape_access(ga, dst_form)
+            ren = self.reshape_shapes(ga, True)
+            if src_form and dst_form and src_form != dst_form:
+                ren.update(reshape_access(ga, dst_form))
             back = {new: old for old, new in ren.items() if new in ga}
             back.update({n: d["reshaped_from"] for n, d in ga.nodes(data=True) if d.get("reshaped_from")})
             a = cmp.Side(ga, "source")
@@ -544,6 +840,16 @@ class _Translator:
             if d["kind"] == "added" and src_entry is not None and not src_entry.supported:
                 # 源平台没有这个开关（Profile 标了 supported: false，例如 Cisco 没有 SSH 服务开关），目标取缺省值是预期结果
                 continue
+            if (
+                d["kind"] == "removed"
+                and str(d.get("schema") or "") in self.dst_res.implicit
+                and node_a
+                and self.g.nodes.get(back.get(node_a, node_a), {}).get("origin") == "derived"
+            ):
+                continue  # 源图里被引用而隐式存在的对象（桥域）：目标平台同样隐式，引用它的节点已列为不支持
+            dst_entry = self.dst_res.entries.get(str(d.get("schema") or ""))
+            if d["kind"] == "added" and src_entry is None and dst_entry is not None and dst_entry.assume is not None:
+                continue  # 按 assume 显式写出的管理状态（已告警 default_differs）
             unexplained += 1
             self.warnings.append(
                 _item(
@@ -611,12 +917,96 @@ class _Translator:
         dst = canon._index(self.kb, fam[self.dst].family)[1]["access_form"]
         return src, dst
 
+    def l3_forms(self) -> tuple[str, str]:
+        """源、目标平台族的三层接口形态（knowledge/render 的 l3_form；没写为 physical）。"""
+        fam = self.kb.profiles
+        src = canon._index(self.kb, fam[self.src].family)[1]["l3_form"] or "physical"
+        dst = canon._index(self.kb, fam[self.dst].family)[1]["l3_form"] or "physical"
+        return src, dst
+
+    def reshape_shapes(self, g: nx.MultiDiGraph, src_names: bool) -> dict[str, str]:
+        """接入点之外的形态差异（M7-3，Nokia）：三层接口（逻辑接口 ↔ 端口 / 子接口）、IS-IS 的 NET（area-id + system-id）。
+        src_names：g 是源图的副本（校验用），接口名按映射表换成目标写法后再判断是不是 Nokia 端口。"""
+        ren: dict[str, str] = {}
+
+        def step(r: dict[str, str]) -> None:
+            ren.update(r)
+            if not src_names:
+                self._apply_ren(g, r)  # 译文图：每一步之后更新到源图的对应，下一步按新编号找
+
+        step(self.rekey_instances(g))
+        s3, d3 = self.l3_forms()
+        if s3 != d3 and d3 == "logical":
+            step(reshape_ospf_networks(g))
+        if s3 != d3:
+            if src_names:
+                step(reshape_l3(g, self.kb, d3, lambda k: self.rename_quiet(k)))
+            else:
+                orig = {n: str(self.g.nodes[self.to_src[n]].get("key")) for n in g if self.to_src.get(n) in self.g}
+                step(reshape_l3(g, self.kb, d3, None, lambda n: orig.get(n, str(g.nodes[n].get("key")))))
+            step(reshape_isis_net(g, d3 == "physical"))
+        return ren
+
+    def rekey_instances(self, g: nx.MultiDiGraph) -> dict[str, str]:
+        """协议实例编号的对应（knowledge/render 的 instance_keys，M7-3）：Nokia 的基本实例 0（ospf 0、isis 0）对应
+        华为 / Cisco 缺省的进程 1；换平台族时改对象编号，并改按编号引用它的属性（接口上的 interface.ospf.process）。"""
+        fam = self.kb.profiles
+        src = canon._index(self.kb, fam[self.src].family)[1]["instance_keys"]
+        dst = canon._index(self.kb, fam[self.dst].family)[1]["instance_keys"]
+        table: dict[str, dict[str, str]] = {}
+        for schema, m in src.items():
+            table[schema] = {str(k): str(v) for k, v in m.items()}
+        for schema, m in dst.items():
+            table.setdefault(schema, {}).update({str(v): str(k) for k, v in m.items()})
+        ren: dict[str, str] = {}
+        if not table or not self.cross_family:
+            return ren
+        for schema, m in table.items():
+            sn = self.kb.nodes.get(schema)
+            for n, d in list(g.nodes(data=True)):
+                if d.get("schema") != schema or d.get("kind") != "object" or str(d.get("key")) not in m:
+                    continue
+                old_key = str(d.get("key"))
+                new_key = m[old_key]
+                parent = _contains_parent(g, n) or DEVICE
+                new = n[: n.rindex("[") + 1] + new_key + "]"
+                if new in g:
+                    continue
+                _move(g, n, new, parent, ren)
+                g.nodes[new]["key"] = g.nodes[new]["raw"] = new_key
+                for _x, a in g.nodes(data=True):  # 按编号引用这个实例的属性（Schema 里 ref / 名为 process 的属性）
+                    asn = self.kb.nodes.get(str(a.get("schema")))
+                    if (
+                        a.get("kind") == "attr"
+                        and asn is not None
+                        and str(a.get("value")) == old_key
+                        and (
+                            (asn.type == "ref" and asn.ref == schema)
+                            or (sn and asn.id.endswith(".process"))
+                            and asn.id.split(".")[1] == schema.split(".")[0]
+                        )
+                    ):
+                        a["value"] = a["raw"] = new_key
+        return ren
+
+    def rename_quiet(self, name: Any) -> Any:
+        unmapped = set(self.unmapped)
+        out = self.rename(name)
+        self.unmapped = unmapped
+        return out
+
     def reshape(self, gt: nx.MultiDiGraph) -> None:
-        """源、目标平台族的接入点形态不同时换结构（华为二层子接口 ↔ Cisco 业务实例）。"""
+        """源、目标平台族的接入点形态不同时换结构（华为二层子接口 ↔ Cisco 业务实例）；三层接口与 IS-IS NET 的形态
+        不同时也换（Nokia，M7-3）。"""
+        self.reshape_shapes(gt, False)
         src_form, dst_form = self.forms()
         if not (src_form and dst_form and src_form != dst_form):
             return
-        ren = reshape_access(gt, dst_form)
+        self._apply_ren(gt, reshape_access(gt, dst_form))
+
+    def _apply_ren(self, gt: nx.MultiDiGraph, ren: dict[str, str]) -> None:
+        if not ren:
+            return
         old_src = dict(self.to_src)
         for old, new in ren.items():
             self.to_src.pop(old, None)
@@ -667,7 +1057,7 @@ class _Translator:
             )
         self.interface_types(gt)
         text = rendered.text
-        explained = {u["node"] for u in self.unsupported if u["node"]} | self.secret_shells
+        explained = {u["node"] for u in self.unsupported if u["node"]} | self.secret_shells | self.omitted
         explained |= {w["node"] for w in self.warnings if w["node"]}
         check = self.verify(text, explained) if verify else {"checked": False}
         src_family = self.kb.profiles[self.src].family

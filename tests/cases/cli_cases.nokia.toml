@@ -1,0 +1,28 @@
+# Nokia SR OS Classic CLI（M7-3，REQ-037）的 CLI 用例：规范渲染、翻译、只处理一个平台族的 kb map（加载器与主文件 cli_cases.toml 合并）。
+
+[[case]]
+id = "nokia-render-canonical"
+title = { zh-CN = "Nokia 规范模式渲染（exit all / configure 开头，echo 段落，每块 exit，名称加引号）", en = "Canonical rendering of a Nokia configuration", pt-BR = "Renderização canônica de uma configuração Nokia" }
+args = ["--output", "json", "render", "{samples}/nokia-sros-classic-synthetic/classic-pe-basic.cfg", "--canonical"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.mode" = "canonical", "data.profile" = "nokia-sros-classic-7750-25.10", "data.family" = "nokia-sros-classic", "data.uncovered" = [], "data.lines.0.text" = "exit all", "data.lines.1.text" = "configure" }
+in_docs = true
+
+[[case]]
+id = "nokia-translate-to-huawei"
+title = { zh-CN = "Nokia 配置翻译到华为（路由器接口并到端口，基本实例 0 → 进程 1）", en = "Translate a Nokia configuration to Huawei", pt-BR = "Traduzir uma configuração Nokia para Huawei" }
+args = ["--output", "json", "translate", "{samples}/nokia-sros-classic-synthetic/classic-pe-basic.cfg", "--to", "huawei-atn-v800r025", "--interface-map", "{samples}/translate/nokia-to-atn.ifmap.yaml"]
+setup = "fresh-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.source.profile" = "nokia-sros-classic-7750-25.10", "data.target.family" = "huawei-vrp8", "data.verify.checked" = true, "data.verify.unexplained" = 0 }
+in_docs = true
+
+[[case]]
+id = "kb-map-family"
+title = { zh-CN = "只为一个平台族套用映射规则并汇总 Profile（不重写其他平台族的命令卡与 Profile）", en = "Apply mapping rules for one platform family only", pt-BR = "Aplicar as regras de mapeamento de uma única família de plataforma" }
+args = ["--output", "json", "kb", "map", "--family", "nokia-sros-classic"]
+setup = "configured-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.families.nokia-sros-classic.unused_rules" = [], "data.profiles.nokia-sros-classic-7750-25.10.manual" = 40 }
+in_docs = true

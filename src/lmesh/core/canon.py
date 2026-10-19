@@ -36,7 +36,7 @@ import ipaddress
 import itertools
 import re
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -87,6 +87,24 @@ def load_style(kb: KnowledgeBase, family: str) -> dict[str, Any]:
 def _read_style(f: Path) -> dict[str, Any]:
     data = (read_yaml(f) or {}) if f.exists() else {}
     return {
+        # M7-3（Nokia Classic，块由 exit 关闭）：exit_all 每个视图块的退出命令；root_depth 根视图下的命令缩进几级；
+        # prologue / epilogue 整份配置的开头与结尾（取代分隔符与 end）；sections 顶层块按 echo 段落分组排序；
+        # containers 容器视图的入口写法；quote_params 总要加引号的参数名（正则）；create 新建对象带 create
+        "exit_all": str(data.get("exit_all") or ""),
+        "root_depth": int(data.get("root_depth") or 0),
+        "prologue": [str(x) for x in (data.get("prologue") or [])],
+        "epilogue": [str(x) for x in (data.get("epilogue") or [])],
+        "sections": [dict(x) for x in (data.get("sections") or []) if isinstance(x, dict)],
+        "section_frame": [str(x) for x in (data.get("section_frame") or [])],
+        "containers": {str(k): str(v) for k, v in (data.get("containers") or {}).items()},
+        "quote_params": str(data.get("quote_params") or ""),
+        "create": bool(data.get("create", False)),
+        # wrap：进入这些视图后先写、退出前再写的命令（Nokia policy-options 的 begin / commit）
+        "wrap": {str(k): [str(x) for x in (v or [])] for k, v in (data.get("wrap") or {}).items()},
+        "l3_form": str(data.get("l3_form") or ""),
+        "instance_keys": {
+            str(k): {str(a): str(b) for a, b in (v or {}).items()} for k, v in (data.get("instance_keys") or {}).items()
+        },
         "exits": {str(k): str(v) for k, v in (data.get("exits") or {}).items()},
         "nested_separator": bool(data.get("nested_separator", True)),
         "prefer": {str(k): [str(x) for x in (v or [])] for k, v in (data.get("prefer") or {}).items()},
@@ -110,11 +128,24 @@ class _CardT:
 
 
 class _Index:
+    def ctx_only(self, schema: str) -> bool:
+        w = self.ctx_writers.get(schema) or []
+        return bool(w) and all(w)
+
     def __init__(self, kb: KnowledgeBase, family: str, style: dict[str, Any]):
         self.parser = parsemod.CardIndex(kb, family)
         self.by_vs: dict[tuple[str, str], list[_CardT]] = defaultdict(list)
         self.targets: dict[str, list[tuple[str, list[mapping.Target], Any]]] = {}
         self.undo: dict[str, syn.Syntax | None] = {}
+        # M7-3（Nokia）：容器卡（视图 → [(进入的视图, 卡)]）、固定键取自参数的卡（按所在视图）、@share 建立的对象类型
+        self.containers: dict[str, list[tuple[str, Card]]] = defaultdict(list)
+        self.foreign: dict[str, list[_CardT]] = defaultdict(list)
+        self.shared: set[str] = set()
+        # 取值来自外层块参数（ctx:参数）的属性：只由这类卡写出的属性（VPRN 接口的 vrf、VPRN 静态路由的 vrf）
+        # 所在的对象要写在那个块里（M7-3）
+        self.ctx_writers: dict[str, list[bool]] = defaultdict(list)
+        self.ctx_attrs: dict[str, set[str]] = defaultdict(set)  # 卡编号 → 它用 ctx: 写的属性
+        self.ctx_objs: dict[str, set[str]] = defaultdict(set)  # 卡编号 → 键取自 ctx: 的对象
         for c in kb.cards_of(family):
             if not c.maps:
                 continue
@@ -122,11 +153,47 @@ class _Index:
                 c.parsed  # noqa: B018 — 语法写错的卡跳过
             except syn.SyntaxErrorKB:
                 continue
-            targets = [(t, mapping.parse_target(t), e) for t, e in c.maps.items()]
+            if mapping.is_container(c.maps):
+                if c.enters_view and c.id not in style["avoid"]:
+                    self.containers[c.view].append((str(c.enters_view), c))
+                continue
+            if mapping.is_frame(c.maps):
+                continue
+            targets = [(t, mapping.parse_target(t), e) for t, e in c.maps.items() if not mapping.is_directive(t)]
             self.targets[c.id] = targets
+            if mapping.SHARE in c.maps:
+                self.shared |= {
+                    a.node for _, alts, _ in targets for a in alts if kb.nodes.get(a.node, None) is not None
+                }
             if c.id in style["avoid"]:
                 continue
             ct = _CardT(c, targets, bool(c.enters_view))
+            if any(a.dynamic() for _, alts, _ in targets for a in alts):
+                self.foreign[c.view].append(ct)
+            objs_here = {
+                alts[0].node
+                for _, alts, _ in targets
+                if kb.nodes.get(alts[0].node) and kb.nodes[alts[0].node].type == "object"
+            }
+            for _, alts, e in targets:
+                sn = kb.nodes.get(alts[0].node)
+                if sn is not None and sn.type == "object" and len(alts) == 1 and _uses_ctx(e):
+                    # 对象键取自外层块（Nokia OSPF 接口下的 passive）：在那个块里写
+                    self.ctx_objs[c.id].add(sn.id)
+                    if ct not in self.foreign[c.view]:
+                        self.foreign[c.view].append(ct)
+                if sn is None or sn.type == "object" or len(alts) > 1:
+                    continue
+                # 同一张卡也建立属性的所属对象（入口行）时才算：lag 下的 port 写成员口的属性，不决定成员口写在哪里
+                owner = sn.parent
+                while owner and kb.nodes.get(owner) and kb.nodes[owner].type != "object":
+                    owner = kb.nodes[owner].parent
+                uses_ctx = _uses_ctx(e) and owner in objs_here
+                self.ctx_writers[sn.id].append(uses_ctx)
+                if uses_ctx:
+                    self.ctx_attrs[c.id].add(sn.id)
+                    if ct not in self.foreign[c.view]:
+                        self.foreign[c.view].append(ct)
             objs = [
                 (alts[0].node, e)
                 for _, alts, e in targets
@@ -142,6 +209,13 @@ class _Index:
                 ct.declare.add(objs[0][0])
             for s in {a.node for _, alts, _ in targets for a in alts}:
                 self.by_vs[(c.view, s)].append(ct)
+
+
+def _uses_ctx(expr: Any) -> bool:
+    """表达式用到外层块的参数（ctx:参数；ctx:subif 是接口名，不算）。"""
+    if isinstance(expr, dict):
+        return any(_uses_ctx(v) for v in expr.values())
+    return any(a.strip().startswith("ctx:") and a.strip() != "ctx:subif" for a in str(expr).split("||"))
 
 
 _INDEX: dict[tuple[int, str], tuple[KnowledgeBase, _Index, dict[str, Any]]] = {}
@@ -169,6 +243,7 @@ class _Sol:
     forbid: frozenset[str] = frozenset()
     neg: bool | None = None
     tail: tuple[str, str] | None = None
+    ctxreq: tuple[tuple[str, Any], ...] = ()  # ctx:参数 要求外层（容器）行给出的取值（M7-3）
 
 
 def _merge(a: _Sol, b: _Sol) -> _Sol | None:
@@ -177,6 +252,11 @@ def _merge(a: _Sol, b: _Sol) -> _Sol | None:
         if k in va and va[k] != v:
             return None
         va[k] = v
+    cr = dict(a.ctxreq)
+    for k, v in b.ctxreq:
+        if k in cr and str(cr[k]) != str(v):
+            return None
+        cr[k] = v
     kws, forbid = a.kws | b.kws, a.forbid | b.forbid
     if kws & forbid:
         return None
@@ -190,6 +270,7 @@ def _merge(a: _Sol, b: _Sol) -> _Sol | None:
         forbid,
         a.neg if a.neg is not None else b.neg,
         a.tail or b.tail,
+        tuple(sorted(cr.items(), key=lambda x: x[0])),
     )
 
 
@@ -208,8 +289,9 @@ def _mask_to_len(s: str) -> str | None:
     return str(bin(n).count("1")) if (inv & (inv + 1)) == 0 else None
 
 
-def _coerce(spec: dict[str, Any] | None, value: Any) -> str | None:
-    """取值按参数类型换成命令里的写法（掩码长度 ↔ 点分掩码），类型不符时返回 None。"""
+def _coerce(spec: dict[str, Any] | None, value: Any, quotes: bool = False) -> str | None:
+    """取值按参数类型换成命令里的写法（掩码长度 ↔ 点分掩码），类型不符时返回 None。
+    quotes（Nokia）：取值可以含空格（写成引号字符串）。"""
     spec = spec or {}
     t = spec.get("type", "word")
     s = "true" if value is True else "false" if value is False else str(value)
@@ -219,7 +301,7 @@ def _coerce(spec: dict[str, Any] | None, value: Any) -> str | None:
         s = str(ipaddress.IPv4Address(~int(ipaddress.IPv4Address(_len_to_mask(int(s)))) & 0xFFFFFFFF))
     elif t in ("mask-length", "integer") and _IPV4.match(s):
         s = _mask_to_len(s) or s
-    if t != "text" and (not s or " " in s):
+    if t != "text" and (not s or (" " in s and not quotes)):
         return None
     return s if syn.type_ok(s, spec) else None
 
@@ -242,21 +324,47 @@ def _same(a: Any, b: Any, node_type: str = "string") -> bool:
     return bool(norm_value(node_type, a) == norm_value(node_type, b) or _text(a).lower() == _text(b).lower())
 
 
+def _rep_params(card: Card) -> set[str]:
+    """语法里重复组中的参数名。"""
+    out: set[str] = set()
+
+    def walk(ns: list[Any], inside: bool) -> None:
+        for n in ns:
+            if isinstance(n, syn.Param) and inside:
+                out.add(n.name)
+            elif isinstance(n, syn.Opt):
+                walk(n.body, inside)
+            elif isinstance(n, syn.Choice):
+                for a in n.alts:
+                    walk(a, inside)
+            elif isinstance(n, syn.Rep):
+                walk([n.node], True)
+
+    walk(card.parsed.nodes, False)
+    return out
+
+
 class _Inverter:
-    def __init__(self, card: Card, ctx: dict[str, Any] | None = None):
+    def __init__(self, card: Card, ctx: dict[str, Any] | None = None, quotes: bool = False):
         self.card = card
-        self.ctx = ctx  # ctx: 表达式的上下文（所在接口的键）
+        self.ctx = ctx  # ctx: 表达式的上下文（所在接口的键；params：外层行的参数）
+        self.quotes = quotes
 
     def param(self, name: str, value: Any) -> _Sol | None:
         spec = self.card.params.get(name)
-        if isinstance(value, str) and " " in value.strip() and (spec or {}).get("type") != "text":
+        if (
+            isinstance(value, str)
+            and " " in value.strip()
+            and (spec or {}).get("type") != "text"
+            and (not self.quotes or name in _rep_params(self.card))
+        ):
             value = value.split()  # 重复组里的多个取值（apply community 1:1 2:2）
         if isinstance(value, list):
-            vals = [_coerce(spec, x) for x in value]
+            vals = [_coerce(spec, x, self.quotes) for x in value]
             if any(v is None for v in vals):
                 return None
             return _Sol(values=((name, tuple(vals)),))
-        v = _coerce(spec, value)
+        v = _coerce(spec, value, self.quotes)
         return None if v is None else _Sol(values=((name, v),))
 
     def run(self, expr: Any, want: Any, node_type: str) -> list[_Sol]:
@@ -291,10 +399,37 @@ class _Inverter:
             return out
         if e == "flag":
             return [_Sol(neg=not norm_scalar("boolean", want))]
+        if e == "!flag":
+            return [_Sol(neg=bool(norm_scalar("boolean", want)))]
         if e == "auto":
             return [_Sol()]
         if e.startswith("ctx:"):  # 由所在上下文决定，不能靠写法表达：取值必须与上下文一致
+            if e != "ctx:subif" and e[4:] not in ((self.ctx or {}).get("params") or {}):
+                # 上下文行还没写出（Nokia 的 static-route-entry <前缀> 容器）：由外层容器行给出；前缀里的点分掩码换成长度
+                w = _text(want)
+                if re.fullmatch(r"[\d.]+/\d+\.\d+\.\d+\.\d+", w):
+                    w = str(mapping.normalize("prefix", "", w))
+                return [_Sol(ctxreq=((e[4:], w),))]
             return [_Sol()] if _same(mapping.context_value(e, self.ctx), want, node_type) else []
+        if e.startswith("pre:"):  # 取值写成 词:值
+            _, word, rest = e.split(":", 2)
+            return self.run(rest, f"{word}:{_text(want)}", "string")
+        if e.startswith("via:"):  # 按对象的属性反查键（伪线对端 → 对端是它的 SDP）
+            _, schema, attr, rest = e.split(":", 3)
+            rl = (self.ctx or {}).get("rlookup")
+            keys = rl(schema, attr, want) if rl else []
+            return [s for k in keys for s in self.run(rest, k, "string")]
+        if e.startswith(("sap:", "pfx:")):  # 拆分写法的一部分：记为 参数#部分，生成前拼回
+            skind, spart, srest = e.split(":", 2)
+            if not srest.startswith("$") or "||" in srest:
+                out2: list[_Sol] = []
+                for a in (x.strip() for x in srest.split("||")):
+                    out2 += self.run(f"{skind}:{spart}:{a}", want, node_type) if a.startswith("$") else []
+                return out2
+            name = srest[1:]
+            if name not in self.card.params and name not in _struct(self.card.parsed.nodes)[1]:
+                return []
+            return [_Sol(values=((f"{name}#{skind}.{spart}", _text(want)),))]
         if e.startswith("if:"):
             _, kw, rest = e.split(":", 2)
             if kw.startswith("$"):  # if:$参数:表达式——参数有值即可（通常由同一行的对象键给出）
@@ -397,10 +532,35 @@ class _Seq:
     body: list[syn.Node]
 
 
+def _compose(values: dict[str, Any]) -> dict[str, Any]:
+    """反解得到的拆分部分（参数#sap.port、参数#pfx.addr…）拼回参数取值（M7-3）；拼不出时去掉这些部分。"""
+    if not any("#" in k for k in values):
+        return values
+    out = {k: v for k, v in values.items() if "#" not in k}
+    parts: dict[tuple[str, str], dict[str, Any]] = defaultdict(dict)
+    for k, v in values.items():
+        if "#" in k:
+            name, _, rest = k.partition("#")
+            kind, _, part = rest.partition(".")
+            parts[(name, kind)][part] = v
+    for (name, kind), ps in parts.items():
+        if name in out:
+            continue
+        if kind == "sap":
+            v = mapping.join_sap(ps)
+        else:
+            length = ps.get("len") or (mapping.wildcard_len(ps["wild"]) if ps.get("wild") else None)
+            v = None if ps.get("addr") in (None, "") else (f"{ps['addr']}/{length}" if length else ps["addr"])
+        if v is not None:
+            out[name] = v
+    return out
+
+
 class _Gen:
-    def __init__(self, sol: _Sol, params: dict[str, dict[str, Any]] | None = None):
+    def __init__(self, sol: _Sol, params: dict[str, dict[str, Any]] | None = None, quote: Any = None):
         self.params = params or {}
-        self.vals = dict(sol.values)
+        self.vals = _compose(dict(sol.values))
+        self.quote = quote  # 参数取值是否加引号（名称 → 取值 → bool；Nokia）
         self.kws = sol.kws
         self.forbid = sol.forbid
         self.tail = sol.tail
@@ -421,6 +581,10 @@ class _Gen:
                 return []
             results = nxt
         return results
+
+    def q(self, name: str, v: Any) -> str:
+        text = str(v)
+        return f'"{text}"' if self.quote is not None and self.quote(name, text) else text
 
     def _choice_kw(self, name: str) -> str | None:
         """取值是固定选项的参数（enum）：要求出现的关键字正好是它的一个选项时，用这个选项。"""
@@ -459,8 +623,8 @@ class _Gen:
                 c = self._choice_kw(n.name)
                 return [([c], False)] if c else []
             if isinstance(v, tuple):
-                return [([str(v[0])], False)] if len(v) == 1 else []
-            return [([str(v)], False)]
+                return [([self.q(n.name, v[0])], False)] if len(v) == 1 else []
+            return [([self.q(n.name, v)], False)]
         if isinstance(n, syn.Opt):
             if self._must(n.body) & self.forbid or not self._wanted(n.body, vals):
                 return [([], False)]
@@ -537,11 +701,16 @@ class RLine:
     opens: bool = False  # 这一行进入了一个视图
     objects: list[str] = field(default_factory=list)  # 这一行所在 / 创建的对象（增量变更按它定位视图）
     matched: list[str] = field(default_factory=list)  # 这一行写出的全部节点（含不需要写、顺带写出的）
+    container: bool = False  # 容器行（Nokia 的 system、router Base；相邻的同一容器合并）
 
-    def as_dict(self, no: int, indent: int) -> dict[str, Any]:
+    def pad(self, indent: int, base: int = 0) -> str:
+        """行首缩进：frame（Nokia 的 exit all / configure / echo 段落）总在第 0 列，其余按层级加根视图的缩进。"""
+        return "" if self.kind == "frame" else " " * (indent * (self.depth + base))
+
+    def as_dict(self, no: int, indent: int, base: int = 0) -> dict[str, Any]:
         return {
             "no": no,
-            "text": " " * (indent * self.depth) + self.text,
+            "text": self.pad(indent, base) + self.text,
             "kind": self.kind,
             "origin": self.origin,
             "nodes": self.nodes,
@@ -561,13 +730,14 @@ class Rendered:
     inferred: list[dict[str, Any]] = field(
         default_factory=list
     )  # 按推导规则补出、并写进了命令的取值 {node, schema, value}
+    base: int = 0  # 根视图下的命令缩进几级（Nokia 的 configure 下缩进 1 级）
 
     @property
     def text(self) -> str:
-        return "\n".join(" " * (self.indent * ln.depth) + ln.text for ln in self.lines)
+        return "\n".join(ln.pad(self.indent, self.base) + ln.text for ln in self.lines)
 
     def line_dicts(self) -> list[dict[str, Any]]:
-        return [ln.as_dict(i, self.indent) for i, ln in enumerate(self.lines, start=1)]
+        return [ln.as_dict(i, self.indent, self.base) for i, ln in enumerate(self.lines, start=1)]
 
 
 @dataclass
@@ -575,6 +745,7 @@ class _Ctx:
     view: str
     scope: dict[str, str]
     depth: int
+    params: dict[str, Any] = field(default_factory=dict)  # 外层行（块头、容器）的参数：ctx:参数 用（M7-3）
 
 
 @dataclass
@@ -586,6 +757,11 @@ class _Stmt:
     objects: dict[str, str]
     matched: set[str] = field(default_factory=set)
     full: bool = True  # 卡上能顺带写出的取值都写了（同样能写出 anchor 时优先用，命令更完整）
+    # M7-3：先进入的容器（[(所在视图, 进入的视图, 卡, 写法)]）、本行可见的外层参数、本行自己的参数
+    path: list[tuple[str, str, Card, str]] = field(default_factory=list)
+    params: dict[str, Any] = field(default_factory=dict)
+    values: dict[str, Any] = field(default_factory=dict)
+    dyn: set[str] = field(default_factory=set)  # 固定键取自参数的对象（不由这一行新建）
 
 
 # ---------------------------------------------------------------- 渲染器
@@ -634,9 +810,27 @@ class _Renderer:
         self.emitted_extras: set[str] = set()
         self.default_facts = {n for n in facts if g.nodes[n].get("origin") == "default"}
         self.inferred = {n for n, d in g.nodes(data=True) if d.get("origin") == "inferred"}
+        self.facts |= {n for n in self.inferred if g.nodes[n].get("infer_write")}
+        self.pending |= {n for n in self.inferred if g.nodes[n].get("infer_write")}
         self.inferred_used: set[str] = set()
         self.parse_cache: dict[tuple[str, str, bool], tuple[Card, syn.Match] | None] = {}
         self.last_block: _Ctx | None = None
+        self.last_tail = 0  # 最近写出的块末尾的退出行数（子对象插在它们之前）
+        # M7-3（Nokia）：引号、容器、按 Schema 节点找要写的节点（固定键取自参数的卡写别的对象的节点）
+        self.quotes = bool(self.fam.quotes)
+        # 默认值行前的注释：Nokia 用 # 开头（! 在 Nokia 不是注释）
+        self.default_mark = f"{self.fam.comment[0]} default" if self.fam.comment else DEFAULT_MARK
+        self.exit_all = self.style["exit_all"]
+        qre = re.compile(self.style["quote_params"]) if self.style["quote_params"] else None
+        self.quote_re = qre
+        self.by_schema: dict[str, list[str]] = defaultdict(list)
+        for n, d in g.nodes(data=True):
+            if d.get("schema"):
+                self.by_schema[str(d["schema"])].append(n)
+        self.paths_cache: dict[str, list[tuple[str, list[tuple[str, str, Card]]]]] = {}
+        self.obj_heads: dict[str, list[tuple[str, str, Card, str]]] = {}  # 对象 → 写出它时经过的容器行
+        self.fp_cache: dict[str, set[str]] = {}
+        self.extra_wrap: dict[str, list[tuple[str, str, Card | None]]] = {}  # 原文节点外面的容器行（Nokia）
         if extras:
             self._place_extras()
 
@@ -710,6 +904,14 @@ class _Renderer:
             if self.g.nodes.get(owner, {}).get("kind") in ("raw", "unknown", "ext"):
                 self.nested[owner].append(nid)
                 continue
+            wrap: list[tuple[str, str, Card | None]] = []
+            while pl is not None and pl in self.stmts and self.is_container_line(self.stmts[pl]):
+                # 原文行在容器里（Nokia 的 system > snmp 下的 packet-size）：写回时外面带上这些容器行
+                cst = self.stmts[pl]
+                wrap.insert(0, (cst.line.view, cst.line.text, self.kb.cards.get(str(cst.line.card))))
+                pl = cst.line.parent
+            if wrap:
+                self.extra_wrap[nid] = wrap
             if pl is None or pl not in self.stmts:
                 self.extra_place[nid] = ("ctx", owner)
                 continue
@@ -738,6 +940,23 @@ class _Renderer:
             return str(d["text"]).strip()
         return ""
 
+    def wrap_of(self, st: Any) -> list[tuple[str, str, Card | None]]:
+        """原文行外面一路的容器行（由外到内）：[(所在视图, 写法, 卡)]。"""
+        wrap: list[tuple[str, str, Card | None]] = []
+        pl = st.line.parent
+        while pl is not None and pl in self.stmts and self.is_container_line(self.stmts[pl]):
+            cst = self.stmts[pl]
+            wrap.insert(0, (cst.line.view, cst.line.text, self.kb.cards.get(str(cst.line.card))))
+            pl = cst.line.parent
+        return wrap
+
+    def is_container_line(self, st: Any) -> bool:
+        card = self.kb.cards.get(str(st.line.card)) if st.line.kind == "command" and st.line.card else None
+        return card is not None and mapping.is_container(card.maps)
+
+    def exit_of(self, view: str) -> str | None:
+        return self.exit_all or self.style["exits"].get(view) or None
+
     def extra_lines(self, nid: str, depth: int) -> list[RLine]:
         if nid in self.emitted_extras:
             return []
@@ -745,9 +964,27 @@ class _Renderer:
         self.emitted_extras.add(nid)
         if not text:
             return []
-        out = [RLine(depth, text, "extra", nodes=[nid])]
+        wrap = self.extra_wrap.get(nid, [])
+        heads: list[RLine] = []
+        for i, (_, t, c) in enumerate(wrap):
+            heads.append(RLine(depth + i, t, "command", card=c.id if c else None, opens=True, container=True))
+            heads += self.wrap_lines(str(c.enters_view) if c else "", depth + i + 1, 0)
+        d = depth + len(wrap)
+        out = [*heads, RLine(d, text, "extra", nodes=[nid])]
         for child in sorted(self.nested.get(nid, []), key=self.first_line):
-            out += self.extra_lines(child, depth + 1)
+            # 原文块的 exit（Nokia）与块头同列
+            closing = bool(self.exit_all) and self.extra_text(child) == self.exit_all
+            out += self.extra_lines(child, d if closing else d + 1)
+        card = self.kb.cards.get(str(self.g.nodes[nid].get("schema") or "")[4:])
+        if self.exit_all and card is not None and card.enters_view:
+            out.append(RLine(d, self.exit_all, "exit"))  # 未映射的命令进入了视图：块尾的 exit（Nokia）
+        for i in reversed(range(len(wrap))):
+            wcard = wrap[i][2]
+            view = str(wcard.enters_view) if wcard is not None else ""
+            out += self.wrap_lines(view, depth + i + 1, -1)
+            ex = self.exit_of(view)
+            if ex:
+                out.append(RLine(depth + i, ex, "exit"))
         return out
 
     def attached_lines(self, st: _Stmt, depth: int) -> list[RLine]:
@@ -796,13 +1033,45 @@ class _Renderer:
             visit(c)
         return out
 
-    def subtree_pending(self, nid: str) -> bool:
+    def foreign_pending(self, obj: str) -> bool:
+        """Nokia：对象的块里（含块下的容器）有卡能写别的对象上还没写出的节点（OSPF 区域块写接口的 OSPF 参数）。"""
+        schema = str(self.g.nodes[obj].get("schema"))
+        hit = self.fp_cache.get(schema)
+        if hit is None:
+            views = {str(ct.card.enters_view) for (_, s2), cts in self.idx.by_vs.items() if s2 == schema for ct in cts}
+            views = {v for v in views if v and v != "None"}
+            views |= {w for v in list(views) for w, _ in self.container_paths(v)}
+            hit = set()
+            for v in views:
+                for ct in self.idx.foreign.get(v, []):
+                    hit |= {a.node for _, alts, _ in ct.targets for a in alts if a.dynamic()}
+                    hit |= self.idx.ctx_attrs.get(ct.card.id, set()) | self.idx.ctx_objs.get(ct.card.id, set())
+            self.fp_cache[schema] = hit
+        return any(self.own_pending(n) for sch in hit for n in self.by_schema.get(sch, []))
+
+    def own_pending(self, nid: str) -> bool:
+        """节点本身或它下面（不看别处的块）还有要写的。"""
         if nid in self.pending:
             return True
         stack = list(self.children.get(nid, []))
         while stack:
             x = stack.pop()
             if x in self.pending:
+                return True
+            stack.extend(self.children.get(x, []))
+        return False
+
+    def subtree_pending(self, nid: str) -> bool:
+        if nid in self.pending:
+            return True
+        if self.exit_all and self.g.nodes[nid].get("kind") == "object" and self.foreign_pending(nid):
+            return True
+        stack = list(self.children.get(nid, []))
+        while stack:
+            x = stack.pop()
+            if x in self.pending:
+                return True
+            if self.exit_all and self.g.nodes[x].get("kind") == "object" and self.foreign_pending(x):
                 return True
             if self.extras_on and self.extra_place.get(x, ("", None))[0] == "ctx" and x not in self.emitted_extras:
                 return True
@@ -824,10 +1093,59 @@ class _Renderer:
             return d.get("value")
         return None
 
-    def candidates(self, ctx: _Ctx, anchor: str, entering: bool | None, declare: bool = False) -> list[_Stmt]:
+    def container_paths(self, view: str) -> list[tuple[str, list[tuple[str, str, Card]]]]:
+        """从 view 经容器卡能到达的视图（Nokia：configure → router → static-route-entry），由浅到深，最多 3 层。"""
+        hit = self.paths_cache.get(view)
+        if hit is not None:
+            return hit
+        out: list[tuple[str, list[tuple[str, str, Card]]]] = []
+        frontier: list[tuple[str, list[tuple[str, str, Card]]]] = [(view, [])]
+        seen = {view}
+        for _ in range(3):
+            nxt: list[tuple[str, list[tuple[str, str, Card]]]] = []
+            for v, path in frontier:
+                for w, card in self.idx.containers.get(v, []):
+                    if w in seen:
+                        continue
+                    seen.add(w)
+                    p2 = [*path, (v, w, card)]
+                    out.append((w, p2))
+                    nxt.append((w, p2))
+            frontier = nxt
+        self.paths_cache[view] = out
+        return out
+
+    def candidates(
+        self, ctx: _Ctx, anchor: str, entering: bool | None, declare: bool = False, every: bool = False
+    ) -> list[_Stmt]:
+        """every：直接写得出时也看经容器能不能写（块头：Nokia 的 port X 与 router Base > interface X 都能写接口，
+        由 header 按块内能写出的节点挑）。"""
         d = self.g.nodes[anchor]
-        schema = d.get("schema")
+        schema = str(d.get("schema"))
         chain = self.chain(anchor)
+        out = self._cands(ctx, anchor, schema, chain, entering, declare, [])
+        if (out and not every) or not self.idx.containers:
+            return out
+        # 本视图写不出：经容器视图写（Nokia 的 router Base > static-route-entry <前缀> > next-hop）
+        for w, path in self.container_paths(ctx.view):
+            if not self.idx.by_vs.get((w, schema)):
+                continue
+            sub = _Ctx(w, ctx.scope, ctx.depth + len(path), dict(ctx.params))
+            got = self._cands(sub, anchor, schema, chain, entering, declare, path)
+            if got:
+                return out + got
+        return out
+
+    def _cands(
+        self,
+        ctx: _Ctx,
+        anchor: str,
+        schema: str,
+        chain: dict[str, str],
+        entering: bool | None,
+        declare: bool,
+        cpath: list[tuple[str, str, Card]],
+    ) -> list[_Stmt]:
         out: list[_Stmt] = []
         for ct in self.idx.by_vs.get((ctx.view, schema), []):
             if entering is not None and ct.enters != entering:
@@ -835,18 +1153,27 @@ class _Renderer:
             if declare and schema not in ct.declare:
                 continue
             for relaxed in (False, True):
-                got = self.try_card(ctx, anchor, ct, chain, relaxed)
+                got = self.try_card(ctx, anchor, ct, chain, relaxed, cpath)
                 out += got
                 if got:
                     break
         return out
 
-    def try_card(self, ctx: _Ctx, anchor: str, ct: _CardT, chain: dict[str, str], relaxed: bool) -> list[_Stmt]:
-        """一张卡写出 anchor：对象键与 anchor 自己的取值必须表达；卡上其他属性能顺带写出就写（贪心），写不出就不写。"""
+    def try_card(
+        self,
+        ctx: _Ctx,
+        anchor: str,
+        ct: _CardT,
+        chain: dict[str, str],
+        relaxed: bool,
+        cpath: list[tuple[str, str, Card]] | None = None,
+    ) -> list[_Stmt]:
+        """一张卡写出 anchor：对象键与 anchor 自己的取值必须表达；卡上其他属性能顺带写出就写（贪心），写不出就不写。
+        cpath：先进入的容器（M7-3）；表达式里的 ctx:参数 由容器行给出。"""
         anchor_schema = self.g.nodes[anchor].get("schema")
         nb = max((len(alts) for _, alts, _ in ct.targets), default=1)
         out: list[_Stmt] = []
-        inv = _Inverter(ct.card, self.ctx_of(chain))
+        inv = _Inverter(ct.card, self.ctx_of(chain, ctx.params), self.quotes)
         for b in range(nb):
             chosen = [(alts[min(b, len(alts) - 1)], expr) for _, alts, expr in ct.targets]
             if anchor_schema not in {t.node for t, _ in chosen}:
@@ -876,6 +1203,18 @@ class _Renderer:
                     if finst is None or fsn is None:
                         ok = False
                         break
+                    if any(mapping.is_dynamic(v) for v in fixed.values()):
+                        # 固定键取自参数（Nokia lag 下的 port、OSPF 区域下的 interface）：参数写出该对象的键
+                        fkey = self.g.nodes[finst].get("key")
+                        for k, fe in fixed.items():
+                            part = inv.run(fe, fkey.get(k) if isinstance(fkey, dict) else fkey, "string")
+                            if not part:
+                                ok = False
+                                break
+                            must.append(part)
+                        if not ok:
+                            break
+                        continue
                     if ctx.scope.get(path) == finst:
                         continue  # 上下文里已有这个对象：解析时用上下文里的，固定键不起作用
                     fk = dict(fixed) if len(fsn.key) > 1 else next(iter(fixed.values()), "")
@@ -917,11 +1256,19 @@ class _Renderer:
                     if sol is None or sol in tried or (not is_full and out):
                         continue  # 完整写法能通过时不再试最简写法
                     tried.add(sol)
+                    heads: list[tuple[str, str, Card, str]] = []
+                    params = ctx.params
+                    if sol.ctxreq or cpath:
+                        got_heads = self.container_heads(cpath or [], dict(sol.ctxreq), ctx.params, chain)
+                        if got_heads is None:
+                            continue
+                        heads, params = got_heads
                     found = 0
                     for text, neg in self.lines_for(ct.card, sol):
-                        st = self.verify(ctx, text, neg, chain, anchor)
+                        st = self.verify(ctx, text, neg, chain, anchor, params)
                         if st is not None:
                             st.full = is_full
+                            st.path = heads
                             out.append(st)
                             found += 1
                             if found >= 2:
@@ -932,8 +1279,75 @@ class _Renderer:
                 break
         return out
 
+    def container_heads(
+        self,
+        cpath: list[tuple[str, str, Card]],
+        req: dict[str, Any],
+        base: dict[str, Any],
+        chain: dict[str, str] | None = None,
+    ) -> tuple[list[tuple[str, str, Card, str]], dict[str, Any]] | None:
+        """容器行的写法（knowledge/render 的 containers 模板，或按容器卡语法用 ctx:参数 的取值生成）与它们给出的参数；
+        写不出、或给不全 ctx:参数 要求的取值时返回 None。所属对象写在同样的容器里时沿用那时的写法
+        （Nokia：syslog 1 下 address 建立的日志服务器，facility 也写在 syslog 1 下）。"""
+        params = dict(base)
+        out: list[tuple[str, str, Card, str]] = []
+        views = [(a, b) for a, b, _ in cpath]
+        hint = next(
+            (
+                self.obj_heads[o]
+                for o in (chain or {}).values()
+                if o in self.obj_heads and [(a, b) for a, b, _, _ in self.obj_heads[o]] == views
+            ),
+            None,
+        )
+        for i, (from_v, to_v, card) in enumerate(cpath):
+            tpl = self.style["containers"].get(to_v)
+            if hint is not None:
+                text = hint[i][3]
+            elif tpl:
+                miss = False
+
+                def sub(m: re.Match[str]) -> str:
+                    nonlocal miss
+                    v = req.get(m.group(1))
+                    if v in (None, ""):
+                        miss = True
+                        return ""
+                    t = str(v)
+                    return f'"{t}"' if self.quote_value(m.group(1), t) else t
+
+                text = re.sub(r"\{([^{}]+)\}", sub, tpl)
+                if miss:
+                    return None
+            else:
+                sol = _Sol(values=tuple(sorted((k, v) for k, v in req.items() if k in card.params)))
+                cands = _Gen(sol, card.params, self.quote_value).lines(card.parsed)
+                if not cands:
+                    return None
+                text = cands[0]
+            key = (from_v, text, False)
+            if key not in self.parse_cache:
+                self.parse_cache[key] = parsemod.match_line(self.idx.parser, from_v, text)
+            hit = self.parse_cache[key]
+            if hit is None or self.idx.parser.enters.get(hit[0].id) != to_v:
+                return None
+            params.update(hit[1].all_values())
+            out.append((from_v, to_v, hit[0], text))
+        for k, v in req.items():
+            if not _same(params.get(k), v):
+                return None
+        return out, params
+
+    def quote_value(self, name: str, text: str) -> bool:
+        """Nokia：参数取值写成引号字符串——含空格、是描述文字，或参数名符合 render 的 quote_params。"""
+        if not self.quotes or text.startswith('"'):
+            return False
+        return " " in text or bool(self.quote_re and self.quote_re.search(name))
+
     def lines_for(self, card: Card, sol: _Sol) -> list[tuple[str, bool]]:
-        gen = _Gen(sol, card.params)
+        if self.style["create"] and not sol.neg and "create" in _struct(card.parsed.nodes)[0]:
+            sol = replace(sol, kws=sol.kws | {"create"})  # Nokia：新建对象的入口行带 create
+        gen = _Gen(sol, card.params, self.quote_value if self.quotes else None)
         if not sol.neg:
             return [(t, False) for t in gen.lines(card.parsed)]
         out: list[tuple[str, bool]] = []
@@ -950,9 +1364,30 @@ class _Renderer:
         out.append((bare, True))
         return out
 
-    def ctx_of(self, chain: dict[str, str]) -> dict[str, Any] | None:
+    def ctx_of(self, chain: dict[str, str], params: dict[str, Any] | None = None) -> dict[str, Any] | None:
         inst = chain.get("interface")
-        return {"interface": self.g.nodes[inst].get("key")} if inst else None
+        out: dict[str, Any] = {"interface": self.g.nodes[inst].get("key")} if inst else {}
+        if params:
+            out["params"] = params
+        out["lookup"], out["rlookup"] = self.lookup, self.rlookup
+        return out
+
+    def lookup(self, schema: str, key: str, attr: str) -> Any:
+        """via: 表达式：键为 key 的 schema 对象的属性 attr 的取值。"""
+        for n in self.by_schema.get(schema, []):
+            if self.g.nodes[n].get("kind") == "object" and str(self.g.nodes[n].get("key")) == key:
+                d = self.g.nodes.get(f"{n}/{attr}")
+                return d.get("value") if d else None
+        return None
+
+    def rlookup(self, schema: str, attr: str, want: Any) -> list[str]:
+        """via: 的反查：属性 attr 等于 want 的 schema 对象的键。"""
+        out: list[str] = []
+        for n in self.by_schema.get(schema, []):
+            d = self.g.nodes.get(f"{n}/{attr}")
+            if self.g.nodes[n].get("kind") == "object" and d is not None and _same(d.get("value"), want):
+                out.append(str(self.g.nodes[n].get("key")))
+        return out
 
     def evaluate(
         self, card: Card, values: dict[str, Any], tokens: list[str], neg: bool, ctx: dict[str, Any] | None = None
@@ -979,7 +1414,15 @@ class _Renderer:
             out.append((t, sn, v))
         return out
 
-    def verify(self, ctx: _Ctx, text: str, neg: bool, chain: dict[str, str], anchor: str) -> _Stmt | None:
+    def verify(
+        self,
+        ctx: _Ctx,
+        text: str,
+        neg: bool,
+        chain: dict[str, str],
+        anchor: str,
+        params: dict[str, Any] | None = None,
+    ) -> _Stmt | None:
         key = (ctx.view, text, neg)
         if key not in self.parse_cache:
             if neg:
@@ -991,12 +1434,17 @@ class _Renderer:
         if parsed is None:
             return None
         card, m = parsed
-        produced = self.evaluate(card, m.all_values(), text.split(), neg, self.ctx_of(chain))
+        params = ctx.params if params is None else params
+        values = m.all_values()
+        tokens = mapping.tokens(text, self.quotes)
+        ctxv = self.ctx_of(chain, params)
+        produced = self.evaluate(card, values, tokens, neg, ctxv)
         if not produced:
             return None
         objects: dict[str, str] = {}
         skipped: set[str] = set()
         matched: set[str] = set()
+        dyn: set[str] = set()
         for _t, sn, v in produced:
             if sn.type != "object":
                 continue
@@ -1019,6 +1467,15 @@ class _Renderer:
                 finst, fsn = chain.get(path), self.kb.nodes.get(path)
                 if finst is None or fsn is None:
                     return None
+                if any(mapping.is_dynamic(x) for x in fixed.values()):
+                    # 固定键取自参数：这一行写的是该对象（不由这一行新建，只确认是同一个）
+                    got = {k: mapping.evaluate(x, values, tokens, neg, ctx=ctxv) for k, x in fixed.items()}
+                    fk2: Any = got if len(fsn.key) > 1 else next(iter(got.values()), "")
+                    if not self.key_eq(fsn, self.g.nodes[finst].get("key"), fk2):
+                        return None
+                    objects[path] = finst
+                    dyn.add(finst)
+                    continue
                 if ctx.scope.get(path) == finst:
                     continue
                 fk = dict(fixed) if len(fsn.key) > 1 else next(iter(fixed.values()), "")
@@ -1040,7 +1497,9 @@ class _Renderer:
                 if osn.id in skipped:
                     continue
                 inst = chain.get(osn.id)
-                if inst is None or not (self.placeholder(inst) and self.placed(inst, ctx, objects)):
+                if inst is None or not (
+                    (self.placeholder(inst) or osn.id in self.idx.shared) and self.placed(inst, ctx, objects)
+                ):
                     return None
             if inst != chain.get(osn.id):
                 return None
@@ -1057,7 +1516,9 @@ class _Renderer:
                 return None
         if anchor not in matched:
             return None
-        return _Stmt(text, card, neg, matched & self.pending, objects, matched)
+        return _Stmt(
+            text, card, neg, matched & self.pending, objects, matched, params=dict(params), values=values, dyn=dyn
+        )
 
     def placed(self, inst: str, ctx: _Ctx, objects: dict[str, str], depth: int = 0) -> bool:
         p = self.parent.get(inst, DEVICE)
@@ -1068,7 +1529,7 @@ class _Renderer:
             return True
         if ps in ctx.scope:  # 上下文里有同类型的另一个对象：解析时会挂到那一个下面
             return False
-        if p in objects.values() or self.placeholder(p):
+        if p in objects.values() or self.placeholder(p) or ps in self.idx.shared:
             return self.placed(p, ctx, objects, depth + 1)
         return False
 
@@ -1099,14 +1560,64 @@ class _Renderer:
 
         return max(cands, key=score)
 
-    def take(self, st: _Stmt, depth: int) -> list[RLine]:
+    def take(self, st: _Stmt, depth: int, close: bool = True) -> list[RLine]:
+        """写出一行（先写它所在的容器行，Nokia）；close=False 时不写容器的退出行（调用方先写块内的行）。"""
+        if self.exit_all:
+            st.covers = st.covers | self.implied(st.covers | set(st.objects.values()))
         self.pending -= st.covers
         self.covered |= st.covers
         self.inferred_used |= st.matched & self.inferred
         origin = "default" if st.covers and st.covers <= self.default_facts else "explicit"
-        line = RLine(depth, st.text, "command", origin, sorted(st.covers), st.card.id, bool(st.card.enters_view))
+        heads: list[RLine] = []
+        for i, (_, to_v, card, text) in enumerate(st.path):
+            heads.append(RLine(depth + i, text, "command", card=card.id, opens=True, container=True))
+            heads += self.wrap_lines(to_v, depth + i + 1, 0)
+        d = depth + len(st.path)
+        for o in st.objects.values():
+            if st.path and o in st.matched:
+                self.obj_heads.setdefault(o, list(st.path))
+        line = RLine(d, st.text, "command", origin, sorted(st.covers), st.card.id, bool(st.card.enters_view))
         line.objects, line.matched = sorted(set(st.objects.values())), sorted(st.matched | st.covers)
-        return [line, *self.attached_lines(st, depth)]
+        out = [*heads, line, *self.attached_lines(st, d)]
+        if not close:
+            return out
+        if self.exit_all and st.card.enters_view and not st.negated:
+            out.append(RLine(d, self.exit_all, "exit"))  # Nokia：进入了视图的行都要 exit
+        return out + self.close_path(st, depth)
+
+    def implied(self, nodes: set[str]) -> set[str]:
+        """Nokia：没有任何命令卡能单独写出的占位对象（mgmt.syslog[_]、mgmt.aaa[_]），随它下面的节点一起写出。"""
+        out: set[str] = set()
+        for n in nodes:
+            p = self.parent.get(n)
+            while p and p != DEVICE and p in self.pending and self.placeholder(p):
+                sch = str(self.g.nodes[p].get("schema"))
+                if any(sch == s2 for _, s2 in self.idx.by_vs):
+                    break
+                out.add(p)
+                p = self.parent.get(p)
+        return out
+
+    def close_path(self, st: _Stmt, depth: int) -> list[RLine]:
+        out: list[RLine] = []
+        for i in reversed(range(len(st.path))):
+            out += self.wrap_lines(st.path[i][1], depth + i + 1, -1)
+            ex = self.exit_of(st.path[i][1])
+            if ex:
+                out.append(RLine(depth + i, ex, "exit"))
+        return out
+
+    def wrap_lines(self, view: str, depth: int, which: int) -> list[RLine]:
+        """进入视图后（which=0）/ 退出前（which=-1）要写的框架命令（render 的 wrap）。"""
+        cmds = self.style["wrap"].get(view) or []
+        if len(cmds) < 2:
+            return []
+        return [RLine(depth, cmds[which], "wrap")]
+
+    def line_ctx(self, ctx: _Ctx, st: _Stmt) -> _Ctx:
+        """这一行所在的上下文（经过容器时是最里层的容器视图）。"""
+        view = st.path[-1][1] if st.path else ctx.view
+        return _Ctx(view, ctx.scope, ctx.depth + len(st.path), dict(st.params or ctx.params))
 
     def original(self, ctx: _Ctx, nid: str, header: bool = False) -> tuple[list[RLine], _Stmt | None]:
         """同平台族时，反推不出命令的节点按原文写回（例如带密文的命令）：原文行所在视图与当前视图相同才用。"""
@@ -1114,8 +1625,11 @@ class _Renderer:
             return [], None
         for no in self.g.nodes[nid].get("lines") or []:
             st0 = self.stmts.get(no)
-            if st0 is None or st0.line.kind != "command" or st0.line.view != ctx.view or nid not in st0.nodes:
+            if st0 is None or st0.line.kind != "command" or nid not in st0.nodes:
                 continue
+            wrap = self.wrap_of(st0) if st0.line.view != ctx.view else []
+            if st0.line.view != ctx.view and (not wrap or wrap[0][0] != ctx.view):
+                continue  # 原文行在别的视图（Nokia：经容器到得了时带上原来的容器行）
             card = self.kb.cards.get(str(st0.line.card))
             if card is None:
                 continue
@@ -1130,8 +1644,12 @@ class _Renderer:
                 if self.g.nodes.get(n, {}).get("kind") == "object"
             }
             st = _Stmt(st0.line.text, card, st0.line.negated, set(st0.nodes) & self.pending, objects)
-            lines = self.take(st, ctx.depth)
-            lines[0].kind = "original"
+            st.params, st.values = dict(ctx.params), st0.line.values()
+            if self.exit_all:
+                st.matched = set(st0.nodes)
+            st.path = [(v, str(c.enters_view), c, t) for v, t, c in wrap if c is not None]
+            lines = self.take(st, ctx.depth, close=not header)
+            lines[len(st.path)].kind = "original"
             return lines, st
         return [], None
 
@@ -1143,10 +1661,10 @@ class _Renderer:
         entering = False if self.g.nodes[nid].get("kind") == "object" else None
         st = self.best(self.candidates(ctx, nid, entering, declare), nid)
         if st is not None:
-            lines = self.take(st, ctx.depth)
+            lines = self.take(st, ctx.depth, close=False)
             if st.card.enters_view and entering is None:
-                lines += self.bridge(ctx, st, str(st.card.enters_view), self.parent.get(nid, DEVICE))
-            return lines
+                lines += self.bridge(self.line_ctx(ctx, st), st, str(st.card.enters_view), self.parent.get(nid, DEVICE))
+            return lines + self.close_path(st, ctx.depth)
         if declare:
             return []
         return self.original(ctx, nid)[0]
@@ -1157,9 +1675,10 @@ class _Renderer:
         if owner == DEVICE or view not in self.fam.views:
             return []
         scope = {**ctx.scope, **({str(self.g.nodes[n]["schema"]): n for n in st.objects.values()} if st else {})}
-        inner = self.ctx_lines(_Ctx(view, scope, ctx.depth + 1), owner, extras=False)
-        exit_cmd = self.style["exits"].get(view)
-        return inner + ([RLine(ctx.depth, exit_cmd, "exit")] if inner and exit_cmd else [])
+        params = {**ctx.params, **(st.values if st else {})}
+        inner = self.ctx_lines(_Ctx(view, scope, ctx.depth + 1, params), owner, extras=False)
+        exit_cmd = self.exit_of(view)
+        return inner + ([RLine(ctx.depth, exit_cmd, "exit")] if (inner or self.exit_all) and exit_cmd else [])
 
     def attrs_of(self, owner: str) -> list[str]:
         return sorted(
@@ -1180,16 +1699,62 @@ class _Renderer:
                 self.last_block = None
                 out += self.object_lines(ctx, c)
                 if self.last_block is not None:
-                    end = len(out) - (1 if out and out[-1].kind == "exit" else 0)
-                    blocks.append((end, self.last_block))
+                    blocks.append((len(out) - self.last_tail, self.last_block))
             elif extras and self.extras_on and self.extra_place.get(c, ("", None)) == ("ctx", owner):
                 out += self.extra_lines(c, ctx.depth)
                 card = self.kb.cards.get(str(self.g.nodes[c].get("schema") or "")[4:])
-                if card is not None and card.enters_view:  # 未映射的命令进入了子视图：同一对象的属性接着写在它下面
+                if card is not None and card.enters_view and not self.exit_all:
+                    # 未映射的命令进入了子视图：同一对象的属性接着写在它下面（Nokia 的块已由 extra_lines 写了 exit）
                     out += self.bridge(ctx, None, str(card.enters_view), owner)
+        out += self.foreign_lines(ctx)
         self.into_sibling_blocks(owner, out, blocks)
         if defaults:
-            out += [RLine(ctx.depth, DEFAULT_MARK, "comment", "default"), *defaults]
+            out += [RLine(ctx.depth, self.default_mark, "comment", "default"), *defaults]
+        return out
+
+    def foreign_lines(self, ctx: _Ctx) -> list[RLine]:
+        """固定键取自参数的卡（Nokia lag 下的 port、OSPF 区域下的 interface）：在本视图写别的对象上还没写出的节点；
+        ctx:参数 必须与本块一致（区域、LAG 编号），由生成后的校验保证。"""
+        out: list[RLine] = []
+        where: list[tuple[_Ctx, list[tuple[str, str, Card]]]] = [(ctx, [])]
+        if self.idx.containers:  # 也经本视图下的容器（Nokia ldp > interface-parameters > interface）
+            where += [
+                (_Ctx(w, ctx.scope, ctx.depth + len(path), dict(ctx.params)), path)
+                for w, path in self.container_paths(ctx.view)
+                if self.idx.foreign.get(w)
+            ]
+        todo = [(sub, path, ct) for sub, path in where for ct in self.idx.foreign.get(sub.view, [])]
+        for sub, cpath, ct in todo:
+            schemas = {a.node for _, alts, _ in ct.targets for a in alts if a.dynamic()}
+            schemas |= {x for x in self.idx.ctx_attrs.get(ct.card.id, set()) if self.idx.ctx_only(x)}
+            schemas |= self.idx.ctx_objs.get(ct.card.id, set())
+            for sch in sorted(schemas, key=lambda x: (self.kb.nodes[x].type != "object", x)):
+                for n in sorted(self.by_schema.get(sch, []), key=lambda x: (self.first_line(x), x)):
+                    is_obj = self.g.nodes[n].get("kind") == "object"
+                    if n not in self.pending and not (is_obj and self.own_pending(n)):
+                        continue
+                    chain = self.chain(n)
+                    cands: list[_Stmt] = []
+                    for relaxed in (False, True):
+                        cands = self.try_card(sub, n, ct, chain, relaxed, cpath)
+                        if cands:
+                            break
+                    st = self.best(cands, n)
+                    if st is None:
+                        continue
+                    obj = n if self.g.nodes[n].get("kind") == "object" else self.parent.get(n, DEVICE)
+                    if st.card.enters_view and obj in st.objects.values():
+                        # 入口行写的是这个对象（VPRN 下的 interface、OSPF 区域下的 interface）：块内接着写它的节点
+                        out += self.block_lines(ctx, obj, st, self.take(st, ctx.depth, close=False))
+                    elif obj in st.objects.values() and obj in st.matched:
+                        # 这一行建立的对象的其他属性写在同一层（Nokia syslog 1 下 address 之后的 facility、level）
+                        got = self.take(st, ctx.depth, close=False)
+                        lctx = self.line_ctx(ctx, st)
+                        scope = {**ctx.scope, **{str(self.g.nodes[o]["schema"]): o for o in st.objects.values()}}
+                        got += self.ctx_lines(_Ctx(lctx.view, scope, lctx.depth, lctx.params), obj)
+                        out += got + self.close_path(st, ctx.depth)
+                    else:
+                        out += self.take(st, ctx.depth)
         return out
 
     def into_sibling_blocks(self, owner: str, out: list[RLine], blocks: list[tuple[int, _Ctx]]) -> None:
@@ -1223,37 +1788,70 @@ class _Renderer:
 
     def header(self, ctx: _Ctx, obj: str) -> _Stmt | None:
         """入口命令：进入视图的卡；有多张卡进入不同视图时，选块内能写出最多节点的那个视图。"""
-        cands = self.candidates(ctx, obj, True)
+        cands = self.candidates(ctx, obj, True, every=True)
         if not cands:
             return None
+        prefer = self.style["prefer"].get(str(self.g.nodes[obj].get("schema")), [])
+        if any(c.card.id in prefer for c in cands):
+            cands = [c for c in cands if c.card.id in prefer]  # 优先的入口卡写得出时只用它（Nokia：lag-1 用 lag 1）
         views = {str(c.card.enters_view) for c in cands}
         if len(views) > 1:
             facts = self.subtree_facts(obj)
 
             def able(v: str) -> int:
-                return sum(1 for f in facts if self.idx.by_vs.get((v, str(self.g.nodes[f].get("schema")))))
+                # 块内能写的节点（含经块内的容器能写的，Nokia 的 port > ethernet）
+                vs = [v, *(w for w, _ in self.container_paths(v))] if self.idx.containers else [v]
+                return sum(
+                    1 for f in facts if any(self.idx.by_vs.get((w, str(self.g.nodes[f].get("schema")))) for w in vs)
+                )
 
             top = max(able(v) for v in views)
             cands = [c for c in cands if able(str(c.card.enters_view)) == top]
+        if any(not c.path for c in cands):
+            cands = [c for c in cands if not c.path]  # 一样好时不经容器
         return self.best(cands, obj)
 
     def object_lines(self, ctx: _Ctx, obj: str) -> list[RLine]:
         if not self.subtree_pending(obj):
             return []
+        if self.exit_all and any(
+            c in self.pending and self.idx.ctx_only(str(self.g.nodes[c].get("schema")))
+            for c in self.children.get(obj, [])
+        ):
+            return []  # 要写在外层块里的对象（Nokia VPRN 的接口、静态路由）：由那个块写（foreign_lines）
         st = self.header(ctx, obj)
         if st is not None:
-            head = self.take(st, ctx.depth)
+            head = self.take(st, ctx.depth, close=False)
         else:
             head, st = self.original(ctx, obj, header=True)
             if st is None:
                 return self.flat_subtree(ctx, obj)
+        return self.block_lines(ctx, obj, st, head)
+
+    def block_lines(self, ctx: _Ctx, obj: str, st: _Stmt, head: list[RLine]) -> list[RLine]:
+        """入口行之后：块内的属性与子对象、退出行（以及入口行外面的容器的退出行）。"""
+        lctx = self.line_ctx(ctx, st)
         view = str(st.card.enters_view)
         scope = {**ctx.scope, **{str(self.g.nodes[n]["schema"]): n for n in st.objects.values()}}
-        inner = self.ctx_lines(_Ctx(view, scope, ctx.depth + 1), obj)
+        params = {**lctx.params, **st.values}
+        ictx = _Ctx(view, scope, lctx.depth + 1, params)
+        inner = self.ctx_lines(ictx, obj)
+        others = {
+            o
+            for o in st.objects.values()
+            if o != obj and (o in st.dyn or (self.exit_all and o in st.matched and not obj.startswith(o + "/")))
+        }
+        for other in sorted(others):
+            # 同一入口行写的其他对象：固定键取自参数的上级对象（OSPF 区域下 interface 的接口：node-sid 也写在块里），
+            # 以及同一行建立的对象（Nokia Epipe 的 sap 同时是端口上的接入点：描述、QoS、过滤器写在 sap 块里）
+            inner += self.ctx_lines(ictx, other, extras=not obj.startswith(other + "/"))
         before = self.flat_subtree(ctx, obj)  # 块里写不出、但在外层视图能写的
-        exit_cmd = self.style["exits"].get(view)
-        block = head + inner + ([RLine(ctx.depth, exit_cmd, "exit")] if exit_cmd else [])
-        self.last_block = _Ctx(view, scope, ctx.depth + 1)
+        exit_cmd = self.exit_of(view)
+        tail = self.wrap_lines(view, lctx.depth + 1, -1)
+        tail += ([RLine(lctx.depth, exit_cmd, "exit")] if exit_cmd else []) + self.close_path(st, ctx.depth)
+        block = head + self.wrap_lines(view, lctx.depth + 1, 0) + inner + tail
+        self.last_block = _Ctx(view, scope, lctx.depth + 1, params)
+        self.last_tail = len(tail)
         if ctx.depth == 1 and self.style["nested_separator"]:
             block = [RLine(1, self.fam.separator, "separator"), *block]
         return before + block
@@ -1275,19 +1873,24 @@ class _Renderer:
         for a in attrs:
             got = self.flat(ctx, a)
             (defaults if got and got[0].origin == "default" and got[0].kind == "command" else out).extend(got)
+        blocks: list[tuple[int, _Ctx]] = []
         for c in self.sorted_children(obj, ("object",)):
+            self.last_block = None
             out += self.object_lines(ctx, c)
+            if self.last_block is not None and self.exit_all:
+                blocks.append((len(out) - self.last_tail, self.last_block))
+        # Nokia：写不出的子对象试着写进兄弟对象的块（BGP 邻居写在 group 块里）
+        self.into_sibling_blocks(obj, out, blocks)
         out += self.flat(ctx, obj)
         if defaults:
-            out += [RLine(ctx.depth, DEFAULT_MARK, "comment", "default"), *defaults]
+            out += [RLine(ctx.depth, self.default_mark, "comment", "default"), *defaults]
         return out
 
     # ----- 整体 -----
 
-    def run(self) -> Rendered:
+    def root_parts(self) -> list[list[RLine]]:
         root = _Ctx(self.fam.root_view, {}, 0)
-        sep, end = self.fam.separator, self.fam.end
-        lines: list[RLine] = [RLine(0, sep, "separator")]
+        parts: list[list[RLine]] = []
         for c in self.sorted_children(DEVICE, ("object", "ext", "raw", "unknown")):
             kind = self.g.nodes[c].get("kind")
             if kind == "object" and c not in self.extra_place:
@@ -1296,18 +1899,30 @@ class _Renderer:
                 part = self.extra_lines(c, 0)
             else:
                 part = []
-            if not part:
-                continue
-            block = any(ln.depth > 0 or ln.opens for ln in part)
-            if block and lines[-1].kind != "separator":
+            if part:
+                parts.append(part)
+        if self.idx.foreign:
+            # 要写在容器里、取值来自容器行的对象（Nokia router Base > static-route-entry <前缀> 下的静态路由）
+            parts += [p for p in _top_chunks(self.foreign_lines(root)) if p]
+        return parts
+
+    def run(self) -> Rendered:
+        if self.style["prologue"]:
+            lines = self.run_framed()
+        else:
+            sep, end = self.fam.separator, self.fam.end
+            lines = [RLine(0, sep, "separator")]
+            for part in self.root_parts():
+                block = any(ln.depth > 0 or ln.opens for ln in part)
+                if block and lines[-1].kind != "separator":
+                    lines.append(RLine(0, sep, "separator"))
+                lines += part
+                if block:
+                    lines.append(RLine(0, sep, "separator"))
+            if lines[-1].kind != "separator":
                 lines.append(RLine(0, sep, "separator"))
-            lines += part
-            if block:
-                lines.append(RLine(0, sep, "separator"))
-        if lines[-1].kind != "separator":
-            lines.append(RLine(0, sep, "separator"))
-        if end:
-            lines.append(RLine(0, end, "end"))
+            if end:
+                lines.append(RLine(0, end, "end"))
         skipped = sorted(
             n
             for n, d in self.g.nodes(data=True)
@@ -1328,14 +1943,94 @@ class _Renderer:
                 {"node": n, "schema": self.g.nodes[n].get("schema"), "value": self.g.nodes[n].get("value")}
                 for n in sorted(self.inferred_used)
             ],
+            self.style["root_depth"],
         )
+
+    def run_framed(self) -> list[RLine]:
+        """Nokia Classic：exit all / configure 开头，顶层块按 echo 段落分组（段落顺序见 render 的 sections），
+        段落内相邻的同一容器（router Base、system）合并，exit all 结尾。"""
+        secs = self.style["sections"]
+        default = next((i for i, s in enumerate(secs) if s.get("default")), len(secs))
+        buckets: dict[int, list[RLine]] = defaultdict(list)
+        for part in self.root_parts():
+            for chunk in _top_chunks(part):  # 一个对象可能写成多个顶层块（system 下的名称、router Base 下的 router-id）
+                buckets[self.section_of(chunk, secs, default)] += chunk
+        lines = [RLine(0, x, "frame") for x in self.style["prologue"]]
+        for i in sorted(buckets):
+            echo = str(secs[i].get("echo") if i < len(secs) else "Configuration")
+            lines += [RLine(0, x.replace("{echo}", echo), "frame") for x in self.style["section_frame"]]
+            lines += merge_containers(buckets[i])
+        lines += [RLine(0, x, "frame") for x in self.style["epilogue"]]
+        return lines
+
+    def section_of(self, part: list[RLine], secs: list[dict[str, Any]], default: int) -> int:
+        """顶层块属于哪个段落：按块开头一路进入的视图（router → static-route-entry），由深到浅找第一个列出它的段落。"""
+        chain: list[str] = []
+        d = part[0].depth
+        for ln in part:
+            if ln.depth != d:
+                break
+            card = self.kb.cards.get(str(ln.card)) if ln.card else None
+            if card is None and ln.kind == "extra" and ln.nodes:
+                card = self.kb.cards.get(str(self.g.nodes[ln.nodes[0]].get("schema") or "")[4:])
+            if card is None or not card.enters_view:
+                if ln.kind == "extra" and not chain:
+                    chain.append(f"text:{ln.text.split()[0]}")
+                break
+            chain.append(str(card.enters_view))
+            d += 1
+        for v in reversed(chain):
+            for i, s in enumerate(secs):
+                if v in (s.get("views") or []) or (v.startswith("text:") and v[5:] in (s.get("lines") or [])):
+                    return i
+        return default
 
 
 # ---------------------------------------------------------------- 入口
 
 
+def _top_chunks(part: list[RLine]) -> list[list[RLine]]:
+    """按顶层（与第一行同一层级）的行切开：每块是一行及其下面更深的行、同层的 exit。"""
+    if not part:
+        return []
+    top = part[0].depth
+    out: list[list[RLine]] = []
+    for ln in part:
+        closing = ln.kind == "exit" or (ln.kind == "extra" and ln.text == "exit")  # 原文块的 exit 也是收尾
+        if ln.depth == top and not (closing and out) or not out:
+            out.append([ln])
+        else:
+            out[-1].append(ln)
+    return out
+
+
+def merge_containers(lines: list[RLine]) -> list[RLine]:
+    """相邻的同一容器块合并（Nokia：router Base … exit 紧跟 router Base … exit → 一个块），反复做到没有可合并的。"""
+    out = list(lines)
+    changed = True
+    while changed:
+        changed = False
+        for h, ln in enumerate(out):
+            if not ln.container:
+                continue
+            e = next((j for j in range(h + 1, len(out)) if out[j].depth <= ln.depth and out[j].kind != "frame"), None)
+            if e is None or out[e].kind != "exit" or out[e].depth != ln.depth or e + 1 >= len(out):
+                continue
+            nxt = out[e + 1]
+            if nxt.container and nxt.depth == ln.depth and nxt.text == ln.text:
+                # 两块之间的框架命令（commit / begin）一并去掉
+                lo = e - 1 if out[e - 1].kind == "wrap" else e
+                hi = e + 3 if e + 2 < len(out) and out[e + 2].kind == "wrap" else e + 2
+                del out[lo:hi]
+                changed = True
+                break
+    return out
+
+
 def negated_object(g: nx.MultiDiGraph, nid: str) -> bool:
     """只由取消形式的命令行产生的对象（例如 Cisco 的 no aaa new-model）：不算配置了这个对象。"""
+    if nid not in g:
+        return False  # 换结构新建的节点（Nokia 翻译时拼出的 NET 等）
     lines = g.nodes[nid].get("lines") or []
     if not lines:
         return False
@@ -1370,14 +2065,24 @@ def apply_infer(g: nx.MultiDiGraph, kb: KnowledgeBase, family: str) -> nx.MultiD
         return g
     parent = {b: a for a, b, d in g.edges(data=True) if d.get("kind") == "contains"}
     added: list[tuple[str, str, str, Any]] = []
+    write: set[str] = (
+        set()
+    )  # write: true 的规则推出的取值也要写出（Nokia 业务入口行的 customer：语法上可选、设备要求写）
     for rule in rules:
         sn = kb.nodes.get(str(rule["node"]))
         if sn is None or sn.parent is None:
             continue
         owner_schema = sn.parent
         rel = _short(sn.id, owner_schema)
+        seq = int(rule["seq"]) if str(rule.get("seq", "")).isdigit() else None  # seq：按出现顺序编号（M7-3）
         for nid, d in g.nodes(data=True):
             if d.get("kind") != "object" or d.get("schema") != owner_schema or f"{nid}/{rel}" in g:
+                continue
+            if seq is not None:
+                added.append((f"{nid}/{rel}", nid, sn.id, mapping.normalize(sn.type, sn.id, seq)))
+                seq += 1
+                if rule.get("write"):
+                    write.add(f"{nid}/{rel}")
                 continue
             ok = True
             for op, want_equal in (("same", True), ("differ", False)):
@@ -1387,6 +2092,8 @@ def apply_infer(g: nx.MultiDiGraph, kb: KnowledgeBase, family: str) -> nx.MultiD
                         ok = False
             if ok and all(x[0] != f"{nid}/{rel}" for x in added):
                 added.append((f"{nid}/{rel}", nid, sn.id, mapping.normalize(sn.type, sn.id, rule.get("value"))))
+                if rule.get("write"):
+                    write.add(f"{nid}/{rel}")
     if not added:
         return g
     h = g.copy()
@@ -1401,6 +2108,7 @@ def apply_infer(g: nx.MultiDiGraph, kb: KnowledgeBase, family: str) -> nx.MultiD
             lines=[],
             cards=[],
             negated=False,
+            infer_write=child in write,
         )
         h.add_edge(owner, child, kind="contains")
     return h

@@ -6,9 +6,12 @@
 
 - 基础地址：`http://<地址>:<端口>/api/v1`，默认端口 9090
 - 认证：除 `GET /health`、`GET /auth/status`、`POST /auth/login`、`POST /auth/bootstrap`、`POST /auth/logout` 和首次运行向导外，所有接口都需要登录，两种方式任选其一：
-  - 脚本、其他系统：请求头 `Authorization: Bearer <令牌>`，视为管理员。令牌在首次配置时生成，保存在 `config/config.toml` 的 `[security] api_token`
+  - 脚本、其他系统：请求头 `Authorization: Bearer <令牌>`。令牌有两种：
+    - 个人令牌（M6）：`lmp_` 开头，每个账号在网页“我的 API 令牌”或 `POST /tokens` 生成，权限与本人账号相同（只能访问自己有权限的项目）；可以是只读的（只能读取与计算，修改返回 403），默认 90 天过期，可撤销
+    - 全局令牌：首次配置时生成，保存在 `config/config.toml` 的 `[security] api_token`，视为管理员（显示名 `api-token`）
   - 网页：`POST /auth/login` 用账号登录，服务端设置会话 Cookie `lmesh_session`（HttpOnly、SameSite=Strict，有效期 `security.session_hours`，默认 12 小时）；之后同源请求自动带上。带了 `Authorization` 头时以令牌为准
-- 角色（REQ-030）：管理员（admin）与普通用户（user）。标为“管理员”的接口对普通用户返回 403（code 1006）
+- 角色（REQ-030 / REQ-036）：管理员（admin，所有项目完全权限、账号、系统设置、AI 接口、公共设备库）、知识库维护员（maintainer，知识库与共享规则 / 基线 / 模板的修改、审核、发布、回滚）与普通用户（user）。标为“管理员”的接口对其他角色返回 403（code 1006）；标为“维护员”的接口对普通用户返回 403，普通用户可以用 `POST /kb/suggestions` 提建议
+- 项目（REQ-035）：设备相关接口都在项目路径下，见下面的“项目、权限与兼容别名”
 - 语言：`message` 字段按请求头 `Accept-Language` 返回中文、英文或巴西葡萄牙语；`code` 与 `data` 不随语言变化
 - 耗时操作（文档抽取、批量往返测试等）采用“提交任务 → 返回任务 ID → 查询 `GET /tasks/{id}`”的方式
 
@@ -29,7 +32,16 @@
 | 1003 | 409 | 当前状态不允许此操作（例如已配置后再提交向导） |
 | 1004 | 404 | 资源不存在 |
 | 1005 | 502 | 外部依赖失败（数据库、网络或 AI 接口） |
-| 1006 | 403 | 没有权限：普通用户调用管理员接口 |
+| 1006 | 403 | 没有权限：普通用户调用管理员或维护员接口、项目的只读成员修改数据、只读令牌修改数据、只限属主的操作（成员、转交、删除项目） |
+
+## 项目、权限与兼容别名（M6）
+
+- 项目路径：设备相关接口（导入、设备列表、配置图、对比、检查、清理、忽略项、翻译、变更、影响分析、拓扑与一致性、割接迁移、基线、版本历史、表格导出、报告、图查询与 AI 查询、配置检查项目与脚本、首页概况）写成 `/api/v1/projects/{project}/…`，例如 `GET /api/v1/projects/oam-vpn/devices`。`{project}` 是项目标识（全站唯一），也可以写 `属主/标识` 或项目编号。下表中“项目”一栏为“是”的接口都有项目路径版本
+- 兼容别名（已弃用）：旧的无项目路径（例如 `GET /api/v1/devices`）仍然可用，落到调用者的默认项目（全局令牌为第一个管理员的默认项目）；响应头带 `Deprecation: true` 与 `Link: </api/v1/projects/<默认项目>/…>; rel="successor-version"`，OpenAPI 中标为 deprecated
+- 项目里的设备：项目私有设备（导入或复制而来）与引用的公共设备（`source`：`private` / `public`）。引用的公共设备跟随公共库最新版本（`policy: follow`）或固定在某个版本（`policy: pin`，`pinned_version_id`，公共库有更新版本时 `newer_available: true`）；设备列表、对比、检查等用到“最新版本”的地方都按项目的版本策略取当前版本
+- 项目角色：属主（owner）、可编辑成员（edit）、只读成员（read）；管理员访问不是自己参与的项目时角色为 admin，拥有完全权限，访问写入审计（`GET /admin/audit`、`logs/audit.log`）
+- 权限：查看（GET）与计算（不修改数据的 POST：对比、检查、清理脚本生成、翻译、变更脚本生成、影响分析、拓扑、导出、报告、图查询、模板校验与生成……）对所有项目角色开放；修改数据（导入、删除、忽略、规则调整、脚本保存、重新解析本项目）只限属主、可编辑成员与管理员；成员管理、转交、删除项目只限属主与管理员；退出项目、复制项目或把设备复制到自己的项目只需能查看。不是成员的普通账号访问项目返回 404（不暴露项目是否存在）
+- 只读的个人令牌只能调用查看与计算接口，其他接口返回 403（code 1006）
 
 ## 接口
 
@@ -42,13 +54,13 @@
 | `POST /auth/login` | 否 | 用户名 + 密码登录：`{"username", "password"}`；成功返回 `user` 与 `expires_at` 并设置会话 Cookie；用户名或密码错误 401（不区分用户不存在），账号停用 403，连续失败 `security.login_max_failures` 次（默认 5）锁定 `security.login_lock_minutes` 分钟（默认 15），锁定期间 429 |
 | `POST /auth/bootstrap` | 否（仅没有任何账号时） | 用 API 令牌创建第一个管理员并登录：`{"token", "username", "password"}`；已有账号时 409，令牌不对 401 |
 | `POST /auth/logout` | 否 | 登出：删除会话、清除 Cookie；`data.logged_out` 表示是否确实结束了一个会话 |
-| `GET /auth/me` | 是 | 当前调用者：`username`、`role`（admin / user）、`via`（session / token；令牌调用时 username 为 `api-token`）、`expires_at` |
+| `GET /auth/me` | 是 | 当前调用者：`username`、`role`（admin / maintainer / user）、`via`（session / token / pat；全局令牌调用时 username 为 `api-token`，个人令牌为本人账号）、`expires_at`、`read_only`（只读的个人令牌）、`token_prefix`（个人令牌的前 8 个字符） |
 | `POST /auth/password` | 是（会话） | 修改自己的密码：`{"old_password", "new_password"}`（至少 8 个字符）；当前会话保留，其他会话失效（`sessions_closed`）；旧密码不对 422；用令牌调用 409 |
-| `GET /users` | 管理员 | 账号列表：`username`、`role`、`disabled`、`locked`、`locked_until`、`last_login_at`、`password_changed_at`、`created_at`（不含密码哈希） |
-| `POST /users` | 管理员 | 新建账号：`{"username", "password", "role": "user\|admin"}`；用户名 2–64 个字符（字母、数字、点、下划线、短横线），不区分大小写唯一 |
+| `GET /users` | 管理员 | 账号列表：`username`、`role`（admin / maintainer / user）、`projects`（拥有的非空项目数）、`tokens`（有效的个人令牌数）、`disabled`、`locked`、`locked_until`、`last_login_at`、`password_changed_at`、`created_at`（不含密码哈希） |
+| `POST /users` | 管理员 | 新建账号：`{"username", "password", "role": "user\|maintainer\|admin"}`；用户名 2–64 个字符（字母、数字、点、下划线、短横线），不区分大小写唯一 |
 | `PUT /users/{username}` | 管理员 | 改角色、停用 / 启用、解除锁定：`{"role", "disabled", "unlock"}`；停用时会话立即失效；最后一个启用的管理员不能停用或降级、不能停用或降级自己（409） |
 | `POST /users/{username}/password` | 管理员 | 重置密码：`{"password"}`；同时解除锁定，该账号的会话全部失效 |
-| `DELETE /users/{username}` | 管理员 | 删除账号；不能删除自己和最后一个启用的管理员（409） |
+| `DELETE /users/{username}?transfer_to=&delete_projects=false` | 管理员 | 删除账号；不能删除自己和最后一个启用的管理员（409）；拥有非空项目时必须 `transfer_to`（项目、私有模板与规则集转交给该账号）或 `delete_projects=true`（一并删除），否则 409（`data.projects`）；自动建的空默认项目直接删除 |
 | `GET /config` | 管理员 | 当前生效的配置，敏感值只显示是否已设置 |
 | `POST /sanitize` | 是 | 脱敏一段配置文本：`{"text": "…", "level": "basic\|strict"}`；返回脱敏后的文本、厂商、各类替换数量和不含原值的替换报告 |
 | `POST /configs` | 是 | 上传并导入配置（multipart：一个或多个 `files`，可以是 zip；`level` 默认 basic） |
@@ -57,7 +69,7 @@
 | `GET /kb/export` | 是 | 下载知识库包（zip） |
 | `POST /kb/import?dry_run=false` | 是 | 上传知识库包（multipart 字段 `file`）；冲突送审核队列 |
 | `GET /kb/releases` | 是 | 已发布的版本、提交历史、当前版本号 |
-| `POST /kb/releases` | 管理员 | 发布：`{"version": null, "message": "…"}`，版本号为空时自动建议 |
+| `POST /kb/releases` | 维护员 | 发布：`{"version": null, "message": "…"}`，版本号为空时自动建议 |
 | `GET /kb/diff?from=X&to=Y` | 是 | 版本对比；省略 `to` 时与工作区对比 |
 | `POST /kb/rollback` | 管理员 | 回滚：`{"ref": "0.1.0"}` |
 | `GET /kb/coverage?profile=P` | 是 | 覆盖矩阵 |
@@ -160,7 +172,7 @@
 | `GET /unknown-lines/states` | 是 | 各未识别行模式的送审状态（pending / approved / rejected） |
 | `POST /unknown-lines/review` | 是 | 把选中的模式送入审核队列：`{"patterns": ["…"]}`；已送审的跳过 |
 | `GET /summary` | 是 | 首页概况：知识库版本与草稿修改数、Profile 平均覆盖率、待审数、未识别行、设备（含用旧知识库解析过的数量）、最近一次样本回归、AI 状态 |
-| `POST /devices/rebuild` | 是 | 按当前知识库重新解析全部设备（后台任务，返回 `task_id`） |
+| `POST /devices/rebuild` | 管理员（旧路径）/ 属主 / 可编辑（项目路径） | 按当前知识库重新解析设备（后台任务，返回 `task_id`）：旧路径为全部设备，项目路径为本项目的设备 |
 | `POST /devices/{id}/rebuild` | 是 | 按当前知识库重新解析一台设备 |
 | `GET /regression/last` | 是 | 最近一次样本往返回归的结果；没跑过时为 `null` |
 | `GET /tasks?kind=K&limit=20` | 是 | 最近的后台任务 |
@@ -178,6 +190,45 @@
 | `GET /kb/extractors` | 是 | 可用的命令卡抽取规则 |
 | `GET /ai/settings` | 管理员 | AI 接口设置；API Key 只返回是否已设置；`sources` 标出各项来自配置文件还是环境变量 |
 | `PUT /ai/settings` | 管理员 | 保存 AI 设置（只改配置文件的 AI 分组）：`{"provider", "base_url", "api_key", "clear_api_key", "model", "model_extract", "model_merge", "timeout", "max_tokens"}`；`api_key` 留空保持原值，加密保存 |
+| `GET /projects?all=false&owner=U` | 是 | 我的项目（`mine`，属主）与共享给我的（`shared`，成员）；管理员 `all=true` 时另列出其他人的项目（`others`）。每个项目：`slug`、`name`、`owner`、`role`、`members`、`settings`（`style` 显示风格、`rule_set` 翻译规则集、`baseline` 安全基线）、`counts`（`devices`、`private`、`refs`、`scripts`、`scripts_with_errors`）、`last_activity`、`migrated_from`；`default_project` 为我的默认项目 |
+| `POST /projects` | 是 | 新建项目：`{"name", "slug", "description", "settings"}`；`slug` 全站唯一（2–64 个小写字母、数字、短横线），不给时由名称生成；已被使用 409，不合法 422；还没有默认项目时它成为默认项目 |
+| `GET /workspace` | 是 | 我的工作空间：默认项目、项目数、私有模板与规则集数、有效的个人令牌数 |
+| `PUT /workspace/default-project` | 是 | 设置默认项目：`{"project"}`（旧的无项目接口与命令行不带 `--project` 时用它） |
+| `GET /projects/{p}` | 项目成员 | 项目详情：另含 `member_list`（`username`、`role`、`since`）与 `overrides`（本项目的规则调整） |
+| `PUT /projects/{p}` | 属主 / 可编辑 | 修改名称、说明、设置：`{"name", "description", "settings", "slug"}`；改标识只限属主与管理员 |
+| `GET /projects/{p}/delete-preview` | 项目成员 | 删除项目的影响：私有设备与版本数、引用数（只解除）、检查项目与脚本数、忽略项、成员数 |
+| `DELETE /projects/{p}?confirm=<标识>` | 属主 / 管理员 | 删除项目：私有设备与它们的全部版本一起删除，引用的公共设备只解除引用；`confirm` 必须等于项目标识（否则 422） |
+| `GET /projects/{p}/members` | 项目成员 | 成员：属主与成员（`edit` / `read`），加入时间 |
+| `PUT /projects/{p}/members/{username}` | 属主 / 管理员 | 邀请成员或改角色：`{"role": "edit\|read"}`；账号不存在 404，已停用 409 |
+| `DELETE /projects/{p}/members/{username}` | 属主 / 管理员；本人 | 移除成员；成员移除自己即退出项目 |
+| `POST /projects/{p}/transfer` | 属主 / 管理员 | 转交：`{"to", "keep_as": "edit\|read\|null"}`；原属主默认留作可编辑成员；项目设置中用到的、原属主私有的翻译规则集复制一份给新属主（`rule_set_copied`） |
+| `POST /projects/{p}/copy` | 项目成员 | 复制为我的新项目：`{"name", "slug", "devices", "scripts"}`；复制设置、规则调整、私有设备（各复制当前版本）、引用（同样的版本策略）、脚本（当前内容）；不复制成员 |
+| `GET /projects/{p}/refs` | 项目成员 | 本项目引用的公共设备：`policy`、`pinned_version_id`、`public_latest_version_id`、`newer_available` |
+| `POST /projects/{p}/refs` | 属主 / 可编辑 | 引用公共设备：`{"device_id", "version_id"}`（不给版本时跟随最新）；项目里已有同名设备 409 |
+| `PUT /projects/{p}/refs/{device_id}` | 属主 / 可编辑 | 改版本策略：`{"version_id": 编号 \| null}`（null 为跟随最新） |
+| `DELETE /projects/{p}/refs/{device_id}` | 属主 / 可编辑 | 解除引用（本项目对它的忽略项一并删除，以它为基线的检查项目基线置空）；`DELETE /projects/{p}/devices/{id}` 对引用的公共设备也是解除引用 |
+| `POST /projects/{p}/devices/copy-in` | 属主 / 可编辑 | 把公共设备或自己能查看的其他项目的设备复制为本项目的私有设备：`{"device_id", "version_id", "name"}`；只复制一个版本（默认来源中的当前版本），同名时自动加 `-2`、`-3`（`renamed`），`from` 记录来源 |
+| `GET /projects/{p}/rules` | 项目成员 | 检查规则在本项目中的设置：共享的级别与开关、本项目的调整（`override`）、生效值（`effective`） |
+| `PUT /projects/{p}/rules/{rule}` | 属主 / 可编辑 | 本项目关闭某条规则或改级别：`{"enabled", "severity", "reason"}`，原因必填；只影响本项目的检查（`checks` 结果中带 `project_override`） |
+| `DELETE /projects/{p}/rules/{rule}` | 属主 / 可编辑 | 恢复为共享规则的设置 |
+| `GET /projects/{p}/scripts?kind=&device_id=` | 项目成员 | 本项目全部脚本（平铺）：所在的检查项目（`group`）、基线设备与版本策略、最近一次检查、顺序核查、AI、修订数、最后修改人 |
+| `POST /projects/{p}/scripts` | 属主 / 可编辑 | 新建脚本：`{"name", "kind", "device_id", "version_id", "content", "order_check", "ai_check"}`；同时建一个保存基线与检查设置的检查项目，返回 `group` 与 `script` |
+| `POST /projects/{p}/devices/rebuild` | 属主 / 可编辑 | 按当前知识库重新解析本项目的设备（后台任务）；旧路径 `POST /devices/rebuild` 为全部设备，只限管理员 |
+| `GET /public-devices` | 是 | 公共设备库：版本数、最新版本、引用它的项目（普通账号只看到自己能访问的项目）、跟随 / 固定的引用数 |
+| `GET /public-devices/{id}/versions` | 是 | 公共设备的版本（新的在前） |
+| `POST /public-devices` | 管理员 | 导入到公共设备库（multipart `files`、`level`）；同名设备作为新版本，跟随最新的项目随之更新 |
+| `DELETE /public-devices/{id}?force=false` | 管理员 | 删除公共设备；还有项目引用时 409（`data.projects`），`force=true` 一并解除引用 |
+| `DELETE /public-devices/{id}/versions/{vid}` | 管理员 | 删除公共设备的一个版本；固定在该版本的引用改为跟随最新 |
+| `POST /public-devices/rebuild` | 管理员 | 按当前知识库重新解析公共设备库（后台任务） |
+| `GET /admin/projects` | 管理员 | 所有项目：属主（`owner_disabled` 标出属主已停用）、成员、计数、最近活动；`owners`、`with_members`、`owner_disabled` 汇总 |
+| `GET /admin/audit?project=&limit=200` | 管理员 | 访问审计：管理员进入（只读访问同一项目 30 分钟记一次）或修改他人项目、转交、删除；`at`、`actor`、`project`、`action`（enter / write / transfer / delete）、`detail`（方法与路由，不含请求内容） |
+| `GET /users/{username}/projects` | 管理员 | 账号拥有的非空项目（删除账号前选择转交或一并删除） |
+| `GET /tokens` | 是（账号） | 我的个人令牌：`name`、`prefix`（前 8 个字符）、`read_only`、`created_at`、`expires_at`、`last_used_at`、`last_used_ip`、`state`（active / expired / revoked）；不含令牌本身；全局令牌调用 409 |
+| `POST /tokens` | 是（账号） | 生成个人令牌：`{"name", "read_only": false, "days": 90}`（`days` 为 0 或 null 表示不过期）；返回的 `token` 只出现这一次 |
+| `POST /tokens/{id}/revoke` | 是（账号） | 撤销令牌（立即失效） |
+| `DELETE /tokens/{id}` | 是（账号） | 从列表移除已撤销或已过期的令牌；有效的令牌 409 |
+| `POST /kb/suggestions` | 是 | 对知识库提建议：`{"target", "kind": "default\|syntax\|description\|other", "current", "proposed", "reason", "project"}`；进入审核队列（类型 `suggestion`），维护员通过（采纳，知识库在对应页面修改）或驳回（`note` 为原因） |
+| `GET /kb/suggestions?mine=true&status=all` | 是 | 建议列表：默认只看自己提的（含处理结果与驳回原因）；`mine=false` 只限维护员与管理员 |
 
 ## 示例
 
@@ -2536,6 +2587,524 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.interface_map.Port-channel1` = `"Eth-Trunk1"`
 - `data.naming.summary.renamed` = `1`
 - `data.naming.renames.0.to` = `"RP_EXPORT-LOOPBACK"`
+
+### Cisco 配置翻译到 Nokia（三层口换成路由器接口 + port，OSPF 写在区域下的接口里）
+
+`POST /api/v1/translate`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/translate' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"text": "hostname R1\n!\ninterface Loopback0\n ip address 10.255.0.1 255.255.255.255\n!\ninterface GigabitEthernet0/0/1\n description UPLINK\n ip address 10.0.0.1 255.255.255.252\n ip ospf network point-to-point\n!\nrouter ospf 10\n network 10.0.0.0 0.0.0.3 area 0\n!\nend", "to": "nokia-sros-classic-7750-25.10", "interface_map": {"GigabitEthernet0/0/1": "1/1/1", "Loopback0": "system"}}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/translate' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"text": "hostname R1\n!\ninterface Loopback0\n ip address 10.255.0.1 255.255.255.255\n!\ninterface GigabitEthernet0/0/1\n description UPLINK\n ip address 10.0.0.1 255.255.255.252\n ip ospf network point-to-point\n!\nrouter ospf 10\n network 10.0.0.0 0.0.0.3 area 0\n!\nend", "to": "nokia-sros-classic-7750-25.10", "interface_map": {"GigabitEthernet0/0/1": "1/1/1", "Loopback0": "system"}}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/translate', headers={'Authorization': 'Bearer <令牌>'}, json={'text': 'hostname R1\n!\ninterface Loopback0\n ip address 10.255.0.1 255.255.255.255\n!\ninterface GigabitEthernet0/0/1\n description UPLINK\n ip address 10.0.0.1 255.255.255.252\n ip ospf network point-to-point\n!\nrouter ospf 10\n network 10.0.0.0 0.0.0.3 area 0\n!\nend', 'to': 'nokia-sros-classic-7750-25.10', 'interface_map': {'GigabitEthernet0/0/1': '1/1/1', 'Loopback0': 'system'}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.source.profile` = `"cisco-iosxe-asr920-17.15"`
+- `data.target.family` = `"nokia-sros-classic"`
+- `data.verify.checked` = `true`
+- `data.verify.unexplained` = `0`
+- `data.lines.0.text` = `"exit all"`
+
+### 我的项目与共享给我的（属主的视角）
+
+`GET /api/v1/projects`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.mine.0.slug` = `"lab"`
+- `data.mine.0.role` = `"owner"`
+- `data.mine.0.counts.devices` = `2`
+- `data.mine.0.counts.private` = `1`
+- `data.mine.0.counts.refs` = `1`
+- `data.default_project` = `"lab"`
+
+### 新建项目（标识全站唯一）
+
+`POST /api/v1/projects`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects' \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "IP RAN 扩容一期", "slug": "ipran-phase1", "description": "新增基站接入环", "settings": {"style": "huawei"}}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects' -ContentType 'application/json; charset=utf-8' -Body '{"name": "IP RAN 扩容一期", "slug": "ipran-phase1", "description": "新增基站接入环", "settings": {"style": "huawei"}}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects', json={'name': 'IP RAN 扩容一期', 'slug': 'ipran-phase1', 'description': '新增基站接入环', 'settings': {'style': 'huawei'}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.slug` = `"ipran-phase1"`
+- `data.owner` = `"carol"`
+- `data.role` = `"owner"`
+- `data.settings.style` = `"huawei"`
+- `data.settings.rule_set` = `""`
+
+### 项目详情：属主、我的角色、成员、设置、计数
+
+`GET /api/v1/projects/lab`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/lab'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/lab'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/lab')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.slug` = `"lab"`
+- `data.owner` = `"alice"`
+- `data.role` = `"read"`
+- `data.members` = `2`
+- `data.member_list.1.username` = `"bob"`
+- `data.member_list.1.role` = `"read"`
+
+### 项目里的设备：私有设备与引用的公共设备（版本策略）
+
+`GET /api/v1/projects/lab/devices`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/lab/devices' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/devices' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/lab/devices', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.devices.0.name` = `"ATN-CHANGE-01"`
+- `data.devices.0.source` = `"private"`
+- `data.devices.1.name` = `"PE-CHANGE-01"`
+- `data.devices.1.source` = `"public"`
+- `data.devices.1.policy` = `"follow"`
+- `data.devices.1.newer_available` = `false`
+
+### 修改项目设置（属主与可编辑成员）
+
+`PUT /api/v1/projects/lab`
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/projects/lab' \
+  -H 'Content-Type: application/json' \
+  -d '{"description": "割接前基线", "settings": {"style": "cisco", "baseline": "baseline-security"}}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/projects/lab' -ContentType 'application/json; charset=utf-8' -Body '{"description": "割接前基线", "settings": {"style": "cisco", "baseline": "baseline-security"}}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/projects/lab', json={'description': '割接前基线', 'settings': {'style': 'cisco', 'baseline': 'baseline-security'}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.description` = `"割接前基线"`
+- `data.settings.style` = `"cisco"`
+- `data.settings.baseline` = `"baseline-security"`
+
+### 邀请成员或改角色（属主与管理员）
+
+`PUT /api/v1/projects/lab/members/carol`
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/projects/lab/members/carol' \
+  -H 'Content-Type: application/json' \
+  -d '{"role": "edit"}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/members/carol' -ContentType 'application/json; charset=utf-8' -Body '{"role": "edit"}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/projects/lab/members/carol', json={'role': 'edit'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.members.0.role` = `"owner"`
+- `data.members.2.username` = `"carol"`
+- `data.members.2.role` = `"edit"`
+
+### 转交项目（原属主留作可编辑成员）
+
+`POST /api/v1/projects/lab/transfer`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/lab/transfer' \
+  -H 'Content-Type: application/json' \
+  -d '{"to": "bob"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/transfer' -ContentType 'application/json; charset=utf-8' -Body '{"to": "bob"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/lab/transfer', json={'to': 'bob'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.owner` = `"bob"`
+- `data.previous_owner` = `"alice"`
+- `data.kept_as` = `"edit"`
+
+### 复制为我的新项目（只读成员也可以）
+
+`POST /api/v1/projects/lab/copy`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/lab/copy' \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "实验局（副本）", "slug": "lab-bob"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/copy' -ContentType 'application/json; charset=utf-8' -Body '{"name": "实验局（副本）", "slug": "lab-bob"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/lab/copy', json={'name': '实验局（副本）', 'slug': 'lab-bob'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.slug` = `"lab-bob"`
+- `data.owner` = `"bob"`
+- `data.counts.private` = `1`
+- `data.counts.refs` = `1`
+- `data.copied.devices` = `1`
+
+### 删除项目：私有设备一起删除，引用只解除
+
+`DELETE /api/v1/projects/lab?confirm=lab`
+
+```bash
+curl -X DELETE 'http://127.0.0.1:9090/api/v1/projects/lab?confirm=lab'
+```
+
+```powershell
+Invoke-RestMethod -Method DELETE -Uri 'http://127.0.0.1:9090/api/v1/projects/lab?confirm=lab'
+```
+
+```python
+import requests
+r = requests.request('DELETE', 'http://127.0.0.1:9090/api/v1/projects/lab?confirm=lab')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.deleted` = `true`
+- `data.counts.private_devices` = `1`
+- `data.counts.refs` = `1`
+
+### 把引用固定到某个版本
+
+`PUT /api/v1/projects/lab/refs/2`
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/projects/lab/refs/2' \
+  -H 'Content-Type: application/json' \
+  -d '{"version_id": 2}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/refs/2' -ContentType 'application/json; charset=utf-8' -Body '{"version_id": 2}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/projects/lab/refs/2', json={'version_id': 2})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.policy` = `"pin"`
+- `data.version_id` = `2`
+
+### 把公共设备复制为本项目的私有设备（同名时自动改名）
+
+`POST /api/v1/projects/lab/devices/copy-in`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/lab/devices/copy-in' \
+  -H 'Content-Type: application/json' \
+  -d '{"device_id": 2}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/devices/copy-in' -ContentType 'application/json; charset=utf-8' -Body '{"device_id": 2}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/lab/devices/copy-in', json={'device_id': 2})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.name` = `"PE-CHANGE-01-2"`
+- `data.renamed` = `true`
+- `data.from.public` = `true`
+
+### 本项目关闭某条规则或改级别（原因必填）
+
+`PUT /api/v1/projects/lab/rules/ref.orphan`
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/projects/lab/rules/ref.orphan' \
+  -H 'Content-Type: application/json' \
+  -d '{"severity": "info", "reason": "割接期间保留旧对象"}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/rules/ref.orphan' -ContentType 'application/json; charset=utf-8' -Body '{"severity": "info", "reason": "割接期间保留旧对象"}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/projects/lab/rules/ref.orphan', json={'severity': 'info', 'reason': '割接期间保留旧对象'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.rule` = `"ref.orphan"`
+- `data.severity` = `"info"`
+- `data.enabled` = `true`
+
+### 公共设备库：版本数与引用它的项目
+
+`GET /api/v1/public-devices`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/public-devices' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/public-devices' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/public-devices', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.devices.0.name` = `"PE-CHANGE-01"`
+- `data.devices.0.versions` = `1`
+- `data.devices.0.refs.0.project` = `"lab"`
+- `data.devices.0.follow` = `1`
+
+### 导入到公共设备库（管理员）
+
+`POST /api/v1/public-devices`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/public-devices' \
+  -H 'Authorization: Bearer <令牌>' \
+  -F 'files=@tests/inputs/configs/cisco/basic.cfg'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/public-devices' -Headers @{'Authorization'='Bearer <令牌>'} -Form @{'files'=Get-Item 'tests/inputs/configs/cisco/basic.cfg'}
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/public-devices', headers={'Authorization': 'Bearer <令牌>'}, files=[('files', open('tests/inputs/configs/cisco/basic.cfg', 'rb'))])
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.files.0.ok` = `true`
+- `data.files.0.device` = `"ce-rio-01"`
+
+### 所有项目（管理员）
+
+`GET /api/v1/admin/projects`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/admin/projects' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/admin/projects' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/admin/projects', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.projects.0.slug` = `"lab"`
+- `data.projects.0.owner` = `"alice"`
+- `data.owners` = `1`
+- `data.with_members` = `1`
+
+### 生成个人令牌（只显示这一次；默认 90 天）
+
+`POST /api/v1/tokens`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/tokens' \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "Jenkins 变更流水线", "read_only": false}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/tokens' -ContentType 'application/json; charset=utf-8' -Body '{"name": "Jenkins 变更流水线", "read_only": false}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/tokens', json={'name': 'Jenkins 变更流水线', 'read_only': False})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.name` = `"Jenkins 变更流水线"`
+- `data.read_only` = `false`
+- `data.state` = `"active"`
+- `data.owner` = `"alice"`
+
+### 对知识库提建议：进入审核队列（类型 suggestion）
+
+`POST /api/v1/kb/suggestions`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/kb/suggestions' \
+  -H 'Content-Type: application/json' \
+  -d '{"target": "l3vpn.vpn_instance.label_mode", "kind": "default", "current": "per-route", "proposed": "per-instance", "reason": "ATN 910D 在 V800R022 起默认按实例分配标签", "project": "lab"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/kb/suggestions' -ContentType 'application/json; charset=utf-8' -Body '{"target": "l3vpn.vpn_instance.label_mode", "kind": "default", "current": "per-route", "proposed": "per-instance", "reason": "ATN 910D 在 V800R022 起默认按实例分配标签", "project": "lab"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/kb/suggestions', json={'target': 'l3vpn.vpn_instance.label_mode', 'kind': 'default', 'current': 'per-route', 'proposed': 'per-instance', 'reason': 'ATN 910D 在 V800R022 起默认按实例分配标签', 'project': 'lab'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.status` = `"pending"`
+
+### 删除账号并把项目转交给其他账号
+
+`DELETE /api/v1/users/alice?transfer_to=bob`（需要令牌）
+
+```bash
+curl -X DELETE 'http://127.0.0.1:9090/api/v1/users/alice?transfer_to=bob' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method DELETE -Uri 'http://127.0.0.1:9090/api/v1/users/alice?transfer_to=bob' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('DELETE', 'http://127.0.0.1:9090/api/v1/users/alice?transfer_to=bob', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.deleted` = `"alice"`
+- `data.projects.action` = `"transfer"`
+- `data.projects.to` = `"bob"`
 
 ### 对比时隐藏设备身份差异（Router ID 不同不算差异）
 

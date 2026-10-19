@@ -67,6 +67,7 @@ domains:
   static-route: network
   vrf: network
   vrrp: network
+  service: mpls
 
 objects:
   # 接口与二层
@@ -197,6 +198,14 @@ objects:
   interface.vrrp: network
   interface.vrrp.virtual_ip: network
   interface.vrrp.track: network
+  # M7-3（Nokia SR OS）
+  interface.isis.level: network
+  mgmt.system: application
+  service.customer: mpls
+  service.sdp: mpls
+  service.ies: network
+  qos.sap_ingress: network
+  qos.sap_egress: network
 
 attrs:
   # 接口：物理属性留在物理层，其余按作用层
@@ -214,6 +223,18 @@ attrs:
   interface.trust_upstream: datalink
   bridge_domain.evpn_instance: mpls
   bridge_domain.vsi: mpls
+  # M7-3（Nokia SR OS）：逻辑接口绑定端口、端口模式与封装在数据链路层，环回在网络层；全局 Router ID 在网络层
+  interface.bind_port: datalink
+  interface.port_mode: datalink
+  interface.encap_type: datalink
+  interface.loopback: network
+  interface.ies: network
+  interface.access.vsi: mpls
+  interface.access.acl_in: network
+  interface.access.acl_out: network
+  mgmt.system.router_id: network
+  ospf.process.te: mpls
+  isis.process.te: mpls
   # BGP 计时器与会话参数
   bgp.instance.keepalive: transport
   bgp.instance.hold: transport
@@ -252,3 +273,5 @@ keys:
     - { pattern: '\.\d+$', layer: datalink }  # 子接口
     - { pattern: '^(eth-trunk|port-channel|bundle-ether)', layer: datalink }  # 聚合口
     - { pattern: '^(loopback|vlanif|vbdif|bdi|vlan\d|null|tunnel)', layer: network }  # 三层逻辑口
+    - { pattern: '^lag-\d+$', layer: datalink }  # Nokia LAG（M7-3）
+    - { pattern: '^system$', layer: network }  # Nokia 系统接口（环回，M7-3）

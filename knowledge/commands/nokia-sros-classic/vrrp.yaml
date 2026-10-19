@@ -1,0 +1,321 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: vrrp
+cards:
+  - id: nokia-sros-classic.authentication-key~4
+    syntax: authentication-key { <authentication-key> | <hash-key> } [ { hash | hash2 | custom } ]
+    view: router-if-vrrp
+    undo: no authentication-key
+    params:
+      authentication-key:
+        type: word
+      hash-key:
+        type: word
+    default: no authentication-key — The authentication key value is the null string.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: authentication-key
+      line: 566
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.backup
+    syntax: backup <ip-address>
+    view: router-if-vrrp
+    undo: no backup <ip-address>
+    params:
+      ip-address:
+        type: ipv4
+    default: no backup — No virtual router IP address is assigned.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: backup
+      line: 690
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.vrrp.virtual_ip: $ip-address
+  - id: nokia-sros-classic.bfd-enable.1~2
+    syntax: bfd-enable interface <interface-name> dst-ip <ip-address>
+    view: router-if-vrrp
+    undo: no bfd-enable interface <interface-name> dst-ip <ip-address>
+    params:
+      interface-name: &id001
+        type: word
+      ip-address: &id002
+        type: ipv4
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: bfd-enable
+      line: 969
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bfd-enable.2~2
+    syntax: bfd-enable interface <interface-name> dst-ip <ip-address> name <name>
+    view: router-if-vrrp
+    undo: no bfd-enable interface <interface-name> dst-ip <ip-address> name <name>
+    params:
+      interface-name: *id001
+      ip-address: *id002
+      name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: bfd-enable
+      line: 969
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.bfd-enable.3
+    syntax: bfd-enable <svc-id> interface <interface-name> dst-ip <ip-address>
+    view: router-if-vrrp
+    undo: no bfd-enable interface <interface-name> dst-ip <ip-address>
+    params:
+      svc-id:
+        type: word
+      interface-name: *id001
+      ip-address: *id002
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: bfd-enable
+      line: 969
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.description~22
+    syntax: description <short-description-string>
+    view: router-if-vrrp
+    undo: no description
+    params:
+      short-description-string:
+        type: text
+    default: no description
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: description
+      line: 1873
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.vrrp.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
+  - id: nokia-sros-classic.init-delay
+    syntax: init-delay <seconds>
+    view: router-if-vrrp
+    undo: no init-delay
+    params:
+      seconds:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: no init-delay
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: init-delay
+      line: 4389
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.mac~6
+    syntax: mac <mac-address>
+    view: router-if-vrrp
+    undo: no mac
+    params:
+      mac-address:
+        type: word
+    default: no mac
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: mac
+      line: 5893
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.master-int-inherit
+    syntax: master-int-inherit
+    view: router-if-vrrp
+    undo: no master-int-inherit
+    default: no master-int-inherit
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: master-int-inherit
+      line: 6073
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.message-interval~2
+    syntax: message-interval { [ <seconds> ] [ milliseconds <milliseconds> ] }
+    view: router-if-vrrp
+    undo: no message-interval
+    params:
+      seconds:
+        type: word
+      milliseconds:
+        type: integer
+        range:
+          - 100
+          - 900
+    default: message-interval 1 — Advertisement timer set to 1 second.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: message-interval
+      line: 6483
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.vrrp.advertise_interval: $seconds
+      interface.vrrp.advertise_msec: $milliseconds
+  - id: nokia-sros-classic.ntp-reply
+    syntax: ntp-reply
+    view: router-if-vrrp
+    undo: no ntp-reply
+    default: no ntp-reply
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: ntp-reply
+      line: 6809
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.oper-group~6
+    syntax: oper-group <group-name>
+    view: router-if-vrrp
+    undo: no oper-group
+    params:
+      group-name:
+        type: word
+    default: no oper-group — No operational group is configured.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: oper-group
+      line: 6917
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ping-reply
+    syntax: ping-reply
+    view: router-if-vrrp
+    undo: no ping-reply
+    default: no ping-reply — ICMP echo requests to the virtual router instance IP addresses are discarded.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: ping-reply
+      line: 7146
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.policy~3
+    syntax: policy <vrrp-policy-id>
+    view: router-if-vrrp
+    undo: no policy
+    params:
+      vrrp-policy-id:
+        type: integer
+        range:
+          - 1
+          - 9999
+    default: no policy — No VRRP priority control policy is associated with the virtual router instance.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: policy
+      line: 7315
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.preempt~2
+    syntax: preempt
+    view: router-if-vrrp
+    undo: no preempt
+    default: preempt
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: preempt
+      line: 7656
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.priority~4
+    syntax: priority <priority>
+    view: router-if-vrrp
+    undo: no priority
+    params:
+      priority:
+        type: integer
+        range:
+          - 1
+          - 254
+    default: priority 100
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: priority
+      line: 7806
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.vrrp.priority: $priority
+  - id: nokia-sros-classic.shutdown~30
+    syntax: shutdown
+    view: router-if-vrrp
+    undo: no shutdown
+    default: no shutdown
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: shutdown
+      line: 9414
+      version: 25.10.R1
+    status: draft
+    maps:
+      interface.vrrp.shutdown: flag
+  - id: nokia-sros-classic.ssh-reply
+    syntax: ssh-reply
+    view: router-if-vrrp
+    undo: no ssh-reply
+    default: no ssh-reply — SSH requests to the virtual router instance IP addresses are discarded.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: ssh-reply
+      line: 9672
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.standby-forwarding
+    syntax: standby-forwarding
+    view: router-if-vrrp
+    undo: no standby-forwarding
+    default: no standby-forwarding
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: standby-forwarding
+      line: 9764
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.telnet-reply
+    syntax: telnet-reply
+    view: router-if-vrrp
+    undo: no telnet-reply
+    default: no telnet-reply — Telnet requests to the virtual router instance IP addresses are discarded.
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: telnet-reply
+      line: 10202
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.traceroute-reply
+    syntax: traceroute-reply
+    view: router-if-vrrp
+    undo: no traceroute-reply
+    default: no traceroute-reply
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_router_interface.md
+      title: traceroute-reply
+      line: 10384
+      version: 25.10.R1
+    status: draft

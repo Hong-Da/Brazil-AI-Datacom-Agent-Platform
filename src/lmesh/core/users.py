@@ -1,7 +1,7 @@
 """用户账号与网页会话（REQ-030）。CLI 与 API 共用。
 
 - 密码只保存 scrypt 哈希（标准库 hashlib.scrypt，随机盐），最短 8 位；不写入日志或任何文件。
-- 角色：admin（账号、系统设置、AI 接口、知识库发布）与 user（其余全部功能）。
+- 角色：admin（账号、系统设置、AI 接口、全部项目）、maintainer（知识库维护员：知识库与共享规则 / 模板）与 user。
 - 至少保留一个启用的管理员：最后一个启用的管理员不能停用、删除或改成普通用户。
 - 连续登录失败达到上限时锁定一段时间；登录、登出、失败、锁定写日志（不含密码）。
 - 会话令牌随机生成，只返回一次；数据库只存其 SHA-256。停用账号、重置密码时删除该账号的全部会话。
@@ -23,7 +23,7 @@ from sqlalchemy import delete, func, select
 from lmesh.core import store
 from lmesh.core.store.models import User, UserSession, iso
 
-ROLES = ("admin", "user")
+ROLES = ("admin", "maintainer", "user")  # maintainer：知识库维护员（M6，REQ-036）
 MIN_PASSWORD = 8
 MAX_PASSWORD = 256
 NAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$")
@@ -185,7 +185,11 @@ def create_user(url: str, username: str, password: str, role: str = "user") -> d
         s.add(u)
         s.flush()
         _log.info("账号已创建：%s（%s）", username, role)
-        return to_dict(u)
+        out = to_dict(u)
+    from lmesh.core import projects
+
+    projects.on_user_created(url, out["id"])
+    return out
 
 
 def _other_enabled_admins(s: Any, u: User) -> int:
@@ -218,7 +222,7 @@ def update_user(
         validate_role(role)
     with store.session(url) as s:
         u = _get(s, username)
-        if (role == "user" and u.role == "admin") or (disabled is True and not u.disabled):
+        if (role is not None and role != "admin" and u.role == "admin") or (disabled is True and not u.disabled):
             _guard_last_admin(s, u)
         if role is not None and role != u.role:
             _log.info("账号角色修改：%s %s → %s", u.username, u.role, role)
@@ -248,14 +252,32 @@ def reset_password(url: str, username: str, password: str) -> dict[str, Any]:
         return {**to_dict(u), "sessions_closed": closed}
 
 
-def delete_user(url: str, username: str) -> dict[str, Any]:
+def delete_user(
+    url: str, username: str, transfer_to: str | None = None, delete_projects: bool = False, actor: Any = None
+) -> dict[str, Any]:
+    """删除账号。拥有项目时必须选择：transfer_to 全部转交给另一个账号（私有模板与规则集一并转交），
+    或 delete_projects 一并删除（私有模板与规则集也删除）；都没给时拒绝（data.projects 列出项目）。"""
+    from lmesh.core import assets, projects
+
     with store.session(url) as s:
         u = _get(s, username)
         _guard_last_admin(s, u)
+        target = _get(s, transfer_to) if transfer_to else None
+        if target is not None and (target.id == u.id or target.disabled):
+            raise UserError("state", "users.bad_transfer_target", name=transfer_to)
+        uid, target_id = u.id, (target.id if target else None)
+    owned = projects.owned_projects(url, username, non_empty_only=True)
+    if owned and target_id is None and not delete_projects:
+        raise UserError("state", "users.has_projects", n=len(owned), projects=", ".join(p["slug"] for p in owned))
+    ident = actor or projects.SYSTEM
+    handled = projects.dispose_user_projects(url, username, transfer_to if target_id else None, ident)
+    moved = assets.dispose_user(url, uid, target_id)
+    with store.session(url) as s:
+        u = _get(s, username)
         _close_sessions(s, u.id)
         s.delete(u)
         _log.info("账号已删除：%s", username)
-        return {"deleted": username}
+    return {"deleted": username, "projects": handled, "assets": moved}
 
 
 def change_password(url: str, user_id: int, old: str, new: str, keep_token: str | None = None) -> dict[str, Any]:

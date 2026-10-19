@@ -1,0 +1,450 @@
+# 用户工作空间与项目、权限、个人令牌（M6，REQ-035 / REQ-036）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-projects：管理员 admin / Admin-pass-1；alice / Alice-pass-1 是项目 lab 的属主（导入了 ATN-CHANGE-01，
+# 引用公共设备 PE-CHANGE-01 并跟随最新版本）；bob / Bob-pass-12 是 lab 的只读成员；carol / Carol-pass-1 不是任何项目的成员。
+
+[[case]]
+id = "projects-list"
+title = { zh-CN = "我的项目与共享给我的（属主的视角）", en = "My projects and those shared with me (owner view)", pt-BR = "Meus projetos e os compartilhados comigo (visão do dono)" }
+method = "GET"
+path = "/api/v1/projects"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.mine.0.slug" = "lab", "data.mine.0.role" = "owner", "data.mine.0.counts.devices" = 2, "data.mine.0.counts.private" = 1, "data.mine.0.counts.refs" = 1, "data.default_project" = "lab" }
+in_docs = true
+
+[[case]]
+id = "projects-list-shared"
+title = { zh-CN = "只读成员看到共享给自己的项目", en = "A read-only member sees the shared project", pt-BR = "Um membro somente leitura vê o projeto compartilhado" }
+method = "GET"
+path = "/api/v1/projects"
+setup = "configured-projects"
+login = ["bob", "Bob-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.shared.0.slug" = "lab", "data.shared.0.role" = "read", "data.shared.0.owner" = "alice" }
+
+[[case]]
+id = "projects-create"
+title = { zh-CN = "新建项目（标识全站唯一）", en = "Create a project (slug unique site-wide)", pt-BR = "Criar projeto (identificador único no site)" }
+method = "POST"
+path = "/api/v1/projects"
+setup = "configured-projects"
+login = ["carol", "Carol-pass-1"]
+body = { name = "IP RAN 扩容一期", slug = "ipran-phase1", description = "新增基站接入环", settings = { style = "huawei" } }
+expect_status = 200
+expect_json = { "code" = 0, "data.slug" = "ipran-phase1", "data.owner" = "carol", "data.role" = "owner", "data.settings.style" = "huawei", "data.settings.rule_set" = "" }
+in_docs = true
+
+[[case]]
+id = "projects-create-taken"
+title = { zh-CN = "标识已被使用：409", en = "Slug already in use: 409", pt-BR = "Identificador em uso: 409" }
+method = "POST"
+path = "/api/v1/projects"
+setup = "configured-projects"
+login = ["carol", "Carol-pass-1"]
+body = { name = "x", slug = "lab" }
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "projects-create-bad-slug"
+title = { zh-CN = "标识不合法：422", en = "Invalid slug: 422", pt-BR = "Identificador inválido: 422" }
+method = "POST"
+path = "/api/v1/projects"
+setup = "configured-projects"
+login = ["carol", "Carol-pass-1"]
+body = { name = "x", slug = "Bad Slug" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "project-get"
+title = { zh-CN = "项目详情：属主、我的角色、成员、设置、计数", en = "Project details: owner, my role, members, settings, counts", pt-BR = "Detalhes do projeto: dono, meu papel, membros, configurações, contagens" }
+method = "GET"
+path = "/api/v1/projects/lab"
+setup = "configured-projects"
+login = ["bob", "Bob-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.slug" = "lab", "data.owner" = "alice", "data.role" = "read", "data.members" = 2, "data.member_list.1.username" = "bob", "data.member_list.1.role" = "read" }
+in_docs = true
+
+[[case]]
+id = "project-get-outsider"
+title = { zh-CN = "不是成员：404（不暴露项目是否存在）", en = "Not a member: 404 (existence is not revealed)", pt-BR = "Não é membro: 404 (não revela se existe)" }
+method = "GET"
+path = "/api/v1/projects/lab/devices"
+setup = "configured-projects"
+login = ["carol", "Carol-pass-1"]
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "project-devices"
+title = { zh-CN = "项目里的设备：私有设备与引用的公共设备（版本策略）", en = "Devices in a project: private devices and referenced public devices (version policy)", pt-BR = "Dispositivos do projeto: privados e públicos referenciados (política de versão)" }
+method = "GET"
+path = "/api/v1/projects/lab/devices"
+setup = "configured-projects"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.devices.0.name" = "ATN-CHANGE-01", "data.devices.0.source" = "private", "data.devices.1.name" = "PE-CHANGE-01", "data.devices.1.source" = "public", "data.devices.1.policy" = "follow", "data.devices.1.newer_available" = false }
+in_docs = true
+
+[[case]]
+id = "project-legacy-alias"
+title = { zh-CN = "旧的无项目路径（已弃用）：落到调用者的默认项目", en = "Old path without a project (deprecated): uses the caller's default project", pt-BR = "Caminho antigo sem projeto (obsoleto): usa o projeto padrão" }
+method = "GET"
+path = "/api/v1/devices"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.devices.0.name" = "ATN-CHANGE-01", "data.devices.1.name" = "PE-CHANGE-01" }
+
+[[case]]
+id = "project-readonly-import"
+title = { zh-CN = "只读成员导入配置：403", en = "Read-only member imports a config: 403", pt-BR = "Membro somente leitura importa: 403" }
+method = "POST"
+path = "/api/v1/projects/lab/configs"
+setup = "configured-projects"
+login = ["bob", "Bob-pass-12"]
+files = ["configs/huawei/basic.cfg"]
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "project-readonly-settings"
+title = { zh-CN = "只读成员改项目设置：403", en = "Read-only member changes settings: 403", pt-BR = "Membro somente leitura altera configurações: 403" }
+method = "PUT"
+path = "/api/v1/projects/lab"
+setup = "configured-projects"
+login = ["bob", "Bob-pass-12"]
+body = { description = "x" }
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "project-readonly-check"
+title = { zh-CN = "只读成员可以运行检查（计算，不修改数据）", en = "A read-only member can run a check (compute only)", pt-BR = "Membro somente leitura pode executar a verificação" }
+method = "POST"
+path = "/api/v1/projects/lab/check"
+setup = "configured-projects"
+login = ["bob", "Bob-pass-12"]
+body = { device_id = 1 }
+expect_status = 200
+expect_json = { "code" = 0, "data.device" = "ATN-CHANGE-01" }
+
+[[case]]
+id = "project-update"
+title = { zh-CN = "修改项目设置（属主与可编辑成员）", en = "Change project settings (owner and editors)", pt-BR = "Alterar configurações do projeto (dono e editores)" }
+method = "PUT"
+path = "/api/v1/projects/lab"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { description = "割接前基线", settings = { style = "cisco", baseline = "baseline-security" } }
+expect_status = 200
+expect_json = { "code" = 0, "data.description" = "割接前基线", "data.settings.style" = "cisco", "data.settings.baseline" = "baseline-security" }
+in_docs = true
+
+[[case]]
+id = "project-members-set"
+title = { zh-CN = "邀请成员或改角色（属主与管理员）", en = "Invite a member or change the role (owner and admins)", pt-BR = "Convidar membro ou mudar papel (dono e administradores)" }
+method = "PUT"
+path = "/api/v1/projects/lab/members/carol"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { role = "edit" }
+expect_status = 200
+expect_json = { "code" = 0, "data.members.0.role" = "owner", "data.members.2.username" = "carol", "data.members.2.role" = "edit" }
+in_docs = true
+
+[[case]]
+id = "project-members-not-owner"
+title = { zh-CN = "只读成员邀请成员：403", en = "A read-only member invites someone: 403", pt-BR = "Membro somente leitura convida: 403" }
+method = "PUT"
+path = "/api/v1/projects/lab/members/carol"
+setup = "configured-projects"
+login = ["bob", "Bob-pass-12"]
+body = { role = "read" }
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "project-transfer"
+title = { zh-CN = "转交项目（原属主留作可编辑成员）", en = "Transfer a project (previous owner stays as editor)", pt-BR = "Transferir projeto (dono anterior fica como editor)" }
+method = "POST"
+path = "/api/v1/projects/lab/transfer"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { to = "bob" }
+expect_status = 200
+expect_json = { "code" = 0, "data.owner" = "bob", "data.previous_owner" = "alice", "data.kept_as" = "edit" }
+in_docs = true
+
+[[case]]
+id = "project-copy"
+title = { zh-CN = "复制为我的新项目（只读成员也可以）", en = "Copy as my new project (read-only members too)", pt-BR = "Copiar como meu novo projeto (membros somente leitura também)" }
+method = "POST"
+path = "/api/v1/projects/lab/copy"
+setup = "configured-projects"
+login = ["bob", "Bob-pass-12"]
+body = { name = "实验局（副本）", slug = "lab-bob" }
+expect_status = 200
+expect_json = { "code" = 0, "data.slug" = "lab-bob", "data.owner" = "bob", "data.counts.private" = 1, "data.counts.refs" = 1, "data.copied.devices" = 1 }
+in_docs = true
+
+[[case]]
+id = "project-delete-preview"
+title = { zh-CN = "删除项目的影响", en = "Impact of deleting a project", pt-BR = "Impacto de excluir o projeto" }
+method = "GET"
+path = "/api/v1/projects/lab/delete-preview"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.counts.private_devices" = 1, "data.counts.refs" = 1, "data.counts.members" = 1 }
+
+[[case]]
+id = "project-delete-confirm-mismatch"
+title = { zh-CN = "删除项目时确认的标识不一致：422", en = "Deleting with a wrong confirmation: 422", pt-BR = "Excluir com confirmação errada: 422" }
+method = "DELETE"
+path = "/api/v1/projects/lab?confirm=wrong"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "project-delete"
+title = { zh-CN = "删除项目：私有设备一起删除，引用只解除", en = "Delete a project: private devices go too, references are removed", pt-BR = "Excluir projeto: dispositivos privados também, referências removidas" }
+method = "DELETE"
+path = "/api/v1/projects/lab?confirm=lab"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.deleted" = true, "data.counts.private_devices" = 1, "data.counts.refs" = 1 }
+in_docs = true
+
+[[case]]
+id = "project-refs"
+title = { zh-CN = "本项目引用的公共设备", en = "Public devices referenced by the project", pt-BR = "Dispositivos públicos referenciados pelo projeto" }
+method = "GET"
+path = "/api/v1/projects/lab/refs"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.refs.0.name" = "PE-CHANGE-01", "data.refs.0.policy" = "follow" }
+
+[[case]]
+id = "project-ref-pin"
+title = { zh-CN = "把引用固定到某个版本", en = "Pin a reference to a version", pt-BR = "Fixar a referência numa versão" }
+method = "PUT"
+path = "/api/v1/projects/lab/refs/2"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { version_id = 2 }
+expect_status = 200
+expect_json = { "code" = 0, "data.policy" = "pin", "data.version_id" = 2 }
+in_docs = true
+
+[[case]]
+id = "project-copy-in"
+title = { zh-CN = "把公共设备复制为本项目的私有设备（同名时自动改名）", en = "Copy a public device as a private one (renamed if the name is taken)", pt-BR = "Copiar dispositivo público como privado (renomeia se necessário)" }
+method = "POST"
+path = "/api/v1/projects/lab/devices/copy-in"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { device_id = 2 }
+expect_status = 200
+expect_json = { "code" = 0, "data.name" = "PE-CHANGE-01-2", "data.renamed" = true, "data.from.public" = true }
+in_docs = true
+
+[[case]]
+id = "project-rule-override"
+title = { zh-CN = "本项目关闭某条规则或改级别（原因必填）", en = "Turn a rule off or change its level in this project (reason required)", pt-BR = "Desligar regra ou mudar nível no projeto (motivo obrigatório)" }
+method = "PUT"
+path = "/api/v1/projects/lab/rules/ref.orphan"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { severity = "info", reason = "割接期间保留旧对象" }
+expect_status = 200
+expect_json = { "code" = 0, "data.rule" = "ref.orphan", "data.severity" = "info", "data.enabled" = true }
+in_docs = true
+
+[[case]]
+id = "project-scripts"
+title = { zh-CN = "本项目的脚本（平铺）", en = "Scripts in the project (flat list)", pt-BR = "Scripts do projeto (lista)" }
+method = "GET"
+path = "/api/v1/projects/lab/scripts"
+setup = "configured-projects"
+login = ["bob", "Bob-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.scripts" = [] }
+
+[[case]]
+id = "workspace"
+title = { zh-CN = "我的工作空间：默认项目与计数", en = "My workspace: default project and counts", pt-BR = "Meu espaço: projeto padrão e contagens" }
+method = "GET"
+path = "/api/v1/workspace"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.default_project" = "lab", "data.projects.mine" = 1, "data.user.role" = "user" }
+
+[[case]]
+id = "public-devices"
+title = { zh-CN = "公共设备库：版本数与引用它的项目", en = "Public library: versions and referencing projects", pt-BR = "Biblioteca pública: versões e projetos que referenciam" }
+method = "GET"
+path = "/api/v1/public-devices"
+setup = "configured-projects"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.devices.0.name" = "PE-CHANGE-01", "data.devices.0.versions" = 1, "data.devices.0.refs.0.project" = "lab", "data.devices.0.follow" = 1 }
+in_docs = true
+
+[[case]]
+id = "public-devices-import-user"
+title = { zh-CN = "普通用户导入公共设备库：403", en = "A user imports into the public library: 403", pt-BR = "Usuário importa na biblioteca pública: 403" }
+method = "POST"
+path = "/api/v1/public-devices"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+files = ["configs/cisco/basic.cfg"]
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "public-devices-import"
+title = { zh-CN = "导入到公共设备库（管理员）", en = "Import into the public library (admin)", pt-BR = "Importar na biblioteca pública (administrador)" }
+method = "POST"
+path = "/api/v1/public-devices"
+setup = "configured-projects"
+auth = true
+files = ["configs/cisco/basic.cfg"]
+expect_status = 200
+expect_json = { "code" = 0, "data.files.0.ok" = true, "data.files.0.device" = "ce-rio-01" }
+in_docs = true
+
+[[case]]
+id = "public-devices-delete-referenced"
+title = { zh-CN = "删除仍被引用的公共设备：409，列出项目", en = "Delete a referenced public device: 409 with the projects", pt-BR = "Excluir dispositivo público referenciado: 409 com os projetos" }
+method = "DELETE"
+path = "/api/v1/public-devices/2"
+setup = "configured-projects"
+auth = true
+expect_status = 409
+expect_json = { "code" = 1003, "data.projects" = ["lab"] }
+
+[[case]]
+id = "admin-projects"
+title = { zh-CN = "所有项目（管理员）", en = "All projects (admin)", pt-BR = "Todos os projetos (administrador)" }
+method = "GET"
+path = "/api/v1/admin/projects"
+setup = "configured-projects"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.projects.0.slug" = "lab", "data.projects.0.owner" = "alice", "data.owners" = 1, "data.with_members" = 1 }
+in_docs = true
+
+[[case]]
+id = "admin-projects-user"
+title = { zh-CN = "普通用户访问所有项目：403", en = "A user lists all projects: 403", pt-BR = "Usuário lista todos os projetos: 403" }
+method = "GET"
+path = "/api/v1/admin/projects"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "admin-audit"
+title = { zh-CN = "访问审计（管理员）", en = "Access audit (admin)", pt-BR = "Auditoria de acesso (administrador)" }
+method = "GET"
+path = "/api/v1/admin/audit"
+setup = "configured-projects"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.events" = [] }
+
+[[case]]
+id = "tokens-create"
+title = { zh-CN = "生成个人令牌（只显示这一次；默认 90 天）", en = "Create a personal token (shown once; 90 days by default)", pt-BR = "Criar token pessoal (exibido uma vez; 90 dias por padrão)" }
+method = "POST"
+path = "/api/v1/tokens"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { name = "Jenkins 变更流水线", read_only = false }
+expect_status = 200
+expect_json = { "code" = 0, "data.name" = "Jenkins 变更流水线", "data.read_only" = false, "data.state" = "active", "data.owner" = "alice" }
+in_docs = true
+
+[[case]]
+id = "tokens-list"
+title = { zh-CN = "我的个人令牌（不含令牌本身）", en = "My personal tokens (never the token itself)", pt-BR = "Meus tokens pessoais (nunca o próprio token)" }
+method = "GET"
+path = "/api/v1/tokens"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.tokens" = [] }
+
+[[case]]
+id = "tokens-global-token"
+title = { zh-CN = "全局令牌没有账号：409", en = "The global token has no account: 409", pt-BR = "O token global não tem conta: 409" }
+method = "GET"
+path = "/api/v1/tokens"
+setup = "configured-projects"
+auth = true
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "kb-rule-user-forbidden"
+title = { zh-CN = "普通用户修改共享检查规则：403（可以提建议）", en = "A user changes a shared rule: 403 (can suggest)", pt-BR = "Usuário altera regra compartilhada: 403 (pode sugerir)" }
+method = "PUT"
+path = "/api/v1/kb/rules/ref.orphan"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { enabled = false }
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "kb-suggestion"
+title = { zh-CN = "对知识库提建议：进入审核队列（类型 suggestion）", en = "Suggest a KB change: goes to the review queue (kind suggestion)", pt-BR = "Sugerir mudança na base: vai para a fila (tipo suggestion)" }
+method = "POST"
+path = "/api/v1/kb/suggestions"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { target = "l3vpn.vpn_instance.label_mode", kind = "default", current = "per-route", proposed = "per-instance", reason = "ATN 910D 在 V800R022 起默认按实例分配标签", project = "lab" }
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "pending" }
+in_docs = true
+
+[[case]]
+id = "users-list-projects"
+title = { zh-CN = "账号列表附拥有的项目数与有效令牌数", en = "Account list with owned projects and active tokens", pt-BR = "Lista de contas com projetos e tokens ativos" }
+method = "GET"
+path = "/api/v1/users"
+setup = "configured-projects"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.users.1.username" = "alice", "data.users.1.projects" = 1, "data.users.1.tokens" = 0 }
+
+[[case]]
+id = "users-delete-has-projects"
+title = { zh-CN = "删除拥有项目的账号：409，需选择转交或一并删除", en = "Delete an account that owns projects: 409, choose transfer or delete", pt-BR = "Excluir conta com projetos: 409, escolha transferir ou excluir" }
+method = "DELETE"
+path = "/api/v1/users/alice"
+setup = "configured-projects"
+auth = true
+expect_status = 409
+expect_json = { "code" = 1003, "data.projects.0.slug" = "lab" }
+
+[[case]]
+id = "users-delete-transfer"
+title = { zh-CN = "删除账号并把项目转交给其他账号", en = "Delete an account and transfer its projects", pt-BR = "Excluir conta e transferir os projetos" }
+method = "DELETE"
+path = "/api/v1/users/alice?transfer_to=bob"
+setup = "configured-projects"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.deleted" = "alice", "data.projects.action" = "transfer", "data.projects.to" = "bob" }
+in_docs = true

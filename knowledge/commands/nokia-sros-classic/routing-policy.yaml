@@ -24,6 +24,8 @@ cards:
       line: 34
       version: 25.10.R1
     status: draft
+    maps:
+      rp.policy.node.action: kw:accept=permit|reject=deny|drop=deny
   - id: nokia-sros-classic.add-paths-send-limit@policy-entry
     syntax: add-paths-send-limit <send-limit>
     view: policy-entry
@@ -392,6 +394,8 @@ cards:
       version: 25.10.R1
       patched: 原文写作 begin {exclusive}（花括号只有一项，等于必选）；exclusive 是可选的，display-config 在 policy-options 下写 begin
     status: draft
+    maps:
+      '@frame': ''
   - id: nokia-sros-classic.bgp-high-priority@policy-default
     syntax: bgp-high-priority
     view: policy-default
@@ -607,6 +611,8 @@ cards:
       line: 1056
       version: 25.10.R1
     status: draft
+    maps:
+      '@frame': ''
   - id: nokia-sros-classic.community~3
     syntax: community <name>
     view: policy-options
@@ -857,6 +863,8 @@ cards:
       line: 1494
       version: 25.10.R1
     status: draft
+    maps:
+      rp.policy.default_action: kw:accept|reject|next-entry|next-policy|drop=reject
   - id: nokia-sros-classic.description@policy-entry
     syntax: description <short-description-string>
     view: policy-entry
@@ -1011,6 +1019,8 @@ cards:
       line: 2389
       version: 25.10.R1
     status: draft
+    maps:
+      rp.policy.node: $entry-id
   - id: nokia-sros-classic.evpn-type
     syntax: evpn-type <type>
     view: policy-from
@@ -1120,6 +1130,8 @@ cards:
       line: 2905
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.global-variables
     syntax: global-variables
     view: policy-options
@@ -1289,6 +1301,8 @@ cards:
       line: 3369
       version: 25.10.R1
     status: draft
+    maps:
+      rp.policy.node.set_local_preference: $preference
   - id: nokia-sros-classic.local-preference@policy-default
     syntax: local-preference <preference>
     view: policy-default
@@ -1366,6 +1380,8 @@ cards:
       line: 3563
       version: 25.10.R1
     status: draft
+    maps:
+      rp.policy.node.set_metric: $metric-value
   - id: nokia-sros-classic.metric.2@policy-default
     syntax: metric set [ igp | <metric-value> ]
     view: policy-default
@@ -1687,6 +1703,8 @@ cards:
       line: 4417
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.policy-statement
     syntax: policy-statement <name>
     view: policy-options
@@ -1703,6 +1721,8 @@ cards:
       line: 4449
       version: 25.10.R1
     status: draft
+    maps:
+      rp.policy: $name
   - id: nokia-sros-classic.policy-variables
     syntax: policy-variables
     view: policy-from
@@ -1733,9 +1753,9 @@ cards:
       version: 25.10.R1
     status: draft
   - id: nokia-sros-classic.prefix
-    syntax: prefix <ip-prefix/prefix-length> [ exact | longer | through <length> | prefix-length-range <length1-length2> | to <ip-prefix/prefix-length> | address-mask <mask-pattern> ]
+    syntax: prefix <ip-prefix/prefix-length> [ exact | longer | through <length> | prefix-length-range <length1-length2> | to <to-prefix> | address-mask <mask-pattern> ]
     view: prefix-list
-    undo: no prefix <ip-prefix/prefix-length> [ exact | longer | through <length> | prefix-length-range <length1-length2> | to <ip-prefix/prefix-length> | address-mask <mask-pattern> ]
+    undo: no prefix <ip-prefix/prefix-length> [ exact | longer | through <length> | prefix-length-range <length1-length2> | to <to-prefix> | address-mask <mask-pattern> ]
     params:
       ip-prefix/prefix-length:
         type: prefix
@@ -1746,6 +1766,8 @@ cards:
           - 32
       length1-length2:
         type: word
+      to-prefix:
+        type: prefix
       mask-pattern:
         type: word
     source:
@@ -1755,6 +1777,11 @@ cards:
       line: 4578
       version: 25.10.R1
     status: draft
+    maps:
+      rp.prefix_list.entry: auto
+      rp.prefix_list.entry.action: permit
+      rp.prefix_list.entry.prefix: $ip-prefix/prefix-length
+      rp.prefix_list.entry.match_type: kw:exact|longer|through|prefix-length-range|to
   - id: nokia-sros-classic.prefix-list
     syntax: prefix-list <name>
     view: policy-options
@@ -1770,6 +1797,8 @@ cards:
       line: 4622
       version: 25.10.R1
     status: draft
+    maps:
+      rp.prefix_list: $name
   - id: nokia-sros-classic.prefix-list~2
     syntax: prefix-list <name> [ <name> ] &<1-31>
     view: policy-from
@@ -1785,6 +1814,8 @@ cards:
       line: 4660
       version: 25.10.R1
     status: draft
+    maps:
+      rp.policy.node.match_prefix_list: $name
   - id: nokia-sros-classic.prefix-list-override.1
     syntax: prefix-list-override <name> { exact | longer }
     view: policy-from
@@ -1850,6 +1881,8 @@ cards:
       line: 4761
       version: 25.10.R1
     status: draft
+    maps:
+      rp.policy.node.match_protocol: $protocol
   - id: nokia-sros-classic.protocol.2
     syntax: protocol <protocol2> [ <protocol2> ] &<1-4>
     view: policy-from
@@ -1865,11 +1898,18 @@ cards:
       line: 4761
       version: 25.10.R1
     status: draft
+    maps:
+      rp.policy.node.match_protocol: $protocol2
   - id: nokia-sros-classic.renumber
-    syntax: renumber from <entry-id> to <entry-id>
+    syntax: renumber from <old-entry-id> to <new-entry-id>
     view: policy-statement
     params:
-      entry-id:
+      old-entry-id:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      new-entry-id:
         type: integer
         range:
           - 1

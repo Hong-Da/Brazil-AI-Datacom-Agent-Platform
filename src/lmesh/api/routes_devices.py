@@ -12,7 +12,17 @@ from typing import Any, NoReturn
 
 from fastapi import APIRouter, Depends, Query, Request
 
-from lmesh.api.common import E_NOT_FOUND, E_STATE, ApiError, Principal, db_of, ok, require_token, settings_of
+from lmesh.api.common import (
+    E_FORBIDDEN,
+    E_NOT_FOUND,
+    E_STATE,
+    ApiError,
+    Principal,
+    db_of,
+    ok,
+    require_token,
+    settings_of,
+)
 from lmesh.core import device_delete
 
 router = APIRouter(dependencies=[Depends(require_token)])
@@ -21,11 +31,13 @@ router = APIRouter(dependencies=[Depends(require_token)])
 def _raise(e: device_delete.DeleteError) -> NoReturn:
     if e.kind == "not_found":
         raise ApiError(E_NOT_FOUND, 404, e.key, data=e.data, **e.fmt) from e
+    if e.kind == "forbidden":
+        raise ApiError(E_FORBIDDEN, 403, e.key, data=e.data, **e.fmt) from e
     raise ApiError(E_STATE, 409, e.key, data=e.data, **e.fmt) from e
 
 
 def _actor(p: Principal) -> str:
-    return p.username if p.via == "session" else "api-token"
+    return p.username
 
 
 @router.get(

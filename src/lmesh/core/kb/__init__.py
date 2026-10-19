@@ -299,6 +299,7 @@ def _load_profile(kb: KnowledgeBase, f: Path, issues: list[Issue]) -> None:
             verified=str(raw.get("verified", "doc")),
             manual=bool(raw.get("manual", False)),
             when=dict(raw.get("when") or {}),
+            assume=raw.get("assume"),
         )
     for raw in doc.get("side_effects") or []:
         try:

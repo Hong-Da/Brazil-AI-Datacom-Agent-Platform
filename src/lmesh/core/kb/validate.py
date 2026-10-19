@@ -85,6 +85,10 @@ def validate(kb: KnowledgeBase) -> list[Issue]:
             if pname not in params:
                 warn("card.param_unused", f"{c.id} 定义了参数 {pname}，但语法中没有", c.file)
         for target, expr in c.maps.items():
+            if mapping.is_directive(target):
+                if target not in mapping.DIRECTIVES:
+                    err("card.map_node", f"{c.id} 映射指令 {target} 不认识", c.file)
+                continue
             for t in mapping.parse_target(target):
                 if t.node not in kb.nodes:
                     err("card.map_node", f"{c.id} 映射到的节点 {t.node} 不存在", c.file)

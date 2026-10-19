@@ -496,6 +496,9 @@ def check(
 
     disabled = {rid for rid, ov in (overrides or {}).items() if not ov.get("enabled", True)}
     findings = [f for f in findings if f["rule"] not in disabled]
+    from lmesh.core import projects
+
+    findings = projects.apply_overrides(findings)  # 项目级规则调整（M6）：关闭或改级别，只影响当前项目
     for f in findings:
         hit = (ignores or {}).get((f["rule"], f["node"]))
         f["ignored"] = hit is not None

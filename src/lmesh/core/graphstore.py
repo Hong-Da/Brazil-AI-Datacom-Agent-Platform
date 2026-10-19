@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 import networkx as nx
-from sqlalchemy import delete, select
+from sqlalchemy import delete
 
 from lmesh.core import analysis, store
 from lmesh.core import graph as graphmod
@@ -60,17 +60,23 @@ def _jsonable(v: Any) -> Any:
 
 
 def latest_version(db_url: str, device_id: int) -> ConfigVersion | None:
+    """设备在当前项目中的当前版本（引用并固定了版本时为该版本，否则最新）；设备不在当前项目中时为 None。"""
+    from lmesh.core import projects
+
     with store.session(db_url) as s:
-        return s.scalar(
-            select(ConfigVersion).where(ConfigVersion.device_id == device_id).order_by(ConfigVersion.id.desc()).limit(1)
-        )
+        if not projects.visible(s, device_id):
+            return None
+        vid = projects.current_version_id(s, device_id)
+        return s.get(ConfigVersion, vid) if vid is not None else None
 
 
 def build_for_version(db_url: str, version_id: int, kb: KnowledgeBase) -> tuple[nx.MultiDiGraph, ConfigVersion, Device]:
     """用当前知识库重新建图（知识库更新后可以按新版本重新计算）。"""
+    from lmesh.core import projects
+
     with store.session(db_url) as s:
         ver = s.get(ConfigVersion, version_id)
-        if ver is None:
+        if ver is None or not projects.visible(s, ver.device_id):
             raise KeyError(version_id)
         dev = s.get(Device, ver.device_id)
         assert dev is not None

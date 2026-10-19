@@ -1,4 +1,4 @@
-# Nokia SR OS（7750 SR / 7450 ESS / 7950 XRS / VSR）Classic CLI 的书写习惯与视图树（M7-1 草稿，M7-2 补视图与解析器开关）。
+# Nokia SR OS（7750 SR / 7450 ESS / 7950 XRS / VSR）Classic CLI 的书写习惯与视图树（M7-1 草稿，M7-2 补视图与解析器开关，M7-3 补业务 SAP 的 ingress / egress、SDP keep-alive、VPRN auto-bind-tunnel）。
 # 依据：Classic CLI Command Reference Guide 25.10.R1（每条命令的 Full Context 即视图路径），
 #       以及 admin display-config 的输出格式（见 docs/project-spec.md “接入 Nokia 7750 SR（REQ-037）（M7-1 分析结果）”）。
 #
@@ -107,16 +107,32 @@ views:
   service: {parent: configure, title: 业务 (config>service), exit: [exit]}
   customer: {parent: service, title: 客户 (config>service>customer), exit: [exit]}
   sdp: {parent: service, title: SDP (config>service>sdp), exit: [exit]}
+  sdp-keep-alive: {parent: sdp, title: SDP 保活 (config>service>sdp>keep-alive)（M7-3）, exit: [exit]}
   epipe: {parent: service, title: Epipe（VPWS）(config>service>epipe), exit: [exit]}
   epipe-sap: {parent: epipe, title: Epipe SAP (config>service>epipe>sap), exit: [exit]}
+  # SAP 的 ingress / egress（M7-3）：qos <policy-id>、filter ip <filter-id> 引用 QoS 策略与过滤器；按业务类型各一对视图
+  epipe-sap-ingress: {parent: epipe-sap, title: Epipe SAP 入方向 (…>epipe>sap>ingress), exit: [exit]}
+  epipe-sap-egress: {parent: epipe-sap, title: Epipe SAP 出方向 (…>epipe>sap>egress), exit: [exit]}
   epipe-spoke: {parent: epipe, title: Epipe spoke-sdp (config>service>epipe>spoke-sdp), exit: [exit]}
   vpls: {parent: service, title: VPLS (config>service>vpls), exit: [exit]}
   vpls-sap: {parent: vpls, title: VPLS SAP (config>service>vpls>sap), exit: [exit]}
+  vpls-sap-ingress: {parent: vpls-sap, title: VPLS SAP 入方向 (…>vpls>sap>ingress), exit: [exit]}
+  vpls-sap-egress: {parent: vpls-sap, title: VPLS SAP 出方向 (…>vpls>sap>egress), exit: [exit]}
   vpls-spoke: {parent: vpls, title: VPLS spoke-sdp (config>service>vpls>spoke-sdp), exit: [exit]}
   vpls-mesh: {parent: vpls, title: VPLS mesh-sdp (config>service>vpls>mesh-sdp), exit: [exit]}
   vprn: {parent: service, title: VPRN（L3VPN）(config>service>vprn), exit: [exit]}
+  # auto-bind-tunnel（隧道选择：resolution any | filter | disabled，resolution-filter 下列出 ldp / rsvp / sr-isis…）（M7-3；vprn 下直接写的是旧版本写法）
+  vprn-abt: {parent: vprn, title: VPRN 隧道自动绑定 (config>service>vprn>auto-bind-tunnel), exit: [exit]}
+  vprn-abt-rf: {parent: vprn-abt, title: 隧道类型过滤 (…>auto-bind-tunnel>resolution-filter), exit: [exit]}
+  # 25.x 的 RD / vrf-target / vrf-import / vrf-export / auto-bind-tunnel 在 bgp-ipvpn > mpls 下（vprn 下的同名命令是旧版本写法，命令参考标为已废弃，两种都识别）（M7-3）
+  vprn-bgp-ipvpn: {parent: vprn, title: VPRN BGP IP-VPN (config>service>vprn>bgp-ipvpn), exit: [exit]}
+  vprn-ipvpn-mpls: {parent: vprn-bgp-ipvpn, title: IP-VPN MPLS 参数 (…>vprn>bgp-ipvpn>mpls), exit: [exit]}
+  vprn-ipvpn-abt: {parent: vprn-ipvpn-mpls, title: IP-VPN 隧道自动绑定 (…>bgp-ipvpn>mpls>auto-bind-tunnel), exit: [exit]}
+  vprn-ipvpn-abt-rf: {parent: vprn-ipvpn-abt, title: 隧道类型过滤 (…>mpls>auto-bind-tunnel>resolution-filter), exit: [exit]}
   vprn-if: {parent: vprn, title: VPRN 接口 (config>service>vprn>if), exit: [exit]}
   vprn-if-sap: {parent: vprn-if, title: VPRN 接口 SAP (config>service>vprn>if>sap), exit: [exit]}
+  vprn-if-sap-ingress: {parent: vprn-if-sap, title: VPRN 接口 SAP 入方向 (…>vprn>if>sap>ingress), exit: [exit]}
+  vprn-if-sap-egress: {parent: vprn-if-sap, title: VPRN 接口 SAP 出方向 (…>vprn>if>sap>egress), exit: [exit]}
   vprn-static: {parent: vprn, title: VPRN 静态路由 (config>service>vprn>static-route-entry), exit: [exit]}
   vprn-static-nh: {parent: vprn-static, title: VPRN 静态路由下一跳, exit: [exit]}
   vprn-bgp: {parent: vprn, title: VPRN BGP (config>service>vprn>bgp), exit: [exit]}
@@ -127,8 +143,10 @@ views:
   vprn-ospf-if: {parent: vprn-ospf-area, title: VPRN OSPF 接口, exit: [exit]}
   ies: {parent: service, title: IES（Internet 增强业务）(config>service>ies), exit: [exit]}
   ies-if: {parent: ies, title: IES 接口 (config>service>ies>if), exit: [exit]}
-  ies-if-sap: {parent: ies-if, title: IES 接口 SAP, exit: [exit]}
-  # SAP / SDP 绑定下的 ingress / egress（QoS、过滤器引用）在 M7-3 按业务类型补视图
+  ies-if-sap: {parent: ies-if, title: IES 接口 SAP (config>service>ies>if>sap), exit: [exit]}
+  ies-if-sap-ingress: {parent: ies-if-sap, title: IES 接口 SAP 入方向 (…>ies>if>sap>ingress), exit: [exit]}
+  ies-if-sap-egress: {parent: ies-if-sap, title: IES 接口 SAP 出方向 (…>ies>if>sap>egress), exit: [exit]}
+  # spoke-sdp / mesh-sdp 下的 ingress / egress（vc-label、filter）暂不抽取，进入 opaque（M7-3）
   # QoS 与过滤器（ACL）
   qos: {parent: configure, title: QoS (config>qos), exit: [exit]}
   qos-sap-ingress: {parent: qos, title: SAP 入方向 QoS 策略 (config>qos>sap-ingress), exit: [exit]}

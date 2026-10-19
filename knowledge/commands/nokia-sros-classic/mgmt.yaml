@@ -154,6 +154,9 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.contact: $contact-name
   - id: nokia-sros-classic.coordinates
     syntax: coordinates <coordinates>
     view: system
@@ -338,6 +341,9 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.location: $location
   - id: nokia-sros-classic.exponential-backoff
     syntax: exponential-backoff
     view: login-control
@@ -401,6 +407,8 @@ cards:
       line: 348
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.login-scripts
     syntax: login-scripts
     view: login-control
@@ -494,6 +502,9 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.system: _
+      mgmt.system.name: $system-name
   - id: nokia-sros-classic.network-element-discovery
     syntax: network-element-discovery
     view: system
@@ -611,6 +622,8 @@ cards:
       line: 78
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.aaa.user.service_type: tail:access
   - id: nokia-sros-classic.access~5
     syntax: access group <group-name> security-model <security-model> security-level <security-level> [ context <context-name> [ prefix-match ] ] [ read <view-name-1> ] [ write <view-name-2> ] [ notify <view-name-3> ]
     view: security-snmp
@@ -897,6 +910,10 @@ cards:
       line: 3492
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.community: $community-string
+      mgmt.snmp.community.access: kw:r=read|rw=write|rwa=write|mgmt=read|vpls-mgmt=read
   - id: nokia-sros-classic.complexity-rules
     syntax: complexity-rules
     view: security-password
@@ -1030,6 +1047,9 @@ cards:
       line: 6302
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.ftp: _
+      mgmt.ftp.enabled: flag
   - id: nokia-sros-classic.hashing
     syntax: hashing { bcrypt | sha2-pbkdf2 | sha3-pbkdf2 }
     view: security-password
@@ -1078,13 +1098,15 @@ cards:
       version: 25.10.R1
     status: draft
   - id: nokia-sros-classic.home-directory
-    syntax: home-directory <url-prefix> [ <directory> ] [ <directory> / <directory> ]
+    syntax: home-directory <url-prefix> [ <directory> ] [ <directory-path> ]
     view: security-user
     undo: no home-directory
     params:
       url-prefix:
         type: word
       directory:
+        type: word
+      directory-path:
         type: word
     default: no home-directory
     source:
@@ -1331,6 +1353,8 @@ cards:
       line: 11179
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.aaa.user.password_set: 'true'
   - id: nokia-sros-classic.per-peer-queuing
     syntax: per-peer-queuing
     view: system-security
@@ -1446,6 +1470,8 @@ cards:
       line: 12343
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.radius: _
   - id: nokia-sros-classic.request-format
     syntax: request-format
     view: security-tacplus
@@ -1551,6 +1577,8 @@ cards:
       line: 13799
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.server
     syntax: server <index> address <ip-address> secret <key> [ { hash | hash2 | custom } ] [ port <port> ]
     view: security-tacplus
@@ -1578,6 +1606,11 @@ cards:
       line: 13935
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.tacacs.server:
+        role: all
+        address: $ip-address
+      mgmt.tacacs.key_set: 'true'
   - id: nokia-sros-classic.server~2
     syntax: server <index> address <ip-address> secret <key> [ hash | hash2 | custom ] [ tls-client-profile <profile> ] [ authenticator { md5 | sm3 } ]
     view: security-radius
@@ -1658,6 +1691,8 @@ cards:
       line: 14460
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.ssh.enabled: '!flag'
   - id: nokia-sros-classic.service-request
     syntax: service-request
     view: security-tacplus
@@ -1716,6 +1751,8 @@ cards:
       line: 15668
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.source-address
     syntax: source-address
     view: system-security
@@ -1753,6 +1790,8 @@ cards:
       line: 16232
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.ssh: _
   - id: nokia-sros-classic.ssh-authentication-method
     syntax: ssh-authentication-method
     view: security-user
@@ -1776,6 +1815,8 @@ cards:
       line: 16460
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.tacacs: _
   - id: nokia-sros-classic.telnet~2
     syntax: telnet
     view: system-security
@@ -1798,6 +1839,9 @@ cards:
       line: 16816
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.telnet: _
+      mgmt.telnet.enabled: flag
   - id: nokia-sros-classic.telnet6-server
     syntax: telnet6-server
     view: system-security
@@ -1845,6 +1889,8 @@ cards:
       line: 16967
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.tacacs.timeout: $seconds
   - id: nokia-sros-classic.tls
     syntax: tls
     view: system-security
@@ -1895,6 +1941,8 @@ cards:
       line: 17922
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.aaa.user: $user-name
   - id: nokia-sros-classic.user-template
     syntax: user-template { tacplus_default | radius_default | ldap-default }
     view: system-security
@@ -2069,6 +2117,9 @@ cards:
       line: 214
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.snmp: _
+      mgmt.snmp.enabled: '!flag'
   - id: nokia-sros-classic.snmp~3
     syntax: snmp
     view: system
@@ -2080,6 +2131,8 @@ cards:
       line: 252
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.streaming
     syntax: streaming
     view: system-snmp
@@ -2341,6 +2394,8 @@ cards:
       line: 415
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.ntp: _
   - id: nokia-sros-classic.ntp-server
     syntax: ntp-server [ authenticate ]
     view: system-ntp
@@ -2429,6 +2484,10 @@ cards:
       line: 624
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.ntp.server: $ip-address
+      mgmt.ntp.server.prefer: if:prefer:flag
+      mgmt.ntp.server.key: $key-id
   - id: nokia-sros-classic.shutdown~8
     syntax: shutdown
     view: system-ntp
@@ -2441,6 +2500,8 @@ cards:
       line: 715
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.ntp.shutdown: flag
   - id: nokia-sros-classic.sntp
     syntax: sntp
     view: system-time
@@ -2465,6 +2526,8 @@ cards:
       line: 1014
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.zone
     syntax: zone { <std-zone-name> | <non-std-zone-name> } [ <hh> [ <mm> ] ]
     view: system-time
@@ -2497,6 +2560,8 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.accounting-policy~2
     syntax: accounting-policy <policy-id> [ interval <minutes> ]
     view: log
@@ -2919,7 +2984,7 @@ cards:
       version: 25.10.R1
     status: draft
   - id: nokia-sros-classic.snmp-trap-group
-    syntax: snmp-trap-group { <log-id> | <log-name> } [ name <log-name> ]
+    syntax: snmp-trap-group { <log-id> | <log-name> } [ name <name> ]
     view: log
     enters_view: opaque
     undo: no snmp-trap-group <log-id> | <log-name>
@@ -2927,6 +2992,8 @@ cards:
       log-id:
         type: word
       log-name:
+        type: word
+      name:
         type: word
     source:
       doc: nokia-sros-classic-md
@@ -2950,6 +3017,10 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.syslog.host: $ip-address
+      mgmt.syslog.host.target_id: ctx:syslog-id
+      '@share': ''
   - id: nokia-sros-classic.description~5
     syntax: description <short-description-string>
     view: log-syslog
@@ -2980,6 +3051,8 @@ cards:
       line: 296
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.syslog.host.facility: $syslog-facility
   - id: nokia-sros-classic.hostname
     syntax: hostname { use-system-name | value <value-string> }
     view: log-syslog
@@ -3010,6 +3083,8 @@ cards:
       line: 385
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.syslog.host.level: $syslog-level
   - id: nokia-sros-classic.log-prefix
     syntax: log-prefix <log-prefix-string>
     view: log-syslog
@@ -3062,6 +3137,8 @@ cards:
       line: 517
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.timestamp-format
     syntax: timestamp-format millisecond
     view: log-syslog
@@ -3141,3 +3218,5 @@ cards:
       patched: 命令参考没有单列 configure 下进入 system 上下文的命令（system 下各命令的完整上下文都以 configure system 开头）；display-config 写作 system，块尾 exit
       added_by_patch: true
     status: draft
+    maps:
+      '@container': ''

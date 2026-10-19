@@ -80,7 +80,7 @@ def _one(n: syn.Node, values: dict[str, Any]) -> Iterator[tuple[list[str], list[
 FALLBACK_REASONS = ("no_undo", "undo_invalid", "render_failed", "match_failed")
 
 
-def render_undo_reason(card: Any, line: Line, negative: str) -> tuple[str, str | None]:
+def render_undo_reason(card: Any, line: Line, negative: str, quotes: bool = False) -> tuple[str, str | None]:
     """返回 (取消命令, 兜底原因)；不兜底时原因为 None。原因：no_undo 命令卡没有取消语法、undo_invalid 取消语法写错、
     render_failed 用原行的参数渲染不出（关键字不在原行中）、match_failed 渲染结果回匹配取消语法失败。"""
     original = {w.lower() for w in line.text.split()}
@@ -98,7 +98,7 @@ def render_undo_reason(card: Any, line: Line, negative: str) -> tuple[str, str |
                 if not words or words[0].lower() != negative or not set(kws[1:]) <= original:
                     continue
                 text = " ".join(words)
-                if syn.match(usyn, text, card.params) is None:
+                if syn.match(usyn, text, card.params, quotes) is None:
                     reason = "match_failed"
                     continue
                 score = (used, -len(words), text)
@@ -109,9 +109,9 @@ def render_undo_reason(card: Any, line: Line, negative: str) -> tuple[str, str |
     return f"{negative} {line.text}", reason
 
 
-def render_undo(card: Any, line: Line, negative: str) -> tuple[str, bool]:
+def render_undo(card: Any, line: Line, negative: str, quotes: bool = False) -> tuple[str, bool]:
     """返回 (取消命令, 是否兜底)。"""
-    text, reason = render_undo_reason(card, line, negative)
+    text, reason = render_undo_reason(card, line, negative, quotes)
     return text, reason is not None
 
 
@@ -203,6 +203,7 @@ def cleanup(
     ix = checks.Index.of(g, kb)
     family = str(g.graph.get("family") or kb.profiles[str(g.graph["profile"])].family)
     negative = kb.families[family].negative
+    quotes = kb.families[family].quotes
     orph = checks.find_orphans(g, kb, ix)
     chosen = objects
     removal, picked_skipped = select(orph, chosen)
@@ -225,8 +226,9 @@ def cleanup(
         for no in _entry_lines(g, ix, o):
             ln = ix.lines[no]
             card = kb.cards.get(str(ln.card))
-            text, why = render_undo_reason(card, ln, negative)
+            text, why = render_undo_reason(card, ln, negative, quotes)
             ctx = tuple(ix.lines[p].text for p in ix.context(no))
+            views = [str(getattr(kb.cards.get(str(ix.lines[p].card)), "enters_view", "") or "") for p in ix.context(no)]
             hit = seen.get((ctx, text))
             if hit is not None:  # 同一条命令删除整个对象（例如 no ip community-list standard X）：只输出一次
                 hit["lines"].append(no)
@@ -235,6 +237,7 @@ def cleanup(
                 "seq": len(commands) + 1,
                 "text": text,
                 "context": list(ctx),
+                "context_views": views,
                 "object": o,
                 "lines": [no],
                 "card": ln.card,
@@ -254,23 +257,63 @@ def cleanup(
         if chosen is not None
         else [{"node": o, "reason": "maybe_referenced", "lines": lines} for o, lines in orph.unsure.items()],
         "fallbacks": sum(1 for c in commands if c["fallback"]),
-        "script": script_text(commands, g, _exit_word(kb, family)),
+        "script": script_text(commands, g, _exit_word(kb, family), _comment(kb, family), _frame(kb, family)),
     }
     if verify:
         result["verify"] = verify_removal(g, kb, [o["node"] for o in out_objects], orph.removal())
     return result
 
 
-def script_text(commands: list[dict[str, Any]], g: nx.MultiDiGraph, exit_word: str) -> str:
-    """脚本文本：! 开头的行是注释（两家的配置里都按注释处理），注明删除的对象与原配置行号；兜底命令标 FALLBACK。"""
-    out = [f"! lmesh cleanup: {g.graph.get('device')} ({g.graph.get('profile')}), {len(commands)} command(s)"]
+def _comment(kb: KnowledgeBase, family: str) -> str:
+    """说明行的前缀：华为 / Cisco 用 !（两家都按注释处理），Nokia 用 #（views.yaml 的 comment）。"""
+    fam = kb.families[family]
+    return fam.comment[0] if fam.comment else "!"
+
+
+def _frame(kb: KnowledgeBase, family: str) -> dict[str, Any] | None:
+    """Nokia（render 有 prologue 的平台族）：脚本的开头 / 结尾、缩进单位、进入视图后先写 / 退出前再写的命令；华为 / Cisco 为 None。"""
+    from lmesh.core import canon
+
+    style = canon.load_style(kb, family)
+    if not style["prologue"]:
+        return None
+    return {
+        "begin": style["prologue"],
+        "finish": style["epilogue"],
+        "indent": kb.families[family].indent,
+        "wrap": style["wrap"],
+    }
+
+
+def script_text(
+    commands: list[dict[str, Any]],
+    g: nx.MultiDiGraph,
+    exit_word: str,
+    comment: str = "!",
+    frame: dict[str, Any] | None = None,
+) -> str:
+    """脚本文本：注释行（华为 / Cisco 的 !、Nokia 的 #）注明删除的对象与原配置行号；兜底命令标 FALLBACK。
+    frame（Nokia）：exit all / configure 开头、exit all 结尾，按平台族的缩进单位，policy-options 的修改包在 begin … commit 里。"""
+    head = f"{comment} lmesh cleanup: {g.graph.get('device')} ({g.graph.get('profile')}), {len(commands)} command(s)"
+    out = [head, *(frame["begin"] if frame else [])]
+    unit = frame["indent"] if frame else 1
+    wrap = frame["wrap"] if frame else {}
     for c in commands:
         depth = len(c["context"])
+        views = c.get("context_views") or [""] * depth
         lines = ",".join(str(n) for n in c["lines"])
-        out.append(f"! [{c['seq']}] {c['object']} @{lines}" + (" FALLBACK" if c["fallback"] else ""))
-        out += [" " * i + t for i, t in enumerate(c["context"])]
-        out.append(" " * depth + c["text"])
-        out += [" " * (depth - 1 - i) + exit_word for i in range(depth)]
+        out.append(f"{comment} [{c['seq']}] {c['object']} @{lines}" + (" FALLBACK" if c["fallback"] else ""))
+        for i, t in enumerate(c["context"]):
+            out.append(" " * (unit * i) + t)
+            if len(wrap.get(views[i]) or []) >= 2:
+                out.append(" " * (unit * (i + 1)) + wrap[views[i]][0])
+        out.append(" " * (unit * depth) + c["text"])
+        for i in range(depth):
+            k = depth - 1 - i
+            if len(wrap.get(views[k]) or []) >= 2:
+                out.append(" " * (unit * (k + 1)) + wrap[views[k]][-1])
+            out.append(" " * (unit * k) + exit_word)
+    out += frame["finish"] if frame else []
     return "\n".join(out) + "\n"
 
 

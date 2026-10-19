@@ -288,6 +288,8 @@ cards:
       line: 1165
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer_group.password: $authentication-key||$hash-key
   - id: nokia-sros-classic.authentication-key@bgp-neighbor
     syntax: authentication-key [ <authentication-key> | <hash-key> ] [ hash | hash2 | custom ]
     view: bgp-neighbor
@@ -301,6 +303,8 @@ cards:
       line: 1165
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer.password: $authentication-key||$hash-key
   - id: nokia-sros-classic.backup-path
     syntax: backup-path [ ipv4 ] [ ipv6 ] [ label-ipv4 ] [ label-ipv6 ] [ vpn-ipv4 ] [ vpn-ipv6 ]
     view: bgp
@@ -405,6 +409,8 @@ cards:
       line: 1386
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.bgp-tunnel-metric.1
     syntax: bgp-tunnel-metric [ <value> ] [ prefer-med ]
     view: bgp
@@ -855,6 +861,8 @@ cards:
       line: 2185
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
   - id: nokia-sros-classic.description@bgp-group
     syntax: description <short-description-string>
     view: bgp-group
@@ -868,6 +876,8 @@ cards:
       line: 2185
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer_group.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
   - id: nokia-sros-classic.description@bgp
     syntax: description <short-description-string>
     view: bgp
@@ -1420,6 +1430,8 @@ cards:
       line: 4134
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.instance.family: tail:family
   - id: nokia-sros-classic.family@bgp-group
     syntax: family [ ipv4 ] [ label-ipv4 ] [ vpn-ipv4 ] [ ipv6 ] [ label-ipv6 ] [ vpn-ipv6 ] [ mcast-ipv4 ] [ l2-vpn ] [ mvpn-ipv4 ] [ mvpn-ipv6 ] [ mdt-safi ] [ ms-pw ] [ flow-ipv4 ] [ flow-ipv6 ] [ route-target ] [ mcast-vpn-ipv4 ] [ evpn ] [ bgp-ls ] [ mcast-ipv6 ] [ mcast-vpn-ipv6 ] [ sr-policy-ipv4 ] [ sr-policy-ipv6 ] [ flow-vpn-ipv4 ] [ flow-vpn-ipv6 ]
     view: bgp-group
@@ -1432,6 +1444,8 @@ cards:
       line: 4134
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer_group.family: tail:family
   - id: nokia-sros-classic.flowspec
     syntax: flowspec
     view: bgp
@@ -1498,6 +1512,8 @@ cards:
       line: 4559
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer_group: $name
   - id: nokia-sros-classic.hold-time@bgp-group
     syntax: hold-time <seconds> [ min <min-seconds> ]
     view: bgp-group
@@ -1518,6 +1534,8 @@ cards:
       line: 4720
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer_group.hold: $seconds
   - id: nokia-sros-classic.hold-time@bgp-neighbor
     syntax: hold-time <seconds> [ min <min-seconds> ]
     view: bgp-neighbor
@@ -1531,6 +1549,8 @@ cards:
       line: 4720
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer.hold: $seconds
   - id: nokia-sros-classic.hold-time@bgp
     syntax: hold-time <seconds> [ min <min-seconds> ]
     view: bgp
@@ -1544,6 +1564,8 @@ cards:
       line: 4720
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.instance.hold: $seconds
   - id: nokia-sros-classic.ibgp-multipath
     syntax: ibgp-multipath
     view: bgp
@@ -1573,6 +1595,8 @@ cards:
       line: 4941
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer_group.import_policy: $plcy-or-long-expr||$policy-name
   - id: nokia-sros-classic.import@bgp
     syntax: import <plcy-or-long-expr> [ <plcy-or-expr> ] &<1-14>
     view: bgp
@@ -1599,6 +1623,8 @@ cards:
       line: 4941
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer.import_policy: $plcy-or-long-expr||$policy-name
   - id: nokia-sros-classic.initial-send-delay-zero@bgp-neighbor
     syntax: initial-send-delay-zero
     view: bgp-neighbor
@@ -1650,6 +1676,8 @@ cards:
       line: 5304
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.instance.keepalive: $seconds
   - id: nokia-sros-classic.keepalive@bgp-neighbor
     syntax: keepalive <seconds>
     view: bgp-neighbor
@@ -1663,6 +1691,8 @@ cards:
       line: 5304
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer.keepalive: $seconds
   - id: nokia-sros-classic.keepalive@bgp-group
     syntax: keepalive <seconds>
     view: bgp-group
@@ -1676,6 +1706,8 @@ cards:
       line: 5304
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer_group.keepalive: $seconds
   - id: nokia-sros-classic.label-allocation
     syntax: label-allocation
     view: bgp
@@ -1796,6 +1828,8 @@ cards:
       line: 6020
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer.update_source: $ip-address||$ip-int-name
   - id: nokia-sros-classic.local-address@bgp-group
     syntax: local-address [ <ip-int-name> | <ip-address> | <ipv6-address> ]
     view: bgp-group
@@ -1809,6 +1843,8 @@ cards:
       line: 6020
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer_group.update_source: $ip-address||$ip-int-name
   - id: nokia-sros-classic.local-as@bgp-neighbor
     syntax: local-as <as-number> [ private ] [ no-prepend-global-as ]
     view: bgp-neighbor
@@ -2184,6 +2220,9 @@ cards:
       line: 7336
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer: $ip-address
+      bgp.peer.group: ctx:name
   - id: nokia-sros-classic.neighbor-trust
     syntax: neighbor-trust [ vpn-ipv4 ] [ vpn-ipv6 ] [ evpn ]
     view: bgp
@@ -2392,6 +2431,8 @@ cards:
       line: 7916
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer.remote_as: $as-number
   - id: nokia-sros-classic.peer-as@bgp-group
     syntax: peer-as <as-number>
     view: bgp-group
@@ -2403,6 +2444,8 @@ cards:
       line: 7916
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer_group.remote_as: $as-number
   - id: nokia-sros-classic.peer-tracking-policy
     syntax: peer-tracking-policy <policy-name>
     view: bgp
@@ -2463,7 +2506,7 @@ cards:
       version: 25.10.R1
     status: draft
   - id: nokia-sros-classic.prefix-limit@bgp-group
-    syntax: prefix-limit <family> <limit> [ threshold <percentage> ] [ idle-timeout { <minutes> | forever } | log-only | hold-excess <percentage> ] [ post-import ]
+    syntax: prefix-limit <family> <limit> [ threshold <percentage> ] [ idle-timeout { <minutes> | forever } | log-only | hold-excess <hold-excess-percentage> ] [ post-import ]
     view: bgp-group
     undo: no prefix-limit <family>
     params: &id024
@@ -2481,6 +2524,8 @@ cards:
         range:
           - 1
           - 1024
+      hold-excess-percentage:
+        type: word
     source:
       doc: nokia-sros-classic-md
       file: configure_router_bgp.md
@@ -2489,7 +2534,7 @@ cards:
       version: 25.10.R1
     status: draft
   - id: nokia-sros-classic.prefix-limit@bgp-neighbor
-    syntax: prefix-limit <family> <limit> [ threshold <percentage> ] [ idle-timeout { <minutes> | forever } | log-only | hold-excess <percentage> ] [ post-import ]
+    syntax: prefix-limit <family> <limit> [ threshold <percentage> ] [ idle-timeout { <minutes> | forever } | log-only | hold-excess <hold-excess-percentage> ] [ post-import ]
     view: bgp-neighbor
     undo: no prefix-limit <family>
     params: *id024
@@ -2603,6 +2648,8 @@ cards:
       line: 9039
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.instance.router_id: $ip-address
   - id: nokia-sros-classic.segment-routing~3
     syntax: segment-routing
     view: bgp
@@ -2763,6 +2810,8 @@ cards:
       line: 9751
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.instance.shutdown: flag
   - id: nokia-sros-classic.shutdown@bgp-group
     syntax: shutdown
     view: bgp-group
@@ -2969,6 +3018,8 @@ cards:
       line: 10837
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer_group.type: kw:internal|external
   - id: nokia-sros-classic.type@bgp-neighbor
     syntax: type { internal | external }
     view: bgp-neighbor
@@ -3071,6 +3122,9 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.instance: $autonomous-system
+      '@share': ''
   - id: nokia-sros-classic.router-id~4
     syntax: router-id <ip-address>
     view: router
@@ -3086,6 +3140,9 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      mgmt.system: _
+      mgmt.system.router_id: $ip-address
   - id: nokia-sros-classic.confederation
     syntax: confederation <confed-as-num> [ members <as-number> [ <as-number> ] &<1-31> ]
     view: router
@@ -3178,6 +3235,8 @@ cards:
       line: 3937
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer.export_policy: $plcy-or-long-expr||$policy-name
   - id: nokia-sros-classic.export@bgp
     syntax: export <plcy-or-long-expr> [ <plcy-or-expr> ] &<1-14>
     view: bgp
@@ -3204,6 +3263,8 @@ cards:
       line: 3937
       version: 25.10.R1
     status: draft
+    maps:
+      bgp.peer_group.export_policy: $plcy-or-long-expr||$policy-name
   - id: nokia-sros-classic.route-target-list
     syntax: route-target-list <comm-id> [ <comm-id> ] &<1-14>
     view: bgp

@@ -82,6 +82,42 @@ nodes:
     parent: interface.isis
     type: boolean
     semantic: {zh-CN: 接口启用 IS-IS BFD, en: BFD}
+  # ---------- M7-3（Nokia SR OS）----------
+  isis.process.area_id:
+    parent: isis.process
+    type: string
+    semantic: {zh-CN: 区域地址（Nokia area-id；华为 / Cisco 写在 NET 里，翻译时与系统 ID 拼成 NET）, en: Area address (Nokia area-id; part of the NET elsewhere), pt-BR: Endereço de área (Nokia area-id; parte do NET nos demais)}
+  isis.process.system_id:
+    parent: isis.process
+    type: string
+    semantic: {zh-CN: 系统 ID（Nokia system-id，不写时由 router-id 推出；华为 / Cisco 写在 NET 里）, en: System ID (Nokia), pt-BR: ID do sistema (Nokia)}
+  isis.process.export_policy:
+    parent: isis.process
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 发布路由时应用的路由策略（Nokia export；华为 / Cisco 用 import-route / redistribute，平台特有）, en: Export policy (Nokia), pt-BR: Política de exportação (Nokia)}
+  isis.process.te:
+    parent: isis.process
+    type: boolean
+    semantic: {zh-CN: 流量工程扩展（Nokia traffic-engineering；华为 traffic-eng、Cisco mpls traffic-eng 有对应写法，未归并）, en: Traffic engineering extensions, pt-BR: Extensões de engenharia de tráfego}
+  interface.isis.level:
+    parent: interface.isis
+    type: object
+    key: [level]
+    semantic: {zh-CN: 接口按级别的参数（Nokia interface 下的 level 1 / level 2；华为 isis cost … level-2 等有对应写法，未归并）, en: Per-level interface settings, pt-BR: Parâmetros da interface por nível}
+  interface.isis.level.metric:
+    parent: interface.isis.level
+    type: integer
+    semantic: {zh-CN: 该级别的接口开销, en: Metric for the level, pt-BR: Métrica do nível}
+  # ---------- M7-3（Nokia SR OS）：管理状态 ----------
+  isis.process.shutdown:
+    parent: isis.process
+    type: boolean
+    semantic: {zh-CN: IS-IS 实例管理关闭（Nokia 缺省关闭）（Nokia shutdown / no shutdown；Cisco router isis 下的 shutdown 有对应写法，未归并；华为没有对应）, en: IS-IS instance administratively down, pt-BR: Instância IS-IS desativada administrativamente}
+  interface.isis.shutdown:
+    parent: interface.isis
+    type: boolean
+    semantic: {zh-CN: 接口上的 IS-IS 管理关闭（Nokia shutdown / no shutdown；华为 / Cisco 没有对应，平台特有）, en: IS-IS on the interface administratively down, pt-BR: IS-IS na interface desativado administrativamente}
 deps:
   - {kind: reference, from: interface.isis.process, to: isis.process, note: {zh-CN: 接口启用的 IS-IS 进程应已创建, en: 'The IS-IS process enabled on the interface must already exist', pt-BR: 'O processo IS-IS habilitado na interface já deve existir'}}
   - {kind: reference, from: isis.process.vrf, to: vrf.instance}

@@ -30,6 +30,8 @@ cards:
       line: 56
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.reserved-label-block
     syntax: reserved-label-block <name>
     view: mpls-labels
@@ -68,6 +70,10 @@ cards:
       line: 122
       version: 25.10.R1
     status: draft
+    maps:
+      sr.global: _
+      sr.global.srgb_begin: $start-value
+      sr.global.srgb_end: $end-value
   - id: nokia-sros-classic.static-label-range
     syntax: static-label-range <static-range>
     view: mpls-labels
@@ -316,6 +322,8 @@ cards:
       line: 5454
       version: 25.10.R1
     status: draft
+    maps:
+      ospf.process.sr_mpls: '!flag'
   - id: nokia-sros-classic.srlb
     syntax: srlb <reserved-label-block-name>
     view: ospf-sr
@@ -559,6 +567,8 @@ cards:
       line: 7511
       version: 25.10.R1
     status: draft
+    maps:
+      isis.process.sr_mpls: '!flag'
   - id: nokia-sros-classic.srlb~2
     syntax: srlb <reserved-label-block-name>
     view: isis-sr

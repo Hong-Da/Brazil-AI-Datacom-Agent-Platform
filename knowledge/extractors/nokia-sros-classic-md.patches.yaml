@@ -46,3 +46,58 @@ patches:
     reason: 原文写作 begin {exclusive}（花括号只有一项，等于必选）；exclusive 是可选的，display-config 在 policy-options 下写 begin
     set:
       syntax: begin [ exclusive ]
+  # ---- M7-3 ----
+  - id: nokia-sros-classic.service@configure
+    reason: 命令参考没有单列 configure 下进入 service 上下文的命令（service 下各命令的完整上下文都以 configure service 开头）；display-config 写作 service，块尾 exit
+    add:
+      id: nokia-sros-classic.service@configure
+      domain: service
+      view: configure
+      syntax: service
+      enters_view: service
+  - id: nokia-sros-classic.filter@configure
+    reason: 命令参考没有单列 configure 下进入 filter 上下文的命令（完整上下文都以 configure filter 开头）；display-config 写作 filter，块尾 exit
+    add:
+      id: nokia-sros-classic.filter@configure
+      domain: acl
+      view: configure
+      syntax: filter
+      enters_view: filter
+  - id: nokia-sros-classic.qos@configure
+    reason: 命令参考没有单列 configure 下进入 qos 上下文的命令（完整上下文都以 configure qos 开头）；display-config 写作 qos，块尾 exit
+    add:
+      id: nokia-sros-classic.qos@configure
+      domain: qos
+      view: configure
+      syntax: qos
+      enters_view: qos
+  - id: nokia-sros-classic.action.inline@ip-filter-entry
+    reason: 命令参考 25.10 的 action 是上下文（action 下再写 drop / forward）；较早版本与配置指南的举例写作单行 action drop / action forward（Layer 2 Services and EVPN Guide 的 mac-filter 举例），两种写法都识别
+    add:
+      id: nokia-sros-classic.action.inline@ip-filter-entry
+      domain: acl
+      view: ip-filter-entry
+      syntax: action { drop | forward }
+      undo: no action
+  - id: nokia-sros-classic.rsvp@vprn-abt-rf
+    reason: vprn 下直接写的 auto-bind-tunnel 是旧版本写法（25.10 命令参考标为已废弃），其 resolution-filter 的条目里漏了 rsvp（bgp-ipvpn mpls 下的同名上下文有 rsvp）；旧版本配置常写 resolution-filter > rsvp
+    add:
+      id: nokia-sros-classic.rsvp@vprn-abt-rf
+      domain: service
+      view: vprn-abt-rf
+      syntax: rsvp
+      undo: no rsvp
+  - id: nokia-sros-classic.src-ip@ip-filter-match
+    reason: 命令参考的 src-ip 条目只列了 ipv6-filter / ip-exception / ipv6-exception 的完整上下文，漏了 configure filter ip-filter entry match（dst-ip 条目有；Router Configuration Guide 的 ip-filter entry 举例写 src-ip 192.168.1.1/32）；按 dst-ip 的 IPv4 写法补
+    add:
+      id: nokia-sros-classic.src-ip@ip-filter-match
+      domain: acl
+      view: ip-filter-match
+      syntax: src-ip { <ip-address/mask> | <ip-address> <ipv4-address-mask> | ip-prefix-list <prefix-list-name> }
+      undo: no src-ip
+      params: {ip-address/mask: {type: prefix}, ip-address: {type: ipv4}, ipv4-address-mask: {type: mask}, prefix-list-name: {type: word}}
+  # ---- M7-3（主 agent，增量变更）----
+  - id: nokia-sros-classic.next-hop
+    reason: 命令参考的 static-route-entry next-hop 条目（Base 路由器与 VPRN，各自批次里的编号都是 next-hop）没有列取消写法；增量变更删除静态路由要用 no next-hop <下一跳>
+    set:
+      undo: no next-hop { <ip-address> | <ip-int-name> | <ipv6-address> }

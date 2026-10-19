@@ -1,4 +1,5 @@
-"""日志：同时输出到控制台和 logs/lmesh.log，按日期轮转，保留天数来自配置；过滤敏感信息。"""
+"""日志：同时输出到控制台和 logs/lmesh.log，按日期轮转，保留天数来自配置；过滤敏感信息。
+访问审计（lmesh.audit，M6）另写 logs/audit.log（同样按日期轮转与保留）。"""
 
 from __future__ import annotations
 
@@ -14,6 +15,7 @@ _SECRET_PATTERNS = [
     re.compile(r"((?:api[_-]?key|token|password|passwd|secret)\s*[=:]\s*)\S+", re.IGNORECASE),
     re.compile(r"(%\^%#).*?(%\^%#)"),  # 华为 cipher 密文
     re.compile(r"(postgresql(?:\+\w+)?://[^:/@]+:)[^@]+(@)"),
+    re.compile(r"\b(lmp_[A-Za-z0-9]{4})[A-Za-z0-9]{28}\b"),  # 个人令牌只留前 8 个字符
 ]
 
 
@@ -46,6 +48,12 @@ def setup(level: str = "INFO", keep_days: int = 14, console: bool = True) -> Non
     fh.setFormatter(fmt)
     fh.addFilter(RedactFilter())
     root.addHandler(fh)
+    ah = TimedRotatingFileHandler(
+        paths.logs_dir() / "audit.log", when="midnight", backupCount=keep_days, encoding="utf-8"
+    )
+    ah.setFormatter(fmt)
+    ah.addFilter(RedactFilter())
+    logging.getLogger("lmesh.audit").addHandler(ah)
     if console:
         ch = logging.StreamHandler(sys.stderr)
         ch.setFormatter(fmt)

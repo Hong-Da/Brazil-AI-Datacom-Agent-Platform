@@ -50,6 +50,14 @@ def prepare(root: Path) -> None:
 
     for name, (password, role) in ACCOUNTS.items():
         users.create_user(settings.database_url, name, password, role)
+    # M6：样本导入在管理员的默认项目里（第一个管理员接管）；普通用户设为它的可编辑成员并以它为默认项目，
+    # 现有用例（旧的无项目路径落到默认项目）看到的设备与 M6 之前相同
+    from lmesh.core import projects
+
+    url = settings.database_url
+    scope = projects.default_scope(url, projects.cli_identity(url, "e2e-admin"))
+    projects.set_member(url, scope, "e2e-user", "edit")
+    projects.set_default(url, projects.cli_identity(url, "e2e-user"), scope.slug)
 
 
 def main() -> int:

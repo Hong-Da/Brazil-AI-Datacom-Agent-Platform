@@ -15,7 +15,7 @@ from lmesh.api.common import (
     ApiError,
     lang_of,
     ok,
-    require_admin,
+    require_kb_editor,
     require_token,
     settings_of,
 )
@@ -82,7 +82,9 @@ class ReleaseBody(BaseModel):
 
 
 @router.post(
-    "/kb/releases", summary="发布知识库版本：校验 → 回归测试 → 打标签（管理员）", dependencies=[Depends(require_admin)]
+    "/kb/releases",
+    summary="发布知识库版本：校验 → 回归测试 → 打标签（管理员与知识库维护员）",
+    dependencies=[Depends(require_kb_editor)],
 )
 def kb_release(request: Request, body: ReleaseBody) -> dict[str, Any]:
     from lmesh.core import roundtrip_hook
@@ -108,7 +110,11 @@ class RollbackBody(BaseModel):
     ref: str
 
 
-@router.post("/kb/rollback", summary="回滚到某个已发布版本（历史保留；管理员）", dependencies=[Depends(require_admin)])
+@router.post(
+    "/kb/rollback",
+    summary="回滚到某个已发布版本（历史保留；管理员与知识库维护员）",
+    dependencies=[Depends(require_kb_editor)],
+)
 def kb_rollback(request: Request, body: RollbackBody) -> dict[str, Any]:
     try:
         sha = repo.rollback(_root(request), body.ref)

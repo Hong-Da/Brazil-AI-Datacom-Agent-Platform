@@ -22,7 +22,11 @@
 | `--quiet` / `-q` | 只输出结果 |
 | `--verbose` / `-v` | 同时把日志打印到 stderr |
 | `--yes` / `-y` | 跳过所有确认提示（非终端调用时自动开启） |
+| `--project <项目>` / `-P` | 命令作用于哪个项目（M6）：项目标识、`属主/标识` 或项目编号；不给时用默认项目；项目不存在退出码 4 |
+| `--as <账号>` | 以哪个账号的身份：默认项目、新建项目与个人令牌的属主；默认第一个启用的管理员（还没有账号时等同全局令牌） |
 | `--version` | 显示版本 |
+
+命令行直接操作本机数据库，权限等同管理员（不按项目角色限制）；设备相关的命令（导入、列表、配置图、对比、检查、版本历史、拓扑、导出……）都只看当前项目里的设备（私有设备与引用的公共设备）。
 
 每个命令都有 `--help`。
 
@@ -61,11 +65,11 @@
 | `lmesh serve [--host] [--port]` | 启动 Web 界面与远程 API；`--host`、`--port` 只临时覆盖，不改配置文件 |
 | `lmesh setup [--defaults] [--force]` | 命令行版首次运行向导；`--defaults` 不提问，采用默认值与环境变量（Docker、自动化部署用） |
 | `lmesh user list` | 网页登录账号列表：用户名、角色、状态（启用 / 锁定至 / 已停用）、最后登录（REQ-030） |
-| `lmesh user add <名称> [--role admin\|user] [--password-stdin]` | 新建账号（默认普通用户）；密码从提示读取（不回显、输入两次），或用 `--password-stdin` 从标准输入读第一行，不接受命令行明文；没有终端又没给 `--password-stdin` 时退出码 2；用户名已存在退出码 1 |
+| `lmesh user add <名称> [--role admin\|maintainer\|user] [--password-stdin]` | 新建账号（默认普通用户）；密码从提示读取（不回显、输入两次），或用 `--password-stdin` 从标准输入读第一行，不接受命令行明文；没有终端又没给 `--password-stdin` 时退出码 2；用户名已存在退出码 1 |
 | `lmesh user disable <名称>` / `lmesh user enable <名称>` | 停用（该账号的会话立即失效）/ 启用（同时解除锁定）；最后一个启用的管理员不能停用（退出码 1） |
 | `lmesh user reset-password <名称> [--password-stdin]` | 重置密码：同时解除锁定，该账号的会话全部失效 |
-| `lmesh user set-role <名称> admin\|user` | 改角色；最后一个启用的管理员不能改成普通用户 |
-| `lmesh user delete <名称>` | 删除账号（需要确认，`--yes` 跳过）；账号不存在退出码 4 |
+| `lmesh user set-role <名称> admin\|maintainer\|user` | 改角色（maintainer 为知识库维护员）；最后一个启用的管理员不能改成其他角色 |
+| `lmesh user delete <名称> [--transfer-to 账号 \| --delete-projects]` | 删除账号（需要确认，`--yes` 跳过）；账号不存在退出码 4；拥有非空项目时必须选择转交（项目、私有模板与规则集）或一并删除，否则退出码 1 |
 | `lmesh config show` | 当前生效的配置及来源（default / file / env），敏感值只显示是否已设置 |
 | `lmesh config example [--check]` | 生成 `config/config.example.toml` |
 | `lmesh db upgrade` | 把数据库升级到最新结构 |
@@ -84,7 +88,7 @@
 | `lmesh review list [--kind K] [--status S]` / `review show <编号>` | 审核队列 |
 | `lmesh review approve <编号>… [--note]` / `review reject <编号>…` | 通过或驳回；通过时写回知识库并提交 |
 | `lmesh review approve-all [--kind card] [--contains 文字] [--rules 规则]` | 批量通过符合条件的待审条目（需要确认，`--yes` 跳过） |
-| `lmesh kb map` | 把 `knowledge/mappings/` 中的映射规则写进命令卡（手工编辑过的 `maps_manual` 卡不覆盖），并按命令卡重新汇总各 Profile 的支持情况 |
+| `lmesh kb map [--family F]…` | 把 `knowledge/mappings/` 中的映射规则写进命令卡（手工编辑过的 `maps_manual` 卡不覆盖），并按命令卡重新汇总各 Profile 的支持情况；`--family`（可重复）只处理这些平台族的命令卡与 Profile，接入新平台族时不重写其他平台族的文件 |
 | `lmesh parse <文件> [--profile P] [--lines/--summary]` | 解析配置：每行的视图、命令卡、参数、类别（command / raw 功能域外 / unknown 未识别 / separator / comment / blank / end）；不填 `--profile` 时按厂商与版本自动选择，识别不了时退出码 2 |
 | `lmesh unknown list [--limit N]` | 已导入配置中的未识别行，按归一化后的模式与出现次数汇总（用来补命令卡） |
 | `lmesh graph show <文件\|设备名> [--domain D] [--profile P]` | 显示配置图：语义节点（含 Profile 补出的隐藏默认节点）、依赖边（contains / reference / prerequisite / side_effect / mutex）、悬空引用 |
@@ -140,6 +144,21 @@
 | `lmesh skill approve <skill> <进化编号> [--reject] [--note 说明]` | 批准进化的候选版本并发布为新版本（`--reject` 放弃）；不存在退出码 4，已处理过退出码 1 |
 | `lmesh script-check <脚本> [--device 设备名[@版本]\|配置文件] [--version N] [--kind change\|full] [--order/--no-order] [--reorder [-o 文件]] [--rules 目录] [--profile P]` | 检查变更脚本 / 完整配置（REQ-031）：变更脚本逐行跟踪视图、在基线上模拟执行（取消匹配、覆盖、副作用），执行后的配置跑配置检查规则并查地址 / RD 冲突；顺序核查开启时报出“引用了后面才创建的对象”“删除时引用方在后面才处理”“先配的值被后面命令的副作用删除”，并附按依赖重排的建议；`--no-order` 只看按依赖顺序执行后的结果；完整配置检查未识别行、规则并与基线按有效值对比；`--reorder` 输出重排后的脚本与每条命令移动的原因；有 error 时退出码 1，变更脚本没有基线退出码 2 |
 | `lmesh script-diff <a> <b> [--ignore-order] [--kind full\|change] [--device 基线] [--format text\|unified\|html] [--report-lang zh-CN\|en] [--no-semantic] [-o 文件]` | 脚本 / 配置的文本差异：逐行对比、行内字符级标记，位置变化识别为移动（第几行 → 第几行），`--ignore-order` 按视图路径 + 内容只看内容差异；同时给出语义差异（按有效值比较；`--kind change` 时比较两份脚本在基线上执行后的结果）；可输出统一 diff 或中 / 英 HTML 报告 |
+| `lmesh project list [--all] [--owner 账号]` | 项目列表（M6）：我的项目与共享给我的（`--as` 账号的视角，`*` 为默认项目）；`--all` 同时列出不是自己参与的项目（管理员） |
+| `lmesh project show [项目]` | 项目详情：属主、我的角色、成员、设备（私有 / 引用）与脚本计数；不给项目时为当前项目 |
+| `lmesh project create <名称> [--slug 标识] [--description 说明]` | 新建项目，属主为 `--as` 账号；标识不合法退出码 2，已被使用退出码 1 |
+| `lmesh project delete <项目>` | 删除项目：私有设备与它们的全部版本一起删除，引用的公共设备只解除引用；终端里要输入项目标识确认，`--yes` 跳过 |
+| `lmesh project members <项目> [--add 账号 --role edit\|read] [--remove 账号]` | 成员列表；邀请或改角色、移除（只限属主与管理员，否则退出码 1） |
+| `lmesh project transfer <项目> <新属主> [--keep-as edit\|read\|none]` | 转交项目；原属主默认留作可编辑成员；项目用到的原属主私有规则集复制一份给新属主 |
+| `lmesh project copy <项目> <新名称> [--slug 标识] [--no-devices] [--no-scripts]` | 复制为新项目（属主为 `--as` 账号）：设置、规则调整、私有设备（当前版本）、引用、脚本 |
+| `lmesh project default <项目>` | 设置 `--as` 账号的默认项目 |
+| `lmesh project ref <公共设备> [--pin 版本编号] [--remove]` | 在当前项目（`--project`）引用公共设备（跟随最新，或 `--pin` 固定版本），`--remove` 解除引用 |
+| `lmesh token create <用途> [--read-only] [--days 90]` | 为 `--as` 账号生成个人令牌（`lmp_` 开头，只显示这一次）；`--days 0` 不过期；还没有账号时退出码 1 |
+| `lmesh token list` | `--as` 账号的个人令牌：前 8 个字符、权限、过期时间、最后使用、状态 |
+| `lmesh token revoke <编号>` | 撤销令牌；不存在退出码 4 |
+| `lmesh public-device list` | 公共设备库：版本数、引用它的项目（跟随 / 固定） |
+| `lmesh public-device import <文件、目录或 zip> [--level basic\|strict]` | 导入到公共设备库（同名设备作为新版本） |
+| `lmesh public-device delete <设备> [--force]` | 删除公共设备；还有项目引用时退出码 1（`--force` 一并解除引用） |
 
 知识库命令操作的是运行时知识库（默认 `data/knowledge/`，首次使用时从程序自带的 `knowledge/` 复制，并作为独立的 Git 仓库管理）。
 
@@ -284,7 +303,7 @@ lmesh --output json kb validate
 JSON 输出中的关键字段：
 
 - `data.errors` = `0`
-- `data.counts.profiles` = `3`
+- `data.counts.profiles` = `4`
 
 ### 发布知识库版本（版本号按差异自动建议）
 
@@ -417,7 +436,7 @@ lmesh --output json roundtrip --samples
 JSON 输出中的关键字段：
 
 - `data.failed` = `0`
-- `data.samples` = `19`
+- `data.samples` = `22`
 
 ### 查看配置图的 VRF 部分
 
@@ -1248,6 +1267,200 @@ JSON 输出中的关键字段：
 - `data.naming.summary.renamed` = `3`
 - `data.naming.renames.2.to` = `"VRF_RAN"`
 - `data.interface_map.GigabitEthernet0/2/1` = `"GigabitEthernet0/0/2"`
+
+### Nokia 规范模式渲染（exit all / configure 开头，echo 段落，每块 exit，名称加引号）
+
+```bash
+lmesh --output json render knowledge/samples/nokia-sros-classic-synthetic/classic-pe-basic.cfg --canonical
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.mode` = `"canonical"`
+- `data.profile` = `"nokia-sros-classic-7750-25.10"`
+- `data.family` = `"nokia-sros-classic"`
+- `data.uncovered` = `[]`
+- `data.lines.0.text` = `"exit all"`
+- `data.lines.1.text` = `"configure"`
+
+### Nokia 配置翻译到华为（路由器接口并到端口，基本实例 0 → 进程 1）
+
+```bash
+lmesh --output json translate knowledge/samples/nokia-sros-classic-synthetic/classic-pe-basic.cfg --to huawei-atn-v800r025 --interface-map knowledge/samples/translate/nokia-to-atn.ifmap.yaml
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.source.profile` = `"nokia-sros-classic-7750-25.10"`
+- `data.target.family` = `"huawei-vrp8"`
+- `data.verify.checked` = `true`
+- `data.verify.unexplained` = `0`
+
+### 只为一个平台族套用映射规则并汇总 Profile（不重写其他平台族的命令卡与 Profile）
+
+```bash
+lmesh --output json kb map --family nokia-sros-classic
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.families.nokia-sros-classic.unused_rules` = `[]`
+- `data.profiles.nokia-sros-classic-7750-25.10.manual` = `40`
+
+### 项目列表（--as 账号的视角）
+
+```bash
+lmesh --output json --as alice project list
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.mine.0.slug` = `"lab"`
+- `data.mine.0.role` = `"owner"`
+- `data.default_project` = `"lab"`
+
+### 全局 --project：命令作用于该项目
+
+```bash
+lmesh --output json --project lab config list
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.devices.0.name` = `"ATN-CHANGE-01"`
+- `data.devices.1.name` = `"PE-CHANGE-01"`
+
+### 新建项目（属主为 --as 账号）
+
+```bash
+lmesh --output json --as carol project create '测试环境' --slug testbed
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.slug` = `"testbed"`
+- `data.owner` = `"carol"`
+
+### 邀请成员并列出成员
+
+```bash
+lmesh --output json project members lab --add carol --role edit
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.members.0.username` = `"alice"`
+- `data.members.2.username` = `"carol"`
+- `data.members.2.role` = `"edit"`
+
+### 转交项目
+
+```bash
+lmesh --output json project transfer lab bob
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.owner` = `"bob"`
+- `data.previous_owner` = `"alice"`
+- `data.kept_as` = `"edit"`
+
+### 复制为新项目
+
+```bash
+lmesh --output json --as bob project copy lab '我的副本' --slug lab-bob
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.slug` = `"lab-bob"`
+- `data.owner` = `"bob"`
+- `data.copied.devices` = `1`
+
+### 删除项目（--yes 跳过确认）
+
+```bash
+lmesh --output json --yes project delete lab
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.deleted` = `true`
+- `data.counts.private_devices` = `1`
+- `data.counts.refs` = `1`
+
+### 生成个人令牌（只读、不过期）
+
+```bash
+lmesh --output json --as alice token create '巡检脚本' --read-only --days 0
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.owner` = `"alice"`
+- `data.read_only` = `true`
+- `data.state` = `"active"`
+
+### 公共设备库
+
+```bash
+lmesh --output json public-device list
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.devices.0.name` = `"PE-CHANGE-01"`
+- `data.devices.0.refs.0.project` = `"lab"`
+
+### 导入到公共设备库
+
+```bash
+lmesh --output json public-device import tests/inputs/configs/cisco/basic.cfg
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.files.0.ok` = `true`
+- `data.files.0.device` = `"ce-rio-01"`
 
 ### 同角色设备对比时隐藏身份差异（主机名、Router ID、环回地址、对等体地址）
 

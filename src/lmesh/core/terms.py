@@ -14,7 +14,9 @@ from typing import Any
 
 from lmesh.core.kb import KnowledgeBase, read_yaml
 
-STYLES = ("huawei", "cisco")
+STYLES = ("huawei", "cisco", "nokia")
+# 每个对象必须登记的风格；nokia（M7-3）是可选的第三种风格：对象没有 nokia 写法时按华为风格显示
+REQUIRED_STYLES = ("huawei", "cisco")
 _FIELD = re.compile(r"\{([\w\-]+)\}")
 
 
@@ -32,7 +34,7 @@ class Terms:
 
     def name(self, schema: str, style: str, lang: str = "zh-CN", kb: KnowledgeBase | None = None) -> str:
         """对象类型的叫法；没有登记时用 Schema 的 semantic。"""
-        spec = (self.objects.get(schema) or {}).get(_style(style)) or {}
+        spec = _spec(self.objects.get(schema), style)
         names = spec.get("name") or {}
         if names:
             return str(names.get(lang) or names.get("en") or next(iter(names.values())))
@@ -43,7 +45,7 @@ class Terms:
 
     def label(self, schema: str, key: Any, style: str) -> str:
         """对象节点在该风格下的命令写法，例如 vrf.instance + {"name": "RAN"} → ip vpn-instance RAN / vrf definition RAN。"""
-        spec = (self.objects.get(schema) or {}).get(_style(style)) or {}
+        spec = _spec(self.objects.get(schema), style)
         keys = _key_dict(key, schema)
         values = spec.get("values") or {}
         shown = {k: str((values.get(k) or {}).get(str(v), v)) for k, v in keys.items()}
@@ -59,12 +61,18 @@ class Terms:
     def attr(self, schema: str, style: str) -> str | None:
         """属性在该风格下的命令关键字；没有登记时返回 None（界面用 Schema 的名称）。"""
         spec = self.attrs.get(schema) or {}
-        v = spec.get(_style(style))
+        v = spec.get(_style(style)) or (spec.get("huawei") if _style(style) not in REQUIRED_STYLES else None)
         return str(v) if v else None
 
 
 def _style(style: str) -> str:
     return style if style in STYLES else "huawei"
+
+
+def _spec(obj: dict[str, Any] | None, style: str) -> dict[str, Any]:
+    """对象在该风格下的写法；可选风格（nokia）没有登记时用华为风格。"""
+    obj = obj or {}
+    return obj.get(_style(style)) or (obj.get("huawei") if _style(style) not in REQUIRED_STYLES else None) or {}
 
 
 def _key_dict(key: Any, schema: str) -> dict[str, Any]:
@@ -111,6 +119,8 @@ def check(kb: KnowledgeBase, terms: Terms) -> list[str]:
         if nid not in kb.nodes:
             problems.append(f"objects.{nid}: Schema 中没有这个节点")
         for s in STYLES:
+            if s not in REQUIRED_STYLES and s not in (spec or {}):
+                continue  # 可选风格没有登记：按华为风格显示
             if not (spec or {}).get(s, {}).get("label"):
                 problems.append(f"objects.{nid}.{s}: 缺少 label")
     for nid in terms.attrs:

@@ -21,6 +21,8 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      interface: $port-id
   - id: nokia-sros-classic.access
     syntax: access
     view: port
@@ -68,6 +70,8 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      interface.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
   - id: nokia-sros-classic.dwdm
     syntax: dwdm
     view: port
@@ -120,6 +124,8 @@ cards:
       line: 560
       version: 25.10.R1
     status: draft
+    maps:
+      interface.negotiation: flag
   - id: nokia-sros-classic.collect-stats
     syntax: collect-stats
     view: port-ethernet
@@ -228,6 +234,8 @@ cards:
       line: 2827
       version: 25.10.R1
     status: draft
+    maps:
+      interface.duplex: kw:full|half
   - id: nokia-sros-classic.efm-oam
     syntax: efm-oam
     view: port-ethernet
@@ -317,6 +325,8 @@ cards:
       line: 3562
       version: 25.10.R1
     status: draft
+    maps:
+      interface.encap_type: kw:dot1q|null|qinq
   - id: nokia-sros-classic.eth-bn-egress-rate-changes
     syntax: eth-bn-egress-rate-changes
     view: port-ethernet
@@ -351,6 +361,8 @@ cards:
       line: 3943
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.hold-time
     syntax: hold-time { [ up <hold-time-up> ] [ down <hold-time-down> ] [ seconds | centiseconds ] }
     view: port-ethernet
@@ -471,6 +483,8 @@ cards:
       version: 25.10.R1
       patched: 原文 port ethernet 的 mode 只列了 network | hybrid；7750 SR 的接入口写作 mode access（配置指南 Interface Configuration Guide 的端口举例与合成样本），补上 access
     status: draft
+    maps:
+      interface.port_mode: kw:access|network|hybrid
   - id: nokia-sros-classic.mon-port-sch
     syntax: mon-port-sch
     view: port-ethernet
@@ -501,6 +515,8 @@ cards:
       line: 6893
       version: 25.10.R1
     status: draft
+    maps:
+      interface.mtu: $mtu-bytes
   - id: nokia-sros-classic.network
     syntax: network
     view: port-ethernet
@@ -638,6 +654,8 @@ cards:
       line: 9864
       version: 25.10.R1
     status: draft
+    maps:
+      interface.shutdown: flag
   - id: nokia-sros-classic.single-fiber
     syntax: single-fiber
     view: port-ethernet
@@ -661,6 +679,8 @@ cards:
       line: 10279
       version: 25.10.R1
     status: draft
+    maps:
+      interface.speed: kw:10|100|1000|10000|25000|40000|50000|100000
   - id: nokia-sros-classic.ssm
     syntax: ssm
     view: port-ethernet
@@ -829,6 +849,8 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      interface.shutdown: flag
   - id: nokia-sros-classic.tdm
     syntax: tdm
     view: port
@@ -868,6 +890,8 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      interface: fmt:lag-{lag-id}
   - id: nokia-sros-classic.access~3
     syntax: access
     view: lag
@@ -929,6 +953,8 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      interface.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
   - id: nokia-sros-classic.dynamic-cost
     syntax: dynamic-cost
     view: lag
@@ -953,6 +979,8 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      interface.encap_type: kw:dot1q|null|qinq
   - id: nokia-sros-classic.eth-cfm~2
     syntax: eth-cfm
     view: lag
@@ -1083,6 +1111,8 @@ cards:
       version: 25.10.R1
       patched: 原文把取值参数 mode 标成了关键字（参数表写明取值为 active / passive），运行配置写作 lacp active administrative-key 32768
     status: draft
+    maps:
+      interface.lag_mode: kw:active|passive
   - id: nokia-sros-classic.link-map-profile
     syntax: link-map-profile <link-map-profile-id> [ create ]
     view: lag
@@ -1136,6 +1166,8 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      interface.port_mode: kw:network|hybrid|access
   - id: nokia-sros-classic.monitor-oper-group~2
     syntax: monitor-oper-group <name>
     view: lag
@@ -1260,6 +1292,8 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      interface{name=$port-id}.lag: ctx:lag-id
   - id: nokia-sros-classic.ptp-timestamping~2
     syntax: ptp-timestamping
     view: lag
@@ -1298,6 +1332,8 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      interface.shutdown: flag
   - id: nokia-sros-classic.standby-signaling
     syntax: standby-signaling { lacp | power-off }
     view: lag
@@ -1325,6 +1361,8 @@ cards:
       line: 6
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.address
     syntax: address { <ip-address/mask> | <ip-address> <netmask> } [ broadcast { all-ones | host-ones } ] [ track-srrp <srrp-instance> ] [ gre-termination ]
     view: router-if
@@ -1349,6 +1387,11 @@ cards:
       line: 50
       version: 25.10.R1
     status: draft
+    maps:
+      interface.ipv4: pfx:addr:$ip-address/mask||$ip-address
+      interface.ipv4.address: pfx:addr:$ip-address/mask||$ip-address
+      interface.ipv4.prefix_length: pfx:len:$ip-address/mask||$netmask
+      interface.ipv4.secondary: 'false'
   - id: nokia-sros-classic.allow-directed-broadcasts
     syntax: allow-directed-broadcasts
     view: router-if
@@ -1475,6 +1518,11 @@ cards:
       line: 806
       version: 25.10.R1
     status: draft
+    maps:
+      interface.bfd: _
+      interface.bfd.min_tx: $transmit-interval
+      interface.bfd.min_rx: $receive-interval
+      interface.bfd.multiplier: $multiplier
   - id: nokia-sros-classic.cflowd-parameters
     syntax: cflowd-parameters
     view: router-if
@@ -1519,6 +1567,8 @@ cards:
       line: 2412
       version: 25.10.R1
     status: draft
+    maps:
+      interface.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
   - id: nokia-sros-classic.dhcp
     syntax: dhcp
     view: router-if
@@ -1685,6 +1735,8 @@ cards:
       line: 4434
       version: 25.10.R1
     status: draft
+    maps:
+      interface: $interface-name
   - id: nokia-sros-classic.interface.2
     syntax: interface <interface-name> pdn
     view: router
@@ -1870,6 +1922,8 @@ cards:
       line: 5735
       version: 25.10.R1
     status: draft
+    maps:
+      interface.loopback: flag
   - id: nokia-sros-classic.mac~3
     syntax: mac <ieee-address>
     view: router-if
@@ -1915,6 +1969,9 @@ cards:
       line: 7442
       version: 25.10.R1
     status: draft
+    maps:
+      interface.bind_port: sap:port:$port-name
+      interface.dot1q_termination: sap:vlan:$port-name
   - id: nokia-sros-classic.proxy-arp-policy
     syntax: proxy-arp-policy <policy-name> [ <policy-name> ] &<1-31>
     view: router-if
@@ -1961,14 +2018,25 @@ cards:
       version: 25.10.R1
     status: draft
   - id: nokia-sros-classic.qos.2
-    syntax: qos <network-policy-id> egress-port-redirect-group <queue-group-name> egress-instance <instance-id> ingress-fp-redirect-group <queue-group-name> ingress-instance <instance-id>
+    syntax: qos <network-policy-id> egress-port-redirect-group <egress-queue-group-name> egress-instance <egress-instance-id> ingress-fp-redirect-group <ingress-queue-group-name> ingress-instance <ingress-instance-id>
     view: router-if
     undo: no qos
     params:
-      network-policy-id: *id002
-      queue-group-name: &id003
+      network-policy-id:
+        type: integer
+        range:
+          - 1
+          - 65535
+      egress-queue-group-name:
         type: word
-      instance-id: &id004
+      egress-instance-id:
+        type: integer
+        range:
+          - 1
+          - 16384
+      ingress-queue-group-name:
+        type: word
+      ingress-instance-id:
         type: integer
         range:
           - 1
@@ -1987,8 +2055,13 @@ cards:
     undo: no qos
     params:
       network-policy-id: *id002
-      queue-group-name: *id003
-      instance-id: *id004
+      queue-group-name: &id003
+        type: word
+      instance-id: &id004
+        type: integer
+        range:
+          - 1
+          - 16384
     default: no qos
     source:
       doc: nokia-sros-classic-md
@@ -2057,6 +2130,11 @@ cards:
       line: 8837
       version: 25.10.R1
     status: draft
+    maps:
+      interface.ipv4: pfx:addr:$ip-address/mask||$ip-address
+      interface.ipv4.address: pfx:addr:$ip-address/mask||$ip-address
+      interface.ipv4.prefix_length: pfx:len:$ip-address/mask||$netmask
+      interface.ipv4.secondary: 'true'
   - id: nokia-sros-classic.shutdown~4
     syntax: shutdown
     view: router-if
@@ -2069,6 +2147,8 @@ cards:
       line: 9147
       version: 25.10.R1
     status: draft
+    maps:
+      interface.shutdown: flag
   - id: nokia-sros-classic.static-arp.1
     syntax: static-arp <ip-address> <ieee-address>
     view: router-if
@@ -2211,7 +2291,7 @@ cards:
   - id: nokia-sros-classic.vrrp
     syntax: vrrp <virtual-router-id> [ owner ] [ passive ] [ monitor-oper-group <group-name> ]
     view: router-if
-    enters_view: opaque
+    enters_view: router-if-vrrp
     undo: no vrrp <virtual-router-id>
     params:
       virtual-router-id:
@@ -2226,3 +2306,6 @@ cards:
       line: 11097
       version: 25.10.R1
     status: draft
+    maps:
+      interface.vrrp: $virtual-router-id
+      interface.vrrp.owner: if:owner:true

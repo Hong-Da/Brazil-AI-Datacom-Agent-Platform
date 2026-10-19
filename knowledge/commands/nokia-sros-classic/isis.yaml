@@ -109,6 +109,8 @@ cards:
       line: 809
       version: 25.10.R1
     status: draft
+    maps:
+      isis.process.area_id: $area-address
   - id: nokia-sros-classic.auth-keychain@isis-level
     syntax: auth-keychain <name>
     view: isis-level
@@ -207,6 +209,8 @@ cards:
       line: 1085
       version: 25.10.R1
     status: draft
+    maps:
+      interface.isis.bfd: flag
   - id: nokia-sros-classic.bier~2
     syntax: bier
     view: isis-level
@@ -455,6 +459,8 @@ cards:
       line: 1943
       version: 25.10.R1
     status: draft
+    maps:
+      isis.process.export_policy: $policy-name
   - id: nokia-sros-classic.export-limit~2
     syntax: export-limit <number> [ log <percentage> ]
     view: isis
@@ -800,6 +806,9 @@ cards:
       line: 3025
       version: 25.10.R1
     status: draft
+    maps:
+      interface{name=$ip-int-name}.isis: _
+      interface{name=$ip-int-name}.isis.process: ctx:isis-instance||0
   - id: nokia-sros-classic.interface-type~2
     syntax: interface-type { broadcast | point-to-point }
     view: isis-if
@@ -812,6 +821,8 @@ cards:
       line: 3069
       version: 25.10.R1
     status: draft
+    maps:
+      interface.isis.p2p: kw:point-to-point=true|broadcast=false
   - id: nokia-sros-classic.ipv4-adjacency-sid
     syntax: ipv4-adjacency-sid label <value>
     view: isis-if
@@ -899,6 +910,10 @@ cards:
       line: 3351
       version: 25.10.R1
     status: draft
+    maps:
+      interface.prefix_sid: isis
+      interface.prefix_sid.index: $index-value
+      interface.prefix_sid.node_disable: kw:clear-n-flag=true:false
   - id: nokia-sros-classic.ipv4-node-sid.2
     syntax: ipv4-node-sid label <label-value> [ clear-n-flag ]
     view: isis-if
@@ -1094,6 +1109,8 @@ cards:
       line: 4008
       version: 25.10.R1
     status: draft
+    maps:
+      isis.process: $isis-instance||0
   - id: nokia-sros-classic.ldp-over-rsvp~2
     syntax: ldp-over-rsvp
     view: isis
@@ -1118,6 +1135,8 @@ cards:
       line: 4122
       version: 25.10.R1
     status: draft
+    maps:
+      interface.isis.level: kw:1|2
   - id: nokia-sros-classic.level@isis
     syntax: level { 1 | 2 }
     view: isis
@@ -1130,6 +1149,8 @@ cards:
       line: 4122
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.level-capability@isis
     syntax: level-capability { level-1 | level-2 | level-1/2 }
     view: isis
@@ -1142,6 +1163,8 @@ cards:
       line: 4244
       version: 25.10.R1
     status: draft
+    maps:
+      isis.process.level: kw:level-1=level-1|level-2=level-2|level-1/2=level-1-2
   - id: nokia-sros-classic.level-capability@isis-if
     syntax: level-capability { level-1 | level-2 | level-1/2 }
     view: isis-if
@@ -1154,6 +1177,8 @@ cards:
       line: 4244
       version: 25.10.R1
     status: draft
+    maps:
+      interface.isis.circuit_type: kw:level-1=level-1|level-2=level-2|level-1/2=level-1-2
   - id: nokia-sros-classic.lfa-policy-map~2
     syntax: lfa-policy-map route-nh-template <template-name>
     view: isis-if
@@ -1346,6 +1371,8 @@ cards:
       line: 5240
       version: 25.10.R1
     status: draft
+    maps:
+      interface.isis.level.metric: $metric
   - id: nokia-sros-classic.mru-mismatch-detection
     syntax: mru-mismatch-detection
     view: isis
@@ -1497,6 +1524,8 @@ cards:
       line: 6470
       version: 25.10.R1
     status: draft
+    maps:
+      interface.isis.passive: flag
   - id: nokia-sros-classic.poi-tlv-enable
     syntax: poi-tlv-enable
     view: isis
@@ -1767,6 +1796,8 @@ cards:
       line: 7387
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.segment-routing-v6
     syntax: segment-routing-v6
     view: isis
@@ -1809,6 +1840,8 @@ cards:
       line: 7511
       version: 25.10.R1
     status: draft
+    maps:
+      isis.process.shutdown: flag
   - id: nokia-sros-classic.shutdown@isis-if-level
     syntax: shutdown
     view: isis-if-level
@@ -1833,6 +1866,8 @@ cards:
       line: 7511
       version: 25.10.R1
     status: draft
+    maps:
+      interface.isis.shutdown: flag
   - id: nokia-sros-classic.sid-protection~2
     syntax: sid-protection
     view: isis-if
@@ -1873,20 +1908,20 @@ cards:
     view: isis
     undo: no summary-address { <ip-prefix/ip-prefix-length> | <ip-prefix> <netmask> }
     params:
-      ip-prefix/ip-prefix-length: &id006
+      ip-prefix/ip-prefix-length:
         type: word
       ip-prefix:
         type: word
-      netmask: &id007
+      netmask:
         type: mask
-      level: &id008
+      level:
         type: word
-      tag: &id009
+      tag:
         type: integer
         range:
           - 1
           - 4294967295
-      algo-id: &id010
+      algo-id:
         type: integer
     default: no summary-address
     source:
@@ -1897,17 +1932,35 @@ cards:
       version: 25.10.R1
     status: draft
   - id: nokia-sros-classic.summary-address.2
-    syntax: summary-address { <ip-prefix/ip-prefix-length> | <ip-prefix> <netmask> } [ <level> ] [ tag <tag> ] [ algorithm <algo-id> ] advertise-unreachable [ match-route-tag <tag> ] [ advertise-route-tag <tag> ]
+    syntax: summary-address { <ip-prefix/ip-prefix-length> | <ip-prefix> <netmask> } [ <level> ] [ tag <tag> ] [ algorithm <algo-id> ] advertise-unreachable [ match-route-tag <match-tag> ] [ advertise-route-tag <advertise-tag> ]
     view: isis
     undo: no summary-address { <ip-prefix/ip-prefix-length> | <ip-prefix> <netmask> }
     params:
-      ip-prefix/ip-prefix-length: *id006
+      ip-prefix/ip-prefix-length:
+        type: word
       ip-prefix:
         type: word
-      netmask: *id007
-      level: *id008
-      tag: *id009
-      algo-id: *id010
+      netmask:
+        type: mask
+      level:
+        type: word
+      tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      algo-id:
+        type: integer
+      match-tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
+      advertise-tag:
+        type: integer
+        range:
+          - 1
+          - 4294967295
     default: no summary-address
     source:
       doc: nokia-sros-classic-md
@@ -1942,6 +1995,8 @@ cards:
       line: 8060
       version: 25.10.R1
     status: draft
+    maps:
+      isis.process.system_id: $isis-system-id
   - id: nokia-sros-classic.tag
     syntax: tag <tag>
     view: isis-if
@@ -1983,6 +2038,8 @@ cards:
       line: 8301
       version: 25.10.R1
     status: draft
+    maps:
+      isis.process.te: flag
   - id: nokia-sros-classic.traffic-engineering-options~2
     syntax: traffic-engineering-options
     view: isis
@@ -2044,6 +2101,8 @@ cards:
       line: 8697
       version: 25.10.R1
     status: draft
+    maps:
+      isis.process.metric_style: wide
   - id: nokia-sros-classic.lsp-refresh-interval
     syntax: lsp-refresh-interval [ <seconds> ] [ half-lifetime { enable | disable } ]
     view: isis

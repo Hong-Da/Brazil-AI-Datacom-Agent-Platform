@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 
 from lmesh.api.common import (
+    E_FORBIDDEN,
     E_NOT_FOUND,
     E_PARAM,
     E_STATE,
@@ -51,10 +52,20 @@ def summary(request: Request) -> dict[str, Any]:
     return ok(request, workbench.summary(settings_of(request)))
 
 
-@router.post("/devices/rebuild", summary="按当前知识库重新解析全部设备（后台任务）")
+@router.post(
+    "/devices/rebuild",
+    summary="按当前知识库重新解析设备（后台任务）：项目路径下为本项目的设备（属主与可编辑成员）；旧路径为全部设备（只限管理员）",
+)
 def devices_rebuild(request: Request) -> dict[str, Any]:
+    from lmesh.core import importer
+
     db, root = _db(request), _root(request)
-    return ok(request, {"task_id": tasks.submit(db, "rebuild", lambda p: workbench.rebuild_all(db, root, p))})
+    if getattr(request.state, "project_via", "path") == "legacy":
+        if not request.state.principal.is_admin:
+            raise ApiError(E_FORBIDDEN, 403)
+        return ok(request, {"task_id": tasks.submit(db, "rebuild", lambda p: workbench.rebuild_all(db, root, p))})
+    ids = [d["id"] for d in importer.list_devices(db)]
+    return ok(request, {"task_id": tasks.submit(db, "rebuild", lambda p: workbench.rebuild_all(db, root, p, ids))})
 
 
 @router.post("/devices/{device_id}/rebuild", summary="按当前知识库重新解析一台设备")

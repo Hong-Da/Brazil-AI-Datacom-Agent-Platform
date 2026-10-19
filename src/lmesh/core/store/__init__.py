@@ -63,9 +63,21 @@ def upgrade(url: str) -> None:
         if url in _UPGRADED:
             return
         cfg = _alembic_config(url)
-        with get_engine(url).begin() as conn:
-            cfg.attributes["connection"] = conn
-            command.upgrade(cfg, "head")
+        sqlite = url.startswith("sqlite")
+        with get_engine(url).connect() as conn:
+            if sqlite:
+                # 迁移中重建表（batch）时必须关闭外键：SQLite 删除被引用的旧表会按 ON DELETE CASCADE 删掉子表数据。
+                # PRAGMA 在事务内无效，所以在开始事务前设置，结束后恢复。
+                conn.exec_driver_sql("PRAGMA foreign_keys=OFF")
+                conn.commit()
+            try:
+                with conn.begin():
+                    cfg.attributes["connection"] = conn
+                    command.upgrade(cfg, "head")
+            finally:
+                if sqlite:
+                    conn.exec_driver_sql("PRAGMA foreign_keys=ON")
+                    conn.commit()
         _UPGRADED.add(url)
 
 

@@ -107,7 +107,14 @@ def test_setup_with_admin_signs_in(tmp_root: Path) -> None:
     assert data["admin"]["username"] == "admin" and data["session_expires_at"]
     assert "Admin-pass-1" not in r.text
     me = c.get("/api/v1/auth/me").json()["data"]
-    assert me == {"username": "admin", "role": "admin", "via": "session", "expires_at": me["expires_at"]}
+    assert me == {
+        "username": "admin",
+        "role": "admin",
+        "via": "session",
+        "expires_at": me["expires_at"],
+        "read_only": False,
+        "token_prefix": None,
+    }
     assert c.get("/api/v1/auth/status").json()["data"]["has_users"] is True
 
 

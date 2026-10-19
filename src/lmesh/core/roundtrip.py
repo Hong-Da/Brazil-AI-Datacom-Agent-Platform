@@ -61,8 +61,7 @@ def manifest(kb_root: Path) -> list[dict[str, Any]]:
             "topology",
             "migration",
             "change",
-            "nokia-sros-classic-synthetic",
-        )  # 对比、翻译、拓扑、迁移、变更基准与 Nokia 合成样本（Profile 在 M7-3 建立前）有自己的清单
+        )  # 对比、翻译、拓扑、迁移、变更基准有自己的清单
     ]
 
 

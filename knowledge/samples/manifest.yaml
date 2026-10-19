@@ -20,3 +20,7 @@ samples:
   - {file: cisco-ios-public/batfish_testconfig_ios_interface_show_run_all.txt, profile: cisco-iosxe-asr920-17.15, gate: true}
   - {file: cisco-ios-public/batfish_testconfig_ios_bgp_show_run_all.txt, profile: cisco-iosxe-asr920-17.15, gate: false, note: show run all 片段，含 0.1.0 以外的 bgp default 写法}
   - {file: cisco-ios-public/batfish_unit-tests_cisco_interface.txt, profile: cisco-iosxe-asr920-17.15, gate: false, note: 解析器单元测试片段，含罕见写法}
+  # M7-3：Nokia SR OS 25.10 Classic CLI 合成样本（M7-1 / M7-2 编写，M7-3 补业务；原来有自己的清单，Profile 建好后并入）
+  - {file: nokia-sros-classic-synthetic/classic-pe-basic.cfg, profile: nokia-sros-classic-7750-25.10, gate: true, note: 合成的 Nokia 7750 系统基本项、端口、LAG、路由器接口与 VRRP、静态路由、OSPF、LDP}
+  - {file: nokia-sros-classic-synthetic/classic-pe-services.cfg, profile: nokia-sros-classic-7750-25.10, gate: true, note: 合成的 Nokia 7750 过滤器、QoS 策略、客户、SDP、Epipe、VPLS、VPRN、IES}
+  - {file: nokia-sros-classic-synthetic/classic-pe-routing-mgmt.cfg, profile: nokia-sros-classic-7750-25.10, gate: true, note: 合成的 Nokia 7750 管理面、OSPF、IS-IS、BGP、路由策略、MPLS / RSVP / LDP、SR}

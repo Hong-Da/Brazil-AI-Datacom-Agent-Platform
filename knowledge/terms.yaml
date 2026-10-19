@@ -7,9 +7,13 @@
 #   values  键值的改写，例如华为地址族 ipv4 写成 unicast
 # attrs：属性在两种风格下的命令关键字（只列与 Schema 名称明显不同、需要对照的）
 # Schema 的结构与默认叫法以华为为基准（Cisco 映射到华为的结构上）；这里只决定怎么显示，不影响解析、对比、检查的结果。
+# nokia（M7-3，REQ-037）：可选的第三种风格。对象可以另写 nokia: {name, label, values}，属性可以另写 nokia: 关键字；
+#   没有登记 nokia 写法的对象与属性按华为风格显示（core/terms.py 的 REQUIRED_STYLES 只要求华为与 Cisco 两种）。
+#   界面的风格切换（REQ-026）加 “Nokia” 选项在 M7-5 做；后端（报告的 --style nokia、术语接口）已经可用。
 styles:
   huawei: {zh-CN: 华为风格, en: Huawei style, pt-BR: Estilo Huawei}
   cisco: {zh-CN: Cisco 风格, en: Cisco style, pt-BR: Estilo Cisco}
+  nokia: {zh-CN: Nokia 风格, en: Nokia style, pt-BR: Estilo Nokia}
 default: huawei
 
 objects:
@@ -17,18 +21,23 @@ objects:
   interface:
     huawei: {name: {zh-CN: 接口, en: Interface, pt-BR: Interface}, label: ["interface {name}"]}
     cisco: {name: {zh-CN: 接口, en: Interface, pt-BR: Interface}, label: ["interface {name}"]}
+    nokia: {name: {zh-CN: 端口 / 接口, en: Port / interface, pt-BR: Porta / interface}, label: ["port {name} ? name"]}
   interface.ipv4:
     huawei: {name: {zh-CN: IPv4 地址, en: IPv4 address, pt-BR: Endereço IPv4}, label: ["ip address {address}"]}
     cisco: {name: {zh-CN: IPv4 地址, en: IPv4 address, pt-BR: Endereço IPv4}, label: ["ip address {address}"]}
+    nokia: {name: {zh-CN: IPv4 地址, en: IPv4 address, pt-BR: Endereço IPv4}, label: ["address {address}"]}
   interface.access:
+    nokia: {name: {zh-CN: SAP（接入点）, en: SAP (access point), pt-BR: SAP (ponto de acesso)}, label: ["sap :{id} ? id", "sap"]}
     huawei: {name: {zh-CN: 子接口接入点, en: Sub-interface access point, pt-BR: Ponto de acesso da subinterface}, label: ["sub-interface .{id} ? id", "encapsulation (l2 sub-interface)"]}
     cisco: {name: {zh-CN: 业务实例（EFP）, en: Service instance (EFP), pt-BR: Instância de serviço (EFP)}, label: ["service instance {id} ethernet ? id", "service instance"]}
   interface.ospf:
     huawei: {name: {zh-CN: 接口 OSPF 参数, en: Interface OSPF settings, pt-BR: Parâmetros OSPF da interface}, label: ["ospf"]}
     cisco: {name: {zh-CN: 接口 OSPF 参数, en: Interface OSPF settings, pt-BR: Parâmetros OSPF da interface}, label: ["ip ospf"]}
+    nokia: {name: {zh-CN: OSPF 接口, en: OSPF interface, pt-BR: Interface OSPF}, label: ["ospf area interface"]}
   interface.isis:
     huawei: {name: {zh-CN: 接口 IS-IS 参数, en: Interface IS-IS settings, pt-BR: Parâmetros IS-IS da interface}, label: ["isis"]}
     cisco: {name: {zh-CN: 接口 IS-IS 参数, en: Interface IS-IS settings, pt-BR: Parâmetros IS-IS da interface}, label: ["ip router isis"]}
+    nokia: {name: {zh-CN: IS-IS 接口, en: IS-IS interface, pt-BR: Interface IS-IS}, label: ["isis interface"]}
   interface.bfd:
     huawei: {name: {zh-CN: 接口 BFD 参数, en: Interface BFD settings, pt-BR: Parâmetros BFD da interface}, label: ["bfd"]}
     cisco: {name: {zh-CN: 接口 BFD 参数, en: Interface BFD settings, pt-BR: Parâmetros BFD da interface}, label: ["bfd interval"]}
@@ -39,6 +48,7 @@ objects:
   vrf.instance:
     huawei: {name: {zh-CN: VPN 实例, en: VPN instance, pt-BR: Instância VPN}, label: ["ip vpn-instance {name}"]}
     cisco: {name: {zh-CN: VRF, en: VRF, pt-BR: VRF}, label: ["vrf definition {name}"]}
+    nokia: {name: {zh-CN: VPRN 业务, en: VPRN service, pt-BR: Serviço VPRN}, label: ["vprn {name}"]}
   vrf.instance.af:
     huawei:
       name: {zh-CN: VPN 实例地址族, en: VPN instance address family, pt-BR: Família de endereços da instância VPN}
@@ -66,12 +76,15 @@ objects:
   bgp.instance:
     huawei: {name: {zh-CN: BGP 进程, en: BGP process, pt-BR: Processo BGP}, label: ["bgp {asn}"]}
     cisco: {name: {zh-CN: BGP 进程, en: BGP process, pt-BR: Processo BGP}, label: ["router bgp {asn}"]}
+    nokia: {name: {zh-CN: BGP（router Base）, en: BGP (router Base), pt-BR: BGP (router Base)}, label: ["router Base bgp (autonomous-system {asn})"]}
   bgp.peer:
     huawei: {name: {zh-CN: BGP 对等体, en: BGP peer, pt-BR: Par BGP}, label: ["peer {address}"]}
     cisco: {name: {zh-CN: BGP 邻居, en: BGP neighbor, pt-BR: Vizinho BGP}, label: ["neighbor {address}"]}
+    nokia: {name: {zh-CN: BGP 邻居, en: BGP neighbor, pt-BR: Vizinho BGP}, label: ["neighbor {address}"]}
   bgp.peer_group:
     huawei: {name: {zh-CN: 对等体组, en: Peer group, pt-BR: Grupo de pares}, label: ["group {name}"]}
     cisco: {name: {zh-CN: 邻居组（peer-group）, en: Peer group, pt-BR: Grupo de pares}, label: ["neighbor {name} peer-group"]}
+    nokia: {name: {zh-CN: BGP 组, en: BGP group, pt-BR: Grupo BGP}, label: ["group \"{name}\""]}
   bgp.af:
     huawei:
       name: {zh-CN: BGP 地址族, en: BGP address family, pt-BR: Família de endereços BGP}
@@ -93,12 +106,15 @@ objects:
   rp.policy:
     huawei: {name: {zh-CN: 路由策略, en: Route policy, pt-BR: Política de rotas}, label: ["route-policy {name}"]}
     cisco: {name: {zh-CN: 路由映射（route-map）, en: Route map, pt-BR: Route map}, label: ["route-map {name}"]}
+    nokia: {name: {zh-CN: 策略语句, en: Policy statement, pt-BR: Policy statement}, label: ["policy-statement \"{name}\""]}
   rp.policy.node:
     huawei: {name: {zh-CN: 策略节点, en: Policy node, pt-BR: Nó da política}, label: ["node {seq}"]}
     cisco: {name: {zh-CN: 序号条目, en: Sequence, pt-BR: Sequência}, label: ["seq {seq}"]}
+    nokia: {name: {zh-CN: 策略条目, en: Policy entry, pt-BR: Entrada da política}, label: ["entry {seq}"]}
   rp.prefix_list:
     huawei: {name: {zh-CN: IP 前缀列表, en: IP prefix list, pt-BR: Lista de prefixos IP}, label: ["ip ip-prefix {name}"]}
     cisco: {name: {zh-CN: 前缀列表, en: Prefix list, pt-BR: Lista de prefixos}, label: ["ip prefix-list {name}"]}
+    nokia: {name: {zh-CN: 前缀列表, en: Prefix list, pt-BR: Lista de prefixos}, label: ["prefix-list \"{name}\""]}
   rp.prefix_list.entry:
     huawei: {name: {zh-CN: 前缀列表规则, en: Prefix list entry, pt-BR: Entrada da lista de prefixos}, label: ["index {seq}"]}
     cisco: {name: {zh-CN: 前缀列表规则, en: Prefix list entry, pt-BR: Entrada da lista de prefixos}, label: ["seq {seq}"]}
@@ -112,6 +128,7 @@ objects:
   ospf.process:
     huawei: {name: {zh-CN: OSPF 进程, en: OSPF process, pt-BR: Processo OSPF}, label: ["ospf {id}"]}
     cisco: {name: {zh-CN: OSPF 进程, en: OSPF process, pt-BR: Processo OSPF}, label: ["router ospf {id}"]}
+    nokia: {name: {zh-CN: OSPF 实例, en: OSPF instance, pt-BR: Instância OSPF}, label: ["ospf {id}"]}
   ospf.process.area:
     huawei: {name: {zh-CN: OSPF 区域, en: OSPF area, pt-BR: Área OSPF}, label: ["area {id}"]}
     cisco: {name: {zh-CN: OSPF 区域, en: OSPF area, pt-BR: Área OSPF}, label: ["area {id}"]}
@@ -127,6 +144,7 @@ objects:
   isis.process:
     huawei: {name: {zh-CN: IS-IS 进程, en: IS-IS process, pt-BR: Processo IS-IS}, label: ["isis {id}"]}
     cisco: {name: {zh-CN: IS-IS 进程, en: IS-IS process, pt-BR: Processo IS-IS}, label: ["router isis {id}"]}
+    nokia: {name: {zh-CN: IS-IS 实例, en: IS-IS instance, pt-BR: Instância IS-IS}, label: ["isis {id}"]}
   isis.process.net:
     huawei: {name: {zh-CN: 网络实体名称, en: Network entity title, pt-BR: NET}, label: ["network-entity {value}"]}
     cisco: {name: {zh-CN: 网络实体名称, en: Network entity title, pt-BR: NET}, label: ["net {value}"]}
@@ -140,6 +158,7 @@ objects:
   mgmt.ntp:
     huawei: {name: {zh-CN: NTP 服务, en: NTP, pt-BR: NTP}, label: ["ntp-service"]}
     cisco: {name: {zh-CN: NTP 服务, en: NTP, pt-BR: NTP}, label: ["ntp"]}
+    nokia: {name: {zh-CN: NTP, en: NTP, pt-BR: NTP}, label: ["system time ntp"]}
   mgmt.ntp.server:
     huawei: {name: {zh-CN: NTP 服务器, en: NTP server, pt-BR: Servidor NTP}, label: ["ntp-service unicast-server {address}"]}
     cisco: {name: {zh-CN: NTP 服务器, en: NTP server, pt-BR: Servidor NTP}, label: ["ntp server {address}"]}
@@ -161,6 +180,7 @@ objects:
   mgmt.syslog.host:
     huawei: {name: {zh-CN: 日志主机, en: Log host, pt-BR: Host de log}, label: ["info-center loghost {address}"]}
     cisco: {name: {zh-CN: 日志服务器, en: Logging host, pt-BR: Host de log}, label: ["logging host {address}"]}
+    nokia: {name: {zh-CN: Syslog 目标, en: Syslog target, pt-BR: Destino syslog}, label: ["log syslog (address {address})"]}
   mgmt.ssh:
     huawei: {name: {zh-CN: STelnet / SSH 服务, en: STelnet / SSH server, pt-BR: Servidor STelnet / SSH}, label: ["stelnet server"]}
     cisco: {name: {zh-CN: SSH 服务, en: SSH server, pt-BR: Servidor SSH}, label: ["ip ssh"]}
@@ -385,6 +405,36 @@ objects:
   interface.clock:
     huawei: {name: {zh-CN: 接口时钟源设置, en: Interface clock source settings, pt-BR: Parâmetros de fonte de relógio da interface}, label: [clock synchronization]}
     cisco: {name: {zh-CN: 接口同步模式, en: Interface synchronous mode, pt-BR: Modo síncrono da interface}, label: [synchronous mode]}
+  # ---------- M7-3（Nokia SR OS）----------
+  mgmt.system:
+    huawei: {name: {zh-CN: 系统, en: System, pt-BR: Sistema}, label: ["sysname"]}
+    cisco: {name: {zh-CN: 系统, en: System, pt-BR: Sistema}, label: ["hostname"]}
+    nokia: {name: {zh-CN: 系统, en: System, pt-BR: Sistema}, label: ["system"]}
+  service.customer:
+    huawei: {name: {zh-CN: 客户（Nokia 特有）, en: Customer (Nokia only), pt-BR: Cliente (somente Nokia)}, label: ["customer {id}"]}
+    cisco: {name: {zh-CN: 客户（Nokia 特有）, en: Customer (Nokia only), pt-BR: Cliente (somente Nokia)}, label: ["customer {id}"]}
+    nokia: {name: {zh-CN: 客户, en: Customer, pt-BR: Cliente}, label: ["customer {id}"]}
+  service.sdp:
+    huawei: {name: {zh-CN: SDP（Nokia 特有：伪线对端与隧道）, en: SDP (Nokia only), pt-BR: SDP (somente Nokia)}, label: ["sdp {id}"]}
+    cisco: {name: {zh-CN: SDP（Nokia 特有：伪线对端与隧道）, en: SDP (Nokia only), pt-BR: SDP (somente Nokia)}, label: ["sdp {id}"]}
+    nokia: {name: {zh-CN: SDP, en: SDP, pt-BR: SDP}, label: ["sdp {id}"]}
+  service.ies:
+    huawei: {name: {zh-CN: IES 业务（Nokia 特有）, en: IES service (Nokia only), pt-BR: Serviço IES (somente Nokia)}, label: ["ies {name}"]}
+    cisco: {name: {zh-CN: IES 业务（Nokia 特有）, en: IES service (Nokia only), pt-BR: Serviço IES (somente Nokia)}, label: ["ies {name}"]}
+    nokia: {name: {zh-CN: IES 业务, en: IES service, pt-BR: Serviço IES}, label: ["ies {name}"]}
+  qos.sap_ingress:
+    huawei: {name: {zh-CN: SAP 入方向 QoS 策略（Nokia 特有）, en: SAP ingress QoS policy (Nokia only), pt-BR: Política QoS de entrada do SAP (somente Nokia)}, label: ["sap-ingress {id}"]}
+    cisco: {name: {zh-CN: SAP 入方向 QoS 策略（Nokia 特有）, en: SAP ingress QoS policy (Nokia only), pt-BR: Política QoS de entrada do SAP (somente Nokia)}, label: ["sap-ingress {id}"]}
+    nokia: {name: {zh-CN: SAP 入方向 QoS 策略, en: SAP ingress QoS policy, pt-BR: Política QoS de entrada do SAP}, label: ["qos sap-ingress {id}"]}
+  qos.sap_egress:
+    huawei: {name: {zh-CN: SAP 出方向 QoS 策略（Nokia 特有）, en: SAP egress QoS policy (Nokia only), pt-BR: Política QoS de saída do SAP (somente Nokia)}, label: ["sap-egress {id}"]}
+    cisco: {name: {zh-CN: SAP 出方向 QoS 策略（Nokia 特有）, en: SAP egress QoS policy (Nokia only), pt-BR: Política QoS de saída do SAP (somente Nokia)}, label: ["sap-egress {id}"]}
+    nokia: {name: {zh-CN: SAP 出方向 QoS 策略, en: SAP egress QoS policy, pt-BR: Política QoS de saída do SAP}, label: ["qos sap-egress {id}"]}
+  interface.isis.level:
+    huawei: {name: {zh-CN: 接口 IS-IS 级别参数, en: Interface IS-IS level, pt-BR: Nível IS-IS da interface}, label: ["isis … level-{level}"]}
+    cisco: {name: {zh-CN: 接口 IS-IS 级别参数, en: Interface IS-IS level, pt-BR: Nível IS-IS da interface}, label: ["isis … level-{level}"]}
+    nokia: {name: {zh-CN: 接口 IS-IS 级别, en: Interface IS-IS level, pt-BR: Nível IS-IS da interface}, label: ["level {level}"]}
+
 attrs:
   interface.vrf: {huawei: ip binding vpn-instance, cisco: vrf forwarding}
   interface.mtu: {huawei: mtu, cisco: mtu}
@@ -470,3 +520,19 @@ attrs:
   bridge_domain.evpn_instance: {huawei: evpn binding vpn-instance, cisco: member evpn-instance}
   clock.sync.ssm_control: {huawei: clock ssm-control on, cisco: network-clock synchronization mode ql-enabled}
   interface.clock.synchronization: {huawei: clock synchronization enable, cisco: synchronous mode}
+  # M7-3（Nokia SR OS）
+  interface.bind_port: {huawei: （三层接口即端口）, cisco: （三层接口即端口）, nokia: port}
+  interface.port_mode: {huawei: （无对应）, cisco: （无对应）, nokia: mode}
+  interface.encap_type: {huawei: （按子接口封装）, cisco: （按业务实例封装）, nokia: encap-type}
+  interface.access.inner_vlan: {huawei: encapsulation qinq … ce-vid, cisco: second-dot1q, nokia: 'sap <端口>:<外层>.<内层>'}
+  static.route.recursive: {huawei: （缺省迭代）, cisco: （缺省迭代）, nokia: indirect}
+  static.route.bfd: {huawei: bfd enable, cisco: bfd, nokia: bfd-enable}
+  ospf.process.export_policy: {huawei: （import-route … route-policy）, cisco: （redistribute … route-map）, nokia: export}
+  isis.process.area_id: {huawei: network-entity（区域部分）, cisco: net（区域部分）, nokia: area-id}
+  isis.process.export_policy: {huawei: （import-route … route-policy）, cisco: （redistribute … route-map）, nokia: export}
+  bgp.peer_group.family: {huawei: （地址族视图 peer … enable）, cisco: （address-family … activate）, nokia: family}
+  bgp.peer_group.export_policy: {huawei: （按地址族 route-policy … export）, cisco: （按地址族 route-map … out）, nokia: export}
+  rp.policy.default_action: {huawei: （隐含拒绝）, cisco: （隐含拒绝）, nokia: default-action}
+  rp.prefix_list.entry.match_type: {huawei: greater-equal / less-equal, cisco: ge / le, nokia: exact / longer / through}
+  mgmt.system.name: {huawei: sysname, cisco: hostname, nokia: name}
+  mgmt.system.router_id: {huawei: router id, cisco: （无全局命令）, nokia: router-id}

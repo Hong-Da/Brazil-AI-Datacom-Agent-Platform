@@ -1,0 +1,2052 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: acl
+cards:
+  - id: nokia-sros-classic.action~2
+    syntax: action [ secondary ]
+    view: ip-filter-entry
+    enters_view: ip-filter-action
+    undo: no action [ secondary ]
+    default: no action
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: action
+      line: 6
+      version: 25.10.R1
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-classic.chain-to-system-filter
+    syntax: chain-to-system-filter
+    view: ip-filter
+    undo: no chain-to-system-filter
+    default: no chain-to-system-filter
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: chain-to-system-filter
+      line: 52
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.default-action~2
+    syntax: default-action { drop | forward }
+    view: ip-filter
+    default: default-action drop
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: default-action
+      line: 93
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.default_action: kw:forward=permit|drop=deny
+  - id: nokia-sros-classic.description@ip-filter-entry
+    syntax: description <short-description-string>
+    view: ip-filter-entry
+    undo: no description
+    params: &id001
+      short-description-string:
+        type: text
+    default: no description
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: description
+      line: 134
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
+  - id: nokia-sros-classic.description@ip-filter
+    syntax: description <short-description-string>
+    view: ip-filter
+    undo: no description
+    params: *id001
+    default: no description
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: description
+      line: 134
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
+  - id: nokia-sros-classic.destination-class
+    syntax: destination-class <dest-index>
+    view: ip-filter-match
+    undo: no destination-class
+    params:
+      dest-index:
+        type: integer
+        range:
+          - 1
+          - 255
+    default: no destination-class
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: destination-class
+      line: 669
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.drop.1
+    syntax: drop
+    view: ip-filter-action
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: drop
+      line: 712
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.action: deny
+  - id: nokia-sros-classic.drop.2
+    syntax: drop packet-length { lt | gt | eq } <packet-length-value>
+    view: ip-filter-action
+    params:
+      packet-length-value: &id002
+        type: integer
+        range:
+          - 0
+          - 65535
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: drop
+      line: 712
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.drop.3
+    syntax: drop packet-length range <packet-length-value> <packet-length-value-end>
+    view: ip-filter-action
+    params:
+      packet-length-value: *id002
+      packet-length-value-end:
+        type: integer
+        range: &id018
+          - 0
+          - 65535
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: drop
+      line: 712
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.drop.4
+    syntax: drop pattern expression <expression> mask <mask> offset-type <offset-type> offset-value <offset-value>
+    view: ip-filter-action
+    params:
+      expression:
+        type: word
+      mask:
+        type: mask
+      offset-type:
+        type: word
+      offset-value:
+        type: integer
+        range:
+          - 0
+          - 255
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: drop
+      line: 712
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.drop.5
+    syntax: drop ttl { lt | gt | eq } <ttl-value>
+    view: ip-filter-action
+    params:
+      ttl-value: &id003
+        type: integer
+        range:
+          - 0
+          - 255
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: drop
+      line: 712
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.drop.6
+    syntax: drop ttl range <ttl-value> <ttl-value-end>
+    view: ip-filter-action
+    params:
+      ttl-value: *id003
+      ttl-value-end:
+        type: integer
+        range: &id023
+          - 0
+          - 255
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: drop
+      line: 712
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.drop-extracted-traffic
+    syntax: drop-extracted-traffic
+    view: ip-filter-action
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: drop-extracted-traffic
+      line: 773
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dscp
+    syntax: dscp <dscp-name>
+    view: ip-filter-match
+    undo: no dscp
+    params:
+      dscp-name:
+        type: word
+    default: no dscp
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: dscp
+      line: 802
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dst-ip.2
+    syntax: dst-ip { <ip-address/mask> | <ip-address> <ipv4-address-mask> | ip-prefix-list <prefix-list-name> }
+    view: ip-filter-match
+    undo: no dst-ip
+    params:
+      ip-address/mask:
+        type: prefix
+      ip-address:
+        type: ipv4
+      ipv4-address-mask:
+        type: mask
+      prefix-list-name: &id004
+        type: word
+    default: no dst-ip
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: dst-ip
+      line: 845
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.destination_ip: pfx:addr:$ip-address/mask||$ip-address
+      acl.instance.rule.destination_wildcard: pfx:wild:$ip-address/mask
+  - id: nokia-sros-classic.dst-ip.4
+    syntax: dst-ip { <ipv6-address/prefix-length> | <ipv6-address> <ipv6-address-mask> | ipv6-prefix-list <prefix-list-name> }
+    view: ip-filter-match
+    undo: no dst-ip
+    params:
+      ipv6-address/prefix-length:
+        type: word
+      ipv6-address:
+        type: word
+      ipv6-address-mask:
+        type: word
+      prefix-list-name: *id004
+    default: no dst-ip
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: dst-ip
+      line: 845
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dst-port.1
+    syntax: dst-port { lt | gt | eq } <dst-port-number>
+    view: ip-filter-match
+    undo: no dst-port
+    params:
+      dst-port-number: &id005
+        type: word
+    default: no dst-port
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: dst-port
+      line: 914
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.destination_port: tail:dst-port
+  - id: nokia-sros-classic.dst-port.2
+    syntax: dst-port port-list <port-list-name>
+    view: ip-filter-match
+    undo: no dst-port
+    params:
+      port-list-name:
+        type: word
+    default: no dst-port
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: dst-port
+      line: 914
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.dst-port.3
+    syntax: dst-port range <dst-port-number> <dst-port-number-end>
+    view: ip-filter-match
+    undo: no dst-port
+    params:
+      dst-port-number: *id005
+      dst-port-number-end:
+        type: word
+    default: no dst-port
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: dst-port
+      line: 914
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.destination_port: tail:dst-port
+  - id: nokia-sros-classic.egress-pbr
+    syntax: egress-pbr { default-load-balancing | l4-load-balancing }
+    view: ip-filter-entry
+    undo: no egress-pbr
+    default: no egress-pbr
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: egress-pbr
+      line: 978
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.embed-filter.1
+    syntax: embed-filter <ip-filter-id> [ offset <offset> ] [ { active | inactive } ]
+    view: ip-filter
+    undo: no embed-filter <ip-filter-id>
+    params:
+      ip-filter-id:
+        type: word
+      offset: &id006
+        type: integer
+        range:
+          - 0
+          - 2097151
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: embed-filter
+      line: 1022
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.embed-filter.2
+    syntax: embed-filter <ipv6-filter-id> [ offset <offset> ] [ { active | inactive } ]
+    view: ip-filter
+    undo: no embed-filter <ip-filter-id>
+    params:
+      ipv6-filter-id:
+        type: word
+      offset: *id006
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: embed-filter
+      line: 1022
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.embed-filter.3
+    syntax: embed-filter flowspec [ group <group-id> ] [ router { <router-instance> | service-name <vprn-service-name> } ] [ offset <offset> ] [ { active | inactive } ]
+    view: ip-filter
+    undo: no embed-filter flowspec [ group <group-id> ]
+    params:
+      group-id:
+        type: integer
+        range:
+          - 0
+          - 16383
+      router-instance:
+        type: word
+      vprn-service-name:
+        type: word
+      offset: *id006
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: embed-filter
+      line: 1022
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.embed-filter.4
+    syntax: embed-filter open-flow <ofs-name> [ { system | service { <service-id> | <service-name> } | sap <sap-id> } ] [ offset <offset> ] [ { active | inactive } ]
+    view: ip-filter
+    undo: no embed-filter open-flow <ofs-name> [ { system | service { <service-id> | <service-name> } | sap <sap-id> } ]
+    params:
+      ofs-name:
+        type: word
+      service-id:
+        type: integer
+        range:
+          - 1
+          - 2147483647
+      service-name:
+        type: word
+      sap-id:
+        type: sap
+      offset: *id006
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: embed-filter
+      line: 1022
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.entry~2
+    syntax: entry <entry-id> [ create ]
+    view: ip-filter
+    enters_view: ip-filter-entry
+    undo: no entry <entry-id>
+    params:
+      entry-id:
+        type: integer
+        range:
+          - 1
+          - 2097151
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: entry
+      line: 1103
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule: $entry-id
+  - id: nokia-sros-classic.extended-action
+    syntax: extended-action
+    view: ip-filter-action
+    enters_view: opaque
+    undo: no extended-action
+    default: no extended-action
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: extended-action
+      line: 1160
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.fc~2
+    syntax: fc <fc-name>
+    view: ip-filter-action
+    undo: no fc
+    params:
+      fc-name:
+        type: word
+    default: no fc
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: fc
+      line: 1197
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.filter-sample
+    syntax: filter-sample
+    view: ip-filter-entry
+    undo: no filter-sample
+    default: no filter-sample
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: filter-sample
+      line: 1240
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.1
+    syntax: forward
+    view: ip-filter-action
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.action: permit
+  - id: nokia-sros-classic.forward.2
+    syntax: forward bonding-connection <connection-id>
+    view: ip-filter-action
+    params:
+      connection-id:
+        type: integer
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.3
+    syntax: forward esi <esi> sf-ip <ip-address> vas-interface <interface-name> router <router-instance>
+    view: ip-filter-action
+    params:
+      esi: &id007
+        type: word
+      ip-address: &id010
+        type: ipv4
+      interface-name: &id008
+        type: word
+      router-instance: &id009
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.4
+    syntax: forward esi <esi> sf-ip <ipv6-address> vas-interface <interface-name> router <router-instance>
+    view: ip-filter-action
+    params:
+      esi: *id007
+      ipv6-address: &id011
+        type: word
+      interface-name: *id008
+      router-instance: *id009
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.5
+    syntax: forward esi <esi> sf-ip <ip-address> vas-interface <interface-name> router service-name <service-name>
+    view: ip-filter-action
+    params:
+      esi: *id007
+      ip-address: *id010
+      interface-name: *id008
+      service-name: &id012
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.6
+    syntax: forward esi <esi> sf-ip <ipv6-address> vas-interface <interface-name> router service-name <service-name>
+    view: ip-filter-action
+    params:
+      esi: *id007
+      ipv6-address: *id011
+      interface-name: *id008
+      service-name: *id012
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.7
+    syntax: forward esi <esi> service-id <vpls-service-id>
+    view: ip-filter-action
+    params:
+      esi: *id007
+      vpls-service-id:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.8
+    syntax: forward gre-tunnel <gre-tunnel-name>
+    view: ip-filter-action
+    params:
+      gre-tunnel-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.9
+    syntax: forward lsp <lsp-name>
+    view: ip-filter-action
+    params:
+      lsp-name: &id014
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.10
+    syntax: forward mpls-policy <ip-address>
+    view: ip-filter-action
+    params:
+      ip-address: *id010
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.11
+    syntax: forward mpls-policy <ipv6-address>
+    view: ip-filter-action
+    params:
+      ipv6-address: *id011
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.12
+    syntax: forward next-hop <ip-address>
+    view: ip-filter-action
+    params:
+      ip-address: *id010
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.13
+    syntax: forward next-hop <ipv6-address>
+    view: ip-filter-action
+    params:
+      ipv6-address: *id011
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.14
+    syntax: forward next-hop <ip-address> router <router-instance>
+    view: ip-filter-action
+    params:
+      ip-address: *id010
+      router-instance: *id009
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.15
+    syntax: forward next-hop <ipv6-address> router <router-instance>
+    view: ip-filter-action
+    params:
+      ipv6-address: *id011
+      router-instance: *id009
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.16
+    syntax: forward next-hop <ip-address> router service-name <service-name>
+    view: ip-filter-action
+    params:
+      ip-address: *id010
+      service-name: *id012
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.17
+    syntax: forward next-hop <ipv6-address> router service-name <service-name>
+    view: ip-filter-action
+    params:
+      ipv6-address: *id011
+      service-name: *id012
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.18
+    syntax: forward next-hop indirect <ip-address>
+    view: ip-filter-action
+    params:
+      ip-address: *id010
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.19
+    syntax: forward next-hop indirect <ipv6-address>
+    view: ip-filter-action
+    params:
+      ipv6-address: *id011
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.20
+    syntax: forward next-hop indirect <ip-address> router <router-instance>
+    view: ip-filter-action
+    params:
+      ip-address: *id010
+      router-instance: *id009
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.21
+    syntax: forward next-hop indirect <ipv6-address> router <router-instance>
+    view: ip-filter-action
+    params:
+      ipv6-address: *id011
+      router-instance: *id009
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.22
+    syntax: forward next-hop indirect <ip-address> router service-name <service-name>
+    view: ip-filter-action
+    params:
+      ip-address: *id010
+      service-name: *id012
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.23
+    syntax: forward next-hop indirect <ipv6-address> router service-name <service-name>
+    view: ip-filter-action
+    params:
+      ipv6-address: *id011
+      service-name: *id012
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.24
+    syntax: forward redirect-policy <policy-name>
+    view: ip-filter-action
+    params:
+      policy-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.25
+    syntax: forward router <router-instance>
+    view: ip-filter-action
+    params:
+      router-instance: *id009
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.26
+    syntax: forward router service-name <service-name>
+    view: ip-filter-action
+    params:
+      service-name: *id012
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.27
+    syntax: forward sap <sap-id>
+    view: ip-filter-action
+    params:
+      sap-id:
+        type: sap
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.28
+    syntax: forward sdp <sdp-id:vc-id>
+    view: ip-filter-action
+    params:
+      sdp-id:vc-id:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.29
+    syntax: forward srte-policy <ip-address> color <color-id>
+    view: ip-filter-action
+    params:
+      ip-address: *id010
+      color-id: &id013
+        type: integer
+        range:
+          - 0
+          - 4294967295
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.30
+    syntax: forward srte-policy <ipv6-address> color <color-id>
+    view: ip-filter-action
+    params:
+      ipv6-address: *id011
+      color-id: *id013
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.31
+    syntax: forward srv6-policy <ipv6-address> color <color-id> service-sid <service-sid>
+    view: ip-filter-action
+    params:
+      ipv6-address: *id011
+      color-id: *id013
+      service-sid:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.33
+    syntax: forward vprn-target bgp-nh <ip-address> router <router-instance> [ adv-prefix <ip-address/mask> ] [ lsp <lsp-name> ]
+    view: ip-filter-action
+    params:
+      ip-address: *id010
+      router-instance: *id009
+      ip-address/mask: &id015
+        type: prefix
+      lsp-name: *id014
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.34
+    syntax: forward vprn-target bgp-nh <ip-address> router <router-instance> [ adv-prefix <ipv6-address/prefix-length> ] [ lsp <lsp-name> ]
+    view: ip-filter-action
+    params:
+      ip-address: *id010
+      router-instance: *id009
+      ipv6-address/prefix-length: &id016
+        type: word
+      lsp-name: *id014
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.35
+    syntax: forward vprn-target bgp-nh <ip-address> router service-name <service-name> [ adv-prefix <ip-address/mask> ] [ lsp <lsp-name> ]
+    view: ip-filter-action
+    params:
+      ip-address: *id010
+      service-name: *id012
+      ip-address/mask: *id015
+      lsp-name: *id014
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward.36
+    syntax: forward vprn-target bgp-nh <ip-address> router service-name <service-name> [ adv-prefix <ipv6-address/prefix-length> ] [ lsp <lsp-name> ]
+    view: ip-filter-action
+    params:
+      ip-address: *id010
+      service-name: *id012
+      ipv6-address/prefix-length: *id016
+      lsp-name: *id014
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward
+      line: 1279
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.forward-when
+    syntax: forward-when pattern expression <expression> mask <mask> offset-type <offset-type> offset-value <offset-value>
+    view: ip-filter-action
+    params:
+      expression:
+        type: word
+      mask:
+        type: mask
+      offset-type:
+        type: word
+      offset-value:
+        type: integer
+        range:
+          - 0
+          - 255
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: forward-when
+      line: 1411
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.fragment
+    syntax: fragment { true | false | first-only | non-first-only }
+    view: ip-filter-match
+    undo: no fragment
+    default: no fragment
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: fragment
+      line: 1450
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.group-inserted-entries
+    syntax: group-inserted-entries application <application> location <location>
+    view: ip-filter
+    params:
+      application:
+        type: word
+      location:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: group-inserted-entries
+      line: 1500
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.gtp-local-breakout
+    syntax: gtp-local-breakout
+    view: ip-filter-action
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: gtp-local-breakout
+      line: 1536
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.http-redirect.1
+    syntax: http-redirect <rdr-url-string> [ allow-radius-override ]
+    view: ip-filter-action
+    params:
+      rdr-url-string:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: http-redirect
+      line: 1564
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.http-redirect.2
+    syntax: http-redirect url-from-cpf
+    view: ip-filter-action
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: http-redirect
+      line: 1564
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.icmp-code
+    syntax: icmp-code <icmp-code>
+    view: ip-filter-match
+    undo: no icmp-code
+    params:
+      icmp-code:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: no icmp-code
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: icmp-code
+      line: 1603
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.icmp-type
+    syntax: icmp-type <icmp-type>
+    view: ip-filter-match
+    undo: no icmp-type
+    params:
+      icmp-type:
+        type: integer
+        range:
+          - 0
+          - 255
+    default: no icmp-type
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: icmp-type
+      line: 1658
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ignore-match
+    syntax: ignore-match
+    view: ip-filter-action
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: ignore-match
+      line: 1713
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.interface-disable-sample
+    syntax: interface-disable-sample
+    view: ip-filter-entry
+    undo: no interface-disable-sample
+    default: no interface-disable-sample
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: interface-disable-sample
+      line: 1743
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ip.1
+    syntax: ip <ip-address> <netmask>
+    view: ip-filter-match
+    undo: no ip
+    params:
+      ip-address:
+        type: ipv4
+      netmask:
+        type: mask
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: ip
+      line: 1782
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ip.2
+    syntax: ip <ip-address/mask>
+    view: ip-filter-match
+    undo: no ip
+    params:
+      ip-address/mask:
+        type: prefix
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: ip
+      line: 1782
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ip.3
+    syntax: ip ip-prefix-list <ip-prefix-list-name>
+    view: ip-filter-match
+    undo: no ip
+    params:
+      ip-prefix-list-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: ip
+      line: 1782
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ip-filter~2
+    syntax: ip-filter <filter-id> [ name <name> ] [ create ]
+    view: filter
+    enters_view: ip-filter
+    undo: no ip-filter { <filter-id> | <filter-name> }
+    params:
+      filter-id:
+        type: integer
+        range:
+          - 1
+          - 65535
+      name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: ip-filter
+      line: 1824
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance: $filter-id
+      acl.instance.type: advanced
+  - id: nokia-sros-classic.l2-aware-nat-bypass
+    syntax: l2-aware-nat-bypass
+    view: ip-filter-action
+    undo: no l2-aware-nat-bypass
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: l2-aware-nat-bypass
+      line: 1865
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.log~3
+    syntax: log <log-id>
+    view: ip-filter-entry
+    undo: no log
+    params:
+      log-id:
+        type: integer
+        range:
+          - 101
+          - 199
+    default: no log
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: log
+      line: 1901
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.match.1
+    syntax: match [ { protocol <protocol-id> | protocol-list <protocol-list-name> } ]
+    view: ip-filter-entry
+    enters_view: ip-filter-match
+    undo: no match
+    params:
+      protocol-id:
+        type: word
+      protocol-list-name:
+        type: word
+    default: match protocol none
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: match
+      line: 1947
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.protocol: $protocol-id
+  - id: nokia-sros-classic.match.2
+    syntax: match protocol none
+    view: ip-filter-entry
+    enters_view: ip-filter-match
+    undo: no match
+    default: match protocol none
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: match
+      line: 1947
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.multiple-option
+    syntax: multiple-option { true | false }
+    view: ip-filter-match
+    undo: no multiple-option
+    default: no multiple-option
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: multiple-option
+      line: 1996
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.nat~2
+    syntax: nat [ nat-policy <nat-policy-name> ]
+    view: ip-filter-action
+    params:
+      nat-policy-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: nat
+      line: 2039
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.option-present
+    syntax: option-present { true | false }
+    view: ip-filter-match
+    undo: no option-present
+    default: no option-present
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: option-present
+      line: 2076
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.packet-length.1
+    syntax: packet-length { lt | gt | eq } <packet-length-value>
+    view: ip-filter-match
+    undo: no packet-length
+    params:
+      packet-length-value: &id017
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: no packet-length
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: packet-length
+      line: 2119
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.packet-length.2
+    syntax: packet-length range <packet-length-value> <packet-length-value-end>
+    view: ip-filter-match
+    undo: no packet-length
+    params:
+      packet-length-value: *id017
+      packet-length-value-end:
+        type: integer
+        range: *id018
+    default: no packet-length
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: packet-length
+      line: 2119
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.packet-length.3
+    syntax: packet-length ip-packet-length-list <pkt-len-list-name>
+    view: ip-filter-match
+    undo: no packet-length
+    params:
+      pkt-len-list-name:
+        type: word
+    default: no packet-length
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: packet-length
+      line: 2119
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.pbr-down-action-override
+    syntax: pbr-down-action-override <filter-action>
+    view: ip-filter-entry
+    undo: no pbr-down-action-override
+    params:
+      filter-action:
+        type: word
+    default: no pbr-down-action-override
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: pbr-down-action-override
+      line: 2170
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.port.1
+    syntax: port { lt | gt | eq } <port-number>
+    view: ip-filter-match
+    undo: no port
+    params:
+      port-number: &id019
+        type: word
+    default: no port
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: port
+      line: 2214
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.port.2
+    syntax: port port-list <port-list-name>
+    view: ip-filter-match
+    undo: no port
+    params:
+      port-list-name:
+        type: word
+    default: no port
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: port
+      line: 2214
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.port.3
+    syntax: port range <port-number> <port-number-end>
+    view: ip-filter-match
+    undo: no port
+    params:
+      port-number: *id019
+      port-number-end:
+        type: word
+    default: no port
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: port
+      line: 2214
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rate-limit.1
+    syntax: rate-limit <value> [ kbps | pps ] [ mbs <mbs-value> ]
+    view: ip-filter-action
+    params:
+      value: &id020
+        type: integer
+        range:
+          - 0
+          - 2000000000
+      mbs-value:
+        type: integer
+        range:
+          - 0
+          - 268435456
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: rate-limit
+      line: 2278
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rate-limit.2
+    syntax: rate-limit <value> [ kbps | pps ] extracted-traffic
+    view: ip-filter-action
+    params:
+      value: *id020
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: rate-limit
+      line: 2278
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rate-limit.3
+    syntax: rate-limit <value> [ kbps | pps ] packet-length { lt | gt | eq } <packet-length-value>
+    view: ip-filter-action
+    params:
+      value: *id020
+      packet-length-value: &id021
+        type: integer
+        range:
+          - 0
+          - 65535
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: rate-limit
+      line: 2278
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rate-limit.4
+    syntax: rate-limit <value> [ kbps | pps ] packet-length range <packet-length-value> <packet-length-value-end>
+    view: ip-filter-action
+    params:
+      value: *id020
+      packet-length-value: *id021
+      packet-length-value-end:
+        type: integer
+        range: *id018
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: rate-limit
+      line: 2278
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rate-limit.5
+    syntax: rate-limit <value> [ kbps | pps ] pattern expression <expression> mask <mask> offset-type <offset-type> offset-value <offset-value>
+    view: ip-filter-action
+    params:
+      value: *id020
+      expression:
+        type: word
+      mask:
+        type: mask
+      offset-type:
+        type: word
+      offset-value:
+        type: integer
+        range:
+          - 0
+          - 255
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: rate-limit
+      line: 2278
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rate-limit.6
+    syntax: rate-limit <value> [ kbps | pps ] ttl { lt | gt | eq } <ttl-value>
+    view: ip-filter-action
+    params:
+      value: *id020
+      ttl-value: &id022
+        type: integer
+        range:
+          - 0
+          - 255
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: rate-limit
+      line: 2278
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rate-limit.7
+    syntax: rate-limit <value> [ kbps | pps ] ttl range <ttl-value> <ttl-value-end>
+    view: ip-filter-action
+    params:
+      value: *id020
+      ttl-value: *id022
+      ttl-value-end:
+        type: integer
+        range: *id023
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: rate-limit
+      line: 2278
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.rate-limit.8
+    syntax: rate-limit policer <policer-name>
+    view: ip-filter-action
+    params:
+      policer-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: rate-limit
+      line: 2278
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.reassemble
+    syntax: reassemble
+    view: ip-filter-action
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: reassemble
+      line: 2347
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.remark
+    syntax: remark dscp <dscp-name>
+    view: ip-filter-action
+    params:
+      dscp-name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: remark
+      line: 2375
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.renum
+    syntax: renum <old-entry-id> <new-entry-id>
+    view: ip-filter
+    params:
+      old-entry-id:
+        type: integer
+        range:
+          - 1
+          - 2097151
+      new-entry-id:
+        type: integer
+        range:
+          - 1
+          - 2097151
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: renum
+      line: 2416
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sample-profile
+    syntax: sample-profile <sample-profile-id>
+    view: ip-filter-entry
+    undo: no sample-profile
+    params:
+      sample-profile-id:
+        type: integer
+        range:
+          - 1
+          - 5
+    default: no sample-profile
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: sample-profile
+      line: 2469
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.scope.1
+    syntax: scope { exclusive | template | embedded | system }
+    view: ip-filter
+    undo: no scope
+    default: scope template
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: scope
+      line: 2516
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.scope.2
+    syntax: scope { exclusive | template }
+    view: ip-filter
+    undo: no scope
+    default: scope template
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: scope
+      line: 2516
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shared-policer
+    syntax: shared-policer
+    view: ip-filter
+    undo: no shared-policer
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: shared-policer
+      line: 2584
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.shared-radius-filter-wmark
+    syntax: shared-radius-filter-wmark low <low-watermark> high <high-watermark>
+    view: ip-filter
+    undo: no shared-radius-filter-wmark
+    params:
+      low-watermark:
+        type: integer
+        range:
+          - 0
+          - 8000
+      high-watermark:
+        type: integer
+        range:
+          - 1
+          - 8000
+    default: no shared-radius-filter-wmark
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: shared-radius-filter-wmark
+      line: 2617
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.src-mac
+    syntax: src-mac <ieee-address> [ <ieee-address-mask> ]
+    view: ip-filter-match
+    undo: no src-mac
+    params:
+      ieee-address:
+        type: word
+      ieee-address-mask:
+        type: word
+    default: no src-mac
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: src-mac
+      line: 2659
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.src-port.1
+    syntax: src-port { lt | gt | eq } <src-port-number>
+    view: ip-filter-match
+    undo: no src-port
+    params:
+      src-port-number: &id024
+        type: word
+    default: no src-port
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: src-port
+      line: 2704
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.source_port: tail:src-port
+  - id: nokia-sros-classic.src-port.2
+    syntax: src-port port-list <port-list-name>
+    view: ip-filter-match
+    undo: no src-port
+    params:
+      port-list-name:
+        type: word
+    default: no src-port
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: src-port
+      line: 2704
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.src-port.3
+    syntax: src-port range <src-port-number> <src-port-number-end>
+    view: ip-filter-match
+    undo: no src-port
+    params:
+      src-port-number: *id024
+      src-port-number-end:
+        type: word
+    default: no src-port
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: src-port
+      line: 2704
+      version: 25.10.R1
+    status: draft
+    maps:
+      acl.instance.rule.source_port: tail:src-port
+  - id: nokia-sros-classic.src-route-option
+    syntax: src-route-option { true | false }
+    view: ip-filter-match
+    default: no src-route-option
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: src-route-option
+      line: 2766
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sticky-dest.1
+    syntax: sticky-dest <hold-time-up>
+    view: ip-filter-entry
+    undo: no sticky-dest
+    params:
+      hold-time-up:
+        type: integer
+        range:
+          - 0
+          - 65535
+    default: no sticky-dest
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: sticky-dest
+      line: 2807
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sticky-dest.2
+    syntax: sticky-dest no-hold-time-up
+    view: ip-filter-entry
+    undo: no sticky-dest
+    default: no sticky-dest
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: sticky-dest
+      line: 2807
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sub-insert-credit-control
+    syntax: sub-insert-credit-control start-entry <entry-id> count <count>
+    view: ip-filter
+    undo: no sub-insert-credit-control
+    params:
+      entry-id:
+        type: integer
+        range:
+          - 1
+          - 2097151
+      count:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: no sub-insert-credit-control
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: sub-insert-credit-control
+      line: 2862
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sub-insert-radius
+    syntax: sub-insert-radius start-entry <entry-id> count <count>
+    view: ip-filter
+    undo: no sub-insert-radius
+    params:
+      entry-id:
+        type: integer
+        range:
+          - 1
+          - 2097151
+      count:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: no sub-insert-radius
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: sub-insert-radius
+      line: 2906
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sub-insert-shared-pccrule
+    syntax: sub-insert-shared-pccrule start-entry <entry-id> count <count>
+    view: ip-filter
+    undo: no sub-insert-shared-pccrule
+    params:
+      entry-id:
+        type: integer
+        range:
+          - 1
+          - 2097151
+      count:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: no sub-insert-shared-pccrule
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: sub-insert-shared-pccrule
+      line: 2950
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sub-insert-shared-radius
+    syntax: sub-insert-shared-radius start-entry <entry-id> count <count>
+    view: ip-filter
+    undo: no sub-insert-shared-radius
+    params:
+      entry-id:
+        type: integer
+        range:
+          - 1
+          - 2097151
+      count:
+        type: integer
+        range:
+          - 1
+          - 65535
+    default: no sub-insert-shared-radius
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: sub-insert-shared-radius
+      line: 2992
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.sub-insert-wmark
+    syntax: sub-insert-wmark low <low-watermark> high <high-watermark>
+    view: ip-filter
+    undo: no sub-insert-wmark
+    params:
+      low-watermark:
+        type: integer
+        range:
+          - 0
+          - 100
+      high-watermark:
+        type: integer
+        range:
+          - 0
+          - 100
+    default: sub-insert-wmark low 90 high 95
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: sub-insert-wmark
+      line: 3034
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tcp-ack
+    syntax: tcp-ack { true | false }
+    view: ip-filter-match
+    undo: no tcp-ack
+    default: no tcp-ack
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: tcp-ack
+      line: 3078
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tcp-cwr
+    syntax: tcp-cwr { true | false }
+    view: ip-filter-match
+    undo: no tcp-cwr
+    default: no tcp-cwr
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: tcp-cwr
+      line: 3122
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tcp-ece
+    syntax: tcp-ece { true | false }
+    view: ip-filter-match
+    undo: no tcp-ece
+    default: no tcp-ece
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: tcp-ece
+      line: 3166
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tcp-established
+    syntax: tcp-established
+    view: ip-filter-match
+    undo: no tcp-established
+    default: tcp-established
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: tcp-established
+      line: 3210
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tcp-fin
+    syntax: tcp-fin { true | false }
+    view: ip-filter-match
+    undo: no tcp-fin
+    default: no tcp-fin
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: tcp-fin
+      line: 3245
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tcp-mss-adjust
+    syntax: tcp-mss-adjust
+    view: ip-filter-action
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: tcp-mss-adjust
+      line: 3289
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tcp-ns
+    syntax: tcp-ns { true | false }
+    view: ip-filter-match
+    undo: no tcp-ns
+    default: no tcp-ns
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: tcp-ns
+      line: 3318
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tcp-psh
+    syntax: tcp-psh { true | false }
+    view: ip-filter-match
+    undo: no tcp-psh
+    default: no tcp-psh
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: tcp-psh
+      line: 3362
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tcp-rst
+    syntax: tcp-rst { true | false }
+    view: ip-filter-match
+    undo: no tcp-rst
+    default: no tcp-rst
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: tcp-rst
+      line: 3406
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tcp-syn
+    syntax: tcp-syn { true | false }
+    view: ip-filter-match
+    undo: no tcp-syn
+    default: no tcp-syn
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: tcp-syn
+      line: 3450
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.tcp-urg
+    syntax: tcp-urg { true | false }
+    view: ip-filter-match
+    undo: no tcp-urg
+    default: no tcp-urg
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: tcp-urg
+      line: 3494
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ttl.1
+    syntax: ttl { lt | gt | eq } <ttl-value>
+    view: ip-filter-match
+    undo: no ttl
+    params:
+      ttl-value: &id025
+        type: integer
+        range:
+          - 0
+          - 255
+    default: no ttl
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: ttl
+      line: 3538
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.ttl.2
+    syntax: ttl range <ttl-value> <ttl-value-end>
+    view: ip-filter-match
+    undo: no ttl
+    params:
+      ttl-value: *id025
+      ttl-value-end:
+        type: integer
+        range: *id023
+    default: no ttl
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: ttl
+      line: 3538
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.type~3
+    syntax: type { normal | src-mac | packet-length | destination-class }
+    view: ip-filter
+    default: type normal
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_filter_ip-filter.md
+      title: type
+      line: 3585
+      version: 25.10.R1
+    status: draft
+  - id: nokia-sros-classic.filter@configure
+    syntax: filter
+    view: configure
+    enters_view: filter
+    source:
+      patched: 命令参考没有单列 configure 下进入 filter 上下文的命令（完整上下文都以 configure filter 开头）；display-config 写作 filter，块尾 exit
+      added_by_patch: true
+    status: draft
+    maps:
+      '@container': ''
+  - id: nokia-sros-classic.action.inline@ip-filter-entry
+    syntax: action { drop | forward }
+    view: ip-filter-entry
+    undo: no action
+    source:
+      patched: 命令参考 25.10 的 action 是上下文（action 下再写 drop / forward）；较早版本与配置指南的举例写作单行 action drop / action forward（Layer 2 Services and EVPN Guide 的 mac-filter 举例），两种写法都识别
+      added_by_patch: true
+    status: draft
+    maps:
+      acl.instance.rule.action: kw:drop=deny|forward=permit
+  - id: nokia-sros-classic.src-ip@ip-filter-match
+    syntax: src-ip { <ip-address/mask> | <ip-address> <ipv4-address-mask> | ip-prefix-list <prefix-list-name> }
+    view: ip-filter-match
+    undo: no src-ip
+    params:
+      ip-address/mask:
+        type: prefix
+      ip-address:
+        type: ipv4
+      ipv4-address-mask:
+        type: mask
+      prefix-list-name:
+        type: word
+    source:
+      patched: 命令参考的 src-ip 条目只列了 ipv6-filter / ip-exception / ipv6-exception 的完整上下文，漏了 configure filter ip-filter entry match（dst-ip 条目有；Router Configuration Guide 的 ip-filter entry 举例写 src-ip 192.168.1.1/32）；按 dst-ip 的 IPv4 写法补
+      added_by_patch: true
+    status: draft
+    maps:
+      acl.instance.rule.source_ip: pfx:addr:$ip-address/mask||$ip-address
+      acl.instance.rule.source_wildcard: pfx:wild:$ip-address/mask

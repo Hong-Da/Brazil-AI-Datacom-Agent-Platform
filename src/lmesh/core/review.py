@@ -16,7 +16,7 @@ from sqlalchemy import func, select
 from lmesh.core import store
 from lmesh.core.store.models import ReviewItem, iso
 
-KINDS = ("card", "schema_node", "mapping", "conflict", "profile_entry")
+KINDS = ("card", "schema_node", "mapping", "conflict", "profile_entry", "suggestion")
 Action = Callable[[Path, ReviewItem, dict[str, Any] | None], None]
 _ACTIONS: dict[str, Action] = {}
 
@@ -141,6 +141,12 @@ def decide(
     if approve and commit and (kb_root / ".git").exists():
         repo.commit_all(kb_root, f"审核通过 #{item_id}：{result['title']}")
     return result
+
+
+@register_action("suggestion")
+def _apply_suggestion(kb_root: Path, item: ReviewItem, edited: dict[str, Any] | None) -> None:
+    """用户对知识库的建议（M6）：采纳只记录结论，知识库由维护员在对应页面修改（“采纳并编辑”）。"""
+    return None
 
 
 @register_action("conflict")

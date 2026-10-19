@@ -1,0 +1,89 @@
+# 命令卡（由 lmesh kb ingest 按抽取规则生成；审核通过后 status 为 reviewed）。手工修改后运行 lmesh kb validate 检查。
+domain: qos
+cards:
+  - id: nokia-sros-classic.description~23
+    syntax: description <short-description-string>
+    view: qos-sap-ingress
+    undo: no description
+    params:
+      short-description-string:
+        type: text
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_qos_sap-ingress.md
+      title: description
+      line: 620
+      version: 25.10.R1
+    status: draft
+    maps:
+      qos.sap_ingress.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
+  - id: nokia-sros-classic.sap-ingress
+    syntax: sap-ingress <policy-id> [ name <name> ] [ create ]
+    view: qos
+    enters_view: qos-sap-ingress
+    undo: no sap-ingress { <policy-id> | <policy-name> }
+    params:
+      policy-id:
+        type: integer
+        range: &id001
+          - 1
+          - 65535
+      name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_qos_sap-ingress.md
+      title: sap-ingress
+      line: 3747
+      version: 25.10.R1
+    status: draft
+    maps:
+      qos.sap_ingress: $policy-id
+      qos.sap_ingress.name: $name
+  - id: nokia-sros-classic.description~24
+    syntax: description <short-description-string>
+    view: qos-sap-egress
+    undo: no description
+    params:
+      short-description-string:
+        type: text
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_qos_sap-egress.md
+      title: description
+      line: 700
+      version: 25.10.R1
+    status: draft
+    maps:
+      qos.sap_egress.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
+  - id: nokia-sros-classic.sap-egress
+    syntax: sap-egress <policy-id> [ name <name> ] [ create ]
+    view: qos
+    enters_view: qos-sap-egress
+    undo: no sap-egress { <policy-id> | <policy-name> }
+    params:
+      policy-id:
+        type: integer
+        range: *id001
+      name:
+        type: word
+    source:
+      doc: nokia-sros-classic-md
+      file: configure_qos_sap-egress.md
+      title: sap-egress
+      line: 4495
+      version: 25.10.R1
+    status: draft
+    maps:
+      qos.sap_egress: $policy-id
+      qos.sap_egress.name: $name
+  - id: nokia-sros-classic.qos@configure
+    syntax: qos
+    view: configure
+    enters_view: qos
+    source:
+      patched: 命令参考没有单列 configure 下进入 qos 上下文的命令（完整上下文都以 configure qos 开头）；display-config 写作 qos，块尾 exit
+      added_by_patch: true
+    status: draft
+    maps:
+      '@container': ''

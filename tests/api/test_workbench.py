@@ -29,7 +29,7 @@ def data(r):  # type: ignore[no-untyped-def]
 
 def test_summary_devices_rebuild(client) -> None:  # type: ignore[no-untyped-def]
     s = data(client.get("/api/v1/summary", headers=H))
-    assert s["devices"]["count"] == 0 and s["kb"]["profiles"] == 3 and s["regression"] is None
+    assert s["devices"]["count"] == 0 and s["kb"]["profiles"] == 4 and s["regression"] is None
     files = [
         ("files", (n, (INPUTS / "configs" / v / "basic.cfg").read_bytes(), "text/plain"))
         for n, v in (("hw.cfg", "huawei"), ("cs.cfg", "cisco"))

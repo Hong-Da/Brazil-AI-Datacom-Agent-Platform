@@ -209,9 +209,11 @@ def _text(db_url: str, version_id: int) -> str:
 
 
 def _snap_rows(db_url: str, device_id: int) -> tuple[Device, list[ConfigVersion], dict[int, list[ConfigImport]]]:
+    from lmesh.core import projects
+
     with store.session(db_url) as s:
         dev = s.get(Device, device_id)
-        if dev is None:
+        if dev is None or not projects.visible(s, device_id):
             raise HistoryError("history.device_not_found", "not_found", device=device_id)
         vers = list(
             s.scalars(select(ConfigVersion).where(ConfigVersion.device_id == device_id).order_by(ConfigVersion.id))
@@ -336,10 +338,17 @@ def set_tag(db_url: str, device_id: int, version_id: int, tag: str | None) -> di
     tag = (tag or "").strip() or None
     if tag is not None and len(tag) > TAG_MAX:
         raise HistoryError("history.tag_too_long", max=TAG_MAX)
+    from lmesh.core import projects
+
     with store.session(db_url) as s:
         ver = s.get(ConfigVersion, version_id)
-        if ver is None or ver.device_id != device_id:
+        if ver is None or ver.device_id != device_id or not projects.visible(s, device_id):
             raise HistoryError("history.snapshot_not_found", "not_found", snapshot=version_id)
+        dev = s.get(Device, device_id)
+        sc = projects.current()
+        if dev is not None and dev.project_id is None and sc is not None and not sc.identity.is_admin:
+            # 公共设备的快照是共享的：项目里只能看，标签由管理员在公共设备库里贴
+            raise HistoryError("history.public_readonly", "forbidden", device=device_id)
         ver.tag = tag
         return {"id": ver.id, "device_id": device_id, "tag": tag}
 

@@ -33,7 +33,7 @@ from typing import Any
 
 import networkx as nx
 
-from lmesh.core import change, checks, compare, i18n
+from lmesh.core import canon, change, checks, compare, i18n
 from lmesh.core import graph as graphmod
 from lmesh.core import parser as parsemod
 from lmesh.core import rules as rulesmod
@@ -140,10 +140,12 @@ def baseline_from_db(
         vers = compare.versions(db_url, device_id)
         if not vers:
             raise ScriptCheckError("script_check.device_not_found", "not_found", device=device_id)
-        version_id = int(vers[0]["id"])
+        version_id = int(next((v for v in vers if v.get("current")), vers[0])["id"])
+    from lmesh.core import projects
+
     with store.session(db_url) as s:
         ver = s.get(ConfigVersion, version_id)
-        if ver is None or ver.device_id != device_id:
+        if ver is None or ver.device_id != device_id or not projects.visible(s, device_id):
             raise ScriptCheckError("script_check.version_not_found", "not_found", version=version_id)
         dev = s.get(Device, device_id)
         assert dev is not None
@@ -247,6 +249,7 @@ def track(text: str, kb: KnowledgeBase, family: str) -> list[SLine]:
     raw_lines = text.replace("\r\n", "\n").split("\n")
     indented = any(ln[:1] in (" ", "\t") and ln.strip() and ln.strip() != fam.separator for ln in raw_lines)
     exits = {v: set(getattr(fam.views.get(v), "exit", []) or []) for v in fam.views}
+    wrap = canon.load_style(kb, family)["wrap"]
     out: list[SLine] = []
     stack: list[_Frame] = []
     for no, raw in enumerate(raw_lines, start=1):
@@ -262,6 +265,16 @@ def track(text: str, kb: KnowledgeBase, family: str) -> list[SLine]:
             continue
         if s.startswith("!") or (fam.separator == "#" and s.startswith("#")):
             out.append(SLine(no, raw, "comment"))
+            continue
+        if any(s.startswith(c) for c in fam.comment) or any(re.search(pat, s) for pat in fam.layout):
+            out.append(SLine(no, raw, "comment"))  # Nokia：# 注释与 echo 段落
+            continue
+        if stack and s in (wrap.get(stack[-1].view) or []):
+            out.append(SLine(no, raw, "comment"))  # Nokia policy-options 的 begin / commit：编辑会话，不改变视图
+            continue
+        if (fam.end and s == fam.end) or s in fam.begin:
+            stack.clear()
+            out.append(SLine(no, raw, "session"))  # Nokia 的 exit all / configure
             continue
         if _SESSION.match(s):
             stack.clear()

@@ -12,7 +12,7 @@ import typer
 from lmesh import __version__, paths
 from lmesh.cli import output
 from lmesh.cli.output import Ctx, emit, fail
-from lmesh.core import config, i18n, setup, status, store
+from lmesh.core import config, i18n, projects, setup, status, store
 from lmesh.core import logging as lmlog
 
 app = typer.Typer(
@@ -42,6 +42,20 @@ def main_options(
     quiet: Annotated[bool, typer.Option("--quiet", "-q")] = False,
     verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False,
     yes: Annotated[bool, typer.Option("--yes", "-y", help="跳过确认 / skip prompts")] = False,
+    project: Annotated[
+        str | None,
+        typer.Option(
+            "--project",
+            "-P",
+            help="项目：标识、属主/标识或编号；不给时用默认项目 / project (default: your default project)",
+        ),
+    ] = None,
+    as_user: Annotated[
+        str | None,
+        typer.Option(
+            "--as", help="以哪个账号的身份（默认项目、新建项目的属主）；默认第一个管理员 / act as this account"
+        ),
+    ] = None,
     version: Annotated[bool, typer.Option("--version", callback=_version, is_eager=True)] = False,
 ) -> None:
     if output_fmt not in ("text", "json"):
@@ -56,6 +70,8 @@ def main_options(
         verbose=verbose,
         yes=yes or not sys.stdin.isatty(),
         config_path=config_file,
+        project=project,
+        as_user=as_user,
     )
     ctx.obj = c
     lmlog.setup(
@@ -63,6 +79,41 @@ def main_options(
         keep_days=settings.get("log.keep_days"),
         console=verbose,
     )
+    _setup_project(c, settings)
+    ctx.call_on_close(lambda: projects.set_lazy(None))
+
+
+def _setup_project(c: Ctx, settings: config.Settings) -> None:
+    """命令行的当前项目（M6）：--project 给出时立即解析（不存在退出码 4）；不给时用 --as 账号（默认第一个管理员）的
+    默认项目，第一次用到数据库时才解析。命令行直接操作本机数据库，权限等同管理员（D-0179 / 决策记录）。"""
+    projects.set_lazy(None)
+    projects.set_identity(None)
+    if not config.is_configured():
+        if c.project or c.as_user:
+            fail(c, output.EXIT_CONFIG, c.t("config.not_configured"))
+        return
+    db = settings.database_url
+
+    def ident() -> projects.Identity:
+        store.upgrade(db)
+        return projects.cli_identity(db, c.as_user)
+
+    if c.project or c.as_user:
+        try:
+            who = ident()
+            scope = projects.resolve(db, who, c.project) if c.project else projects.default_scope(db, who)
+        except projects.ProjectError as e:
+            fail(c, output.EXIT_NOT_FOUND, c.t(e.key, **e.fmt))
+        projects.set_identity(who)
+        projects.set_scope(scope)
+        return
+
+    def lazy() -> projects.Scope:
+        who = ident()
+        projects.set_identity(who)
+        return projects.default_scope(db, who)
+
+    projects.set_lazy(lazy)
 
 
 def _settings() -> config.Settings:
@@ -301,6 +352,10 @@ cmd_analyze.register(app)
 from lmesh.cli import cmd_device  # noqa: E402
 
 cmd_device.register(app)
+
+from lmesh.cli import cmd_project  # noqa: E402
+
+cmd_project.register(app)
 
 
 def main() -> None:

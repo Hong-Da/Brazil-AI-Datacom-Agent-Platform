@@ -193,6 +193,9 @@ class ProfileEntry:
     # {attr: {兄弟属性: 取值}}——同一对象上该属性的有效值相等时才补（例如按网络类型取不同的 hello 间隔）
     when: dict[str, Any] = field(default_factory=dict)
     origin: str = ""  # 继承展开后：条目来自哪个 Profile
+    # M7-3：其他平台族没有这个节点时（华为 / Cisco 的协议实例没有管理状态），源设备按这个取值理解；
+    # 翻译成本 Profile 时目标缺省值与它不同（或没有登记缺省值）就显式写出并告警
+    assume: Any = None
 
 
 @dataclass

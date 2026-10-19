@@ -127,6 +127,19 @@ nodes:
     parent: interface.mpls
     type: boolean
     semantic: {zh-CN: 接口参与 LDP 与 IGP 同步（Cisco mpls ldp igp sync，IGP 下开启同步后缺省为是）, en: LDP-IGP sync on the interface}
+  # ---------- M7-3（Nokia SR OS）：管理状态 ----------
+  mpls.global.shutdown:
+    parent: mpls.global
+    type: boolean
+    semantic: {zh-CN: MPLS 管理关闭（Nokia shutdown / no shutdown；华为 / Cisco 没有对应，平台特有）, en: MPLS administratively down, pt-BR: MPLS desativado administrativamente}
+  mpls.ldp.shutdown:
+    parent: mpls.ldp
+    type: boolean
+    semantic: {zh-CN: LDP 管理关闭（Nokia shutdown / no shutdown；华为 / Cisco 没有对应，平台特有）, en: LDP administratively down, pt-BR: LDP desativado administrativamente}
+  interface.mpls.shutdown:
+    parent: interface.mpls
+    type: boolean
+    semantic: {zh-CN: 接口上的 MPLS 管理关闭（Nokia shutdown / no shutdown；华为 / Cisco 没有对应，平台特有）, en: MPLS on the interface administratively down, pt-BR: MPLS na interface desativado administrativamente}
 deps:
   # 华为必须先配 LSR ID、再全局使能 MPLS，再使能 LDP；Cisco 全局 MPLS 缺省开启，不检查
   - {kind: prerequisite, from: mpls.global, to: mpls.global.lsr_id, note: {zh-CN: 华为先配置 mpls lsr-id 再使能 MPLS, en: 'On Huawei, configure "mpls lsr-id" before enabling MPLS', pt-BR: 'No Huawei, configure "mpls lsr-id" antes de habilitar o MPLS'}, profiles: [huawei-atn-v800r025, huawei-atn-v800r023]}

@@ -30,17 +30,26 @@ class Base(DeclarativeBase):
 
 
 class Device(Base):
-    """设备：名称、厂商、平台、软件版本、使用的 Profile。"""
+    """设备：名称、厂商、平台、软件版本、使用的 Profile。
+
+    归属（M6，REQ-035）：project_id 是所属项目（项目私有设备）；为空表示公共设备库（管理员维护，项目只能引用或复制）。
+    名称在同一项目内唯一（公共设备库内的唯一由代码保证）；origin：import 导入 / copy 复制 / migrated 升级时移入。"""
 
     __tablename__ = "devices"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(200), unique=True)
+    name: Mapped[str] = mapped_column(String(200))
     vendor: Mapped[str] = mapped_column(String(40))
     platform: Mapped[str] = mapped_column(String(80), default="")
     sw_version: Mapped[str] = mapped_column(String(80), default="")
     profile: Mapped[str] = mapped_column(String(120), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    project_id: Mapped[int | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    origin: Mapped[str] = mapped_column(String(20), default="import")
+    origin_note: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 复制来源：项目、设备、版本序号
     versions: Mapped[list[ConfigVersion]] = relationship(back_populates="device", cascade="all, delete-orphan")
+    __table_args__ = (UniqueConstraint("project_id", "name", name="uq_devices_project_name"),)
 
 
 class ConfigVersion(Base):
@@ -164,11 +173,17 @@ class CheckIgnore(Base):
     __tablename__ = "check_ignores"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     device_id: Mapped[int] = mapped_column(ForeignKey("devices.id", ondelete="CASCADE"), index=True)
+    # 按项目（M6）：同一台公共设备在不同项目里的忽略互不影响
+    project_id: Mapped[int | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     rule: Mapped[str] = mapped_column(String(120))
     node: Mapped[str] = mapped_column(String(600))
     reason: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-    __table_args__ = (UniqueConstraint("device_id", "rule", "node", name="uq_check_ignores_device_rule_node"),)
+    __table_args__ = (
+        UniqueConstraint("project_id", "device_id", "rule", "node", name="uq_check_ignores_project_device_rule_node"),
+    )
 
 
 class ConfigImport(Base):
@@ -191,7 +206,7 @@ class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     username: Mapped[str] = mapped_column(String(64), unique=True)
-    role: Mapped[str] = mapped_column(String(20), default="user")  # admin / user
+    role: Mapped[str] = mapped_column(String(20), default="user")  # admin / maintainer（知识库维护员）/ user
     disabled: Mapped[bool] = mapped_column(default=False)
     password_hash: Mapped[str] = mapped_column(String(255))
     failed_count: Mapped[int] = mapped_column(Integer, default=0)
@@ -229,6 +244,10 @@ class CheckProject(Base):
     ai_check: Mapped[bool] = mapped_column(default=False)
     ai_rules: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 勾选交给 AI 的规则编号
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    # 所属项目（M6）：配置检查项目并入项目后，一个检查项目就是项目里的一组脚本（共用基线与检查设置）
+    project_id: Mapped[int | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
@@ -332,3 +351,120 @@ class SkillEvolution(Base):
     decided_by: Mapped[str] = mapped_column(String(200), default="")
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     published_version: Mapped[str] = mapped_column(String(20), default="")
+
+
+# ---------------------------------------------------------------- 用户工作空间与项目（M6，REQ-035 / REQ-036）
+
+
+class Project(Base):
+    """项目：设备（私有设备与对公共设备的引用）、脚本、检查忽略项、规则调整、项目设置。标识（slug）全站唯一。
+
+    owner_id 为空只出现在没有任何账号的旧安装（升级时的默认项目），第一个管理员创建后由他接管。"""
+
+    __tablename__ = "projects"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    slug: Mapped[str] = mapped_column(String(64), unique=True)
+    name: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text, default="")
+    owner_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    settings: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 显示风格、规则集、安全基线
+    migrated_from: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 升级生成：{type: upgrade|check_project, …}
+    last_activity: Mapped[Any] = mapped_column(JSONType, nullable=True)  # {actor, action, at}
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class ProjectMember(Base):
+    """项目成员：role 为 edit（可编辑）或 read（只读）；属主不在这里。"""
+
+    __tablename__ = "project_members"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    role: Mapped[str] = mapped_column(String(10), default="read")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (UniqueConstraint("project_id", "user_id", name="uq_project_members_project_user"),)
+
+
+class Workspace(Base):
+    """用户工作空间：每个账号一个；记录默认项目（命令行不带 --project、旧的无项目接口都落到这里）。"""
+
+    __tablename__ = "workspaces"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
+    default_project_id: Mapped[int | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class ProjectDeviceRef(Base):
+    """项目对公共设备的引用：version_id 为空表示跟随公共库最新版本，否则固定在该版本。"""
+
+    __tablename__ = "project_device_refs"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    device_id: Mapped[int] = mapped_column(ForeignKey("devices.id", ondelete="CASCADE"), index=True)
+    version_id: Mapped[int | None] = mapped_column(ForeignKey("config_versions.id", ondelete="SET NULL"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (UniqueConstraint("project_id", "device_id", name="uq_project_device_refs_project_device"),)
+
+
+class ProjectRuleOverride(Base):
+    """项目级规则调整：关闭（enabled=false）或改级别，只影响该项目；reason 必填。"""
+
+    __tablename__ = "project_rule_overrides"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    rule: Mapped[str] = mapped_column(String(120))
+    enabled: Mapped[bool] = mapped_column(default=True)
+    severity: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    reason: Mapped[str] = mapped_column(Text, default="")
+    updated_by: Mapped[str] = mapped_column(String(200), default="")
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (UniqueConstraint("project_id", "rule", name="uq_project_rule_overrides_project_rule"),)
+
+
+class ApiToken(Base):
+    """个人 API 令牌：只存 SHA-256；prefix 是令牌的前 8 个字符（lmp_ 开头），用于列表与日志。"""
+
+    __tablename__ = "api_tokens"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(200))
+    prefix: Mapped[str] = mapped_column(String(16))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    read_only: Mapped[bool] = mapped_column(default=False)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)  # 为空表示不过期
+    last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_used_ip: Mapped[str] = mapped_column(String(64), default="")
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class AuditEvent(Base):
+    """审计记录：管理员访问他人项目、项目转交与删除等（同时写 lmesh.audit 日志）；不含请求内容。"""
+
+    __tablename__ = "audit_events"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
+    actor: Mapped[str] = mapped_column(String(200), default="")
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    project_id: Mapped[int | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    project_slug: Mapped[str] = mapped_column(String(64), default="")
+    action: Mapped[str] = mapped_column(String(40))  # enter / write / transfer / delete / …
+    detail: Mapped[Any] = mapped_column(JSONType, nullable=True)
+
+
+class UserAsset(Base):
+    """工作空间里的私有内容归属：kind 为 template（我的模板）或 ruleset（我的翻译规则集），asset_id 是其编号。"""
+
+    __tablename__ = "user_assets"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    kind: Mapped[str] = mapped_column(String(20))
+    asset_id: Mapped[str] = mapped_column(String(120))
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (UniqueConstraint("kind", "asset_id", name="uq_user_assets_kind_asset"),)

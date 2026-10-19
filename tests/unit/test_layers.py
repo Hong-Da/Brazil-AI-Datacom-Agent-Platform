@@ -195,7 +195,8 @@ def test_summary_numbers(kb: KnowledgeBase, lay: layers.Layers) -> None:
     assert s["history"] is None and s["dangling"] == 0
     d = s["defaults"]
     assert d["total"] == sum(1 for _, x in g.nodes(data=True) if x.get("origin") == "default")
-    assert all(it["others"] and it["others"][0]["profile"].startswith("cisco") for it in d["items"])
+    # M7-3 起其他平台族的 Profile 还有 Nokia（端口缺省 shutdown 等）
+    assert all(it["others"] and it["others"][0]["profile"].startswith(("cisco", "nokia")) for it in d["items"])
 
 
 def test_key_defaults_cross_vendor(kb: KnowledgeBase, lay: layers.Layers) -> None:

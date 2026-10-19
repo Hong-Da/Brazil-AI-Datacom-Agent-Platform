@@ -72,9 +72,14 @@ def register(app: typer.Typer) -> None:
         )
 
     @kb_app.command("map", help="把映射规则写进命令卡，并重新汇总 Profile / apply mapping rules")
-    def kb_map(ctx: typer.Context) -> None:
+    def kb_map(
+        ctx: typer.Context,
+        family: Annotated[
+            list[str] | None, typer.Option("--family", help="只处理这些平台族 / only these platform families")
+        ] = None,
+    ) -> None:
         c = output.get(ctx)
-        res = analysis.apply_mappings(_root(c))
+        res = analysis.apply_mappings(_root(c), family or None)
         emit(
             c,
             res,

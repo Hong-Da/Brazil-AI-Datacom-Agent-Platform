@@ -79,6 +79,49 @@ views_map:
   - {match: '^configure router mpls-labels$', view: mpls-labels}
   - {match: '^configure router ospf segment-routing$', view: ospf-sr}
   - {match: '^configure router isis segment-routing$', view: isis-sr}
+  # ---- M7-3：业务（客户、SDP、Epipe、VPLS、VPRN、IES 及其 SAP / SDP 绑定、SAP 的 ingress / egress）、过滤器、QoS、VRRP ----
+  - {match: '^configure service$', view: service}
+  - {match: '^configure service customer$', view: customer}
+  - {match: '^configure service sdp$', view: sdp}
+  - {match: '^configure service sdp keep-alive$', view: sdp-keep-alive}
+  - {match: '^configure service epipe$', view: epipe}
+  - {match: '^configure service epipe sap$', view: epipe-sap}
+  - {match: '^configure service epipe sap ingress$', view: epipe-sap-ingress}
+  - {match: '^configure service epipe sap egress$', view: epipe-sap-egress}
+  - {match: '^configure service epipe spoke-sdp$', view: epipe-spoke}
+  - {match: '^configure service vpls$', view: vpls}
+  - {match: '^configure service vpls sap$', view: vpls-sap}
+  - {match: '^configure service vpls sap ingress$', view: vpls-sap-ingress}
+  - {match: '^configure service vpls sap egress$', view: vpls-sap-egress}
+  - {match: '^configure service vpls spoke-sdp$', view: vpls-spoke}
+  - {match: '^configure service vpls mesh-sdp$', view: vpls-mesh}
+  - {match: '^configure service vprn$', view: vprn}
+  - {match: '^configure service vprn auto-bind-tunnel$', view: vprn-abt}
+  - {match: '^configure service vprn auto-bind-tunnel resolution-filter$', view: vprn-abt-rf}
+  - {match: '^configure service vprn bgp-ipvpn$', view: vprn-bgp-ipvpn}
+  - {match: '^configure service vprn bgp-ipvpn mpls$', view: vprn-ipvpn-mpls}
+  - {match: '^configure service vprn bgp-ipvpn mpls auto-bind-tunnel$', view: vprn-ipvpn-abt}
+  - {match: '^configure service vprn bgp-ipvpn mpls auto-bind-tunnel resolution-filter$', view: vprn-ipvpn-abt-rf}
+  - {match: '^configure service vprn interface$', view: vprn-if}
+  - {match: '^configure service vprn interface sap$', view: vprn-if-sap}
+  - {match: '^configure service vprn interface sap ingress$', view: vprn-if-sap-ingress}
+  - {match: '^configure service vprn interface sap egress$', view: vprn-if-sap-egress}
+  - {match: '^configure service vprn static-route-entry$', view: vprn-static}
+  - {match: '^configure service vprn static-route-entry next-hop$', view: vprn-static-nh}
+  - {match: '^configure service ies$', view: ies}
+  - {match: '^configure service ies interface$', view: ies-if}
+  - {match: '^configure service ies interface sap$', view: ies-if-sap}
+  - {match: '^configure service ies interface sap ingress$', view: ies-if-sap-ingress}
+  - {match: '^configure service ies interface sap egress$', view: ies-if-sap-egress}
+  - {match: '^configure filter$', view: filter}
+  - {match: '^configure filter ip-filter$', view: ip-filter}
+  - {match: '^configure filter ip-filter entry$', view: ip-filter-entry}
+  - {match: '^configure filter ip-filter entry match$', view: ip-filter-match}
+  - {match: '^configure filter ip-filter entry action$', view: ip-filter-action}
+  - {match: '^configure qos$', view: qos}
+  - {match: '^configure qos sap-ingress$', view: qos-sap-ingress}
+  - {match: '^configure qos sap-egress$', view: qos-sap-egress}
+  - {match: '^configure router interface vrrp$', view: router-if-vrrp}
 
 enters:
   # ---- 进入范围内视图（M7-1：接口、静态路由；M7-2：管理面、OSPF、IS-IS、BGP、路由策略、MPLS / RSVP / LDP、SR） ----
@@ -141,15 +184,58 @@ enters:
   - {view: router, syntax: '^mpls-labels$', enters: mpls-labels}
   - {view: ospf, syntax: '^segment-routing$', enters: ospf-sr}
   - {view: isis, syntax: '^segment-routing$', enters: isis-sr}
+  # M7-3：业务、过滤器、QoS（configure 下的 service / filter / qos 命令参考没有单列，由修正文件补）、VRRP
+  - {view: configure, syntax: '^service$', enters: service}
+  - {view: service, syntax: '^customer <', enters: customer}
+  - {view: service, syntax: '^sdp <', enters: sdp}
+  - {view: sdp, syntax: '^keep-alive$', enters: sdp-keep-alive}
+  - {view: service, syntax: '^epipe <', enters: epipe}
+  - {view: epipe, syntax: '^sap <', enters: epipe-sap}
+  - {view: epipe-sap, syntax: '^ingress$', enters: epipe-sap-ingress}
+  - {view: epipe-sap, syntax: '^egress$', enters: epipe-sap-egress}
+  - {view: epipe, syntax: '^spoke-sdp <', enters: epipe-spoke}
+  - {view: service, syntax: '^vpls <', enters: vpls}
+  - {view: vpls, syntax: '^sap <', enters: vpls-sap}
+  - {view: vpls-sap, syntax: '^ingress$', enters: vpls-sap-ingress}
+  - {view: vpls-sap, syntax: '^egress$', enters: vpls-sap-egress}
+  - {view: vpls, syntax: '^spoke-sdp <', enters: vpls-spoke}
+  - {view: vpls, syntax: '^mesh-sdp <', enters: vpls-mesh}
+  - {view: service, syntax: '^vprn <', enters: vprn}
+  - {view: vprn, syntax: '^auto-bind-tunnel$', enters: vprn-abt}
+  - {view: vprn-abt, syntax: '^resolution-filter$', enters: vprn-abt-rf}
+  - {view: vprn, syntax: '^bgp-ipvpn$', enters: vprn-bgp-ipvpn}
+  - {view: vprn-bgp-ipvpn, syntax: '^mpls$', enters: vprn-ipvpn-mpls}
+  - {view: vprn-ipvpn-mpls, syntax: '^auto-bind-tunnel$', enters: vprn-ipvpn-abt}
+  - {view: vprn-ipvpn-abt, syntax: '^resolution-filter$', enters: vprn-ipvpn-abt-rf}
+  - {view: vprn, syntax: '^interface <', enters: vprn-if}
+  - {view: vprn-if, syntax: '^sap <', enters: vprn-if-sap}
+  - {view: vprn-if-sap, syntax: '^ingress$', enters: vprn-if-sap-ingress}
+  - {view: vprn-if-sap, syntax: '^egress$', enters: vprn-if-sap-egress}
+  - {view: vprn, syntax: '^static-route-entry <', enters: vprn-static}
+  - {view: vprn-static, syntax: '^next-hop( |$)', enters: vprn-static-nh}
+  - {view: service, syntax: '^ies <', enters: ies}
+  - {view: ies, syntax: '^interface <', enters: ies-if}
+  - {view: ies-if, syntax: '^sap <', enters: ies-if-sap}
+  - {view: ies-if-sap, syntax: '^ingress$', enters: ies-if-sap-ingress}
+  - {view: ies-if-sap, syntax: '^egress$', enters: ies-if-sap-egress}
+  - {view: configure, syntax: '^filter$', enters: filter}
+  - {view: filter, syntax: '^ip-filter <', enters: ip-filter}
+  - {view: ip-filter, syntax: '^entry <', enters: ip-filter-entry}
+  - {view: ip-filter-entry, syntax: '^match( |$)', enters: ip-filter-match}
+  - {view: ip-filter-entry, syntax: '^action( \[ secondary \])?$', enters: ip-filter-action}
+  - {view: configure, syntax: '^qos$', enters: qos}
+  - {view: qos, syntax: '^sap-ingress ', enters: qos-sap-ingress}
+  - {view: qos, syntax: '^sap-egress ', enters: qos-sap-egress}
+  - {view: router-if, syntax: '^vrrp <', enters: router-if-vrrp}
   # ---- 范围外的子上下文（命令本身在范围内的视图里，但它下面的命令还没有抽取）：进入 opaque 视图，块内按原文保留，
   # 块尾的 exit 也只退出这一层。名单由“命令的完整上下文又是别的命令的视图路径”自动得出（D-0170；M7-2 用 tmp/m72_views.py 重新生成）。
   # 解析器（block: exit）对没有进入视图、下面又有更深缩进子行的命令同样按原文块处理，这份名单只是让卡上标明“进入范围外上下文”
-  - {view: configure, syntax: '^(aaa|anysec|application-assurance|bfd|bmp|call-trace|card|cflowd|connection-profile-vlan|esa|eth-cfm|eth-ring|eth-tunnel|filter|fwd-path-ext|group-encryption|ipsec|isa|li|macsec|mcast-management|mirror|oam-pm|open-flow|port-policy|port-xc|pw-port|python|qos|redundancy|saa|service|sflow|sfm|subscriber-mgmt|test-oam|vrrp)( |$)', enters: opaque}
+  - {view: configure, syntax: '^(aaa|anysec|application-assurance|bfd|bmp|call-trace|card|cflowd|connection-profile-vlan|esa|eth-cfm|eth-ring|eth-tunnel|fwd-path-ext|group-encryption|ipsec|isa|li|macsec|mcast-management|mirror|oam-pm|open-flow|port-policy|port-xc|pw-port|python|redundancy|saa|sflow|sfm|subscriber-mgmt|test-oam|vrrp)( |$)', enters: opaque}
   - {view: port, syntax: '^(access|aps|connector|dwdm|gnss|hybrid-buffer-allocation|modify-buffer-allocation-rate|network|otu|sonet-sdh|tdm|transceiver)( |$)', enters: opaque}
   - {view: port-ethernet, syntax: '^(access|crc-monitor|dampening|dot1x|down-when-looped|efm-oam|egress|egress-scheduler-override|elmi|eth-cfm|lldp|network|ptp-timestamping|ssm|symbol-monitor)( |$)', enters: opaque}
   - {view: lag, syntax: '^(access|bfd|eth-cfm|link-map-profile|lldp-member-template|ptp-timestamping)( |$)', enters: opaque}
   - {view: router, syntax: '^(admin-tags|bfd|bier|dhcp|dhcp6|dns|firewall|flexible-algorithm-definitions|flowspec|gtm|gtp|if-attribute|igmp|ipsec|ipv6|isa-service-chaining|l2tp|lsp-bfd|mcac|mld|msdp|mtrace2|nat|network-domains|origin-validation|ospf3|p2mp-sr-tree|pcep|pcp-server|pim|policy-acct-template|radius-proxy|radius-server|rib-api|rip|ripng|route-next-hop-policy|router-advertisement|segment-routing|sgt-qos|subscriber-mgmt|ttl-propagate|twamp-light|vrgw|wlan-gw|wpp)( |$)', enters: opaque}
-  - {view: router-if, syntax: '^(cflowd-parameters|dhcp|egress|eth-cfm|external-reference|group-encryption|hold-time|icmp|if-attribute|ingress|ipsec|ipv6|load-balancing|urpf-check|vrrp)( |$)', enters: opaque}
+  - {view: router-if, syntax: '^(cflowd-parameters|dhcp|egress|eth-cfm|external-reference|group-encryption|hold-time|icmp|if-attribute|ingress|ipsec|ipv6|load-balancing|urpf-check)( |$)', enters: opaque}
   - {view: static-route-entry, syntax: '^(leak-destination)( |$)', enters: opaque}
   - {view: static-nh, syntax: '^(backup-next-hop|cpe-check|forwarding-class)( |$)', enters: opaque}
   - {view: static-indirect, syntax: '^(cpe-check|forwarding-class|tunnel-next-hop)( |$)', enters: opaque}
@@ -194,12 +280,47 @@ enters:
   - {view: mpls-labels, syntax: '^(reserved-label-block)( |$)', enters: opaque}
   - {view: ospf-sr, syntax: '^(adjacency-set|adjacency-sid|egress-statistics|ingress-statistics|mapping-server|maximum-sid-depth)( |$)', enters: opaque}
   - {view: isis-sr, syntax: '^(adjacency-set|adjacency-sid|egress-statistics|ingress-statistics|mapping-server|maximum-sid-depth)( |$)', enters: opaque}
+  # M7-3（tmp/nokia-m73/views.py 生成）：业务、过滤器、QoS 的范围外子上下文。VPRN 下的 bgp / ospf / isis 等协议这次不抽，进入 opaque；
+  # SDP 的 mixed-lsp-mode / binding、spoke-sdp / mesh-sdp 下的 ingress / egress（vc-label、filter）也先按原文保留
+  - {view: service, syntax: '^(cpipe|dynamic-services|ipfix|ipipe|mac-list|mac-notification|md-auto-id|mrp|nat|oper-group|pbb|proxy-arp-nd|pw-routing|pw-template|sdp-group|system|template|upnp)( |$)', enters: opaque}
+  - {view: customer, syntax: '^(multi-service-site)( |$)', enters: opaque}
+  - {view: sdp, syntax: '^(binding|class-forwarding|mixed-lsp-mode)( |$)', enters: opaque}
+  - {view: epipe, syntax: '^(bgp|bgp-evpn|bgp-vpws|endpoint|eth-cfm|load-balancing|nat-outside|pbb|pw-port|segment-routing-v6|site|spoke-sdp-fec|vxlan)( |$)', enters: opaque}
+  - {view: epipe-sap, syntax: '^(eth-cfm|eth-tunnel|ethernet|l2tpv3-session)( |$)', enters: opaque}
+  - {view: epipe-sap-ingress, syntax: '^(criteria-overrides|policer-control-override|queue-override|scheduler-override)( |$)', enters: opaque}
+  - {view: epipe-sap-egress, syntax: '^(agg-rate|policer-control-override|policer-override|queue-override|scheduler-override)( |$)', enters: opaque}
+  - {view: epipe-spoke, syntax: '^(bfd|control-channel-status|egress|eth-cfm|ingress|pw-path-id)( |$)', enters: opaque}
+  - {view: vpls, syntax: '^(allow-ip-int-bind|bgp|bgp-ad|bgp-evpn|bgp-vpls|endpoint|eth-cfm|gsmp|igmp-host-tracking|igmp-snooping|interface|isid-policy|load-balancing|mac-move|mac-notification|mac-protect|mcr-default-gtw|mld-snooping|mrp|pbb|pim-snooping|provider-tunnel|proxy-arp|proxy-nd|segment-routing-v6|site|spb|split-horizon-group|static-mac|stp|vpls-group|vxlan|wlan-gw)( |$)', enters: opaque}
+  - {view: vpls-sap, syntax: '^(arp-host|dhcp|dhcp6|dynamic-services|eth-cfm|eth-tunnel|igmp-host-tracking|igmp-snooping|ipoe-session|l2tpv3-session|managed-vlan-list|mld-snooping|mrp|msap-defaults|pfcp|pim-snooping|spb|static-host|static-isid|stp|sub-sla-mgmt)( |$)', enters: opaque}
+  - {view: vpls-sap-ingress, syntax: '^(criteria-overrides|policer-control-override|policer-override|queue-override)( |$)', enters: opaque}
+  - {view: vpls-sap-egress, syntax: '^(agg-rate|encap-defined-qos|policer-control-override|policer-override|queue-override|scheduler-override)( |$)', enters: opaque}
+  - {view: vpls-spoke, syntax: '^(bfd|control-channel-status|dhcp|egress|eth-cfm|igmp-snooping|ingress|mld-snooping|mrp|pim-snooping|pw-path-id|spb|static-isid|stp)( |$)', enters: opaque}
+  - {view: vpls-mesh, syntax: '^(bfd|dhcp|egress|eth-cfm|igmp-snooping|ingress|mep|mld-snooping|mrp|snooping)( |$)', enters: opaque}
+  - {view: vprn, syntax: '^(aa-interface|aaa|aarp-interface|bgp|bgp-evpn|dhcp|dhcp6|dns|eth-cfm|firewall|flowspec|grt-lookup|gsmp|gtp|igmp|igmp-host-tracking|ip-mirror-interface|ipsec|ipv6|isis|l2tp|l2tpv3|log|management|mld|msdp|mtrace2|mvpn|nat|network|network-interface|ntp|nw-if|ospf|ospf3|pim|ptp|radius-proxy|radius-server|redundant-interface|rip|ripng|router-advertisement|sap|segment-routing-v6|server|sgt-qos|snmp|source-address|spoke-sdp|subscriber-interface|subscriber-mgmt|ttl-propagate|twamp-light|video-interface|vxlan|wlan-gw|wpp)( |$)', enters: opaque}
+  - {view: vprn-bgp-ipvpn, syntax: '^(attribute-set|segment-routing-v6)( |$)', enters: opaque}
+  - {view: vprn-if, syntax: '^(arp-host-route|cflowd-parameters|dhcp|external-reference|hold-time|icmp|if-attribute|ingress|ip-tunnel|ipsec|ipv6|load-balancing|ping-template|spoke-sdp|urpf-check|vpls|vrrp)( |$)', enters: opaque}
+  - {view: vprn-if-sap, syntax: '^(eth-cfm|fwd-wholesale|gre-tunnel|ip-tunnel|ipsec-gw|ipsec-tunnel|static-host)( |$)', enters: opaque}
+  - {view: vprn-if-sap-ingress, syntax: '^(criteria-overrides|policer-control-override|policer-override|queue-override|scheduler-override)( |$)', enters: opaque}
+  - {view: vprn-if-sap-egress, syntax: '^(agg-rate|policer-control-override|policer-override|queue-override|scheduler-override)( |$)', enters: opaque}
+  - {view: vprn-static, syntax: '^(black-hole|grt|indirect|ipsec-tunnel)( |$)', enters: opaque}
+  - {view: vprn-static-nh, syntax: '^(backup-next-hop|cpe-check|forwarding-class)( |$)', enters: opaque}
+  - {view: ies, syntax: '^(aa-interface|aarp-interface|eth-cfm|igmp-host-tracking|ipv6|redundant-interface|rip|sap|subscriber-interface|subscriber-mgmt|video-interface)( |$)', enters: opaque}
+  - {view: ies-if, syntax: '^(arp-host-route|cflowd-parameters|dhcp|hold-time|icmp|if-attribute|ingress|ipsec|ipv6|load-balancing|ping-template|spoke-sdp|urpf-check|vpls|vrrp)( |$)', enters: opaque}
+  - {view: ies-if-sap, syntax: '^(eth-cfm|fwd-wholesale|gre-tunnel|ip-tunnel|ipsec-gw|mep|static-host|sub-sla-mgmt)( |$)', enters: opaque}
+  - {view: ies-if-sap-ingress, syntax: '^(criteria-overrides|policer-control-override|policer-override|queue-override|scheduler-override)( |$)', enters: opaque}
+  - {view: ies-if-sap-egress, syntax: '^(agg-rate|policer-control-override|policer-override|queue-override|scheduler-override)( |$)', enters: opaque}
+  - {view: filter, syntax: '^(copy|dhcp-filter|dhcp6-filter|gre-tunnel-template|ip-exception|ipv6-exception|ipv6-filter|log|mac-filter|match-list|md-auto-id|policer|redirect-policy|redirect-policy-binding|system-filter)( |$)', enters: opaque}
+  - {view: ip-filter-action, syntax: '^(extended-action)( |$)', enters: opaque}
+  - {view: qos, syntax: '^(adv-config-policy|copy|fp-resource-policy|hs-attachment-policy|hs-pool-policy|hs-port-pool-policy|hs-scheduler-policy|hw-agg-shaper-scheduler-policy|match-list|md-auto-id|network|network-queue|policer-control-policy|port-scheduler-policy|post-policer-mapping|queue-group-redirect-list|queue-group-templates|scheduler-policy|shared-queue|slope-policy)( |$)', enters: opaque}
 
 # 参数说明的取值范围写作 “Values 1 to 255”；按顺序第一条命中生效（ipv6 要在 ipv4 之前）
 param_types:
   - {name: 'virtual-router-id$', type: integer}
   # M7-2：取值说明里有 “Values 0.0.0.0 to …”（点分或整数两种写法）、MAC 形式、长度范围的参数不能按整数检查
   - {name: '^(area-id|system-id|length1-length2)$', type: word}
+  # M7-3：VPRN 的 route-distinguisher <rd>（64500:3001 / 10.0.0.1:1）
+  - {name: '^rd$', type: rd}
+  - {name: '^ipv4-address-mask$', type: mask}
   # M7-2：端口与 SAP 类型（路由器接口的 port 写作 端口[:封装]，按 SAP 检查）
   - {name: '^(port-id)$', type: port}
   - {name: '^(sap-id|port-name)$', type: sap}
@@ -218,7 +339,9 @@ domains:
     - {path: 'configure_lag.md'}
     - {path: 'configure_lag_*.md'}
     - {path: 'configure_router.md'}
-    - {path: 'configure_router_interface.md'}
+    # M7-3：路由器接口下的 vrrp 上下文归 vrrp 功能域（进入 vrrp 的那条命令仍在本域）
+    - path: 'configure_router_interface.md'
+      views_map: [{match: '^configure router interface vrrp$', view: null}]
   static-route:
     - {path: 'configure_router_static-route-entry.md'}
   # ---- M7-2 ----
@@ -254,6 +377,32 @@ domains:
       views_map: [{match: '^configure router ospf segment-routing$', view: ospf-sr}, {match: '.', view: null}]
     - path: 'configure_router_isis.md'
       views_map: [{match: '^configure router isis segment-routing$', view: isis-sr}, {match: '.', view: null}]
+  # ---- M7-3 ----
+  # 业务：configure service 下的客户、SDP、Epipe、VPLS、VPRN、IES（子命令按 4 个词的完整上下文分文件，用通配）；
+  # VPRN 下的 bgp / ospf / isis 等协议上下文这次不抽（文件里只有进入它们的那条命令落在 vprn 视图，进入 opaque）
+  service:
+    - {path: 'configure_service_customer*.md'}
+    - {path: 'configure_service_sdp.md'}
+    - {path: 'configure_service_sdp_*.md'}
+    - {path: 'configure_service_epipe*.md'}
+    - {path: 'configure_service_vpls*.md'}
+    - {path: 'configure_service_vprn*.md'}
+    - {path: 'configure_service_ies*.md'}
+  # 过滤器（ACL）：只抽 IPv4 的 ip-filter
+  acl:
+    - {path: 'configure_filter_ip-filter.md'}
+  # VRRP：路由器接口下的 vrrp 上下文（进入 vrrp 的命令在 interface 域）
+  vrrp:
+    - path: 'configure_router_interface.md'
+      views_map: [{match: '^configure router interface vrrp$', view: router-if-vrrp}, {match: '.', view: null}]
+  # QoS：只抽 SAP 入 / 出方向策略的进入命令与 description，其余子上下文（queue、fc、policer…）按原文保留
+  qos:
+    - path: 'configure_qos_sap-ingress.md'
+      sections: [sap-ingress, description]
+      views_map: [{match: '^configure qos$', view: qos}, {match: '^configure qos sap-ingress$', view: qos-sap-ingress}, {match: '.', view: null}]
+    - path: 'configure_qos_sap-egress.md'
+      sections: [sap-egress, description]
+      views_map: [{match: '^configure qos$', view: qos}, {match: '^configure qos sap-egress$', view: qos-sap-egress}, {match: '.', view: null}]
 
 syntax_rewrites:
   # 前缀 / 掩码：文档写作 *ip-prefix***/***prefix-length*（斜杠是粗体），转换后成了 <ip-prefix> / <prefix-length>；
@@ -335,3 +484,128 @@ syntax_rewrites:
   - pattern: '^(default-metric|default-ipv6-unicast-metric) <(ipv4|ipv6)> <metric>$'
     replace: '\1 <\2-metric>'
     params: {ipv4-metric: {type: integer, range: [1, 16777214]}, ipv6-metric: {type: integer, range: [1, 16777214]}}
+  # ---- M7-3：业务、过滤器、VRRP；以及 M7-2 留下的同名参数 ----
+  # 业务对象的进入命令：文档语法的可选项顺序与 display-config 不同（display-config 写作 epipe 1001 name "x" customer 100 create），
+  # 按 display-config 的顺序改写；名称参数统一叫 <name>
+  - pattern: '^customer <customer-id> \[ create \] \[ name <name> \]$'
+    replace: 'customer <customer-id> [ name <name> ] [ create ]'
+    params: {customer-id: {type: integer, range: [1, 2147483647]}, name: {type: word}}
+  - pattern: '^epipe <service-id> (customer <customer-id> \[ vpn <vpn-id> \] \[ vc-switching \] \[ create \] name \[ <name> \]|\[ test \] \[ create \] \[ name <name> \]) \[ flexible-cross-connect \]$'
+    replace: 'epipe <service-id> [ name <name> ] [ customer <customer-id> ] [ vpn <vpn-id> ] [ vc-switching ] [ test ] [ create ] [ flexible-cross-connect ]'
+    params: {customer-id: {type: integer, range: [1, 2147483647]}, vpn-id: {type: integer, range: [1, 2147483647]}, name: {type: word}}
+  - pattern: '^vpls <service-id> \[ customer <customer-id> \] \[ create \] \[ vpn <vpn-id> \] \[ m-vpls \] \[ b-vpls \| i-vpls \] \[ etree \] \[ name <name> \]$'
+    replace: 'vpls <service-id> [ name <name> ] [ customer <customer-id> ] [ vpn <vpn-id> ] [ m-vpls ] [ b-vpls | i-vpls ] [ etree ] [ create ]'
+  - pattern: '^ies <service-id> \[ customer <customer-id> \] \[ create \] \[ vpn <vpn-id> \] \[ name <name> \]$'
+    replace: 'ies <service-id> [ name <name> ] [ customer <customer-id> ] [ vpn <vpn-id> ] [ create ]'
+  - pattern: '^(sap-ingress|sap-egress) \{ <policy-id> \| <policy-name> \} \[ create \] \[ name <name> \]$'
+    replace: '\1 <policy-id> [ name <name> ] [ create ]'
+    params: {policy-id: {type: integer, range: [1, 65535]}, name: {type: word}}
+  - pattern: '^ip-filter <filter-id> \[ name \] \[ create \]$'
+    replace: 'ip-filter <filter-id> [ name <name> ] [ create ]'
+    params: {filter-id: {type: integer, range: [1, 65535]}, name: {type: word}}
+  # SDP 的封装类型（取值见参数表），写成关键字多选一（否则 sdp 12 create 的 create 会被当成封装类型）
+  - pattern: '^sdp <sdp-id> \[ <delivery-type> \] \[ create \]$'
+    replace: 'sdp <sdp-id> [ { gre | mpls | l2tpv3 | eth-gre-bridged } ] [ create ]'
+  # spoke-sdp / mesh-sdp 的 <sdp-id>[:<vc-id>]（配置里是一个词 12:1001）合成一个参数
+  - pattern: '<sdp-id> \[ (: <vc-id>|<:vc-id>) \]'
+    replace: '<sdp-id:vc-id>'
+    params: {'sdp-id:vc-id': {type: word}}
+  # 文档排版：拆开的关键字、花括号紧贴关键字
+  - pattern: '\[ capture- sap \]'
+    replace: '[ capture-sap ]'
+  - pattern: '\{all-ones \| host-ones\}'
+    replace: '{ all-ones | host-ones }'
+  - pattern: '\{ <ip-address> \| <ip-int-name> \| <ipv6> <address> \}'
+    replace: '{ <ip-address> | <ip-int-name> | <ipv6-address> }'
+    params: {ipv6-address: {type: word}}
+  # 过滤器：IPv4: / IPv6: 是文档里区分地址族的小标题，不是命令的一部分；单独一行的小标题改成空语法（按语法错误跳过）
+  - pattern: '^IPv[46]: '
+    replace: ''
+  - pattern: '^IPv[46]:$'
+    replace: ''
+  # VPRN 下已废弃（25.x 改到 bgp-ipvpn mpls 下）的桩命令：命令参考只剩关键字，按旧版本的写法补全参数（旧版本的配置仍这样写）
+  - pattern: '^route-distinguisher$'
+    replace: 'route-distinguisher <rd>'
+    params: {rd: {type: rd}}
+  - pattern: '^vrf-target$'
+    replace: 'vrf-target { <ext-community> | export <ext-community> | import <ext-community> | export <ext-community> import <ext-community> }'
+  - pattern: '^(vrf-import|vrf-export)$'
+    replace: '\1 <plcy-or-long-expr> [ <plcy-or-expr> ] &<1-14>'
+    params: {plcy-or-long-expr: {type: word}, plcy-or-expr: {type: word}}
+  - pattern: '^resolution$'
+    replace: 'resolution { disabled | any | filter }'
+  - pattern: '^ecmp$'
+    replace: 'ecmp <max-ecmp-routes>'
+    params: {max-ecmp-routes: {type: integer, range: [1, 64]}}
+  # vrf-target 的“export 与 import 同时写”分支里两个同名参数：按方向改名（团体值 target:64500:3001 按 word）
+  - pattern: '^vrf-target \{ <ext-community> \| export <ext-community> \| import <ext-community> \| export <ext-community> import <ext-community> \}$'
+    replace: 'vrf-target { <ext-community> | export <export-community> | import <import-community> | export <export-community> import <import-community> }'
+    params: {ext-community: {type: word}, export-community: {type: word}, import-community: {type: word}}
+  # 同名参数（取值会互相覆盖）：第二个改成不同的名字
+  - pattern: 'range <([^<>]+)> <\1>'
+    replace: 'range <\1> <\1-end>'
+    params:
+      dst-port-number-end: {type: word}
+      src-port-number-end: {type: word}
+      port-number-end: {type: word}
+      packet-length-value-end: {type: integer, range: [0, 65535]}
+      ttl-value-end: {type: integer, range: [0, 255]}
+  - pattern: 'service-sid <ipv6-address>'
+    replace: 'service-sid <service-sid>'
+    params: {service-sid: {type: word}}
+  - pattern: '^bgp-shared-queue \[ cir <rate> \] \[ pir <rate> \]$'
+    replace: 'bgp-shared-queue [ cir <cir-rate> ] [ pir <pir-rate> ]'
+    params: {cir-rate: {type: word}, pir-rate: {type: word}}
+  - pattern: '\| hold-excess <percentage> \]'
+    replace: '| hold-excess <hold-excess-percentage> ]'
+    params: {hold-excess-percentage: {type: word}}
+  - pattern: 'egress-port-redirect-group <queue-group-name> egress-instance <instance-id> ingress-fp-redirect-group <queue-group-name> ingress-instance <instance-id>'
+    replace: 'egress-port-redirect-group <egress-queue-group-name> egress-instance <egress-instance-id> ingress-fp-redirect-group <ingress-queue-group-name> ingress-instance <ingress-instance-id>'
+    params:
+      egress-queue-group-name: {type: word}
+      ingress-queue-group-name: {type: word}
+      egress-instance-id: {type: integer, range: [1, 16384]}
+      ingress-instance-id: {type: integer, range: [1, 16384]}
+  - pattern: 'advertise-unreachable \[ match-route-tag <tag> \] \[ advertise-route-tag <tag> \]'
+    replace: 'advertise-unreachable [ match-route-tag <match-tag> ] [ advertise-route-tag <advertise-tag> ]'
+    params: {match-tag: {type: integer, range: [1, 4294967295]}, advertise-tag: {type: integer, range: [1, 4294967295]}}
+  - pattern: '^home-directory <url-prefix> \[ <directory> \] \[ <directory> / <directory> \]$'
+    replace: 'home-directory <url-prefix> [ <directory> ] [ <directory-path> ]'
+    params: {directory-path: {type: word}}
+  - pattern: '^snmp-trap-group \{ <log-id> \| <log-name> \} \[ name <log-name> \]$'
+    replace: 'snmp-trap-group { <log-id> | <log-name> } [ name <name> ]'
+    params: {name: {type: word}}
+  - pattern: 'ct([0-7]) <%-link-bandwidth>'
+    replace: 'ct\1 <ct\1-percent>'
+    params:
+      ct0-percent: {type: integer, range: [0, 100]}
+      ct1-percent: {type: integer, range: [0, 100]}
+      ct2-percent: {type: integer, range: [0, 100]}
+      ct3-percent: {type: integer, range: [0, 100]}
+      ct4-percent: {type: integer, range: [0, 100]}
+      ct5-percent: {type: integer, range: [0, 100]}
+      ct6-percent: {type: integer, range: [0, 100]}
+      ct7-percent: {type: integer, range: [0, 100]}
+  - pattern: '^((no )?prefix <ip-prefix/prefix-length> \[ exact \| longer \| through <length> \| prefix-length-range <length1-length2> \|) to <ip-prefix/prefix-length> \|'
+    replace: '\1 to <to-prefix> |'
+    params: {to-prefix: {type: prefix}}
+  - pattern: '^renumber from <entry-id> to <entry-id>$'
+    replace: 'renumber from <old-entry-id> to <new-entry-id>'
+    params: {old-entry-id: {type: integer, range: [1, 4294967295]}, new-entry-id: {type: integer, range: [1, 4294967295]}}
+  # 业务接口与 SAP 下的文档括号错误（与路由器接口下的同名命令写法对齐）
+  - pattern: '^secondary <ip-address\[/mask\]> .*$'
+    replace: 'secondary { <ip-address/mask> | <ip-address> <netmask> } [ broadcast { all-ones | host-ones } ] [ igp-inhibit ] [ track-srrp <srrp-instance> ]'
+    params: {ip-address/mask: {type: prefix}, ip-address: {type: ipv4}, netmask: {type: mask}, srrp-instance: {type: integer, range: [1, 4294967295]}}
+  - pattern: '^secondary <ip-address> \[ / <mask> \] \[ <netmask> \] '
+    replace: 'secondary { <ip-address/mask> | <ip-address> <netmask> } '
+    params: {ip-address/mask: {type: prefix}, ip-address: {type: ipv4}, netmask: {type: mask}}
+  - pattern: '\[ multiplier <multiplier> \[ echo-receive <echo-interval> \] \[ type cpm-np \]$'
+    replace: '[ multiplier <multiplier> ] [ echo-receive <echo-interval> ] [ type cpm-np ]'
+  - pattern: '\[ indirect <ip-address> \] \[ local-preference <local-pref> \] \] \[ description'
+    replace: '[ indirect <ip-address> ] [ local-preference <local-pref> ] [ description'
+  - pattern: '^cpu-protection <policy-id> \[ mac-monitoring \] \| \[ eth-cfm-monitoring \[ aggregate \] \[ car \] \]( \| \[ ip-src-monitoring \])?$'
+    replace: 'cpu-protection <policy-id> [ { mac-monitoring | eth-cfm-monitoring [ aggregate ] [ car ] | ip-src-monitoring } ]'
+  # 斜体 *global-field*:*local-field* 转换后被冒号拆开；配置里是一个词（64500:1）
+  - pattern: '<global-field> : <local-field>'
+    replace: '<global-field:local-field>'
+    params: {'global-field:local-field': {type: word}}

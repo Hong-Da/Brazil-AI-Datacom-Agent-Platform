@@ -72,7 +72,7 @@ def cmd_list(ctx: typer.Context) -> None:
 def cmd_add(
     ctx: typer.Context,
     name: Annotated[str, typer.Argument(help="用户名")],
-    role: Annotated[str, typer.Option("--role", help="admin | user")] = "user",
+    role: Annotated[str, typer.Option("--role", help="admin | maintainer | user")] = "user",
     password_stdin: StdinOpt = False,
 ) -> None:
     c = output.get(ctx)
@@ -125,7 +125,7 @@ def cmd_reset(
 def cmd_set_role(
     ctx: typer.Context,
     name: Annotated[str, typer.Argument(help="用户名")],
-    role: Annotated[str, typer.Argument(help="admin | user")],
+    role: Annotated[str, typer.Argument(help="admin | maintainer | user")],
 ) -> None:
     c = output.get(ctx)
     try:
@@ -135,15 +135,26 @@ def cmd_set_role(
     emit(c, {"user": u}, c.t("user.role_ok", name=name, role=c.t(f"user.role.{role}")))
 
 
-@user_app.command("delete", help="删除账号（需要确认，--yes 跳过）/ delete an account")
-def cmd_delete(ctx: typer.Context, name: Annotated[str, typer.Argument(help="用户名")]) -> None:
+@user_app.command(
+    "delete", help="删除账号（需要确认，--yes 跳过）；拥有项目时 --transfer-to 或 --delete-projects / delete an account"
+)
+def cmd_delete(
+    ctx: typer.Context,
+    name: Annotated[str, typer.Argument(help="用户名")],
+    transfer_to: Annotated[
+        str | None, typer.Option("--transfer-to", help="把他的项目、私有模板与规则集转交给这个账号")
+    ] = None,
+    delete_projects: Annotated[
+        bool, typer.Option("--delete-projects", help="一并删除他的项目、私有模板与规则集")
+    ] = False,
+) -> None:
     c = output.get(ctx)
     db = require_db(c)
     try:
         users.get_user(db, name)
         if not c.yes and not typer.confirm(c.t("user.confirm_delete", name=name)):
             fail(c, output.EXIT_ERROR, c.t("user.cancelled"))
-        r = users.delete_user(db, name)
+        r = users.delete_user(db, name, transfer_to, delete_projects)
     except users.UserError as e:
         _fail(c, e)
     emit(c, r, c.t("user.deleted_ok", name=name))

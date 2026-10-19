@@ -111,6 +111,8 @@ cards:
       line: 713
       version: 25.10.R1
     status: draft
+    maps:
+      ospf.process.area: $area-id
   - id: nokia-sros-classic.area-range
     syntax: area-range <ip-prefix/mask> [ advertise | not-advertise ]
     view: ospf-area
@@ -208,6 +210,8 @@ cards:
       line: 1106
       version: 25.10.R1
     status: draft
+    maps:
+      interface.ospf.bfd: flag
   - id: nokia-sros-classic.bfd-enable.2
     syntax: bfd-enable [ remain-down-on-failure ] strict [ strict-mode-holddown <number> ]
     view: ospf-if
@@ -313,6 +317,8 @@ cards:
       line: 1387
       version: 25.10.R1
     status: draft
+    maps:
+      interface.ospf.dead: $seconds
   - id: nokia-sros-classic.delay-normalization
     syntax: delay-normalization
     view: ospf-if
@@ -364,6 +370,8 @@ cards:
       line: 1732
       version: 25.10.R1
     status: draft
+    maps:
+      ospf.process.export_policy: $policy-name
   - id: nokia-sros-classic.export~2
     syntax: export <policy-name> [ <policy-name> ] &<1-4>
     view: ospf-area
@@ -504,6 +512,8 @@ cards:
       line: 2199
       version: 25.10.R1
     status: draft
+    maps:
+      interface.ospf.hello: $seconds
   - id: nokia-sros-classic.igp-shortcut
     syntax: igp-shortcut
     view: ospf
@@ -561,6 +571,10 @@ cards:
       line: 2515
       version: 25.10.R1
     status: draft
+    maps:
+      interface{name=$ip-int-name}.ospf: _
+      interface{name=$ip-int-name}.ospf.process: ctx:ospf-instance||0
+      interface{name=$ip-int-name}.ospf.area: ctx:area-id
   - id: nokia-sros-classic.interface-type
     syntax: interface-type { broadcast | point-to-point | non-broadcast | p2mp-nbma }
     view: ospf-if
@@ -573,6 +587,8 @@ cards:
       line: 2561
       version: 25.10.R1
     status: draft
+    maps:
+      interface.ospf.network_type: kw:point-to-point=p2p|broadcast|non-broadcast=nbma|p2mp-nbma=p2mp
   - id: nokia-sros-classic.ldp-over-rsvp
     syntax: ldp-over-rsvp
     view: ospf
@@ -723,6 +739,8 @@ cards:
       line: 3266
       version: 25.10.R1
     status: draft
+    maps:
+      interface.ospf.cost: $metric
   - id: nokia-sros-classic.mtu~2
     syntax: mtu <bytes>
     view: ospf-if
@@ -839,6 +857,10 @@ cards:
       line: 3840
       version: 25.10.R1
     status: draft
+    maps:
+      interface.prefix_sid: ospf
+      interface.prefix_sid.index: $index-value
+      interface.prefix_sid.node_disable: kw:clear-n-flag=true:false
   - id: nokia-sros-classic.node-sid.2
     syntax: node-sid label <label-value> [ clear-n-flag ]
     view: ospf-if
@@ -891,6 +913,9 @@ cards:
       version: 25.10.R1
       patched: 原文 ospf-instance 为必选、取值 1 to 31；基本实例 0 可以省略或写作 0（配置指南的举例有 ospf、ospf 0、ospf 0 10.20.1.6 三种写法）
     status: draft
+    maps:
+      ospf.process: $ospf-instance||0
+      ospf.process.router_id: $router-id
   - id: nokia-sros-classic.ospf.2
     syntax: ospf <ospf-instance>
     view: router
@@ -910,6 +935,8 @@ cards:
       line: 4023
       version: 25.10.R1
     status: draft
+    maps:
+      ospf.process: $ospf-instance||0
   - id: nokia-sros-classic.overload
     syntax: overload [ timeout <seconds> ]
     view: ospf
@@ -993,6 +1020,9 @@ cards:
       line: 4493
       version: 25.10.R1
     status: draft
+    maps:
+      ospf.process.passive: ctx:ip-int-name
+      ospf.process.passive.enabled: flag
   - id: nokia-sros-classic.poll-interval
     syntax: poll-interval <seconds>
     view: ospf-if
@@ -1047,6 +1077,8 @@ cards:
       line: 4779
       version: 25.10.R1
     status: draft
+    maps:
+      interface.ospf.priority: $number
   - id: nokia-sros-classic.reference-bandwidth.1
     syntax: reference-bandwidth <bandwidth-in-kbps>
     view: ospf
@@ -1224,6 +1256,8 @@ cards:
       line: 5369
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.shutdown~10
     syntax: shutdown
     view: ospf
@@ -1235,6 +1269,8 @@ cards:
       line: 5454
       version: 25.10.R1
     status: draft
+    maps:
+      ospf.process.shutdown: flag
   - id: nokia-sros-classic.sid-protection
     syntax: sid-protection
     view: ospf-if
@@ -1283,6 +1319,8 @@ cards:
       line: 6056
       version: 25.10.R1
     status: draft
+    maps:
+      ospf.process.te: flag
   - id: nokia-sros-classic.traffic-engineering-options
     syntax: traffic-engineering-options
     view: ospf
@@ -1353,3 +1391,5 @@ cards:
       patched: 命令参考 OSPF 的 shutdown 条目只列了 ospf3 的 area interface，漏了 OSPFv2 的 configure router ospf area interface（display-config 在每个 OSPF 接口下写 no shutdown）
       added_by_patch: true
     status: draft
+    maps:
+      interface.ospf.shutdown: flag

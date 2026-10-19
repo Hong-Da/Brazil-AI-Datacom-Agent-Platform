@@ -141,6 +141,25 @@ nodes:
     parent: interface.ospf
     type: boolean
     semantic: {zh-CN: 接口启用 OSPF BFD, en: BFD}
+  # ---------- M7-3（Nokia SR OS）----------
+  ospf.process.export_policy:
+    parent: ospf.process
+    type: ref
+    ref: rp.policy
+    semantic: {zh-CN: 发布路由时应用的路由策略（Nokia export：用策略代替引入；华为 / Cisco 用 import-route / redistribute，平台特有）, en: Export policy (Nokia), pt-BR: Política de exportação (Nokia)}
+  ospf.process.te:
+    parent: ospf.process
+    type: boolean
+    semantic: {zh-CN: 流量工程扩展（Nokia traffic-engineering；华为 opaque-capability / mpls-te、Cisco mpls traffic-eng 有对应写法，未归并）, en: Traffic engineering extensions, pt-BR: Extensões de engenharia de tráfego}
+  # ---------- M7-3（Nokia SR OS）：管理状态 ----------
+  ospf.process.shutdown:
+    parent: ospf.process
+    type: boolean
+    semantic: {zh-CN: OSPF 实例管理关闭（Nokia shutdown / no shutdown；Cisco router ospf 下的 shutdown 有对应写法，未归并；华为没有对应）, en: OSPF instance administratively down, pt-BR: Instância OSPF desativada administrativamente}
+  interface.ospf.shutdown:
+    parent: interface.ospf
+    type: boolean
+    semantic: {zh-CN: 接口上的 OSPF 管理关闭（Nokia shutdown / no shutdown；华为 / Cisco 没有对应，平台特有）, en: OSPF on the interface administratively down, pt-BR: OSPF na interface desativado administrativamente}
 deps:
   - {kind: reference, from: ospf.process.vrf, to: vrf.instance}
   - {kind: reference, from: ospf.process.redistribute.policy, to: rp.policy}

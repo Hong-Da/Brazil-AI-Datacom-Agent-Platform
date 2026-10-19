@@ -456,6 +456,33 @@ nodes:
     parent: mgmt.line
     type: string
     semantic: {zh-CN: 允许的登录协议（华为 protocol inbound / Cisco transport input）, en: Inbound protocols}
+  # ---------- M7-3（Nokia SR OS）：系统名称、全局 Router ID ----------
+  mgmt.system:
+    type: object
+    key: [id]
+    semantic: {zh-CN: 系统（编号固定为 "_"；主机名、全局 Router ID 等设备级设置）, en: System, pt-BR: Sistema}
+    status: reviewed
+  mgmt.system.name:
+    parent: mgmt.system
+    type: text
+    semantic: {zh-CN: 主机名（Nokia system name；华为 sysname、Cisco hostname 有对应写法，为保持现有基准未归并）, en: Host name, pt-BR: Nome do host}
+  mgmt.system.router_id:
+    parent: mgmt.system
+    type: ipv4
+    semantic: {zh-CN: 全局 Router ID（Nokia router Base 下的 router-id；华为 router id 有对应写法，未归并；Cisco 没有全局命令）, en: Global router ID, pt-BR: Router ID global}
+  # ---------- M7-3（Nokia SR OS）：管理状态 ----------
+  mgmt.syslog.host.target_id:
+    parent: mgmt.syslog.host
+    type: integer
+    semantic: {zh-CN: 日志目标编号（Nokia log syslog <编号>；华为 / Cisco 没有，平台特有）, en: Syslog target ID (Nokia), pt-BR: ID do destino syslog (Nokia)}
+  mgmt.syslog.host.level:
+    parent: mgmt.syslog.host
+    type: string
+    semantic: {zh-CN: 发送到该服务器的最低级别（Nokia log syslog 下的 level；华为 info-center loghost … level 有对应写法，未归并）, en: Minimum severity sent to this server, pt-BR: Severidade mínima enviada a este servidor}
+  mgmt.ntp.shutdown:
+    parent: mgmt.ntp
+    type: boolean
+    semantic: {zh-CN: NTP 管理关闭（Nokia 缺省关闭）（Nokia shutdown / no shutdown；华为 / Cisco 配置了服务器即启用，平台特有）, en: NTP administratively down, pt-BR: NTP desativado administrativamente}
 deps:
   - {kind: reference, from: mgmt.aaa.domain.tacacs, to: mgmt.tacacs}
   - {kind: reference, from: mgmt.ntp.server.vrf, to: vrf.instance}

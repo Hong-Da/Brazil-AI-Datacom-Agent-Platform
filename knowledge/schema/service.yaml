@@ -1,0 +1,217 @@
+# 业务功能域（M7-3，REQ-037）：Nokia SR OS 的业务模型里华为 / Cisco 没有对应的对象——客户、SDP、IES。
+# Epipe / VPLS / VPRN 映射到已有的 l2vpn.xconnect / l2vpn.vsi / vrf.instance（见 docs/project-spec.md “接入 Nokia 7750 SR（REQ-037）（M7-3 结果）”）；
+# 这里的对象都是 Nokia 平台特有的，华为 / Cisco 没有映射（翻译时报不支持）。
+domain: service
+nodes:
+  service.customer:
+    type: object
+    key: [id]
+    semantic: {zh-CN: 客户（Nokia service customer；业务都属于某个客户；华为 / Cisco 没有对应，平台特有）, en: Customer (Nokia), pt-BR: Cliente (Nokia)}
+    status: reviewed
+  service.customer.name:
+    parent: service.customer
+    type: text
+    semantic: {zh-CN: 客户名称, en: Customer name, pt-BR: Nome do cliente}
+  service.customer.description:
+    parent: service.customer
+    type: text
+    semantic: {zh-CN: 客户描述, en: Customer description, pt-BR: Descrição do cliente}
+  service.sdp:
+    type: object
+    key: [id]
+    semantic: {zh-CN: 业务分发点 SDP（Nokia：伪线的对端与隧道选择；华为 / Cisco 写在每条伪线的 peer 与隧道策略上，平台特有）, en: Service distribution point (Nokia), pt-BR: Ponto de distribuição de serviço (Nokia)}
+    status: reviewed
+  service.sdp.description:
+    parent: service.sdp
+    type: text
+    semantic: {zh-CN: SDP 描述, en: SDP description, pt-BR: Descrição do SDP}
+  service.sdp.far_end:
+    parent: service.sdp
+    type: ipv4
+    semantic: {zh-CN: 对端地址（通常是对端的 system 地址；引用这个 SDP 的伪线对端即它）, en: Far-end address, pt-BR: Endereço remoto}
+  service.sdp.delivery:
+    parent: service.sdp
+    type: enum
+    choices: [mpls, gre, l2tpv3, eth-gre-bridged]
+    semantic: {zh-CN: 承载方式（sdp <编号> mpls / gre）, en: Delivery type, pt-BR: Tipo de entrega}
+  service.sdp.ldp:
+    parent: service.sdp
+    type: boolean
+    semantic: {zh-CN: 使用 LDP LSP 作为隧道, en: Use LDP LSPs, pt-BR: Usar LSPs LDP}
+  service.sdp.lsp:
+    parent: service.sdp
+    type: string
+    semantic: {zh-CN: 使用的 RSVP-TE LSP 名称, en: RSVP-TE LSP, pt-BR: LSP RSVP-TE}
+  service.sdp.path_mtu:
+    parent: service.sdp
+    type: integer
+    semantic: {zh-CN: 路径 MTU, en: Path MTU, pt-BR: MTU do caminho}
+  service.sdp.keep_alive:
+    parent: service.sdp
+    type: boolean
+    semantic: {zh-CN: SDP 保活（keep-alive 下 no shutdown）, en: SDP keep-alive, pt-BR: Keep-alive do SDP}
+  service.sdp.shutdown:
+    parent: service.sdp
+    type: boolean
+    semantic: {zh-CN: SDP 管理关闭（Nokia 缺省关闭）, en: SDP administratively down, pt-BR: SDP desativado administrativamente}
+  service.ies:
+    type: object
+    key: [name]
+    semantic: {zh-CN: IES 业务（Nokia Internet Enhanced Service：公网路由表里带 SAP 的三层接口；华为 / Cisco 直接写三层接口，平台特有）, en: IES service (Nokia), pt-BR: Serviço IES (Nokia)}
+    status: reviewed
+  service.ies.service_id:
+    parent: service.ies
+    type: integer
+    semantic: {zh-CN: 业务编号, en: Service ID, pt-BR: ID do serviço}
+  service.ies.customer:
+    parent: service.ies
+    type: ref
+    ref: service.customer
+    semantic: {zh-CN: 所属客户, en: Customer, pt-BR: Cliente}
+  service.ies.description:
+    parent: service.ies
+    type: text
+    semantic: {zh-CN: 描述, en: Description, pt-BR: Descrição}
+  service.ies.shutdown:
+    parent: service.ies
+    type: boolean
+    semantic: {zh-CN: 业务管理关闭（Nokia 缺省关闭）, en: Service administratively down, pt-BR: Serviço desativado administrativamente}
+  interface.ies:
+    parent: interface
+    type: ref
+    ref: service.ies
+    semantic: {zh-CN: 接口所属的 IES 业务（Nokia）, en: IES service of the interface (Nokia), pt-BR: Serviço IES da interface (Nokia)}
+  # ---------- Epipe / VPLS / VPRN 的业务属性（挂在已有对象上，Nokia 特有）----------
+  l2vpn.xconnect.service_id:
+    parent: l2vpn.xconnect
+    type: integer
+    semantic: {zh-CN: 业务编号（Nokia epipe <编号>）, en: Service ID (Nokia), pt-BR: ID do serviço (Nokia)}
+  l2vpn.xconnect.customer:
+    parent: l2vpn.xconnect
+    type: ref
+    ref: service.customer
+    semantic: {zh-CN: 所属客户（Nokia）, en: Customer (Nokia), pt-BR: Cliente (Nokia)}
+  l2vpn.xconnect.description:
+    parent: l2vpn.xconnect
+    type: text
+    semantic: {zh-CN: 描述（Nokia epipe description；Cisco xconnect context 下 description 有对应写法，未归并）, en: Description, pt-BR: Descrição}
+  l2vpn.xconnect.mtu:
+    parent: l2vpn.xconnect
+    type: integer
+    semantic: {zh-CN: 业务 MTU（Nokia service-mtu；Cisco mtu 有对应写法，未归并）, en: Service MTU, pt-BR: MTU do serviço}
+  l2vpn.xconnect.shutdown:
+    parent: l2vpn.xconnect
+    type: boolean
+    semantic: {zh-CN: 业务管理关闭（Nokia 缺省关闭）, en: Service administratively down, pt-BR: Serviço desativado administrativamente}
+  l2vpn.xconnect.pw.sdp:
+    parent: l2vpn.xconnect.pw
+    type: ref
+    ref: service.sdp
+    semantic: {zh-CN: 伪线使用的 SDP（Nokia spoke-sdp <SDP>：<VC>；伪线对端取 SDP 的 far-end）, en: SDP of the pseudowire (Nokia), pt-BR: SDP do pseudowire (Nokia)}
+  l2vpn.vsi.service_id:
+    parent: l2vpn.vsi
+    type: integer
+    semantic: {zh-CN: 业务编号（Nokia vpls <编号>）, en: Service ID (Nokia), pt-BR: ID do serviço (Nokia)}
+  l2vpn.vsi.customer:
+    parent: l2vpn.vsi
+    type: ref
+    ref: service.customer
+    semantic: {zh-CN: 所属客户（Nokia）, en: Customer (Nokia), pt-BR: Cliente (Nokia)}
+  l2vpn.vsi.shutdown:
+    parent: l2vpn.vsi
+    type: boolean
+    semantic: {zh-CN: 业务管理关闭（Nokia 缺省关闭）, en: Service administratively down, pt-BR: Serviço desativado administrativamente}
+  l2vpn.vsi.peer.role:
+    parent: l2vpn.vsi.peer
+    type: enum
+    choices: [mesh, spoke]
+    semantic: {zh-CN: 伪线角色（Nokia mesh-sdp / spoke-sdp；华为 / Cisco 的 VSI 对等体都相当于 mesh，平台特有）, en: Pseudowire role (mesh / spoke), pt-BR: Papel do pseudowire (mesh / spoke)}
+  l2vpn.vsi.peer.sdp:
+    parent: l2vpn.vsi.peer
+    type: ref
+    ref: service.sdp
+    semantic: {zh-CN: 伪线使用的 SDP（Nokia mesh-sdp / spoke-sdp <SDP>：<VC>；对等体地址取 SDP 的 far-end）, en: SDP of the pseudowire (Nokia), pt-BR: SDP do pseudowire (Nokia)}
+  vrf.instance.service_id:
+    parent: vrf.instance
+    type: integer
+    semantic: {zh-CN: 业务编号（Nokia vprn <编号>）, en: Service ID (Nokia), pt-BR: ID do serviço (Nokia)}
+  vrf.instance.customer:
+    parent: vrf.instance
+    type: ref
+    ref: service.customer
+    semantic: {zh-CN: 所属客户（Nokia）, en: Customer (Nokia), pt-BR: Cliente (Nokia)}
+  vrf.instance.shutdown:
+    parent: vrf.instance
+    type: boolean
+    semantic: {zh-CN: 业务管理关闭（Nokia vprn 缺省关闭；华为 / Cisco 的 VPN 实例没有管理状态）, en: Service administratively down, pt-BR: Serviço desativado administrativamente}
+  interface.access.vsi:
+    parent: interface.access
+    type: ref
+    ref: l2vpn.vsi
+    semantic: {zh-CN: 接入点绑定的 VSI（Nokia VPLS 下的 SAP；华为二层子接口 l2 binding vsi 记在接口上 interface.vsi，有对应）, en: VSI bound to the access point (Nokia VPLS SAP), pt-BR: VSI vinculada ao ponto de acesso (SAP VPLS Nokia)}
+  # ---------- SAP 的 QoS 策略（Nokia sap-ingress / sap-egress）----------
+  qos.sap_ingress:
+    type: object
+    key: [id]
+    semantic: {zh-CN: SAP 入方向 QoS 策略（Nokia qos sap-ingress；华为 / Cisco 用流策略表达，平台特有）, en: SAP ingress QoS policy (Nokia), pt-BR: Política QoS de entrada do SAP (Nokia)}
+    status: reviewed
+  qos.sap_ingress.name:
+    parent: qos.sap_ingress
+    type: text
+    semantic: {zh-CN: 策略名称, en: Policy name, pt-BR: Nome da política}
+  qos.sap_ingress.description:
+    parent: qos.sap_ingress
+    type: text
+    semantic: {zh-CN: 描述, en: Description, pt-BR: Descrição}
+  qos.sap_egress:
+    type: object
+    key: [id]
+    semantic: {zh-CN: SAP 出方向 QoS 策略（Nokia qos sap-egress；平台特有）, en: SAP egress QoS policy (Nokia), pt-BR: Política QoS de saída do SAP (Nokia)}
+    status: reviewed
+  qos.sap_egress.name:
+    parent: qos.sap_egress
+    type: text
+    semantic: {zh-CN: 策略名称, en: Policy name, pt-BR: Nome da política}
+  qos.sap_egress.description:
+    parent: qos.sap_egress
+    type: text
+    semantic: {zh-CN: 描述, en: Description, pt-BR: Descrição}
+  interface.access.qos_in:
+    parent: interface.access
+    type: ref
+    ref: qos.sap_ingress
+    semantic: {zh-CN: 接入点入方向 QoS 策略（Nokia SAP ingress qos）, en: Ingress QoS policy of the access point, pt-BR: Política QoS de entrada do ponto de acesso}
+  interface.access.qos_out:
+    parent: interface.access
+    type: ref
+    ref: qos.sap_egress
+    semantic: {zh-CN: 接入点出方向 QoS 策略（Nokia SAP egress qos）, en: Egress QoS policy of the access point, pt-BR: Política QoS de saída do ponto de acesso}
+  # ---------- 过滤器缺省动作、VRRP owner ----------
+  acl.instance.default_action:
+    parent: acl.instance
+    type: enum
+    choices: [permit, deny]
+    semantic: {zh-CN: 所有条目都不匹配时的动作（Nokia ip-filter default-action forward / drop；华为 / Cisco 隐含拒绝，平台特有）, en: Default action (Nokia), pt-BR: Ação padrão (Nokia)}
+  interface.vrrp.owner:
+    parent: interface.vrrp
+    type: boolean
+    semantic: {zh-CN: 地址拥有者（Nokia vrrp <编号> owner：虚拟地址就是接口地址，优先级固定 255；华为 / Cisco 由地址相同隐含，平台特有）, en: Address owner (Nokia), pt-BR: Proprietário do endereço (Nokia)}
+deps:
+  - {kind: reference, from: l2vpn.xconnect.customer, to: service.customer, note: {zh-CN: 业务引用客户, en: 'Service references the customer', pt-BR: 'O serviço referencia o cliente'}}
+  - {kind: reference, from: l2vpn.vsi.customer, to: service.customer, note: {zh-CN: 业务引用客户, en: 'Service references the customer', pt-BR: 'O serviço referencia o cliente'}}
+  - {kind: reference, from: vrf.instance.customer, to: service.customer, note: {zh-CN: 业务引用客户, en: 'Service references the customer', pt-BR: 'O serviço referencia o cliente'}}
+  - {kind: reference, from: service.ies.customer, to: service.customer, note: {zh-CN: 业务引用客户, en: 'Service references the customer', pt-BR: 'O serviço referencia o cliente'}}
+  - {kind: reference, from: l2vpn.xconnect.pw.sdp, to: service.sdp, note: {zh-CN: 伪线引用 SDP, en: 'Pseudowire references the SDP', pt-BR: 'O pseudowire referencia o SDP'}}
+  - {kind: reference, from: l2vpn.vsi.peer.sdp, to: service.sdp, note: {zh-CN: VPLS 伪线引用 SDP, en: 'VPLS pseudowire references the SDP', pt-BR: 'O pseudowire VPLS referencia o SDP'}}
+  - {kind: reference, from: interface.ies, to: service.ies, note: {zh-CN: 接口属于 IES 业务, en: 'Interface belongs to the IES service', pt-BR: 'A interface pertence ao serviço IES'}}
+  - {kind: reference, from: interface.access.qos_in, to: qos.sap_ingress, note: {zh-CN: 接入点引用 SAP 入方向 QoS 策略, en: 'Access point references the SAP ingress QoS policy', pt-BR: 'O ponto de acesso referencia a política QoS de entrada do SAP'}}
+  - {kind: reference, from: interface.access.qos_out, to: qos.sap_egress, note: {zh-CN: 接入点引用 SAP 出方向 QoS 策略, en: 'Access point references the SAP egress QoS policy', pt-BR: 'O ponto de acesso referencia a política QoS de saída do SAP'}}
+  - {kind: reference, from: interface.access.vsi, to: l2vpn.vsi, note: {zh-CN: 接入点绑定 VSI, en: 'Access point is bound to the VSI', pt-BR: 'O ponto de acesso é vinculado à VSI'}}
+  - {kind: reference, from: ospf.process.export_policy, to: rp.policy, note: {zh-CN: OSPF 引用发布策略, en: 'OSPF references the export policy', pt-BR: 'O OSPF referencia a política de exportação'}}
+  - {kind: reference, from: isis.process.export_policy, to: rp.policy, note: {zh-CN: IS-IS 引用发布策略, en: 'IS-IS references the export policy', pt-BR: 'O IS-IS referencia a política de exportação'}}
+  - {kind: reference, from: bgp.peer_group.import_policy, to: rp.policy, note: {zh-CN: BGP 组引用路由策略, en: 'BGP group references the route policy', pt-BR: 'O grupo BGP referencia a política de roteamento'}}
+  - {kind: reference, from: bgp.peer_group.export_policy, to: rp.policy, note: {zh-CN: BGP 组引用路由策略, en: 'BGP group references the route policy', pt-BR: 'O grupo BGP referencia a política de roteamento'}}
+  - {kind: reference, from: bgp.peer.import_policy, to: rp.policy, note: {zh-CN: BGP 邻居引用路由策略, en: 'BGP neighbor references the route policy', pt-BR: 'O vizinho BGP referencia a política de roteamento'}}
+  - {kind: reference, from: bgp.peer.export_policy, to: rp.policy, note: {zh-CN: BGP 邻居引用路由策略, en: 'BGP neighbor references the route policy', pt-BR: 'O vizinho BGP referencia a política de roteamento'}}
+  - {kind: reference, from: interface.access.acl_in, to: acl.instance, note: {zh-CN: 接入点引用过滤器, en: 'Access point references the filter', pt-BR: 'O ponto de acesso referencia o filtro'}}
+  - {kind: reference, from: interface.access.acl_out, to: acl.instance, note: {zh-CN: 接入点引用过滤器, en: 'Access point references the filter', pt-BR: 'O ponto de acesso referencia o filtro'}}

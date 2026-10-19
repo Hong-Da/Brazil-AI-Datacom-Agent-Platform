@@ -42,6 +42,8 @@ cards:
       line: 127
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.bfd: flag
   - id: nokia-sros-classic.black-hole
     syntax: black-hole
     view: static-route-entry
@@ -55,6 +57,13 @@ cards:
       line: 165
       version: 25.10.R1
     status: draft
+    maps:
+      static.route:
+        vrf: ''
+        prefix: ctx:ip-prefix/prefix-length
+        nexthop: ''
+      static.route.prefix: ctx:ip-prefix/prefix-length
+      static.route.interface: NULL0
   - id: nokia-sros-classic.community@static-indirect
     syntax: community <comm-id>
     view: static-indirect
@@ -156,6 +165,8 @@ cards:
       line: 350
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
   - id: nokia-sros-classic.description@static-bh
     syntax: description <short-description-string>
     view: static-bh
@@ -169,6 +180,8 @@ cards:
       line: 350
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
   - id: nokia-sros-classic.description@static-indirect
     syntax: description <short-description-string>
     view: static-indirect
@@ -182,6 +195,8 @@ cards:
       line: 350
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.description: $long-description-string||$short-description-string||$medium-description-string||$description-string||$description
   - id: nokia-sros-classic.destination-class@static-nh
     syntax: destination-class <dest-index>
     view: static-nh
@@ -279,6 +294,14 @@ cards:
       line: 1184
       version: 25.10.R1
     status: draft
+    maps:
+      static.route:
+        vrf: ''
+        prefix: ctx:ip-prefix/prefix-length
+        nexthop: $ip-address
+      static.route.prefix: ctx:ip-prefix/prefix-length
+      static.route.nexthop: $ip-address
+      static.route.recursive: 'true'
   - id: nokia-sros-classic.ldp-sync
     syntax: ldp-sync
     view: static-nh
@@ -337,6 +360,8 @@ cards:
       line: 1493
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.metric: $metric
   - id: nokia-sros-classic.metric@static-indirect
     syntax: metric <metric>
     view: static-indirect
@@ -350,6 +375,8 @@ cards:
       line: 1493
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.metric: $metric
   - id: nokia-sros-classic.metric@static-bh
     syntax: metric <metric>
     view: static-bh
@@ -363,10 +390,13 @@ cards:
       line: 1493
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.metric: $metric
   - id: nokia-sros-classic.next-hop
     syntax: next-hop { <ip-int-name> | <ip-address> | <ipv6-address> }
     view: static-route-entry
     enters_view: static-nh
+    undo: no next-hop { <ip-address> | <ip-int-name> | <ipv6-address> }
     params:
       ip-int-name:
         type: word
@@ -381,7 +411,15 @@ cards:
       title: next-hop
       line: 1581
       version: 25.10.R1
+      patched: 命令参考的 static-route-entry next-hop 条目（Base 路由器与 VPRN，各自批次里的编号都是 next-hop）没有列取消写法；增量变更删除静态路由要用 no next-hop <下一跳>
     status: draft
+    maps:
+      static.route:
+        vrf: ''
+        prefix: ctx:ip-prefix/prefix-length
+        nexthop: $ip-address||$ip-int-name
+      static.route.prefix: ctx:ip-prefix/prefix-length
+      static.route.nexthop: $ip-address||$ip-int-name
   - id: nokia-sros-classic.preference@static-bh
     syntax: preference <preference>
     view: static-bh
@@ -400,6 +438,8 @@ cards:
       line: 1668
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.preference: $preference
   - id: nokia-sros-classic.preference@static-nh
     syntax: preference <preference>
     view: static-nh
@@ -413,6 +453,8 @@ cards:
       line: 1668
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.preference: $preference
   - id: nokia-sros-classic.preference@static-indirect
     syntax: preference <preference>
     view: static-indirect
@@ -426,6 +468,8 @@ cards:
       line: 1668
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.preference: $preference
   - id: nokia-sros-classic.prefix-list@static-bh
     syntax: prefix-list <prefix-list-name> [ { all | none } ]
     view: static-bh
@@ -479,6 +523,8 @@ cards:
       line: 2088
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.shutdown: flag
   - id: nokia-sros-classic.shutdown@static-bh
     syntax: shutdown
     view: static-bh
@@ -491,6 +537,8 @@ cards:
       line: 2088
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.shutdown: flag
   - id: nokia-sros-classic.shutdown@static-indirect
     syntax: shutdown
     view: static-indirect
@@ -503,6 +551,8 @@ cards:
       line: 2088
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.shutdown: flag
   - id: nokia-sros-classic.source-class@static-nh
     syntax: source-class <source-index>
     view: static-nh
@@ -550,6 +600,8 @@ cards:
       line: 2480
       version: 25.10.R1
     status: draft
+    maps:
+      '@container': ''
   - id: nokia-sros-classic.tag@static-bh
     syntax: tag <tag>
     view: static-bh
@@ -568,6 +620,8 @@ cards:
       line: 2526
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.tag: $tag
   - id: nokia-sros-classic.tag@static-route-entry
     syntax: tag <tag>
     view: static-route-entry
@@ -594,6 +648,8 @@ cards:
       line: 2526
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.tag: $tag
   - id: nokia-sros-classic.tag@static-nh
     syntax: tag <tag>
     view: static-nh
@@ -607,6 +663,8 @@ cards:
       line: 2526
       version: 25.10.R1
     status: draft
+    maps:
+      static.route.tag: $tag
   - id: nokia-sros-classic.tunnel-next-hop
     syntax: tunnel-next-hop
     view: static-indirect

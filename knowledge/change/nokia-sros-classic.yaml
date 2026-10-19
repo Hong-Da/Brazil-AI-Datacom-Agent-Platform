@@ -1,0 +1,38 @@
+# 增量变更脚本（core/change.py）在 Nokia SR OS Classic CLI 上的下发习惯（M7-3，字段说明见 huawei-vrp8.yaml）。
+# Classic CLI 的修改即时生效（没有提交）；脚本以 exit all、configure 开头，exit all 结尾，每进入一层视图都用 exit 退出。
+# 命令本身由规范渲染器（命令卡 + 映射规则 + knowledge/render/nokia-sros-classic.yaml）生成，取消命令由命令卡的 undo 语法生成。
+family: nokia-sros-classic
+begin: [exit all, configure]
+finish: [exit all]
+exit: exit
+comment: "#"
+side_effects: []
+undo_first: []
+replace_first: [interface.ipv4]
+risk_high:
+  - interface.vrf
+  - interface.ipv4
+  - interface.shutdown
+  - interface.bind_port
+  - interface.access
+  - interface.mtu
+  - vrf.instance
+  - l2vpn.xconnect
+  - l2vpn.vsi
+  - service.sdp
+  - bgp.instance
+  - bgp.peer
+  - bgp.peer_group
+  - mpls.ldp
+  - isis.process
+  - ospf.process
+undo_extra: {}
+# 删除这些对象之前先在对象里执行的命令：Nokia 的业务、SDP、SAP、接口要先 shutdown 才能 no（已经 shutdown 的不再写）
+before_delete:
+  vrf.instance: shutdown
+  l2vpn.xconnect: shutdown
+  l2vpn.vsi: shutdown
+  service.ies: shutdown
+  service.sdp: shutdown
+  interface: shutdown
+  interface.access: shutdown

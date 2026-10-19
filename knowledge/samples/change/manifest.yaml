@@ -4,7 +4,7 @@
 #   每条取消命令都能按取消语法匹配到要删的行。
 # expect：对下发脚本的额外断言——actions（各动作至少出现的条数）、contains（脚本中必须出现的命令，按顺序）、
 #         before（[A, B]：命令 A 必须排在 B 之前）、risk（整体风险等级）。
-# 样本都是合成配置（按 ATN V800R025 / ASR 920 IOS-XE 17.15 的常见写法编写），地址与名称虚构，不含真实设备信息。
+# 样本都是合成配置（按 ATN V800R025 / ASR 920 IOS-XE 17.15 / Nokia 7750 SR OS 25.10 Classic CLI 的常见写法编写），地址与名称虚构，不含真实设备信息。
 cases:
   # ---------- 华为 ATN ----------
   - id: atn-add-vrf
@@ -133,3 +133,35 @@ cases:
       before:
         - [neighbor RR route-map EXPORT-LO out, no route-map EXPORT-LOOPBACK permit 10]
         - [ip prefix-list LOOPBACK-V4 seq 10, match ip address prefix-list LOOPBACK-V4]
+  # ---------- Nokia 7750 SR（SR OS 25.10 Classic CLI，M7-3）----------
+  # 脚本以 exit all / configure 开头、exit all 结尾，每层视图用 exit 退出；容器（router Base、policy-options、static-route-entry <前缀>）
+  # 按需进入；路由策略的修改包在 begin … commit 里；删除业务、接口之前先 shutdown（变更知识 before_delete）
+  - id: nokia-modify
+    current: nokia-base.cfg
+    target: nokia-modify.cfg
+    note: 端口描述、静态路由优先级、OSPF 区域下接口的 metric（写在 router Base > ospf > area > interface 里）
+    expect:
+      contains: [exit all, configure, port 1/1/1, router Base, preference 15, ospf 0 10.255.0.9, area 0.0.0.0, 'interface "to-P1"', metric 50]
+  - id: nokia-del-peer
+    current: nokia-base.cfg
+    target: nokia-del-peer.cfg
+    note: 删除 BGP 邻居（group 下 no neighbor）
+    expect:
+      actions: {delete: 1}
+      contains: [router Base, bgp, 'group "IBGP-RR"', no neighbor 10.255.0.102]
+  - id: nokia-add-vprn
+    current: nokia-base.cfg
+    target: nokia-add-vprn.cfg
+    note: 新增 VPRN（客户已有）：RD / RT、接口与 SAP、VPRN 静态路由；回滚时先 shutdown 再删除
+    expect:
+      contains: [service, 'vprn 3001 name "IOT" customer 100 create', 'route-distinguisher 64500:3001', 'interface "to-CE1" create', 'sap 1/1/3:3001 create']
+      before:
+        - ['vprn 3001 name "IOT" customer 100 create', static-route-entry 172.18.100.0/24]
+  - id: nokia-policy-route
+    current: nokia-base.cfg
+    target: nokia-policy-route.cfg
+    note: 前缀列表改名（新建 + 改引用 + 删除旧的，包在 begin … commit 里）、新增黑洞路由、端口关闭
+    expect:
+      contains: [policy-options, begin, 'prefix-list "LOOPBACKS-V2"', no prefix-list LOOPBACKS, commit]
+      before:
+        - ['prefix-list "LOOPBACKS-V2"', no prefix-list LOOPBACKS]

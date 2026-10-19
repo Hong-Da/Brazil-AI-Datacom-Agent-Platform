@@ -1,6 +1,7 @@
 """配置检查项目（REQ-031）的存储与操作：项目、脚本、修订记录（数据库），检查 / 重排 / 对比的入口（CLI 与 API 共用）。
 
-归属：项目属于创建它的账号（user_id）；管理员与 API 令牌（user_id 为空）能看到全部项目，普通账号只能看到自己的。
+归属（M6）：检查项目属于某个项目（project_id），项目成员按项目权限访问；没有当前项目时（直接调用 core）沿用
+M6 之前的规则——属于创建它的账号（user_id），管理员与 API 令牌（user_id 为空）能看到全部，普通账号只能看到自己的。
 修订：创建脚本、手动保存（内容有变化时）、按依赖重排（重排前的内容若未保存先存一条，再存重排后的一条）、恢复到某个修订，都形成一条修订。
 """
 
@@ -43,7 +44,14 @@ def _now() -> datetime:
 
 
 def _project(s: Any, actor: Actor, pid: int) -> CheckProject:
+    from lmesh.core import projects
+
     p = s.get(CheckProject, pid)
+    sc = projects.current()
+    if sc is not None:
+        if p is None or p.project_id != sc.project_id:
+            raise ProjectError("check_project.not_found", "not_found", id=pid)
+        return p
     if p is None or (not actor.sees_all() and p.user_id != actor.user_id):
         raise ProjectError("check_project.not_found", "not_found", id=pid)
     return p
@@ -79,11 +87,13 @@ def _text(t: str | None) -> str:
 
 
 def _check_device(s: Any, device_id: int | None, version_id: int | None) -> None:
+    from lmesh.core import projects
+
     if device_id is None:
         if version_id is not None:
             raise ProjectError("check_project.version_without_device")
         return
-    if s.get(Device, device_id) is None:
+    if s.get(Device, device_id) is None or not projects.visible(s, device_id):
         raise ProjectError("script_check.device_not_found", "not_found", device=device_id)
     if version_id is not None:
         v = s.get(ConfigVersion, version_id)
@@ -199,14 +209,22 @@ def _latest(s: Any, sid: int) -> CheckRevision | None:
 
 
 def list_projects(db: str, actor: Actor) -> list[dict[str, Any]]:
+    from lmesh.core import projects
+
     with store.session(db) as s:
         q = select(CheckProject).order_by(CheckProject.updated_at.desc(), CheckProject.id.desc())
-        if not actor.sees_all():
+        sc = projects.current()
+        if sc is not None:
+            q = q.where(CheckProject.project_id == sc.project_id)
+        elif not actor.sees_all():
             q = q.where(CheckProject.user_id == actor.user_id)
         return [_project_dict(s, p) for p in s.scalars(q)]
 
 
 def create_project(db: str, actor: Actor, data: dict[str, Any]) -> dict[str, Any]:
+    from lmesh.core import projects
+
+    pid = projects.target_project_id(db)
     with store.session(db) as s:
         _check_device(s, data.get("device_id"), data.get("version_id"))
         p = CheckProject(
@@ -220,6 +238,7 @@ def create_project(db: str, actor: Actor, data: dict[str, Any]) -> dict[str, Any
             ai_check=bool(data.get("ai_check", False)),
             ai_rules=[str(x) for x in data.get("ai_rules") or []],
             user_id=actor.user_id,
+            project_id=pid,
         )
         s.add(p)
         s.flush()
@@ -262,6 +281,67 @@ def delete_project(db: str, actor: Actor, pid: int) -> dict[str, Any]:
         p = _project(s, actor, pid)
         s.delete(p)
     return {"deleted": pid}
+
+
+# ---------------------------------------------------------------- 项目脚本一览（M6：配置检查项目并入项目）
+
+
+def list_scripts(db: str, actor: Actor, kind: str | None = None, device_id: int | None = None) -> list[dict[str, Any]]:
+    """当前项目全部脚本（平铺）：每份脚本带所在的检查项目（基线与检查设置）、基线设备、最近一次检查、修订数、最后修改人。"""
+    out = []
+    for cp in list_projects(db, actor):
+        if device_id is not None and cp["device_id"] != device_id:
+            continue
+        with store.session(db) as s:
+            rows = list(
+                s.scalars(
+                    select(CheckScript)
+                    .where(CheckScript.project_id == cp["id"])
+                    .order_by(CheckScript.position, CheckScript.id)
+                )
+            )
+            for sc in rows:
+                if kind and sc.kind != kind:
+                    continue
+                last = _latest(s, sc.id)
+                d = _script_dict(s, sc, content=False)
+                d.update(
+                    group={"id": cp["id"], "name": cp["name"]},
+                    baseline={
+                        "device": cp["device"],
+                        "version_id": cp["version_id"],
+                        "follows_latest": cp["version_id"] is None,
+                    },
+                    order_check=cp["order_check"] if sc.kind == "change" else None,
+                    ai_check=cp["ai_check"],
+                    author=last.author if last else "",
+                )
+                out.append(d)
+    out.sort(key=lambda x: x["updated_at"] or "", reverse=True)
+    return out
+
+
+def create_project_script(db: str, actor: Actor, data: dict[str, Any]) -> dict[str, Any]:
+    """在项目里新建一份脚本：同时建一个只含这份脚本的检查项目，保存基线与检查设置（预览“新建脚本”对话框）。"""
+    cp = create_project(
+        db,
+        actor,
+        {
+            "name": data.get("name"),
+            "description": "",
+            "device_id": data.get("device_id"),
+            "version_id": data.get("version_id"),
+            "profile": data.get("profile"),
+            "default_kind": data.get("kind"),
+            "order_check": data.get("order_check", True),
+            "ai_check": data.get("ai_check", False),
+            "ai_rules": data.get("ai_rules"),
+        },
+    )
+    sc = create_script(
+        db, actor, cp["id"], {"name": data.get("name"), "kind": data.get("kind"), "content": data.get("content")}
+    )
+    return {"group": cp, "script": sc}
 
 
 # ---------------------------------------------------------------- 脚本

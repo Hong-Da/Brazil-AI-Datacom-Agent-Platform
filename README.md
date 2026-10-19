@@ -29,8 +29,9 @@
 
 - Web 界面：浏览器打开 `http://<地址>:9090`
 - CLI：`lmesh --help`，见 [docs/cli.md](docs/cli.md)
-- 网页登录：用户账号（管理员 / 普通用户），首次运行向导创建第一个管理员；命令行管理账号用 `lmesh user`
-- 远程 API：前缀 `/api/v1`，脚本用 API 令牌认证（视为管理员），网页用会话 Cookie，见 [docs/api.md](docs/api.md)
+- 网页登录：用户账号（管理员 / 知识库维护员 / 普通用户），首次运行向导创建第一个管理员；命令行管理账号用 `lmesh user`
+- 项目：每个账号有自己的工作空间与项目（私有设备、引用的公共设备、脚本、规则调整），可以邀请成员（可编辑 / 只读）；命令行用 `lmesh project`、`--project <项目>`
+- 远程 API：前缀 `/api/v1`，设备相关接口在项目路径 `/api/v1/projects/{项目}/…` 下（旧的无项目路径保留为兼容别名，落到默认项目）；脚本用个人 API 令牌（`lmp_` 开头，权限同本人账号，可只读）或全局令牌（视为管理员）认证，网页用会话 Cookie，见 [docs/api.md](docs/api.md)
 
 ## 项目结构
 
@@ -94,7 +95,7 @@ lmesh/
 ├── tests/                      测试（见 tests/README.md）
 ├── .claude/settings.json       SessionStart 钩子
 ├── .claude/skills/             项目专属 skill（lmesh-docs-to-graph：产品文档 → 配置图）
-├── data/ logs/ cache/ tmp/     运行时文件（不入库；用户的翻译规则集在 data/translate-rules/，管理员修改的 AI skill 版本在 data/ai-skills/）
+├── data/ logs/ cache/ tmp/     运行时文件（不入库；用户的翻译规则集在 data/translate-rules/，我的模板在 data/user-templates/，管理员修改的 AI skill 版本在 data/ai-skills/，访问审计在 logs/audit.log）
 ├── .toolchain/                 依赖缓存与项目内的 Python、Node（不入库）
 └── dist/                       打包结果（不入库）
 ```

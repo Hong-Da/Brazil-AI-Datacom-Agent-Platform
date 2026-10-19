@@ -5,6 +5,8 @@
 - 删除配置版本：最后一个版本不能单独删除（应删除设备）；删除最新版本后“最新”自然指向上一个版本；
   下一个版本的“相对上一快照的变化计数”作废并重算；被项目固定为基线的版本默认拒绝，force 时改为跟随最新版本。
 - 删除预览：只返回计数与受影响的项目和脚本，不删除。
+- 项目（M6）：只能删除当前项目中的设备；项目里引用的公共设备“删除”即解除引用（公共设备库不受影响），
+  公共设备的单个版本只有管理员能在项目中删除（通常在公共设备库里删）。
 删除在一个事务内按子表到父表的顺序显式执行（不依赖数据库的级联设置），SQLite 与 PostgreSQL 行为一致；
 日志只记录操作者、设备名与编号、删除的版本个数，不记录配置内容。
 """
@@ -17,6 +19,7 @@ from typing import Any
 
 from sqlalchemy import delete, func, select, update
 
+from lmesh.core import projects as prj
 from lmesh.core import store
 from lmesh.core.store.models import (
     CheckIgnore,
@@ -27,6 +30,7 @@ from lmesh.core.store.models import (
     Device,
     Edge,
     Node,
+    ProjectDeviceRef,
     UnknownLine,
     iso,
 )
@@ -47,7 +51,7 @@ class DeleteError(ValueError):
 
 def _device(s: Any, device_id: int) -> Device:
     dev = s.get(Device, device_id)
-    if dev is None:
+    if dev is None or not prj.visible(s, device_id):
         raise DeleteError("device_delete.device_not_found", "not_found", device=device_id)
     return dev
 
@@ -97,7 +101,16 @@ def _project_refs(s: Any, projects: list[CheckProject]) -> list[dict[str, Any]]:
 
 
 def _projects_of_device(s: Any, device_id: int) -> list[CheckProject]:
-    return list(s.scalars(select(CheckProject).where(CheckProject.device_id == device_id).order_by(CheckProject.id)))
+    q = select(CheckProject).where(CheckProject.device_id == device_id)
+    sc = prj.current()
+    if sc is not None:  # 引用的公共设备：只看本项目的检查项目
+        q = q.where(CheckProject.project_id == sc.project_id)
+    return list(s.scalars(q.order_by(CheckProject.id)))
+
+
+def _is_ref(dev: Device) -> bool:
+    """设备是当前项目引用的公共设备（项目里删除它 = 解除引用）。"""
+    return dev.project_id is None and prj.current() is not None
 
 
 def _dev_info(dev: Device) -> dict[str, Any]:
@@ -134,8 +147,11 @@ def preview(db_url: str, device_id: int) -> dict[str, Any]:
             }
             for i, vid in enumerate(vids)
         ]
+        ref = _is_ref(dev)
         return {
             "device": _dev_info(dev),
+            "source": "public" if dev.project_id is None else "private",
+            "action": "unreference" if ref else "delete",
             "counts": {**_counts(s, vids), "check_ignores": _ignores(s, device_id)},
             "baseline": _baseline(refs),
             "versions": versions,
@@ -167,6 +183,19 @@ def delete_device(db_url: str, device_id: int, force: bool = False, actor: str =
     """删除设备与它的全部数据。被检查项目作基线时：不加 force 抛出 conflict（data 为删除预览）；加 force 时把基线置空。"""
     with store.session(db_url) as s:
         dev = _device(s, device_id)
+        if _is_ref(dev):
+            info = _dev_info(dev)
+            ref = True
+        else:
+            ref = False
+    if ref:
+        sc = prj.current()
+        assert sc is not None
+        r = prj.remove_ref(db_url, sc, device_id)
+        _log.info("项目 %s 解除引用公共设备：%s（编号 %d，操作者 %s）", sc.slug, info["name"], device_id, actor or "-")
+        return {"deleted": False, "unreferenced": True, "device": info, "counts": {}, "baseline_cleared": [], **r}
+    with store.session(db_url) as s:
+        dev = _device(s, device_id)
         refs = _project_refs(s, _projects_of_device(s, device_id))
         blocked = bool(refs) and not force
         if not blocked:
@@ -180,6 +209,7 @@ def delete_device(db_url: str, device_id: int, force: bool = False, actor: str =
                     .values(device_id=None, version_id=None)
                 )
             s.execute(delete(CheckIgnore).where(CheckIgnore.device_id == device_id))
+            s.execute(delete(ProjectDeviceRef).where(ProjectDeviceRef.device_id == device_id))
             _delete_versions(s, vids)
             name = dev.name
             s.execute(delete(Device).where(Device.id == device_id))
@@ -223,6 +253,10 @@ def delete_version(
             raise DeleteError("device_delete.version_not_found", "not_found", version=version_id, device=device_id)
         if len(vids) == 1:
             raise DeleteError("device_delete.last_version", device=dev.name)
+        if _is_ref(dev):
+            sc = prj.current()
+            if sc is not None and not sc.identity.is_admin:
+                raise DeleteError("device_delete.public_readonly", "forbidden", device=dev.name)
         idx = vids.index(version_id)
         was_latest = idx == len(vids) - 1
         projects = _projects_of_device(s, device_id)
@@ -239,6 +273,7 @@ def delete_version(
         counts.pop("versions")
         if pinned:
             s.execute(update(CheckProject).where(CheckProject.version_id == version_id).values(version_id=None))
+        s.execute(update(ProjectDeviceRef).where(ProjectDeviceRef.version_id == version_id).values(version_id=None))
         _delete_versions(s, [version_id])
         nxt = vids[idx + 1] if not was_latest else None
         if nxt is not None:  # 下一个版本的变化计数相对的是被删除的版本，作废后重算

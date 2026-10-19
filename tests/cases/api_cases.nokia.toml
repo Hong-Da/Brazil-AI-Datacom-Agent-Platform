@@ -1,0 +1,13 @@
+# Nokia SR OS Classic CLI（M7-3，REQ-037）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+
+[[case]]
+id = "nokia-translate-from-cisco"
+title = { zh-CN = "Cisco 配置翻译到 Nokia（三层口换成路由器接口 + port，OSPF 写在区域下的接口里）", en = "Translate a Cisco configuration to Nokia", pt-BR = "Traduzir uma configuração Cisco para Nokia" }
+method = "POST"
+path = "/api/v1/translate"
+setup = "configured-fullkb"
+auth = true
+body = { text = "hostname R1\n!\ninterface Loopback0\n ip address 10.255.0.1 255.255.255.255\n!\ninterface GigabitEthernet0/0/1\n description UPLINK\n ip address 10.0.0.1 255.255.255.252\n ip ospf network point-to-point\n!\nrouter ospf 10\n network 10.0.0.0 0.0.0.3 area 0\n!\nend", to = "nokia-sros-classic-7750-25.10", interface_map = { "GigabitEthernet0/0/1" = "1/1/1", "Loopback0" = "system" } }
+expect_status = 200
+expect_json = { "code" = 0, "data.source.profile" = "cisco-iosxe-asr920-17.15", "data.target.family" = "nokia-sros-classic", "data.verify.checked" = true, "data.verify.unexplained" = 0, "data.lines.0.text" = "exit all" }
+in_docs = true

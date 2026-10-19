@@ -1,0 +1,230 @@
+# 项目、个人令牌、公共设备库（M6，REQ-035 / REQ-036）的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-projects：admin（管理员）、alice（项目 lab 的属主）、bob（lab 的只读成员）、carol；
+# lab 里有私有设备 ATN-CHANGE-01，引用公共设备 PE-CHANGE-01。命令行权限等同管理员，--as 决定以谁的身份。
+
+[[case]]
+id = "project-list"
+title = { zh-CN = "项目列表（--as 账号的视角）", en = "Project list (as the --as account)", pt-BR = "Lista de projetos (como a conta --as)" }
+args = ["--output", "json", "--as", "alice", "project", "list"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.mine.0.slug" = "lab", "data.mine.0.role" = "owner", "data.default_project" = "lab" }
+in_docs = true
+
+[[case]]
+id = "project-list-all"
+title = { zh-CN = "全部项目（管理员，--all）", en = "All projects (admin, --all)", pt-BR = "Todos os projetos (administrador, --all)" }
+args = ["--output", "json", "project", "list", "--all"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.others.0.slug" = "lab", "data.others.0.role" = "admin" }
+
+[[case]]
+id = "project-list-text"
+title = { zh-CN = "项目列表的文字输出（英文）", en = "Project list text output (English)", pt-BR = "Saída de texto da lista (inglês)" }
+args = ["--lang", "en", "--as", "bob", "project", "list"]
+setup = "configured-projects"
+expect_exit = 0
+expect_stdout = ["Slug", "lab", "alice", "Read only", "2 project(s)"]
+
+[[case]]
+id = "project-show"
+title = { zh-CN = "项目详情", en = "Project details", pt-BR = "Detalhes do projeto" }
+args = ["--output", "json", "project", "show", "alice/lab"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.slug" = "lab", "data.owner" = "alice", "data.counts.private" = 1, "data.counts.refs" = 1 }
+
+[[case]]
+id = "project-show-missing"
+title = { zh-CN = "项目不存在：退出码 4", en = "Unknown project: exit 4", pt-BR = "Projeto inexistente: saída 4" }
+args = ["project", "show", "nope"]
+setup = "configured-projects"
+expect_exit = 4
+expect_stderr = ["nope"]
+
+[[case]]
+id = "project-global-option"
+title = { zh-CN = "全局 --project：命令作用于该项目", en = "Global --project: the command works in that project", pt-BR = "--project global: o comando atua nesse projeto" }
+args = ["--output", "json", "--project", "lab", "config", "list"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.devices.0.name" = "ATN-CHANGE-01", "data.devices.1.name" = "PE-CHANGE-01" }
+in_docs = true
+
+[[case]]
+id = "project-global-option-missing"
+title = { zh-CN = "全局 --project 不存在：退出码 4", en = "Unknown --project: exit 4", pt-BR = "--project inexistente: saída 4" }
+args = ["--project", "nope", "config", "list"]
+setup = "configured-projects"
+expect_exit = 4
+expect_stderr = ["nope"]
+
+[[case]]
+id = "project-default-scope"
+title = { zh-CN = "不带 --project：默认项目（管理员的默认项目里没有设备）", en = "Without --project: the default project", pt-BR = "Sem --project: o projeto padrão" }
+args = ["--output", "json", "config", "list"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.devices" = [] }
+
+[[case]]
+id = "project-create"
+title = { zh-CN = "新建项目（属主为 --as 账号）", en = "Create a project (owned by the --as account)", pt-BR = "Criar projeto (dono é a conta --as)" }
+args = ["--output", "json", "--as", "carol", "project", "create", "测试环境", "--slug", "testbed"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.slug" = "testbed", "data.owner" = "carol" }
+in_docs = true
+
+[[case]]
+id = "project-create-bad-slug"
+title = { zh-CN = "标识不合法：退出码 2", en = "Invalid slug: exit 2", pt-BR = "Identificador inválido: saída 2" }
+args = ["project", "create", "x", "--slug", "Bad Slug"]
+setup = "configured-projects"
+expect_exit = 2
+expect_stderr = ["Bad Slug"]
+
+[[case]]
+id = "project-create-taken"
+title = { zh-CN = "标识已被使用：退出码 1", en = "Slug taken: exit 1", pt-BR = "Identificador em uso: saída 1" }
+args = ["project", "create", "x", "--slug", "lab"]
+setup = "configured-projects"
+expect_exit = 1
+expect_stderr = ["lab"]
+
+[[case]]
+id = "project-members"
+title = { zh-CN = "邀请成员并列出成员", en = "Invite a member and list members", pt-BR = "Convidar membro e listar" }
+args = ["--output", "json", "project", "members", "lab", "--add", "carol", "--role", "edit"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.members.0.username" = "alice", "data.members.2.username" = "carol", "data.members.2.role" = "edit" }
+in_docs = true
+
+[[case]]
+id = "project-members-readonly"
+title = { zh-CN = "只读成员邀请成员：退出码 1", en = "A read-only member invites: exit 1", pt-BR = "Membro somente leitura convida: saída 1" }
+args = ["--as", "bob", "project", "members", "lab", "--add", "carol"]
+setup = "configured-projects"
+expect_exit = 1
+expect_stderr = ["lab"]
+
+[[case]]
+id = "project-transfer"
+title = { zh-CN = "转交项目", en = "Transfer a project", pt-BR = "Transferir projeto" }
+args = ["--output", "json", "project", "transfer", "lab", "bob"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.owner" = "bob", "data.previous_owner" = "alice", "data.kept_as" = "edit" }
+in_docs = true
+
+[[case]]
+id = "project-copy"
+title = { zh-CN = "复制为新项目", en = "Copy as a new project", pt-BR = "Copiar como novo projeto" }
+args = ["--output", "json", "--as", "bob", "project", "copy", "lab", "我的副本", "--slug", "lab-bob"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.slug" = "lab-bob", "data.owner" = "bob", "data.copied.devices" = 1 }
+in_docs = true
+
+[[case]]
+id = "project-delete"
+title = { zh-CN = "删除项目（--yes 跳过确认）", en = "Delete a project (--yes skips the prompt)", pt-BR = "Excluir projeto (--yes pula a confirmação)" }
+args = ["--output", "json", "--yes", "project", "delete", "lab"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.deleted" = true, "data.counts.private_devices" = 1, "data.counts.refs" = 1 }
+in_docs = true
+
+[[case]]
+id = "project-ref-pin"
+title = { zh-CN = "在当前项目引用公共设备并固定版本", en = "Reference a public device in the current project and pin a version", pt-BR = "Referenciar dispositivo público e fixar versão" }
+args = ["--output", "json", "--project", "lab", "project", "ref", "PE-CHANGE-01", "--pin", "2"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.policy" = "pin", "data.version_id" = 2 }
+
+[[case]]
+id = "token-create"
+title = { zh-CN = "生成个人令牌（只读、不过期）", en = "Create a personal token (read-only, never expires)", pt-BR = "Criar token pessoal (somente leitura, sem expiração)" }
+args = ["--output", "json", "--as", "alice", "token", "create", "巡检脚本", "--read-only", "--days", "0"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.owner" = "alice", "data.read_only" = true, "data.state" = "active" }
+in_docs = true
+
+[[case]]
+id = "token-list"
+title = { zh-CN = "列出个人令牌", en = "List personal tokens", pt-BR = "Listar tokens pessoais" }
+args = ["--output", "json", "--as", "alice", "token", "list"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.tokens" = [] }
+
+[[case]]
+id = "token-need-account"
+title = { zh-CN = "还没有账号时生成令牌：退出码 1", en = "Create a token with no accounts: exit 1", pt-BR = "Criar token sem contas: saída 1" }
+args = ["token", "create", "x"]
+setup = "configured"
+expect_exit = 1
+expect_stderr = ["令牌"]
+
+[[case]]
+id = "token-revoke-missing"
+title = { zh-CN = "撤销不存在的令牌：退出码 4", en = "Revoke an unknown token: exit 4", pt-BR = "Revogar token inexistente: saída 4" }
+args = ["--as", "alice", "token", "revoke", "99"]
+setup = "configured-projects"
+expect_exit = 4
+expect_stderr = ["99"]
+
+[[case]]
+id = "public-device-list"
+title = { zh-CN = "公共设备库", en = "Public device library", pt-BR = "Biblioteca pública de dispositivos" }
+args = ["--output", "json", "public-device", "list"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.devices.0.name" = "PE-CHANGE-01", "data.devices.0.refs.0.project" = "lab" }
+in_docs = true
+
+[[case]]
+id = "public-device-import"
+title = { zh-CN = "导入到公共设备库", en = "Import into the public library", pt-BR = "Importar na biblioteca pública" }
+args = ["--output", "json", "public-device", "import", "{inputs}/configs/cisco/basic.cfg"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.files.0.ok" = true, "data.files.0.device" = "ce-rio-01" }
+in_docs = true
+
+[[case]]
+id = "public-device-delete-referenced"
+title = { zh-CN = "删除仍被引用的公共设备：退出码 1", en = "Delete a referenced public device: exit 1", pt-BR = "Excluir dispositivo referenciado: saída 1" }
+args = ["--yes", "public-device", "delete", "PE-CHANGE-01"]
+setup = "configured-projects"
+expect_exit = 1
+expect_stderr = ["force"]
+
+[[case]]
+id = "user-delete-has-projects"
+title = { zh-CN = "删除拥有项目的账号：退出码 1；--transfer-to 转交", en = "Delete an account with projects: exit 1; use --transfer-to", pt-BR = "Excluir conta com projetos: saída 1; use --transfer-to" }
+args = ["--yes", "user", "delete", "alice"]
+setup = "configured-projects"
+expect_exit = 1
+expect_stderr = ["lab"]
+
+[[case]]
+id = "user-delete-transfer"
+title = { zh-CN = "删除账号并把项目转交给其他账号", en = "Delete an account and transfer its projects", pt-BR = "Excluir conta e transferir projetos" }
+args = ["--output", "json", "--yes", "user", "delete", "alice", "--transfer-to", "bob"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.deleted" = "alice", "data.projects.action" = "transfer" }
+
+[[case]]
+id = "user-add-maintainer"
+title = { zh-CN = "新建知识库维护员", en = "Add a KB maintainer", pt-BR = "Criar mantenedor da base" }
+args = ["--output", "json", "user", "add", "kbm", "--role", "maintainer", "--password-stdin"]
+stdin = "Kbm-pass-1234\n"
+setup = "configured-users"
+expect_exit = 0
+expect_json = { "ok" = true, "data.user.role" = "maintainer" }

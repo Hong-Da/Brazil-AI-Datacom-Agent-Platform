@@ -147,7 +147,8 @@ def full_kb_root(tmp_root: Path) -> Path:
 
 
 def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
-    """用例的准备方式：fresh / configured / fresh-fullkb / configured-fullkb / configured-fullkb-history / configured-users / configured-notoken。"""
+    """用例的准备方式：fresh / configured / fresh-fullkb / configured-fullkb / configured-fullkb-history / configured-users /
+    configured-notoken / configured-fullkb-checkproj / configured-projects。"""
     if setup and "fullkb" in setup:
         request.getfixturevalue("full_kb_root")
     if setup and setup.startswith("configured"):
@@ -158,6 +159,8 @@ def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
         request.getfixturevalue("users_root")
     if setup and setup.endswith("-checkproj"):
         request.getfixturevalue("checkproj_root")
+    if setup and setup.endswith("-projects"):
+        request.getfixturevalue("projects_root")
     if setup and setup.endswith("-notoken"):  # 实例没有设置 API 令牌（环境变量覆盖为空）
         request.getfixturevalue("monkeypatch").setenv("LMESH_SECURITY__API_TOKEN", "")
 
@@ -209,6 +212,30 @@ def users_root(configured_root: Path) -> Path:
     for name, (pw, role) in TEST_USERS.items():
         users.create_user(url, name, pw, role)
     return configured_root
+
+
+@pytest.fixture
+def projects_root(users_root: Path) -> Path:
+    """项目用例（M6）：在账号用例之上加普通用户 bob、carol（不是任何项目的成员）；alice 的项目 lab（导入 ATN-CHANGE-01，bob 为只读成员）；
+    公共设备库里一台 ASR920-BASE（管理员导入），lab 引用它并跟随最新版本。"""
+    from lmesh.core import config, importer, kbservice, projects, users
+
+    url = config.load().database_url
+    users.create_user(url, "bob", "Bob-pass-12", "user")
+    users.create_user(url, "carol", "Carol-pass-1", "user")
+    alice = projects.cli_identity(url, "alice")
+    projects.create_project(url, alice, {"name": "实验局", "slug": "lab", "description": "实验室设备"})
+    scope = projects.resolve(url, alice, "lab")
+    projects.set_member(url, scope, "bob", "read")
+    kb_root = kbservice.runtime_root(config.load())
+    base = (SAMPLES / "change" / "atn-base.cfg").read_bytes()
+    other = (SAMPLES / "change" / "asr920-base.cfg").read_bytes()
+    with projects.use(scope, alice):
+        importer.import_sources([("atn.cfg", base)], url, "basic", kb_root, actor="alice")
+    importer.import_sources([("asr.cfg", other)], url, "basic", kb_root, actor="admin", public=True)
+    pub = projects.list_public(url)[0]["id"]
+    projects.add_ref(url, scope, pub)
+    return users_root
 
 
 @pytest.fixture

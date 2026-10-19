@@ -80,6 +80,8 @@ def load_rules(kb: KnowledgeBase, family: str) -> dict[str, Any]:
             str(k): [str(x) for x in (v if isinstance(v, list) else [v])]
             for k, v in (data.get("undo_extra") or {}).items()
         },
+        # M7-3（Nokia）：删除这些对象之前先在对象里执行的命令（业务、SDP、SAP、接口要先 shutdown 才能删除）
+        "before_delete": {str(k): str(v) for k, v in (data.get("before_delete") or {}).items()},
     }
 
 
@@ -146,11 +148,16 @@ def _key_tokens(g: nx.MultiDiGraph, objs: list[str]) -> set[str]:
 
 
 def undo_text(
-    card: Any, line: parsemod.Line, negative: str, keys: set[str], extra: list[str] | None = None
+    card: Any,
+    line: parsemod.Line,
+    negative: str,
+    keys: set[str],
+    extra: list[str] | None = None,
+    quotes: bool = False,
 ) -> tuple[str, str | None]:
     """删除对象的取消命令：在取消语法（命令卡的 undo，加上变更知识 undo_extra 补充的写法）能渲染出的写法中，
     优先选写出了对象全部键的最短写法（undo rule 10，而不是按规则内容删除）；没有时用清理模块的写法（参数最多）。"""
-    text, why = cleanup.render_undo_reason(card, line, negative)
+    text, why = cleanup.render_undo_reason(card, line, negative, quotes)
     if not keys or card is None:
         return text, why
     original = {w.lower() for w in line.text.split()}
@@ -165,7 +172,7 @@ def undo_text(
             if not words or low[0] != negative or not set(kws[1:]) <= original or not keys <= set(low):
                 continue
             cand = " ".join(words)
-            if syn.match(usyn, cand, card.params) is None:
+            if syn.match(usyn, cand, card.params, quotes) is None:
                 continue
             if best is None or len(words) < best[0]:
                 best = (len(words), cand)
@@ -540,7 +547,9 @@ class _Planner:
                 card = self.kb.cards.get(str(ln.card))
                 ctx = self._ctx_current(no)
                 objs = [n for n in self.cix.line_nodes.get(no, []) if self.cur.nodes[n].get("kind") == "object"]
-                text, why = undo_text(card, ln, negative, _key_tokens(self.cur, objs), self.extra_undo(str(ln.card)))
+                text, why = undo_text(
+                    card, ln, negative, _key_tokens(self.cur, objs), self.extra_undo(str(ln.card)), self.fam.quotes
+                )
                 root = max(objs, key=lambda n: n.count("/"), default=o)
                 if not self._under(root, o):
                     root = o
@@ -571,6 +580,7 @@ class _Planner:
                     fallback_reason=why,
                     lines_current=[no],
                 )
+                self._before_delete(seen[key], root, ln, ctx, no)
         for n in sorted(self.undo_attrs, key=lambda x: (min(self.cur.nodes[x].get("lines") or [0]), x)):
             lines = [no for no in self.cur.nodes[n].get("lines") or [] if n in self.cix.line_nodes.get(no, [])]
             if not lines:
@@ -578,7 +588,7 @@ class _Planner:
             no = min(lines)
             ln = self.cix.lines[no]
             card = self.kb.cards.get(str(ln.card))
-            text, why = cleanup.render_undo_reason(card, ln, negative)
+            text, why = cleanup.render_undo_reason(card, ln, negative, self.fam.quotes)
             ctx = self._ctx_current(no)
             key = (tuple(c.key for c in ctx), text)
             hit = seen.get(key)
@@ -611,6 +621,28 @@ class _Planner:
                         self.write.add(ib.node)
                         self.rewrite[ib.node] = op.id
 
+    def _before_delete(self, op: Op, obj: str, ln: parsemod.Line, ctx: list[CtxLine], no: int) -> None:
+        """删除之前先在对象里执行的命令（变更知识 before_delete，Nokia：先 shutdown 再 no …）；对象已经关闭时不写。"""
+        cmd = self.rules["before_delete"].get(str(self.cur.nodes[obj].get("schema")))
+        card = self.kb.cards.get(str(ln.card))
+        if not cmd or card is None or not card.enters_view:
+            return
+        shut = self.cur.nodes.get(f"{obj}/shutdown")
+        if shut is not None and shut.get("value") is True:
+            return
+        cid = next(iter(self.cids_c(obj)), "")
+        pre = self._new_op(
+            "modify",
+            cmd,
+            [*ctx, CtxLine(ln.text, str(card.enters_view), cid)],
+            (2, float(no) - 0.5),
+            subject=cid,
+            cids={c for c in self.cids_c(f"{obj}/shutdown")} if shut is not None else set(),
+            lines_current=[no],
+        )
+        pre.notes.append("before_delete")
+        op.after[pre.id] = {"kind": "before_delete", "node": cid, "note": Note()}
+
     def ext_ops(self) -> None:
         """未映射到 Schema 的命令（ext）：同一对象下按多重集合比较，新增的按原文下发、删除的按取消语法。"""
         ga: dict[tuple[str, str], list[compare.Multi]] = defaultdict(list)
@@ -636,7 +668,7 @@ class _Planner:
                 if no not in self.cix.lines:
                     continue
                 ln = self.cix.lines[no]
-                text, why = cleanup.render_undo_reason(self.kb.cards.get(str(ln.card)), ln, negative)
+                text, why = cleanup.render_undo_reason(self.kb.cards.get(str(ln.card)), ln, negative, self.fam.quotes)
                 dels.append(
                     self._new_op(
                         "delete",
@@ -889,22 +921,38 @@ def script_rows(ops: list[Op], kb: KnowledgeBase, family: str, rules: dict[str, 
     quit（退出视图）；depth 是缩进层级。script_lines 由它渲染成文本，两者逐行对应（不含说明行）。"""
     rows: list[dict[str, Any]] = [{"kind": "frame", "depth": 0, "text": t, "op": None} for t in rules["begin"]]
     stack: list[CtxLine] = []
+    wrap = canon.load_style(kb, family)[
+        "wrap"
+    ]  # 进入视图后先写、退出前再写的命令（Nokia policy-options 的 begin / commit）
+
+    def enter(c: CtxLine, depth: int) -> None:
+        stack.append(c)
+        cmds = wrap.get(c.view) or []
+        if len(cmds) >= 2:
+            rows.append({"kind": "enter", "depth": depth + 1, "text": cmds[0], "op": None})
+
+    def quit_(i: int) -> None:
+        cmds = wrap.get(stack[i].view) or []
+        if len(cmds) >= 2:
+            rows.append({"kind": "quit", "depth": i + 1, "text": cmds[-1], "op": None})
+        rows.append({"kind": "quit", "depth": i, "text": _exit_word(kb, family, stack[i].view, rules), "op": None})
+
     for op in ops:
         ctx = op.context
         common = 0
         while common < len(stack) and common < len(ctx) and stack[common].key == ctx[common].key:
             common += 1
         for i in reversed(range(common, len(stack))):
-            rows.append({"kind": "quit", "depth": i, "text": _exit_word(kb, family, stack[i].view, rules), "op": None})
+            quit_(i)
         stack = stack[:common]
         for i in range(common, len(ctx)):
             rows.append({"kind": "enter", "depth": i, "text": ctx[i].text, "op": None})
-            stack.append(ctx[i])
+            enter(ctx[i], i)
         rows.append({"kind": "cmd", "depth": len(stack), "text": op.text, "op": op.id})
         if op.opens and not op.negative:
-            stack.append(op.as_ctx())
+            enter(op.as_ctx(), len(stack))
     for i in reversed(range(len(stack))):
-        rows.append({"kind": "quit", "depth": i, "text": _exit_word(kb, family, stack[i].view, rules), "op": None})
+        quit_(i)
     rows += [{"kind": "frame", "depth": 0, "text": t, "op": None} for t in rules["finish"]]
     return rows
 
@@ -1068,7 +1116,7 @@ class _Sim:
         if card is None or not card.undo:
             return False
         try:
-            return syn.match(syn.parse(card.undo), text, card.params) is not None
+            return syn.match(syn.parse(card.undo), text, card.params, self.p.fam.quotes) is not None
         except syn.SyntaxErrorKB:
             return False
 
@@ -1082,7 +1130,7 @@ class _Sim:
                     usyn = syn.parse(src)
                 except syn.SyntaxErrorKB:
                     continue
-                m = syn.match(usyn, text, card.params)
+                m = syn.match(usyn, text, card.params, self.p.fam.quotes)
                 if m is not None:
                     return card, m, usyn
         return None

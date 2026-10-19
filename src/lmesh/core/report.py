@@ -221,12 +221,12 @@ def version_meta(db_url: str, version_id: int | None) -> dict[str, Any]:
     """配置版本的软件版本与采集时间（报告头用）；没有版本时为空。"""
     if version_id is None:
         return {}
-    from lmesh.core import store
+    from lmesh.core import projects, store
     from lmesh.core.store.models import ConfigVersion, Device, iso
 
     with store.session(db_url) as s:
         ver = s.get(ConfigVersion, version_id)
-        if ver is None:
+        if ver is None or not projects.visible(s, ver.device_id):
             return {}
         dev = s.get(Device, ver.device_id)
         return {

@@ -1,0 +1,1336 @@
+# Nokia 7750 SR，SR OS 25.10.R1，Classic CLI（M7-3，REQ-037）。命令卡来自 Nokia 公开的 Classic CLI Command Reference 25.10.R1。
+# 缺省值取自命令参考各命令的 Default 小节（verified: doc）；其他软件版本以后用继承 Profile 只写差异。
+profile: nokia-sros-classic-7750-25.10
+title: Nokia 7750 SR SR OS 25.10（Classic CLI）
+vendor: nokia
+family: nokia-sros-classic
+platform: 7750 SR
+software: 25.10.R1
+match:
+  vendor: nokia
+  version: ^25\.10
+  fallback: "true"
+# 被引用即隐式存在的对象：没有（VPLS 下的 SAP 直接绑定 VSI，见 interface.access.vsi）
+implicit: []
+side_effects: []
+# entries 由命令卡汇总生成（lmesh kb map --family nokia-sros-classic）；人工补充的条目标 manual: true，汇总时保留。
+# when.else（M7-3）：条件不满足时的缺省值——端口与 LAG 缺省 shutdown，路由器逻辑接口缺省 no shutdown。
+# assume（M7-3）：其他平台族没有这个节点（华为 / Cisco 的协议实例与 NTP 没有管理状态，配置即启用）时按这个取值理解；
+#   翻译成 Nokia 时，目标缺省值与它不同（或没有登记缺省值）就显式写出并告警（core/translate.py）。
+entries:
+  acl.instance:
+    supported: true
+    cards:
+      - nokia-sros-classic.ip-filter~2
+  acl.instance.default_action:
+    supported: true
+    cards:
+      - nokia-sros-classic.default-action~2
+  acl.instance.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description@ip-filter
+  acl.instance.rule:
+    supported: true
+    cards:
+      - nokia-sros-classic.entry~2
+  acl.instance.rule.action:
+    supported: true
+    cards:
+      - nokia-sros-classic.action.inline@ip-filter-entry
+      - nokia-sros-classic.drop.1
+      - nokia-sros-classic.forward.1
+  acl.instance.rule.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description@ip-filter-entry
+  acl.instance.rule.destination_ip:
+    supported: true
+    cards:
+      - nokia-sros-classic.dst-ip.2
+  acl.instance.rule.destination_port:
+    supported: true
+    cards:
+      - nokia-sros-classic.dst-port.1
+      - nokia-sros-classic.dst-port.3
+  acl.instance.rule.destination_wildcard:
+    supported: true
+    cards:
+      - nokia-sros-classic.dst-ip.2
+  acl.instance.rule.protocol:
+    supported: true
+    cards:
+      - nokia-sros-classic.match.1
+  acl.instance.rule.source_ip:
+    supported: true
+    cards:
+      - nokia-sros-classic.src-ip@ip-filter-match
+  acl.instance.rule.source_port:
+    supported: true
+    cards:
+      - nokia-sros-classic.src-port.1
+      - nokia-sros-classic.src-port.3
+  acl.instance.rule.source_wildcard:
+    supported: true
+    cards:
+      - nokia-sros-classic.src-ip@ip-filter-match
+  acl.instance.type:
+    supported: true
+    cards:
+      - nokia-sros-classic.ip-filter~2
+  bgp.instance:
+    supported: true
+    cards:
+      - nokia-sros-classic.autonomous-system
+  bgp.instance.family:
+    manual: true
+    supported: true
+    default: ipv4
+    source: 命令参考 bgp family：Default family ipv4
+    verified: doc
+    cards:
+      - nokia-sros-classic.family@bgp
+  bgp.instance.hold:
+    manual: true
+    supported: true
+    default: 90
+    source: 命令参考 bgp hold-time：Default hold-time 90
+    verified: doc
+    cards:
+      - nokia-sros-classic.hold-time@bgp
+  bgp.instance.keepalive:
+    manual: true
+    supported: true
+    default: 30
+    source: 命令参考 bgp keepalive：Default keepalive 30
+    verified: doc
+    cards:
+      - nokia-sros-classic.keepalive@bgp
+  bgp.instance.router_id:
+    supported: true
+    cards:
+      - nokia-sros-classic.router-id~3
+  bgp.instance.shutdown:
+    manual: true
+    supported: true
+    assume: false
+    source: 命令参考没有写明 BGP 的缺省管理状态（display-config 总是写出 no shutdown）；翻译成 Nokia 时显式写 no shutdown
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown@bgp
+  bgp.peer:
+    supported: true
+    cards:
+      - nokia-sros-classic.neighbor
+  bgp.peer.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description@bgp-neighbor
+  bgp.peer.export_policy:
+    supported: true
+    cards:
+      - nokia-sros-classic.export@bgp-neighbor
+  bgp.peer.group:
+    supported: true
+    cards:
+      - nokia-sros-classic.neighbor
+  bgp.peer.hold:
+    supported: true
+    cards:
+      - nokia-sros-classic.hold-time@bgp-neighbor
+  bgp.peer.import_policy:
+    supported: true
+    cards:
+      - nokia-sros-classic.import@bgp-neighbor
+  bgp.peer.keepalive:
+    supported: true
+    cards:
+      - nokia-sros-classic.keepalive@bgp-neighbor
+  bgp.peer.password:
+    supported: true
+    cards:
+      - nokia-sros-classic.authentication-key@bgp-neighbor
+  bgp.peer.remote_as:
+    supported: true
+    cards:
+      - nokia-sros-classic.peer-as@bgp-neighbor
+  bgp.peer.update_source:
+    supported: true
+    cards:
+      - nokia-sros-classic.local-address@bgp-neighbor
+  bgp.peer_group:
+    supported: true
+    cards:
+      - nokia-sros-classic.group
+  bgp.peer_group.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description@bgp-group
+  bgp.peer_group.export_policy:
+    supported: true
+    cards:
+      - nokia-sros-classic.export@bgp-group
+  bgp.peer_group.family:
+    supported: true
+    cards:
+      - nokia-sros-classic.family@bgp-group
+  bgp.peer_group.hold:
+    supported: true
+    cards:
+      - nokia-sros-classic.hold-time@bgp-group
+  bgp.peer_group.import_policy:
+    supported: true
+    cards:
+      - nokia-sros-classic.import@bgp-group
+  bgp.peer_group.keepalive:
+    supported: true
+    cards:
+      - nokia-sros-classic.keepalive@bgp-group
+  bgp.peer_group.password:
+    supported: true
+    cards:
+      - nokia-sros-classic.authentication-key@bgp-group
+  bgp.peer_group.remote_as:
+    supported: true
+    cards:
+      - nokia-sros-classic.peer-as@bgp-group
+  bgp.peer_group.type:
+    supported: true
+    cards:
+      - nokia-sros-classic.type@bgp-group
+  bgp.peer_group.update_source:
+    supported: true
+    cards:
+      - nokia-sros-classic.local-address@bgp-group
+  interface:
+    supported: true
+    cards:
+      - nokia-sros-classic.interface
+      - nokia-sros-classic.interface.1
+      - nokia-sros-classic.interface.1~2
+      - nokia-sros-classic.interface.1~3
+      - nokia-sros-classic.interface~2
+      - nokia-sros-classic.interface~4
+      - nokia-sros-classic.interface~6
+      - nokia-sros-classic.lag
+      - nokia-sros-classic.port
+      - nokia-sros-classic.port~2
+      - nokia-sros-classic.sap.1
+      - nokia-sros-classic.sap.1~2
+      - nokia-sros-classic.sap.2
+      - nokia-sros-classic.sap.3
+  interface.access:
+    supported: true
+    cards:
+      - nokia-sros-classic.sap.1
+      - nokia-sros-classic.sap.1~2
+      - nokia-sros-classic.sap.2
+      - nokia-sros-classic.sap.3
+  interface.access.acl_in:
+    supported: true
+    cards:
+      - nokia-sros-classic.filter.1@epipe-sap-ingress
+      - nokia-sros-classic.filter.1@vpls-sap-ingress
+  interface.access.acl_out:
+    supported: true
+    cards:
+      - nokia-sros-classic.filter.1@epipe-sap-egress
+      - nokia-sros-classic.filter.1@vpls-sap-egress
+  interface.access.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description~13
+      - nokia-sros-classic.description~9
+  interface.access.encapsulation:
+    supported: true
+    cards:
+      - nokia-sros-classic.sap.1
+      - nokia-sros-classic.sap.1~2
+      - nokia-sros-classic.sap.2
+      - nokia-sros-classic.sap.3
+  interface.access.inner_vlan:
+    supported: true
+    cards:
+      - nokia-sros-classic.sap.1
+      - nokia-sros-classic.sap.1~2
+      - nokia-sros-classic.sap.2
+      - nokia-sros-classic.sap.3
+  interface.access.qos_in:
+    supported: true
+    cards:
+      - nokia-sros-classic.qos
+      - nokia-sros-classic.qos~2
+  interface.access.qos_out:
+    supported: true
+    cards:
+      - nokia-sros-classic.qos.1~2
+      - nokia-sros-classic.qos.1~3
+      - nokia-sros-classic.qos.2~2
+      - nokia-sros-classic.qos.2~3
+  interface.access.vlan:
+    supported: true
+    cards:
+      - nokia-sros-classic.sap.1
+      - nokia-sros-classic.sap.1~2
+      - nokia-sros-classic.sap.2
+      - nokia-sros-classic.sap.3
+  interface.access.vsi:
+    supported: true
+    cards:
+      - nokia-sros-classic.sap.1~2
+  interface.acl_in:
+    supported: true
+    cards:
+      - nokia-sros-classic.filter.1@ies-if-sap-ingress
+      - nokia-sros-classic.filter.1@vprn-if-sap-ingress
+  interface.acl_out:
+    supported: true
+    cards:
+      - nokia-sros-classic.filter.1@ies-if-sap-egress
+      - nokia-sros-classic.filter.1@vprn-if-sap-egress
+  interface.bfd:
+    supported: true
+    cards:
+      - nokia-sros-classic.bfd~2
+  interface.bfd.min_rx:
+    supported: true
+    cards:
+      - nokia-sros-classic.bfd~2
+  interface.bfd.min_tx:
+    supported: true
+    cards:
+      - nokia-sros-classic.bfd~2
+  interface.bfd.multiplier:
+    supported: true
+    cards:
+      - nokia-sros-classic.bfd~2
+  interface.bind_port:
+    supported: true
+    cards:
+      - nokia-sros-classic.port~3
+      - nokia-sros-classic.sap
+      - nokia-sros-classic.sap~3
+  interface.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description
+      - nokia-sros-classic.description~17
+      - nokia-sros-classic.description~2
+      - nokia-sros-classic.description~21
+      - nokia-sros-classic.description~3
+  interface.dot1q_termination:
+    supported: true
+    cards:
+      - nokia-sros-classic.port~3
+      - nokia-sros-classic.sap
+      - nokia-sros-classic.sap~3
+  interface.duplex:
+    manual: true
+    supported: true
+    default: full
+    when:
+      key: '^(\d+/\d+/|esat-)'
+    source: 命令参考 port ethernet duplex：Default duplex full
+    verified: doc
+    cards:
+      - nokia-sros-classic.duplex
+  interface.encap_type:
+    manual: true
+    supported: true
+    default: "null"
+    when:
+      key: '^(\d+/\d+/|lag-\d+$|esat-|pxc-)'
+    source: 命令参考 port ethernet / lag 的 encap-type：Default encap-type null
+    verified: doc
+    cards:
+      - nokia-sros-classic.encap-type
+      - nokia-sros-classic.encap-type~2
+  interface.ies:
+    supported: true
+    cards:
+      - nokia-sros-classic.interface.1~3
+  interface.ipv4:
+    supported: true
+    cards:
+      - nokia-sros-classic.address
+      - nokia-sros-classic.address~3
+      - nokia-sros-classic.address~4
+      - nokia-sros-classic.secondary
+      - nokia-sros-classic.secondary~3
+      - nokia-sros-classic.secondary~4
+  interface.ipv4.address:
+    supported: true
+    cards:
+      - nokia-sros-classic.address
+      - nokia-sros-classic.address~3
+      - nokia-sros-classic.address~4
+      - nokia-sros-classic.secondary
+      - nokia-sros-classic.secondary~3
+      - nokia-sros-classic.secondary~4
+  interface.ipv4.prefix_length:
+    supported: true
+    cards:
+      - nokia-sros-classic.address
+      - nokia-sros-classic.address~3
+      - nokia-sros-classic.address~4
+      - nokia-sros-classic.secondary
+      - nokia-sros-classic.secondary~3
+      - nokia-sros-classic.secondary~4
+  interface.ipv4.secondary:
+    manual: true
+    supported: true
+    default: false
+    source: address 为主地址，secondary 为从地址
+    verified: doc
+    cards:
+      - nokia-sros-classic.address
+      - nokia-sros-classic.address~3
+      - nokia-sros-classic.address~4
+      - nokia-sros-classic.secondary
+      - nokia-sros-classic.secondary~3
+      - nokia-sros-classic.secondary~4
+  interface.isis:
+    supported: true
+    cards:
+      - nokia-sros-classic.interface~2
+  interface.isis.bfd:
+    supported: true
+    cards:
+      - nokia-sros-classic.bfd-enable~2
+  interface.isis.circuit_type:
+    supported: true
+    cards:
+      - nokia-sros-classic.level-capability@isis-if
+  interface.isis.level:
+    supported: true
+    cards:
+      - nokia-sros-classic.level@isis-if
+  interface.isis.level.metric:
+    manual: true
+    supported: true
+    default: 10
+    source: 命令参考 isis interface level metric：Default metric 10
+    verified: doc
+    cards:
+      - nokia-sros-classic.metric~2
+  interface.isis.p2p:
+    supported: true
+    cards:
+      - nokia-sros-classic.interface-type~2
+  interface.isis.passive:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 isis interface passive：Default no passive
+    verified: doc
+    cards:
+      - nokia-sros-classic.passive@isis-if
+  interface.isis.process:
+    supported: true
+    cards:
+      - nokia-sros-classic.interface~2
+  interface.isis.shutdown:
+    manual: true
+    supported: true
+    default: true
+    assume: false
+    source: 命令参考 isis interface shutdown：Default shutdown
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown@isis-if
+  interface.lag:
+    supported: true
+    cards:
+      - nokia-sros-classic.port~2
+  interface.lag_mode:
+    supported: true
+    cards:
+      - nokia-sros-classic.lacp
+  interface.loopback:
+    supported: true
+    cards:
+      - nokia-sros-classic.loopback
+      - nokia-sros-classic.loopback~2
+      - nokia-sros-classic.loopback~3
+  interface.mpls:
+    supported: true
+    cards:
+      - nokia-sros-classic.interface~4
+      - nokia-sros-classic.interface~6
+  interface.mpls.ldp:
+    supported: true
+    cards:
+      - nokia-sros-classic.interface~6
+      - nokia-sros-classic.shutdown@ldp-if
+      - nokia-sros-classic.shutdown@ldp-if-ipv4
+  interface.mpls.ldp_transport_address:
+    supported: true
+    cards:
+      - nokia-sros-classic.transport-address
+  interface.mpls.shutdown:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 mpls interface shutdown：Default no shutdown
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown@mpls-if
+  interface.mtu:
+    supported: true
+    cards:
+      - nokia-sros-classic.mtu
+  interface.negotiation:
+    manual: true
+    supported: true
+    default: true
+    when:
+      key: '^(\d+/\d+/|esat-)'
+    source: 命令参考 port ethernet autonegotiate：Default autonegotiate
+    verified: doc
+    cards:
+      - nokia-sros-classic.autonegotiate
+  interface.ospf:
+    supported: true
+    cards:
+      - nokia-sros-classic.interface
+  interface.ospf.area:
+    supported: true
+    cards:
+      - nokia-sros-classic.interface
+  interface.ospf.bfd:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 ospf area interface bfd-enable：Default no bfd-enable
+    verified: doc
+    cards:
+      - nokia-sros-classic.bfd-enable.1
+  interface.ospf.cost:
+    supported: true
+    cards:
+      - nokia-sros-classic.metric
+  interface.ospf.dead:
+    manual: true
+    supported: true
+    default: 40
+    source: 命令参考 ospf area interface dead-interval：Default dead-interval 40
+    verified: doc
+    cards:
+      - nokia-sros-classic.dead-interval
+  interface.ospf.hello:
+    manual: true
+    supported: true
+    default: 10
+    source: 命令参考 ospf area interface hello-interval：Default hello-interval 10
+    verified: doc
+    cards:
+      - nokia-sros-classic.hello-interval
+  interface.ospf.network_type:
+    supported: true
+    cards:
+      - nokia-sros-classic.interface-type
+  interface.ospf.priority:
+    manual: true
+    supported: true
+    default: 1
+    source: 命令参考 ospf area interface priority：Default priority 1
+    verified: doc
+    cards:
+      - nokia-sros-classic.priority
+  interface.ospf.process:
+    supported: true
+    cards:
+      - nokia-sros-classic.interface
+  interface.ospf.shutdown:
+    manual: true
+    supported: true
+    default: false
+    assume: false
+    source: 命令参考 ospf area interface shutdown：Default no shutdown
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown@ospf-if
+  interface.port_mode:
+    manual: true
+    supported: true
+    default: network
+    when:
+      key: '^(\d+/\d+/|lag-\d+$|esat-|pxc-)'
+    source: 命令参考 port ethernet / lag 的 mode：Default mode network（Ethernet 端口）
+    verified: doc
+    cards:
+      - nokia-sros-classic.mode
+      - nokia-sros-classic.mode~2
+  interface.prefix_sid:
+    supported: true
+    cards:
+      - nokia-sros-classic.ipv4-node-sid.1
+      - nokia-sros-classic.node-sid.1
+  interface.prefix_sid.index:
+    supported: true
+    cards:
+      - nokia-sros-classic.ipv4-node-sid.1
+      - nokia-sros-classic.node-sid.1
+  interface.prefix_sid.node_disable:
+    supported: true
+    cards:
+      - nokia-sros-classic.ipv4-node-sid.1
+      - nokia-sros-classic.node-sid.1
+  interface.shutdown:
+    manual: true
+    supported: true
+    default: true
+    when:
+      key: '^(\d+/\d+/|lag-\d+$|esat-|pxc-)'
+      else: false
+    assume: false
+    source: 命令参考 port / lag 的 shutdown：端口与 LAG 缺省关闭（No ports are configured… must be explicitly configured and enabled）；router interface 的 shutdown：Default no shutdown
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown
+      - nokia-sros-classic.shutdown@vprn-if
+      - nokia-sros-classic.shutdown~2
+      - nokia-sros-classic.shutdown~27
+      - nokia-sros-classic.shutdown~3
+      - nokia-sros-classic.shutdown~4
+  interface.speed:
+    supported: true
+    cards:
+      - nokia-sros-classic.speed
+  interface.vrf:
+    supported: true
+    cards:
+      - nokia-sros-classic.interface.1~2
+  interface.vrrp:
+    supported: true
+    cards:
+      - nokia-sros-classic.vrrp
+  interface.vrrp.advertise_interval:
+    supported: true
+    cards:
+      - nokia-sros-classic.message-interval~2
+  interface.vrrp.advertise_msec:
+    supported: true
+    cards:
+      - nokia-sros-classic.message-interval~2
+  interface.vrrp.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description~22
+  interface.vrrp.owner:
+    supported: true
+    cards:
+      - nokia-sros-classic.vrrp
+  interface.vrrp.priority:
+    supported: true
+    cards:
+      - nokia-sros-classic.priority~4
+  interface.vrrp.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-classic.shutdown~30
+  interface.vrrp.virtual_ip:
+    supported: true
+    cards:
+      - nokia-sros-classic.backup
+  isis.process:
+    supported: true
+    cards:
+      - nokia-sros-classic.isis
+  isis.process.area_id:
+    supported: true
+    cards:
+      - nokia-sros-classic.area-id
+  isis.process.export_policy:
+    supported: true
+    cards:
+      - nokia-sros-classic.export~3
+  isis.process.level:
+    manual: true
+    supported: true
+    default: level-1-2
+    source: 命令参考 isis level-capability：Default level-capability level-1/2
+    verified: doc
+    cards:
+      - nokia-sros-classic.level-capability@isis
+  isis.process.metric_style:
+    manual: true
+    supported: true
+    default: narrow
+    source: 命令参考 isis level wide-metrics-only：Default no wide-metrics-only（窄度量）
+    verified: doc
+    cards:
+      - nokia-sros-classic.wide-metrics-only
+  isis.process.shutdown:
+    manual: true
+    supported: true
+    default: true
+    assume: false
+    source: 命令参考 isis shutdown：Default shutdown（新建的 IS-IS 实例缺省关闭）
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown@isis
+  isis.process.sr_mpls:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 isis segment-routing shutdown：Default shutdown
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown~14
+  isis.process.system_id:
+    supported: true
+    cards:
+      - nokia-sros-classic.system-id
+  isis.process.te:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 isis traffic-engineering：Default no traffic-engineering
+    verified: doc
+    cards:
+      - nokia-sros-classic.traffic-engineering~2
+  l2vpn.vsi:
+    supported: true
+    cards:
+      - nokia-sros-classic.vpls
+  l2vpn.vsi.customer:
+    supported: true
+    cards:
+      - nokia-sros-classic.vpls
+  l2vpn.vsi.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description~11
+  l2vpn.vsi.mtu:
+    supported: true
+    cards:
+      - nokia-sros-classic.service-mtu~2
+  l2vpn.vsi.peer:
+    supported: true
+    cards:
+      - nokia-sros-classic.mesh-sdp.1
+      - nokia-sros-classic.spoke-sdp.3
+  l2vpn.vsi.peer.role:
+    supported: true
+    cards:
+      - nokia-sros-classic.mesh-sdp.1
+      - nokia-sros-classic.spoke-sdp.3
+  l2vpn.vsi.peer.sdp:
+    supported: true
+    cards:
+      - nokia-sros-classic.mesh-sdp.1
+      - nokia-sros-classic.spoke-sdp.3
+  l2vpn.vsi.peer.vc_id:
+    supported: true
+    cards:
+      - nokia-sros-classic.mesh-sdp.1
+      - nokia-sros-classic.spoke-sdp.3
+  l2vpn.vsi.service_id:
+    supported: true
+    cards:
+      - nokia-sros-classic.vpls
+  l2vpn.vsi.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-classic.shutdown~22
+  l2vpn.xconnect:
+    supported: true
+    cards:
+      - nokia-sros-classic.epipe.1
+  l2vpn.xconnect.ac:
+    supported: true
+    cards:
+      - nokia-sros-classic.sap.1
+      - nokia-sros-classic.sap.2
+      - nokia-sros-classic.sap.3
+  l2vpn.xconnect.customer:
+    supported: true
+    cards:
+      - nokia-sros-classic.epipe.1
+  l2vpn.xconnect.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description~8
+  l2vpn.xconnect.mtu:
+    supported: true
+    cards:
+      - nokia-sros-classic.service-mtu
+  l2vpn.xconnect.pw:
+    supported: true
+    cards:
+      - nokia-sros-classic.spoke-sdp.1
+      - nokia-sros-classic.spoke-sdp.2
+  l2vpn.xconnect.pw.sdp:
+    supported: true
+    cards:
+      - nokia-sros-classic.spoke-sdp.1
+      - nokia-sros-classic.spoke-sdp.2
+  l2vpn.xconnect.service_id:
+    supported: true
+    cards:
+      - nokia-sros-classic.epipe.1
+  l2vpn.xconnect.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-classic.shutdown~18
+  mgmt.aaa.user:
+    supported: true
+    cards:
+      - nokia-sros-classic.user
+  mgmt.aaa.user.password_set:
+    supported: true
+    cards:
+      - nokia-sros-classic.password~2
+  mgmt.aaa.user.service_type:
+    supported: true
+    cards:
+      - nokia-sros-classic.access~4
+  mgmt.ftp:
+    supported: true
+    cards:
+      - nokia-sros-classic.ftp-server
+  mgmt.ftp.enabled:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 system security ftp-server：Default no ftp-server
+    verified: doc
+    cards:
+      - nokia-sros-classic.ftp-server
+  mgmt.ntp:
+    supported: true
+    cards:
+      - nokia-sros-classic.ntp
+  mgmt.ntp.server:
+    supported: true
+    cards:
+      - nokia-sros-classic.server~3
+  mgmt.ntp.server.key:
+    supported: true
+    cards:
+      - nokia-sros-classic.server~3
+  mgmt.ntp.server.prefer:
+    supported: true
+    cards:
+      - nokia-sros-classic.server~3
+  mgmt.ntp.shutdown:
+    manual: true
+    supported: true
+    default: true
+    assume: false
+    source: 命令参考 system time ntp shutdown：Default shutdown（NTP 缺省关闭）
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown~8
+  mgmt.radius:
+    supported: true
+    cards:
+      - nokia-sros-classic.radius
+  mgmt.snmp:
+    supported: true
+    cards:
+      - nokia-sros-classic.community~2
+      - nokia-sros-classic.contact
+      - nokia-sros-classic.location
+      - nokia-sros-classic.shutdown~7
+  mgmt.snmp.community:
+    supported: true
+    cards:
+      - nokia-sros-classic.community~2
+  mgmt.snmp.community.access:
+    supported: true
+    cards:
+      - nokia-sros-classic.community~2
+  mgmt.snmp.contact:
+    supported: true
+    cards:
+      - nokia-sros-classic.contact
+  mgmt.snmp.enabled:
+    manual: true
+    supported: true
+    default: true
+    source: 命令参考 system snmp shutdown：Default no shutdown
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown~7
+  mgmt.snmp.location:
+    supported: true
+    cards:
+      - nokia-sros-classic.location
+  mgmt.ssh:
+    supported: true
+    cards:
+      - nokia-sros-classic.ssh~2
+  mgmt.ssh.enabled:
+    manual: true
+    supported: true
+    default: true
+    source: 命令参考 system security ssh server-shutdown：Default no server-shutdown
+    verified: doc
+    cards:
+      - nokia-sros-classic.server-shutdown
+  mgmt.syslog.host:
+    supported: true
+    cards:
+      - nokia-sros-classic.address~2
+  mgmt.syslog.host.facility:
+    manual: true
+    supported: true
+    default: local7
+    source: 命令参考 log syslog facility：Default facility local7
+    verified: doc
+    cards:
+      - nokia-sros-classic.facility
+  mgmt.syslog.host.level:
+    manual: true
+    supported: true
+    default: info
+    source: 命令参考 log syslog level：Default level info
+    verified: doc
+    cards:
+      - nokia-sros-classic.level
+  mgmt.syslog.host.target_id:
+    supported: true
+    cards:
+      - nokia-sros-classic.address~2
+  mgmt.system:
+    supported: true
+    cards:
+      - nokia-sros-classic.name
+      - nokia-sros-classic.router-id~4
+  mgmt.system.name:
+    supported: true
+    cards:
+      - nokia-sros-classic.name
+  mgmt.system.router_id:
+    supported: true
+    cards:
+      - nokia-sros-classic.router-id~4
+  mgmt.tacacs:
+    supported: true
+    cards:
+      - nokia-sros-classic.tacplus
+  mgmt.tacacs.key_set:
+    supported: true
+    cards:
+      - nokia-sros-classic.server
+  mgmt.tacacs.server:
+    supported: true
+    cards:
+      - nokia-sros-classic.server
+  mgmt.tacacs.timeout:
+    manual: true
+    supported: true
+    default: 3
+    source: 命令参考 system security tacplus timeout：Default timeout 3
+    verified: doc
+    cards:
+      - nokia-sros-classic.timeout~2
+  mgmt.telnet:
+    supported: true
+    cards:
+      - nokia-sros-classic.telnet-server
+  mgmt.telnet.enabled:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 system security telnet-server：Default no telnet-server
+    verified: doc
+    cards:
+      - nokia-sros-classic.telnet-server
+  mpls.global:
+    supported: true
+    cards:
+      - nokia-sros-classic.mpls
+  mpls.global.shutdown:
+    manual: true
+    supported: true
+    default: false
+    assume: false
+    source: 命令参考 mpls shutdown：Default no shutdown
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown@mpls
+  mpls.ldp:
+    supported: true
+    cards:
+      - nokia-sros-classic.ldp
+  mpls.ldp.remote_peer:
+    supported: true
+    cards:
+      - nokia-sros-classic.peer~2
+  mpls.ldp.remote_peer.remote_ip:
+    supported: true
+    cards:
+      - nokia-sros-classic.peer~2
+  mpls.ldp.shutdown:
+    manual: true
+    supported: true
+    default: false
+    assume: false
+    source: 命令参考 ldp shutdown：Default no shutdown
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown@ldp
+  ospf.process:
+    supported: true
+    cards:
+      - nokia-sros-classic.ospf.1
+      - nokia-sros-classic.ospf.2
+  ospf.process.area:
+    supported: true
+    cards:
+      - nokia-sros-classic.area
+  ospf.process.export_policy:
+    supported: true
+    cards:
+      - nokia-sros-classic.export
+  ospf.process.passive:
+    supported: true
+    cards:
+      - nokia-sros-classic.passive
+  ospf.process.passive.enabled:
+    supported: true
+    cards:
+      - nokia-sros-classic.passive
+  ospf.process.router_id:
+    supported: true
+    cards:
+      - nokia-sros-classic.ospf.1
+  ospf.process.shutdown:
+    manual: true
+    supported: true
+    assume: false
+    source: 命令参考没有写明 OSPF 实例的缺省管理状态（display-config 总是写出 no shutdown）；翻译成 Nokia 时显式写 no shutdown
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown~10
+  ospf.process.sr_mpls:
+    supported: true
+    cards:
+      - nokia-sros-classic.shutdown~13
+  ospf.process.te:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 ospf traffic-engineering：Default no traffic-engineering
+    verified: doc
+    cards:
+      - nokia-sros-classic.traffic-engineering
+  qos.sap_egress:
+    supported: true
+    cards:
+      - nokia-sros-classic.sap-egress
+  qos.sap_egress.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description~24
+  qos.sap_egress.name:
+    supported: true
+    cards:
+      - nokia-sros-classic.sap-egress
+  qos.sap_ingress:
+    supported: true
+    cards:
+      - nokia-sros-classic.sap-ingress
+  qos.sap_ingress.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description~23
+  qos.sap_ingress.name:
+    supported: true
+    cards:
+      - nokia-sros-classic.sap-ingress
+  rp.policy:
+    supported: true
+    cards:
+      - nokia-sros-classic.policy-statement
+  rp.policy.default_action:
+    supported: true
+    cards:
+      - nokia-sros-classic.default-action
+  rp.policy.node:
+    supported: true
+    cards:
+      - nokia-sros-classic.entry
+  rp.policy.node.action:
+    supported: true
+    cards:
+      - nokia-sros-classic.action
+  rp.policy.node.match_prefix_list:
+    supported: true
+    cards:
+      - nokia-sros-classic.prefix-list~2
+  rp.policy.node.match_protocol:
+    supported: true
+    cards:
+      - nokia-sros-classic.protocol.1
+      - nokia-sros-classic.protocol.2
+  rp.policy.node.set_local_preference:
+    supported: true
+    cards:
+      - nokia-sros-classic.local-preference@policy-entry
+  rp.policy.node.set_metric:
+    supported: true
+    cards:
+      - nokia-sros-classic.metric.2@policy-action
+  rp.prefix_list:
+    supported: true
+    cards:
+      - nokia-sros-classic.prefix-list
+  rp.prefix_list.entry:
+    supported: true
+    cards:
+      - nokia-sros-classic.prefix
+  rp.prefix_list.entry.action:
+    supported: true
+    cards:
+      - nokia-sros-classic.prefix
+  rp.prefix_list.entry.match_type:
+    supported: true
+    cards:
+      - nokia-sros-classic.prefix
+  rp.prefix_list.entry.prefix:
+    supported: true
+    cards:
+      - nokia-sros-classic.prefix
+  service.customer:
+    supported: true
+    cards:
+      - nokia-sros-classic.customer
+  service.customer.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description~6
+  service.customer.name:
+    supported: true
+    cards:
+      - nokia-sros-classic.customer
+  service.ies:
+    supported: true
+    cards:
+      - nokia-sros-classic.ies
+  service.ies.customer:
+    supported: true
+    cards:
+      - nokia-sros-classic.ies
+  service.ies.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description~19
+  service.ies.service_id:
+    supported: true
+    cards:
+      - nokia-sros-classic.ies
+  service.ies.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-classic.shutdown~29
+  service.sdp:
+    supported: true
+    cards:
+      - nokia-sros-classic.sdp
+  service.sdp.delivery:
+    supported: true
+    cards:
+      - nokia-sros-classic.sdp
+  service.sdp.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description~7
+  service.sdp.far_end:
+    supported: true
+    cards:
+      - nokia-sros-classic.far-end.2
+  service.sdp.keep_alive:
+    supported: true
+    cards:
+      - nokia-sros-classic.shutdown~15
+  service.sdp.ldp:
+    supported: true
+    cards:
+      - nokia-sros-classic.ldp~2
+  service.sdp.lsp:
+    supported: true
+    cards:
+      - nokia-sros-classic.lsp~2
+  service.sdp.path_mtu:
+    supported: true
+    cards:
+      - nokia-sros-classic.path-mtu
+  service.sdp.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-classic.shutdown~16
+  sr.global:
+    supported: true
+    cards:
+      - nokia-sros-classic.sr-labels
+  sr.global.srgb_begin:
+    supported: true
+    cards:
+      - nokia-sros-classic.sr-labels
+  sr.global.srgb_end:
+    supported: true
+    cards:
+      - nokia-sros-classic.sr-labels
+  static.route:
+    supported: true
+    cards:
+      - nokia-sros-classic.black-hole
+      - nokia-sros-classic.indirect
+      - nokia-sros-classic.next-hop
+      - nokia-sros-classic.next-hop~2
+  static.route.bfd:
+    manual: true
+    supported: true
+    default: false
+    source: 命令参考 static-route-entry next-hop bfd-enable：Default no bfd-enable
+    verified: doc
+    cards:
+      - nokia-sros-classic.bfd-enable
+  static.route.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description@static-bh
+      - nokia-sros-classic.description@static-indirect
+      - nokia-sros-classic.description@static-nh
+      - nokia-sros-classic.description~18
+  static.route.interface:
+    supported: true
+    cards:
+      - nokia-sros-classic.black-hole
+  static.route.metric:
+    manual: true
+    supported: true
+    default: 1
+    source: 命令参考 static-route-entry … metric：Default metric 1
+    verified: doc
+    cards:
+      - nokia-sros-classic.metric@static-bh
+      - nokia-sros-classic.metric@static-indirect
+      - nokia-sros-classic.metric@static-nh
+  static.route.nexthop:
+    supported: true
+    cards:
+      - nokia-sros-classic.indirect
+      - nokia-sros-classic.next-hop
+      - nokia-sros-classic.next-hop~2
+  static.route.preference:
+    manual: true
+    supported: true
+    default: 5
+    source: 命令参考 static-route-entry next-hop / indirect / black-hole 的 preference：Default preference 5
+    verified: doc
+    cards:
+      - nokia-sros-classic.preference@static-bh
+      - nokia-sros-classic.preference@static-indirect
+      - nokia-sros-classic.preference@static-nh
+  static.route.prefix:
+    supported: true
+    cards:
+      - nokia-sros-classic.black-hole
+      - nokia-sros-classic.indirect
+      - nokia-sros-classic.next-hop
+      - nokia-sros-classic.next-hop~2
+  static.route.recursive:
+    supported: true
+    cards:
+      - nokia-sros-classic.indirect
+  static.route.shutdown:
+    manual: true
+    supported: true
+    default: false
+    assume: false
+    source: 命令参考 static-route-entry next-hop / indirect / black-hole 的 shutdown：Default no shutdown
+    verified: doc
+    cards:
+      - nokia-sros-classic.shutdown@static-bh
+      - nokia-sros-classic.shutdown@static-indirect
+      - nokia-sros-classic.shutdown@static-nh
+      - nokia-sros-classic.shutdown~26
+  static.route.tag:
+    supported: true
+    cards:
+      - nokia-sros-classic.tag@static-bh
+      - nokia-sros-classic.tag@static-indirect
+      - nokia-sros-classic.tag@static-nh
+  static.route.vrf:
+    supported: true
+    cards:
+      - nokia-sros-classic.next-hop~2
+  vrf.instance:
+    supported: true
+    cards:
+      - nokia-sros-classic.vprn
+  vrf.instance.af:
+    supported: true
+    cards:
+      - nokia-sros-classic.maximum-routes
+      - nokia-sros-classic.route-distinguisher
+      - nokia-sros-classic.route-distinguisher.1
+      - nokia-sros-classic.vrf-export
+      - nokia-sros-classic.vrf-export~2
+      - nokia-sros-classic.vrf-import
+      - nokia-sros-classic.vrf-import~2
+      - nokia-sros-classic.vrf-target
+      - nokia-sros-classic.vrf-target~2
+  vrf.instance.af.export_policy:
+    supported: true
+    cards:
+      - nokia-sros-classic.vrf-export
+      - nokia-sros-classic.vrf-export~2
+  vrf.instance.af.import_policy:
+    supported: true
+    cards:
+      - nokia-sros-classic.vrf-import
+      - nokia-sros-classic.vrf-import~2
+  vrf.instance.af.prefix_limit:
+    supported: true
+    cards:
+      - nokia-sros-classic.maximum-routes
+  vrf.instance.af.prefix_limit_threshold:
+    supported: true
+    cards:
+      - nokia-sros-classic.maximum-routes
+  vrf.instance.af.prefix_limit_warn_only:
+    supported: true
+    cards:
+      - nokia-sros-classic.maximum-routes
+  vrf.instance.af.rd:
+    supported: true
+    cards:
+      - nokia-sros-classic.route-distinguisher
+      - nokia-sros-classic.route-distinguisher.1
+  vrf.instance.af.rt:
+    supported: true
+    cards:
+      - nokia-sros-classic.vrf-target
+      - nokia-sros-classic.vrf-target~2
+  vrf.instance.af.rt.direction:
+    supported: true
+    cards:
+      - nokia-sros-classic.vrf-target
+      - nokia-sros-classic.vrf-target~2
+  vrf.instance.af.rt.value:
+    supported: true
+    cards:
+      - nokia-sros-classic.vrf-target
+      - nokia-sros-classic.vrf-target~2
+  vrf.instance.customer:
+    supported: true
+    cards:
+      - nokia-sros-classic.vprn
+  vrf.instance.description:
+    supported: true
+    cards:
+      - nokia-sros-classic.description~15
+  vrf.instance.service_id:
+    supported: true
+    cards:
+      - nokia-sros-classic.vprn
+  vrf.instance.shutdown:
+    supported: true
+    cards:
+      - nokia-sros-classic.shutdown~25

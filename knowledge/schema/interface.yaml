@@ -108,6 +108,42 @@ nodes:
     type: object
     key: [id]
     semantic: {zh-CN: 桥域（华为 bridge-domain，Cisco bridge-domain / BDI 对应的二层广播域）, en: Bridge domain}
+  # ---------- M7-3（Nokia SR OS）：路由器接口与端口分离、端口模式、SAP 的内层 VLAN 与过滤 ----------
+  # Nokia 的三层接口是逻辑接口（router interface "to-P1"），用 port 绑定到端口或 SAP（port 1/1/2:100 → 端口 1/1/2 + 终结 VLAN 100）；
+  # 华为 / Cisco 的三层接口就是端口（或子接口）本身，没有这个属性（平台特有）。翻译时按 knowledge/render 的 l3_form 换结构。
+  interface.bind_port:
+    parent: interface
+    type: interface
+    semantic: {zh-CN: 三层逻辑接口绑定的端口（Nokia router interface 的 port；华为 / Cisco 三层接口即端口本身，平台特有）, en: Port bound to the logical L3 interface (Nokia), pt-BR: Porta vinculada à interface lógica L3 (Nokia)}
+  interface.port_mode:
+    parent: interface
+    type: enum
+    choices: [access, network, hybrid]
+    semantic: {zh-CN: 端口模式（Nokia port ethernet / lag 的 mode：接入口、网络口、混合；华为 / Cisco 没有对应，平台特有）, en: Port mode (Nokia access / network / hybrid), pt-BR: Modo da porta (Nokia access / network / hybrid)}
+  interface.encap_type:
+    parent: interface
+    type: enum
+    choices: ["null", dot1q, qinq]
+    semantic: {zh-CN: 端口封装类型（Nokia encap-type；华为 / Cisco 按子接口与业务实例的封装体现，平台特有）, en: Port encapsulation type (Nokia), pt-BR: Tipo de encapsulamento da porta (Nokia)}
+  interface.loopback:
+    parent: interface
+    type: boolean
+    semantic: {zh-CN: 环回接口（Nokia router interface 下的 loopback；华为 / Cisco 用接口类型 LoopBack 表示，平台特有）, en: Loopback interface (Nokia), pt-BR: Interface de loopback (Nokia)}
+  interface.access.inner_vlan:
+    parent: interface.access
+    type: integer
+    range: [0, 4094]
+    semantic: {zh-CN: 内层 VLAN（QinQ；Nokia SAP 写法 端口：外层.内层 中的内层；华为 encapsulation qinq、Cisco second-dot1q 有对应写法，现有映射未归并）, en: Inner VLAN (QinQ), pt-BR: VLAN interna (QinQ)}
+  interface.access.acl_in:
+    parent: interface.access
+    type: ref
+    ref: acl.instance
+    semantic: {zh-CN: 接入点入方向过滤（Nokia SAP ingress filter ip；华为子接口 traffic-filter inbound 有对应写法，未归并）, en: Inbound ACL on the access point, pt-BR: ACL de entrada no ponto de acesso}
+  interface.access.acl_out:
+    parent: interface.access
+    type: ref
+    ref: acl.instance
+    semantic: {zh-CN: 接入点出方向过滤（Nokia SAP egress filter ip）, en: Outbound ACL on the access point, pt-BR: ACL de saída no ponto de acesso}
 deps:
   - {kind: reference, from: interface.vrf, to: vrf.instance, note: {zh-CN: 接口引用 VRF, en: 'Interface references the VRF', pt-BR: 'A interface referencia a VRF'}}
   - {kind: prerequisite, from: interface.vrf, to: vrf.instance, note: {zh-CN: 绑定 VRF 前 VRF 必须存在；删除时先解绑再删 VRF, en: 'The VRF must exist before binding; when removing, unbind first, then delete the VRF', pt-BR: 'A VRF deve existir antes da vinculação; ao remover, desvincule primeiro e depois exclua a VRF'}}

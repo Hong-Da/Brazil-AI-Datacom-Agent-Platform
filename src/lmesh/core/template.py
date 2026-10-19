@@ -655,8 +655,15 @@ def templates_dir(kb_root: Path) -> Path:
     return kb_root / "templates"
 
 
-def _dirs(kb_root: Path) -> list[Path]:
-    """运行时知识库没有 templates/（早于 M3 复制出的）时用程序自带的模板。"""
+def private_dir() -> Path:
+    """用户私有模板（“我的模板”，M6）：data/user-templates/，归属记在数据库 user_assets。"""
+    from lmesh import paths
+
+    return paths.data_dir() / "user-templates"
+
+
+def _shared_dirs(kb_root: Path) -> list[Path]:
+    """共享模板：运行时知识库 templates/；没有时（早于 M3 复制出的）用程序自带的模板。"""
     own = templates_dir(kb_root)
     if own.is_dir():
         return [own]
@@ -664,6 +671,16 @@ def _dirs(kb_root: Path) -> list[Path]:
 
     builtin = templates_dir(paths.builtin_knowledge_dir())
     return [builtin] if builtin.is_dir() else []
+
+
+def _dirs(kb_root: Path) -> list[Path]:
+    """共享模板在前，私有模板在后（编号全站唯一，不会互相遮盖）。"""
+    priv = private_dir()
+    return _shared_dirs(kb_root) + ([priv] if priv.is_dir() else [])
+
+
+def is_private_file(f: Path) -> bool:
+    return f.parent.resolve() == private_dir().resolve()
 
 
 def list_templates(kb_root: Path, kb: KnowledgeBase | None = None) -> list[dict[str, Any]]:
@@ -684,10 +701,13 @@ def list_templates(kb_root: Path, kb: KnowledgeBase | None = None) -> list[dict[
                         "blocks": len(t.blocks),
                         "valid": True,
                         "issues": [],
+                        "private": is_private_file(f),
                     }
                 )
             except TemplateError as e:
-                out.append({"id": f.stem, "file": f.name, "valid": False, "issues": e.issues})
+                out.append(
+                    {"id": f.stem, "file": f.name, "valid": False, "issues": e.issues, "private": is_private_file(f)}
+                )
     return out
 
 
@@ -752,3 +772,49 @@ def save(kb_root: Path, template_id: str, source: str, kb: KnowledgeBase) -> Tem
             repo.commit_all(kb_root, f"保存配置模板 {template_id}")
     t.file = path.name
     return t
+
+
+def save_private(template_id: str, source: str, kb: KnowledgeBase) -> Template:
+    """校验后写入 data/user-templates/<编号>.yaml（我的模板，不进知识库仓库）。"""
+    t = parse(source, kb, f"{template_id}.yaml")
+    if t.id != template_id:
+        raise TemplateError("template.id_mismatch", id=template_id, got=t.id)
+    from lmesh.core import template_match
+
+    template_match.compile_template(t, kb)
+    d = private_dir()
+    d.mkdir(parents=True, exist_ok=True)
+    path = d / f"{template_id}.yaml"
+    tmp = path.with_suffix(".yaml.tmp")
+    tmp.write_text(source if source.endswith("\n") else source + "\n", encoding="utf-8", newline="\n")
+    tmp.replace(path)
+    t.file = path.name
+    return t
+
+
+def delete_private(template_id: str) -> bool:
+    f = private_dir() / f"{template_id}.yaml"
+    if f.is_file():
+        f.unlink()
+        return True
+    return False
+
+
+def copy_private(kb_root: Path, template_id: str, new_id: str, kb: KnowledgeBase) -> Template:
+    """把模板复制为私有模板 new_id（只改 id，其余原样保留，含注释）。"""
+    import io
+
+    from lmesh.core.kb.files import load_rt
+
+    f = find_file(kb_root, template_id)
+    if f is None:
+        raise TemplateError("template.not_found", "not_found", id=template_id)
+    if not ID_RE.match(new_id):
+        raise TemplateError("template.bad_id", id=new_id)
+    doc = load_rt(f)
+    doc["id"] = new_id
+    buf = io.StringIO()
+    y = YAML()
+    y.width = 4096
+    y.dump(doc, buf)
+    return save_private(new_id, buf.getvalue(), kb)

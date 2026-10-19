@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
-from lmesh.api.common import E_NOT_FOUND, E_PARAM, ApiError, lang_of, ok, require_token, settings_of
+from lmesh.api.common import E_FORBIDDEN, E_NOT_FOUND, E_PARAM, ApiError, lang_of, ok, require_token, settings_of
 from lmesh.core import analysis, history, kbservice, report, report_history, store, terms
 from lmesh.core.kb import KnowledgeBase
 
@@ -28,6 +28,8 @@ def _ctx(request: Request) -> tuple[str, KnowledgeBase, Any]:
 def _error(e: history.HistoryError) -> ApiError:
     if e.kind == "not_found":
         return ApiError(E_NOT_FOUND, 404, e.key, **e.fmt)
+    if e.kind == "forbidden":
+        return ApiError(E_FORBIDDEN, 403, e.key, **e.fmt)
     return ApiError(E_PARAM, 422, e.key, **e.fmt)
 
 

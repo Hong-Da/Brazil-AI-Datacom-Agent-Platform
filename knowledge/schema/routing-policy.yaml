@@ -92,6 +92,21 @@ nodes:
     parent: rp.community_list.entry
     type: string
     semantic: {zh-CN: 匹配内容（团体值或正则表达式）, en: Match value or regular expression}
+  # ---------- M7-3（Nokia SR OS）----------
+  rp.policy.default_action:
+    parent: rp.policy
+    type: enum
+    choices: [accept, reject, next-entry, next-policy]
+    semantic: {zh-CN: 所有条目都不匹配时的动作（Nokia default-action；华为 / Cisco 隐含拒绝，平台特有）, en: Default action (Nokia), pt-BR: Ação padrão (Nokia)}
+  rp.policy.node.match_protocol:
+    parent: rp.policy.node
+    type: string
+    semantic: {zh-CN: 匹配路由来源协议（Nokia from protocol；华为 if-match protocol、Cisco match source-protocol 有对应写法，未归并）, en: Match source protocol, pt-BR: Corresponder ao protocolo de origem}
+  rp.prefix_list.entry.match_type:
+    parent: rp.prefix_list.entry
+    type: enum
+    choices: [exact, longer, through, prefix-length-range, to]
+    semantic: {zh-CN: 前缀匹配方式（Nokia prefix … exact / longer / through；华为 / Cisco 用 greater-equal / less-equal 表达，平台特有）, en: Prefix match type (Nokia), pt-BR: Tipo de correspondência do prefixo (Nokia)}
 deps:
   - {kind: reference, from: rp.policy.node.match_prefix_list, to: rp.prefix_list, note: {zh-CN: 引用的前缀列表不存在时为悬空引用, en: 'Dangling reference if the referenced prefix list does not exist', pt-BR: 'Referência pendente se a lista de prefixos referenciada não existir'}}
   - {kind: reference, from: rp.policy.node.match_community, to: rp.community_list}

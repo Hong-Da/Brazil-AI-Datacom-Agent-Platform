@@ -49,7 +49,9 @@ async def import_configs(
 
     kb_root = kbservice.runtime_root(settings_of(request))
     keep = int(settings_of(request).get("history.keep"))
-    for r in importer.import_sources(sources, url, level, kb_root, source_kind="api", actor="api", keep=keep):
+    for r in importer.import_sources(
+        sources, url, level, kb_root, source_kind="api", actor=request.state.principal.username, keep=keep
+    ):
         d = r.as_dict()
         if not r.ok:
             d["error"] = i18n.t(r.error, lang)

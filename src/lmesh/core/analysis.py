@@ -120,8 +120,20 @@ def parse_text(text: str, kb: KnowledgeBase, profile: str | None = None) -> Pars
 
 
 def unknown_summary(db_url: str, limit: int = 50) -> list[dict[str, Any]]:
+    """已导入配置中的未识别行（按出现次数汇总）；有当前项目时只统计项目中的设备。"""
+    from lmesh.core import projects
+    from lmesh.core.store.models import ConfigVersion, Device
+
     with store.session(db_url) as s:
-        rows = s.execute(select(UnknownLine.view, UnknownLine.pattern, UnknownLine.text))
+        q = select(UnknownLine.view, UnknownLine.pattern, UnknownLine.text)
+        sc = projects.current()
+        if sc is not None:
+            q = (
+                q.join(ConfigVersion, ConfigVersion.id == UnknownLine.version_id)
+                .join(Device, Device.id == ConfigVersion.device_id)
+                .where(projects.device_clause(sc))
+            )
+        rows = s.execute(q)
         counter: Counter[tuple[str, str]] = Counter()
         example: dict[tuple[str, str], str] = {}
         for view, pattern, text in rows:
@@ -149,13 +161,16 @@ def store_unknown(db_url: str, version_id: int, parsed: parser.Parsed) -> int:
         return n
 
 
-def apply_mappings(root: Path) -> dict[str, Any]:
-    """映射规则写进命令卡 → 重新汇总 Profile → 提交运行时知识库。"""
+def apply_mappings(root: Path, families: list[str] | None = None) -> dict[str, Any]:
+    """映射规则写进命令卡 → 重新汇总 Profile → 提交运行时知识库。
+    families：只处理这些平台族的命令卡与 Profile（M7-3：新平台族接入时不重写其他平台族的文件）。"""
     fams = sorted(p.stem for p in (root / "mappings").glob("*.yaml")) if (root / "mappings").exists() else []
+    if families:
+        fams = [f for f in fams if f in set(families)]
     out: dict[str, Any] = {"families": {}, "profiles": {}}
     for fam in fams:
         out["families"][fam] = mapping.apply_rules(root, fam)
-    out["profiles"] = profilegen.generate(root)
+    out["profiles"] = profilegen.generate(root, families)
     if (root / ".git").exists():
         out["commit"] = repo.commit_all(root, "应用映射规则并重新汇总 Profile")
     return out

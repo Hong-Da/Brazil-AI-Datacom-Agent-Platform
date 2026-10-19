@@ -42,11 +42,12 @@ def _deepest(nodes: list[str]) -> str | None:
     return max(nodes, key=lambda n: (n.count("/"), len(n))) if nodes else None
 
 
-def spans(raw: str, values: dict[str, Any]) -> list[dict[str, Any]]:
+def spans(raw: str, values: dict[str, Any], quotes: bool = False) -> list[dict[str, Any]]:
     """一行命令的字符区间：kw 关键字、param 参数取值（p 是参数名）。位置相对整行原文（含行首空白）。
 
-    参数取值来自命令卡的匹配结果：含空格的取值（text 参数）按子串定位，其余按词逐个对应；第一个词总是关键字。"""
-    toks = syn.tokenize_line(raw)
+    参数取值来自命令卡的匹配结果：含空格的取值（text 参数）按子串定位，其余按词逐个对应；第一个词总是关键字。
+    quotes（Nokia）：引号字符串是一个词，按去掉引号的取值对应，区间含引号。"""
+    toks = syn.tokenize_line(raw, quotes)
     out: list[dict[str, Any]] = []
     covered: list[tuple[int, int]] = []
     singles: list[tuple[str, str]] = []
@@ -66,7 +67,8 @@ def spans(raw: str, values: dict[str, Any]) -> list[dict[str, Any]]:
     for k, (word, pos) in enumerate(toks):
         if any(a <= pos < b for a, b in covered):
             continue
-        hit = next((i for i, (_, s) in enumerate(singles) if s == word), None) if k > 0 else None
+        bare = syn.unquote(word)[0] if quotes else word
+        hit = next((i for i, (_, s) in enumerate(singles) if s in (word, bare)), None) if k > 0 else None
         if hit is not None:
             p, _ = singles.pop(hit)
             out.append({"s": pos, "e": pos + len(word), "t": "param", "p": p})
@@ -85,6 +87,8 @@ def script(g: nx.MultiDiGraph, kb: KnowledgeBase, lay: layers.Layers, with_defau
             refs_out[a].append(b)
     lines: list[dict[str, Any]] = []
     depth: dict[int, int] = {}
+    fam = kb.families.get(str(g.graph.get("family") or ""))
+    quotes = bool(fam and fam.quotes)
     refs: dict[str, list[int]] = defaultdict(list)
     for st in _statements(g):
         ln = st.line
@@ -101,7 +105,7 @@ def script(g: nx.MultiDiGraph, kb: KnowledgeBase, lay: layers.Layers, with_defau
             row["card"] = ln.card
             if ln.negated:
                 row["negated"] = True
-            sp = spans(ln.raw, ln.values())
+            sp = spans(ln.raw, ln.values(), quotes)
             _attach_refs(g, st, sp, refs_out, ln.raw)
             for s in sp:
                 for tgt in s.get("ref", []):

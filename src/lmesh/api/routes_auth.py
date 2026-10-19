@@ -144,11 +144,20 @@ def auth_logout(request: Request, response: Response) -> dict[str, Any]:
     return ok(request, {"logged_out": bool(name)})
 
 
-@router.get("/auth/me", summary="当前调用者：账号、角色、认证方式（session / token）")
+@router.get(
+    "/auth/me", summary="当前调用者：账号、角色、认证方式（session / token / pat）、是否只读令牌、个人令牌前 8 个字符"
+)
 def auth_me(request: Request, p: Principal = Depends(require_token)) -> dict[str, Any]:
     return ok(
         request,
-        {"username": p.username, "role": p.role, "via": p.via, "expires_at": p.session_expires_at},
+        {
+            "username": p.username,
+            "role": p.role,
+            "via": p.via,
+            "expires_at": p.session_expires_at,
+            "read_only": p.read_only,
+            "token_prefix": p.token_prefix,
+        },
     )
 
 
@@ -175,10 +184,28 @@ def auth_password(request: Request, body: PasswordBody, p: Principal = Depends(r
 admin = APIRouter(dependencies=[Depends(require_admin)])
 
 
-@admin.get("/users", summary="账号列表（管理员）")
+@admin.get("/users", summary="账号列表（管理员）：另附拥有的项目数与有效的个人令牌数")
 def users_list(request: Request) -> dict[str, Any]:
-    rows = users.list_users(db_of(request))
+    from lmesh.core import projects, tokens
+
+    db = db_of(request)
+    rows = users.list_users(db)
+    for r in rows:
+        r["projects"] = len(projects.owned_projects(db, r["username"], non_empty_only=True))
+        r["tokens"] = sum(1 for t in tokens.list_tokens(db, r["username"]) if t["state"] == "active")
     return ok(request, {"users": rows, "count": len(rows)})
+
+
+@admin.get(
+    "/users/{username}/projects", summary="账号拥有的项目（删除账号前选择转交或一并删除；空的默认项目会自动删除）"
+)
+def user_projects(request: Request, username: str) -> dict[str, Any]:
+    from lmesh.core import projects
+
+    try:
+        return ok(request, {"projects": projects.owned_projects(db_of(request), username, non_empty_only=True)})
+    except projects.ProjectError as e:
+        raise ApiError(E_NOT_FOUND, 404, e.key, **e.fmt) from e
 
 
 class NewUserBody(BaseModel):
@@ -209,7 +236,7 @@ def _not_self(request: Request, username: str) -> None:
 
 @admin.put("/users/{username}", summary="改角色、停用 / 启用、解除锁定（管理员）")
 def users_update(request: Request, username: str, body: UpdateUserBody) -> dict[str, Any]:
-    if body.disabled or body.role == "user":
+    if body.disabled or body.role not in (None, "admin"):
         _not_self(request, username)
     try:
         u = users.update_user(db_of(request), username, role=body.role, disabled=body.disabled, unlock=body.unlock)
@@ -232,10 +259,23 @@ def users_reset(request: Request, username: str, body: ResetBody) -> dict[str, A
     return ok(request, {"user": r, "sessions_closed": closed})
 
 
-@admin.delete("/users/{username}", summary="删除账号（管理员；不能删除自己和最后一个启用的管理员）")
-def users_delete(request: Request, username: str) -> dict[str, Any]:
+@admin.delete(
+    "/users/{username}",
+    summary="删除账号（管理员；不能删除自己和最后一个启用的管理员）；拥有项目时用 transfer_to 转交或 delete_projects 一并删除",
+)
+def users_delete(
+    request: Request, username: str, transfer_to: str | None = None, delete_projects: bool = False
+) -> dict[str, Any]:
+    from lmesh.core import projects
+
     _not_self(request, username)
+    db = db_of(request)
+    p: Principal = request.state.principal
     try:
-        return ok(request, users.delete_user(db_of(request), username))
+        return ok(request, users.delete_user(db, username, transfer_to, delete_projects, p.identity()))
     except users.UserError as e:
+        if e.key == "users.has_projects":
+            raise ApiError(
+                E_STATE, 409, e.key, data={"projects": projects.owned_projects(db, username, True)}, **e.fmt
+            ) from e
         _user_error(e)

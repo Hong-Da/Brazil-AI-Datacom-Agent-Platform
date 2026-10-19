@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.conftest import SAMPLES, TEST_TOKEN, TEST_USERS
+from tests.conftest import SAMPLES, TEST_USERS
 
 pytestmark = pytest.mark.api
 BASE = (SAMPLES / "change" / "atn-base.cfg").read_text(encoding="utf-8")
@@ -19,16 +19,14 @@ def test_delete_flow_as_normal_user(full_kb_root: Path, users_root: Path) -> Non
     from lmesh.api import create_app
 
     client = TestClient(create_app())
-    h = {"Authorization": f"Bearer {TEST_TOKEN}"}
-    for name, text in (("a.cfg", BASE), ("b.cfg", V2)):
-        r = client.post("/api/v1/configs", headers=h, files=[("files", (name, text.encode(), "text/plain"))])
-        assert r.status_code == 200 and r.json()["data"]["files"][0]["ok"], r.text
-    dev = client.get("/api/v1/devices", headers=h).json()["data"]["devices"][0]
-    assert dev["versions"] == 2
-
-    # 普通用户（会话登录）也可以删除
+    # 普通用户（会话登录）在自己的默认项目里导入，也可以删除（M6 起按项目权限：属主与可编辑成员）
     pw = TEST_USERS["alice"][0]
     assert client.post("/api/v1/auth/login", json={"username": "alice", "password": pw}).status_code == 200
+    for name, text in (("a.cfg", BASE), ("b.cfg", V2)):
+        r = client.post("/api/v1/configs", files=[("files", (name, text.encode(), "text/plain"))])
+        assert r.status_code == 200 and r.json()["data"]["files"][0]["ok"], r.text
+    dev = client.get("/api/v1/devices").json()["data"]["devices"][0]
+    assert dev["versions"] == 2
     r = client.delete(f"/api/v1/devices/{dev['id']}/versions/{dev['latest_version_id']}")
     assert r.status_code == 200, r.text
     left = r.json()["data"]["latest_version_id"]

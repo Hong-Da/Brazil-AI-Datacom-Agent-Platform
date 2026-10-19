@@ -65,10 +65,16 @@ def _status(ver: ConfigVersion) -> dict[str, Any]:
 
 
 def device_rows(db_url: str, kb_version: str) -> list[dict[str, Any]]:
+    """当前项目的设备（私有与引用的公共设备）：当前版本（引用固定了版本时为该版本）、解析状态、来源。"""
+    from lmesh.core import projects
+
     with store.session(db_url) as s:
+        pinned = projects.pins(s)
         out = []
-        for d in s.scalars(select(Device).order_by(Device.name)):
-            latest = max(d.versions, key=lambda v: v.id, default=None)
+        for d in s.scalars(projects.scoped_devices(select(Device)).order_by(Device.name)):
+            newest = max(d.versions, key=lambda v: v.id, default=None)
+            pin = pinned.get(d.id)
+            latest = next((v for v in d.versions if v.id == pin), newest) if pin else newest
             row: dict[str, Any] = {
                 "id": d.id,
                 "name": d.name,
@@ -83,6 +89,7 @@ def device_rows(db_url: str, kb_version: str) -> list[dict[str, Any]]:
             if latest is not None:
                 row.update(_status(latest))
                 row["stale"] = bool(latest.kb_version) and latest.kb_version != kb_version
+            row.update(projects.source_info(s, d, newest.id if newest else None))
             out.append(row)
         return out
 
@@ -119,9 +126,13 @@ def analyse_version(db_url: str, version_id: int, kb_root: Path) -> dict[str, An
     }
 
 
-def rebuild_all(db_url: str, kb_root: Path, progress: Any = None) -> dict[str, Any]:
+def rebuild_all(
+    db_url: str, kb_root: Path, progress: Any = None, device_ids: list[int] | None = None
+) -> dict[str, Any]:
+    """按当前知识库重新解析设备的最新版本：device_ids 为空时全部设备（管理员），否则只解析这些设备（本项目）。"""
     with store.session(db_url) as s:
-        ids = [max(d.versions, key=lambda v: v.id).id for d in s.scalars(select(Device)) if d.versions]
+        q = select(Device) if device_ids is None else select(Device).where(Device.id.in_(device_ids))
+        ids = [max(d.versions, key=lambda v: v.id).id for d in s.scalars(q) if d.versions]
     results = []
     for i, vid in enumerate(ids):
         results.append(analyse_version(db_url, vid, kb_root))
@@ -138,7 +149,9 @@ def rebuild_all(db_url: str, kb_root: Path, progress: Any = None) -> dict[str, A
 
 
 def unknown_to_review(db_url: str, patterns: list[str]) -> dict[str, Any]:
-    """把选中的未识别行模式送入审核队列（kind=unknown_line），已经送过的跳过。"""
+    """把选中的未识别行模式送入审核队列（kind=unknown_line），已经送过的跳过；示例只取当前项目中的设备。"""
+    from lmesh.core import projects
+
     added, skipped = [], []
     with store.session(db_url) as s:
         pending = {i.target for i in review.list_items_raw(s, kind="unknown_line", status="pending")}
@@ -147,11 +160,12 @@ def unknown_to_review(db_url: str, patterns: list[str]) -> dict[str, Any]:
                 skipped.append(p)
                 continue
             rows = s.execute(
-                select(UnknownLine.text, UnknownLine.view, Device.name)
-                .join(ConfigVersion, ConfigVersion.id == UnknownLine.version_id)
-                .join(Device, Device.id == ConfigVersion.device_id)
-                .where(UnknownLine.pattern == p)
-                .limit(5)
+                projects.scoped_devices(
+                    select(UnknownLine.text, UnknownLine.view, Device.name)
+                    .join(ConfigVersion, ConfigVersion.id == UnknownLine.version_id)
+                    .join(Device, Device.id == ConfigVersion.device_id)
+                    .where(UnknownLine.pattern == p)
+                ).limit(5)
             ).all()
             total = s.scalar(select(func.count()).select_from(UnknownLine).where(UnknownLine.pattern == p)) or 0
             if not rows:
