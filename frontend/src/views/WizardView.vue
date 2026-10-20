@@ -13,8 +13,8 @@ import { LOGO_SVG } from '@/components/icons'
 import BareTopbar from '@/components/wizard-bare-topbar.vue'
 import WizardField from './wizard/WizardField.vue'
 import {
-  blocksOf, confirmRows, confirmStats, displayHost, displayValue, groupErrors, initialValues, labelKey, LANG_NOTES, pickErrors,
-  visibleGroups, type Running, type Values, type WField, type WGroup,
+  aiTestReason, blocksOf, confirmRows, confirmStats, displayHost, displayValue, groupErrors, initialValues, labelKey, LANG_NOTES, optionKey,
+  pickErrors, visibleGroups, type Running, type Values, type WField, type WGroup,
 } from './wizard/wizard'
 
 interface SetupResult {
@@ -99,6 +99,30 @@ function setValue(key: string, v: string | number): void {
   values[key] = v
   delete errors[key]
   okKeys.delete(key)
+  if (key.startsWith('ai.') && aiTest.value.state !== 'run') aiTest.value = { state: 'idle' } // 接口参数变了，旧的测试结果不再有效
+}
+
+// AI 一步的“测试连接”（REQ-048）：POST /setup/ai-test，只在未配置时可用；Key 不保存、不写日志
+interface AiTestState { state: 'idle' | 'run' | 'ok' | 'err'; model?: string; ms?: number; reason?: string }
+const aiTest = ref<AiTestState>({ state: 'idle' })
+async function testAi(): Promise<void> {
+  for (const k of ['ai.provider', 'ai.base_url', 'ai.model']) delete errors[k]
+  aiTest.value = { state: 'run' }
+  try {
+    const r = await api<{ model: string; elapsed_ms: number }>('/setup/ai-test', {
+      method: 'POST',
+      body: JSON.stringify({ provider: values['ai.provider'] ?? '', base_url: values['ai.base_url'] ?? '', api_key: values['ai.api_key'] ?? '', model: values['ai.model'] ?? '' }),
+    })
+    aiTest.value = { state: 'ok', model: r.model, ms: r.elapsed_ms }
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 422 && e.data && typeof e.data === 'object' && 'errors' in e.data) {
+      Object.assign(errors, (e.data as { errors: Record<string, string> }).errors)
+      aiTest.value = { state: 'idle' }
+      return
+    }
+    const d = (e instanceof ApiError ? e.data : null) as { status?: number | null; error_type?: string } | null
+    aiTest.value = { state: 'err', reason: e instanceof ApiError && e.status === 502 ? t(aiTestReason(d?.status, d?.error_type), { s: d?.status ?? '' }) : (e as Error).message }
+  }
 }
 
 /** 把当前全部取值交给服务端 dry_run 校验，只显示这些字段的结果。 */
@@ -209,8 +233,8 @@ function label(f: WField): string {
 /** 汇总里的一行：未填写时按字段给出含义。 */
 function summaryText(f: WField): string {
   const v = displayValue(f, values[f.key])
-  if (f.key === 'ai.provider') return providerLabel(String(values[f.key] ?? ''))
-  if (f.kind === 'bool') return t(String(values[f.key]) === 'true' ? 'wizard.on' : 'wizard.off')
+  const o = optText(f, values[f.key])
+  if (o !== null) return o
   if (v !== null) return v
   if (f.kind === 'dburl') return t('wizard.dbSqliteValue')
   if (f.kind === 'token') return t('wizard.tokenAutoValue')
@@ -218,9 +242,16 @@ function summaryText(f: WField): string {
 }
 
 /** 默认值的显示文字（“默认：9090”）。 */
+/** 选项的显示文字（开关、显示风格 Huawei / Cisco / Nokia、AI 接口类型、语言）；不是选项时 null。 */
+function optText(f: WField, v: string | number | undefined): string | null {
+  if (f.key === 'ui.language') return LANGS.find((l) => l.code === v)?.label ?? null
+  const k = optionKey(f.key, f.kind, String(v ?? ''))
+  return k && te(k) ? t(k) : null
+}
+
 function defaultText(f: WField): string {
-  if (f.key === 'ai.provider') return providerLabel(String(f.default ?? ''))
-  if (f.kind === 'bool') return t(String(f.default) === 'true' ? 'wizard.on' : 'wizard.off')
+  const o = optText(f, f.default)
+  if (o !== null) return o
   if (f.kind === 'dburl' && !f.default) return t('wizard.dbSqliteValue')
   return String(f.default ?? '') || t('wizard.notSet')
 }
@@ -278,22 +309,22 @@ async function copyToken(): Promise<void> {
     <BareTopbar />
     <div class="wz-wrap">
       <div class="wz">
-        <div class="wz-intro">
-          <!-- eslint-disable-next-line vue/no-v-html -->
-          <span class="wz-logo" v-html="LOGO_SVG" />
-          <div>
-            <h1>{{ $t('wizard.title') }}</h1>
-            <p class="muted">{{ $t('wizard.subtitle') }}</p>
-          </div>
-        </div>
-
+        <!-- M9-7 评审（空白太多）：左侧步骤栏 + 右侧两列字段，卡片高度随内容 -->
         <div class="wz-card">
-          <div v-if="shown.length" class="steps" data-testid="wizard-steps">
-            <div v-for="(title, i) in stepTitles" :key="i" :class="['st', { done: result || i < step, cur: !result && i === step }]">
-              <span class="no"><Icon v-if="result || i < step" name="check" small /><template v-else>{{ i + 1 }}</template></span>
-              <span>{{ title }}</span>
+          <aside class="wz-rail">
+            <div class="wz-brand">
+              <!-- eslint-disable-next-line vue/no-v-html -->
+              <span class="wz-logo" v-html="LOGO_SVG" />
+              <div><h1>{{ $t('wizard.title') }}</h1><small>{{ $t('wizard.subtitle') }}</small></div>
             </div>
-          </div>
+            <ol v-if="shown.length" class="wz-steps" data-testid="wizard-steps">
+              <li v-for="(title, i) in stepTitles" :key="i" :class="['st', { done: result || i < step, cur: !result && i === step }]">
+                <span class="no"><Icon v-if="result || i < step" name="check" small /><template v-else>{{ i + 1 }}</template></span>
+                <span class="t">{{ title }}</span>
+              </li>
+            </ol>
+          </aside>
+          <section class="wz-main">
 
           <!-- 完成 -->
           <div v-if="result" class="wz-body" data-testid="wizard-done">
@@ -338,13 +369,12 @@ async function copyToken(): Promise<void> {
             <div class="wz-body">
               <!-- 第一步：语言 -->
               <template v-if="step === 0">
-                <h2>{{ $t('wizard.langTitle') }}</h2>
-                <p class="lead">{{ $t('wizard.langLead') }}</p>
+                <div class="wz-head"><h2>{{ $t('wizard.langTitle') }}</h2><p class="lead">{{ $t('wizard.langLead') }}</p></div>
                 <div class="radio-cards lang-cards" role="radiogroup" data-testid="wizard-lang">
                   <label v-for="l in LANGS" :key="l.code" class="radio-card">
                     <input type="radio" name="lang" :value="l.code" :checked="prefs.lang === l.code" @change="setLang(l.code)" />
                     <span class="ln">{{ l.label }}</span>
-                    <span class="ls">{{ LANG_NOTES[l.code] }}</span>
+                    <span class="lnote">{{ LANG_NOTES[l.code] }}</span>
                   </label>
                 </div>
                 <div class="section-t mt16">{{ $t('wizard.themeTitle') }}</div>
@@ -353,11 +383,10 @@ async function copyToken(): Promise<void> {
 
               <!-- 设置分组：字段来自 GET /setup -->
               <template v-else-if="current">
-                <h2>{{ current.title }}</h2>
-                <p v-if="te(`wizard.lead_${current.id}`)" class="lead">{{ $t(`wizard.lead_${current.id}`) }}</p>
-                <div class="blocks">
+                <div class="wz-head"><h2>{{ current.title }}</h2><p v-if="te(`wizard.lead_${current.id}`)" class="lead">{{ $t(`wizard.lead_${current.id}`) }}</p></div>
+                <div class="blocks fgrid">
                   <template v-for="b in blocks" :key="b.type === 'hostport' ? b.host.key : b.field.key">
-                    <div v-if="b.type === 'hostport'">
+                    <div v-if="b.type === 'hostport'" class="span2">
                       <div :class="{ hostport: b.port }">
                         <WizardField :field="b.host" :model-value="values[b.host.key]" :error="errors[b.host.key]" :addresses="addresses"
                           @update:model-value="setValue(b.host.key, $event)" @commit="validate([b.host.key])" />
@@ -373,7 +402,7 @@ async function copyToken(): Promise<void> {
                       <div v-if="values[b.host.key] !== '127.0.0.1'" class="notice info mt12"><Icon name="info" /><div class="grow small">{{ $t('wizard.lanNote') }}</div></div>
                     </div>
 
-                    <div v-else-if="b.type === 'dburl'">
+                    <div v-else-if="b.type === 'dburl'" class="span2">
                       <div class="field-label">{{ $t('wizard.dbType') }}</div>
                       <div class="radio-cards db-cards mt8" role="radiogroup">
                         <label class="radio-card">
@@ -390,7 +419,7 @@ async function copyToken(): Promise<void> {
                         @update:model-value="setValue(b.field.key, $event)" @commit="validate([b.field.key])" />
                     </div>
 
-                    <div v-else-if="b.type === 'ai'">
+                    <div v-else-if="b.type === 'ai'" class="span2 ai-block">
                       <div class="radio-cards two" role="radiogroup">
                         <label class="radio-card">
                           <input type="radio" name="ai" :checked="!aiOn" data-testid="wizard-ai-skip" @change="setAi(b.field, false)" />
@@ -411,22 +440,32 @@ async function copyToken(): Promise<void> {
                       @update:model-value="setValue(b.field.key, $event)" @commit="validate([b.field.key])" />
 
                     <template v-if="b.type === 'field' && b.field.kind === 'token'">
-                      <div>
+                      <div class="token-usage span2">
                         <div class="section-t">{{ $t('wizard.tokenUsage') }}</div>
                         <pre class="block">curl -H "Authorization: Bearer {{ $t('wizard.tokenPlaceholder') }}" http://{{ usageHost }}/api/v1/summary</pre>
                         <div class="notice warn mt12"><Icon name="key" /><div class="grow small">{{ $t('wizard.tokenNote') }}</div></div>
                       </div>
                     </template>
                   </template>
-                  <div v-if="isAiStep && aiOn" class="notice info"><Icon name="shield" /><div class="grow small">{{ $t('wizard.aiNote') }}</div></div>
+                  <div v-if="isAiStep && aiOn" :class="['aitest', 'span2', 'is-' + aiTest.state]" data-testid="wizard-ai-test">
+                    <button type="button" class="btn" :disabled="aiTest.state === 'run'" data-testid="wizard-ai-test-btn" @click="testAi"><Icon name="plug" small />{{ $t('wizard.aiTest') }}</button>
+                    <div class="res" role="status" data-testid="wizard-ai-test-result">
+                      <template v-if="aiTest.state === 'idle'"><span class="idle">{{ $t('wizard.aiTestIdle') }}</span></template>
+                      <template v-else-if="aiTest.state === 'run'"><span class="spin" />{{ $t('wizard.aiTestRun') }}</template>
+                      <template v-else-if="aiTest.state === 'ok'"><Icon name="ok" small />{{ $t('wizard.aiTestOk') }}</template>
+                      <template v-else><Icon name="err" small />{{ $t('wizard.aiTestFail', { r: aiTest.reason }) }}</template>
+                    </div>
+                    <div v-if="aiTest.state === 'ok'" class="det">{{ $t('wizard.aiTestOkDetail', { m: aiTest.model, s: ((aiTest.ms ?? 0) / 1000).toFixed(1) }) }}</div>
+                    <div v-else-if="aiTest.state === 'err'" class="det">{{ $t('wizard.aiTestFailHint') }}</div>
+                  </div>
+                  <div v-if="isAiStep && aiOn" class="notice info span2"><Icon name="shield" /><div class="grow small">{{ $t('wizard.aiNote') }}</div></div>
                 </div>
               </template>
 
               <!-- 管理员账号（REQ-030） -->
               <template v-else-if="step === adminStep">
-                <h2>{{ $t('wizard.adminTitle') }}</h2>
-                <p class="lead">{{ $t('wizard.adminLead') }}</p>
-                <div class="blocks admin-blocks" data-testid="wizard-admin">
+                <div class="wz-head"><h2>{{ $t('wizard.adminTitle') }}</h2><p class="lead">{{ $t('wizard.adminLead') }}</p></div>
+                <div class="blocks fgrid" data-testid="wizard-admin">
                   <div class="field">
                     <label for="wz-admin-name">{{ $t('wizard.adminName') }}</label>
                     <input id="wz-admin-name" v-model="admin.username" :class="['input', { 'is-error': errors['admin.username'] }]" autocomplete="username"
@@ -446,14 +485,13 @@ async function copyToken(): Promise<void> {
                     <input id="wz-admin-pw2" v-model="admin.password2" type="password" class="input" autocomplete="new-password" data-testid="wizard-admin-password2"
                       @input="delete errors['admin.password']" />
                   </div>
-                  <div class="notice info"><Icon name="shield" /><div class="grow small">{{ $t('wizard.adminNote') }}</div></div>
+                  <div class="notice info span2"><Icon name="shield" /><div class="grow small">{{ $t('wizard.adminNote') }}</div></div>
                 </div>
               </template>
 
               <!-- 确认（M6-9）：按组汇总、突出改动、统一校验、写入路径与需重启的项 -->
               <template v-else>
-                <h2>{{ $t('wizard.confirmTitle') }}</h2>
-                <p class="lead">{{ $t('wizard.cfLead') }}</p>
+                <div class="wz-head"><h2>{{ $t('wizard.confirmTitle') }}</h2><p class="lead">{{ $t('wizard.cfLead') }}</p></div>
                 <div :class="['cf-strip', { bad: checked && stats.errors > 0 }]" data-testid="wizard-cf-strip">
                   <span class="cf-verdict" data-testid="wizard-cf-verdict">
                     <span class="dot"><Icon :name="checking || !checked ? 'refresh' : stats.errors ? 'err' : 'check'" small /></span>
@@ -550,6 +588,7 @@ async function copyToken(): Promise<void> {
               </button>
             </div>
           </template>
+          </section>
         </div>
       </div>
     </div>
@@ -558,31 +597,57 @@ async function copyToken(): Promise<void> {
 
 <style scoped>
 .wz-page { display: flex; flex-direction: column; background: var(--bg); }
-.wz-wrap { flex: 1; display: flex; justify-content: center; padding: 28px 16px 40px; }
-.wz { width: min(880px, 100%); }
-.wz-intro { display: flex; gap: 16px; align-items: center; margin-bottom: 16px; }
+.wz-wrap { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 20px 16px 28px; }
+.wz { width: min(1120px, 100%); }
+/* M9-7 评审（空白太多）：左侧步骤栏 + 右侧内容，字段两列，卡片高度随内容 */
+.wz-card { display: grid; grid-template-columns: 236px minmax(0, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.wz-rail { min-width: 0; background: var(--surface-2); border-right: 1px solid var(--line); padding: 16px 12px; display: flex; flex-direction: column; gap: 14px; }
+.wz-brand { display: flex; gap: 10px; align-items: flex-start; padding: 0 4px; }
 .wz-logo { display: contents; }
-.wz-logo :deep(svg) { width: 52px; height: 52px; flex: none; }
-.wz-intro h1 { font-size: 22px; }
-.wz-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
-.wz-card .steps { padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
-.wz-card .steps .st span:last-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.wz-body { padding: 22px 24px; min-height: 380px; }
-.wz-body h2 { font-size: 17px; margin-bottom: 4px; }
-.wz-body .lead { color: var(--ink-2); margin-bottom: 18px; max-width: 70ch; }
-.wz-foot { display: flex; gap: 8px; align-items: center; padding: 12px 24px; border-top: 1px solid var(--line); }
+.wz-logo :deep(svg) { width: 36px; height: 36px; flex: none; }
+.wz-brand h1 { font-size: 14px; margin: 0; }
+.wz-brand small { display: block; font-size: 11.5px; color: var(--ink-3); margin-top: 2px; line-height: 1.45; }
+.wz-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.wz-steps .st { display: flex; align-items: center; gap: 9px; padding: 5px 8px; border-radius: 6px; font-size: 12.5px; color: var(--ink-3); min-width: 0; }
+.wz-steps .st .t { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wz-steps .st .no { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line-strong); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; flex: none; background: var(--surface); }
+.wz-steps .st.done { color: var(--ink-2); }
+.wz-steps .st.done .no { background: var(--teal-soft); border-color: var(--teal-line); color: var(--teal-ink); }
+.wz-steps .st.cur { color: var(--ink); font-weight: 600; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.wz-steps .st.cur .no { background: var(--teal); border-color: var(--teal); color: #fff; }
+.wz-main { display: flex; flex-direction: column; min-width: 0; }
+.wz-body { padding: 20px 24px; flex: 1; }
+.wz-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.wz-head h2 { font-size: 17px; margin: 0; }
+.wz-head .lead { margin: 0; color: var(--ink-2); font-size: 12.5px; }
+.wz-foot { display: flex; gap: 8px; align-items: center; padding: 10px 24px; border-top: 1px solid var(--line); }
 .wz-foot .grow { flex: 1; }
-.blocks { display: flex; flex-direction: column; gap: 16px; max-width: 640px; }
-.admin-blocks { max-width: 520px; }
+.blocks { display: flex; flex-direction: column; gap: 14px; }
+.fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; align-items: start; }
+.fgrid > .span2 { grid-column: 1 / -1; }
+.ai-block .field { max-width: calc(50% - 9px); }
 .lang-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .lang-cards .radio-card { flex-direction: column; gap: 6px; padding: 14px; position: relative; }
 .lang-cards .ln { font: 600 16px var(--font-display); }
-.lang-cards .ls { color: var(--ink-2); font-size: 12px; }
+.lang-cards .lnote { color: var(--ink-2); font-size: 12px; }
 .lang-cards input { position: absolute; opacity: 0; }
 .lang-cards .radio-card:has(input:focus-visible) { outline: 2px solid var(--focus); }
 .radio-cards.two, .db-cards { grid-template-columns: 1fr 1fr; }
 .rc-t .tag { margin-left: 6px; }
-.hostport { display: grid; grid-template-columns: minmax(0, 1fr) 140px; gap: 12px; }
+.hostport { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 18px; }
+/* AI 测试连接（REQ-048） */
+.aitest { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; align-items: center; background: var(--surface-2); }
+.aitest .btn { grid-row: span 2; }
+.aitest .res { display: flex; gap: 6px; align-items: center; font-size: 13px; font-weight: 600; min-height: 20px; }
+.aitest .res .idle { font-weight: 400; color: var(--ink-3); }
+.aitest .det { grid-column: 2; font-size: 12px; color: var(--ink-2); overflow-wrap: anywhere; }
+.aitest.is-ok { border-color: var(--teal-line); background: color-mix(in srgb, var(--teal-soft) 55%, var(--surface)); }
+.aitest.is-ok .res { color: var(--teal-ink); }
+.aitest.is-err { border-color: var(--red-line); background: color-mix(in srgb, var(--red-soft) 55%, var(--surface)); }
+.aitest.is-err .res { color: var(--red-ink); }
+.spin { width: 14px; height: 14px; border: 2px solid var(--line-strong); border-top-color: var(--blue); border-radius: 50%; animation: wz-spin .8s linear infinite; display: inline-block; }
+@keyframes wz-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
 .token { display: flex; gap: 8px; align-items: center; }
 .token code { flex: 1; padding: 8px 10px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 5px; font-size: 13px; overflow-wrap: anywhere; }
 /* 确认页（M6-9） */
@@ -595,7 +660,7 @@ async function copyToken(): Promise<void> {
 .cf-path code { font: 12px var(--font-mono); color: var(--ink); overflow-wrap: anywhere; min-width: 0; }
 .cf-facts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; font-size: 12.5px; color: var(--ink-2); }
 .cf-facts .seg { margin-left: auto; }
-.cf-groups { display: flex; flex-direction: column; gap: 10px; }
+.cf-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
 .cf-g { border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
 .cf-g.has-err { border-color: var(--red-line); }
 .cf-gh { display: flex; align-items: center; gap: 8px; padding: 7px 8px 7px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
@@ -622,9 +687,15 @@ async function copyToken(): Promise<void> {
 .done-art :deep(.ico) { width: 30px; height: 30px; stroke-width: 2; }
 .done-kv { max-width: 560px; margin: 0 auto; }
 .done-actions { justify-content: center; margin-top: 20px; }
+@media (max-width: 1100px) { .cf-groups { grid-template-columns: 1fr; } }
 @media (max-width: 900px) {
-  .lang-cards, .radio-cards.two, .db-cards { grid-template-columns: 1fr; }
-  .wz-card .steps .st span:last-child { display: none; }
+  .lang-cards { grid-template-columns: 1fr; }
+  .wz-card { grid-template-columns: minmax(0, 1fr); }
+  .wz-rail { border-right: 0; border-bottom: 1px solid var(--line); padding: 10px 12px; flex-direction: row; align-items: center; gap: 10px; }
+  .wz-brand small { display: none; }
+  .wz-steps { flex-direction: row; overflow-x: auto; gap: 2px; flex: 1; }
+  .wz-steps .st { padding: 4px 6px; }
+  .wz-steps .st:not(.cur) .t { display: none; }
 }
 @media (max-width: 620px) {
   .cf-strip { grid-template-columns: 1fr; }
@@ -632,8 +703,15 @@ async function copyToken(): Promise<void> {
   .cf-r { grid-template-columns: minmax(0, 1fr) auto; }
   .cf-r .k, .cf-r .e { grid-column: 1 / -1; }
 }
-@media (max-width: 520px) {
-  .hostport { grid-template-columns: 1fr; }
+@media (max-width: 600px) {
+  .wz-wrap { padding: 0; }
+  .wz-card { border-radius: 0; border-left: 0; border-right: 0; }
+  .wz-brand div { display: none; }
+  .fgrid, .hostport, .radio-cards.two, .db-cards { grid-template-columns: 1fr; }
+  .ai-block .field { max-width: none; }
+  .aitest { grid-template-columns: 1fr; }
+  .aitest .btn { grid-row: auto; justify-self: start; }
+  .aitest .det { grid-column: 1; }
   .wz-body { padding: 18px 16px; }
   .wz-foot { padding: 12px 16px; }
 }

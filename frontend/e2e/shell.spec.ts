@@ -32,9 +32,11 @@ test('导航到每个页面都能打开，没有脚本错误和未翻译的文�
 test('切换语言与主题', async ({ page }) => {
   await login(page)
   await page.goto('/')
-  await page.getByTestId('lang-switch').selectOption('en')
+  await page.getByTestId('lang-switch').click()
+  await page.getByTestId('lang-opt-en').click()
   await expect(page.getByTestId('nav-devices')).toContainText('Devices')
-  await page.getByTestId('lang-switch').selectOption('pt-BR')
+  await page.getByTestId('lang-switch').click()
+  await page.getByTestId('lang-opt-pt-BR').click()
   await expect(page.getByTestId('nav-devices')).toContainText('Dispositivos')
   await page.getByTestId('theme-switch').getByRole('button').nth(2).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')

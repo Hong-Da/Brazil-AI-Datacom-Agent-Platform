@@ -103,3 +103,24 @@ describe('确认页（M6-9）', () => {
     expect(groupErrors(groups[0]!, errs)).toBe(1)
   })
 })
+
+describe('M9-7 选项文字与 AI 测试结果（REQ-048）', () => {
+  it('显示风格、AI 接口类型、开关用文案键，不显示原始值', async () => {
+    const { optionKey } = await import('./wizard')
+    expect(optionKey('ui.term_style', 'choice', 'huawei')).toBe('style.huawei')
+    expect(optionKey('ui.term_style', 'choice', 'nokia')).toBe('style.nokia')
+    expect(optionKey('ai.provider', 'choice', 'openai')).toBe('wizard.prov_openai')
+    expect(optionKey('ai.provider', 'choice', '')).toBe('wizard.none')
+    expect(optionKey('auth.registration', 'bool', 'true')).toBe('wizard.on')
+    expect(optionKey('log.level', 'choice', 'INFO')).toBeNull()
+  })
+  it('测试失败的原因按 HTTP 状态码与异常类型归类', async () => {
+    const { aiTestReason } = await import('./wizard')
+    expect(aiTestReason(401, 'AuthenticationError')).toBe('wizard.aiTestAuth')
+    expect(aiTestReason(null, 'PermissionDeniedError')).toBe('wizard.aiTestAuth')
+    expect(aiTestReason(404, 'NotFoundError')).toBe('wizard.aiTestNotFound')
+    expect(aiTestReason(null, 'APITimeoutError')).toBe('wizard.aiTestTimeout')
+    expect(aiTestReason(null, 'APIConnectionError')).toBe('wizard.aiTestConnect')
+    expect(aiTestReason(500, 'InternalServerError')).toBe('wizard.aiTestOther')
+  })
+})

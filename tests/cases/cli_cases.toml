@@ -82,6 +82,48 @@ expect_json = { "data.values.security.api_token" = true, "data.sources.server.po
 in_docs = true
 
 [[case]]
+id = "config-get"
+title = { zh-CN = "查看一个配置项：值、来源、是否需重启、能否修改（REQ-049）", en = "Show one setting: value, source, restart needed, editable", pt-BR = "Mostrar uma configuração: valor, origem, reinício, editável" }
+args = ["--output", "json", "config", "get", "server.port"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.key" = "server.port", "data.source" = "file", "data.restart" = true }
+in_docs = true
+
+[[case]]
+id = "config-get-unknown"
+title = { zh-CN = "没有这个配置项：退出码 4", en = "Unknown setting: exit code 4", pt-BR = "Configuração inexistente: código 4" }
+args = ["config", "get", "server.nope"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["server.nope"]
+
+[[case]]
+id = "config-set"
+title = { zh-CN = "修改配置项并写入配置文件（与网页“系统设置”同一套校验；需要重启的项会列出）", en = "Change settings and write the config file (same checks as System settings; restart items listed)", pt-BR = "Alterar configurações e gravar o arquivo (mesmas verificações; itens de reinício listados)" }
+args = ["--output", "json", "config", "set", "history.keep=80", "log.level=DEBUG"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.changed.0" = "history.keep", "data.changed.1" = "log.level", "data.restart_required.0" = "log.level" }
+in_docs = true
+
+[[case]]
+id = "config-set-invalid"
+title = { zh-CN = "取值不合格：退出码 2，不写入", en = "Invalid value: exit code 2, nothing written", pt-BR = "Valor inválido: código 2, nada gravado" }
+args = ["--lang", "en", "config", "set", "server.port=70000"]
+setup = "configured"
+expect_exit = 2
+expect_stderr = ["server.port"]
+
+[[case]]
+id = "config-set-secret"
+title = { zh-CN = "敏感值不能用 config set 修改（改配置文件或环境变量）", en = "Secrets can’t be changed with config set", pt-BR = "Segredos não podem ser alterados com config set" }
+args = ["--output", "json", "config", "set", "security.api_token=abc"]
+setup = "configured"
+expect_exit = 2
+expect_json = { "ok" = false }
+
+[[case]]
 id = "db-upgrade"
 title = { zh-CN = "升级数据库结构", en = "Migrate the database", pt-BR = "Migrar o banco de dados" }
 args = ["--output", "json", "db", "upgrade"]

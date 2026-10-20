@@ -312,6 +312,60 @@ def cmd_config_show(ctx: typer.Context) -> None:
     emit(c, data, output.table(rows, [c.t("config.key"), c.t("config.value"), c.t("config.source")]))
 
 
+@config_app.command("get", help="显示一个配置项：当前值、来源、是否需重启、能否修改 / show one setting")
+def cmd_config_get(ctx: typer.Context, key: Annotated[str, typer.Argument(help="配置键，例如 server.port")]) -> None:
+    c = output.get(ctx)
+    s = _settings()
+    if key not in config.FIELD_MAP:
+        fail(c, output.EXIT_NOT_FOUND, c.t("config.get_unknown", name=key))
+    f = config.FIELD_MAP[key]
+    data = {
+        "key": key,
+        "value": s.public_dict()[key],
+        "source": s.sources[key],
+        "default": f.default,
+        "restart": key in setup.RESTART_KEYS,
+        "readonly": setup.readonly_reason(key, s),
+    }
+    emit(c, data, str(data["value"]))
+
+
+@config_app.command(
+    "set",
+    help="修改配置项并写入配置文件（与网页“系统设置”同一套校验；敏感值、环境变量指定的项不能改）/ change settings",
+)
+def cmd_config_set(
+    ctx: typer.Context,
+    pairs: Annotated[list[str], typer.Argument(help="键=值，可写多个，例如 server.port=9100 log.level=debug")],
+) -> None:
+    c = output.get(ctx)
+    if not config.is_configured():
+        fail(c, output.EXIT_CONFIG, c.t("config.not_configured"))
+    updates: dict[str, Any] = {}
+    for p in pairs:
+        k, sep, v = p.partition("=")
+        if not sep or not k.strip():
+            fail(c, output.EXIT_USAGE, c.t("config.invalid.unknown") + f": {p}")
+        updates[k.strip()] = v
+    current = _settings()
+    try:
+        new = setup.save_settings(updates, c.lang, current, current)
+    except setup.SetupError as e:
+        errs = {k: c.t(v) for k, v in e.errors.items()}
+        fail(c, output.EXIT_USAGE, "\n".join([c.t("setup.invalid"), *(f"  {k}: {v}" for k, v in errs.items())]), errs)
+    restart = [k for k in updates if k in setup.RESTART_KEYS and new.get(k) != current.get(k)]
+    data = {
+        "config_path": str(config.config_path()),
+        "changed": sorted(updates),
+        "values": {k: new.public_dict()[k] for k in sorted(updates)},
+        "restart_required": restart,
+    }
+    text = c.t("config.set_done", path=data["config_path"])
+    if restart:
+        text += "\n" + c.t("config.restart_needed", keys=", ".join(restart))
+    emit(c, data, text)
+
+
 @db_app.command("upgrade", help="把数据库升级到最新结构 / migrate the database")
 def cmd_db_upgrade(ctx: typer.Context) -> None:
     c = output.get(ctx)

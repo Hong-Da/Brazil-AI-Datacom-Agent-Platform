@@ -20,6 +20,7 @@ from __future__ import annotations
 PUBLIC: set[str] = {
     "/health",
     "/setup",
+    "/setup/ai-test",  # 向导里测试 AI 连接（仅未配置时可用，REQ-048）
     "/auth/status",
     "/auth/login",
     "/auth/bootstrap",

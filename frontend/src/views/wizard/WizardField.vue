@@ -2,7 +2,8 @@
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
-import { coerce, labelKey, type WField } from './wizard'
+import { LANGS } from '@/i18n'
+import { coerce, labelKey, optionKey, type WField } from './wizard'
 
 const props = defineProps<{
   field: WField
@@ -31,7 +32,9 @@ function onInput(e: Event): void {
 }
 function optLabel(c: string): string {
   if (props.optionLabel) return props.optionLabel(c)
-  if (props.field.kind === 'bool') return t(c === 'true' ? 'wizard.on' : 'wizard.off') // 开关：true / false
+  if (props.field.key === 'ui.language') return LANGS.find((l) => l.code === c)?.label ?? c
+  const k = optionKey(props.field.key, props.field.kind, c) // 开关、显示风格（Huawei / Cisco / Nokia）、AI 接口类型
+  if (k && te(k)) return t(k)
   return c || t('wizard.none')
 }
 </script>

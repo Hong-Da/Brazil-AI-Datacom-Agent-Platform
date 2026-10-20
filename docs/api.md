@@ -60,12 +60,16 @@
 | `GET /health` | 否 | 健康检查：版本、是否已配置、数据库、知识库、AI 接口 |
 | `GET /setup` | 否（仅未配置时） | 首次运行向导的参数定义（`groups`、`addresses`、`languages`）；`config_path` 是将写入的配置文件，`running` 是当前运行的 `server.host`、`server.port`（与它不同的项需要重启才生效） |
 | `POST /setup` | 否（仅未配置时） | 提交向导结果；`dry_run: true` 时只校验；`admin: {"username", "password"}` 同时创建第一个管理员并登录（设置会话 Cookie），错误键为 `admin.username` / `admin.password` |
+| `POST /setup/ai-test` | 否（仅未配置时） | 向导里测试 AI 接口（REQ-048）：`{provider, base_url, api_key, model}`，发一句测试请求；成功返回 `model`、`reply`、`elapsed_ms`；必填项不合格 422（`data.errors`）；调用失败 502，`data` 只有 `error_type` 与 `status`（HTTP 状态码）。API Key 不保存、不写日志，也不写调用记录 |
 | `GET /auth/status` | 否 | 登录页需要的状态：`configured`、`has_users`（还没有账号时登录页改为用 API 令牌创建管理员）、`session_hours`、`registration`（自助注册，REQ-039：`open` 是否开放（还没有任何账号时不开放），`approval` 注册后是否需要管理员审核）；已配置且还没有账号时另返回 `config_file`（实例实际读取的配置文件绝对路径）与 `token_set`（是否设置了 API 令牌，布尔，不返回令牌内容），有账号后不返回这两项 |
 | `POST /auth/login` | 否 | 用户名 + 密码登录：`{"username", "password"}`；成功返回 `user` 与 `expires_at` 并设置会话 Cookie；用户名或密码错误 401（不区分用户不存在），账号停用 403，自助注册后待审核 403（`data.reason = pending`，只在密码正确时这样提示），连续失败 `security.login_max_failures` 次（默认 5）锁定 `security.login_lock_minutes` 分钟（默认 15），锁定期间 429 |
 | `POST /auth/bootstrap` | 否（仅没有任何账号时） | 用 API 令牌创建第一个管理员并登录：`{"token", "username", "password"}`；已有账号时 409，令牌不对 401 |
 | `POST /auth/register` | 否 | 自助注册（REQ-039）：`{"username", "password"}`，规则同账号管理；新账号为普通用户（`origin = register`）。注册关闭（`auth.registration = false`，默认）或还没有任何账号时 403（code 1006，“注册未开放，请联系管理员”）；同一来源地址每小时超过 `auth.registration_rate_per_hour` 次（默认 5）429（`data.per_hour`）；用户名已存在 409；需要审核（`auth.registration_approval = true`，默认）时 `data.status = pending`，不发会话；不需审核时 `status = active`，同时登录（设置会话 Cookie，返回 `user` 与 `expires_at`）并建好默认项目。注册记入审计（不含密码） |
 | `POST /auth/logout` | 否 | 登出：删除会话、清除 Cookie；`data.logged_out` 表示是否确实结束了一个会话 |
 | `GET /auth/me` | 是 | 当前调用者：`username`、`role`（admin / maintainer / user）、`via`（session / token / pat；全局令牌调用时 username 为 `api-token`，个人令牌为本人账号）、`expires_at`、`read_only`（只读的个人令牌）、`token_prefix`（个人令牌的前 8 个字符） |
+| `GET /me/prefs` | 是 | 我的个人偏好（REQ-047）：`{has_account, prefs}`；`prefs` 为 `lang`、`theme`（auto / light / dark）、`term_style`（huawei / cisco / nokia）、`icon_set`（cyl / geo / line），账号还没保存过时为 null；全局令牌 `has_account` 为 false |
+| `PUT /me/prefs` | 是 | 保存个人偏好（只改给出的项）；取值不合格 422；全局令牌 409；只读个人令牌 403。网页登录后以账号的值为准，账号没保存过时把浏览器本地的值写入 |
+| `DELETE /me/prefs` | 是 | 清除账号保存的偏好（恢复为没保存过） |
 | `POST /auth/password` | 是（会话） | 修改自己的密码：`{"old_password", "new_password"}`（至少 8 个字符）；当前会话保留，其他会话失效（`sessions_closed`）；旧密码不对 422；用令牌调用 409 |
 | `GET /users?status=` | 管理员 | 账号列表：`username`、`role`（admin / maintainer / user）、`status`（active / pending 待审核）、`origin`（admin 管理员建 / register 自助注册）、`projects`（拥有的非空项目数）、`tokens`（有效的个人令牌数）、`disabled`、`locked`、`locked_until`、`last_login_at`、`password_changed_at`、`created_at`（不含密码哈希） |
 | `POST /users` | 管理员 | 新建账号：`{"username", "password", "role": "user\|maintainer\|admin"}`；用户名 2–64 个字符（字母、数字、点、下划线、短横线），不区分大小写唯一 |
@@ -74,6 +78,8 @@
 | `POST /users/{username}/reject` | 管理员 | 拒绝待审核账号：删除它（用户名可以再注册）；不是待审核时 409；记入审计 |
 | `GET /auth/settings` | 管理员 | 自助注册设置：`registration`、`approval`、`rate_per_hour` 与各项来源（`sources`：default / file / env） |
 | `PUT /auth/settings` | 管理员 | 保存自助注册设置：`{"registration", "approval", "rate_per_hour"}`（只给要改的项，`rate_per_hour` 1–1000）；写入配置文件 `[auth]` 分组，立即生效；记入审计 |
+| `GET /settings` | 管理员 | 系统设置（REQ-049）：全部配置项按首次运行向导的分组（`groups[].fields[]` 与 `GET /setup` 相同，另有 `value`、`source`、`restart`、`readonly`：env / ai / secret / null）；`config_path`；`restart_pending`（配置文件已改、当前进程还在用旧值的项：`key`、`running`、`saved`）；`running`（正在运行的监听地址与端口）。敏感值只给出是否已设置 |
+| `PUT /settings` | 管理员 | 保存系统设置：`{"values": {键: 值}, "dry_run": false}`，只改给出的项；逐项校验（端口与正在运行的不同时检查是否被占用），不合格 422 并在 `data.errors` 里逐项说明，不写入；写入 `config/config.toml`，立即生效的项马上生效，需要重启的项列在 `restart_pending`，不自动重启；记入审计（`settings.update`，只记配置键） |
 | `POST /users/{username}/password` | 管理员 | 重置密码：`{"password"}`；同时解除锁定，该账号的会话全部失效 |
 | `DELETE /users/{username}?transfer_to=&delete_projects=false` | 管理员 | 删除账号；不能删除自己和最后一个启用的管理员（409）；拥有非空项目时必须 `transfer_to`（项目、私有模板与规则集转交给该账号）或 `delete_projects=true`（一并删除），否则 409（`data.projects`）；自动建的空默认项目直接删除 |
 | `GET /config` | 管理员 | 当前生效的配置，敏感值只显示是否已设置 |
@@ -414,6 +420,115 @@ print(r.status_code, r.json())
 HTTP 状态：`409`；返回中的关键字段：
 
 - `code` = `1003`
+
+### 向导里测试 AI 接口：先检查必填项（OpenAI 兼容接口要地址、模型名必填），不发请求
+
+`POST /api/v1/setup/ai-test`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/setup/ai-test' \
+  -H 'Content-Type: application/json' \
+  -d '{"provider": "openai", "base_url": "", "api_key": "sk-test", "model": ""}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/setup/ai-test' -ContentType 'application/json; charset=utf-8' -Body '{"provider": "openai", "base_url": "", "api_key": "sk-test", "model": ""}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/setup/ai-test', json={'provider': 'openai', 'base_url': '', 'api_key': 'sk-test', 'model': ''})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`422`；返回中的关键字段：
+
+- `code` = `1001`
+- `data.errors.ai.base_url` = `"必须填写"`
+- `data.errors.ai.model` = `"必须填写"`
+
+### 系统设置（管理员）：按向导的分组列出全部配置项，带当前值、来源、是否需重启、只读原因（REQ-049）
+
+`GET /api/v1/settings`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/settings' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/settings' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/settings', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.groups.0.id` = `"ui"`
+- `data.groups.1.fields.0.key` = `"server.host"`
+- `data.groups.1.fields.0.restart` = `true`
+- `data.restart_pending` = `[]`
+
+### 保存系统设置：写入 config/config.toml；改了端口要重启，restart_pending 列出（不自动重启）
+
+`PUT /api/v1/settings`（需要令牌）
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/settings' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"values": {"server.port": 9123, "history.keep": 80}}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/settings' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"values": {"server.port": 9123, "history.keep": 80}}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/settings', headers={'Authorization': 'Bearer <令牌>'}, json={'values': {'server.port': 9123, 'history.keep': 80}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.changed.0` = `"history.keep"`
+- `data.restart_pending.0.key` = `"server.port"`
+- `data.restart_pending.0.saved` = `9123`
+
+### 保存系统设置：取值不合格时逐项返回原因，不写入
+
+`PUT /api/v1/settings`（需要令牌）
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/settings' \
+  -H 'Accept-Language: en' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"values": {"server.port": 70000, "security.api_token": "x"}}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/settings' -Headers @{'Accept-Language'='en'; 'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"values": {"server.port": 70000, "security.api_token": "x"}}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/settings', headers={'Accept-Language': 'en', 'Authorization': 'Bearer <令牌>'}, json={'values': {'server.port': 70000, 'security.api_token': 'x'}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`422`；返回中的关键字段：
+
+- `code` = `1001`
+- `data.errors.server.port` = `"Out of range"`
+- `data.errors.security.api_token` = `"Sensitive values can only be changed in the config file or an environment variable"`
 
 ### 读取生效的配置（需要令牌）
 
@@ -5121,6 +5236,80 @@ HTTP 状态：`401`；返回中的关键字段：
 
 - `code` = `1002`
 - `message` = `"用户名或密码不正确。连续多次错误会暂时锁定账号"`
+
+### 我的个人偏好：账号还没保存过时 prefs 为 null（网页登录后把浏览器本地的值写入账号，REQ-047）
+
+`GET /api/v1/me/prefs`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/me/prefs'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/me/prefs'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/me/prefs')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.has_account` = `true`
+
+### 保存我的个人偏好（只改给出的项）：语言、主题、显示风格、设备图标风格
+
+`PUT /api/v1/me/prefs`
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/me/prefs' \
+  -H 'Content-Type: application/json' \
+  -d '{"lang": "pt-BR", "theme": "dark", "term_style": "nokia", "icon_set": "line"}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/me/prefs' -ContentType 'application/json; charset=utf-8' -Body '{"lang": "pt-BR", "theme": "dark", "term_style": "nokia", "icon_set": "line"}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/me/prefs', json={'lang': 'pt-BR', 'theme': 'dark', 'term_style': 'nokia', 'icon_set': 'line'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.prefs.lang` = `"pt-BR"`
+- `data.prefs.theme` = `"dark"`
+- `data.prefs.term_style` = `"nokia"`
+- `data.prefs.icon_set` = `"line"`
+
+### 清除我保存在账号里的偏好（下次登录时网页改用浏览器本地的值并写入账号）
+
+`DELETE /api/v1/me/prefs`
+
+```bash
+curl -X DELETE 'http://127.0.0.1:9090/api/v1/me/prefs'
+```
+
+```powershell
+Invoke-RestMethod -Method DELETE -Uri 'http://127.0.0.1:9090/api/v1/me/prefs'
+```
+
+```python
+import requests
+r = requests.request('DELETE', 'http://127.0.0.1:9090/api/v1/me/prefs')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.has_account` = `true`
 
 ### 当前调用者（API 令牌视为管理员）
 

@@ -10,6 +10,9 @@ export async function login(page: Page, lang = 'zh-CN', who: { username: string;
   await page.addInitScript((l) => { localStorage.setItem('lmesh-lang', l) }, lang)
   const r = await page.request.post('/api/v1/auth/login', { data: who })
   expect(r.ok(), await r.text()).toBeTruthy()
+  // REQ-047：偏好随账号保存。清掉上一个用例留在账号里的偏好，页面打开时改用这里预先写入的本地值（并写入账号）
+  const c = await page.request.delete('/api/v1/me/prefs')
+  expect(c.ok(), await c.text()).toBeTruthy()
 }
 
 /** 页面上不应出现未翻译的文案键（形如 devices.title）。 */

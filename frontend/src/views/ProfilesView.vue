@@ -291,8 +291,8 @@ async function exportKb() {
                   <tr v-else-if="detail && !shown.length"><td :colspan="showDefault ? 6 : 5"><div class="empty"><p>{{ $t('profiles.noMatch') }}</p></div></td></tr>
                   <tr v-for="e in shown" :key="e.node" :class="['ent-row', { 'is-sel': e.node === selNode, dep: e.deprecated }]" :data-testid="`entry-row-${e.node}`" @click="selNode = e.node">
                     <td class="sch" :title="formOf(e) ? `${$t(`style.${terms.style}`)}: ${formOf(e)}` : undefined">
-                      <span>{{ e.node }}</span>
                       <span v-if="formOf(e)" class="ent-form" data-testid="entry-form">{{ formOf(e) }}</span>
+                      <span :class="{ 'ent-id': formOf(e) }">{{ e.node }}</span>
                     </td>
                     <td>
                       <span v-if="e.state === 'supported'" class="supmark yes"><Icon name="check" small /></span>
@@ -360,7 +360,10 @@ async function exportKb() {
 .ent-row.dep .sch { text-decoration: line-through; }
 .ent-row .sch { font: 12px var(--font-mono); white-space: nowrap; }
 .ent-row .sch > span { display: block; }
-.ent-row .sch .ent-form { font-size: 11px; color: var(--ink-3); max-width: 340px; overflow: hidden; text-overflow: ellipsis; }
+/* REQ-048：当前显示风格的写法在上（正文色），规范编号在下（次要） */
+.ent-row .sch .ent-form { font-size: 12px; color: var(--ink); max-width: 340px; overflow: hidden; text-overflow: ellipsis; }
+.ent-row .sch .ent-id { font-size: 11px; color: var(--ink-3); }
+.ent-row.is-sel .sch .ent-id { color: var(--blue-ink); opacity: .8; }
 .ent-row.dep .sch .ent-form { text-decoration: none; }
 .dval { display: inline-flex; align-items: center; gap: 6px; padding: 1px 4px 1px 6px; border-radius: 4px; }
 .dval .tag { height: 17px; font-size: 10.5px; padding: 0 5px; }

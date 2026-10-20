@@ -93,6 +93,49 @@
         }
       }
     },
+    "/api/v1/setup/ai-test": {
+      "post": {
+        "tags": [
+          "system"
+        ],
+        "summary": "向导里测试 AI 接口（仅未配置时可用）：发一句测试请求；不保存、不记录 API Key，也不写调用记录",
+        "operationId": "setup_ai_test_api_v1_setup_ai_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiTestBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Setup Ai Test Api V1 Setup Ai Test Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/config": {
       "get": {
         "tags": [
@@ -109,6 +152,70 @@
                   "additionalProperties": true,
                   "type": "object",
                   "title": "Response Effective Config Api V1 Config Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings": {
+      "get": {
+        "tags": [
+          "system"
+        ],
+        "summary": "系统设置（管理员）：全部配置项按向导的分组，带当前值、来源、是否需重启、只读原因，以及等待重启生效的项",
+        "operationId": "settings_get_api_v1_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Settings Get Api V1 Settings Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "system"
+        ],
+        "summary": "保存系统设置（管理员）：逐项校验后写入 config/config.toml；不自动重启，restart_pending 列出重启后才生效的项",
+        "operationId": "settings_put_api_v1_settings_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettingsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Settings Put Api V1 Settings Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -307,6 +414,91 @@
                   "additionalProperties": true,
                   "type": "object",
                   "title": "Response Auth Me Api V1 Auth Me Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/prefs": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "我的个人偏好（REQ-047）：语言、主题、显示风格、图标风格；prefs 为 null 表示账号还没保存过（全局令牌没有账号）",
+        "operationId": "get_prefs_api_v1_me_prefs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Get Prefs Api V1 Me Prefs Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "保存我的个人偏好（只改给出的项；全局 API 令牌没有账号：409；只读个人令牌：403）",
+        "operationId": "put_prefs_api_v1_me_prefs_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PrefsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Put Prefs Api V1 Me Prefs Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "清除我保存在账号里的个人偏好（下次登录时网页改用浏览器本地的值并写入账号）",
+        "operationId": "delete_prefs_api_v1_me_prefs_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Delete Prefs Api V1 Me Prefs Delete"
                 }
               }
             }
@@ -25449,6 +25641,32 @@
         "type": "object",
         "title": "AdminBody"
       },
+      "AiTestBody": {
+        "properties": {
+          "provider": {
+            "type": "string",
+            "title": "Provider",
+            "default": ""
+          },
+          "base_url": {
+            "type": "string",
+            "title": "Base Url",
+            "default": ""
+          },
+          "api_key": {
+            "type": "string",
+            "title": "Api Key",
+            "default": ""
+          },
+          "model": {
+            "type": "string",
+            "title": "Model",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "AiTestBody"
+      },
       "AnalysisBody": {
         "properties": {
           "text": {
@@ -28625,6 +28843,78 @@
         ],
         "title": "PolicyBody"
       },
+      "PrefsBody": {
+        "properties": {
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "zh-CN",
+                  "en",
+                  "pt-BR"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang"
+          },
+          "theme": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "light",
+                  "dark"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theme"
+          },
+          "term_style": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "huawei",
+                  "cisco",
+                  "nokia"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Term Style",
+            "description": "显示风格（华为 / Cisco / Nokia 的叫法）"
+          },
+          "icon_set": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "cyl",
+                  "geo",
+                  "line"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon Set",
+            "description": "设备图标风格：cyl 圆柱、geo 几何徽章、line 线框"
+          }
+        },
+        "type": "object",
+        "title": "PrefsBody"
+      },
       "QueryBody": {
         "properties": {
           "query": {
@@ -29449,6 +29739,26 @@
         },
         "type": "object",
         "title": "ScriptPatch"
+      },
+      "SettingsBody": {
+        "properties": {
+          "values": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Values",
+            "description": "要修改的配置项 {配置键: 值}，例如 {\"server.port\": 9100}"
+          },
+          "dry_run": {
+            "type": "boolean",
+            "title": "Dry Run",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "values"
+        ],
+        "title": "SettingsBody"
       },
       "SetupBody": {
         "properties": {

@@ -482,3 +482,55 @@ def reject(url: str, username: str) -> dict[str, Any]:
         s.delete(u)
     _log.info("已拒绝注册并删除账号：%s", username)
     return {"rejected": username, "deleted": True}
+
+
+# ---------- 个人偏好（REQ-047） ----------
+
+# 每项偏好的可选值；网页登录后以账号保存的值为准，没有保存过时由网页把浏览器本地的值写入
+PREF_CHOICES: dict[str, tuple[str, ...]] = {
+    "lang": ("zh-CN", "en", "pt-BR"),
+    "theme": ("auto", "light", "dark"),
+    "term_style": ("huawei", "cisco", "nokia"),
+    "icon_set": ("cyl", "geo", "line"),
+}
+
+
+def get_prefs(url: str, user_id: int) -> dict[str, str] | None:
+    """账号保存的偏好；None 表示还没保存过。"""
+    with store.session(url) as s:
+        u = s.get(User, user_id)
+        if u is None:
+            raise UserError("not_found", "users.not_found", name=str(user_id))
+        return _clean_prefs(u.prefs) if u.prefs else None
+
+
+def save_prefs(url: str, user_id: int, data: dict[str, Any]) -> dict[str, str]:
+    """合并保存偏好（只改给出的项）；值不合格时抛 UserError（prefs.invalid）。返回保存后的全部偏好。"""
+    for k, v in data.items():
+        if k not in PREF_CHOICES:
+            raise UserError("param", "prefs.unknown", name=k)
+        if v not in PREF_CHOICES[k]:
+            raise UserError("param", "prefs.invalid", name=k, allowed=" / ".join(PREF_CHOICES[k]))
+    with store.session(url) as s:
+        u = s.get(User, user_id)
+        if u is None:
+            raise UserError("not_found", "users.not_found", name=str(user_id))
+        merged = {**_clean_prefs(u.prefs), **{k: str(v) for k, v in data.items()}}
+        u.prefs = merged
+        return merged
+
+
+def clear_prefs(url: str, user_id: int) -> None:
+    """清除账号保存的偏好（恢复为“没保存过”：下次登录时网页把浏览器本地的值写入账号）。"""
+    with store.session(url) as s:
+        u = s.get(User, user_id)
+        if u is None:
+            raise UserError("not_found", "users.not_found", name=str(user_id))
+        u.prefs = None
+
+
+def _clean_prefs(raw: Any) -> dict[str, str]:
+    """数据库里的偏好只保留认识且合格的项（以后删掉的选项不影响读取）。"""
+    if not isinstance(raw, dict):
+        return {}
+    return {k: str(v) for k, v in raw.items() if k in PREF_CHOICES and v in PREF_CHOICES[k]}

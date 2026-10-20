@@ -684,7 +684,7 @@ function semLabel(l: string): string {
 .tree .ti .dirty { width: 6px; height: 6px; border-radius: 50%; background: var(--amber); flex: none; margin-left: auto; }
 .tree .ti .tg { margin-left: auto; height: 16px; font-size: 10.5px; padding: 0 5px; }
 .tree .ti .tg.deprecated { text-decoration: none; }
-.tree .ti .sf-mini { font: 10.5px var(--font-mono); color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+.tree .ti .sf-mini { font: 10.5px var(--font-mono); color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
 .tree .ti.is-sel .sf-mini { color: var(--blue-ink); opacity: .75; }
 .edit-col { grid-area: edit; overflow: auto; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
 .side-col { grid-area: side; overflow: auto; min-height: 0; display: flex; flex-direction: column; gap: 10px; }

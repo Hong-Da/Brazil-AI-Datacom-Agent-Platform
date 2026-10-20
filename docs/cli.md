@@ -74,6 +74,8 @@
 | `lmesh user delete <名称> [--transfer-to 账号 \| --delete-projects]` | 删除账号（需要确认，`--yes` 跳过）；账号不存在退出码 4；拥有非空项目时必须选择转交（项目、私有模板与规则集）或一并删除，否则退出码 1 |
 | `lmesh config show` | 当前生效的配置及来源（default / file / env），敏感值只显示是否已设置 |
 | `lmesh config example [--check]` | 生成 `config/config.example.toml` |
+| `lmesh config get <键>` | 一个配置项的当前值、来源、默认值、是否需重启（`restart`）、能否修改（`readonly`：env 环境变量指定 / ai 在 AI 接口页管理 / secret 敏感值）；没有这个配置项时退出码 4（REQ-049） |
+| `lmesh config set <键=值>…` | 修改配置项并写入 `config/config.toml`，与网页“系统设置”同一套校验（端口占用、取值范围、可选值）；敏感值、环境变量指定的项、AI 接口项不能改；不合格时退出码 2、不写入；结果里 `restart_required` 列出要重启服务才生效的项（监听地址、端口、数据库、知识库目录、日志），不会自动重启 |
 | `lmesh db upgrade` | 把数据库升级到最新结构 |
 | `lmesh sanitize <文件\|目录\|zip> -o <输出> [--level basic\|strict] [--redact 词或正则]… [--map-out 文件]` | 配置脱敏，行数不变；`basic` 替换密文、口令、团体字、密钥块、公网 IP，`strict` 另外替换全部 IP（前缀保持）、主机名、描述、用户名、网元 ID；`--redact` 追加客户名、站点编码等组织相关的词；`--map-out` 把原值与替换值的对照写到本机文件（敏感） |
 | `lmesh config import <文件\|目录\|zip> [--level basic\|strict] [--profile P] [--keep-unsupported] [--remember project\|global [--match-name 模式] [--match-version 正则] [--match-feature 正则]]` | 导入配置：识别厂商与版本 → 选 Profile → 脱敏 → 按设备保存为新的配置版本。Profile 的选择顺序（REQ-044）：`--profile` 手工指定（只允许同厂商 / 同平台族，认不出厂商时任意）→ 设备之前的手工选择 → 型号规则 → 版本规则 → 厂商默认（fallback）；结果里 `profile_source` 为 auto / fallback / rule / manual / none、`match_level` 为 exact / approx / none。`--remember` 把 `--profile` 记住为型号规则（不写条件时按设备名与版本预填）。认不出厂商的文件默认不导入（单独报告），`--keep-unsupported` 时只存原文（不解析，标为不支持的厂商） |
@@ -274,6 +276,34 @@ JSON 输出中的关键字段：
 
 - `data.values.security.api_token` = `true`
 - `data.sources.server.port` = `"file"`
+
+### 查看一个配置项：值、来源、是否需重启、能否修改（REQ-049）
+
+```bash
+lmesh --output json config get server.port
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.key` = `"server.port"`
+- `data.source` = `"file"`
+- `data.restart` = `true`
+
+### 修改配置项并写入配置文件（与网页“系统设置”同一套校验；需要重启的项会列出）
+
+```bash
+lmesh --output json config set history.keep=80 log.level=DEBUG
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.changed.0` = `"history.keep"`
+- `data.changed.1` = `"log.level"`
+- `data.restart_required.0` = `"log.level"`
 
 ### 升级数据库结构
 

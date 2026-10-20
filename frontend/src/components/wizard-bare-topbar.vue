@@ -2,7 +2,7 @@
 // 无外壳页面（首次运行向导、令牌页）的顶栏：Logo + 语言 + 主题，写法与 AppShell 一致。
 import Icon from '@/components/Icon.vue'
 import { LOGO_SVG } from '@/components/icons'
-import { LANGS } from '@/i18n'
+import LangMenu from '@/components/lang-menu.vue'
 import { usePrefs, type Theme } from '@/stores/prefs'
 
 const prefs = usePrefs()
@@ -22,9 +22,7 @@ const THEMES: { v: Theme; icon: string }[] = [
     </span>
     <span class="top-spacer" />
     <div class="top-tools">
-      <select v-model="prefs.lang" class="lang-select" aria-label="Language" data-testid="lang-switch">
-        <option v-for="l in LANGS" :key="l.code" :value="l.code">{{ l.label }}</option>
-      </select>
+      <LangMenu />
       <div class="seg" role="group" :aria-label="$t('shell.theme')" data-testid="theme-switch">
         <button v-for="t in THEMES" :key="t.v" type="button" :aria-pressed="prefs.theme === t.v" @click="prefs.theme = t.v">
           <Icon :name="t.icon" small /><span>{{ $t(`theme.${t.v}`) }}</span>

@@ -39,8 +39,9 @@ test('未支持型号：识别与 Profile → 设备页更换 Profile → 型号
     await expect(dlg.locator('.remember .hit')).toContainText('2')
     // 暗色主题：识别表的展开行不是白底
     await page.emulateMedia({ colorScheme: 'dark' })
-    const bg = await dlg.evaluate((el) => getComputedStyle(el).backgroundColor)
-    expect(bg).not.toBe('rgb(255, 255, 255)')
+    // 主题随系统切换是异步的（matchMedia 的 change 事件）：等它生效再取色
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect.poll(() => dlg.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe('rgb(255, 255, 255)')
     await page.emulateMedia({ colorScheme: 'light' })
     await dlg.getByTestId('start-import').click()
     const res = dlg.getByTestId('import-results')

@@ -4,6 +4,7 @@
  * 分析摘要；右侧“选中对象”常驻，选中的对象在各视图中同时定位。数据：GET /devices/{id}/analysis
  * （先取 graph,layers,script，摘要随后单独取）；计算全部在后端，前端只负责显示。
  */
+import { vendorName } from '@/vendor'
 import { computed, nextTick, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -377,7 +378,7 @@ onMounted(async () => {
           <tbody>
             <tr v-for="d in devices" :key="d.id" class="clickable" @click="router.push({ name: 'device-analysis', params: { id: d.id } })">
               <td><router-link class="mono" :to="{ name: 'device-analysis', params: { id: d.id } }">{{ d.name }}</router-link></td>
-              <td><VendorBadge :of="d.vendor">{{ d.vendor }}</VendorBadge></td>
+              <td><VendorBadge :of="d.vendor">{{ vendorName(d.vendor) }}</VendorBadge></td>
               <td class="mono">{{ d.profile }}</td>
               <td class="num">{{ d.lines }}</td>
               <td class="num">{{ d.unknown }}</td>
@@ -396,7 +397,7 @@ onMounted(async () => {
         <DeviceIcon v-if="devIcon" :kind="devIcon.glyph" :vendor="devIcon.vendor" :badges="devIcon.badges" :size="32" :title="device?.name" />
         <h1 data-testid="analysis-device">{{ device?.name ?? data?.device ?? `#${deviceId}` }}</h1>
         <div class="an-meta">
-          <VendorBadge v-if="device" :of="device.vendor || device.profile">{{ device.vendor }}</VendorBadge>
+          <VendorBadge v-if="device" :of="device.vendor || device.profile">{{ vendorName(device.vendor) }}</VendorBadge>
           <span v-if="data?.profile" class="tag t-teal mono" title="Profile">{{ data.profile }}</span>
           <span v-if="data?.kb_version" class="tag mono">KB {{ data.kb_version }}</span>
           <span v-if="summary?.history" class="tag mono">{{ $t('device-analysis.versionN', { n: summary.history.current.seq }) }}</span>

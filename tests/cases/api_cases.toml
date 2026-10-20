@@ -68,6 +68,63 @@ in_docs = true
 live = true
 
 [[case]]
+id = "setup-ai-test-invalid"
+title = { zh-CN = "向导里测试 AI 接口：先检查必填项（OpenAI 兼容接口要地址、模型名必填），不发请求", en = "Wizard AI test: required fields are checked first, nothing is sent", pt-BR = "Teste de IA do assistente: campos obrigatórios verificados antes" }
+method = "POST"
+path = "/api/v1/setup/ai-test"
+setup = "fresh"
+body = { provider = "openai", base_url = "", api_key = "sk-test", model = "" }
+expect_status = 422
+expect_json = { "code" = 1001, "data.errors.ai.base_url" = "必须填写", "data.errors.ai.model" = "必须填写" }
+in_docs = true
+
+[[case]]
+id = "setup-ai-test-configured"
+title = { zh-CN = "已配置后向导的测试连接不可用（改用 AI 接口页的测试）", en = "The wizard AI test is closed once configured", pt-BR = "O teste de IA do assistente fecha após a configuração" }
+method = "POST"
+path = "/api/v1/setup/ai-test"
+setup = "configured"
+body = { provider = "anthropic", api_key = "sk-test", model = "claude-x" }
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "settings-get"
+title = { zh-CN = "系统设置（管理员）：按向导的分组列出全部配置项，带当前值、来源、是否需重启、只读原因（REQ-049）", en = "System settings (admin): all settings in wizard groups with value, source, restart flag and read-only reason", pt-BR = "Configurações do sistema (admin): todas as opções nos grupos do assistente" }
+method = "GET"
+path = "/api/v1/settings"
+setup = "configured"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.groups.0.id" = "ui", "data.groups.1.fields.0.key" = "server.host", "data.groups.1.fields.0.restart" = true, "data.restart_pending" = [] }
+in_docs = true
+
+[[case]]
+id = "settings-put"
+title = { zh-CN = "保存系统设置：写入 config/config.toml；改了端口要重启，restart_pending 列出（不自动重启）", en = "Save settings: written to config/config.toml; a port change is listed in restart_pending (no automatic restart)", pt-BR = "Salvar configurações: gravado em config/config.toml; mudança de porta listada em restart_pending" }
+method = "PUT"
+path = "/api/v1/settings"
+setup = "configured"
+auth = true
+body = { values = { "server.port" = 9123, "history.keep" = 80 } }
+expect_status = 200
+expect_json = { "code" = 0, "data.changed.0" = "history.keep", "data.restart_pending.0.key" = "server.port", "data.restart_pending.0.saved" = 9123 }
+in_docs = true
+
+[[case]]
+id = "settings-put-invalid"
+title = { zh-CN = "保存系统设置：取值不合格时逐项返回原因，不写入", en = "Save settings: invalid values are reported per item and nothing is written", pt-BR = "Salvar configurações: valores inválidos retornados por item" }
+method = "PUT"
+path = "/api/v1/settings"
+setup = "configured"
+auth = true
+headers = { Accept-Language = "en" }
+body = { values = { "server.port" = 70000, "security.api_token" = "x" } }
+expect_status = 422
+expect_json = { "code" = 1001, "data.errors.server.port" = "Out of range", "data.errors.security.api_token" = "Sensitive values can only be changed in the config file or an environment variable" }
+in_docs = true
+
+[[case]]
 id = "not-found"
 title = { zh-CN = "不存在的接口", en = "Unknown endpoint", pt-BR = "Endpoint inexistente" }
 method = "GET"

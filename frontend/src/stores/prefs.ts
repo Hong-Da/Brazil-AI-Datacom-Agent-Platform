@@ -19,7 +19,7 @@ function write(key: string, value: string): void {
 
 const media = window.matchMedia('(prefers-color-scheme: dark)')
 
-/** 语言、主题、显示风格：保存在浏览器本地（登录状态在会话 Cookie 里，不在这里）。 */
+/** 语言、主题、显示风格、图标风格：保存在浏览器本地；登录后另随账号保存（REQ-047，prefs-sync.ts）。 */
 export const usePrefs = defineStore('prefs', () => {
   const lang = ref<Lang>(i18n.global.locale.value as Lang)
   const theme = ref<Theme>(read(THEME_KEY, 'auto') as Theme)
@@ -40,7 +40,9 @@ export const usePrefs = defineStore('prefs', () => {
   watch(lang, (l) => { i18n.global.locale.value = l; saveLang(l) }, { immediate: true })
   watch(termStyle, (s) => write(STYLE_KEY, s))
   watch(iconSet, (s) => write(ICONS_KEY, s))
-  return { lang, theme, termStyle, iconSet }
+  /** 随账号保存的状态（REQ-047，见 prefs-sync.ts）：local 只存本地 / saving 正在写入账号 / saved 已保存到账号 / error 写入失败 */
+  const syncState = ref<'local' | 'saving' | 'saved' | 'error'>('local')
+  return { lang, theme, termStyle, iconSet, syncState }
 })
 
 /** 每个浏览器记住的开关（例如各视图的“显示默认配置”），name 是视图名。 */

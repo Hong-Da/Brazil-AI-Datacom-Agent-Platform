@@ -291,6 +291,8 @@ class User(Base):
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     password_changed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    # 个人偏好（REQ-047）：{"lang", "theme", "term_style", "icon_set"}；为空表示还没保存过
+    prefs: Mapped[Any] = mapped_column(JSONType, nullable=True)
 
 
 class UserSession(Base):

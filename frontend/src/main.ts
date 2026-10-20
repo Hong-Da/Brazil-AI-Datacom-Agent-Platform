@@ -15,4 +15,6 @@ import App from './App.vue'
 import { router } from './router'
 import { i18n } from './i18n'
 
-createApp(App).use(createPinia()).use(i18n).use(router).use(ElementPlus).mount('#app')
+const app = createApp(App).use(createPinia()).use(i18n).use(router).use(ElementPlus)
+// 第一次导航（守卫里查是否已配置、是否登录）完成后再挂载：否则会先闪过主界面再跳到登录页（REQ-048）
+router.isReady().catch(() => undefined).then(() => app.mount('#app'))

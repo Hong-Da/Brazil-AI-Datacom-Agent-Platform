@@ -4,6 +4,7 @@
  * Profile、未识别行写法）与维护员的三步——从现有 Profile 派生（继承，只写差异）、补差异与命令卡并发布、型号规则改指向并
  * 重新解析（所有项目，手工选择的不动）。接口：GET /kb/model-support/{id}、POST …/derive、POST …/retarget。
  */
+import { vendorName } from '@/vendor'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
@@ -110,7 +111,7 @@ async function retarget(): Promise<void> {
         <dl class="kv">
           <dt>{{ $t('model.fModel') }}</dt><dd>{{ payload.model }}</dd>
           <dt>{{ $t('model.ms.device') }}</dt><dd>{{ payload.device }}<template v-if="payload.project"> ({{ payload.project }})</template></dd>
-          <dt>{{ $t('model.ms.vendorVer') }}</dt><dd>{{ payload.vendor || '—' }} · {{ payload.version || '—' }}</dd>
+          <dt>{{ $t('model.ms.vendorVer') }}</dt><dd>{{ vendorName(payload.vendor) || '—' }} · {{ payload.version || '—' }}</dd>
           <dt>{{ $t('model.ms.profileThen') }}</dt><dd>{{ payload.profile || '—' }} · {{ $t(`model.src.${payload.profile_source || 'auto'}`) }}<template v-if="payload.profile_rule_id"> #{{ payload.profile_rule_id }}</template></dd>
           <dt>{{ $t('model.ms.unknown') }}</dt><dd>{{ payload.unknown }} / {{ payload.command + payload.unknown }} ({{ pct(payload.unknown_ratio) }})</dd>
           <dt>{{ $t('model.ms.reason') }}</dt><dd class="ui">{{ payload.reason || '—' }}</dd>

@@ -79,6 +79,7 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     )
     app.state.settings = settings or config.load()
     app.state.listen_host = listen_host or app.state.settings.get("server.host")
+    app.state.boot_settings = app.state.settings  # 启动时的配置：系统设置页据此判断哪些修改要重启后才生效（REQ-049）
 
     @app.exception_handler(ApiError)
     async def _api_error(request: Request, exc: ApiError) -> JSONResponse:

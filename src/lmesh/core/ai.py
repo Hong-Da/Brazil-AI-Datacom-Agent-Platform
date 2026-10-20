@@ -27,7 +27,11 @@ TASK_MODEL_KEYS = {
 
 
 class AIError(RuntimeError):
-    pass
+    """AI 调用失败；args[0] 是文案键。error_type / status：底层异常类型与 HTTP 状态码（不含请求内容）。"""
+
+    def __init__(self, key: str, error_type: str = "", status: int | None = None):
+        super().__init__(key)
+        self.error_type, self.status = error_type, status
 
 
 @dataclass
@@ -188,6 +192,40 @@ def test(settings: config.Settings, conn: ai_connections.Conn | None = None) -> 
         "reply": reply.text.strip()[:100],
         "tokens_in": reply.tokens_in,
         "tokens_out": reply.tokens_out,
+    }
+
+
+class _PlainConn(ai_connections.Conn):
+    """还没保存的接口（首次运行向导测试连接）：Key 是明文，只在内存里，用完即丢。"""
+
+    def api_key(self) -> str:
+        return self.api_key_enc
+
+
+def test_unsaved(settings: config.Settings, provider: str, base_url: str, api_key: str, model: str) -> dict[str, Any]:
+    """测试还没保存的接口（首次运行向导）：不写调用记录（这时还没有数据库），不保存、不记录 Key。
+
+    失败抛 AIError；error_type / status 只含异常类型与 HTTP 状态码，不含请求内容。
+    """
+    conn = _PlainConn(None, "setup", provider, base_url, api_key, {"model": model})
+    token = _HOOK_SETTINGS.set(settings)
+    started = datetime.now(UTC)
+    try:
+        reply = provider_hook(conn, model, "You are a connectivity check.", "Reply with exactly: OK")
+    except AIError:
+        raise
+    except Exception as e:  # SDK 的各种网络、认证错误
+        _log.warning("向导测试 AI 连接失败（%s，%s）：%s", provider, model, type(e).__name__)
+        status = getattr(e, "status_code", None)
+        raise AIError("ai.call_failed", type(e).__name__, status if isinstance(status, int) else None) from e
+    finally:
+        _HOOK_SETTINGS.reset(token)
+    return {
+        "model": reply.model,
+        "reply": reply.text.strip()[:100],
+        "tokens_in": reply.tokens_in,
+        "tokens_out": reply.tokens_out,
+        "elapsed_ms": int((datetime.now(UTC) - started).total_seconds() * 1000),
     }
 
 

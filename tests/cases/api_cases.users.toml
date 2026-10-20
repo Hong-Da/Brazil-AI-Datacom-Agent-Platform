@@ -75,6 +75,72 @@ expect_status = 200
 expect_json = { "code" = 0, "data.username" = "alice", "data.role" = "user", "data.via" = "session" }
 
 [[case]]
+id = "me-prefs-empty"
+title = { zh-CN = "我的个人偏好：账号还没保存过时 prefs 为 null（网页登录后把浏览器本地的值写入账号，REQ-047）", en = "My preferences: prefs is null until the account saves some (REQ-047)", pt-BR = "Minhas preferências: prefs é null até a conta salvar (REQ-047)" }
+method = "GET"
+path = "/api/v1/me/prefs"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.has_account" = true }
+in_docs = true
+
+[[case]]
+id = "me-prefs-put"
+title = { zh-CN = "保存我的个人偏好（只改给出的项）：语言、主题、显示风格、设备图标风格", en = "Save my preferences (only the given items): language, theme, display style, icon style", pt-BR = "Salvar minhas preferências (só os itens enviados)" }
+method = "PUT"
+path = "/api/v1/me/prefs"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+body = { lang = "pt-BR", theme = "dark", term_style = "nokia", icon_set = "line" }
+expect_status = 200
+expect_json = { "code" = 0, "data.prefs.lang" = "pt-BR", "data.prefs.theme" = "dark", "data.prefs.term_style" = "nokia", "data.prefs.icon_set" = "line" }
+in_docs = true
+
+[[case]]
+id = "me-prefs-delete"
+title = { zh-CN = "清除我保存在账号里的偏好（下次登录时网页改用浏览器本地的值并写入账号）", en = "Clear my saved preferences (the browser’s values are written again at next sign-in)", pt-BR = "Limpar minhas preferências salvas" }
+method = "DELETE"
+path = "/api/v1/me/prefs"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.has_account" = true }
+in_docs = true
+
+[[case]]
+id = "me-prefs-invalid"
+title = { zh-CN = "偏好取值不合格：422", en = "Invalid preference value: 422", pt-BR = "Valor de preferência inválido: 422" }
+method = "PUT"
+path = "/api/v1/me/prefs"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+body = { theme = "purple" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "me-prefs-token"
+title = { zh-CN = "全局 API 令牌没有账号：读取时 has_account 为 false，保存返回 409", en = "The global API token has no account: has_account false, saving returns 409", pt-BR = "O token global não tem conta: has_account false, salvar retorna 409" }
+method = "PUT"
+path = "/api/v1/me/prefs"
+setup = "configured-users"
+auth = true
+body = { theme = "dark" }
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "settings-user-forbidden"
+title = { zh-CN = "系统设置只有管理员能用：普通用户 403", en = "System settings are admin-only: 403 for users", pt-BR = "Configurações do sistema só para admin: 403" }
+method = "GET"
+path = "/api/v1/settings"
+setup = "configured-users"
+login = ["alice", "Alice-pass-1"]
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
 id = "auth-me-token"
 title = { zh-CN = "当前调用者（API 令牌视为管理员）", en = "Current caller (the API token counts as admin)", pt-BR = "Chamador atual (o token da API conta como administrador)" }
 method = "GET"

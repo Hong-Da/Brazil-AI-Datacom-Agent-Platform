@@ -82,6 +82,27 @@ export function labelKey(key: string): string {
   return `wizard.lbl.${key.replace(/\./g, '_')}`
 }
 
+/**
+ * 选项的显示文字键（REQ-048：厂商名不显示原始的 huawei / cisco / nokia）：
+ * 显示风格 → style.*（华为 / Huawei、Cisco、Nokia），AI 接口类型 → wizard.prov_*，开关 → wizard.on / off，
+ * 界面语言 → null（由调用方用 LANGS 的本语言名称），其余 null（原样显示）。
+ */
+export function optionKey(fieldKey: string, kind: string, c: string): string | null {
+  if (kind === 'bool') return c === 'true' ? 'wizard.on' : 'wizard.off'
+  if (fieldKey === 'ui.term_style' && c) return `style.${c}`
+  if (fieldKey === 'ai.provider') return c ? `wizard.prov_${c}` : 'wizard.none'
+  return null
+}
+
+/** AI “测试连接”的结果说明（POST /setup/ai-test 失败时的 error_type / status → 文案键）。 */
+export function aiTestReason(status: number | null | undefined, errorType: string | null | undefined): string {
+  if (status === 401 || status === 403 || /auth|permission/i.test(errorType ?? '')) return 'wizard.aiTestAuth'
+  if (status === 404 || /notfound/i.test(errorType ?? '')) return 'wizard.aiTestNotFound'
+  if (/timeout/i.test(errorType ?? '')) return 'wizard.aiTestTimeout'
+  if (/connect/i.test(errorType ?? '')) return 'wizard.aiTestConnect'
+  return 'wizard.aiTestOther'
+}
+
 /** 示例里的访问地址：0.0.0.0 换成本机地址。 */
 export function displayHost(host: string): string {
   return host === '0.0.0.0' || host === '::' || host === '' ? '127.0.0.1' : host

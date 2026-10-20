@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import IconSetSwitch from '@/components/devicon/IconSetSwitch.vue'
 import { LOGO_SVG } from '@/components/icons'
-import { LANGS } from '@/i18n'
+import LangMenu from '@/components/lang-menu.vue'
 import { usePrefs, type Theme } from '@/stores/prefs'
 import { useStatus } from '@/stores/status'
 import { useTerms } from '@/stores/terms'
@@ -69,7 +69,7 @@ const NAV: { g: string; s: string; admin?: boolean; proj?: boolean; net?: boolea
       { name: 'releases', icon: 'tag' },
     ],
   },
-  { g: 'sys', s: 'sys', admin: true, items: [{ name: 'public-devices', icon: 'db' }, { name: 'all-projects', icon: 'folders' }, { name: 'ai-settings', icon: 'spark' }, { name: 'ai-skills', icon: 'skill' }, { name: 'users', icon: 'users' }] },
+  { g: 'sys', s: 'sys', admin: true, items: [{ name: 'public-devices', icon: 'db' }, { name: 'all-projects', icon: 'folders' }, { name: 'ai-settings', icon: 'spark' }, { name: 'ai-skills', icon: 'skill' }, { name: 'users', icon: 'users' }, { name: 'settings', icon: 'gear' }] },
 ]
 const THEMES: { v: Theme; icon: string }[] = [
   { v: 'auto', icon: 'monitor' },
@@ -164,9 +164,7 @@ watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void
       </router-link>
       <span class="top-spacer" />
       <div class="top-tools">
-        <select v-model="prefs.lang" class="lang-select" aria-label="Language" data-testid="lang-switch">
-          <option v-for="l in LANGS" :key="l.code" :value="l.code">{{ l.label }}</option>
-        </select>
+        <LangMenu />
         <div class="seg" role="group" :aria-label="$t('style.label')" :title="$t('style.tip')" data-testid="style-switch">
           <button v-for="s in terms.styles" :key="s" type="button" :aria-pressed="terms.style === s" :data-style="s" @click="terms.style = s">
             <span>{{ $t(`style.${s}`) }}</span>
@@ -192,6 +190,9 @@ watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void
               <span v-if="auth.me.via === 'token'">{{ $t('account.viaToken') }}</span>
               <span v-else-if="auth.me.via === 'pat'">{{ $t(auth.me.read_only ? 'account.viaPatRo' : 'account.viaPat', { p: auth.me.token_prefix ?? '' }) }}</span>
               <span v-else>{{ $t(auth.isAdmin ? 'account.sessionAdmin' : roleTag === 'maintainer' ? 'account.sessionMaintainer' : 'account.sessionUser', { t: shortTime(auth.me.expires_at) }) }}</span>
+            </div>
+            <div v-if="prefs.syncState !== 'local'" :class="['um-prefs', prefs.syncState]" data-testid="menu-prefs-sync">
+              <i /><span>{{ $t(prefs.syncState === 'saving' ? 'shell.prefsSaving' : prefs.syncState === 'error' ? 'shell.prefsError' : 'shell.prefsAccount') }}</span>
             </div>
             <div class="um-icons" data-testid="menu-icon-set"><span class="small faint">{{ $t('devicon.iconSet') }}</span><IconSetSwitch small /></div>
             <router-link v-if="auth.me.via === 'session'" role="menuitem" :to="{ name: 'password' }" data-testid="menu-password"><Icon name="key" small />{{ $t('account.changePassword') }}</router-link>
@@ -280,6 +281,10 @@ watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void
 .um-pop { position: absolute; right: 0; top: calc(100% + 6px); min-width: 240px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow-pop); padding: 6px; z-index: 60; display: flex; flex-direction: column; }
 .um-h { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
 .um-h span { font-size: 11.5px; color: var(--ink-3); }
+.um-prefs { display: flex; gap: 6px; align-items: baseline; padding: 2px 8px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; font-size: 11.5px; color: var(--ink-3); max-width: 260px; }
+.um-prefs i { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); flex: none; }
+.um-prefs.saving i { background: var(--amber); }
+.um-prefs.error i { background: var(--red); }
 .um-icons { display: flex; flex-direction: column; gap: 4px; padding: 4px 8px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
 .um-icons :deep(.seg) { flex-wrap: nowrap; }
 .um-icons :deep(.seg button) { font-size: 11.5px; padding: 0 7px; white-space: nowrap; }

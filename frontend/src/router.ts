@@ -104,6 +104,7 @@ export const router = createRouter({
     { path: '/ai-skills', name: 'ai-skills', component: () => import('@/views/AiSkillsView.vue'), meta: { admin: true } },
     { path: '/ai-skills/:id', name: 'ai-skill', component: () => import('@/views/AiSkillView.vue'), meta: { admin: true } },
     { path: '/users', name: 'users', component: () => import('@/views/UsersView.vue'), meta: { admin: true } },
+    { path: '/settings', name: 'settings', component: () => import('@/views/SettingsView.vue'), meta: { admin: true } },
     { path: '/password', name: 'password', component: () => import('@/views/PasswordView.vue') },
     { path: '/:rest(.*)*', redirect: '/' },
   ],

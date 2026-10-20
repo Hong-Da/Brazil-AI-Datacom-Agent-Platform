@@ -4,6 +4,7 @@
  * 树状图可按视图层级（对象的父子关系，华为风格默认）或按功能域组织；大图只在预算内展开，点选节点只展开它的下一层。
  * 节点名按当前显示风格（华为 / Cisco）写成命令，规范编号在详情里保留。
  */
+import { vendorName } from '@/vendor'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -467,7 +468,7 @@ onMounted(async () => {
           <tbody>
             <tr v-for="d in devices" :key="d.id" class="clickable" @click="router.push({ name: 'device-graph', params: { id: d.id } })">
               <td><router-link class="mono" :to="{ name: 'device-graph', params: { id: d.id } }">{{ d.name }}</router-link></td>
-              <td><VendorBadge :of="d.vendor">{{ d.vendor }}</VendorBadge></td>
+              <td><VendorBadge :of="d.vendor">{{ vendorName(d.vendor) }}</VendorBadge></td>
               <td class="mono">{{ d.profile }}</td>
               <td class="num">{{ d.lines }}</td>
               <td class="num">{{ d.unknown }}</td>
@@ -490,7 +491,7 @@ onMounted(async () => {
       <div class="dg-head">
         <div class="dg-title"><DeviceIcon v-if="devIcon" :kind="devIcon.glyph" :vendor="devIcon.vendor" :badges="devIcon.badges" :size="32" :title="device?.name" /><h1>{{ device?.name ?? graph?.device ?? `#${deviceId}` }}</h1></div>
         <div class="dg-meta">
-          <VendorBadge v-if="device" :of="device.vendor || device.profile">{{ device.vendor }}</VendorBadge>
+          <VendorBadge v-if="device" :of="device.vendor || device.profile">{{ vendorName(device.vendor) }}</VendorBadge>
           <span v-if="device?.sw_version" class="tag mono">{{ device.sw_version }}</span>
           <span v-if="graph?.profile" class="tag t-teal mono" title="Profile">{{ graph.profile }}</span>
           <span v-if="graph?.kb_version" class="tag mono" :title="$t('device-graph.kbTip')">KB {{ graph.kb_version }}</span>

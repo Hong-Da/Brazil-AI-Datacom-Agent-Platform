@@ -3,6 +3,7 @@
  * 设备页“申请支持此型号”（REQ-044）：POST /devices/{id}/support-request {model, reason}；后端附上设备信息与
  * 未识别行的前 20 种写法，进审核队列（类型“建议”），提出人在“我的建议”里看到处理结果。
  */
+import { vendorName } from '@/vendor'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
@@ -48,7 +49,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
       <div class="modal-b">
         <dl class="kv">
           <dt>{{ $t('model.ms.device') }}</dt><dd>{{ device.name }}</dd>
-          <dt>{{ $t('model.ms.vendorVer') }}</dt><dd>{{ device.vendor || $t('devices.vendorUnknown') }} · {{ device.sw_version || '—' }}</dd>
+          <dt>{{ $t('model.ms.vendorVer') }}</dt><dd>{{ vendorName(device.vendor) || $t('devices.vendorUnknown') }} · {{ device.sw_version || '—' }}</dd>
           <dt>{{ $t('model.ms.profileThen') }}</dt><dd>{{ device.profile || '—' }} · {{ $t(`model.src.${device.profile_source || 'auto'}`) }}</dd>
           <dt>{{ $t('model.ms.unknown') }}</dt><dd>{{ device.unknown ?? '—' }} ({{ pct(device.unknown_ratio) }})</dd>
         </dl>

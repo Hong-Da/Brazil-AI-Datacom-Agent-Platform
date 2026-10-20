@@ -183,8 +183,15 @@ function square(id: string, pid: string): string {
   if (st === 'unfilled') return 'unf'
   return entryOf(id, pid)?.credibility ?? 'reviewed'
 }
+/** 按节点编号取当前显示风格的写法（对比列表用）。 */
+function formById(id: string): string {
+  const n = nodes.value.find((x) => x.id === id)
+  return n ? styleForm(terms, n.id, n.type, terms.style) : ''
+}
+/** 节点上显示当前显示风格的命令写法（REQ-048：切换风格后图上要看得出变化）；没有登记写法时显示节点名。 */
 function pillText(p: PillPos): string {
-  return fitText(p.item.name, p.w, mode.value === 'cmp' ? 44 : inherited(p.item.node) ? 44 : 22)
+  const form = styleForm(terms, p.item.node.id, p.item.node.type, terms.style)
+  return fitText(form || p.item.name, p.w, mode.value === 'cmp' ? 44 : inherited(p.item.node) ? 44 : 22)
 }
 
 const edges = computed(() => {
@@ -372,6 +379,7 @@ function cmpValue(r: CompareRow): string {
               </svg>
             </div>
             <div class="glegend" data-testid="sv-legend">
+              <span class="k sv-style" data-testid="sv-style">{{ $t('style.label') }} <b>{{ $t(`style.${terms.style}`) }}</b></span>
               <template v-if="mode === 'one'">
                 <span class="k"><svg viewBox="0 0 22 12"><rect x="1" y="1" width="20" height="10" rx="2" class="sw-act" /></svg>{{ $t('schema-view.legendActive') }}</span>
                 <span class="k"><span class="tag verified">verified</span><span class="tag reviewed">reviewed</span><span class="tag draft">draft</span></span>
@@ -517,6 +525,7 @@ function cmpValue(r: CompareRow): string {
                     <div v-else class="dlist" :data-testid="`sv-cmp-${g.key}`">
                       <div v-for="r in g.rows" :key="r.node" class="ditem" :title="sem(r)" @click="pick(r.node, true)">
                         <span class="nm">{{ r.node }}</span>
+                        <span v-if="formById(r.node)" class="sf">{{ formById(r.node) }}</span>
                         <span v-if="g.key === 'defaults'" class="vv">{{ cmpValue(r) }}</span>
                         <span v-else-if="g.key === 'unfilledEither'" class="vv">{{ r.a.state === 'unfilled' ? 'A' : '' }}{{ r.a.state === 'unfilled' && r.b.state === 'unfilled' ? ' / ' : '' }}{{ r.b.state === 'unfilled' ? 'B' : '' }}</span>
                       </div>
@@ -593,6 +602,8 @@ function cmpValue(r: CompareRow): string {
 .ditem:hover { background: var(--surface-2); }
 .ditem .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ditem .vv { font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+.ditem .sf { font: 11px var(--font-mono); color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
+.glegend .sv-style b { color: var(--ink); }
 .etag { font-family: var(--font-ui); background: transparent; }
 .ptab { width: 100%; border-collapse: collapse; font-size: 12px; }
 .ptab td { padding: 5px 4px; border-bottom: 1px solid var(--line); vertical-align: middle; }

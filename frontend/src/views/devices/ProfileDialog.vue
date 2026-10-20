@@ -4,6 +4,7 @@
  * GET /devices/{id}/profile-candidates 给出当前选择、按选择顺序会自动选到的 Profile、试解析的候选（按识别比例排序）；
  * 可改回自动、可同时记住为型号规则（全局只限维护员与管理员）；PUT /devices/{id}/profile 保存并重新解析最新版本。
  */
+import { vendorName } from '@/vendor'
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
@@ -85,7 +86,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
             <dt>{{ $t('model.current') }}</dt>
             <dd>{{ data.profile || '—' }} <span class="src-chip" :class="data.profile_source">{{ $t(`model.src.${data.profile_source}`) }}<template v-if="data.rule"> #{{ data.rule.id }}</template></span> <span class="unk-r">{{ $t('model.unk', { p: pct(data.unknown_ratio) }) }}</span></dd>
             <dt>{{ $t('model.detected') }}</dt>
-            <dd>{{ data.device.vendor || $t('devices.vendorUnknown') }} · {{ data.device.version || '—' }}</dd>
+            <dd>{{ vendorName(data.device.vendor) || $t('devices.vendorUnknown') }} · {{ data.device.version || '—' }}</dd>
           </dl>
           <p class="small faint mt12">{{ data.device.vendor ? $t('model.candHint') : $t('model.candHintAll') }}</p>
           <div class="cands mt8" role="radiogroup" data-testid="profile-cands">

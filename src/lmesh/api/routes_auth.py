@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, NoReturn
+from typing import Any, Literal, NoReturn
 
 from fastapi import APIRouter, Depends, Query, Request, Response
 from pydantic import BaseModel, Field
@@ -213,6 +213,62 @@ def auth_me(request: Request, p: Principal = Depends(require_token)) -> dict[str
             "token_prefix": p.token_prefix,
         },
     )
+
+
+class PrefsBody(BaseModel):
+    lang: Literal["zh-CN", "en", "pt-BR"] | None = None
+    theme: Literal["auto", "light", "dark"] | None = None
+    term_style: Literal["huawei", "cisco", "nokia"] | None = Field(
+        None, description="显示风格（华为 / Cisco / Nokia 的叫法）"
+    )
+    icon_set: Literal["cyl", "geo", "line"] | None = Field(
+        None, description="设备图标风格：cyl 圆柱、geo 几何徽章、line 线框"
+    )
+
+
+@router.get(
+    "/me/prefs",
+    summary="我的个人偏好（REQ-047）：语言、主题、显示风格、图标风格；prefs 为 null 表示账号还没保存过（全局令牌没有账号）",
+)
+def get_prefs(request: Request, p: Principal = Depends(require_token)) -> dict[str, Any]:
+    if p.user_id is None:
+        return ok(request, {"has_account": False, "prefs": None})
+    try:
+        return ok(request, {"has_account": True, "prefs": users.get_prefs(db_of(request), p.user_id)})
+    except users.UserError as e:
+        _user_error(e)
+
+
+@router.put(
+    "/me/prefs",
+    summary="保存我的个人偏好（只改给出的项；全局 API 令牌没有账号：409；只读个人令牌：403）",
+)
+def put_prefs(request: Request, body: PrefsBody, p: Principal = Depends(require_token)) -> dict[str, Any]:
+    if p.user_id is None:
+        raise ApiError(E_STATE, 409, "prefs.no_account")
+    if p.read_only:
+        raise ApiError(E_FORBIDDEN, 403, "api.error.read_only_token")
+    try:
+        saved = users.save_prefs(db_of(request), p.user_id, body.model_dump(exclude_none=True))
+    except users.UserError as e:
+        _user_error(e)
+    return ok(request, {"has_account": True, "prefs": saved})
+
+
+@router.delete(
+    "/me/prefs",
+    summary="清除我保存在账号里的个人偏好（下次登录时网页改用浏览器本地的值并写入账号）",
+)
+def delete_prefs(request: Request, p: Principal = Depends(require_token)) -> dict[str, Any]:
+    if p.user_id is None:
+        raise ApiError(E_STATE, 409, "prefs.no_account")
+    if p.read_only:
+        raise ApiError(E_FORBIDDEN, 403, "api.error.read_only_token")
+    try:
+        users.clear_prefs(db_of(request), p.user_id)
+    except users.UserError as e:
+        _user_error(e)
+    return ok(request, {"has_account": True, "prefs": None})
 
 
 class PasswordBody(BaseModel):
