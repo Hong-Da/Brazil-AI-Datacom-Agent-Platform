@@ -21,21 +21,30 @@ from lmesh.core.kb.validate import summary, validate
 
 
 def runtime_root(settings: config.Settings) -> Path:
-    """运行时知识库：首次使用时从程序自带的 knowledge/ 复制，并初始化为独立的 Git 仓库。"""
-    copied = setup.ensure_runtime_knowledge(settings)
+    """运行时知识库：首次使用时从程序自带的 knowledge/ 复制，并初始化为独立的 Git 仓库。
+
+    首次初始化在建仓锁内执行：首次打开网页时多个请求会同时走到这里，不加锁时后到的请求会看到
+    复制到一半的目录或建到一半的 .git（报 NotGitRepository）。已经建好时只做检查，不排队。
+    """
     root = settings.knowledge_dir
-    root.mkdir(parents=True, exist_ok=True)
-    fresh = not (root / ".git").exists()
-    repo.ensure_repo(root)
-    if fresh:
-        # 刚从自带知识库复制并建仓：builtin 分支记下这份快照，作为以后升级合并的基准
-        kbupgrade.ensure_baseline(root, paths.builtin_knowledge_dir(), app_version())
-    # 首次复制后为 draft 卡补审核记录；向导复制知识库时数据库可能还没建好，所以用标记文件判断是否补过
     marker = root / ".git" / "lmesh-drafts-queued"
-    if copied or not marker.exists() or marker.read_text(encoding="utf-8") != settings.database_url:
-        queue_drafts(root, settings.database_url)
-        marker.write_text(settings.database_url, encoding="utf-8")
-    return root
+    if marker.exists() and marker.read_text(encoding="utf-8") == settings.database_url:
+        return root
+    with repo.INIT_LOCK:
+        copied = setup.ensure_runtime_knowledge(settings)
+        root = settings.knowledge_dir
+        root.mkdir(parents=True, exist_ok=True)
+        fresh = not (root / ".git").exists()
+        repo.ensure_repo(root)
+        if fresh:
+            # 刚从自带知识库复制并建仓：builtin 分支记下这份快照，作为以后升级合并的基准
+            kbupgrade.ensure_baseline(root, paths.builtin_knowledge_dir(), app_version())
+        # 首次复制后为 draft 卡补审核记录；向导复制知识库时数据库可能还没建好，所以用标记文件判断是否补过
+        marker = root / ".git" / "lmesh-drafts-queued"
+        if copied or not marker.exists() or marker.read_text(encoding="utf-8") != settings.database_url:
+            queue_drafts(root, settings.database_url)
+            marker.write_text(settings.database_url, encoding="utf-8")
+        return root
 
 
 def app_version() -> str:

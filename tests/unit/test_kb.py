@@ -259,3 +259,38 @@ def test_concurrent_loads_are_consistent() -> None:
     with cf.ThreadPoolExecutor(8) as ex:
         results = set(ex.map(one, range(32)))
     assert len(results) == 1 and next(iter(results))[2] == 0
+
+
+def test_ensure_repo_concurrent_first_use(tmp_path: Path) -> None:
+    """首次打开网页时多个请求同时建仓：都不报错，最后是一个有初始提交的仓库。"""
+    import threading
+
+    from dulwich.repo import Repo as _Repo
+
+    root = tmp_path / "knowledge"
+    root.mkdir()
+    (root / "a.yaml").write_text("x: 1\n", encoding="utf-8")
+    errors: list[str] = []
+
+    def go() -> None:
+        try:
+            repo.ensure_repo(root)
+        except Exception as e:  # noqa: BLE001
+            errors.append(type(e).__name__)
+
+    threads = [threading.Thread(target=go) for _ in range(8)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert errors == []
+    assert _Repo(str(root)).head()
+
+
+def test_ensure_repo_rebuilds_half_created_git(tmp_path: Path) -> None:
+    """建仓中途被打断留下的空 .git：重建，不报 NotGitRepository。"""
+    root = tmp_path / "knowledge"
+    (root / ".git").mkdir(parents=True)
+    (root / "a.yaml").write_text("x: 1\n", encoding="utf-8")
+    r = repo.ensure_repo(root)
+    assert r.head()

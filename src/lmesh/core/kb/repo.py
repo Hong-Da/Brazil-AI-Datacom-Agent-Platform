@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import ParamSpec, TypeVar
 
 from dulwich import porcelain
+from dulwich.errors import NotGitRepository
 from dulwich.objects import Blob, Commit, Tree
 from dulwich.repo import Repo
 
@@ -40,6 +41,8 @@ T = TypeVar("T")
 
 # 同一进程内修改知识库（写文件 + 提交）的操作串行执行；Web 服务的多个请求线程共用
 WRITE_LOCK = threading.RLock()
+# 首次建仓（复制自带知识库 + git init + 初始提交）串行执行；只在还没建好时才会用到
+INIT_LOCK = threading.RLock()
 
 
 def locked[**P, T](fn: Callable[P, T]) -> Callable[P, T]:
@@ -54,11 +57,21 @@ def locked[**P, T](fn: Callable[P, T]) -> Callable[P, T]:
 
 
 def ensure_repo(root: Path) -> Repo:
-    if (root / ".git").exists():
+    git_dir = root / ".git"
+    if (git_dir / "objects").exists():
         return Repo(str(root))
-    repo = Repo.init(str(root))
-    commit_all(root, "知识库初始版本")
-    return repo
+    with INIT_LOCK:
+        if git_dir.exists():
+            try:
+                return Repo(str(root))
+            except NotGitRepository:
+                # 上次建仓中途被打断（例如进程被结束）：.git 里还没有任何对象，删掉重建不会丢东西
+                if (git_dir / "objects").exists():
+                    raise
+                shutil.rmtree(git_dir)
+        repo = Repo.init(str(root))
+        commit_all(root, "知识库初始版本")
+        return repo
 
 
 def _files(root: Path) -> list[str]:
