@@ -122,7 +122,7 @@ def _roles_build(env: Env, params: dict[str, Any]) -> Context:
     devices = devices[:MAX_DEVICES]
     topo = topology.build(devices, env.kb)
     tj = topology.to_json(topo)
-    annos = A.list_annotations(env.db, env.project_id, "device") if env.project_id is not None else []
+    annos = A.list_annotations(env.db, env.project_id, "device", env.network_id) if env.project_id is not None else []
     anno_of: dict[str, dict[str, Any]] = {}
     for a in annos:
         anno_of.setdefault(str(a["target"]), {})[a["key"]] = (a["value"], a["source"])
@@ -303,10 +303,12 @@ def _adopt_peer(env: Env, row: AISuggestion, facts: dict[str, Any]) -> dict[str,
         raise SuggestError("ai_suggest.check_failed", "state", data={"check": {"status": "reject", "reasons": why}})
     target = _link_target(info)
     with store.session(env.db) as s:
-        cur = A._annotation(s, env.project_id, "link", target, "peer")
+        cur = A._annotation(s, env.project_id, "link", target, "peer", env.network_id)
         prior = None
         if cur is None:
-            cur = ViewAnnotation(project_id=env.project_id, target_type="link", target=target, key="peer")
+            cur = ViewAnnotation(
+                project_id=env.project_id, network_id=env.network_id, target_type="link", target=target, key="peer"
+            )
             s.add(cur)
         else:
             prior = {"value": cur.value, "source": cur.source, "suggestion_id": cur.suggestion_id}
@@ -370,13 +372,15 @@ def set_annotation(env: Env, target_type: str, target: str, key: str, value: Any
     if value not in (None, "") and norm is None:
         raise SuggestError("ai_suggest.bad_hint_value", "param", ref=str(value))
     with store.session(env.db) as s:
-        cur = A._annotation(s, env.project_id, "device", str(did), key)
+        cur = A._annotation(s, env.project_id, "device", str(did), key, env.network_id)
         if norm is None:
             if cur is not None:
                 s.delete(cur)
             return None
         if cur is None:
-            cur = ViewAnnotation(project_id=env.project_id, target_type="device", target=str(did), key=key)
+            cur = ViewAnnotation(
+                project_id=env.project_id, network_id=env.network_id, target_type="device", target=str(did), key=key
+            )
             s.add(cur)
         cur.value, cur.source, cur.suggestion_id = norm, "user", None
         cur.updated_by, cur.updated_at = env.actor[:200], datetime.now(UTC)
@@ -536,8 +540,7 @@ def coverage(env: Env, skill: str, scope_key: str, prefix: str = "c") -> dict[st
             AISuggestionBatch.scope_key == scope_key,
             AISuggestionBatch.status == "done",
         )
-        if env.project_id is not None:
-            q = q.where(AISuggestionBatch.project_id == env.project_id)
+        q = q.where(*A.scope_conds(env, AISuggestionBatch))
         b = s.scalar(q.order_by(AISuggestionBatch.id.desc()).limit(1))
         if b is None:
             return {"batch_id": None, "prefix": prefix, "total": 0, "covered": [], "uncovered": [], "by_suggestion": {}}
@@ -1124,8 +1127,7 @@ def _adopted_summary(env: Env, device_id: int, lang: str) -> tuple[dict[str, Any
             AISuggestion.device_id == device_id,
             AISuggestion.status == "adopted",
         )
-        if env.project_id is not None:
-            q = q.where(AISuggestion.project_id == env.project_id)
+        q = q.where(*A.scope_conds(env, AISuggestion))
         rows = list(s.scalars(q.order_by(AISuggestion.decided_at.desc())))
         if not rows:
             return None, None
@@ -1155,7 +1157,7 @@ def handover(env: Env, device_id: int, lang: str = "zh-CN", fmt: str = "html") -
     doc.h(1, f"{T['title']} · {dev.name}")
     annos = {}
     if env.project_id is not None:
-        for a in A.list_annotations(env.db, env.project_id, "device"):
+        for a in A.list_annotations(env.db, env.project_id, "device", env.network_id):
             if a["target"] == str(dev.id):
                 annos[a["key"]] = a
 

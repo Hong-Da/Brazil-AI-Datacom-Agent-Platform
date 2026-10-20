@@ -56,6 +56,9 @@ class ImportResult:
     rule_id: int | None = None
     rule_created: int | None = None
     raw_only: bool = False
+    # M9：设备编号与这次导入新加入的网络（默认网络、在网络里导入时的当前网络、自动加入规则命中的网络）
+    device_id: int | None = None
+    joined_networks: list[dict[str, Any]] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -255,6 +258,7 @@ def import_sources(
                     )
                     s.add(dev)
                     s.flush()
+                res.device_id = dev.id
                 changed = dev.profile != ch.profile
                 dev.vendor, dev.sw_version = res.vendor, res.version
                 model_support.apply_choice(dev, ch)
@@ -331,6 +335,14 @@ def import_sources(
 
         keep = int(config.load().get("history.keep"))
     history.after_import(db_url, new_versions, kb, keep)
+    if project_id is not None:
+        from lmesh.core import networks
+
+        ids = list(dict.fromkeys(r.device_id for r in results if r.ok and r.device_id is not None))
+        joined = networks.auto_join(db_url, project_id, ids, sc, actor, kb)
+        for r in results:
+            if r.ok and r.device_id is not None:
+                r.joined_networks = joined.get(r.device_id, [])
     return results
 
 

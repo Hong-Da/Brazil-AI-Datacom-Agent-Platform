@@ -1474,6 +1474,11 @@ def translate_patches(db_url: str, project_id: int | None, device_id: int, to: s
         )
         if project_id is not None:
             q = q.where(AISuggestion.project_id == project_id)
+            from lmesh.core import projects
+
+            sc = projects.current()
+            if sc is not None and sc.network_id is not None and sc.project_id == project_id:
+                q = q.where(AISuggestion.network_id == sc.network_id)  # M9：按网络
         last: dict[Any, dict[str, Any]] = {}
         for r in s.scalars(q.order_by(AISuggestion.decided_at, AISuggestion.id)):
             info = r.adopt_info or {}

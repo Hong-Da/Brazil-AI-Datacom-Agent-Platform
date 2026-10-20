@@ -88,6 +88,14 @@ class Env:
     lang: str = "zh-CN"
     _kb: Any = field(default=None, repr=False)
     out: dict[str, Any] = field(default_factory=dict, repr=False)  # 校验器写给界面的附加结果（display / result）
+    network_id: int | None = None  # 当前网络（M9）：建议、采纳记录与视图标注按网络独立
+
+    def __post_init__(self) -> None:
+        # 只给了项目（直接调用 core、旧数据）时用项目的默认网络
+        if self.network_id is None and self.project_id is not None:
+            from lmesh.core import networks
+
+            self.network_id = networks.default_network_id(self.db, self.project_id)
 
     @property
     def db(self) -> str:
@@ -423,9 +431,28 @@ def _hint_target(c: dict[str, Any], facts: dict[str, Any]) -> tuple[str, str] | 
     return "device", str(o["device_id"])
 
 
-def _annotation(s: Any, project_id: int, ttype: str, target: str, key: str) -> ViewAnnotation | None:
+def scope_conds(env: Env, model: Any) -> list[Any]:
+    """按当前项目与网络过滤建议、批次（M9：有网络时按网络）。"""
+    if env.network_id is not None:
+        return [model.network_id == env.network_id]
+    if env.project_id is not None:
+        return [model.project_id == env.project_id]
+    return []
+
+
+def _owned(env: Env, row: Any) -> bool:
+    if env.network_id is not None:
+        return bool(row.network_id == env.network_id)
+    return env.project_id is None or row.project_id == env.project_id
+
+
+def _annotation(
+    s: Any, project_id: int, ttype: str, target: str, key: str, network_id: int | None = None
+) -> ViewAnnotation | None:
+    net = [ViewAnnotation.network_id == network_id] if network_id is not None else []
     return s.scalar(
         select(ViewAnnotation).where(
+            *net,
             ViewAnnotation.project_id == project_id,
             ViewAnnotation.target_type == ttype,
             ViewAnnotation.target == target,
@@ -452,7 +479,7 @@ def _check_view_hint(d: dict[str, Any], facts: dict[str, Any], env: Env) -> list
         out += [r for r in check_text(str(c["reason"]), facts) if r["level"] == "reject"]
     if env.project_id is not None:
         with store.session(env.db) as s:
-            cur = _annotation(s, env.project_id, tgt[0], tgt[1], key)
+            cur = _annotation(s, env.project_id, tgt[0], tgt[1], key, env.network_id)
             if cur is not None and cur.source == "user" and cur.value != _hint_value(key, c.get("value")):
                 out.append(reason("overrides_manual", "warn", ref=str(cur.value)))
     return out
@@ -467,10 +494,12 @@ def _adopt_view_hint(env: Env, row: AISuggestion, facts: dict[str, Any]) -> dict
         raise SuggestError("ai_suggest.check_failed", "state")
     key, value = str(c["key"]), _hint_value(str(c["key"]), c.get("value"))
     with store.session(env.db) as s:
-        cur = _annotation(s, env.project_id, tgt[0], tgt[1], key)
+        cur = _annotation(s, env.project_id, tgt[0], tgt[1], key, env.network_id)
         prior = None
         if cur is None:
-            cur = ViewAnnotation(project_id=env.project_id, target_type=tgt[0], target=tgt[1], key=key)
+            cur = ViewAnnotation(
+                project_id=env.project_id, network_id=env.network_id, target_type=tgt[0], target=tgt[1], key=key
+            )
             s.add(cur)
         else:
             prior = {"value": cur.value, "source": cur.source, "suggestion_id": cur.suggestion_id}
@@ -491,7 +520,7 @@ def _adopt_view_hint(env: Env, row: AISuggestion, facts: dict[str, Any]) -> dict
 def _revert_view_hint(env: Env, row: AISuggestion) -> dict[str, Any]:
     info = row.adopt_info or {}
     with store.session(env.db) as s:
-        cur = _annotation(s, int(row.project_id or 0), info["target_type"], info["target"], info["key"])
+        cur = _annotation(s, int(row.project_id or 0), info["target_type"], info["target"], info["key"], row.network_id)
         if cur is None or cur.suggestion_id != row.id:
             raise SuggestError("ai_suggest.superseded", "state", id=row.id)
         prior = info.get("prior")
@@ -506,10 +535,14 @@ def _revert_view_hint(env: Env, row: AISuggestion) -> dict[str, Any]:
 register_category("view_hint", Validator(_check_view_hint, _adopt_view_hint, _revert_view_hint))
 
 
-def list_annotations(db_url: str, project_id: int, target_type: str | None = None) -> list[dict[str, Any]]:
-    """项目级视图标注（拓扑角色、分组、标签……）。"""
+def list_annotations(
+    db_url: str, project_id: int, target_type: str | None = None, network_id: int | None = None
+) -> list[dict[str, Any]]:
+    """视图标注（拓扑角色、分组、标签……）；network_id 给出时只看这个网络的（M9 起按网络）。"""
     with store.session(db_url) as s:
         q = select(ViewAnnotation).where(ViewAnnotation.project_id == project_id)
+        if network_id is not None:
+            q = q.where(ViewAnnotation.network_id == network_id)
         if target_type:
             q = q.where(ViewAnnotation.target_type == target_type)
         return [
@@ -787,6 +820,7 @@ def start(env: Env, skill_id: str, params: dict[str, Any] | None = None, replay:
     with store.session(env.db) as s:
         b = AISuggestionBatch(
             project_id=env.project_id,
+            network_id=env.network_id,
             device_id=params.get("device_id"),
             skill=skill_id,
             skill_version=sk.active,
@@ -962,6 +996,7 @@ def execute(
                 AISuggestion(
                     batch_id=batch_id,
                     project_id=env.project_id,
+                    network_id=env.network_id,
                     device_id=ctx.device_id,
                     scope_key=ctx.scope_key,
                     skill=skill_id,
@@ -1015,7 +1050,7 @@ def run(
 
 def _batch(s: Any, env: Env, batch_id: int) -> AISuggestionBatch:
     b = s.get(AISuggestionBatch, batch_id)
-    if b is None or (env.project_id is not None and b.project_id != env.project_id):
+    if b is None or not _owned(env, b):
         raise SuggestError("ai_suggest.batch_not_found", "not_found", id=batch_id)
     return b
 
@@ -1024,6 +1059,7 @@ def batch_dict(b: AISuggestionBatch) -> dict[str, Any]:
     return {
         "id": b.id,
         "project_id": b.project_id,
+        "network_id": b.network_id,
         "device_id": b.device_id,
         "scope_key": b.scope_key,
         "skill": b.skill,
@@ -1089,6 +1125,7 @@ def suggestion_dict(r: AISuggestion, facts: dict[str, Any] | None = None) -> dic
         "id": r.id,
         "batch_id": r.batch_id,
         "project_id": r.project_id,
+        "network_id": r.network_id,
         "device_id": r.device_id,
         "scope_key": r.scope_key,
         "skill": r.skill,
@@ -1137,8 +1174,7 @@ def list_suggestions(
     offset: int = 0,
 ) -> dict[str, Any]:
     conds: list[Any] = []
-    if env.project_id is not None:
-        conds.append(AISuggestion.project_id == env.project_id)
+    conds += scope_conds(env, AISuggestion)
     for col, val in (
         (AISuggestion.skill, skill),
         (AISuggestion.check_status, check),
@@ -1178,7 +1214,7 @@ def list_suggestions(
 
 def _row(s: Any, env: Env, sid: int) -> AISuggestion:
     r = s.get(AISuggestion, sid)
-    if r is None or (env.project_id is not None and r.project_id != env.project_id):
+    if r is None or not _owned(env, r):
         raise SuggestError("ai_suggest.not_found", "not_found", id=sid)
     return r
 
@@ -1192,8 +1228,7 @@ def get(env: Env, sid: int) -> dict[str, Any]:
 def adoptions(env: Env, limit: int = 200) -> list[dict[str, Any]]:
     """采纳记录：已采纳与已撤销的建议（按采纳时间，新的在前）。"""
     conds: list[Any] = [AISuggestion.status.in_(("adopted", "reverted"))]
-    if env.project_id is not None:
-        conds.append(AISuggestion.project_id == env.project_id)
+    conds += scope_conds(env, AISuggestion)
     with store.session(env.db) as s:
         rows = list(s.scalars(select(AISuggestion).where(*conds).order_by(AISuggestion.decided_at.desc()).limit(limit)))
         facts = _facts_of(s, {r.batch_id for r in rows})
@@ -1320,8 +1355,7 @@ def adopt_batch(
         raise SuggestError("ai_suggest.no_batch", "state", category=category)
     _require_kb(env, category)
     conds: list[Any] = [AISuggestion.category == category, AISuggestion.status == "pending"]
-    if env.project_id is not None:
-        conds.append(AISuggestion.project_id == env.project_id)
+    conds += scope_conds(env, AISuggestion)
     if skill:
         conds.append(AISuggestion.skill == skill)
     if batch_id is not None:

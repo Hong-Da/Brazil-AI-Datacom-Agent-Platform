@@ -1,0 +1,108 @@
+# 项目内的网络（M9，REQ-045）的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-projects：alice 的项目 lab 里有私有设备 ATN-CHANGE-01，引用公共设备 PE-CHANGE-01；
+# 升级 / 新建项目时自动有默认网络 default（包含全部设备）。
+
+[[case]]
+id = "network-list"
+title = { zh-CN = "网络列表：默认网络包含全部设备", en = "Network list: the default network has every device", pt-BR = "Lista de redes: a padrão tem todos os dispositivos" }
+args = ["--output", "json", "--project", "alice/lab", "network", "list"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.networks.0.slug" = "default", "data.networks.0.default" = true, "data.networks.0.counts.devices" = 2, "data.overview.devices" = 2 }
+in_docs = true
+
+[[case]]
+id = "network-list-text"
+title = { zh-CN = "网络列表的文字输出（葡萄牙语）", en = "Network list text output (Portuguese)", pt-BR = "Saída de texto da lista de redes (português)" }
+args = ["--lang", "pt-BR", "--project", "alice/lab", "network", "list"]
+setup = "configured-projects"
+expect_exit = 0
+expect_stdout = ["Identificador", "default *", "1 no total"]
+
+[[case]]
+id = "network-create-rule"
+title = { zh-CN = "新建网络并按设备名规则加入现有设备", en = "Create a network with a name rule that also adds existing devices", pt-BR = "Criar rede com regra de nome que inclui os existentes" }
+args = ["--output", "json", "--project", "alice/lab", "network", "create", "接入", "--slug", "access", "--name-rule", "ATN-*"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.slug" = "access", "data.counts.devices" = 1, "data.rules.0.pattern" = "ATN-*", "data.color" = "indigo" }
+in_docs = true
+
+[[case]]
+id = "network-create-text"
+title = { zh-CN = "新建网络的文字输出（英文）", en = "Create a network, text output (English)", pt-BR = "Criar rede, saída de texto (inglês)" }
+args = ["--lang", "en", "--project", "alice/lab", "network", "create", "Core"]
+setup = "configured-projects"
+expect_exit = 0
+expect_stdout = ["Created network core (0 devices)"]
+
+[[case]]
+id = "network-show-missing"
+title = { zh-CN = "网络不存在：退出码 4", en = "Unknown network: exit 4", pt-BR = "Rede inexistente: saída 4" }
+args = ["--project", "alice/lab", "network", "show", "nope"]
+setup = "configured-projects"
+expect_exit = 4
+expect_stderr = ["nope"]
+
+[[case]]
+id = "network-global-option"
+title = { zh-CN = "全局 --network：命令作用于该网络（默认网络有全部设备）", en = "Global --network: the command works in that network", pt-BR = "--network global: o comando atua nessa rede" }
+args = ["--output", "json", "--project", "alice/lab", "--network", "default", "config", "list"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.devices.0.name" = "ATN-CHANGE-01", "data.devices.1.name" = "PE-CHANGE-01" }
+in_docs = true
+
+[[case]]
+id = "network-global-option-missing"
+title = { zh-CN = "全局 --network 不存在：退出码 4", en = "Unknown --network: exit 4", pt-BR = "--network inexistente: saída 4" }
+args = ["--project", "alice/lab", "--network", "nope", "config", "list"]
+setup = "configured-projects"
+expect_exit = 4
+
+[[case]]
+id = "network-delete-default"
+title = { zh-CN = "默认网络不能删除：退出码 1", en = "The default network cannot be deleted: exit 1", pt-BR = "A rede padrão não pode ser excluída: saída 1" }
+args = ["--project", "alice/lab", "network", "delete", "default", "--confirm", "默认网络"]
+setup = "configured-projects"
+expect_exit = 1
+
+[[case]]
+id = "network-delete-preview"
+title = { zh-CN = "删除网络前预览会删除的工作数据", en = "Preview the work data a network delete removes", pt-BR = "Prévia dos dados excluídos com a rede" }
+args = ["--output", "json", "--project", "alice/lab", "network", "delete", "default", "--preview"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.deletable" = false, "data.counts.members" = 2 }
+
+[[case]]
+id = "network-suggest-name"
+title = { zh-CN = "建网建议：按设备名规则", en = "Network suggestions by name rule", pt-BR = "Sugestões de redes por regra de nome" }
+args = ["--output", "json", "--project", "alice/lab", "network", "suggest", "name"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.total" = 2, "data.suggestions.0.key" = "name:ATN-CHANGE", "data.suggestions.0.rule.pattern" = "ATN-CHANGE-*" }
+in_docs = true
+
+[[case]]
+id = "network-adopt-name"
+title = { zh-CN = "采纳建网建议（全部可采纳的）", en = "Adopt all adoptable suggestions", pt-BR = "Adotar todas as sugestões possíveis" }
+args = ["--output", "json", "--project", "alice/lab", "network", "adopt", "name", "--with-rules"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.created.0.network.slug" = "atn-change", "data.created.1.network.slug" = "pe-change" }
+
+[[case]]
+id = "network-suggest-bad-basis"
+title = { zh-CN = "建网建议的依据不合格：退出码 2", en = "Invalid suggestion basis: exit 2", pt-BR = "Critério inválido: saída 2" }
+args = ["--project", "alice/lab", "network", "suggest", "nope"]
+setup = "configured-projects"
+expect_exit = 2
+
+[[case]]
+id = "network-members"
+title = { zh-CN = "网络成员（默认网络）", en = "Network members (default network)", pt-BR = "Membros da rede (padrão)" }
+args = ["--output", "json", "--project", "alice/lab", "network", "members", "default"]
+setup = "configured-projects"
+expect_exit = 0
+expect_json = { "ok" = true, "data.total" = 2, "data.members.0.policy" = "follow" }

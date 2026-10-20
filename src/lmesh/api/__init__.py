@@ -36,6 +36,7 @@ from lmesh.api.routes_history import router as history_router
 from lmesh.api.routes_kb import router as kb_router
 from lmesh.api.routes_migrate import router as migrate_router
 from lmesh.api.routes_models import router as models_router
+from lmesh.api.routes_networks import router as networks_router
 from lmesh.api.routes_projects import admin as projects_admin_router
 from lmesh.api.routes_projects import project as project_router
 from lmesh.api.routes_projects import router as projects_router
@@ -73,6 +74,7 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
             "透网 LucidMesh 远程 API。除 /health、/auth/status、/auth/login 与首次运行向导外，所有接口都需要登录："
             "网页用会话 Cookie，脚本用 Authorization: Bearer <令牌>（全局令牌或个人令牌 lmp_…）。"
             "设备相关接口在 /api/v1/projects/{project}/… 下；旧的无项目路径保留为兼容别名（调用者的默认项目，已弃用）。"
+            "按网络的接口另挂在 /api/v1/projects/{project}/n/{network}/…；不带网络时作用于项目的默认网络。"
         ),
     )
     app.state.settings = settings or config.load()
@@ -131,6 +133,7 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     scoping.mount(app, projects_router, API_PREFIX, "projects")
     scoping.mount(app, projects_admin_router, API_PREFIX, "projects")
     scoping.mount(app, project_router, API_PREFIX, "projects", project_only=True)
+    scoping.mount(app, networks_router, API_PREFIX, "networks", project_only=True)
     scoping.mount(app, ai_suggest_router, API_PREFIX, "ai-suggestions", project_only=True)
     scoping.mount(app, ai_change_router, API_PREFIX, "ai-suggestions", project_only=True)
     scoping.mount(app, ai_kb_router, API_PREFIX, "ai-suggestions", project_only=True)

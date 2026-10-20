@@ -67,7 +67,7 @@
 | REQ-042 | 网元拓扑视图的设备图标：按设备角色与类型设计图标，显示厂商与平台 | 用户 2026-10-19 | M8（0.8.0） | 拓扑视图、关系图谱、图标资源 | 已实现（M8-3），待 M8 验收 | 设计见“拓扑设备图标（REQ-042）”一节；实现见“M8-3 结果” |
 | REQ-043 | 所有视图可以全屏显示与操作（配置图、关系图谱、拓扑、设备分析各视图、对比、脚本编辑器等） | 用户 2026-10-19 | M7（0.7.0） | 前端通用全屏组件 | 已完成（M7-7） | 设计见“视图全屏（REQ-043）”一节 |
 | REQ-044 | 未支持型号的处理：导入时可手工选择 Profile（同厂商 / 同平台族）、试解析推荐、型号规则记住选择、近似标记与下发前提示、申请支持与派生 Profile、认不出的厂商只存原文 | 用户 2026-10-19 | M8（0.8.0） | 导入、设备页、Profile、审核队列 | 已实现（M8-7），待 M8 验收 | 设计见“未支持型号的处理（REQ-044）”一节，经用户确认；实现结果见该节 |
-| REQ-045 | 项目内划分网络：网络是独立的工作区，设备可在多个网络中；拓扑还原、一致性、检查、基线、脚本、变更、迁移、AI 建议、报告等操作按网络独立 | 用户 2026-10-19 | M9（0.9.0） | 数据模型、网络切换器、所有按项目的页面与操作数据按网络隔离 | 待开发 | 设计见“项目内的网络（REQ-045）”一节，经用户确认 |
+| REQ-045 | 项目内划分网络：网络是独立的工作区，设备可在多个网络中；拓扑还原、一致性、检查、基线、脚本、变更、迁移、AI 建议、报告等操作按网络独立 | 用户 2026-10-19 | M9（0.9.0） | 数据模型、网络切换器、所有按项目的页面与操作数据按网络隔离 | 开发中（M9 后端完成，界面待 M9-5） | 设计见“项目内的网络（REQ-045）”一节，经用户确认 |
 | REQ-046 | M8 完成后发布可部署版本：Docker 镜像 + compose（SQLite / PostgreSQL）、Linux 离线安装包、Windows 离线安装包、Windows 安装程序（.exe）；全部离线可装；只生成在本机 dist/ | 用户 2026-10-19 | M8（发布 0.8.0） | 打包脚本、Dockerfile、安装脚本、部署文档 | 已实现（M8-8，试打包 0.5.0-rc 验证通过），待 M8 验收 | 用户确认：默认 SQLite 可配 PostgreSQL；不推送远程；实现见“M8-8 结果”，含升级时知识库合并 |
 
 ## 待确认
@@ -1714,6 +1714,91 @@ M6-7 实现。预览 `DevelopDocs/ui-preview/REQ-039/`（登录与注册、账�
 - 接口 `/api/v1/projects/{p}/networks`（增删改、成员、建议、自动加入规则），按网络的操作 `/projects/{p}/n/{net}/…`；CLI 全局参数 `--network`；权限仍按项目。
 - 排期：新里程碑 M9（0.9.0）。REQ-044 在 M8 开发的同时先做 M9 预览页，预览确认后再编码（Claude 按推荐定下，见决策记录）。
 - 预览评审（用户 2026-10-20，`DevelopDocs/ui-preview/M9/` 9 页全部通过，设计问题均选推荐）：顶栏“项目 › 网络”两个切换器并排；删除网络不进回收站，确认时列出内容并输入网络名；复制网络时复制已采纳的 AI 结果与采纳记录（注明“复制自”），不复制待处理的建议；网络外对端默认关，按网络记住每个人上次的选择；默认网络可以改名、不能删除；选“全部设备”时拓扑、检查、脚本等按网络的页面显示各网络汇总（项目层网址，不带网络；升级前的旧网址落到这里），可点进各网络；网络识别色从 8 色中按创建顺序自动分配，可换成组内其他颜色。
+
+### M9 后端结果（M9-2～M9-4）
+
+数据模型、迁移、按网络隔离、网络管理与建网建议的后端；界面在 M9-5 做。决策记录见 DevelopDocs/decisions/（M9 后端）。
+
+- 数据（迁移 `0012_networks`，接在 `0011` 之后，SQLite 与 PostgreSQL 都测过从 0011 样本数据升级）：
+  - `networks`（项目、`slug` 项目内唯一、`name`、`description`、`color`、`folder_id`、`position`、`is_default`、`copied_from`、`stats` 按设备记下的最近检查结果、`last_activity`、`created_by`）；
+  - `network_folders`（只整理列表）、`network_rules`（自动加入规则：`kind` name 设备名通配 / subnet 管理网段 CIDR）；
+  - `network_members`（设备、`version_id` 为空 = 跟随最新 / 否则固定、`join_source` upgrade / default / manual / rule / suggestion / copy / import、`rule_id`、`excluded` 手工移出的排除标记、`joined_by` / `joined_at`）；
+  - 工作数据表加 `network_id`：`check_ignores`、`check_projects`（脚本组，脚本与修订随它）、`project_rule_overrides`、`ai_suggestion_batches`、`ai_suggestions`、`view_annotations`；忽略项、规则调整、视图标注的唯一约束从按项目改为按网络。
+  - 升级：每个项目建默认网络（标识 `default`、名称“默认网络”、颜色 `slate`），私有设备与引用的公共设备都成为成员（`upgrade`，跟随最新），上述工作数据都移进默认网络。之后新建的项目在第一次用到时自动建默认网络。
+- 当前网络（`core/projects.py` 的 Scope 加 `network_id` / `network_slug` / `network_name` / `network_default` / `network_explicit`）：
+  - API 的网络路径、命令行 `--network` 设置它；不带网络时为项目的默认网络。
+  - 设备范围：默认网络为项目全部设备，其他网络为成员（不含排除）；不在网络里的设备与版本按“不存在”处理（404）。
+  - 版本：网络里固定的版本 → 项目引用公共设备固定的版本 → 最新版本（`current_version_id`、`pins`）。
+  - 工作数据按 `network_id` 读写：`ignores`、`checkproj`、规则调整（Scope 的 `overrides` 按网络载入）、AI 建议框架（`Env.network_id`，只给项目时取默认网络）、视图标注、报告摘要与翻译补丁的采纳记录。
+- 隔离的范围与例外：
+  - 按网络：拓扑与视图标注、一致性、检查与基线结果、检查忽略、规则调整、脚本（基线只能选本网络的设备，默认用本网络为它选的版本）、变更、割接、影响分析、对比、报告与导出、图查询与 AI 查询、AI 建议与采纳记录。变更、割接、报告不入库，按设备范围与版本隔离。
+  - 项目层（不按网络）：设备与导入、版本历史与标签、删除设备与版本、型号规则（REQ-044）、项目设置（显示风格、规则集、安全基线的选择）、脱敏补充、成员与权限、模板与翻译规则集（项目 / 个人共用）。
+  - 安全基线的选择仍在项目设置里，基线结果按网络的设备与版本计算。如需按网络选基线，以后在 `networks` 上加设置。
+- 接口：
+  - 按网络的路径 `/api/v1/projects/{p}/n/{net}/…`（`api/scoping.network_guard`），挂了项目路径的接口都有网络版本。
+  - 不挂网络路径的是 `api/access.NETWORK_EXCLUDE` 中的项目设备池管理（删除设备与版本、删除预览、贴 / 删标签、型号规则），以及项目管理（设置、成员、转交、复制、引用、`/networks` 本身、`/ai/kb/sanitize-redact`）。
+  - 不带网络的项目路径与旧路径作用于默认网络。按评审，“全部设备”页显示各网络汇总，汇总数据由 `GET /projects/{p}/networks` 提供（各网络的 `counts` 与 `overview`）。按网络的接口不改成返回汇总，这样现有前端与脚本照常工作（决策记录）。
+  - 网络管理（只在项目路径下，`api/routes_networks.py`）：
+    - `/networks`（列表含文件夹、颜色组、项目概览与各网络汇总；新建）；
+    - `/networks/{net}`（详情、修改、删除需 `confirm` 网络名、`delete-preview`、`copy`）；
+    - `/network-folders`；
+    - `/networks/{net}/members`（列表、加入、批量改版本策略、`remove` 排除、`unexclude`）；
+    - `/networks/{net}/join-rules`（增删改、`preview` 命中预览）；
+    - `/network-suggestions`（预览）与 `/network-suggestions/adopt`。
+  - 写操作记录网络的 `last_activity`。设备完整检查（全部级别、不限功能域）的结果按设备记到当前网络的 `stats`，汇总页的 `findings` 由它算出。
+- 导入时自动加入（`networks.auto_join`）：
+  - 新设备加入默认网络；在网络路径（或 `--network`）下导入时同时加入当前网络；各网络的规则命中时直接加入（设备名不分大小写；管理网段要有知识库算出管理地址）。
+  - 手工移出（排除）的设备不会被规则再加入；在网络里导入或手工加入会清除排除。
+  - 导入结果每个文件加 `device_id` 与 `joined_networks`（`via` default / current / rule、`rule`）。
+  - 引用公共设备、复制设备到项目时同样加入默认网络与当前网络。
+- 管理地址（`networks.mgmt_of_facts`，自动加入与建议共用）：依次取
+  1. 管理口（MEth、MgmtEth、mgmt、fxp / em、`GigabitEthernet0`）的地址；
+  2. 管理 VRF（名字含 mgmt / manage / oam）里的接口地址；
+  3. LSR ID（Loopback0 / system）；
+  4. 第一个 Loopback 地址。
+  按版本缓存。
+- 建网建议（`networks.suggest` / `adopt`）：代码在项目全部设备的配置图上计算，不入库。
+  - 依据：
+    - components：同网段链路的连通分量，默认不算管理口 / 管理 VRF 的链路；
+    - igp：IS-IS 进程与 OSPF 进程 + 区域，一台设备可在多个建议里；
+    - bgp：本地 AS；
+    - name：正则第一个括号，默认 `^(.+)-[^-]+$`，给出规则 `组名-*`；
+    - subnet：管理地址按前缀汇总，给出 CIDR 规则；
+    - ai：当前网络里 M8 拓扑整理已采纳的 `group` 标注（来源 ai）。代码校验设备都在项目里、组内按同网段链路连通，不通过的 `check.status = reject`、不能采纳。没有配置 AI 时其他依据照常可用。
+  - 每个建议给出设备数、和现有网络的重叠（不含默认网络）、与现有网络完全相同的（`same_as`，不能采纳）、和其他建议重叠的设备。
+  - 采纳时按同样参数重新计算，逐个或全部采纳；每个建议建一个网络，成员加入方式 suggestion；`with_rules` 时把规则设为新网络的自动加入规则。
+- 网络操作：
+  - 新建：颜色按项目里已有网络数从 8 色中轮流分配，默认网络是第一个 `slate`。
+  - 改名、标识、颜色、文件夹、位置：默认网络可以改名。
+  - 复制：成员与版本选择、规则与排除、标注、忽略、规则调整、脚本组与脚本（含全部修订）；已采纳与已撤销的 AI 建议连同批次一起复制，`note` 与 `adopt_info.copied_from` 注明复制自哪里；不复制待处理与已忽略的建议。
+  - 删除：只删网络与它的工作数据，不进回收站；`confirm` 为网络名称或标识；默认网络不能删除；默认网络的成员不能移出。
+  - 复制项目时网络、文件夹、成员（按设备对应关系）、规则、标注、忽略一起复制，规则调整与脚本复制到对应网络；AI 记录不复制，与 M6 相同。
+- 拓扑：
+  - `GET …/topology?outside=true`（`POST` 的 `outside`）在项目全部设备上还原一次，取一端在本网络、另一端不在的链路作为 `outside.links`（`inside`、`peer` 设备与它所在的网络）；默认网络没有“网络外”。
+  - 返回体另有 `network` 与节点的 `also_in`。
+  - “按网络记住每个人上次的选择”由前端保存（浏览器，按账号与网络）。
+- 命令行：
+  - 全局 `--network`（`-N`）：在 `--project` 里找，不存在退出码 4，不给时为默认网络。
+  - `lmesh network list|show|create|update|delete|copy|members|add|remove|pin|follow|rules|rule-add|rule-preview|rule-delete|folder-add|folder-delete|suggest|adopt`。
+- 给 M9-5 前端的接口说明：
+  - 切换器与网络页：`GET /projects/{p}/networks`（`networks[].counts`、`folders`、`palette`、`overview`）。新建、改名、移动用 `POST /networks`、`PUT /networks/{net}`（`folder_id` + `move`）；文件夹用 `/network-folders`；复制用 `POST /networks/{net}/copy`；删除先 `GET …/delete-preview`，再 `DELETE …?confirm=<名称>`。
+  - 页面数据：按网络的页面把 `api.ts` 的项目路径改写为 `/projects/<项目>/n/<网络>/…`；项目层网址（“全部设备”）的设备页照常用 `/projects/<项目>/devices`。按网络的页面在项目层用 `GET /networks` 显示各网络汇总：检查页用 `counts.findings`、脚本页用 `counts.scripts` / `scripts_with_errors`、拓扑页用 `counts.annotations` / `ai_pending`。
+  - 成员页：`GET /networks/{net}/members`（`policy`、`seq`、`latest_seq`、`newer_available`、`also_in`、`join_source`、`rule`、`joined_at`、`mgmt_address`）；批量操作用 `PUT …/members`、`POST …/members/remove`。“撤销本网络的自动加入”就是对这几台调用 `remove`。
+  - 规则：`/join-rules` 与 `/join-rules/preview`。
+  - 设备页：每行的 `networks`、`network_policy` 等字段；导入结果的 `joined_networks`；删除设备的预览（`GET …/devices/{id}/delete-preview`）另有 `networks`，即删除后会从哪些网络里一起移出。
+  - 拓扑页：`?outside=true` 的 `outside.links[].peer.networks`、节点 `also_in`；节点角色与分组用该网络的 `/view-annotations`。
+  - 建网建议页：`GET /network-suggestions?basis=…`（`suggestions[].devices`、`overlap_existing`、`same_as`、`overlap_suggestions`、`overlap_devices`、`check`、`adoptable`、`rule`），采纳用 `POST /network-suggestions/adopt`。
+  - 识别色键到明 / 暗色值的对应由前端定义（预览 `m9.css` 的 `--n-*`）。
+- 测试：
+  - 单元 `tests/unit/test_networks.py`：迁移 0012、默认网络与成员、固定版本、自动加入与排除、隔离、复制与删除、复制项目、建网建议各依据与采纳、AI 分组校验、网络外的对端与管理地址；SQLite 与 PostgreSQL 各一次。
+  - API 流程 `tests/api/test_networks_api.py`：权限、路径、汇总、隔离、导入加入、拓扑 outside、成员、规则、建议、文件夹、复制、删除、项目层接口不挂网络路径、只读令牌。
+  - API 用例 `tests/cases/api_cases.networks.toml`。
+  - CLI 用例 `tests/cases/cli_cases.networks.toml`。
+- 遗留：
+  - 安全基线的选择仍按项目。
+  - 命令行 `lmesh check` 不写网络的检查汇总，只有接口写。
+  - 管理地址是推断的，没有专门的“管理地址”配置项。
+  - “汇总下层网络”按评审暂不做。
 
 ## 接入 Nokia 7750 SR（REQ-037）
 

@@ -248,12 +248,16 @@ class CheckIgnore(Base):
     project_id: Mapped[int | None] = mapped_column(
         ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
     )
+    # 所属网络（M9，REQ-045）：工作数据按网络独立；为空只出现在没有当前项目时直接调用 core 写入的数据
+    network_id: Mapped[int | None] = mapped_column(
+        ForeignKey("networks.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     rule: Mapped[str] = mapped_column(String(120))
     node: Mapped[str] = mapped_column(String(600))
     reason: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     __table_args__ = (
-        UniqueConstraint("project_id", "device_id", "rule", "node", name="uq_check_ignores_project_device_rule_node"),
+        UniqueConstraint("network_id", "device_id", "rule", "node", name="uq_check_ignores_network_device_rule_node"),
     )
 
 
@@ -320,6 +324,10 @@ class CheckProject(Base):
     # 所属项目（M6）：配置检查项目并入项目后，一个检查项目就是项目里的一组脚本（共用基线与检查设置）
     project_id: Mapped[int | None] = mapped_column(
         ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    # 所属网络（M9，REQ-045）：工作数据按网络独立；为空只出现在没有当前项目时直接调用 core 写入的数据
+    network_id: Mapped[int | None] = mapped_column(
+        ForeignKey("networks.id", ondelete="CASCADE"), nullable=True, index=True
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
@@ -496,18 +504,22 @@ class ProjectDeviceRef(Base):
 
 
 class ProjectRuleOverride(Base):
-    """项目级规则调整：关闭（enabled=false）或改级别，只影响该项目；reason 必填。"""
+    """规则调整：关闭（enabled=false）或改级别，只影响该项目的这个网络（M9 起按网络）；reason 必填。"""
 
     __tablename__ = "project_rule_overrides"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    # 所属网络（M9，REQ-045）：工作数据按网络独立；为空只出现在没有当前项目时直接调用 core 写入的数据
+    network_id: Mapped[int | None] = mapped_column(
+        ForeignKey("networks.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     rule: Mapped[str] = mapped_column(String(120))
     enabled: Mapped[bool] = mapped_column(default=True)
     severity: Mapped[str | None] = mapped_column(String(10), nullable=True)
     reason: Mapped[str] = mapped_column(Text, default="")
     updated_by: Mapped[str] = mapped_column(String(200), default="")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
-    __table_args__ = (UniqueConstraint("project_id", "rule", name="uq_project_rule_overrides_project_rule"),)
+    __table_args__ = (UniqueConstraint("network_id", "rule", name="uq_project_rule_overrides_network_rule"),)
 
 
 class ApiToken(Base):
@@ -567,6 +579,10 @@ class AISuggestionBatch(Base):
     project_id: Mapped[int | None] = mapped_column(
         ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
     )
+    # 所属网络（M9，REQ-045）：工作数据按网络独立；为空只出现在没有当前项目时直接调用 core 写入的数据
+    network_id: Mapped[int | None] = mapped_column(
+        ForeignKey("networks.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     device_id: Mapped[int | None] = mapped_column(ForeignKey("devices.id", ondelete="SET NULL"), nullable=True)
     scope_key: Mapped[str] = mapped_column(String(200), default="")  # device:<编号> / topology / project …
     skill: Mapped[str] = mapped_column(String(60), index=True)
@@ -602,6 +618,10 @@ class AISuggestion(Base):
     project_id: Mapped[int | None] = mapped_column(
         ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
     )
+    # 所属网络（M9，REQ-045）：工作数据按网络独立；为空只出现在没有当前项目时直接调用 core 写入的数据
+    network_id: Mapped[int | None] = mapped_column(
+        ForeignKey("networks.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     device_id: Mapped[int | None] = mapped_column(ForeignKey("devices.id", ondelete="SET NULL"), nullable=True)
     scope_key: Mapped[str] = mapped_column(String(200), default="")
     skill: Mapped[str] = mapped_column(String(60), index=True)
@@ -635,6 +655,10 @@ class ViewAnnotation(Base):
     __tablename__ = "view_annotations"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    # 所属网络（M9，REQ-045）：工作数据按网络独立；为空只出现在没有当前项目时直接调用 core 写入的数据
+    network_id: Mapped[int | None] = mapped_column(
+        ForeignKey("networks.id", ondelete="CASCADE"), nullable=True, index=True
+    )
     target_type: Mapped[str] = mapped_column(String(20))  # device / link / group
     target: Mapped[str] = mapped_column(String(200))  # 设备编号（文本）等
     key: Mapped[str] = mapped_column(String(40))  # role / group / label / layer
@@ -646,7 +670,7 @@ class ViewAnnotation(Base):
     updated_by: Mapped[str] = mapped_column(String(200), default="")
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     __table_args__ = (
-        UniqueConstraint("project_id", "target_type", "target", "key", name="uq_view_annotations_target_key"),
+        UniqueConstraint("network_id", "target_type", "target", "key", name="uq_view_annotations_network_target_key"),
     )
 
 
@@ -672,3 +696,74 @@ class ModelRule(Base):
     created_by: Mapped[str] = mapped_column(String(200), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+# ---------------------------------------------------------------- 项目内的网络（M9，REQ-045）
+
+
+class NetworkFolder(Base):
+    """网络列表的文件夹：只用来整理列表，不包含设备、不继承数据。"""
+
+    __tablename__ = "network_folders"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(200))
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Network(Base):
+    """项目内的网络：平铺的独立工作区（拓扑标注、检查忽略、规则调整、脚本、AI 建议……按网络独立）。
+    标识（slug）在项目内唯一；color 是 8 色中的一个键（按创建顺序自动分配，可以改）；is_default 的默认网络每个项目一个，
+    包含全部设备、自动加入新设备，可以改名、不能删除。copied_from：复制来源 {network_id, slug, name, at}；
+    stats：按设备记下的最近一次检查结果（汇总页用）；last_activity：{actor, action, at}。"""
+
+    __tablename__ = "networks"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    slug: Mapped[str] = mapped_column(String(64))
+    name: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str] = mapped_column(Text, default="")
+    color: Mapped[str] = mapped_column(String(16), default="slate")
+    folder_id: Mapped[int | None] = mapped_column(ForeignKey("network_folders.id", ondelete="SET NULL"), nullable=True)
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    is_default: Mapped[bool] = mapped_column(default=False)
+    copied_from: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    stats: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    last_activity: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    created_by: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (UniqueConstraint("project_id", "slug", name="uq_networks_project_slug"),)
+
+
+class NetworkRule(Base):
+    """自动加入规则：kind 为 name（设备名通配，* ?，不分大小写）或 subnet（管理地址所在网段，CIDR）；
+    导入设备时命中就直接加入。默认网络的“全部新设备”是隐含的，不存这里。"""
+
+    __tablename__ = "network_rules"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    network_id: Mapped[int] = mapped_column(ForeignKey("networks.id", ondelete="CASCADE"), index=True)
+    kind: Mapped[str] = mapped_column(String(10))
+    pattern: Mapped[str] = mapped_column(String(200))
+    enabled: Mapped[bool] = mapped_column(default=True)
+    created_by: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class NetworkMember(Base):
+    """网络成员：网络引用项目设备池里的设备。version_id 为空表示跟随最新（项目里的当前版本），否则固定在该版本；
+    join_source：upgrade 升级时移入 / default 默认网络自动加入 / manual 手工 / rule 自动加入规则 / suggestion 建网建议采纳 /
+    copy 复制网络 / import 在本网络导入。excluded：手工移出的设备记为排除（不算成员，自动加入规则不再加入）。"""
+
+    __tablename__ = "network_members"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    network_id: Mapped[int] = mapped_column(ForeignKey("networks.id", ondelete="CASCADE"), index=True)
+    device_id: Mapped[int] = mapped_column(ForeignKey("devices.id", ondelete="CASCADE"), index=True)
+    version_id: Mapped[int | None] = mapped_column(ForeignKey("config_versions.id", ondelete="SET NULL"), nullable=True)
+    join_source: Mapped[str] = mapped_column(String(16), default="manual")
+    rule_id: Mapped[int | None] = mapped_column(ForeignKey("network_rules.id", ondelete="SET NULL"), nullable=True)
+    excluded: Mapped[bool] = mapped_column(default=False)
+    joined_by: Mapped[str] = mapped_column(String(200), default="")
+    joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    __table_args__ = (UniqueConstraint("network_id", "device_id", name="uq_network_members_network_device"),)

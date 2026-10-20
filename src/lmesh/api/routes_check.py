@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from lmesh.api.common import E_NOT_FOUND, E_PARAM, E_STATE, ApiError, ok, require_token, settings_of
-from lmesh.core import analysis, checks, cleanup, graphstore, ignores, importer, kbservice, store
+from lmesh.core import analysis, checks, cleanup, graphstore, ignores, importer, kbservice, networks, store
 from lmesh.core import graph as graphmod
 from lmesh.core import rules as rulesmod
 from lmesh.core.kb import KnowledgeBase
@@ -92,7 +92,22 @@ def run_check(request: Request, body: CheckBody) -> tuple[dict[str, Any], nx.Mul
     rules = _rules(kb, root)
     g = _graph(request, kb, body)
     res = checks.check(g, kb, rules, body.severity, body.domain, _overrides(root), _ignores(request, body.device_id))
+    if body.device_id is not None:
+        _record(request, body.device_id, None, body.severity, body.domain, res)
     return res, g, kb
+
+
+def _record(
+    request: Request, device_id: int, version_id: int | None, severity: str, domain: str | None, res: dict[str, Any]
+) -> None:
+    """完整检查（全部级别、不限功能域）的结果记到当前网络（M9：各网络的检查汇总）。"""
+    if severity != "info" or domain:
+        return
+    db = settings_of(request).database_url
+    if version_id is None:
+        ver = graphstore.latest_version(db, device_id)
+        version_id = ver.id if ver is not None else None
+    networks.record_check(db, device_id, version_id, res.get("summary") or {})
 
 
 @router.post("/check", summary="配置检查：悬空引用、孤儿对象（含级联）、互斥冲突、规则约束；按级别、规则、功能域汇总")
@@ -111,7 +126,9 @@ def device_check(
     kb, root = _kb(request)
     rules = _rules(kb, root)
     g = _device_graph(request, kb, device_id, version_id)
-    return ok(request, checks.check(g, kb, rules, severity, domain, _overrides(root), _ignores(request, device_id)))
+    res = checks.check(g, kb, rules, severity, domain, _overrides(root), _ignores(request, device_id))
+    _record(request, device_id, version_id, severity, domain, res)
+    return ok(request, res)
 
 
 class CleanupBody(Target):

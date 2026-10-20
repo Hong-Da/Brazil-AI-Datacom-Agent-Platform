@@ -10,11 +10,16 @@
 当前项目（Scope）放在上下文变量里：API 的项目路径依赖、旧的无项目接口（落到调用者的默认项目）与命令行（--project，
 不带时默认项目）设置它；设备列表、最新版本、版本访问、忽略项、检查规则调整等按它过滤。没有设置时（单元测试直接调用
 core、管理员的全局操作）不过滤，行为与 M6 之前相同。
+
+当前网络（M9，REQ-045）也在 Scope 里：/projects/{p}/n/{net}/… 与命令行 --network 指定；不带网络时为项目的默认网络
+（默认网络包含全部设备，所以设备范围与项目相同，工作数据读写默认网络的）。非默认网络的设备范围是它的成员；
+设备在网络里固定了版本时，“当前版本”取固定的版本（其次项目对公共设备引用固定的版本，最后最新版本）。
 """
 
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import logging
 import re
 from collections.abc import Callable, Iterator
@@ -23,7 +28,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import delete, func, or_, select, update
+from sqlalchemy import and_, delete, func, or_, select, update
 
 from lmesh.core import store
 from lmesh.core.store.models import (
@@ -36,6 +41,8 @@ from lmesh.core.store.models import (
     ConfigVersion,
     Device,
     Edge,
+    Network,
+    NetworkMember,
     Node,
     Project,
     ProjectDeviceRef,
@@ -100,6 +107,16 @@ class Scope:
     overrides: dict[str, dict[str, Any]] = field(default_factory=dict)
     ref: str = ""  # 规范引用：调用者自己的（或属主为空的）项目写“标识”，别人的写“属主/标识”
     redact: tuple[str, ...] = ()  # 项目的脱敏补充（M8-5 脱敏复核采纳的规则，正则）：导入与发给 AI 前都按它替换
+    # 当前网络（M9）：network_explicit 表示路径或 --network 指定了网络；不指定时为默认网络
+    network_id: int | None = None
+    network_slug: str = ""
+    network_name: str = ""
+    network_default: bool = True
+    network_explicit: bool = False
+
+    @property
+    def network_label(self) -> str:
+        return f"{self.label}/{self.network_slug}" if self.network_slug else self.label
 
     @property
     def label(self) -> str:
@@ -165,10 +182,33 @@ def _now() -> datetime:
 # ---------------------------------------------------------------- 设备可见性（其他模块调用）
 
 
+def member_select(network_id: int) -> Any:
+    """网络的成员设备（不含手工移出而排除的）。"""
+    return select(NetworkMember.device_id).where(
+        NetworkMember.network_id == network_id, NetworkMember.excluded.is_(False)
+    )
+
+
 def device_clause(scope: Scope) -> Any:
-    """项目能看到的设备：私有设备 + 引用的公共设备。"""
+    """项目能看到的设备：私有设备 + 引用的公共设备；当前网络不是默认网络时只取它的成员（M9）。"""
     refs = select(ProjectDeviceRef.device_id).where(ProjectDeviceRef.project_id == scope.project_id)
-    return or_(Device.project_id == scope.project_id, Device.id.in_(refs))
+    base = or_(Device.project_id == scope.project_id, Device.id.in_(refs))
+    if scope.network_id is None or scope.network_default:
+        return base
+    return and_(base, Device.id.in_(member_select(scope.network_id)))
+
+
+def _in_network(s: Any, sc: Scope, device_id: int) -> bool:
+    if sc.network_id is None or sc.network_default:
+        return True
+    m = s.scalar(
+        select(NetworkMember.id).where(
+            NetworkMember.network_id == sc.network_id,
+            NetworkMember.device_id == device_id,
+            NetworkMember.excluded.is_(False),
+        )
+    )
+    return m is not None
 
 
 def scoped_devices(stmt: Any) -> Any:
@@ -184,9 +224,9 @@ def visible(s: Any, device_id: int) -> bool:
     dev = s.get(Device, device_id)
     if dev is None:
         return False
-    if dev.project_id == sc.project_id:
-        return True
-    return _ref(s, sc.project_id, device_id) is not None
+    if dev.project_id != sc.project_id and _ref(s, sc.project_id, device_id) is None:
+        return False
+    return _in_network(s, sc, device_id)
 
 
 def visible_version(s: Any, version_id: int) -> bool:
@@ -220,7 +260,8 @@ def _ref(s: Any, project_id: int, device_id: int) -> ProjectDeviceRef | None:
 
 
 def pins(s: Any) -> dict[int, int | None]:
-    """当前项目引用的公共设备：{设备: 固定的版本（None 表示跟随最新）}。"""
+    """当前项目引用的公共设备：{设备: 固定的版本（None 表示跟随最新）}；当前网络里固定了版本的设备（M9）取网络
+    固定的版本（优先于项目引用固定的版本）。"""
     sc = current()
     if sc is None:
         return {}
@@ -229,12 +270,37 @@ def pins(s: Any) -> dict[int, int | None]:
             ProjectDeviceRef.project_id == sc.project_id
         )
     ).all()
-    return {int(d): (int(v) if v is not None else None) for d, v in rows}
+    out = {int(d): (int(v) if v is not None else None) for d, v in rows}
+    if sc.network_id is not None:
+        for d, v in s.execute(
+            select(NetworkMember.device_id, NetworkMember.version_id).where(
+                NetworkMember.network_id == sc.network_id, NetworkMember.version_id.is_not(None)
+            )
+        ).all():
+            out[int(d)] = int(v)
+    return out
+
+
+def network_pin(s: Any, device_id: int) -> int | None:
+    """设备在当前网络里固定的版本（没有当前网络或跟随最新时为 None）。"""
+    sc = current()
+    if sc is None or sc.network_id is None:
+        return None
+    v = s.scalar(
+        select(NetworkMember.version_id).where(
+            NetworkMember.network_id == sc.network_id, NetworkMember.device_id == device_id
+        )
+    )
+    return int(v) if v is not None else None
 
 
 def current_version_id(s: Any, device_id: int) -> int | None:
-    """设备在当前项目中的“当前版本”：引用并固定了版本时是该版本，否则是最新版本。"""
+    """设备在当前项目（网络）中的“当前版本”：网络里固定了版本时是该版本；其次引用并固定了版本时是该版本；
+    否则是最新版本。"""
     sc = current()
+    pinned = network_pin(s, device_id)
+    if pinned is not None:
+        return pinned
     if sc is not None:
         ref = _ref(s, sc.project_id, device_id)
         if ref is not None and ref.version_id is not None:
@@ -245,7 +311,36 @@ def current_version_id(s: Any, device_id: int) -> int | None:
 
 
 def source_info(s: Any, dev: Device, latest_id: int | None) -> dict[str, Any]:
-    """设备在当前项目中的来源：private 私有 / public 引用的公共设备（policy follow|pin、固定的版本、是否有更新的版本）。"""
+    """设备在当前项目中的来源：private 私有 / public 引用的公共设备（policy follow|pin、固定的版本、是否有更新的版本）；
+    以及在当前网络里的版本策略（M9：network_policy follow|pin、network_pinned_version_id / seq）。"""
+    out = _source_info(s, dev, latest_id)
+    out.update(_network_info(s, dev.id, latest_id))
+    return out
+
+
+def _seq_of(s: Any, device_id: int, version_id: int | None) -> int | None:
+    if not version_id:
+        return None
+    ids = list(
+        s.scalars(select(ConfigVersion.id).where(ConfigVersion.device_id == device_id).order_by(ConfigVersion.id))
+    )
+    return ids.index(version_id) + 1 if version_id in ids else None
+
+
+def _network_info(s: Any, device_id: int, latest_id: int | None) -> dict[str, Any]:
+    sc = current()
+    if sc is None or sc.network_id is None:
+        return {}
+    pinned = network_pin(s, device_id)
+    return {
+        "network_policy": "pin" if pinned else "follow",
+        "network_pinned_version_id": pinned,
+        "network_pinned_seq": _seq_of(s, device_id, pinned),
+        "network_newer_available": bool(pinned and latest_id and latest_id != pinned),
+    }
+
+
+def _source_info(s: Any, dev: Device, latest_id: int | None) -> dict[str, Any]:
     if dev.project_id is not None:
         return {"source": "private", "origin": dev.origin, "origin_note": dev.origin_note}
     sc = current()
@@ -276,6 +371,28 @@ def target_project_id(db_url: str) -> int:
     if sc is not None:
         return sc.project_id
     return default_project(db_url, identity() or SYSTEM)["id"]
+
+
+def target_network_id(db_url: str, project_id: int | None = None) -> int | None:
+    """写工作数据时放到哪个网络：当前网络；没有当前项目时为（导入目标）项目的默认网络。"""
+    sc = current()
+    if sc is not None and sc.network_id is not None and (project_id is None or project_id == sc.project_id):
+        return sc.network_id
+    from lmesh.core import networks
+
+    pid = project_id if project_id is not None else target_project_id(db_url)
+    with store.session(db_url) as s:
+        return int(networks.ensure_default(s, pid).id)
+
+
+def network_conds(model: Any) -> list[Any]:
+    """按当前网络过滤工作数据的条件（没有当前项目时为空：不过滤）。"""
+    sc = current()
+    if sc is None:
+        return []
+    if sc.network_id is None:
+        return [model.project_id == sc.project_id]
+    return [model.network_id == sc.network_id]
 
 
 def rule_overrides() -> dict[str, dict[str, Any]]:
@@ -378,24 +495,67 @@ def _find(s: Any, ref: str | int, ident: Identity = SYSTEM) -> Project | None:
     return None
 
 
-def _load_overrides(s: Any, project_id: int) -> dict[str, dict[str, Any]]:
-    rows = s.scalars(select(ProjectRuleOverride).where(ProjectRuleOverride.project_id == project_id))
-    return {r.rule: {"enabled": r.enabled, "severity": r.severity, "reason": r.reason} for r in rows}
+def _load_overrides(s: Any, project_id: int, network_id: int | None = None) -> dict[str, dict[str, Any]]:
+    q = select(ProjectRuleOverride).where(ProjectRuleOverride.project_id == project_id)
+    if network_id is not None:
+        q = q.where(ProjectRuleOverride.network_id == network_id)
+    return {r.rule: {"enabled": r.enabled, "severity": r.severity, "reason": r.reason} for r in s.scalars(q)}
 
 
-def _scope(s: Any, p: Project, ident: Identity, role: str) -> Scope:
+def _scope(s: Any, p: Project, ident: Identity, role: str, net: Network | None = None) -> Scope:
+    from lmesh.core import networks
+
     redact = tuple(str(x) for x in ((p.settings or {}).get("sanitize_redact") or []))
-    return Scope(p.id, p.slug, role, ident, _load_overrides(s, p.id), ref_of(s, p, ident), redact)
+    n = net if net is not None else networks.ensure_default(s, p.id)
+    return Scope(
+        p.id,
+        p.slug,
+        role,
+        ident,
+        _load_overrides(s, p.id, n.id),
+        ref_of(s, p, ident),
+        redact,
+        n.id,
+        n.slug,
+        n.name,
+        bool(n.is_default),
+        net is not None,
+    )
 
 
-def resolve(db_url: str, ident: Identity, ref: str | int) -> Scope:
-    """项目引用（标识、属主/标识或编号）→ Scope；不存在或没有权限查看时 not_found；只写标识而匹配到多个时 ambiguous。"""
+def resolve(db_url: str, ident: Identity, ref: str | int, network: str | int | None = None) -> Scope:
+    """项目引用（标识、属主/标识或编号）→ Scope；不存在或没有权限查看时 not_found；只写标识而匹配到多个时 ambiguous。
+    network（M9）：网络的标识或编号；不给时为默认网络；项目里没有这个网络时 networks.not_found。"""
+    from lmesh.core import networks
+
     with store.session(db_url) as s:
         p = _find(s, ref, ident)
         role = role_of(s, p, ident) if p is not None else None
         if p is None or role is None:
             raise ProjectError("projects.not_found", "not_found", project=str(ref))
-        return _scope(s, p, ident, role)
+        net = None
+        if network is not None and str(network).strip() != "":
+            networks.ensure_default(s, p.id)
+            net = networks.find(s, p.id, network)
+            if net is None:
+                raise ProjectError("networks.not_found", "not_found", network=str(network))
+        return _scope(s, p, ident, role, net)
+
+
+def with_network(db_url: str, scope: Scope, network: str | int | None) -> Scope:
+    """同一项目换一个网络（None 为默认网络）。"""
+    from lmesh.core import networks
+
+    with store.session(db_url) as s:
+        p = s.get(Project, scope.project_id)
+        assert p is not None
+        net = None
+        if network is not None and str(network).strip() != "":
+            net = networks.find(s, p.id, network)
+            if net is None:
+                raise ProjectError("networks.not_found", "not_found", network=str(network))
+        sc = _scope(s, p, scope.identity, scope.role, net)
+        return dataclasses.replace(sc, ref=scope.ref or sc.ref)
 
 
 def scope_by_id(db_url: str, project_id: int, ident: Identity = SYSTEM) -> Scope:
@@ -580,6 +740,7 @@ def _counts(s: Any, p: Project) -> dict[str, Any]:
         "scripts": scripts,
         "scripts_with_errors": errors,
         "check_projects": len(cps),
+        "networks": int(s.scalar(select(func.count()).select_from(Network).where(Network.project_id == p.id)) or 0),
     }
 
 
@@ -626,7 +787,10 @@ def project_dict(
     }
     if full:
         out["member_list"] = members
-        out["overrides"] = [{"rule": k, **v} for k, v in sorted(_load_overrides(s, p.id).items())]
+        from lmesh.core import networks
+
+        nid = networks.ensure_default(s, p.id).id
+        out["overrides"] = [{"rule": k, **v} for k, v in sorted(_load_overrides(s, p.id, nid).items())]
     return out
 
 
@@ -997,6 +1161,10 @@ def add_ref(db_url: str, scope: Scope, device_id: int, version_id: int | None = 
                 raise ProjectError("projects.name_taken", "state", name=dev.name)
             ref = ProjectDeviceRef(project_id=scope.project_id, device_id=device_id, version_id=version_id)
             s.add(ref)
+            s.flush()
+            from lmesh.core import networks
+
+            networks.join_new_device(s, scope, device_id)
         else:
             ref.version_id = version_id
         s.flush()
@@ -1028,6 +1196,8 @@ def remove_ref(db_url: str, scope: Scope, device_id: int) -> dict[str, Any]:
         s.execute(
             delete(CheckIgnore).where(CheckIgnore.project_id == scope.project_id, CheckIgnore.device_id == device_id)
         )
+        nets = select(Network.id).where(Network.project_id == scope.project_id)
+        s.execute(delete(NetworkMember).where(NetworkMember.network_id.in_(nets), NetworkMember.device_id == device_id))
         cleared = s.execute(
             update(CheckProject)
             .where(CheckProject.project_id == scope.project_id, CheckProject.device_id == device_id)
@@ -1136,6 +1306,9 @@ def copy_device(
             )
         )
         s.flush()
+        from lmesh.core import networks
+
+        networks.join_new_device(s, target, dev.id)
         return {
             "device_id": dev.id,
             "name": dev.name,
@@ -1162,24 +1335,13 @@ def copy_project(db_url: str, scope: Scope, ident: Identity, data: dict[str, Any
     )
     target = resolve(db_url, ident, int(created["id"]))
     if ident.user_id is None:
-        target = Scope(target.project_id, target.slug, "admin", ident, {})
+        target = dataclasses.replace(target, role="admin", identity=ident)
     id_map: dict[int, int] = {}
     with store.session(db_url) as s:
         src = s.get(Project, scope.project_id)
         dst = s.get(Project, target.project_id)
         assert src is not None and dst is not None
         dst.settings = dict(src.settings or {})
-        for o in s.scalars(select(ProjectRuleOverride).where(ProjectRuleOverride.project_id == src.id)):
-            s.add(
-                ProjectRuleOverride(
-                    project_id=dst.id,
-                    rule=o.rule,
-                    enabled=o.enabled,
-                    severity=o.severity,
-                    reason=o.reason,
-                    updated_by=ident.username,
-                )
-            )
         for r in s.scalars(select(ProjectDeviceRef).where(ProjectDeviceRef.project_id == src.id)):
             s.add(ProjectDeviceRef(project_id=dst.id, device_id=r.device_id, version_id=r.version_id))
             id_map[r.device_id] = r.device_id
@@ -1188,9 +1350,26 @@ def copy_project(db_url: str, scope: Scope, ident: Identity, data: dict[str, Any
         for dev_id in private:
             res = copy_device(db_url, target, dev_id, _version_of(db_url, dev_id), source_label=scope.label)
             id_map[dev_id] = res["device_id"]
+    from lmesh.core import networks
+
+    # 网络（M9）：网络、文件夹、成员（按设备对应关系）、自动加入规则一起复制；规则调整与脚本复制到对应的网络
+    net_map = networks.copy_project_networks(db_url, scope.project_id, target.project_id, id_map, ident.username)
+    with store.session(db_url) as s:
+        for o in s.scalars(select(ProjectRuleOverride).where(ProjectRuleOverride.project_id == scope.project_id)):
+            s.add(
+                ProjectRuleOverride(
+                    project_id=target.project_id,
+                    network_id=net_map.get(o.network_id or 0),
+                    rule=o.rule,
+                    enabled=o.enabled,
+                    severity=o.severity,
+                    reason=o.reason,
+                    updated_by=ident.username,
+                )
+            )
     scripts = 0
     if data.get("scripts", True):
-        scripts = _copy_scripts(db_url, scope.project_id, target.project_id, id_map, ident)
+        scripts = _copy_scripts(db_url, scope.project_id, target.project_id, id_map, ident, net_map)
     out = get_project(db_url, target)
     out["copied"] = {"devices": len(private) if data.get("devices", True) else 0, "scripts": scripts}
     return out
@@ -1206,10 +1385,22 @@ def _version_of(db_url: str, device_id: int) -> int | None:
         )
 
 
-def _copy_scripts(db_url: str, src_pid: int, dst_pid: int, id_map: dict[int, int], ident: Identity) -> int:
+def _copy_scripts(
+    db_url: str,
+    src_pid: int,
+    dst_pid: int,
+    id_map: dict[int, int],
+    ident: Identity,
+    net_map: dict[int, int] | None = None,
+    src_network: int | None = None,
+) -> int:
+    """复制脚本组与脚本（当前内容作为第一条修订）。net_map：源网络 → 目标网络；src_network 给出时只复制这个网络的。"""
     n = 0
     with store.session(db_url) as s:
-        for cp in s.scalars(select(CheckProject).where(CheckProject.project_id == src_pid).order_by(CheckProject.id)):
+        q = select(CheckProject).where(CheckProject.project_id == src_pid)
+        if src_network is not None:
+            q = q.where(CheckProject.network_id == src_network)
+        for cp in s.scalars(q.order_by(CheckProject.id)):
             new_dev = id_map.get(cp.device_id) if cp.device_id else None
             ncp = CheckProject(
                 name=cp.name,
@@ -1223,6 +1414,7 @@ def _copy_scripts(db_url: str, src_pid: int, dst_pid: int, id_map: dict[int, int
                 ai_rules=cp.ai_rules,
                 user_id=ident.user_id,
                 project_id=dst_pid,
+                network_id=(net_map or {}).get(cp.network_id or 0),
             )
             s.add(ncp)
             s.flush()
@@ -1333,11 +1525,15 @@ def delete_public(db_url: str, device_id: int, force: bool = False, actor: str =
 # ---------------------------------------------------------------- 项目级规则调整
 
 
+def _override_net(scope: Scope) -> list[Any]:
+    return [] if scope.network_id is None else [ProjectRuleOverride.network_id == scope.network_id]
+
+
 def list_overrides(db_url: str, scope: Scope) -> list[dict[str, Any]]:
     with store.session(db_url) as s:
         rows = s.scalars(
             select(ProjectRuleOverride)
-            .where(ProjectRuleOverride.project_id == scope.project_id)
+            .where(ProjectRuleOverride.project_id == scope.project_id, *_override_net(scope))
             .order_by(ProjectRuleOverride.rule)
         )
         return [
@@ -1362,7 +1558,7 @@ def set_override(
     reason: str,
     known: set[str] | None,
 ) -> dict[str, Any]:
-    """本项目关闭某条规则或改级别（属主与可编辑成员，D-0176）；原因必填。known 为已知规则编号（校验用）。"""
+    """本项目（当前网络，M9）关闭某条规则或改级别（属主与可编辑成员，D-0176）；原因必填。known 为已知规则编号（校验用）。"""
     require_write(scope)
     rule = (rule or "").strip()
     if not rule or len(rule) > 120 or (known is not None and rule not in known):
@@ -1375,11 +1571,13 @@ def set_override(
     with store.session(db_url) as s:
         o = s.scalar(
             select(ProjectRuleOverride).where(
-                ProjectRuleOverride.project_id == scope.project_id, ProjectRuleOverride.rule == rule
+                ProjectRuleOverride.project_id == scope.project_id,
+                ProjectRuleOverride.rule == rule,
+                *_override_net(scope),
             )
         )
         if o is None:
-            o = ProjectRuleOverride(project_id=scope.project_id, rule=rule)
+            o = ProjectRuleOverride(project_id=scope.project_id, network_id=scope.network_id, rule=rule)
             s.add(o)
         if enabled is not None:
             o.enabled = enabled
@@ -1399,7 +1597,9 @@ def delete_override(db_url: str, scope: Scope, rule: str) -> dict[str, Any]:
     with store.session(db_url) as s:
         n = s.execute(
             delete(ProjectRuleOverride).where(
-                ProjectRuleOverride.project_id == scope.project_id, ProjectRuleOverride.rule == rule
+                ProjectRuleOverride.project_id == scope.project_id,
+                ProjectRuleOverride.rule == rule,
+                *_override_net(scope),
             )
         ).rowcount  # type: ignore[attr-defined]
     if not n:
@@ -1526,7 +1726,7 @@ def dispose_user_projects(db_url: str, username: str, transfer_to: str | None, a
     done = []
     for p in owned:
         sc = scope_by_id(db_url, p["id"], actor)
-        sc = Scope(sc.project_id, sc.slug, "admin", actor, sc.overrides)
+        sc = dataclasses.replace(sc, role="admin", identity=actor)
         if transfer_to and not p["empty"]:
             transfer(db_url, sc, transfer_to, keep_as=None, auto_rename=True)
         else:

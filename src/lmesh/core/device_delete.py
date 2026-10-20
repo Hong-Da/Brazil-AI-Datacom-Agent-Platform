@@ -148,8 +148,14 @@ def preview(db_url: str, device_id: int) -> dict[str, Any]:
             for i, vid in enumerate(vids)
         ]
         ref = _is_ref(dev)
+        from lmesh.core import networks
+
+        sc = prj.current()
+        pid = sc.project_id if sc is not None else dev.project_id
+        nets = networks.networks_of_devices(s, pid).get(device_id, []) if pid is not None else []
         return {
             "device": _dev_info(dev),
+            "networks": nets,  # M9：设备在哪些网络里，删除后从这些网络里一起移出
             "source": "public" if dev.project_id is None else "private",
             "action": "unreference" if ref else "delete",
             "counts": {**_counts(s, vids), "check_ignores": _ignores(s, device_id)},

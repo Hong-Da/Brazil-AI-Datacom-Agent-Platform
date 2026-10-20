@@ -52,6 +52,7 @@ def _env(request: Request) -> ai_suggest.Env:
         settings,
         lambda: analysis.load_kb(kbservice.runtime_root(settings)),
         project_id=scope.project_id,
+        network_id=scope.network_id,
         user_id=p.user_id,
         actor=p.username,
         kb_editor=p.is_kb_editor,
@@ -128,10 +129,12 @@ def suggest_adoptions(request: Request, limit: int = Query(200, ge=1, le=1000)) 
     return ok(request, {"items": ai_suggest.adoptions(_env(request), limit)})
 
 
-@router.get("/view-annotations", summary="项目级视图标注（设备角色、分组、标签、层次）：手工或采纳的 AI 建议")
+@router.get("/view-annotations", summary="当前网络的视图标注（设备角色、分组、标签、层次）：手工或采纳的 AI 建议")
 def view_annotations(request: Request, target_type: str | None = None) -> dict[str, Any]:
     scope: projects.Scope = request.state.scope
-    return ok(request, {"items": ai_suggest.list_annotations(db_of(request), scope.project_id, target_type)})
+    return ok(
+        request, {"items": ai_suggest.list_annotations(db_of(request), scope.project_id, target_type, scope.network_id)}
+    )
 
 
 class AnnotationBody(BaseModel):

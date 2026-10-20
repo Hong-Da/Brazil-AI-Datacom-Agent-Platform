@@ -268,7 +268,16 @@ def test_topology_roles_view_hint(lab, monkeypatch: pytest.MonkeyPatch) -> None:
     from lmesh.core.store.models import ViewAnnotation
 
     with store.session(s.database_url) as ss:
-        ss.add(ViewAnnotation(project_id=scope.project_id, target_type="device", target=d1, key="role", value="core"))
+        ss.add(
+            ViewAnnotation(
+                project_id=scope.project_id,
+                network_id=env.network_id,  # M9：标注按网络
+                target_type="device",
+                target=d1,
+                key="role",
+                value="core",
+            )
+        )
     _fake(monkeypatch, lambda sy, p: _reply(_role("d1", "access")))
     b2 = ai_suggest.run(env, "topology-roles", {})
     s2 = ai_suggest.list_suggestions(env, batch_id=b2["id"])["items"][0]

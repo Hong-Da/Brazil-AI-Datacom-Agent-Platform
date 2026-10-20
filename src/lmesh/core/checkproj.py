@@ -49,7 +49,8 @@ def _project(s: Any, actor: Actor, pid: int) -> CheckProject:
     p = s.get(CheckProject, pid)
     sc = projects.current()
     if sc is not None:
-        if p is None or p.project_id != sc.project_id:
+        # 按网络（M9）：脚本属于网络，在别的网络里看不到
+        if p is None or p.project_id != sc.project_id or (sc.network_id and p.network_id != sc.network_id):
             raise ProjectError("check_project.not_found", "not_found", id=pid)
         return p
     if p is None or (not actor.sees_all() and p.user_id != actor.user_id):
@@ -215,7 +216,7 @@ def list_projects(db: str, actor: Actor) -> list[dict[str, Any]]:
         q = select(CheckProject).order_by(CheckProject.updated_at.desc(), CheckProject.id.desc())
         sc = projects.current()
         if sc is not None:
-            q = q.where(CheckProject.project_id == sc.project_id)
+            q = q.where(*projects.network_conds(CheckProject))
         elif not actor.sees_all():
             q = q.where(CheckProject.user_id == actor.user_id)
         return [_project_dict(s, p) for p in s.scalars(q)]
@@ -225,6 +226,7 @@ def create_project(db: str, actor: Actor, data: dict[str, Any]) -> dict[str, Any
     from lmesh.core import projects
 
     pid = projects.target_project_id(db)
+    nid = projects.target_network_id(db, pid)
     with store.session(db) as s:
         _check_device(s, data.get("device_id"), data.get("version_id"))
         p = CheckProject(
@@ -239,6 +241,7 @@ def create_project(db: str, actor: Actor, data: dict[str, Any]) -> dict[str, Any
             ai_rules=[str(x) for x in data.get("ai_rules") or []],
             user_id=actor.user_id,
             project_id=pid,
+            network_id=nid,
         )
         s.add(p)
         s.flush()

@@ -9,6 +9,9 @@
 - 只在项目路径下的接口（项目设置、成员、引用、规则调整、脚本一览……）由 routes_projects 的 project 路由器提供，
   没有旧路径别名。
 - 只读的个人令牌只能调用 read 与 compute。
+- 网络（M9，REQ-045）：项目接口同时挂在 /api/v1/projects/{project}/n/{network}/…（当前网络）；不带网络的项目路径与旧路径
+  作用于项目的默认网络。项目层的操作（删除设备与版本、型号规则、项目设置、成员、引用、复制项目、网络管理本身）
+  不挂网络路径，见 network_ok。权限仍按项目。
 管理员专属接口仍由路由自己的 require_admin 判断。
 """
 
@@ -169,6 +172,35 @@ KB: set[tuple[str, str]] = {
     ("POST", "/kb/model-support/{item_id}/derive"),
     ("POST", "/kb/model-support/{item_id}/retarget"),
 }
+
+
+# 只在项目层、不挂网络路径的项目接口（项目设备池的管理）
+NETWORK_EXCLUDE: set[tuple[str, str]] = {
+    ("DELETE", "/devices/{device_id}"),
+    ("DELETE", "/devices/{device_id}/versions/{version_id}"),
+    ("GET", "/devices/{device_id}/delete-preview"),
+    ("GET", "/model-rules"),
+    ("POST", "/model-rules"),
+    ("POST", "/model-rules/test"),
+    ("PUT", "/model-rules/{rule_id}"),
+    ("DELETE", "/model-rules/{rule_id}"),
+    ("PUT", "/devices/{device_id}/history/{version_id}/tag"),
+    ("DELETE", "/devices/{device_id}/history/{version_id}/tag"),
+}
+
+# 只在项目路径下的接口（project_only 路由器）里，按网络的那些（其余为项目管理，不挂网络路径）
+NETWORK_PROJECT_ONLY: tuple[str, ...] = ("/rules", "/scripts", "/ai/", "/view-annotations")
+
+
+def network_ok(method: str, path: str, project_only: bool = False) -> bool:
+    """接口是否也挂在网络路径 /projects/{project}/n/{network}/… 下。"""
+    if (method, path) in NETWORK_EXCLUDE:
+        return False
+    if project_only:
+        if path == "/ai/kb/sanitize-redact":
+            return False
+        return any(path == x or path.startswith(x if x.endswith("/") else x + "/") for x in NETWORK_PROJECT_ONLY)
+    return path in PROJECT
 
 
 def level(method: str, path: str, project_only: bool = False) -> str:

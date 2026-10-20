@@ -67,10 +67,15 @@ def _status(ver: ConfigVersion) -> dict[str, Any]:
 def device_rows(db_url: str, kb_version: str) -> list[dict[str, Any]]:
     """当前项目的设备（私有与引用的公共设备）：当前版本（引用固定了版本时为该版本）、解析状态、来源、
     Profile 来源与近似标记（REQ-044）。"""
-    from lmesh.core import model_support, projects
+    from lmesh.core import model_support, networks, projects
+    from lmesh.core.store.models import Network
 
     with store.session(db_url) as s:
         pinned = projects.pins(s)
+        sc = projects.current()
+        nets = networks.networks_of_devices(s, sc.project_id) if sc is not None else {}
+        cur = s.get(Network, sc.network_id) if sc is not None and sc.network_id else None
+        checks = (cur.stats or {}).get("checks") or {} if cur is not None else {}
         out = []
         for d in s.scalars(projects.scoped_devices(select(Device)).order_by(Device.name)):
             newest = max(d.versions, key=lambda v: v.id, default=None)
@@ -92,6 +97,10 @@ def device_rows(db_url: str, kb_version: str) -> list[dict[str, Any]]:
                 row["stale"] = bool(latest.kb_version) and latest.kb_version != kb_version
             row.update(model_support.device_info(d, latest))
             row.update(projects.source_info(s, d, newest.id if newest else None))
+            if sc is not None:
+                # M9：设备在哪些网络里（与各网络用的版本）、本网络最近的检查结果
+                row["networks"] = nets.get(d.id, [])
+                row["network_findings"] = checks.get(str(d.id))
             out.append(row)
         return out
 

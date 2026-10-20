@@ -1,0 +1,141 @@
+# 项目内的网络（M9，REQ-045）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-projects：alice / Alice-pass-1 是项目 lab 的属主（ATN-CHANGE-01 私有、PE-CHANGE-01 引用的公共设备）；
+# bob / Bob-pass-12 是只读成员；carol / Carol-pass-1 不是成员。项目里自动有默认网络 default（包含全部设备）。
+# 按网络的接口挂在 /api/v1/projects/{p}/n/{net}/…；不带网络的项目路径与旧路径作用于默认网络。
+
+[[case]]
+id = "networks-list"
+title = { zh-CN = "本项目的网络与汇总（默认网络、颜色组、项目概览）", en = "Networks in the project with summaries", pt-BR = "Redes do projeto com resumos" }
+method = "GET"
+path = "/api/v1/projects/lab/networks"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.networks.0.slug" = "default", "data.networks.0.default" = true, "data.networks.0.color" = "slate", "data.networks.0.counts.devices" = 2, "data.palette.1" = "indigo", "data.overview.devices" = 2 }
+in_docs = true
+
+[[case]]
+id = "networks-list-outsider"
+title = { zh-CN = "不是项目成员：404", en = "Not a project member: 404", pt-BR = "Não é membro do projeto: 404" }
+method = "GET"
+path = "/api/v1/projects/lab/networks"
+setup = "configured-projects"
+login = ["carol", "Carol-pass-1"]
+expect_status = 404
+
+[[case]]
+id = "networks-create"
+title = { zh-CN = "新建网络并设自动加入规则（同时加入现在命中的设备）", en = "Create a network with an auto-join rule", pt-BR = "Criar rede com regra de entrada automática" }
+method = "POST"
+path = "/api/v1/projects/lab/networks"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { name = "IP RAN 接入", slug = "ipran", rules = [{ kind = "name", pattern = "ATN-*", apply_existing = true }] }
+expect_status = 200
+expect_json = { "code" = 0, "data.slug" = "ipran", "data.color" = "indigo", "data.counts.devices" = 1, "data.rules.0.kind" = "name", "data.default" = false }
+in_docs = true
+
+[[case]]
+id = "networks-create-readonly"
+title = { zh-CN = "只读成员不能新建网络：403", en = "A read-only member cannot create networks: 403", pt-BR = "Membro somente leitura não cria redes: 403" }
+method = "POST"
+path = "/api/v1/projects/lab/networks"
+setup = "configured-projects"
+login = ["bob", "Bob-pass-12"]
+body = { name = "x" }
+expect_status = 403
+
+[[case]]
+id = "networks-create-bad-color"
+title = { zh-CN = "识别色不在 8 色里：422", en = "Color outside the 8-color set: 422", pt-BR = "Cor fora do conjunto de 8: 422" }
+method = "POST"
+path = "/api/v1/projects/lab/networks"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { name = "x", color = "pink" }
+expect_status = 422
+
+[[case]]
+id = "networks-devices-in-network"
+title = { zh-CN = "按网络的路径：设备列表（默认网络）与各设备在哪些网络", en = "Per-network path: devices of the default network", pt-BR = "Caminho por rede: dispositivos da rede padrão" }
+method = "GET"
+path = "/api/v1/projects/lab/n/default/devices"
+setup = "configured-projects"
+login = ["bob", "Bob-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.devices.0.name" = "ATN-CHANGE-01", "data.devices.0.networks.0.slug" = "default", "data.devices.0.network_policy" = "follow" }
+in_docs = true
+
+[[case]]
+id = "networks-unknown-network"
+title = { zh-CN = "网络不存在：404", en = "Unknown network: 404", pt-BR = "Rede inexistente: 404" }
+method = "GET"
+path = "/api/v1/projects/lab/n/nope/devices"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "networks-members"
+title = { zh-CN = "网络成员：本网络用的版本、还在哪些网络、怎么加入的", en = "Members: version used here, other networks, how each joined", pt-BR = "Membros: versão usada aqui, outras redes, como entrou" }
+method = "GET"
+path = "/api/v1/projects/lab/networks/default/members"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.total" = 2, "data.members.0.policy" = "follow", "data.network.default" = true }
+in_docs = true
+
+[[case]]
+id = "networks-remove-from-default"
+title = { zh-CN = "默认网络始终包含全部设备，不能移出：409", en = "The default network always has every device: 409", pt-BR = "A rede padrão sempre tem todos: 409" }
+method = "POST"
+path = "/api/v1/projects/lab/networks/default/members/remove"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { device_ids = [1] }
+expect_status = 409
+
+[[case]]
+id = "networks-delete-default"
+title = { zh-CN = "默认网络不能删除：409", en = "The default network cannot be deleted: 409", pt-BR = "A rede padrão não pode ser excluída: 409" }
+method = "DELETE"
+path = "/api/v1/projects/lab/networks/default?confirm=%E9%BB%98%E8%AE%A4%E7%BD%91%E7%BB%9C"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 409
+
+[[case]]
+id = "networks-suggest-name"
+title = { zh-CN = "建网建议：按设备名规则（预览，可作自动加入规则）", en = "Network suggestions by name rule (preview)", pt-BR = "Sugestões de redes por regra de nome (prévia)" }
+method = "GET"
+path = "/api/v1/projects/lab/network-suggestions?basis=name"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.total" = 2, "data.suggestions.0.key" = "name:ATN-CHANGE", "data.suggestions.0.count" = 1, "data.suggestions.0.rule.pattern" = "ATN-CHANGE-*", "data.suggestions.0.adoptable" = true }
+in_docs = true
+
+[[case]]
+id = "networks-suggest-adopt"
+title = { zh-CN = "采纳建网建议并设为自动加入规则", en = "Adopt a suggestion and keep its rule", pt-BR = "Adotar sugestão e manter a regra" }
+method = "POST"
+path = "/api/v1/projects/lab/network-suggestions/adopt"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { basis = "name", keys = ["name:ATN-CHANGE"], with_rules = true }
+expect_status = 200
+expect_json = { "code" = 0, "data.created.0.key" = "name:ATN-CHANGE", "data.created.0.network.slug" = "atn-change" }
+in_docs = true
+
+[[case]]
+id = "networks-folder-create"
+title = { zh-CN = "新建文件夹（只整理网络列表）", en = "Create a folder (only tidies the list)", pt-BR = "Criar pasta (só organiza a lista)" }
+method = "POST"
+path = "/api/v1/projects/lab/network-folders"
+setup = "configured-projects"
+login = ["alice", "Alice-pass-1"]
+body = { name = "IP RAN" }
+expect_status = 200
+expect_json = { "code" = 0, "data.name" = "IP RAN" }

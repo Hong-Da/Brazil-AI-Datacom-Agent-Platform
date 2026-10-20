@@ -43,6 +43,16 @@
 - 权限：查看（GET）与计算（不修改数据的 POST：对比、检查、清理脚本生成、翻译、变更脚本生成、影响分析、拓扑、导出、报告、图查询、模板校验与生成……）对所有项目角色开放；修改数据（导入、删除、忽略、规则调整、脚本保存、重新解析本项目）只限属主、可编辑成员与管理员；成员管理、转交、删除项目只限属主与管理员；退出项目、复制项目或把设备复制到自己的项目只需能查看。不是成员的普通账号访问项目返回 404（不暴露项目是否存在）
 - 只读的个人令牌只能调用查看与计算接口，其他接口返回 403（code 1006）
 
+## 项目内的网络（M9，REQ-045）
+
+- 网络是项目里平铺的独立工作区（文件夹只整理列表）。设备属于项目（导入、版本历史、删除设备在项目层），网络引用设备，一台设备可以在多个网络里；权限仍按项目。
+- 按网络的路径：`/api/v1/projects/{project}/n/{network}/…`（`{network}` 为网络标识或编号），挂了项目路径的接口都有网络版本，例外是项目设备池的管理：删除设备与版本、删除预览、贴 / 删标签、型号规则（`/model-rules`），以及只在项目路径下的项目管理（设置、成员、转交、复制、引用、`/networks` 本身、`/ai/kb/sanitize-redact`）。网络不存在 404（code 1004）。
+- 不带网络的项目路径与旧路径作用于项目的**默认网络**（升级时与新建项目时自动建，标识 `default`，包含全部设备、自动加入新设备，可以改名、不能删除、成员不能移出），所以现有调用不用改。界面上“全部设备”的汇总页由 `GET /projects/{p}/networks` 提供。
+- 按网络独立的数据：拓扑视图标注（`/view-annotations`）、检查忽略（`/check/ignores`）、规则调整（`/rules`）、脚本（`/scripts`、`/check-projects`）、AI 建议与采纳记录（`/ai/…`）、检查结果汇总；拓扑、一致性、检查、基线、对比、变更、割接、影响分析、报告与导出、图查询只看本网络的设备，用本网络为每台设备选的版本（网络里固定的版本 → 项目引用公共设备固定的版本 → 最新版本）。模板、翻译规则集、型号规则、脱敏补充仍按项目 / 个人共用。
+- 设备列表（`GET …/devices`）在项目路径与网络路径下每行另有 `networks`（所在网络：`id`、`slug`、`name`、`color`、`default`、`policy`、`version_id`）、`network_policy`（follow / pin）、`network_pinned_version_id`、`network_pinned_seq`、`network_newer_available`、`network_findings`（本网络最近的检查结果）；导入结果每个文件另有 `device_id` 与 `joined_networks`（这次新加入的网络：`via` 为 default / current / rule，`rule` 为命中的规则）。
+- 拓扑（`GET …/topology?outside=true`、`POST …/topology` 的 `outside`）：返回体另有 `network`、节点的 `also_in`（还在哪些网络，不含当前与默认网络）；`outside` 为网络外的对端（`links`：`inside` 本网络一端、`peer` 对端设备与 `networks` 它所在的网络；`count`），只在非默认网络里有内容。
+- 识别色：8 个颜色键 `slate`、`indigo`、`green`、`rust`、`teal`、`violet`、`amber`、`rose`（`GET /networks` 的 `palette`），按创建顺序自动分配，可以改成组内其他颜色；明 / 暗主题的具体色值由前端决定。
+
 ## 接口
 
 | 接口 | 认证 | 作用 |
@@ -248,6 +258,23 @@
 | `DELETE /projects/{p}/rules/{rule}` | 属主 / 可编辑 | 恢复为共享规则的设置 |
 | `GET /projects/{p}/scripts?kind=&device_id=` | 项目成员 | 本项目全部脚本（平铺）：所在的检查项目（`group`）、基线设备与版本策略、最近一次检查、顺序核查、AI、修订数、最后修改人 |
 | `POST /projects/{p}/scripts` | 属主 / 可编辑 | 新建脚本：`{"name", "kind", "device_id", "version_id", "content", "order_check", "ai_check"}`；同时建一个保存基线与检查设置的检查项目，返回 `group` 与 `script` |
+| `GET /projects/{p}/networks` | 项目成员 | 网络（M9）：`networks`（`id`、`slug`、`name`、`color`、`default`、`description`、`folder_id` / `folder`、`position`、`copied_from`、`last_activity`、`created_by`、`counts`：`devices`、`shared`（与其他网络共用）、`pinned`、`scripts`、`scripts_with_errors`、`check_groups`、`ai_pending`、`annotations`、`ignores`、`overrides`、`rules`、`findings`（`error` / `warning` / `info`、`devices_checked`、`last_run`））、`folders`、`palette`、`overview`（`devices`、`networks`、`in_several`、`only_default`、`imported_today`、`joined_by_rule_today`） |
+| `POST /projects/{p}/networks` | 属主 / 可编辑 | 新建网络：`{"name", "slug", "description", "color", "folder_id", "device_ids", "policy": "follow\|pin", "rules": [{"kind": "name\|subnet", "pattern", "apply_existing"}]}`；标识在项目内唯一（重名 409），颜色不给时自动分配，不在 8 色里 422 |
+| `GET /projects/{p}/networks/{net}` | 项目成员 | 网络详情：同上，另含 `rules` |
+| `PUT /projects/{p}/networks/{net}` | 属主 / 可编辑 | 改名、标识、说明、颜色、文件夹（`folder_id`；`folder_id: null` 加 `move: true` 移出文件夹）、位置；默认网络可以改名 |
+| `GET /projects/{p}/networks/{net}/delete-preview` | 项目成员 | 删除会一起删除的工作数据：`members`、`rules`、`annotations`、`ignores`、`overrides`、`check_groups`、`scripts`、`revisions`、`ai_batches`、`ai_suggestions`、`ai_adopted`；`deletable`（默认网络为 false） |
+| `DELETE /projects/{p}/networks/{net}?confirm=<名称>` | 属主 / 可编辑 | 删除网络与它的工作数据（不进回收站，不删设备）；`confirm` 必须等于网络名称或标识（否则 422）；默认网络 409 |
+| `POST /projects/{p}/networks/{net}/copy` | 属主 / 可编辑 | 复制网络：`{"name", "slug", "color", "folder_id"}`；复制成员与版本选择、自动加入规则与排除、视图标注、检查忽略、规则调整、脚本组与脚本（含全部修订）、已采纳（与已撤销）的 AI 建议与采纳记录（`note` 与 `adopt_info.copied_from` 注明复制自哪里），不复制待处理与已忽略的建议；返回体 `copied` 为各类计数，`copied_from` 为来源 |
+| `POST /projects/{p}/network-folders` / `PUT …/{id}` / `DELETE …/{id}` | 属主 / 可编辑 | 文件夹：新建 `{"name"}`、改名或排序 `{"name", "position"}`、删除（里面的网络移到最外层，`moved`） |
+| `GET /projects/{p}/networks/{net}/members` | 项目成员 | 成员：`device_id`、`name`、`vendor`、`platform`、`profile`、`source`、`versions`、`latest_version_id` / `latest_seq`（项目里的当前版本）、`policy`（follow / pin）、`version_id` / `seq`（本网络用的版本）、`newer_available`、`also_in`（还在哪些网络）、`join_source`（upgrade / default / manual / rule / suggestion / copy / import）、`rule`、`joined_by`、`joined_at`、`mgmt_address` |
+| `POST /projects/{p}/networks/{net}/members` | 属主 / 可编辑 | 从项目设备池加入：`{"device_ids", "policy": "follow\|pin"}`（pin 固定在当前最新）；手工加入会清除排除；不在设备池 404 |
+| `PUT /projects/{p}/networks/{net}/members` | 属主 / 可编辑 | 改版本策略（可批量）：`{"device_ids", "policy", "version_id"}`；`version_id` 只能配一台设备 |
+| `POST /projects/{p}/networks/{net}/members/remove` / `…/unexclude` | 属主 / 可编辑 | 移出（可批量，记为排除，自动加入规则不再加入；默认网络 409）/ 撤销排除 |
+| `GET /projects/{p}/networks/{net}/join-rules` | 项目成员 | 自动加入规则（`kind` name 设备名通配 / subnet 管理网段 CIDR）、`excluded`（排除的设备）、`all_new_devices`（默认网络为 true） |
+| `POST /projects/{p}/networks/{net}/join-rules` / `PUT …/{id}` / `DELETE …/{id}` | 属主 / 可编辑 | 添加（`apply_existing` 同时加入现在命中的设备，返回 `added`）/ 修改 / 删除规则（已加入的设备不受影响）；默认网络不需要规则（409），重复的规则 409 |
+| `POST /projects/{p}/networks/{net}/join-rules/preview` | 项目成员 | 命中预览：`{"kind", "pattern"}` → `matches`、`not_in_network`、`excluded`、`devices`（`state` member / outside / excluded，`mgmt_address`） |
+| `GET /projects/{p}/network-suggestions?basis=&ignore_mgmt=&protocol=&regex=&prefix=` | 项目成员 | 建网建议（代码计算、不入库）：`basis` 为 components 连通分量（`ignore_mgmt` 不算管理口链路）/ igp（`protocol` all / isis / ospf，按 IS-IS 进程与 OSPF 进程 + 区域）/ bgp（本地 AS）/ name（`regex` 第一个括号，默认 `^(.+)-[^-]+$`）/ subnet（管理地址按 `prefix` 汇总）/ ai（M8 拓扑整理已采纳的分组，代码校验设备在项目里、组内连通）；每个建议：`key`、`name`、`slug`、`devices`、`count`、`overlap_existing`、`same_as`（与现有网络完全相同）、`overlap_suggestions`、`overlap_devices`、`rule`（name / subnet 可作自动加入规则）、`check`、`adoptable`；ai 依据另有 `source`（最近一次拓扑整理）与 `ai_configured` |
+| `POST /projects/{p}/network-suggestions/adopt` | 属主 / 可编辑 | 采纳：`{"basis", "params", "keys", "with_rules", "folder_id", "names"}`；按同样的依据与参数重新计算，`keys` 为空时采纳全部可采纳的；每个建议建一个网络（成员加入方式 suggestion）；返回 `created`、`skipped`（`same_as_existing` / `check_failed` / `empty` / `not_found`） |
 | `POST /projects/{p}/devices/rebuild` | 属主 / 可编辑 | 按当前知识库重新解析本项目的设备（后台任务）；旧路径 `POST /devices/rebuild` 为全部设备，只限管理员 |
 | `GET /public-devices` | 是 | 公共设备库：版本数、最新版本、引用它的项目（普通账号只看到自己能访问的项目）、跟随 / 固定的引用数 |
 | `GET /public-devices/{id}/versions` | 是 | 公共设备的版本（新的在前） |
@@ -3487,6 +3514,166 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.interface_map.Port-channel1` = `"Eth-Trunk1"`
 - `data.naming.summary.renamed` = `1`
 - `data.naming.renames.0.to` = `"RP_EXPORT-LOOPBACK"`
+
+### 本项目的网络与汇总（默认网络、颜色组、项目概览）
+
+`GET /api/v1/projects/lab/networks`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/lab/networks'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/networks'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/lab/networks')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.networks.0.slug` = `"default"`
+- `data.networks.0.default` = `true`
+- `data.networks.0.color` = `"slate"`
+- `data.networks.0.counts.devices` = `2`
+- `data.palette.1` = `"indigo"`
+- `data.overview.devices` = `2`
+
+### 新建网络并设自动加入规则（同时加入现在命中的设备）
+
+`POST /api/v1/projects/lab/networks`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/lab/networks' \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "IP RAN 接入", "slug": "ipran", "rules": [{"kind": "name", "pattern": "ATN-*", "apply_existing": true}]}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/networks' -ContentType 'application/json; charset=utf-8' -Body '{"name": "IP RAN 接入", "slug": "ipran", "rules": [{"kind": "name", "pattern": "ATN-*", "apply_existing": true}]}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/lab/networks', json={'name': 'IP RAN 接入', 'slug': 'ipran', 'rules': [{'kind': 'name', 'pattern': 'ATN-*', 'apply_existing': True}]})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.slug` = `"ipran"`
+- `data.color` = `"indigo"`
+- `data.counts.devices` = `1`
+- `data.rules.0.kind` = `"name"`
+- `data.default` = `false`
+
+### 按网络的路径：设备列表（默认网络）与各设备在哪些网络
+
+`GET /api/v1/projects/lab/n/default/devices`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/lab/n/default/devices'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/n/default/devices'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/lab/n/default/devices')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.devices.0.name` = `"ATN-CHANGE-01"`
+- `data.devices.0.networks.0.slug` = `"default"`
+- `data.devices.0.network_policy` = `"follow"`
+
+### 网络成员：本网络用的版本、还在哪些网络、怎么加入的
+
+`GET /api/v1/projects/lab/networks/default/members`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/lab/networks/default/members'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/networks/default/members'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/lab/networks/default/members')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.total` = `2`
+- `data.members.0.policy` = `"follow"`
+- `data.network.default` = `true`
+
+### 建网建议：按设备名规则（预览，可作自动加入规则）
+
+`GET /api/v1/projects/lab/network-suggestions?basis=name`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/lab/network-suggestions?basis=name'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/network-suggestions?basis=name'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/lab/network-suggestions?basis=name')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.total` = `2`
+- `data.suggestions.0.key` = `"name:ATN-CHANGE"`
+- `data.suggestions.0.count` = `1`
+- `data.suggestions.0.rule.pattern` = `"ATN-CHANGE-*"`
+- `data.suggestions.0.adoptable` = `true`
+
+### 采纳建网建议并设为自动加入规则
+
+`POST /api/v1/projects/lab/network-suggestions/adopt`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/lab/network-suggestions/adopt' \
+  -H 'Content-Type: application/json' \
+  -d '{"basis": "name", "keys": ["name:ATN-CHANGE"], "with_rules": true}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/lab/network-suggestions/adopt' -ContentType 'application/json; charset=utf-8' -Body '{"basis": "name", "keys": ["name:ATN-CHANGE"], "with_rules": true}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/lab/network-suggestions/adopt', json={'basis': 'name', 'keys': ['name:ATN-CHANGE'], 'with_rules': True})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.created.0.key` = `"name:ATN-CHANGE"`
+- `data.created.0.network.slug` = `"atn-change"`
 
 ### Cisco 配置翻译到 Nokia（三层口换成路由器接口 + port，OSPF 写在区域下的接口里）
 

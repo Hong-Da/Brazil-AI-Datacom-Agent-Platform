@@ -50,6 +50,14 @@ def main_options(
             help="项目：标识、属主/标识或编号；不给时用默认项目 / project (default: your default project)",
         ),
     ] = None,
+    network: Annotated[
+        str | None,
+        typer.Option(
+            "--network",
+            "-N",
+            help="项目里的网络：标识或编号；不给时用默认网络 / network in the project (default: the default network)",
+        ),
+    ] = None,
     as_user: Annotated[
         str | None,
         typer.Option(
@@ -72,6 +80,7 @@ def main_options(
         config_path=config_file,
         project=project,
         as_user=as_user,
+        network=network,
     )
     ctx.obj = c
     lmlog.setup(
@@ -113,7 +122,7 @@ def _setup_project(c: Ctx, settings: config.Settings) -> None:
     projects.set_lazy(None)
     projects.set_identity(None)
     if not config.is_configured():
-        if c.project or c.as_user:
+        if c.project or c.as_user or c.network:
             fail(c, output.EXIT_CONFIG, c.t("config.not_configured"))
         return
     db = settings.database_url
@@ -122,10 +131,12 @@ def _setup_project(c: Ctx, settings: config.Settings) -> None:
         store.upgrade(db)
         return projects.cli_identity(db, c.as_user)
 
-    if c.project or c.as_user:
+    if c.project or c.as_user or c.network:
         try:
             who = ident()
             scope = projects.resolve(db, who, c.project) if c.project else projects.default_scope(db, who)
+            if c.network:  # M9：--network 在 --project（不给时默认项目）里找
+                scope = projects.with_network(db, scope, c.network)
         except projects.ProjectError as e:
             # 只写标识却匹配到多个项目：参数不够明确（退出码 2，data.candidates 列出“属主/标识”）；其余为不存在（4）
             code = output.EXIT_USAGE if e.kind == "ambiguous" else output.EXIT_NOT_FOUND
@@ -411,6 +422,10 @@ cmd_models.register(app)
 from lmesh.cli import cmd_project  # noqa: E402
 
 cmd_project.register(app)
+
+from lmesh.cli import cmd_network  # noqa: E402
+
+cmd_network.register(app)
 
 
 def main() -> None:

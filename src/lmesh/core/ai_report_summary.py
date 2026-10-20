@@ -291,6 +291,11 @@ def for_export(
         )
         if project_id is not None:
             q = q.where(AISuggestion.project_id == project_id)
+            from lmesh.core import projects
+
+            sc = projects.current()
+            if sc is not None and sc.network_id is not None and sc.project_id == project_id:
+                q = q.where(AISuggestion.network_id == sc.network_id)  # M9：按网络
         row = s.scalar(q.order_by(AISuggestion.decided_at.desc(), AISuggestion.id.desc()).limit(1))
         if row is None:
             return None

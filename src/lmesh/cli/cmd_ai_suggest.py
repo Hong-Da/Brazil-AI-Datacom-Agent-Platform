@@ -48,6 +48,7 @@ def _env(c: Ctx) -> ai_suggest.Env:
         settings,
         lambda: _kb(c)[0],
         project_id=scope.project_id if scope else None,
+        network_id=scope.network_id if scope else None,
         user_id=who.user_id,
         actor=who.username or "cli",
         kb_editor=True,
@@ -279,7 +280,7 @@ def register(ai_app: typer.Typer) -> None:
     def s_annotations(ctx: typer.Context) -> None:
         c = output.get(ctx)
         env = _env(c)
-        items = ai_suggest.list_annotations(env.db, env.project_id or 0) if env.project_id else []
+        items = ai_suggest.list_annotations(env.db, env.project_id or 0, None, env.network_id) if env.project_id else []
         text = "\n".join(
             f"{a['target_type']}:{a['target']} {a['key']} = {a['value']} ({a['source']})" for a in items
         ) or c.t("ai_suggest.empty")

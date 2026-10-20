@@ -22,6 +22,7 @@ from lmesh.api.common import E_FORBIDDEN, ApiError, Principal, db_of, project_er
 from lmesh.core import projects
 
 PROJECT_PREFIX = "/projects/{project}"
+NETWORK_PREFIX = "/projects/{project}/n/{network}"
 
 
 def _check_level(p: Principal, lvl: str) -> None:
@@ -44,14 +45,23 @@ def _enter(request: Request, p: Principal, scope: projects.Scope, lvl: str, via:
 
 
 def _after(request: Request, scope: projects.Scope, lvl: str, audit: bool = True) -> None:
-    """管理员访问他人项目写审计；写操作记录项目的最近活动。"""
+    """管理员访问他人项目写审计；写操作记录项目（与当前网络，M9）的最近活动。"""
     route = request.scope.get("route")
     path = getattr(route, "path", request.url.path)
     db = db_of(request)
     if audit:
         projects.admin_access(db, scope, request.method, path, lvl in ("write", "kb", "self"))
     if lvl in ("write", "kb"):
-        projects.touch(db, scope, f"{request.method} {path.replace('/api/v1', '').replace(PROJECT_PREFIX, '')}")
+        action = (
+            f"{request.method} {path.replace('/api/v1', '').replace(NETWORK_PREFIX, '').replace(PROJECT_PREFIX, '')}"
+        )
+        projects.touch(db, scope, action)
+        if not action.split(" ", 1)[-1].startswith("/networks") and not action.split(" ", 1)[-1].startswith(
+            "/network-folders"
+        ):
+            from lmesh.core import networks
+
+            networks.touch(db, scope, scope.network_id, action)
 
 
 def project_guard(lvl: str) -> Callable[..., Awaitable[None]]:
@@ -69,6 +79,26 @@ def project_guard(lvl: str) -> Callable[..., Awaitable[None]]:
         except projects.ProjectError as e:
             raise project_error(e) from e
         _enter(request, p, scope, lvl, "path")
+        await run_in_threadpool(_after, request, scope, lvl)
+
+    return guard
+
+
+def network_guard(lvl: str) -> Callable[..., Awaitable[None]]:
+    """/projects/{project}/n/{network}/…：当前项目与当前网络（M9）。"""
+
+    async def guard(
+        request: Request,
+        project: str = Path(..., description="项目：标识、属主/标识或项目编号（同项目路径）"),
+        network: str = Path(..., description="网络：项目内的网络标识或编号"),
+        p: Principal = Depends(require_token),
+    ) -> None:
+        _check_level(p, lvl)
+        try:
+            scope = await run_in_threadpool(projects.resolve, db_of(request), p.identity(), project, network)
+        except projects.ProjectError as e:
+            raise project_error(e) from e
+        _enter(request, p, scope, lvl, "network")
         await run_in_threadpool(_after, request, scope, lvl)
 
     return guard
@@ -108,15 +138,21 @@ def _sub(routes: list[Any]) -> APIRouter:
 
 def mount(app: FastAPI, router: APIRouter, prefix: str, tag: str, project_only: bool = False) -> None:
     """按接口归属与级别分组挂载一个路由器。project_only：只挂在项目路径下（没有旧路径别名）。"""
-    groups: dict[tuple[bool, str], list[Any]] = {}
+    groups: dict[tuple[bool, str, bool], list[Any]] = {}
     for route in router.routes:
         if not isinstance(route, APIRoute):
             continue
         method = sorted(route.methods or {"GET"})[0]
         lvl = access.level(method, route.path, project_only)
-        groups.setdefault((project_only or access.is_project(route.path), lvl), []).append(route)
-    for (is_project, lvl), routes in groups.items():
+        is_project = project_only or access.is_project(route.path)
+        net = is_project and access.network_ok(method, route.path, project_only)
+        groups.setdefault((is_project, lvl, net), []).append(route)
+    for (is_project, lvl, net), routes in groups.items():
         sub = _sub(routes)
+        if net and lvl != "public":
+            app.include_router(
+                sub, prefix=prefix + NETWORK_PREFIX, tags=[tag], dependencies=[Depends(network_guard(lvl))]
+            )
         if lvl == "public":
             app.include_router(sub, prefix=prefix, tags=[tag])
         elif project_only:

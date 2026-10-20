@@ -23,10 +23,11 @@
 | `--verbose` / `-v` | 同时把日志打印到 stderr |
 | `--yes` / `-y` | 跳过所有确认提示（非终端调用时自动开启） |
 | `--project <项目>` / `-P` | 命令作用于哪个项目（M6）：项目标识、`属主/标识` 或项目编号；不给时用默认项目；项目不存在退出码 4。标识只在属主内唯一：只写标识时先找 `--as` 账号自己的项目，没有时在他能访问的项目里找，有多个同名时退出码 2（提示写成 `属主/标识`，`--output json` 的 `error.data.candidates` 列出候选） |
+| `--network <网络>` / `-N` | 命令作用于项目（`--project`，不给时默认项目）里的哪个网络（M9）：网络标识或编号；不给时为默认网络（包含全部设备），所以已有脚本照常运行；网络不存在退出码 4。拓扑、检查、忽略、规则调整、脚本、AI 建议等按网络的命令只看这个网络的设备与数据 |
 | `--as <账号>` | 以哪个账号的身份：默认项目、新建项目与个人令牌的属主，调用 AI 时按这个账号的 AI 选择（REQ-040）；默认第一个启用的管理员（还没有账号时等同全局令牌，用第一个可用的管理员 AI 接口） |
 | `--version` | 显示版本 |
 
-命令行直接操作本机数据库，权限等同管理员（不按项目角色限制）；设备相关的命令（导入、列表、配置图、对比、检查、版本历史、拓扑、导出……）都只看当前项目里的设备（私有设备与引用的公共设备）。
+命令行直接操作本机数据库，权限等同管理员（不按项目角色限制）；设备相关的命令（导入、列表、配置图、对比、检查、版本历史、拓扑、导出……）都只看当前项目里的设备（私有设备与引用的公共设备），给了 `--network` 时只看该网络的成员（M9）；在网络里导入的设备同时加入该网络。
 
 每个命令都有 `--help`。
 
@@ -176,6 +177,17 @@
 | `lmesh token create <用途> [--read-only] [--days 90]` | 为 `--as` 账号生成个人令牌（`lmp_` 开头，只显示这一次）；`--days 0` 不过期；还没有账号时退出码 1 |
 | `lmesh token list` | `--as` 账号的个人令牌：前 8 个字符、权限、过期时间、最后使用、状态 |
 | `lmesh token revoke <编号>` | 撤销令牌；不存在退出码 4 |
+| `lmesh network list` | 本项目的网络（M9）与汇总：设备数、共用设备、脚本、错误 / 警告；`*` 为默认网络 |
+| `lmesh network show <网络>` / `update <网络> [--name] [--slug] [--color]` | 网络详情 / 改名、标识、识别色（8 色之一，否则退出码 2） |
+| `lmesh network create <名称> [--slug] [--color] [--devices 1,2] [--name-rule 模式]… [--subnet-rule CIDR]…` | 新建网络；规则同时加入现在命中的设备 |
+| `lmesh network delete <网络> --confirm <名称>` / `--preview` | 删除网络与它的工作数据（不删设备）；默认网络退出码 1；`--preview` 只列出会删除的内容 |
+| `lmesh network copy <网络> --name <名称> [--slug]` | 复制网络（连同工作数据，已采纳的 AI 结果注明复制自） |
+| `lmesh network members <网络>` / `add <网络> <设备编号,…> [--pin]` / `remove <网络> <设备编号,…>` | 成员与本网络用的版本 / 从项目设备池加入 / 移出（记为排除；默认网络退出码 1） |
+| `lmesh network pin <网络> <设备编号,…> [--version 编号]` / `follow <网络> <设备编号,…>` | 在本网络固定版本（不给版本时固定在当前最新）/ 改为跟随最新 |
+| `lmesh network rules <网络>` / `rule-add <网络> name\|subnet <模式> [--apply]` / `rule-preview …` / `rule-delete <网络> <编号>` | 自动加入规则：列表 / 添加（`--apply` 同时加入现在命中的设备）/ 命中预览 / 删除 |
+| `lmesh network folder-add <名称>` / `folder-delete <编号>` | 文件夹（只整理列表；删除时网络移到最外层） |
+| `lmesh network suggest components\|igp\|bgp\|name\|subnet\|ai [--regex] [--prefix 24] [--protocol all\|isis\|ospf] [--all-links]` | 建网建议（代码计算，预览）；依据不合格退出码 2 |
+| `lmesh network adopt <依据> [--key K]… [--with-rules] [同上参数]` | 采纳建网建议（不给 `--key` 时采纳全部可采纳的）；`--with-rules` 把设备名 / 管理网段规则设为新网络的自动加入规则 |
 | `lmesh public-device list` | 公共设备库：版本数、引用它的项目（跟随 / 固定） |
 | `lmesh public-device import <文件、目录或 zip> [--level basic\|strict]` | 导入到公共设备库（同名设备作为新版本） |
 | `lmesh public-device delete <设备> [--force]` | 删除公共设备；还有项目引用时退出码 1（`--force` 一并解除引用） |
@@ -1785,6 +1797,67 @@ JSON 输出中的关键字段：
 - `data.naming.summary.renamed` = `3`
 - `data.naming.renames.2.to` = `"VRF_RAN"`
 - `data.interface_map.GigabitEthernet0/2/1` = `"GigabitEthernet0/0/2"`
+
+### 网络列表：默认网络包含全部设备
+
+```bash
+lmesh --output json --project alice/lab network list
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.networks.0.slug` = `"default"`
+- `data.networks.0.default` = `true`
+- `data.networks.0.counts.devices` = `2`
+- `data.overview.devices` = `2`
+
+### 新建网络并按设备名规则加入现有设备
+
+```bash
+lmesh --output json --project alice/lab network create '接入' --slug access --name-rule 'ATN-*'
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.slug` = `"access"`
+- `data.counts.devices` = `1`
+- `data.rules.0.pattern` = `"ATN-*"`
+- `data.color` = `"indigo"`
+
+### 全局 --network：命令作用于该网络（默认网络有全部设备）
+
+```bash
+lmesh --output json --project alice/lab --network default config list
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.devices.0.name` = `"ATN-CHANGE-01"`
+- `data.devices.1.name` = `"PE-CHANGE-01"`
+
+### 建网建议：按设备名规则
+
+```bash
+lmesh --output json --project alice/lab network suggest name
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.total` = `2`
+- `data.suggestions.0.key` = `"name:ATN-CHANGE"`
+- `data.suggestions.0.rule.pattern` = `"ATN-CHANGE-*"`
 
 ### Nokia 规范模式渲染（exit all / configure 开头，echo 段落，每块 exit，名称加引号）
 
