@@ -30,6 +30,8 @@ CONFIG_SUFFIXES = {"", ".txt", ".cfg", ".conf", ".config", ".log", ".zip"}
 MAX_BYTES = 20 * 1024 * 1024
 _HOST = re.compile(r"^\s*(?:sysname|hostname)\s+(\S+)", re.M)
 _NOKIA_HOST = re.compile(r'^ {8}name\s+"?([^"\s]+)"?\s*$', re.M)  # configure > system > name "PE1"
+# 认不出厂商时（REQ-044）再试几种常见写法：host-name X; / set system host-name X / hostname X
+_GENERIC_HOST = re.compile(r'^\s*(?:set system )?host-?name\s+"?([^\s;"]+)"?;?\s*$', re.M)
 
 
 @dataclass
@@ -47,6 +49,13 @@ class ImportResult:
     coverage: float | None = None
     error: str = ""  # 文案键
     duplicate: bool = False  # 内容与该设备最新的快照相同：没有存新快照，只记了一条导入记录（版本历史）
+    # REQ-044：Profile 来源（auto / fallback / rule / manual / none）、匹配程度（exact / approx / none）、
+    # 按哪条型号规则选的、这次“记住”新建的规则、是否只存原文（认不出厂商或没有可用的 Profile）
+    profile_source: str = ""
+    match_level: str = ""
+    rule_id: int | None = None
+    rule_created: int | None = None
+    raw_only: bool = False
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -105,21 +114,26 @@ def guess_profile(vendor: str, version: str, kb: Any = None, fmt: str = "") -> s
     return ""
 
 
-def sanitize_one(name: str, raw: bytes, sanitizer: Sanitizer, kb: Any = None) -> tuple[ImportResult, str]:
+def sanitize_one(
+    name: str, raw: bytes, sanitizer: Sanitizer, kb: Any = None, allow_unknown: bool = False
+) -> tuple[ImportResult, str]:
+    """脱敏一个文件。认不出厂商时默认拒绝（import.unknown_vendor）；allow_unknown=True 时按通用规则脱敏，
+    厂商与 Profile 留空（REQ-044：只存原文或由调用方手工指定 Profile）。"""
     if len(raw) > MAX_BYTES:
         return ImportResult(name, False, error="import.too_large"), ""
     text = decode(raw)
     vendor = detect_vendor(text)
-    if not vendor:
+    if not vendor and not allow_unknown:
         return ImportResult(name, False, error="import.unknown_vendor"), ""
-    version = detect_version(text, vendor)
-    fmt = detect_format(text, vendor)
+    vendor = vendor or ""
+    version = detect_version(text, vendor) if vendor else ""
+    fmt = detect_format(text, vendor) if vendor else ""
     try:
         result = sanitizer.sanitize(text)
     except SanitizeLeak:
         # 自检发现脱敏后仍残留秘密值：这个文件不入库（只报告，不写日志原文），批次里的其他文件照常导入
         return ImportResult(name, False, error="import.sanitize_leak"), ""
-    m = (_NOKIA_HOST if vendor == "nokia" else _HOST).search(result.text)
+    m = (_NOKIA_HOST if vendor == "nokia" else _HOST if vendor else _GENERIC_HOST).search(result.text)
     device = m.group(1) if m else Path(name).stem
     return ImportResult(
         name,
@@ -127,7 +141,7 @@ def sanitize_one(name: str, raw: bytes, sanitizer: Sanitizer, kb: Any = None) ->
         device=device,
         vendor=vendor,
         version=version,
-        profile=guess_profile(vendor, version, kb, fmt),
+        profile=guess_profile(vendor, version, kb, fmt) if vendor else "",
         lines=text.count("\n") + 1,
         sanitized=result.summary(),
     ), result.text
@@ -142,6 +156,10 @@ def import_sources(
     actor: str = "",
     keep: int | None = None,
     public: bool = False,
+    choices: dict[str, dict[str, Any]] | None = None,
+    profile: str | None = None,
+    keep_unsupported: bool = False,
+    can_global: bool = True,
 ) -> list[ImportResult]:
     """一批文件共用一个脱敏器：同一原值在不同设备上替换成同一个值，跨设备的引用关系保持。
 
@@ -150,8 +168,13 @@ def import_sources(
 
     版本历史（M5-2）：每个配置版本是一个快照（原文 + 当时的图 + 知识库版本 + 内容指纹）；内容与该设备最新快照相同的
     重复导入不存新快照，只记导入记录（source_kind：file / dir / zip / api，actor：导入人或令牌说明）。
-    导入后按 keep（配置项 history.keep，None 时读取配置）清理旧快照，贴了标签的永久保留。"""
-    from lmesh.core import history, projects
+    导入后按 keep（配置项 history.keep，None 时读取配置）清理旧快照，贴了标签的永久保留。
+
+    Profile（REQ-044）：profile 对所有文件生效、choices 按文件名（来源名）指定 {profile, raw_only, remember}；
+    其余按 model_support.choose 的顺序（设备之前的手工选择、型号规则、版本规则、fallback）。认不出厂商的文件默认拒绝，
+    keep_unsupported=True 或该文件 raw_only 时只存原文（标为不支持的厂商）。remember={scope, name_pattern, version,
+    feature, note} 时新建型号规则（同一批相同的规则只建一次）；scope=global 需要 can_global（维护员与管理员）。"""
+    from lmesh.core import history, model_support, projects
 
     sc = None if public else projects.current()
     # 项目的脱敏补充（M8-5 脱敏复核采纳的规则）：导入到这个项目时一并替换
@@ -166,9 +189,16 @@ def import_sources(
     graphs: list[tuple[int, Any]] = []
     new_versions: list[int] = []
     project_id = None if public else projects.target_project_id(db_url)
+    choices = choices or {}
+    remembered: dict[tuple[Any, ...], int] = {}
+    reanalyse: list[int] = []
     with store.session(db_url) as s:
         for name, raw in sources:
-            res, text = sanitize_one(name, raw, sanitizer, kb)
+            opt = choices.get(name) or choices.get(Path(name).name) or {}
+            override = str(opt.get("profile") or profile or "") or None
+            res, text = sanitize_one(name, raw, sanitizer, kb, allow_unknown=True)
+            if res.ok and not res.vendor and not override and not (keep_unsupported or opt.get("raw_only")):
+                res.ok, res.error = False, "import.unknown_vendor"
             if res.ok:
                 owner = Device.project_id.is_(None) if project_id is None else Device.project_id == project_id
                 dev = s.scalar(select(Device).where(owner, Device.name == res.device))
@@ -176,6 +206,45 @@ def import_sources(
                     res.ok, res.error = False, "import.name_is_public_ref"
                     results.append(res)
                     continue
+                det = model_support.detect(text)
+                prev = (dev.profile, dev.profile_source or "auto") if dev is not None else None
+                try:
+                    if opt.get("raw_only") and not override:
+                        ch = model_support.Choice("", "none", None, det.vendor, det.version, det.family)
+                    else:
+                        rid = None
+                        if override and kb is not None and opt.get("remember"):
+                            rid, created = _remember(
+                                s,
+                                kb,
+                                det,
+                                override,
+                                opt["remember"],
+                                project_id,
+                                actor,
+                                can_global,
+                                remembered,
+                                res.device,
+                            )
+                            res.rule_created = rid if created else None
+                        rules = model_support.ordered_rules(s, project_id)
+                        ch = model_support.choose(kb, text, res.device, rules, override, prev, det)
+                        hit = model_support.match_rule(kb, rules, res.device, det, text) if rid and kb else None
+                        if hit is not None and hit.id == rid:
+                            # 记住的规则命中了这台设备：来源记为规则，规则改指向时跟着变
+                            ch = model_support.Choice(override or "", "rule", hit.id, ch.vendor, ch.version, ch.family)
+                except model_support.ModelError as e:
+                    res.ok, res.error = False, e.key
+                    results.append(res)
+                    continue
+                res.profile, res.profile_source, res.match_level, res.rule_id = (
+                    ch.profile,
+                    ch.source,
+                    ch.level,
+                    ch.rule_id,
+                )
+                res.vendor = ch.vendor
+                res.raw_only = not ch.profile or kb is None or ch.profile not in kb.profiles
                 if dev is None:
                     dev = Device(
                         name=res.device,
@@ -186,14 +255,17 @@ def import_sources(
                     )
                     s.add(dev)
                     s.flush()
-                else:
-                    dev.vendor, dev.sw_version, dev.profile = res.vendor, res.version, res.profile
+                changed = dev.profile != ch.profile
+                dev.vendor, dev.sw_version = res.vendor, res.version
+                model_support.apply_choice(dev, ch)
                 digest = history.content_hash(text)
                 same = history.find_duplicate(s, dev.id, digest)
                 if same is not None:
                     history.add_import(s, dev.id, same.id, name, source_kind, actor, duplicate=True)
                     res.version_id, res.duplicate = same.id, True
-                    if same.structured:
+                    if changed:
+                        reanalyse.append(same.id)  # 内容相同但这次换了 Profile：按新 Profile 重新解析
+                    elif same.structured:
                         res.unknown = sum(1 for ln in same.structured.get("lines", []) if ln.get("kind") == "unknown")
                         res.coverage = same.structured.get("coverage", res.coverage)
                     results.append(res)
@@ -245,12 +317,114 @@ def import_sources(
 
     for vid, g in graphs:
         graphstore.save(db_url, vid, g)
+    if reanalyse and kb_root is not None:
+        from lmesh.core import workbench
+
+        by_vid = {r.version_id: r for r in results if r.duplicate}
+        for vid in reanalyse:
+            out = workbench.analyse_version(db_url, vid, kb_root, kb=kb)
+            r = by_vid.get(vid)
+            if r is not None and out.get("parsed"):
+                r.unknown, r.coverage = int(out.get("unknown") or 0), out.get("coverage")
     if keep is None:
         from lmesh.core import config
 
         keep = int(config.load().get("history.keep"))
     history.after_import(db_url, new_versions, kb, keep)
     return results
+
+
+def inspect_sources(
+    sources: list[tuple[str, bytes]],
+    db_url: str,
+    level: Level = "basic",
+    kb_root: Path | None = None,
+    public: bool = False,
+) -> list[dict[str, Any]]:
+    """导入前的识别（REQ-044，不入库）：每个文件的识别结果、匹配程度、按选择顺序会用的 Profile、候选 Profile 的试解析
+    结果（同厂商 / 同平台族；认不出厂商时为全部 Profile）、设备之前的选择、“记住”时预填的规则。"""
+    from lmesh.core import model_support, projects
+
+    sc = None if public else projects.current()
+    sanitizer = Sanitizer(level, local_key(), redact=list(sc.redact) if sc else None)
+    kb = None
+    if kb_root is not None and (kb_root / "kb.yaml").exists():
+        from lmesh.core.analysis import load_kb
+
+        kb = load_kb(kb_root)
+    project_id = None if public else projects.target_project_id(db_url)
+    out: list[dict[str, Any]] = []
+    with store.session(db_url) as s:
+        rules = model_support.ordered_rules(s, project_id)
+        for name, raw in sources:
+            res, text = sanitize_one(name, raw, sanitizer, kb, allow_unknown=True)
+            row: dict[str, Any] = {"source": name, "ok": res.ok, "error": res.error}
+            if not res.ok:
+                out.append(row)
+                continue
+            owner = Device.project_id.is_(None) if project_id is None else Device.project_id == project_id
+            dev = s.scalar(select(Device).where(owner, Device.name == res.device))
+            prev = (dev.profile, dev.profile_source or "auto") if dev is not None else None
+            det = model_support.detect(text)
+            ch = model_support.choose(kb, text, res.device, rules, None, prev, det)
+            rule = next((r for r in rules if r.id == ch.rule_id), None)
+            cands = model_support.trial(kb, text, det) if kb is not None else []
+            row.update(
+                device=res.device,
+                vendor=det.vendor,
+                version=det.version,
+                family=det.family,
+                lines=res.lines,
+                sanitized=res.sanitized,
+                profile=ch.profile,
+                profile_source=ch.source,
+                match_level=ch.level,
+                rule=model_support.rule_dict(rule) if rule is not None else None,
+                previous={"profile": prev[0], "source": prev[1]} if prev else None,
+                candidates=cands,
+                recommended=cands[0]["profile"] if cands and det.vendor else None,
+                suggested_rule=model_support.suggest_rule(res.device, det.version),
+            )
+            out.append(row)
+    return out
+
+
+def _remember(
+    s: Any,
+    kb: Any,
+    det: Any,
+    profile: str,
+    rem: dict[str, Any],
+    project_id: int | None,
+    actor: str,
+    can_global: bool,
+    seen: dict[tuple[Any, ...], int],
+    device: str = "",
+) -> tuple[int, bool]:
+    """导入时“记住”：新建型号规则（同一批相同的规则只建一次），返回 (规则编号, 是否新建)。"""
+    from lmesh.core import model_support
+    from lmesh.core.store.models import ModelRule
+
+    scope = str(rem.get("scope") or "project")
+    if scope not in model_support.SCOPES:
+        raise model_support.ModelError("model.scope_invalid", scope=scope)
+    if scope == "global" and not can_global:
+        raise model_support.ModelError("api.error.kb_editor_only", "forbidden")
+    if not model_support.allowed(kb, det, profile):
+        raise model_support.ModelError("import.profile_not_allowed", profile=profile, vendor=det.vendor or "-")
+    rem = dict(rem)
+    if not any(str(rem.get(k) or "").strip() for k in ("name_pattern", "version", "feature")):
+        rem.update(model_support.suggest_rule(device, det.version))  # 没写条件：按设备名与版本预填
+    data = model_support.clean_rule({**rem, "profile": profile, "vendor": det.vendor}, kb)
+    pid = None if scope == "global" or project_id is None else project_id
+    key = (pid, *(data[k] for k in ("vendor", "name_pattern", "version", "feature", "profile")))
+    if key in seen:
+        return seen[key], False
+    r = ModelRule(project_id=pid, created_by=actor, **data)
+    s.add(r)
+    s.flush()
+    seen[key] = int(r.id)
+    return int(r.id), True
 
 
 def _ref_named(s: Any, project_id: int, name: str) -> bool:

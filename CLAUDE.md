@@ -27,7 +27,7 @@
 - 每完成一项功能就补测试（单元测试、CLI 测试、API 测试、文档测试）并更新调用文档；目录变化时更新 README
 - Linux 环境：root@linux-test-host，工作目录 ~/lmesh/（密码不记录）
 - 开工前和每步完成后展示里程碑进度，并更新 DevelopDocs/progress/progress.html
-- 版本号：M1 开发期间用 0.0.x，M1 验收打 0.1.0，之后 M2–M8 依次对应 0.2.0–0.8.0
+- 版本号：M1 开发期间用 0.0.x，M1 验收打 0.1.0，之后 M2–M9 依次对应 0.2.0–0.9.0
 - 确定性结论（解析、对比、翻译、校验）由代码在图上计算；AI 输出一律先入图经代码校验再展示；未配置 AI 时核心功能照常可用
 - 知识库：命令卡是唯一事实来源，Schema 由命令卡归并、Profile 由命令卡汇总；YAML 用 ruamel.yaml 写回，保留注释和顺序；功能域外的配置行作为原文节点原样保留
 - 真实设备配置只放在 DevelopDocs/；进入 knowledge/samples/ 或 tests/ 的样本必须先用 lmesh sanitize 脱敏，发给 AI 的配置也一律先脱敏

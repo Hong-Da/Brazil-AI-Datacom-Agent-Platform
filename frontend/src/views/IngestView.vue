@@ -130,7 +130,7 @@ function saveResult(): void {
   a.href = url
   a.download = `ingest-${c.result.rules ?? 'result'}-${c.id}.json`
   a.click()
-  URL.revokeObjectURL(url)
+  setTimeout(() => URL.revokeObjectURL(url), 10_000) // 立即释放会让浏览器偶尔来不及开始下载
 }
 
 function taskMeta(x: Task<IngestResult>): string {

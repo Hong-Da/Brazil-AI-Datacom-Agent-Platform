@@ -313,7 +313,7 @@ def full_kb_root(tmp_root: Path) -> Path:
 def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
     """用例的准备方式：fresh / configured / fresh-fullkb / configured-fullkb / configured-fullkb-history / configured-users /
     configured-notoken / configured-fullkb-checkproj / configured-projects / configured-samename / configured-pending /
-    configured-ai / configured-fullkb-suggest。"""
+    configured-ai / configured-fullkb-suggest / configured-fullkb-ne8000。"""
     if setup and "fullkb" in setup:
         request.getfixturevalue("full_kb_root")
     if setup and setup.startswith("configured"):
@@ -334,6 +334,8 @@ def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
         request.getfixturevalue("ai_root")
     if setup and setup.endswith("-suggest"):
         request.getfixturevalue("suggest_root")
+    if setup and setup.endswith("-ne8000"):
+        request.getfixturevalue("ne8000_root")
     if setup and setup.endswith("-notoken"):  # 实例没有设置 API 令牌（环境变量覆盖为空）
         request.getfixturevalue("monkeypatch").setenv("LMESH_SECURITY__API_TOKEN", "")
 
@@ -517,6 +519,23 @@ def suggest_root(projects_root: Path) -> Path:
         did = next(d["id"] for d in importer.list_devices(url) if d["name"] == HISTORY_DEVICE)
         ai_suggest.run(env, "device-summary", {"device_id": did}, reply=_json.dumps(SUGGEST_SUMMARY))
     return projects_root
+
+
+@pytest.fixture
+def ne8000_root(configured_root: Path) -> Path:
+    """未支持型号（REQ-044，需要全量知识库）：默认项目里导入合成的 NE8000-X8-01（编号 1，版本不匹配任何 Profile 的
+    版本规则 → 厂商默认 huawei-atn-v800r025，近似）与认不出厂商的 edge-mx-01（编号 2，只存原文）。"""
+    from lmesh.core import config, importer, kbservice, store
+
+    s = config.load()
+    store.upgrade(s.database_url)
+    root = kbservice.runtime_root(s)
+    for name in ("ne8000/ne8000-x8-01.cfg", "other/edge-mx-01.conf"):
+        data = (INPUTS / "configs" / name).read_bytes()
+        importer.import_sources(
+            [(name.split("/")[-1], data)], s.database_url, "basic", root, actor="tester", keep_unsupported=True
+        )
+    return configured_root
 
 
 @pytest.fixture

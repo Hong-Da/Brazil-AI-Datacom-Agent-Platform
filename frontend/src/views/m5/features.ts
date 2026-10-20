@@ -141,3 +141,11 @@ export function diffCsvRows(rows: DiffRow[], head: string[], kindName: (k: strin
   const side = (c: PCell) => (c.state === 'supported' ? [(c.syntax ?? []).join(' / '), showDefault(c.default)] : [stateName(c.state), ''])
   return [head, ...rows.map((r) => [r.node, r.domain, kindName(r.kind), ...side(r.a), ...side(r.b)])]
 }
+
+/** Profile 对比的默认两列：已选的保留；A 默认取第一个不继承的华为 Profile，B 取与 A 不同厂商的（没有时取另一个）。 */
+export function defaultPair(ps: ProfileInfo[], a: string, b: string): [string, string] {
+  const pa = a || (ps.find((p) => p.vendor === 'huawei' && !p.inherits)?.id ?? ps[0]?.id ?? '')
+  const va = ps.find((p) => p.id === pa)?.vendor
+  const pb = b || (ps.find((p) => p.id !== pa && p.vendor !== va)?.id ?? ps.find((p) => p.id !== pa)?.id ?? '')
+  return [pa, pb]
+}

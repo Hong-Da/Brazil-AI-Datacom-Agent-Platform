@@ -62,6 +62,8 @@ export interface ImpactSummary {
   summary: { seeds: number; objects: number; business: number }
 }
 export interface ChangeResult extends Plan {
+  /** REQ-044：来源设备使用近似 Profile 时的下发前提示 */
+  approx_profile?: { device: string; profile: string; source: string; rule_id: number | null } | null
   current: SideInfo
   target: SideInfo
   family: string

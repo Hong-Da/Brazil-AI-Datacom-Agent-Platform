@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 import socket
 from typing import Any
@@ -102,7 +103,8 @@ def ensure_runtime_knowledge(settings: config.Settings) -> bool:
     src = paths.builtin_knowledge_dir()
     if target.exists() or not src.exists():
         return False
-    shutil.copytree(src, target)
+    # 自带目录里可能有开发时留下的 .git（例如 kb map 直接在 knowledge/ 中提交），不复制：运行时知识库自己建仓
+    shutil.copytree(src, target, ignore=shutil.ignore_patterns(".git"))
     return True
 
 
@@ -122,6 +124,10 @@ def apply(
     if errors:
         raise SetupError(errors)
     values = {f.key: answers.get(f.key, f.default) for f in FIELDS}
+    # 数据库连接串由环境变量提供（例如 Docker 的 PostgreSQL 版）时不写进配置文件：里面有密码，环境变量照样优先生效
+    env_url = os.environ.get(config.env_name("database.url"), "")
+    if env_url and values["database.url"] == env_url:
+        values["database.url"] = ""
     generated_token = False
     if not str(values["security.api_token"] or "").strip():
         values["security.api_token"] = config.new_token()

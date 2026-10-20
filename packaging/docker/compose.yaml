@@ -1,0 +1,25 @@
+# 透网 LucidMesh：Docker compose（默认 SQLite，数据库文件在 data 卷里）
+# 离线导入镜像：docker load -i lmesh_<版本>_docker-image.tar.gz
+# 启动：cp .env.example .env（按需修改）后 docker compose up -d；浏览器打开 http://<主机>:9090 完成配置向导
+# 命令行配置（代替网页向导）：在 up 之前运行 docker compose run --rm lmesh lmesh setup
+# 数据、配置、日志是命名卷 lmesh-data、lmesh-config、lmesh-logs（容器内 /app/data、/app/config、/app/logs）
+name: ${COMPOSE_PROJECT_NAME:-lmesh}
+services:
+  lmesh:
+    image: lmesh:${LMESH_VERSION:?在 .env 中设置 LMESH_VERSION}
+    restart: unless-stopped
+    ports:
+      # 对外端口；只允许本机访问时写成 "127.0.0.1:${LMESH_PORT:-9090}:9090"
+      - "${LMESH_PORT:-9090}:9090"
+    environment:
+      LMESH_SERVER__HOST: 0.0.0.0
+      LMESH_SERVER__PORT: "9090"
+    volumes:
+      - lmesh-data:/app/data
+      - lmesh-config:/app/config
+      - lmesh-logs:/app/logs
+
+volumes:
+  lmesh-data:
+  lmesh-config:
+  lmesh-logs:

@@ -67,7 +67,7 @@ def run(request: Request, body: ChangeBody) -> dict[str, Any]:
     try:
         a = compare_side(request, kb, body.current, "current")
         b = compare_side(request, kb, body.target, "target")
-        return change.change(
+        result = change.change(
             a,
             b,
             kb,
@@ -79,6 +79,11 @@ def run(request: Request, body: ChangeBody) -> dict[str, Any]:
         )
     except (compare.CompareError, change.ChangeError) as e:
         raise _error(e) from e
+    # REQ-044：当前配置来自使用近似 Profile 的设备时，下发前提示核对
+    from lmesh.core import model_support
+
+    result["approx_profile"] = model_support.approx_note(settings.database_url, a.device_id)
+    return result
 
 
 @router.post(

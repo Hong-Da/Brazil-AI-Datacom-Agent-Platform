@@ -1,0 +1,30 @@
+<!--
+  透网 LucidMesh 的 Windows 服务定义（WinSW 2.12，MIT 许可证，见同目录 WinSW-LICENSE.txt）。
+  lmesh-service.exe 与本文件同名同目录；%BASE% 是本文件所在目录（程序目录下的 service\）。
+  安装 / 卸载服务用程序目录下的 service-install.bat / service-uninstall.bat（需要管理员权限）。
+-->
+<service>
+  <id>LucidMesh</id>
+  <name>LucidMesh</name>
+  <description>透网 LucidMesh / LucidMesh network configuration graph (web UI and API)</description>
+  <executable>%BASE%\..\runtime\python\python.exe</executable>
+  <arguments>-m lmesh serve</arguments>
+  <workingdirectory>%BASE%\..</workingdirectory>
+  <env name="LMESH_ROOT" value="%BASE%\.." />
+  <env name="PYTHONUTF8" value="1" />
+  <env name="PYTHONNOUSERSITE" value="1" />
+  <env name="TMP" value="%BASE%\..\tmp\os" />
+  <env name="TEMP" value="%BASE%\..\tmp\os" />
+  <startmode>Automatic</startmode>
+  <delayedAutoStart>true</delayedAutoStart>
+  <onfailure action="restart" delay="10 sec" />
+  <onfailure action="restart" delay="30 sec" />
+  <resetfailure>1 hour</resetfailure>
+  <stoptimeout>15 sec</stoptimeout>
+  <!-- 服务包装器自己的输出（启动地址等）写在 logs\ 下，程序日志仍是 logs\lmesh-*.log -->
+  <logpath>%BASE%\..\logs</logpath>
+  <log mode="roll-by-size">
+    <sizeThreshold>10240</sizeThreshold>
+    <keepFiles>4</keepFiles>
+  </log>
+</service>

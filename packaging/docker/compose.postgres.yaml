@@ -1,0 +1,44 @@
+# 透网 LucidMesh：Docker compose（PostgreSQL）
+# 启动前：cp .env.example .env，把 POSTGRES_PASSWORD 改成自己的强密码（只用字母、数字、- _，避免需要 URL 转义）
+# 启动：docker compose -f compose.postgres.yaml up -d；浏览器打开 http://<主机>:9090 完成配置向导
+# 命令行配置（代替网页向导）：在 up 之前运行 docker compose -f compose.postgres.yaml run --rm lmesh lmesh setup
+# 数据库连接由环境变量 LMESH_DATABASE__URL 指定（优先于配置文件），向导里的数据库一项不用再填
+name: ${COMPOSE_PROJECT_NAME:-lmesh-pg}
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lmesh
+      POSTGRES_USER: lmesh
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?在 .env 中设置 POSTGRES_PASSWORD}
+    volumes:
+      - lmesh-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lmesh -d lmesh"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  lmesh:
+    image: lmesh:${LMESH_VERSION:?在 .env 中设置 LMESH_VERSION}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${LMESH_PORT:-9090}:9090"
+    environment:
+      LMESH_SERVER__HOST: 0.0.0.0
+      LMESH_SERVER__PORT: "9090"
+      LMESH_DATABASE__URL: postgresql+psycopg://lmesh:${POSTGRES_PASSWORD}@db:5432/lmesh
+    volumes:
+      - lmesh-data:/app/data
+      - lmesh-config:/app/config
+      - lmesh-logs:/app/logs
+
+volumes:
+  lmesh-pgdata:
+  lmesh-data:
+  lmesh-config:
+  lmesh-logs:

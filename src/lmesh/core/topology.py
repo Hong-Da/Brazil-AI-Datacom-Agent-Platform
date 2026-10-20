@@ -1278,7 +1278,7 @@ def from_texts(items: list[dict[str, Any]], kb: KnowledgeBase) -> list[Device]:
 
 def from_db(db_url: str, kb: KnowledgeBase, targets: list[str] | None = None) -> tuple[list[Device], list[str]]:
     """已导入设备的最新配置版本。targets 是设备名或编号；None 表示全部。返回 (设备, 找不到的目标)。"""
-    from lmesh.core import graphstore, importer
+    from lmesh.core import analysis, graphstore, importer
 
     devs = importer.list_devices(db_url)
     chosen: list[dict[str, Any]] = []
@@ -1297,6 +1297,12 @@ def from_db(db_url: str, kb: KnowledgeBase, targets: list[str] | None = None) ->
                 chosen.append(hit)
     out = []
     for d in chosen:
-        g, ver, _ = graphstore.build_for_version(db_url, d["latest_version_id"], kb)
+        try:
+            g, ver, _ = graphstore.build_for_version(db_url, d["latest_version_id"], kb)
+        except analysis.AnalysisError:
+            # REQ-044：只存原文的设备（认不出厂商）没有配置图；全部设备时跳过，点名时按找不到报告
+            if targets is not None:
+                missing.append(d["name"])
+            continue
         out.append(Device(d["name"], g, device_id=d["id"], version_id=ver.id, source="device"))
     return out, missing

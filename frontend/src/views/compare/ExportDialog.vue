@@ -57,7 +57,7 @@ async function download(lang: Lang, fmt: Fmt): Promise<void> {
     a.href = url
     a.download = r.filename
     a.click()
-    setTimeout(() => URL.revokeObjectURL(url), 0)
+    setTimeout(() => URL.revokeObjectURL(url), 10_000)
   } catch (e) {
     err.value = t('compare.export.failed', { m: e instanceof Error ? e.message : String(e) })
   } finally {

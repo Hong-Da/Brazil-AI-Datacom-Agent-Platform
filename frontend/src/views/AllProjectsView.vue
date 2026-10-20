@@ -88,7 +88,7 @@ function exportCsv(): void {
   a.href = url
   a.download = 'lmesh-projects.csv'
   a.click()
-  URL.revokeObjectURL(url)
+  setTimeout(() => URL.revokeObjectURL(url), 10_000) // 立即释放会让浏览器偶尔来不及开始下载
 }
 
 function actText(p: ProjectRow): string {

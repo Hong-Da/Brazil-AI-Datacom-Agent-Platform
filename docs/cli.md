@@ -75,7 +75,7 @@
 | `lmesh config example [--check]` | 生成 `config/config.example.toml` |
 | `lmesh db upgrade` | 把数据库升级到最新结构 |
 | `lmesh sanitize <文件\|目录\|zip> -o <输出> [--level basic\|strict] [--redact 词或正则]… [--map-out 文件]` | 配置脱敏，行数不变；`basic` 替换密文、口令、团体字、密钥块、公网 IP，`strict` 另外替换全部 IP（前缀保持）、主机名、描述、用户名、网元 ID；`--redact` 追加客户名、站点编码等组织相关的词；`--map-out` 把原值与替换值的对照写到本机文件（敏感） |
-| `lmesh config import <文件\|目录\|zip> [--level basic\|strict]` | 导入配置：识别厂商与版本 → 脱敏 → 按设备保存为新的配置版本；无法识别的文件单独报告 |
+| `lmesh config import <文件\|目录\|zip> [--level basic\|strict] [--profile P] [--keep-unsupported] [--remember project\|global [--match-name 模式] [--match-version 正则] [--match-feature 正则]]` | 导入配置：识别厂商与版本 → 选 Profile → 脱敏 → 按设备保存为新的配置版本。Profile 的选择顺序（REQ-044）：`--profile` 手工指定（只允许同厂商 / 同平台族，认不出厂商时任意）→ 设备之前的手工选择 → 型号规则 → 版本规则 → 厂商默认（fallback）；结果里 `profile_source` 为 auto / fallback / rule / manual / none、`match_level` 为 exact / approx / none。`--remember` 把 `--profile` 记住为型号规则（不写条件时按设备名与版本预填）。认不出厂商的文件默认不导入（单独报告），`--keep-unsupported` 时只存原文（不解析，标为不支持的厂商） |
 | `lmesh config list` | 已导入的设备、软件版本、Profile 与配置版本数 |
 | `lmesh kb validate` | 校验知识库：YAML 格式、编号唯一、引用完整、语法、继承无环；有错误时退出码 1 |
 | `lmesh kb export -o <zip>` | 导出知识库包 |
@@ -84,6 +84,7 @@
 | `lmesh kb releases` / `lmesh kb history` | 已发布的版本 / 提交历史 |
 | `lmesh kb diff <版本> [<版本>]` | 两个版本之间新增、删除、修改的节点与命令卡、默认值变化；只给一个时与当前工作区对比 |
 | `lmesh kb rollback <版本>` | 回滚到某个已发布版本（恢复文件后再提交一次，历史保留；需要确认，`--yes` 跳过） |
+| `lmesh kb upgrade [--dry-run] [--rollback]` | 升级后合并程序自带的知识库（REQ-046）：与 `builtin` 分支上次的自带快照三方比较，用户没改过的文件采用新版本，双方都改过的保留用户版本并作为冲突（来源 `kb-upgrade`）送审核队列，结果记一条发布记录；没有基准的旧安装把与新版本不同的文件全部送审核；`--dry-run` 只列出，`--rollback` 回滚最近一次升级合并（需要确认，`--yes` 跳过）；`lmesh serve` 启动时也会自动合并，详见 [deploy.md](deploy.md#升级时知识库如何合并) |
 | `lmesh kb coverage [--profile P]` | 覆盖矩阵：各 Profile（继承展开后）对 Schema 节点支持、不支持、未填写的数量 |
 | `lmesh kb ingest <文档> --rules <规则> [--domain D]… [--version V] [--ai]` | 导入产品文档（Markdown / HTML / PDF / CHM），按 `knowledge/extractors/` 中的规则抽取命令卡，以 draft 写入知识库并送审核队列；重复导入时没变化的卡跳过，已审核的卡有变化时只生成“更新”审核记录；`--ai` 把规则抽取失败的命令交给 AI 修正（结果必须能通过语法解析） |
 | `lmesh review list [--kind K] [--status S]` / `review show <编号>` | 审核队列 |
@@ -135,6 +136,13 @@
 | `lmesh history restore <设备> --to <快照> [--from 快照] [-o 脚本] [--rollback 文件] [--plain] [--report 文件]` | 回到某个快照：当前（默认最新）→ 目标快照的增量变更脚本，附回滚脚本与模拟验证（复用 `lmesh change`） |
 | `lmesh device delete <设备> [--force] [--yes]` | 删除设备（REQ-038，设备写名称或编号）：连带删除全部配置版本（含快照）、图的节点与边、未识别行、导入记录、检查忽略项；在终端里先提示确认（列出将删除的版本、导入记录、忽略项个数），`--yes` 跳过（标准输入不是终端时不提示）；设备是配置检查项目的基线时拒绝并列出项目与脚本（退出码 1，`--output json` 的 `error.data` 为删除预览），`--force` 时删除并清空这些项目的基线（脚本与修订保留，结果中 `baseline_cleared`）；设备不存在退出码 4；删除记入日志（操作者、设备、版本个数），不记录配置内容 |
 | `lmesh device delete-version <设备> <版本> [--force] [--yes]` | 删除设备的一个配置版本（版本写法同 `lmesh history`：数字是序号，`v<编号>` 是配置版本编号，另有 `latest`、`prev`、`tag:<标签>`）：连带删除该版本的快照、图、未识别行、导入记录；最后一个版本不能单独删除（退出码 1，请删除设备）；删除最新版本后上一个版本成为最新，跟随最新版本的检查项目随之改用它（`baseline_moved`）；删除较早的版本后，下一个版本相对上一快照的变化计数重算（`recomputed`）；版本被检查项目固定为基线时拒绝（退出码 1），`--force` 时这些项目改为跟随最新版本（`baseline_cleared`）；版本不存在退出码 4 |
+| `lmesh device profiles <设备>` | 更换 Profile 的候选（REQ-044）：当前 Profile、来源与匹配程度、未识别比例；同厂商 / 同平台族的候选各试解析一次，按识别出的命令行比例排序（不用 AI），`*` 标出当前 |
+| `lmesh device set-profile <设备> [<Profile>] [--auto] [--remember project\|global] [--match-name 模式] [--match-version 正则] [--match-feature 正则]` | 更换 Profile 并重新解析最新版本（之后的导入与重新解析沿用手工选择）；`--auto` 改回自动选择；`--remember` 同时记住为型号规则（命中这台设备时来源记为 rule）；跨厂商的 Profile 退出码 2 |
+| `lmesh device request-support <设备> --model 型号 [--reason 说明]` | 申请支持此型号：附设备信息与未识别行的前 20 种写法，进审核队列（类型“建议”） |
+| `lmesh model-rule list [--scope all\|project\|global]` | 型号规则（REQ-044），按生效顺序：本项目规则在前、全局在后；同一范围内条件多的优先，一样多时先建的优先 |
+| `lmesh model-rule add --profile P [--match-name 模式] [--match-version 正则] [--match-feature 正则] [--vendor V] [--scope project\|global] [--note 说明] [--disabled]` / `update <编号> […] [--enable\|--disable]` / `remove <编号>` | 新建 / 修改 / 删除型号规则：至少一个条件，正则有效，只能指向同厂商的 Profile（否则退出码 2）；不存在退出码 4 |
+| `lmesh model-rule test --profile P [--match-name 模式] [--match-version 正则] [--match-feature 正则]` | 试匹配（不保存）：本项目里会命中的设备，以及被更早的规则抢先的 |
+| `lmesh model-support show <审核编号>` / `derive <审核编号> --id 新编号 --base 基础Profile [--title] [--platform] [--software] [--version-rule 正则]` / `retarget <审核编号> [--note]` | 处理型号支持申请（维护员）：查看状态与改指向预演 / 从现有 Profile 派生（继承，只写差异，写入草稿区）/ 匹配申请设备的型号规则改指向派生的 Profile（没有规则时新建全局规则），相关设备（所有项目，手工选择的不动）重新解析，申请标为通过 |
 | `lmesh export presets [--style huawei\|cisco]` | 审计表格的预置模板（`knowledge/export/tables.yaml`）：IP 地址表、VLAN / 桥域表、BGP 邻居表、接口描述表、VPN 实例表、静态路由表 |
 | `lmesh export table [文件\|目录\|设备名…] [--all] --preset P \| --object O [--fields 路径,…] [--where 筛选,…] [--filter '字段 运算符 取值']… [--no-defaults] [--canonical-names] [--format csv\|xlsx\|json] [--sheets per-device\|single] [--table-lang zh-CN\|en\|pt-BR] [--style] [-o 文件]` | 导出审计表格：每行一个对象、每格可追溯到图节点与配置行；CSV 为 UTF-8 带 BOM，另有“来源”列标出来自默认值的格子；XLSX 有“说明”工作表，默认值格子加批注；表头三语；敏感字段只写“已配置 / 未配置” |
 | `lmesh feature [关键词] [--profile P]… [--family F] [--domain D] [--state supported\|unsupported\|unfilled] [--include-same] [--detail 节点]` | 特性能力查询（由知识库计算）：各 Profile 是否支持、默认值（↑ 表示继承）、命令写法、命令卡、来源；不带关键词浏览全部时各 Profile 完全相同的只计数 |
@@ -1485,6 +1493,19 @@ lmesh history list NOPE
 
 退出码：`4`
 
+### 预览升级时知识库的合并（自带知识库没变时无需合并）
+
+```bash
+lmesh --output json kb upgrade --dry-run
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `data.changed` = `false`
+- `data.has_base` = `true`
+
 ### ASR 920 迁移到 ATN（新设备有出厂配置），输出目录里放新配置、增量配置、映射表、告警与步骤
 
 ```bash
@@ -1535,6 +1556,135 @@ JSON 输出中的关键字段：
 - `data.map.0.basis` = `"same_index"`
 - `data.map.0.confidence` = `0.8`
 - `data.unmapped` = `[]`
+
+### 导入时手工指定 Profile 并记住为本项目的型号规则
+
+```bash
+lmesh --output json config import tests/inputs/configs/ne8000/ne8000-x8-02.cfg --profile huawei-atn-v800r023 --remember project
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.files.0.device` = `"NE8000-X8-02"`
+- `data.files.0.profile` = `"huawei-atn-v800r023"`
+- `data.files.0.profile_source` = `"rule"`
+- `data.files.0.match_level` = `"approx"`
+- `data.files.0.rule_created` = `1`
+- `data.files.0.rule_id` = `1`
+
+### 认不出厂商的配置只存原文（--keep-unsupported）
+
+```bash
+lmesh --output json config import tests/inputs/configs/other/edge-mx-01.conf --keep-unsupported
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.files.0.device` = `"edge-mx-01"`
+- `data.files.0.vendor` = `""`
+- `data.files.0.raw_only` = `true`
+- `data.files.0.profile_source` = `"none"`
+- `data.files.0.match_level` = `"none"`
+
+### 候选 Profile 与试解析结果（近似：厂商默认）
+
+```bash
+lmesh --output json device profiles NE8000-X8-01
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.profile` = `"huawei-atn-v800r025"`
+- `data.profile_source` = `"fallback"`
+- `data.match_level` = `"approx"`
+- `data.approx` = `true`
+- `data.recommended` = `"huawei-atn-v800r025"`
+- `data.candidates.0.profile` = `"huawei-atn-v800r025"`
+- `data.candidates.0.unknown` = `2`
+- `data.candidates.1.profile` = `"huawei-atn-v800r023"`
+- `data.suggested_rule.name_pattern` = `"NE8000-X8-*"`
+- `data.suggested_rule.version` = `"V800R022"`
+
+### 更换 Profile 并重新解析（手工选择）
+
+```bash
+lmesh --output json device set-profile NE8000-X8-01 huawei-atn-v800r023
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.profile` = `"huawei-atn-v800r023"`
+- `data.profile_source` = `"manual"`
+- `data.approx` = `true`
+- `data.result.parsed` = `true`
+- `data.result.unknown` = `2`
+
+### 只允许同厂商 / 同平台族：选 Cisco 的 Profile 被拒绝，退出码 2
+
+```bash
+lmesh device set-profile NE8000-X8-01 cisco-iosxe-asr920-17.15
+```
+
+退出码：`2`
+
+错误提示（stderr）包含：`cisco-iosxe-asr920-17.15`、`同厂商`
+
+### 申请支持此型号（进审核队列，类型“建议”）
+
+```bash
+lmesh --output json device request-support NE8000-X8-01 --model 'NE8000 X8' --reason '城域汇聚'
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.status` = `"pending"`
+
+### 新建全局型号规则
+
+```bash
+lmesh --output json model-rule add --profile huawei-atn-v800r023 --match-name 'NE8000-*' --match-version V800R022 --scope global --note 'NE8000 暂用 ATN R023'
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.id` = `1`
+- `data.scope` = `"global"`
+- `data.vendor` = `"huawei"`
+- `data.conditions` = `3`
+- `data.profile` = `"huawei-atn-v800r023"`
+
+### 试匹配型号规则（不保存）
+
+```bash
+lmesh --output json model-rule test --profile huawei-atn-v800r023 --match-version V800R022
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.count` = `1`
+- `data.devices.0.name` = `"NE8000-X8-01"`
+- `data.devices.0.source` = `"fallback"`
 
 ### 规则集列表（内置示例）
 

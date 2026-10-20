@@ -199,6 +199,13 @@ def ensure_summary(db_url: str, version_id: int, kb: KnowledgeBase) -> dict[str,
     return summary
 
 
+def _raw_only(db_url: str, device_id: int) -> bool:
+    """设备只存原文（REQ-044：认不出厂商或没有可用的 Profile）。"""
+    with store.session(db_url) as s:
+        dev = s.get(Device, device_id)
+        return dev is not None and (not dev.profile or dev.profile_source == "none")
+
+
 def _text(db_url: str, version_id: int) -> str:
     with store.session(db_url) as s:
         ver = s.get(ConfigVersion, version_id)
@@ -608,8 +615,42 @@ def diff(
     snaps = {s["id"]: s for s in tl["snapshots"]}
     if snaps[va]["seq"] > snaps[vb]["seq"]:
         va, vb = vb, va
-    ga, src_a = _snapshot_graph(db_url, va, kb, rebuild)
-    gb, src_b = _snapshot_graph(db_url, vb, kb, rebuild)
+    try:
+        ga, src_a = _snapshot_graph(db_url, va, kb, rebuild)
+        gb, src_b = _snapshot_graph(db_url, vb, kb, rebuild)
+    except HistoryError:
+        if not _raw_only(db_url, device_id):
+            raise
+        # REQ-044：只存原文的设备（认不出厂商）只有原文差异，没有按对象归并的图差异
+        td = text_diff(_text(db_url, va), _text(db_url, vb), None, None, max(0, context))
+        out_raw: dict[str, Any] = {
+            "device": tl["device"],
+            "a": {**snaps[va], "graph": None},
+            "b": {**snaps[vb], "graph": None},
+            "kb": {
+                "a": snaps[va]["kb_version"],
+                "b": snaps[vb]["kb_version"],
+                "current": kb.version,
+                "differs": False,
+                "rebuilt": False,
+            },
+            "options": {"rebuild": rebuild, "show_noneff": show_noneff, "domain": domain},
+            "raw_only": True,
+            "equal": td["equal"],
+            "summary": {
+                **dict.fromkeys(ITEM_KINDS, 0),
+                "total": 0,
+                "noneff": 0,
+                "fmt": td["stats"]["fmt"],
+                "by_domain": {},
+            },
+            "items": [],
+            "noneff": [],
+            "compare": None,
+        }
+        if with_text:
+            out_raw["text"] = td
+        return out_raw
     if ga.graph.get("family") != gb.graph.get("family"):
         raise HistoryError("history.family_changed", a=str(ga.graph.get("family")), b=str(gb.graph.get("family")))
     domains = set(kb.domains) | {n.domain for n in kb.nodes.values()}

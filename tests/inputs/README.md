@@ -8,6 +8,8 @@
 | `configs/cisco/basic.cfg` | Cisco IOS 配置：enable secret、username secret、7 型口令、SNMP 团体字、vty 明文口令、VRF、BGP | 单元测试 `test_sanitize.py`；CLI 用例 `import-dir` |
 | `configs/bad/empty.cfg` | 空文件（边界输入） | CLI 用例 `import-dir`、`guard-empty` |
 | `configs/bad/notes.txt` | 不是路由器配置（错误输入：无法识别厂商） | CLI 用例 `import-dir`；API 用例 `import-upload` |
+| `configs/ne8000/ne8000-x8-01.cfg`、`ne8000-x8-02.cfg` | 合成的“华为 NE8000 X8”配置（M8-7，REQ-044）：按 VRP8 写法、基于 `knowledge/samples/change/atn-base.cfg`，软件版本 V800R022 不匹配任何 Profile 的版本规则（按厂商默认套用 ATN R025，近似），接口下有两行功能域内的未识别写法（`mtu 9600 jumbo-frame`、`ospf cost maximum`） | 单元测试 `test_model_support.py`；API 测试 `test_model_support_api.py`；CLI / API 用例 `*model_support*`（准备方式 `configured-fullkb-ne8000`）；e2e `m87.spec.ts` |
+| `configs/other/edge-mx-01.conf` | 不是任何受支持厂商写法的合成配置（类 Junos 花括号格式，带引号里的假口令），用于“认不出厂商只存原文、按通用规则脱敏” | 同上 |
 | `configs/check/huawei-issues.cfg` | 华为配置，故意包含各类检查问题：悬空引用、孤儿与级联孤儿、名称只出现在未映射行中的策略、互斥（二层口配地址）、违反规则（对等体缺对端 AS、VRF 有 RD 无 RT / 有 RT 无 RD、绑定 VRF 无地址、聚合成员口有地址），以及不应误报的对象（只在 BGP 地址族中使用的 VRF、有 Vbdif 的桥域） | 单元测试 `test_checks.py`；CLI 用例 `check-*`、`cleanup-script` |
 | `configs/check/cisco-issues.cfg` | Cisco 配置，同类问题的 Cisco 写法；route-map 的删除命令走兜底；被引用的前缀列表只有未映射的 description 行 | 单元测试 `test_checks.py`；CLI 用例 `check-filter`、`cleanup-out-file`；API 测试 `test_check_api.py` |
 | `configs/check/nokia-classic-issues.cfg` | Nokia Classic CLI 合成配置（M7-5），故意包含端口与业务问题：路由器接口绑定的端口缺省关闭、SAP 所在端口未配置（缺省关闭）、LAG 成员口关闭、SDP 没有 far-end 与保活、SDP 未启用而被伪线使用、业务与 SAP 关闭、VPLS 没有客户、VPRN 没有 RD / vrf-target、SAP 引用不存在的 QoS 策略与过滤器、VPRN 引用不存在的客户；含葡语描述 | 单元测试 `test_nokia_m75.py`；CLI 用例 `nokia-check-services` |

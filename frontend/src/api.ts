@@ -79,8 +79,14 @@ export async function download(path: string, filename: string): Promise<void> {
   const a = document.createElement('a')
   a.href = url
   a.download = filename
+  // 挂到页面上再点，并稍后再释放地址：点击后立刻释放会让浏览器偶尔来不及开始下载（没有任何提示）
+  a.style.display = 'none'
+  document.body.appendChild(a)
   a.click()
-  URL.revokeObjectURL(url)
+  setTimeout(() => {
+    a.remove()
+    URL.revokeObjectURL(url)
+  }, 10_000)
 }
 
 export function errorText(e: unknown): string {

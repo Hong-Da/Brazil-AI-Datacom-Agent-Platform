@@ -41,6 +41,8 @@ export interface GraphData {
   dangling: unknown[]
   summary: GraphSummary
   text?: string | null
+  /** REQ-044：Profile 来源与近似标记（近似时页头提示条） */
+  profile_info?: { profile: string; profile_source: string; profile_rule_id: number | null; approx: boolean; unknown_ratio: number | null }
 }
 
 /** GET /devices 的一行。 */

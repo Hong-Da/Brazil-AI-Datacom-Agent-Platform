@@ -35,6 +35,7 @@ from lmesh.api.routes_graph import router as graph_router
 from lmesh.api.routes_history import router as history_router
 from lmesh.api.routes_kb import router as kb_router
 from lmesh.api.routes_migrate import router as migrate_router
+from lmesh.api.routes_models import router as models_router
 from lmesh.api.routes_projects import admin as projects_admin_router
 from lmesh.api.routes_projects import project as project_router
 from lmesh.api.routes_projects import router as projects_router
@@ -99,6 +100,7 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     scoping.mount(app, system_router, API_PREFIX, "system")
     scoping.mount(app, auth_router, API_PREFIX, "auth")
     scoping.mount(app, users_router, API_PREFIX, "auth")
+    scoping.mount(app, models_router, API_PREFIX, "models")
     scoping.mount(app, configs_router, API_PREFIX, "configs")
     scoping.mount(app, devices_router, API_PREFIX, "configs")
     scoping.mount(app, tasks_ai_router, API_PREFIX, "tasks-ai")

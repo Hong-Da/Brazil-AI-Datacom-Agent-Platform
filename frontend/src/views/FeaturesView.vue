@@ -17,7 +17,7 @@ import { noteText, type Note } from '@/i18n/note'
 import { useTerms } from '@/stores/terms'
 import { saveText, toCsv } from '@/views/profiles/csv'
 import {
-  defaultDiffers, diffCsvRows, groupByDomain, kindFor, quickAnswer, showDefault, sortDiff, supOf, supported, synParts,
+  defaultDiffers, defaultPair, diffCsvRows, groupByDomain, kindFor, quickAnswer, showDefault, sortDiff, supOf, supported, synParts,
   type DiffResult, type DiffRow, type Feature, type FeaturesResult, type PCell, type ProfileInfo,
 } from './m5/features'
 
@@ -56,7 +56,11 @@ async function load(): Promise<void> {
     const r = await get<FeaturesResult>(`/features?${p}`)
     if (my !== seq) return
     res.value = r
-    if (!allProfiles.value.length) allProfiles.value = r.profiles
+    if (!allProfiles.value.length) {
+      // 首次拿到 Profile 列表时定对比的默认两列：不能放在 onMounted 里等首次加载，用户很快输入时首次加载的结果会被丢弃
+      allProfiles.value = r.profiles
+      ;[pa.value, pb.value] = defaultPair(r.profiles, pa.value, pb.value)
+    }
     if (!sel.value || !r.items.some((x) => x.node === sel.value!.node)) sel.value = r.items[0] ? { node: r.items[0].node, pid: visible.value[0]?.id ?? r.profiles[0]?.id } : null
   } catch (e) {
     if (my === seq) { res.value = null; error.value = errorText(e) }
@@ -171,9 +175,6 @@ function copy(s: string): void {
 
 onMounted(async () => {
   await load()
-  const ps = allProfiles.value
-  if (!pa.value) pa.value = ps.find((p) => p.vendor === 'huawei' && !p.inherits)?.id ?? ps[0]?.id ?? ''
-  if (!pb.value) pb.value = ps.find((p) => p.id !== pa.value && p.vendor !== profById(pa.value)?.vendor)?.id ?? ps.find((p) => p.id !== pa.value)?.id ?? ''
   if (tab.value === 'compare') void loadCmp()
 })
 </script>

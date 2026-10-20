@@ -25,6 +25,19 @@
 
 首次运行会进入 Web 配置向导。默认监听 `0.0.0.0:9090`，局域网内可访问。
 
+## 部署
+
+面向最终用户的部署不需要源码和联网，有四种形式（构建与安装、升级、卸载、改用 PostgreSQL、端口与防火墙、备份详见 [docs/deploy.md](docs/deploy.md)）：
+
+| 形式 | 安装 |
+|---|---|
+| Docker 镜像 + compose | `docker load -i lmesh_<版本>_docker-image.tar.gz`，再用 `compose.yaml`（SQLite）或 `compose.postgres.yaml`（PostgreSQL）启动 |
+| Linux 离线安装包 | 解压 `lmesh_<版本>_linux-x86_64.tar.gz`，`sudo ./install.sh --user lmesh --create-user`（systemd 服务） |
+| Windows 离线包 | 解压 `lmesh_<版本>_windows-x64.zip`，双击 `start.bat`；`service-install.bat` 注册为 Windows 服务 |
+| Windows 安装程序 | 运行 `lmesh_<版本>_windows-x64_setup.exe` |
+
+各形式都自带 Python 运行时与依赖；数据库默认 SQLite，可在配置中改为 PostgreSQL。升级时保留配置与数据，自动迁移数据库，并把新版本自带的知识库合并进运行时知识库（双方都改过的文件进审核队列）。发布包由 `scripts/build_release.bat`（Windows：zip、exe）与 `scripts/build_release.sh`（Linux：tar.gz、Docker 镜像）生成到 `dist/`。
+
 ## 使用方式
 
 - Web 界面：浏览器打开 `http://<地址>:9090`
@@ -45,6 +58,11 @@ lmesh/
 ├── start.bat / start.sh        一键运行
 ├── cli.bat / cli.sh            CLI 包装脚本
 ├── test.bat / test.sh          一键测试
+├── Dockerfile / .dockerignore  Docker 镜像（多阶段：Node 构建前端、Python 运行）
+├── packaging/                  发布包的模板（由 scripts/build_release.py 使用）
+│   ├── docker/                 compose.yaml（SQLite）、compose.postgres.yaml、env.example
+│   ├── linux/                  install.sh、uninstall.sh、start.sh、bin/lmesh 启动器、README.txt
+│   └── windows/                start.bat、lmesh.bat、Windows 服务（WinSW 配置与注册脚本）、installer.nsi（NSIS）、README.txt
 ├── config/
 │   └── config.example.toml     配置示例（实际配置 config.toml 不入库）
 ├── src/lmesh/                  Python 包
@@ -83,6 +101,7 @@ lmesh/
 ├── docs/
 │   ├── project-spec.md         项目规范
 │   ├── cli.md / api.md         CLI 与远程 API 调用文档
+│   ├── deploy.md               部署指南（Docker、Linux、Windows 的安装、升级、卸载、PostgreSQL、备份）
 │   └── openapi.json            API 定义（由 scripts/gen_docs.py 导出）
 ├── scripts/
 │   ├── env.bat / env.sh        工具链与缓存位置，所有脚本先加载它
@@ -91,6 +110,7 @@ lmesh/
 │   ├── build_frontend.py       按需构建前端
 │   ├── run_tests.py            一键测试的实际逻辑
 │   ├── gen_docs.py             从测试用例生成调用文档示例、导出 OpenAPI
+│   ├── build_release.py        生成发布包到 dist/（外层 build_release.bat / .sh；REQ-046）
 │   ├── linux_sync.sh           开发辅助：把代码同步到 Linux 测试机
 │   ├── e2e_server.py           端到端测试用的临时服务（全量知识库 + 样本）
 │   └── build_icons.py          从 logo.svg 导出图标
@@ -98,8 +118,8 @@ lmesh/
 ├── .claude/settings.json       SessionStart 钩子
 ├── .claude/skills/             项目专属 skill（lmesh-docs-to-graph：产品文档 → 配置图）
 ├── data/ logs/ cache/ tmp/     运行时文件（不入库；用户的翻译规则集在 data/translate-rules/，我的模板在 data/user-templates/，管理员修改的 AI skill 版本在 data/ai-skills/，访问审计在 logs/audit.log）
-├── .toolchain/                 依赖缓存与项目内的 Python、Node（不入库）
-└── dist/                       打包结果（不入库）
+├── .toolchain/                 依赖缓存与项目内的 Python、Node，以及打包用的 NSIS 便携版、WinSW（不入库）
+└── dist/                       发布包（不入库，不推送远程）
 ```
 
 `DevelopDocs/` 是开发文档的本地仓库，不随主仓库发布。

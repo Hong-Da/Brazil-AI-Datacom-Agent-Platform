@@ -106,26 +106,58 @@ def register(app: typer.Typer, config_app: typer.Typer) -> None:
         ctx: typer.Context,
         source: Annotated[Path, typer.Argument(help="配置文件、目录或 zip")],
         level: Annotated[str, typer.Option(help="脱敏强度：basic / strict")] = "basic",
+        profile: Annotated[
+            str | None,
+            typer.Option("--profile", help="手工指定 Profile（所有文件；只允许同厂商 / 同平台族，认不出厂商时任意）"),
+        ] = None,
+        keep_unsupported: Annotated[
+            bool, typer.Option("--keep-unsupported", help="认不出厂商的文件只存原文（默认不导入）")
+        ] = False,
+        remember: Annotated[
+            str | None, typer.Option("--remember", help="把 --profile 记住为型号规则：project / global")
+        ] = None,
+        match_name: Annotated[
+            str | None, typer.Option("--match-name", help="规则的设备名模式（默认按设备名预填）")
+        ] = None,
+        match_version: Annotated[str | None, typer.Option("--match-version", help="规则的软件版本正则")] = None,
+        match_feature: Annotated[str | None, typer.Option("--match-feature", help="规则的特征命令正则")] = None,
     ) -> None:
         c = output.get(ctx)
         if not source.exists():
             fail(c, output.EXIT_NOT_FOUND, c.t("common.not_found", path=source))
+        if remember and (remember not in ("project", "global") or not profile):
+            fail(c, output.EXIT_USAGE, c.t("model.remember_needs_profile"))
         url = require_db(c)
         from lmesh.core import kbservice
 
         kb_root = kbservice.runtime_root(config.load())
         kind = "dir" if source.is_dir() else ("zip" if source.suffix.lower() == ".zip" else "file")
         settings = config.load()
+        items = list(importer.iter_sources(source))
+        choices = None
+        if remember and profile:
+            rem = {"scope": remember}
+            rem.update(
+                {
+                    k: v
+                    for k, v in (("name_pattern", match_name), ("version", match_version), ("feature", match_feature))
+                    if v
+                }
+            )
+            choices = {name: {"profile": profile, "remember": rem} for name, _ in items}
         results = [
             r.as_dict()
             for r in importer.import_sources(
-                list(importer.iter_sources(source)),
+                items,
                 url,
                 _level(c, level),
                 kb_root,
                 source_kind=kind,
                 actor=_actor(),
                 keep=int(settings.get("history.keep")),
+                choices=choices,
+                profile=profile,
+                keep_unsupported=keep_unsupported,
             )
         ]
         for r in results:
@@ -137,7 +169,8 @@ def register(app: typer.Typer, config_app: typer.Typer) -> None:
                 r["device"] or "-",
                 r["vendor"] or "-",
                 r["version"] or "-",
-                r["profile"] or "-",
+                (r["profile"] or "-")
+                + (f" ({r['profile_source']})" if r.get("profile_source") not in (None, "", "auto") else ""),
                 str(r["version_id"] or "") if r["ok"] else r["error"],
             ]
             for r in results

@@ -8,6 +8,7 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import ModelApproxNote from '@/components/model-approx-note.vue'
 import DevChip from '@/components/m4-dev.vue'
 import ReportAiSummary from '@/components/ai-kb/ReportAiSummary.vue'
 import type { SideSpec } from '@/components/ai-suggest/logic'
@@ -332,6 +333,7 @@ onMounted(async () => {
 
       <!-- ===================== 结果 ===================== -->
       <template v-if="result">
+        <ModelApproxNote :note="result.approx_profile" />
         <div class="res-head">
           <h2>{{ $t('change.result') }}</h2>
           <span class="meta">

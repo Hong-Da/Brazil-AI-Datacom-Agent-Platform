@@ -164,6 +164,8 @@ _NOKIA_SECRET_RULES: list[tuple[re.Pattern[str], str]] = [
     # MD-CLI 扁平格式（M7-4）：… security snmp community "…" access-permissions r / { }
     (re.compile(r'\bsnmp\s+(?:usm-)?community\s+"(?P<v>[^"]*)"', re.I), "community"),
 ]
+# 认不出厂商时追加的通用规则（REQ-044）：关键字后引号里的值（例如 encrypted-password "…"、pre-shared-key "…"）
+_GENERIC_EXTRA: list[tuple[re.Pattern[str], str]] = _NOKIA_SECRET_RULES[:2]
 # MD-CLI 花括号格式（M7-4）：security snmp { community "…" { … } } 里的团体字（policy-options 下的 community "名称" 不是秘密，
 # 按所在的块区分）
 _NOKIA_MD_COMMUNITY = re.compile(r'^\s*(?:usm-)?community\s+"(?P<v>[^"]*)"', re.I)
@@ -340,7 +342,10 @@ class Sanitizer:
 
             new = rx.sub(custom, new)
         if not _SECRET_EXEMPT.match(new):
-            for pat, cat in _NOKIA_SECRET_RULES if nokia else _SECRET_RULES:
+            # 认不出厂商（REQ-044）：通用规则 = 两组规则都用（引号里的口令 / 密钥也替换）
+            for pat, cat in (
+                _NOKIA_SECRET_RULES if nokia else _SECRET_RULES + (_GENERIC_EXTRA if vendor is None else [])
+            ):
                 fmt = "LMESH-SECRET-{h}" if cat == "secret" else "LMESH-COMM-{h}"
                 new = pat.sub(functools.partial(_apply, sub_value, cat, fmt), new)
             if nokia and self._snmp_ctx:

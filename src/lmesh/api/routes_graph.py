@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Query, Request
 from pydantic import BaseModel, Field
 
-from lmesh.api.common import E_NOT_FOUND, E_PARAM, ApiError, ok, require_token, settings_of
+from lmesh.api.common import E_NOT_FOUND, E_PARAM, E_STATE, ApiError, ok, require_token, settings_of
 from lmesh.core import analysis, graphstore, importer, kbservice, roundtrip, store, tasks
 from lmesh.core import graph as graphmod
 from lmesh.core.renderer import render_roundtrip
@@ -102,6 +102,9 @@ def device_graph(
         g, v, dev = graphstore.build_for_version(db, version_id, _kb(request))
     except KeyError as e:
         raise ApiError(E_NOT_FOUND, 404, "compare.version_not_found", version=version_id) from e
+    except analysis.AnalysisError as e:
+        # REQ-044：认不出厂商（或没有可用 Profile）的设备只存原文，没有配置图
+        raise ApiError(E_STATE, 409, "model.raw_only", data={"raw_only": True, "version_id": version_id}) from e
     if v.device_id != device_id:
         raise ApiError(E_NOT_FOUND, 404, "compare.version_not_found", version=version_id)
     kb = _kb(request)
@@ -109,6 +112,9 @@ def device_graph(
     data = graphmod.to_json(g, domain, include_raw=raw, roots=roots or None)
     data["version_id"] = v.id
     data["text"] = v.raw_text if raw else None
+    from lmesh.core import model_support
+
+    data["profile_info"] = model_support.device_info(dev, v)  # REQ-044：近似 Profile 的提示条
     return ok(request, data)
 
 

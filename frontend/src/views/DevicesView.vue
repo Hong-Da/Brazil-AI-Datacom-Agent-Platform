@@ -10,6 +10,9 @@ import { useAuth } from '@/stores/auth'
 import { useProject } from '@/stores/project'
 import ImportDialog from './devices/ImportDialog.vue'
 import CopyToDialog from './devices/CopyToDialog.vue'
+import ProfileDialog from './devices/ProfileDialog.vue'
+import SupportDialog from './devices/SupportDialog.vue'
+import { pct, unknownHigh } from './devices/model'
 import DevDelDialog from '@/components/devdel-dialog.vue'
 import { filterDevices, fmtTime, vendorCounts, vendorLabel, type DevFilter } from './devices/logic'
 import { bySource, currentSeq, newerRefs, rowActions, stats, type ProjectDevice, type RowAction, type SrcFilter } from './devices/project'
@@ -82,6 +85,8 @@ const st = computed(() => stats(devices.value))
 const newer = computed(() => newerRefs(devices.value))
 const vendors = computed(() => vendorCounts(devices.value))
 const staleCount = computed(() => devices.value.filter((d) => d.stale).length)
+// REQ-044：使用近似或手工选择的 Profile 的设备（页头提示，可一键筛选）
+const approxCount = computed(() => devices.value.filter((d) => d.approx).length)
 const allChecked = computed(() => rows.value.length > 0 && rows.value.every((d) => checked.value.has(d.id)))
 
 function toggle(id: number, on: boolean): void {
@@ -180,7 +185,20 @@ const okMsg = ref('')
 const actError = ref('')
 const copyFor = ref<ProjectDevice | null>(null)
 const unlinkFor = ref<ProjectDevice | null>(null)
-const ACT_ICON: Record<RowAction, string> = { follow: 'refresh', pinLatest: 'pin', copyPrivate: 'copy', unlink: 'link', rebuild: 'refresh', history: 'history', copyTo: 'copy', delete: 'trash' }
+const ACT_ICON: Record<RowAction, string> = { follow: 'refresh', pinLatest: 'pin', copyPrivate: 'copy', unlink: 'link', rebuild: 'refresh', profile: 'swap', support: 'inbox', history: 'history', copyTo: 'copy', delete: 'trash' }
+const profFor = ref<ProjectDevice | null>(null)
+const supFor = ref<ProjectDevice | null>(null)
+function onProfileDone(msg: string): void {
+  profFor.value = null
+  okMsg.value = msg
+  void load()
+  void status.refresh()
+}
+function onSupportDone(msg: string): void {
+  supFor.value = null
+  okMsg.value = msg
+  void status.refresh()
+}
 
 async function act(d: ProjectDevice, a: RowAction): Promise<void> {
   menuFor.value = null
@@ -191,6 +209,8 @@ async function act(d: ProjectDevice, a: RowAction): Promise<void> {
     if (a === 'copyTo') { copyFor.value = d; return }
     if (a === 'unlink') { unlinkFor.value = d; return }
     if (a === 'delete') { delId.value = d.id; return }
+    if (a === 'profile') { profFor.value = d; return }
+    if (a === 'support') { supFor.value = d; return }
     if (a === 'follow') {
       await put(`/projects/${encodeURIComponent(project.ref ?? "")}/refs/${d.id}`, { version_id: null })
       okMsg.value = t('devices.nowFollow', { d: d.name })
@@ -293,6 +313,11 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
           <button class="btn btn-sm" type="button" data-testid="newer-follow" @click="pinAll('follow')"><Icon name="refresh" small />{{ $t('devices.newerFollow') }}</button>
         </template>
       </div>
+      <div v-if="approxCount && filter.state !== 'approx'" class="notice warn rebuild" data-testid="approx-notice">
+        <Icon name="warn" />
+        <div class="grow">{{ $t('model.approxNotice', { n: approxCount }) }}</div>
+        <button class="btn btn-sm" type="button" data-testid="approx-filter" @click="filter.state = 'approx'">{{ $t('model.onlyApprox') }}</button>
+      </div>
       <div v-if="okMsg" class="notice ok rebuild" data-testid="device-action-ok"><Icon name="ok" /><div class="grow">{{ okMsg }}</div><button class="btn btn-xs" @click="okMsg = ''">{{ $t('c.close') }}</button></div>
       <div v-if="actError" class="notice err rebuild" data-testid="device-action-error"><Icon name="err" /><div class="grow">{{ actError }}</div><button class="btn btn-xs" @click="actError = ''">{{ $t('c.close') }}</button></div>
       <div v-if="delMsg" class="notice ok rebuild" data-testid="device-deleted"><Icon name="ok" /><div class="grow">{{ delMsg }}</div><button class="btn btn-xs" @click="delMsg = ''">{{ $t('c.close') }}</button></div>
@@ -335,6 +360,8 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
               <option value="stale">{{ $t('devices.stStale') }}</option>
               <option value="err">{{ $t('devices.stErr') }}</option>
               <option value="unknown">{{ $t('devices.stUnknown') }}</option>
+              <option value="approx">{{ $t('model.onlyApprox') }}</option>
+              <option value="unsupported">{{ $t('model.onlyUnsupported') }}</option>
             </select>
             <span class="grow" />
             <span class="faint small">{{ $t('devices.showing', { n: rows.length, t: devices.length }) }}</span>
@@ -390,16 +417,23 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
                 </td>
                 <td class="nowrap">
                   <VendorBadge v-if="d.vendor" :of="d.vendor">{{ vendorLabel(d.vendor) }}</VendorBadge>
+                  <span v-else-if="d.unsupported" class="tag fail" data-testid="dev-unsupported">{{ $t('model.unsupportedVendor') }}</span>
                   <span v-else class="tag warn">{{ $t('devices.vendorUnknown') }}</span>
                 </td>
-                <td class="nowrap">
-                  <div class="mono">{{ d.profile || '—' }}</div>
-                  <div class="mono faint" style="font-size: 11px">{{ d.sw_version }}</div>
+                <td class="nowrap" :data-testid="`dev-profile-${d.id}`">
+                  <span v-if="d.profile_source === 'none'" class="faint small">{{ $t('model.rawText') }}</span>
+                  <div v-else class="mono">{{ d.profile || '—' }}</div>
+                  <div v-if="d.approx" class="row" style="gap: 6px; margin-top: 2px">
+                    <span class="src-chip" :class="d.profile_source">{{ $t(`model.src.${d.profile_source}`) }}<template v-if="d.profile_rule_id"> #{{ d.profile_rule_id }}</template></span>
+                    <span class="unk-r" :class="{ hi: unknownHigh(d.unknown_ratio) }">{{ $t('model.unk', { p: pct(d.unknown_ratio) }) }}</span>
+                  </div>
+                  <div v-else-if="d.profile_source !== 'none'" class="mono faint" style="font-size: 11px">{{ d.sw_version }}</div>
                 </td>
                 <td class="num">{{ d.lines?.toLocaleString() ?? '—' }}</td>
                 <td class="num" :class="d.unknown ? 'unk' : 'faint'">{{ d.unknown ?? '—' }}</td>
                 <td class="nowrap">
-                  <span v-if="d.parsed" class="tag pass">{{ $t('devices.parsed') }}</span>
+                  <span v-if="d.profile_source === 'none'" class="tag">{{ $t('model.raw') }}</span>
+                  <span v-else-if="d.parsed" class="tag pass">{{ $t('devices.parsed') }}</span>
                   <span v-else-if="d.parsed === false" class="tag fail">{{ $t('devices.parseFailed') }}</span>
                   <span v-else class="faint">—</span>
                 </td>
@@ -438,6 +472,8 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
     </div>
 
     <ImportDialog v-if="showImport" @close="showImport = false" @imported="onImported" />
+    <ProfileDialog v-if="profFor" :device-id="profFor.id" :device-name="profFor.name" @close="profFor = null" @done="onProfileDone" />
+    <SupportDialog v-if="supFor" :device="supFor" @close="supFor = null" @done="onSupportDone" />
     <CopyToDialog v-if="copyFor" :device-id="copyFor.id" :device-name="copyFor.name" @close="copyFor = null" @done="onCopied" />
     <div v-if="unlinkFor" class="modal-back" data-testid="unlink-modal" @click.self="unlinkFor = null">
       <div class="modal" style="width: min(460px, 100%)" role="dialog" aria-modal="true" aria-labelledby="ulT">
@@ -465,6 +501,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
 .dev-tbl .nm .aisum { color: var(--violet); }
 .dev-tbl .unk { color: var(--red-ink); font-weight: 600; }
 .ck { accent-color: var(--teal); }
+.src-chip { display: inline-flex; align-items: center; font-size: 11px; padding: 0 6px; border-radius: 3px; border: 1px solid var(--amber-line); color: var(--amber-ink); background: var(--amber-soft); white-space: nowrap; }
+.unk-r { font: 11px var(--font-mono); color: var(--ink-3); }
+.unk-r.hi { color: var(--red-ink); font-weight: 600; }
 .del-btn { color: var(--ink-3); }
 .del-btn:hover { color: var(--red-ink); background: var(--red-soft); }
 .tbl-foot { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-top: 1px solid var(--line); color: var(--ink-3); font-size: 12px; flex-wrap: wrap; }

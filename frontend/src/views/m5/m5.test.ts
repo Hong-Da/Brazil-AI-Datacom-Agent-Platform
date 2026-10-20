@@ -4,7 +4,7 @@ import {
   type Item, type ObjSnap, type TextLine,
 } from './history'
 import { cellText, cliText, columnItems, moveKey, sortRows, tableBody, type Preset, type Row, type Selection } from './exportTable'
-import { defaultDiffers, kindFor, quickAnswer, sortDiff, supOf, synParts, type DiffRow, type Feature, type ProfileInfo } from './features'
+import { defaultDiffers, defaultPair, kindFor, quickAnswer, sortDiff, supOf, synParts, type DiffRow, type Feature, type ProfileInfo } from './features'
 import { issueGroups, queryParts, stageViews, stmtCls, stmtCounts, takeHandoff, saveHandoff, type GuardResult, type Statement } from './ask'
 
 describe('版本历史', () => {
@@ -166,5 +166,17 @@ describe('AI 查询与护栏', () => {
     expect(saveHandoff({ device: 3, text: 'sysname X' })).toBe(true)
     expect(takeHandoff()).toEqual({ device: 3, text: 'sysname X' })
     expect(takeHandoff()).toBeNull()
+  })
+})
+
+describe('特性能力查询：Profile 对比的默认两列', () => {
+  const P = (id: string, vendor: string, inherits: string | null = null): ProfileInfo => ({ id, title: id, vendor, family: '', platform: '', software: '', inherits })
+  const ps = [P('hw-child', 'huawei', 'hw-base'), P('hw-base', 'huawei'), P('hw-2', 'huawei'), P('cs', 'cisco')]
+  it('A 取不继承的华为 Profile，B 取另一个厂商；已选的保留；列表为空时为空', () => {
+    expect(defaultPair(ps, '', '')).toEqual(['hw-base', 'cs'])
+    expect(defaultPair(ps, 'hw-2', '')).toEqual(['hw-2', 'cs'])
+    expect(defaultPair(ps, 'cs', 'hw-2')).toEqual(['cs', 'hw-2'])
+    expect(defaultPair([P('a', 'huawei'), P('b', 'huawei')], '', '')).toEqual(['a', 'b'])
+    expect(defaultPair([], '', '')).toEqual(['', ''])
   })
 })

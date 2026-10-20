@@ -66,7 +66,9 @@
 | REQ-041 | AI 增强：为各功能新增内置 AI skill（日常分析、变更与割接、规范与合规、知识库构建、报告共 21 个），AI 只给建议，代码验证后由用户确认生效 | 用户 2026-10-19 | M8（0.8.0） | `knowledge/ai-skills/`、各功能页的 AI 入口、审核与采纳流程 | 待开发 | 设计见“AI 增强（REQ-041）”一节 |
 | REQ-042 | 网元拓扑视图的设备图标：按设备角色与类型设计图标，显示厂商与平台 | 用户 2026-10-19 | M8（0.8.0） | 拓扑视图、关系图谱、图标资源 | 已实现（M8-3），待 M8 验收 | 设计见“拓扑设备图标（REQ-042）”一节；实现见“M8-3 结果” |
 | REQ-043 | 所有视图可以全屏显示与操作（配置图、关系图谱、拓扑、设备分析各视图、对比、脚本编辑器等） | 用户 2026-10-19 | M7（0.7.0） | 前端通用全屏组件 | 已完成（M7-7） | 设计见“视图全屏（REQ-043）”一节 |
-| REQ-044 | 未支持型号的处理：导入时可手工选择 Profile（同厂商 / 同平台族）、试解析推荐、型号规则记住选择、近似标记与下发前提示、申请支持与派生 Profile、认不出的厂商只存原文 | 用户 2026-10-19 | M8（0.8.0） | 导入、设备页、Profile、审核队列 | 待开发 | 设计见“未支持型号的处理（REQ-044）”一节，经用户确认 |
+| REQ-044 | 未支持型号的处理：导入时可手工选择 Profile（同厂商 / 同平台族）、试解析推荐、型号规则记住选择、近似标记与下发前提示、申请支持与派生 Profile、认不出的厂商只存原文 | 用户 2026-10-19 | M8（0.8.0） | 导入、设备页、Profile、审核队列 | 已实现（M8-7），待 M8 验收 | 设计见“未支持型号的处理（REQ-044）”一节，经用户确认；实现结果见该节 |
+| REQ-045 | 项目内划分网络：网络是独立的工作区，设备可在多个网络中；拓扑还原、一致性、检查、基线、脚本、变更、迁移、AI 建议、报告等操作按网络独立 | 用户 2026-10-19 | M9（0.9.0） | 数据模型、网络切换器、所有按项目的页面与操作数据按网络隔离 | 待开发 | 设计见“项目内的网络（REQ-045）”一节，经用户确认 |
+| REQ-046 | M8 完成后发布可部署版本：Docker 镜像 + compose（SQLite / PostgreSQL）、Linux 离线安装包、Windows 离线安装包、Windows 安装程序（.exe）；全部离线可装；只生成在本机 dist/ | 用户 2026-10-19 | M8（发布 0.8.0） | 打包脚本、Dockerfile、安装脚本、部署文档 | 已实现（M8-8，试打包 0.5.0-rc 验证通过），待 M8 验收 | 用户确认：默认 SQLite 可配 PostgreSQL；不推送远程；实现见“M8-8 结果”，含升级时知识库合并 |
 
 ## 待确认
 
@@ -86,7 +88,7 @@
 - A4 文本编码：UTF-8（bat 文件 UTF-8 无 BOM + chcp 65001 + CRLF）【默认】
 - A5 编码行为准则：Karpathy guidelines（已安装）【默认】
 - A6 一键运行脚本：`start.bat` / `start.sh`【默认】
-- A7 版本号：语义化版本（用户已确认）。M1 开发期间用 `0.0.x`，M1 验收打 `0.1.0`，M2–M8 依次对应 `0.2.0`–`0.8.0`（M6、M7、M8 为用户 2026-10-19 新增）；开发阶段完成、新需求、问题修复升修订号【默认 + 第二轮 Q8】
+- A7 版本号：语义化版本（用户已确认）。M1 开发期间用 `0.0.x`，M1 验收打 `0.1.0`，M2–M9 依次对应 `0.2.0`–`0.9.0`（M6–M9 为用户 2026-10-19 新增）；开发阶段完成、新需求、问题修复升修订号【默认 + 第二轮 Q8】
 - A8 文档语言：中文【用户修改】
 
 ## 技术栈
@@ -999,7 +1001,7 @@ lmesh/
 
 ## P 分发方式
 
-（开发完成后填写。第一轮初选：便携压缩包）
+（第一轮初选：便携压缩包。M8-8 按 REQ-046 确定：Docker 镜像 + compose（SQLite / PostgreSQL）、Linux 离线安装包、Windows 离线包、Windows 安装程序（NSIS），见“M8-8 结果”与 `docs/deploy.md`）
 
 ## K 项目专属 skill
 
@@ -1569,6 +1571,26 @@ M6-7 实现。预览 `DevelopDocs/ui-preview/REQ-039/`（登录与注册、账�
 
 **测试**：单元 `tests/unit/test_ai_suggest_kb.py`（7 个 skill 的通过与拒绝、未配置降级、样例回放、审核队列三种动作、本地模型限制、重新脱敏、报告导出与数据变化）；API `tests/api/test_ai_kb_api.py` 与用例 `api_cases.ai_kb.toml`；CLI 用例 `cli_cases.ai_kb.toml`（回放 `tests/inputs/ai-kb/`）；vitest `components/ai-suggest/kb.test.ts`；e2e `frontend/e2e/m85.spec.ts`（`playwright.m85.config.ts` + `e2e/m85_server.py` 假的本地模型）。
 
+### M8-8 结果（可部署版本，REQ-046）
+
+四种可部署形式，全部离线可装，产物只生成在本机 `dist/`（`.gitignore` 已忽略），不推送远程。部署说明见 `docs/deploy.md`。决策 D-0287～D-0290（升级时知识库合并）与 D-0297～D-0303（打包）。
+
+| 形式 | 产物 | 构建位置 | 内容 |
+|---|---|---|---|
+| Docker 镜像 | `lmesh_<版本>_docker-image.tar.gz`（`docker save` 后 gzip，`docker load` 导入）、`lmesh_<版本>_docker-compose.tar.gz`（`compose.yaml` SQLite、`compose.postgres.yaml`、`.env.example`、部署指南） | Linux | 根目录 `Dockerfile` 多阶段：`node:24.22.0-trixie-slim` 构建前端 → `python:3.12.13-slim-trixie` 运行（uv 0.13.1 只在构建时用，`uv sync --frozen --no-dev --no-install-project`），非 root 用户 uid 10001，`HEALTHCHECK` 调 `/api/v1/health`；`src/` 经 `.pth` 加入导入路径；数据、配置、日志是命名卷；镜像名 `lmesh:<版本>` |
+| Linux 离线安装包 | `lmesh_<版本>_linux-x86_64.tar.gz` | Linux | uv 管理的 python-build-standalone 3.12 + 依赖直接装进运行时（按 `manylinux_2_28` 选 wheel）+ `src/`（含已构建前端）+ `knowledge/`；`install.sh`（默认 `/opt/lmesh`，`--user/--create-user`、systemd、`--dry-run`、升级时备份与迁移）、`uninstall.sh`（默认保留数据，`--purge`）、`start.sh`、`bin/lmesh` |
+| Windows 离线包 | `lmesh_<版本>_windows-x64.zip` | Windows | 同上的 Windows 版运行时；`start.bat`、`lmesh.bat`、`service-install.bat` / `service-uninstall.bat`（WinSW 2.12 .NET 4.6.1 版，MIT 许可证随包附 `service\WinSW-LICENSE.txt`） |
+| Windows 安装程序 | `lmesh_<版本>_windows-x64_setup.exe` | Windows | NSIS 3.11 便携版（`.toolchain/nsis/`，不装到系统）：三语安装向导、默认 `%LOCALAPPDATA%\Programs\LucidMesh` 不需要管理员、开始菜单与桌面快捷方式、可选注册服务、升级时停止旧进程并备份 SQLite、卸载时询问是否保留数据（静默时保留） |
+
+- 构建：`scripts/build_release.bat <版本>`（Windows，默认 `--targets win-zip,win-exe`）、`scripts/build_release.sh <版本>`（Linux，默认 `linux,docker`）；版本号取 `pyproject.toml`，可加后缀（`0.5.0-rc`）；`--work` 指定中间目录；输出附 `lmesh_<版本>_SHA256SUMS.txt`。NSIS、WinSW 按固定 SHA256 下载到 `.toolchain/`。
+- 离线包不安装项目本身：运行时 site-packages 里的 `lmesh-src.pth` 指向包内 `src/`（相对路径），程序按 `pyproject.toml` 找到根目录、读版本号（`lmesh/__init__.py` 在未安装时读 `pyproject.toml`）。去掉运行时里的 Tk、IDLE、ensurepip；Windows 包里相对路径超过 160 个字符的 `.pyc` 不打包，避免装到较深目录时超过 260 个字符。
+- 升级：Docker 换镜像后启动即迁移；Linux `install.sh` 与 Windows 安装程序识别已装版本，备份 SQLite（`backup/`）、替换程序文件、保留 `config/ data/ logs/`，再执行 `lmesh db upgrade` 与 `lmesh kb upgrade`。
+- 升级时知识库合并（协调方追加，`core/kb/upgrade.py`）：运行时知识库仓库的 `builtin` 分支记录每个版本的自带知识库快照（首次复制建仓时建立基准）；按 git 历史三方比较，用户没改过的文件采用新版本，双方都改过的保留用户版本、以 `conflict` 类型（`source.via = kb-upgrade`，新版本删除时 `payload.theirs_deleted`）送审核；合并后打发布标签，`lmesh kb upgrade --rollback` 回滚；没有 `builtin` 分支的旧安装把与新版本不同的文件全部送审核。`lmesh serve` 启动时自动合并（失败不影响启动）。复制自带知识库时不再带上 `knowledge/.git`。
+- 安全：compose 的 PostgreSQL 密码只在 `.env`（示例为占位符，提示修改）；环境变量提供的数据库连接串不再被命令行向导写进 `config.toml`（`setup.apply`）。
+- 测试：`tests/unit/test_kb_upgrade.py`（无冲突、冲突进审核与采纳 / 驳回、回滚、旧安装首次升级、建仓即建基准）、`tests/unit/test_setup_env.py`、`tests/cli/test_kb_upgrade_cli.py` 与 `tests/cases/cli_cases.kb_upgrade.toml`（文档示例）。
+- 试打包 `0.5.0-rc` 验证（2026-10-19）：Windows zip 在干净目录解压后启动、向导与 health 正常；exe 静默安装到 `tmp/os/m88/exe-test`、启动、模拟从 0.4.9 升级（停止运行中的实例、备份数据库、保留配置）、静默卸载（保留数据、清除注册表与开始菜单）；Linux 包装到 `~/lmesh/tmp/install-test`（不注册 systemd、不建用户，systemd 单元用 `--dry-run` 检查）、向导与 health 正常、升级时备份并合并知识库、卸载（保留 / 全部删除）；Docker 用 SQLite 与 PostgreSQL 两份 compose 各起一次，容器 healthy、向导完成后数据库正常，验证后删除容器与卷。
+- 遗留：注册 Windows 服务与 systemd 服务需要管理员 / root，本次只做了 dry-run 与脚本检查；正式出 0.8.0 由主 agent 在用户验收后用同一脚本重新构建。
+
 ## 拓扑设备图标（REQ-042）
 
 用户 2026-10-19 提出：网元拓扑视图需要设计设备的图标。做法（Claude 按推荐，等预览评审）：
@@ -1649,6 +1671,48 @@ M6-7 实现。预览 `DevelopDocs/ui-preview/REQ-039/`（登录与注册、账�
 4. 近似标记：近似或手工 Profile 的设备在设备列表、配置图、报告中标出并显示未识别行比例；变更脚本、翻译结果下发前提示“基于近似 Profile，请核对”（默认值按所选 Profile 补，可能与真实型号不同）。
 5. 申请支持：设备页“申请支持此型号”进入审核队列（建议）；维护员可从现有 Profile 派生（继承，只写差异）并补命令卡（可用 M8-5 未识别行归因）；派生 Profile 发布后型号规则改指向它，已导入设备一键重新解析。
 6. 认不出的厂商：可只存原文、不解析（标“不支持的厂商”），可查看、文本对比、版本历史；按通用规则脱敏。提示文字补上 Nokia。
+
+### 实现结果（M8-7）
+
+2026-10-20 完成。预览：`DevelopDocs/ui-preview/REQ-044/`（导入识别、设备页、型号规则、审核派生、不支持厂商的原文 5 页 + 评审索引）；预览未经评审先按推荐编码（决策 D-0286），评审意见随后修改。
+
+**选择顺序**（`core/model_support.py` 的 `choose`，导入与重新解析共用）：本次指定（导入按文件 / 设备页更换）→ 设备之前的手工选择（一直沿用，直到改回自动）→ 型号规则 → Profile 的版本规则 → 厂商默认（fallback）→ 都没有时只存原文。手工与规则只允许同厂商 / 同平台族（Nokia Classic 与 MD-CLI 是不同平台族）；认不出厂商时可在全部 Profile 中选，设备厂商记为所选 Profile 的厂商。
+
+**数据与迁移 0011**：`devices` 加 `profile_source`（auto / fallback / rule / manual / none）与 `profile_rule_id`（按哪条型号规则选的，规则删除时置空）；新表 `model_rules`（`project_id` 为空是全局规则；`vendor`、`name_pattern` 设备名 * ? 通配不分大小写、`version` 版本正则、`feature` 特征命令正则（按行匹配）、`profile`、`note`、`enabled`）。已有设备 Profile 为空的记 none，其余记 auto，下一次重新解析时按新的顺序重新判断。型号规则选中的设备来源单独记 rule（属于近似；规则改指向后重新解析会跟着变），fallback、rule、manual 统称“近似”。
+
+**试解析推荐**：候选 Profile 各解析一次（同一平台族只解析一次），比例 =（命令行 − 该 Profile 明确不支持的命令）/（命令行 + 未识别行）；比例相同按版本规则命中 > fallback > 编号。不用 AI。
+
+**型号规则**：至少一个条件、正则有效、只能指向同厂商的 Profile（不写厂商时取 Profile 的厂商）。生效顺序：本项目规则 > 全局；同一范围内条件多的优先，一样多时编号小（先建）的优先；停用的不生效。“记住”不写条件时按设备名（末尾编号换成 *）与主版本（华为 VxxxRyyy、Cisco / Nokia 前两段）预填；同一批相同的规则只建一次；刚记住的规则命中这台设备时来源记为 rule，被更早的规则抢先时按手工选择。全局规则只有维护员与管理员能建、改、删（接口 403、导入时“记住为全局”同样 403）。
+
+**近似标记**：设备列表（来源标记、未识别比例、页头提示与筛选）、配置图（提示条，`profile_info`）、对比与检查报告（Profile 一格附“近似（厂商默认 / 型号规则 / 手工选择），未识别 x%”，中英文）；增量变更与配置翻译的结果带 `approx_profile`，页面在结果上方提示“基于近似 Profile，请核对”。
+
+**申请支持与派生**：`POST /devices/{id}/support-request` 进审核队列（类型 suggestion，`payload.kind = model`，附设备信息、当时的 Profile 与来源、未识别行前 20 种模式；只读成员也可以提交）。维护员在审核队列“建议”页签展开处理：派生（`edit.create_profile` 继承基础 Profile，写入草稿区）→ 补差异与命令卡、发布 → 改指向：匹配申请设备的启用规则（本项目或全局）改指向派生的 Profile，没有规则时按预填条件新建一条全局规则；重新解析这些规则选中的设备与会被它们命中的设备（所有项目，手工选择的不动；申请设备本身手工选的就是申请时的 Profile 时改回自动），申请标为通过。派生 Profile 未发布也允许改指向（运行时知识库已包含草稿），界面与结果提示“未发布”（`released`）。
+
+**认不出的厂商**：导入接口默认不导入（`unsupported=skip`，提示文字补上 Nokia），`unsupported=raw` / `--keep-unsupported` / 对话框选“只存原文”时按通用规则脱敏后只存原文（厂商为空、来源 none、不解析、不建图）；设备名另外识别 `host-name X;` / `set system host-name X`；通用脱敏另外替换关键字后引号里的口令与密钥（例如 `encrypted-password "…"`）。可以看原文、版本历史；`GET /devices/{id}/history/diff` 对这类设备只给原文差异（`raw_only`），配置图接口 409（`data.raw_only`）。
+
+**接口与命令**：`POST /configs/inspect`（导入前识别，不入库）、`POST /configs` 增加 `profile`、`choices`、`unsupported`；`GET /devices/{id}/profile-candidates`、`PUT /devices/{id}/profile`、`POST /devices/{id}/support-request`；`GET|POST /model-rules`、`POST /model-rules/test`、`PUT|DELETE /model-rules/{id}`；`GET /kb/model-support/{审核编号}`、`POST …/derive`、`POST …/retarget`（维护员）。CLI：`lmesh config import --profile / --keep-unsupported / --remember [--match-*]`（规格中写的 `lmesh import --profile` 即此命令）、`lmesh device profiles / set-profile / request-support`、`lmesh model-rule list / add / update / remove / test`、`lmesh model-support show / derive / retarget`。
+
+**界面**：导入对话框新增第 3 步“识别与 Profile”（`devices/IdentifyStep.vue`）；设备页行菜单“更换 Profile 并重新解析”（`ProfileDialog.vue`）与“申请支持此型号”（`SupportDialog.vue`，近似或不支持厂商的设备才显示）；型号规则是项目页面 `/p/<项目>/model-rules`（导航“设备与配置”组；本项目 / 全局两个页签，全局对普通用户只读）；审核队列“建议”页签里的型号支持申请展开 `review/ModelSupportPanel.vue`；配置图、版本历史、增量变更、配置翻译的提示条。文案在 `frontend/src/i18n/pages/model.json`。
+
+**测试**：单元 `tests/unit/test_model_support.py`（匹配程度、只允许同族、试解析排序、规则优先级、导入手工选择与记住、重新解析沿用手工、只存原文与文本对比、申请 → 派生 → 改指向并重新解析、没有规则时新建全局规则、迁移 0011）；API `tests/api/test_model_support_api.py`（全局规则只有维护员与管理员能改、导入记住为全局 403、只读成员不能更换但能申请、普通用户不能处理申请、配置图 / 变更 / 翻译带近似标记）与 `api_cases.model_support.toml`；CLI `cli_cases.model_support.toml`（准备方式 `configured-fullkb-ne8000`）；前端 `devices/model.test.ts`、`project.test.ts`；e2e `frontend/e2e/m87.spec.ts`（在单独项目里走完导入识别 → 更换 Profile → 型号规则 → 配置图提示）。NE8000 用合成样本 `tests/inputs/configs/ne8000/`（华为写法，版本 V800R022 不匹配任何版本规则），认不出厂商用 `tests/inputs/configs/other/edge-mx-01.conf`。
+
+## 项目内的网络（REQ-045）
+
+用户 2026-10-19 提出：每个项目里可以划分不同的网络，类似拓扑还原，操作在对应的网络中进行；每个网络是独立的，设备可以在多个网络中。经用户确认（【用户确认】）的部分：
+
+- 网络是项目内的独立工作区，平铺、不分层【用户确认】；设备仍属于项目（导入、版本历史、删除在项目层），网络引用设备，一台设备可在多个网络中【用户确认】；权限仍按项目【用户确认】。
+- 顶栏网络切换器，网址带网络（例如 `/p/<项目>/n/<网络>/topology`）【用户确认】；选“项目全部设备”时为项目层的设备管理。
+- 每个网络独立：拓扑还原（只用本网络设备；角色、分组、布局、手工标注）、跨设备一致性、检查与基线、规则调整、项目脚本 / 配置检查项目、变更方案、割接迁移、AI 建议与采纳记录、报告与导出。
+- 设备版本：默认跟随最新，网络内可固定版本（沿用 M6 设备引用的做法）。
+- 快速建网络的建议（代码计算，预览后采纳）：连通分量、IGP 域、BGP AS；设备名规则、管理网段（也用于新导入设备自动加入）；AI 拓扑整理的分组【用户确认：三类都要】。
+- 层级：平铺 + 文件夹式分组（文件夹只整理列表，不包含设备、不继承数据）；需要看全局时用默认网络【用户确认】。“汇总下层网络”的包含关系暂不做，以后需要时可在此基础上升级。
+- 升级时每个项目自动建“默认网络”（包含全部设备、自动加入新导入的设备），现有拓扑标注、脚本、检查忽略、AI 建议等移入默认网络【用户确认】。
+- 网络的自动加入规则命中时直接加入，并在导入结果里提示加入了哪些网络【用户确认】。
+- 模板、翻译规则集仍按项目 / 个人共用，不按网络独立【用户确认】。
+- 网络外的对端：拓扑上有“显示网络外的对端”开关（默认关），打开时画成灰色短线并标出对端所在的网络。
+- 网络操作：新建、改名、复制（连同工作数据）、删除（只删网络与其工作数据，不删设备）。
+- 接口 `/api/v1/projects/{p}/networks`（增删改、成员、建议、自动加入规则），按网络的操作 `/projects/{p}/n/{net}/…`；CLI 全局参数 `--network`；权限仍按项目。
+- 排期：新里程碑 M9（0.9.0）。REQ-044 在 M8 开发的同时先做 M9 预览页，预览确认后再编码（Claude 按推荐定下，见决策记录）。
 
 ## 接入 Nokia 7750 SR（REQ-037）
 

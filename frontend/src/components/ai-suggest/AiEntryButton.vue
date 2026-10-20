@@ -26,11 +26,18 @@ const off = computed(() => !!info.value && !info.value.ai.configured)
 const list = computed(() => props.skills.map((id) => info.value?.skills.find((s) => s.id === id)).filter((s) => !!s))
 const main = computed(() => list.value.find((s) => s.enabled) ?? null)
 
-async function load(): Promise<void> {
-  if (!project.ref) return
-  try { info.value = await get<SkillList>(projectPath(project.ref, '/ai/suggestions/skills')) } catch { info.value = null }
+let loading: Promise<void> | null = null
+function load(): Promise<void> {
+  const ref = project.ref
+  if (!ref) return Promise.resolve()
+  loading = (async () => {
+    try { info.value = await get<SkillList>(projectPath(ref, '/ai/suggestions/skills')) } catch { info.value = null }
+  })()
+  return loading
 }
-function clickMain(): void {
+async function clickMain(): Promise<void> {
+  // 技能列表还没取回时先等它（或补取一次），否则会误把“未加载”当成“没有可用的 skill”而只展开菜单
+  if (!info.value) await (loading ?? load())
   if (off.value || !main.value) { menu.value = !menu.value; return }
   if (!props.busy) emit('run', main.value.id)
 }

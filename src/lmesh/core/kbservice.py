@@ -11,10 +11,12 @@ from typing import Any
 
 from ruamel.yaml import YAML
 
+from lmesh import paths
 from lmesh.core import config, review, setup
 from lmesh.core import kb as kbmod
 from lmesh.core.kb import diff as kbdiff
 from lmesh.core.kb import package, repo
+from lmesh.core.kb import upgrade as kbupgrade
 from lmesh.core.kb.validate import summary, validate
 
 
@@ -23,13 +25,35 @@ def runtime_root(settings: config.Settings) -> Path:
     copied = setup.ensure_runtime_knowledge(settings)
     root = settings.knowledge_dir
     root.mkdir(parents=True, exist_ok=True)
+    fresh = not (root / ".git").exists()
     repo.ensure_repo(root)
+    if fresh:
+        # 刚从自带知识库复制并建仓：builtin 分支记下这份快照，作为以后升级合并的基准
+        kbupgrade.ensure_baseline(root, paths.builtin_knowledge_dir(), app_version())
     # 首次复制后为 draft 卡补审核记录；向导复制知识库时数据库可能还没建好，所以用标记文件判断是否补过
     marker = root / ".git" / "lmesh-drafts-queued"
     if copied or not marker.exists() or marker.read_text(encoding="utf-8") != settings.database_url:
         queue_drafts(root, settings.database_url)
         marker.write_text(settings.database_url, encoding="utf-8")
     return root
+
+
+def app_version() -> str:
+    import lmesh
+
+    return lmesh.__version__
+
+
+def upgrade_builtin(settings: config.Settings, dry_run: bool = False) -> dict[str, Any]:
+    """升级时把新版本自带的知识库合并进运行时知识库（见 kb/upgrade.py）。"""
+    root = runtime_root(settings)
+    p = kbupgrade.upgrade(root, paths.builtin_knowledge_dir(), app_version(), settings.database_url, dry_run=dry_run)
+    return p.as_dict()
+
+
+def upgrade_rollback(settings: config.Settings) -> dict[str, Any] | None:
+    """回滚最近一次升级合并。"""
+    return kbupgrade.rollback_last(runtime_root(settings))
 
 
 def queue_drafts(root: Path, db_url: str) -> int:

@@ -1,0 +1,131 @@
+# 未支持型号的处理（M8-7，REQ-044）的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-fullkb-ne8000：默认项目里有合成的 NE8000-X8-01（编号 1，版本 V800R022 不匹配任何 Profile 的版本规则，
+# 按厂商默认用 huawei-atn-v800r025，近似）与认不出厂商的 edge-mx-01（编号 2，只存原文）。
+
+[[case]]
+id = "import-profile-remember"
+title = { zh-CN = "导入时手工指定 Profile 并记住为本项目的型号规则", en = "Import with a manual Profile and remember it as a project model rule", pt-BR = "Importar com Profile manual e lembrar como regra do projeto" }
+args = ["--output", "json", "config", "import", "{inputs}/configs/ne8000/ne8000-x8-02.cfg", "--profile", "huawei-atn-v800r023", "--remember", "project"]
+setup = "configured-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.files.0.device" = "NE8000-X8-02", "data.files.0.profile" = "huawei-atn-v800r023", "data.files.0.profile_source" = "rule", "data.files.0.match_level" = "approx", "data.files.0.rule_created" = 1, "data.files.0.rule_id" = 1 }
+in_docs = true
+
+[[case]]
+id = "import-keep-unsupported"
+title = { zh-CN = "认不出厂商的配置只存原文（--keep-unsupported）", en = "Keep configs from unknown vendors as raw text only (--keep-unsupported)", pt-BR = "Guardar só o texto de fabricantes desconhecidos (--keep-unsupported)" }
+args = ["--output", "json", "config", "import", "{inputs}/configs/other/edge-mx-01.conf", "--keep-unsupported"]
+setup = "configured-fullkb"
+expect_exit = 0
+expect_json = { "ok" = true, "data.files.0.device" = "edge-mx-01", "data.files.0.vendor" = "", "data.files.0.raw_only" = true, "data.files.0.profile_source" = "none", "data.files.0.match_level" = "none" }
+in_docs = true
+
+[[case]]
+id = "import-remember-needs-profile"
+title = { zh-CN = "--remember 没有 --profile：退出码 2", en = "--remember without --profile: exit 2", pt-BR = "--remember sem --profile: saída 2" }
+args = ["config", "import", "{inputs}/configs/ne8000/ne8000-x8-02.cfg", "--remember", "project"]
+setup = "configured-fullkb"
+expect_exit = 2
+expect_stderr = ["--profile"]
+
+[[case]]
+id = "device-profiles"
+title = { zh-CN = "候选 Profile 与试解析结果（近似：厂商默认）", en = "Candidate Profiles and trial-parse results (approximate: vendor fallback)", pt-BR = "Profiles candidatos e análise de teste (aproximado: padrão do fabricante)" }
+args = ["--output", "json", "device", "profiles", "NE8000-X8-01"]
+setup = "configured-fullkb-ne8000"
+expect_exit = 0
+expect_json = { "ok" = true, "data.profile" = "huawei-atn-v800r025", "data.profile_source" = "fallback", "data.match_level" = "approx", "data.approx" = true, "data.recommended" = "huawei-atn-v800r025", "data.candidates.0.profile" = "huawei-atn-v800r025", "data.candidates.0.unknown" = 2, "data.candidates.1.profile" = "huawei-atn-v800r023", "data.suggested_rule.name_pattern" = "NE8000-X8-*", "data.suggested_rule.version" = "V800R022" }
+in_docs = true
+
+[[case]]
+id = "device-profiles-text"
+title = { zh-CN = "候选 Profile 的文字输出", en = "Candidate Profiles (text output)", pt-BR = "Profiles candidatos (texto)" }
+args = ["device", "profiles", "1"]
+setup = "configured-fullkb-ne8000"
+expect_exit = 0
+expect_stdout = ["当前 Profile：huawei-atn-v800r025（来源 fallback", "huawei-atn-v800r023"]
+
+[[case]]
+id = "device-set-profile"
+title = { zh-CN = "更换 Profile 并重新解析（手工选择）", en = "Change the Profile and re-parse (manual choice)", pt-BR = "Trocar o Profile e reanalisar (escolha manual)" }
+args = ["--output", "json", "device", "set-profile", "NE8000-X8-01", "huawei-atn-v800r023"]
+setup = "configured-fullkb-ne8000"
+expect_exit = 0
+expect_json = { "ok" = true, "data.profile" = "huawei-atn-v800r023", "data.profile_source" = "manual", "data.approx" = true, "data.result.parsed" = true, "data.result.unknown" = 2 }
+in_docs = true
+
+[[case]]
+id = "device-set-profile-remember"
+title = { zh-CN = "更换 Profile 并记住为全局型号规则", en = "Change the Profile and remember it as a global model rule", pt-BR = "Trocar o Profile e lembrar como regra global" }
+args = ["--output", "json", "device", "set-profile", "NE8000-X8-01", "huawei-atn-v800r023", "--remember", "global", "--match-name", "NE8000-*"]
+setup = "configured-fullkb-ne8000"
+expect_exit = 0
+expect_json = { "ok" = true, "data.profile" = "huawei-atn-v800r023", "data.profile_source" = "rule", "data.profile_rule_id" = 1, "data.rule_created" = 1 }
+
+[[case]]
+id = "device-set-profile-other-vendor"
+title = { zh-CN = "只允许同厂商 / 同平台族：选 Cisco 的 Profile 被拒绝，退出码 2", en = "Same vendor / family only: a Cisco Profile is refused, exit 2", pt-BR = "Só mesmo fabricante / família: Profile Cisco recusado, saída 2" }
+args = ["device", "set-profile", "NE8000-X8-01", "cisco-iosxe-asr920-17.15"]
+setup = "configured-fullkb-ne8000"
+expect_exit = 2
+expect_stderr = ["cisco-iosxe-asr920-17.15", "同厂商"]
+in_docs = true
+
+[[case]]
+id = "device-set-profile-auto"
+title = { zh-CN = "改回自动选择", en = "Back to automatic selection", pt-BR = "Voltar à seleção automática" }
+args = ["--output", "json", "device", "set-profile", "NE8000-X8-01", "--auto"]
+setup = "configured-fullkb-ne8000"
+expect_exit = 0
+expect_json = { "ok" = true, "data.profile" = "huawei-atn-v800r025", "data.profile_source" = "fallback" }
+
+[[case]]
+id = "device-set-profile-raw"
+title = { zh-CN = "认不出厂商的设备：在全部 Profile 中手工选一个解析", en = "Unknown-vendor device: pick any Profile to parse it", pt-BR = "Fabricante desconhecido: escolher qualquer Profile" }
+args = ["--output", "json", "device", "set-profile", "edge-mx-01", "cisco-iosxe-asr920-17.15"]
+setup = "configured-fullkb-ne8000"
+expect_exit = 0
+expect_json = { "ok" = true, "data.profile" = "cisco-iosxe-asr920-17.15", "data.profile_source" = "manual", "data.unsupported" = false }
+
+[[case]]
+id = "device-request-support"
+title = { zh-CN = "申请支持此型号（进审核队列，类型“建议”）", en = "Request support for this model (review queue, type suggestion)", pt-BR = "Pedir suporte a este modelo (fila de revisão, sugestão)" }
+args = ["--output", "json", "device", "request-support", "NE8000-X8-01", "--model", "NE8000 X8", "--reason", "城域汇聚"]
+setup = "configured-fullkb-ne8000"
+expect_exit = 0
+expect_json = { "ok" = true, "data.status" = "pending" }
+in_docs = true
+
+[[case]]
+id = "model-rule-add"
+title = { zh-CN = "新建全局型号规则", en = "Add a global model rule", pt-BR = "Criar regra de modelo global" }
+args = ["--output", "json", "model-rule", "add", "--profile", "huawei-atn-v800r023", "--match-name", "NE8000-*", "--match-version", "V800R022", "--scope", "global", "--note", "NE8000 暂用 ATN R023"]
+setup = "configured-fullkb-ne8000"
+expect_exit = 0
+expect_json = { "ok" = true, "data.id" = 1, "data.scope" = "global", "data.vendor" = "huawei", "data.conditions" = 3, "data.profile" = "huawei-atn-v800r023" }
+in_docs = true
+
+[[case]]
+id = "model-rule-no-condition"
+title = { zh-CN = "型号规则没有条件：退出码 2", en = "Model rule without conditions: exit 2", pt-BR = "Regra sem condições: saída 2" }
+args = ["model-rule", "add", "--profile", "huawei-atn-v800r023"]
+setup = "configured-fullkb-ne8000"
+expect_exit = 2
+expect_stderr = ["至少要有一个条件"]
+
+[[case]]
+id = "model-rule-test"
+title = { zh-CN = "试匹配型号规则（不保存）", en = "Trial-match a model rule (not saved)", pt-BR = "Testar regra de modelo (sem salvar)" }
+args = ["--output", "json", "model-rule", "test", "--profile", "huawei-atn-v800r023", "--match-version", "V800R022"]
+setup = "configured-fullkb-ne8000"
+expect_exit = 0
+expect_json = { "ok" = true, "data.count" = 1, "data.devices.0.name" = "NE8000-X8-01", "data.devices.0.source" = "fallback" }
+in_docs = true
+
+[[case]]
+id = "model-rule-list-empty"
+title = { zh-CN = "还没有型号规则", en = "No model rules yet", pt-BR = "Nenhuma regra de modelo" }
+args = ["model-rule", "list"]
+setup = "configured-fullkb-ne8000"
+expect_exit = 0
+expect_stdout = ["还没有型号规则"]

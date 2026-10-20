@@ -19,7 +19,7 @@ from lmesh.api.common import (
     require_token,
     settings_of,
 )
-from lmesh.core import i18n, kbservice, review, store
+from lmesh.core import analysis, i18n, kbservice, review, store
 from lmesh.core.kb import package, repo
 
 router = APIRouter(dependencies=[Depends(require_token)])
@@ -71,7 +71,8 @@ def kb_releases(request: Request) -> dict[str, Any]:
         {
             "releases": kbservice.releases(root),
             "history": repo.history(root, 30),
-            "kb_version": kbservice.load(root).version,
+            # 按文件修改时间缓存的知识库（与草稿区共用）：发布后的刷新不用再整库加载两遍
+            "kb_version": analysis.load_kb(root).version,
         },
     )
 

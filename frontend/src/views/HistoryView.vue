@@ -482,6 +482,7 @@ onMounted(async () => {
               </div>
             </div>
 
+            <div v-if="diff.raw_only" class="notice warn kbnote" data-testid="hist-raw-only"><Icon name="warn" /><div class="grow">{{ $t('model.historyRaw') }}</div></div>
             <!-- 知识库版本不同 -->
             <div v-if="diff.kb.differs && rebuild" class="notice ok kbnote" data-testid="hist-kb-rebuilt"><Icon name="ok" /><div class="grow">{{ $t('history.rebuiltText', { kb: diff.kb.current }) }}</div><button class="btn btn-sm btn-ghost" type="button" @click="rebuild = false">{{ $t('history.unrebuild') }}</button></div>
             <div v-else-if="diff.kb.differs" class="notice warn kbnote" data-testid="hist-kb-differs"><Icon name="warn" /><div class="grow"><b>{{ $t('history.kbDiffersTitle') }}</b>（A：KB {{ diff.kb.a }}，B：KB {{ diff.kb.b }}）{{ $t('history.kbDiffersText') }}</div><button class="btn btn-sm" type="button" data-testid="hist-rebuild" @click="rebuild = true"><Icon name="refresh" small />{{ $t('history.rebuild', { kb: diff.kb.current }) }}</button></div>

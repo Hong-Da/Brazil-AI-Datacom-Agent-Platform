@@ -183,6 +183,7 @@ def cmd_serve(
     if config.is_configured():
         store.upgrade(settings.database_url)
         setup.ensure_runtime_knowledge(settings)
+        _merge_builtin_kb(c, settings)
     elif not setup.port_free(h, p):
         fail(c, output.EXIT_EXTERNAL, c.t("serve.port_busy", port=p))
     lmlog.setup(level=settings.get("log.level"), keep_days=settings.get("log.keep_days"), console=True)
@@ -195,6 +196,23 @@ def cmd_serve(
     if not config.is_configured():
         typer.echo(c.t("serve.wizard"))
     uvicorn.run(create_app(settings, listen_host=h), host=h, port=p, log_level="warning")
+
+
+def _merge_builtin_kb(c: output.Ctx, settings: config.Settings) -> None:
+    """启动时：程序自带的知识库变了（升级后）就合并进运行时知识库；失败不影响启动。"""
+    from lmesh.core import kbservice
+
+    try:
+        res = kbservice.upgrade_builtin(settings)
+    except Exception as e:  # noqa: BLE001  合并失败时照常启动，提示用 lmesh kb upgrade 重试
+        typer.echo(c.t("kb.upgrade_failed", error=type(e).__name__), err=True)
+        return
+    if res["changed"]:
+        typer.echo(c.t("kb.upgrade_summary", **_upgrade_counts(res)))
+
+
+def _upgrade_counts(res: dict[str, Any]) -> dict[str, int]:
+    return {k: len(res[k]) for k in ("added", "updated", "removed", "conflicts", "kept")}
 
 
 def _answer_text(v: Any) -> str:
@@ -385,6 +403,10 @@ cmd_analyze.register(app)
 from lmesh.cli import cmd_device  # noqa: E402
 
 cmd_device.register(app)
+
+from lmesh.cli import cmd_models  # noqa: E402
+
+cmd_models.register(app)
 
 from lmesh.cli import cmd_project  # noqa: E402
 

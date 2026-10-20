@@ -10,6 +10,7 @@ import { errorText, get, post } from '@/api'
 import { useAuth } from '@/stores/auth'
 import { shortTime } from '@/views/account/account'
 import { canReject, diffOf, editLink, kindOf, meaningful, type SuggestionItem } from '@/views/kbsugg/logic'
+import ModelSupportPanel from './ModelSupportPanel.vue'
 
 const emit = defineEmits<{ (e: 'decided', approved: boolean): void }>()
 const auth = useAuth()
@@ -19,6 +20,12 @@ const actError = ref('')
 const busy = ref<number | null>(null)
 const rejecting = ref<number | null>(null)
 const rejectNote = ref('')
+const handling = ref<number | null>(null) // 展开处理的型号支持申请（REQ-044）
+function onModelDone(it: SuggestionItem): void {
+  items.value = (items.value ?? []).filter((x) => x.id !== it.id)
+  handling.value = null
+  emit('decided', true)
+}
 
 async function load(): Promise<void> {
   error.value = ''
@@ -79,11 +86,17 @@ async function decide(it: SuggestionItem, approve: boolean): Promise<void> {
                 <td class="small" style="max-width: 300px">{{ it.payload?.reason }}</td>
                 <td class="right nowrap">
                   <template v-if="auth.isKbEditor">
-                    <router-link class="btn btn-sm btn-ghost" :to="editLink(it.target)">{{ $t('review.sg.openEditor') }}</router-link>
-                    <button class="btn btn-sm btn-primary" type="button" :disabled="busy === it.id" :data-testid="`review-sg-accept-${it.id}`" @click="decide(it, true)"><Icon name="check" small />{{ $t('review.sg.accept') }}</button>
+                    <button v-if="kindOf(it) === 'model'" class="btn btn-sm btn-primary" type="button" :aria-expanded="handling === it.id" :data-testid="`review-sg-model-${it.id}`" @click="handling = handling === it.id ? null : it.id"><Icon name="branch" small />{{ $t('model.ms.open') }}</button>
+                    <template v-else>
+                      <router-link class="btn btn-sm btn-ghost" :to="editLink(it.target)">{{ $t('review.sg.openEditor') }}</router-link>
+                      <button class="btn btn-sm btn-primary" type="button" :disabled="busy === it.id" :data-testid="`review-sg-accept-${it.id}`" @click="decide(it, true)"><Icon name="check" small />{{ $t('review.sg.accept') }}</button>
+                    </template>
                     <button class="btn btn-sm" type="button" :data-testid="`review-sg-reject-${it.id}`" @click="rejecting = rejecting === it.id ? null : it.id; rejectNote = ''">{{ $t('review.sg.reject') }}</button>
                   </template>
                 </td>
+              </tr>
+              <tr v-if="handling === it.id" class="sg-model">
+                <td colspan="6"><ModelSupportPanel :item-id="it.id" @decided="onModelDone(it)" /></td>
               </tr>
               <tr v-if="rejecting === it.id" class="sg-rej">
                 <td colspan="6">
@@ -107,6 +120,7 @@ async function decide(it: SuggestionItem, approve: boolean): Promise<void> {
 .who { display: flex; gap: 8px; align-items: center; }
 .who small { display: block; color: var(--ink-3); font-size: 11.5px; }
 .sg-rej td { background: var(--red-soft); }
+.sg-model td { background: var(--surface-2); }
 .sg-rej .row { gap: 8px; }
 .sg-rej .input { flex: 1; }
 </style>

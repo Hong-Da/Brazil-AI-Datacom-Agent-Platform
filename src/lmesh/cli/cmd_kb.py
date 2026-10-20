@@ -146,6 +146,41 @@ def register(app: typer.Typer) -> None:
             fail(c, output.EXIT_NOT_FOUND, c.t("kb.ref_not_found", ref=ref))
         emit(c, {"ref": ref, "commit": sha}, c.t("kb.rolled_back", ref=ref))
 
+    @kb_app.command(
+        "upgrade",
+        help="升级后合并程序自带的知识库：未改过的文件采用新版本，双方都改过的送审核队列 / merge the bundled knowledge base",
+    )
+    def kb_upgrade(
+        ctx: typer.Context,
+        dry_run: Annotated[bool, typer.Option("--dry-run", help="只列出将要采用和冲突的文件，不写入")] = False,
+        rollback: Annotated[bool, typer.Option("--rollback", help="回滚最近一次升级合并")] = False,
+    ) -> None:
+        c = output.get(ctx)
+        if not config.is_configured():
+            fail(c, output.EXIT_CONFIG, c.t("config.not_configured"))
+        settings = config.load()
+        if rollback:
+            if not c.yes and not typer.confirm(c.t("kb.upgrade_rollback_confirm"), default=False):
+                raise typer.Exit(output.EXIT_ERROR)
+            res = kbservice.upgrade_rollback(settings)
+            if res is None:
+                fail(c, output.EXIT_NOT_FOUND, c.t("kb.upgrade_none"))
+            emit(c, res, c.t("kb.upgrade_rolled_back", release=res["release"], before=res["before"][:10]))
+            return
+        require_db(c)
+        res = kbservice.upgrade_builtin(settings, dry_run=dry_run)
+        if not res["changed"]:
+            emit(c, res, c.t("kb.upgrade_unchanged"))
+            return
+        counts = {k: len(res[k]) for k in ("added", "updated", "removed", "conflicts", "kept")}
+        lines = [c.t("kb.upgrade_plan" if dry_run else "kb.upgrade_summary", **counts)]
+        if not res["has_base"]:
+            lines.append(c.t("kb.upgrade_no_base"))
+        lines += [f"  ! {f}" for f in res["conflicts"]]
+        if res.get("release"):
+            lines.append(c.t("kb.upgrade_release", release=res["release"]))
+        emit(c, res, "\n".join(lines))
+
     @kb_app.command("history", help="知识库的提交历史 / commit history")
     def kb_history(ctx: typer.Context, limit: Annotated[int, typer.Option(help="条数")] = 20) -> None:
         c = output.get(ctx)

@@ -102,6 +102,10 @@ TEXTS: dict[str, dict[str, str]] = {
         "ai.by": "AI 撰写，已采纳；加粗的数字与对象名由程序填入并经校验",
         "ai.note": "“摘要（AI 撰写）”一节由 AI 撰写（skill {skill} {version}，接口 {conn}）；其中的数字与对象名由程序填入并经校验；其余内容由程序生成。",
         "ai.stale": "已采纳的 AI 摘要与当前报告的数据不一致（采纳后数据有变化），本次未包含；请重新生成摘要。",
+        "profile.approx": "近似（{src}），未识别 {ratio}：默认值按该 Profile 补，可能与真实型号不同，请核对",
+        "profile.src.fallback": "厂商默认",
+        "profile.src.rule": "型号规则",
+        "profile.src.manual": "手工选择",
     },
     "en": {
         "compare.title": "Configuration Comparison Report",
@@ -184,6 +188,10 @@ TEXTS: dict[str, dict[str, str]] = {
         "its numbers and object names were filled in and checked by the program. Everything else is program-generated.",
         "ai.stale": "The adopted AI summary no longer matches this report's data (it changed after adoption), so it is "
         "left out; generate the summary again.",
+        "profile.approx": "approximate ({src}), {ratio} unrecognised: defaults follow this Profile and may differ from the real model; please double-check",
+        "profile.src.fallback": "vendor fallback",
+        "profile.src.rule": "model rule",
+        "profile.src.manual": "manual choice",
     },
 }
 
@@ -239,11 +247,28 @@ def version_meta(db_url: str, version_id: int | None) -> dict[str, Any]:
         if ver is None or not projects.visible(s, ver.device_id):
             return {}
         dev = s.get(Device, ver.device_id)
-        return {
+        out = {
             "version_id": ver.id,
             "sw_version": dev.sw_version if dev else "",
             "collected_at": iso(ver.collected_at),
         }
+        if dev is not None:  # REQ-044：近似或手工选择的 Profile 在报告里标出
+            from lmesh.core import model_support
+
+            info = model_support.device_info(dev, ver)
+            out.update(profile_source=info["profile_source"], unknown_ratio=info["unknown_ratio"])
+        return out
+
+
+def _profile_text(doc: Any, profile: Any, m: dict[str, Any]) -> str:
+    """Profile 一格：近似（厂商默认 / 型号规则 / 手工选择）时附说明与未识别行比例。"""
+    text = str(profile or "—")
+    src = m.get("profile_source")
+    if src in ("fallback", "rule", "manual"):
+        r = m.get("unknown_ratio")
+        ratio = "—" if r is None else f"{float(r) * 100:.1f}%"
+        text += " · " + doc.t("profile.approx", src=doc.t(f"profile.src.{src}"), ratio=ratio)
+    return text
 
 
 # ---------------------------------------------------------------- 文本片段
@@ -511,7 +536,7 @@ def compare_report(
         side_rows("device", lambda x, m: x.get("device") or x.get("label")),
         side_rows("version", lambda x, m: _ver(x, m)),
         side_rows("sw_version", lambda x, m: m.get("sw_version") or "—"),
-        side_rows("profile", lambda x, m: x.get("profile") or "—"),
+        side_rows("profile", lambda x, m: _profile_text(doc, x.get("profile"), m)),
         side_rows("kb_version", lambda x, m: x.get("kb_version") or "—"),
     ]
     doc.table([doc.t("item"), "A", "B"], rows, "meta")
@@ -674,7 +699,7 @@ def check_report(
             [doc.esc(doc.t("device")), doc.esc(result.get("device"))],
             [doc.esc(doc.t("version")), doc.esc(_ver({}, meta))],
             [doc.esc(doc.t("sw_version")), doc.esc(meta.get("sw_version") or "—")],
-            [doc.esc(doc.t("profile")), doc.esc(result.get("profile") or "—")],
+            [doc.esc(doc.t("profile")), doc.esc(_profile_text(doc, result.get("profile"), meta))],
             [doc.esc(doc.t("kb_version")), doc.esc(result.get("kb_version") or "—")],
             [doc.esc(doc.t("opt.severity")), doc.esc(doc.t(f"severity.{filters.get('severity') or 'info'}"))],
             [doc.esc(doc.t("opt.domain")), doc.esc(filters.get("domain") or doc.t("all"))],

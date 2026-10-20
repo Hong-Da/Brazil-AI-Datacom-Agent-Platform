@@ -33,7 +33,7 @@ def load_baseline(c: Ctx, kb: KnowledgeBase, kb_root: Path, rules_dir: Path | No
 
 def _all_graphs(c: Ctx, kb: KnowledgeBase) -> list[Any]:
     db = require_db(c)
-    devs = [d for d in importer.list_devices(db) if d["latest_version_id"]]
+    devs = [d for d in importer.list_devices(db) if d["latest_version_id"] and d["profile"]]  # 只存原文的设备没有图
     if not devs:
         fail(c, output.EXIT_NOT_FOUND, c.t("baseline.no_devices"))
     return [graphstore.build_for_version(db, d["latest_version_id"], kb)[0] for d in devs]

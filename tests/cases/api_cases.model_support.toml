@@ -1,0 +1,174 @@
+# 未支持型号的处理（M8-7，REQ-044）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-fullkb-ne8000：默认项目里有合成的 NE8000-X8-01（编号 1，厂商默认 huawei-atn-v800r025，近似）与
+# 认不出厂商的 edge-mx-01（编号 2，只存原文）。全局令牌视为管理员。
+
+[[case]]
+id = "configs-inspect"
+title = { zh-CN = "导入前识别：匹配程度、会用的 Profile、试解析推荐（不入库）", en = "Pre-import detection: match level, Profile, trial-parse ranking (nothing stored)", pt-BR = "Detecção antes de importar: nível, Profile, ranking (nada é salvo)" }
+method = "POST"
+path = "/api/v1/configs/inspect"
+setup = "configured-fullkb"
+auth = true
+files = ["configs/ne8000/ne8000-x8-01.cfg", "configs/other/edge-mx-01.conf"]
+form = { level = "basic" }
+expect_status = 200
+expect_json = { "code" = 0, "data.files.0.device" = "NE8000-X8-01", "data.files.0.vendor" = "huawei", "data.files.0.match_level" = "approx", "data.files.0.profile" = "huawei-atn-v800r025", "data.files.0.profile_source" = "fallback", "data.files.0.recommended" = "huawei-atn-v800r025", "data.files.0.candidates.0.unknown" = 2, "data.files.0.suggested_rule.name_pattern" = "NE8000-X8-*", "data.files.1.device" = "edge-mx-01", "data.files.1.vendor" = "", "data.files.1.match_level" = "none", "data.can_global" = true }
+in_docs = true
+
+[[case]]
+id = "configs-import-choices"
+title = { zh-CN = "导入时按文件指定 Profile 并记住；认不出厂商的只存原文", en = "Import with a per-file Profile and remember it; keep unknown vendors as raw text", pt-BR = "Importar com Profile por arquivo e lembrar; guardar só texto de desconhecidos" }
+method = "POST"
+path = "/api/v1/configs"
+setup = "configured-fullkb"
+auth = true
+files = ["configs/ne8000/ne8000-x8-01.cfg", "configs/other/edge-mx-01.conf"]
+form = { level = "basic", unsupported = "raw", choices = '{"ne8000-x8-01.cfg": {"profile": "huawei-atn-v800r023", "remember": {"scope": "project", "name_pattern": "NE8000-*"}}}' }
+expect_status = 200
+expect_json = { "code" = 0, "data.files.0.profile" = "huawei-atn-v800r023", "data.files.0.profile_source" = "rule", "data.files.0.rule_created" = 1, "data.files.0.unknown" = 2, "data.files.1.ok" = true, "data.files.1.raw_only" = true, "data.files.1.profile_source" = "none" }
+in_docs = true
+
+[[case]]
+id = "configs-import-unknown-vendor"
+title = { zh-CN = "认不出厂商默认不导入（提示里有 Nokia）", en = "Unknown vendors are skipped by default (the hint lists Nokia)", pt-BR = "Fabricantes desconhecidos são pulados por padrão (a dica cita Nokia)" }
+method = "POST"
+path = "/api/v1/configs"
+setup = "configured-fullkb"
+auth = true
+files = ["configs/other/edge-mx-01.conf"]
+expect_status = 200
+expect_json = { "code" = 0, "data.files.0.ok" = false, "data.files.0.error" = "无法识别厂商（目前支持华为、Cisco、Nokia）；可以手工指定 Profile，或只存原文（--keep-unsupported / unsupported=raw）" }
+
+[[case]]
+id = "configs-import-not-allowed"
+title = { zh-CN = "手工选择只允许同厂商 / 同平台族", en = "Manual choice: same vendor / family only", pt-BR = "Escolha manual: só mesmo fabricante / família" }
+method = "POST"
+path = "/api/v1/configs"
+setup = "configured-fullkb"
+auth = true
+files = ["configs/ne8000/ne8000-x8-01.cfg"]
+form = { profile = "cisco-iosxe-asr920-17.15" }
+expect_status = 200
+expect_json = { "code" = 0, "data.files.0.ok" = false }
+
+[[case]]
+id = "configs-import-bad-choices"
+title = { zh-CN = "choices 不是 JSON 对象：422", en = "choices is not a JSON object: 422", pt-BR = "choices não é objeto JSON: 422" }
+method = "POST"
+path = "/api/v1/configs"
+setup = "configured-fullkb"
+auth = true
+files = ["configs/ne8000/ne8000-x8-01.cfg"]
+form = { choices = "[1]" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "device-profile-candidates"
+title = { zh-CN = "设备的候选 Profile 与试解析结果", en = "A device's candidate Profiles and trial-parse results", pt-BR = "Profiles candidatos de um dispositivo" }
+method = "GET"
+path = "/api/v1/devices/1/profile-candidates"
+setup = "configured-fullkb-ne8000"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.device.name" = "NE8000-X8-01", "data.profile_source" = "fallback", "data.match_level" = "approx", "data.candidates.0.profile" = "huawei-atn-v800r025", "data.candidates.0.fallback" = true, "data.candidates.1.profile" = "huawei-atn-v800r023", "data.auto.source" = "fallback" }
+in_docs = true
+
+[[case]]
+id = "device-profile-put"
+title = { zh-CN = "更换 Profile 并重新解析", en = "Change the Profile and re-parse", pt-BR = "Trocar o Profile e reanalisar" }
+method = "PUT"
+path = "/api/v1/devices/1/profile"
+setup = "configured-fullkb-ne8000"
+auth = true
+body = { profile = "huawei-atn-v800r023" }
+expect_status = 200
+expect_json = { "code" = 0, "data.profile" = "huawei-atn-v800r023", "data.profile_source" = "manual", "data.match_level" = "approx", "data.result.parsed" = true }
+in_docs = true
+
+[[case]]
+id = "device-profile-put-other-vendor"
+title = { zh-CN = "更换为其他厂商的 Profile：422", en = "Changing to another vendor's Profile: 422", pt-BR = "Trocar para Profile de outro fabricante: 422" }
+method = "PUT"
+path = "/api/v1/devices/1/profile"
+setup = "configured-fullkb-ne8000"
+auth = true
+body = { profile = "cisco-iosxe-asr920-17.15" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "device-graph-raw-only"
+title = { zh-CN = "只存原文的设备没有配置图：409", en = "Raw-text-only device has no graph: 409", pt-BR = "Dispositivo só com texto não tem grafo: 409" }
+method = "GET"
+path = "/api/v1/devices/2/graph"
+setup = "configured-fullkb-ne8000"
+auth = true
+expect_status = 409
+expect_json = { "code" = 1003, "data.raw_only" = true }
+
+[[case]]
+id = "devices-profile-source"
+title = { zh-CN = "设备列表带 Profile 来源与近似标记", en = "Device list with Profile source and approximate flag", pt-BR = "Lista com origem do Profile e marca de aproximado" }
+method = "GET"
+path = "/api/v1/devices"
+setup = "configured-fullkb-ne8000"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.devices.0.name" = "NE8000-X8-01", "data.devices.0.profile_source" = "fallback", "data.devices.0.approx" = true, "data.devices.1.name" = "edge-mx-01", "data.devices.1.unsupported" = true, "data.devices.1.match_level" = "none" }
+
+[[case]]
+id = "device-support-request"
+title = { zh-CN = "申请支持此型号", en = "Request support for this model", pt-BR = "Pedir suporte a este modelo" }
+method = "POST"
+path = "/api/v1/devices/1/support-request"
+setup = "configured-fullkb-ne8000"
+auth = true
+body = { model = "NE8000 X8", reason = "城域汇聚，主要用 VPN、BGP" }
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "pending" }
+in_docs = true
+
+[[case]]
+id = "model-rules-create"
+title = { zh-CN = "新建本项目的型号规则", en = "Create a project model rule", pt-BR = "Criar regra de modelo do projeto" }
+method = "POST"
+path = "/api/v1/model-rules"
+setup = "configured-fullkb-ne8000"
+auth = true
+body = { scope = "project", name_pattern = "NE8000-*", version = "V800R022", profile = "huawei-atn-v800r023", reparse = true }
+expect_status = 200
+expect_json = { "code" = 0, "data.id" = 1, "data.scope" = "project", "data.vendor" = "huawei", "data.conditions" = 3, "data.reparsed" = 1 }
+in_docs = true
+
+[[case]]
+id = "model-rules-list"
+title = { zh-CN = "型号规则列表（本项目与全局）", en = "Model rules (project and global)", pt-BR = "Regras de modelo (projeto e global)" }
+method = "GET"
+path = "/api/v1/model-rules"
+setup = "configured-fullkb-ne8000"
+auth = true
+expect_status = 200
+expect_json = { "code" = 0, "data.project" = [], "data.global" = [], "data.can_global" = true }
+
+[[case]]
+id = "model-rules-test"
+title = { zh-CN = "试匹配型号规则", en = "Trial-match a model rule", pt-BR = "Testar regra de modelo" }
+method = "POST"
+path = "/api/v1/model-rules/test"
+setup = "configured-fullkb-ne8000"
+auth = true
+body = { feature = "^ ospf cost maximum$", profile = "huawei-atn-v800r023" }
+expect_status = 200
+expect_json = { "code" = 0, "data.count" = 1, "data.devices.0.name" = "NE8000-X8-01" }
+
+[[case]]
+id = "model-rules-no-condition"
+title = { zh-CN = "型号规则没有条件：422", en = "Model rule without conditions: 422", pt-BR = "Regra sem condições: 422" }
+method = "POST"
+path = "/api/v1/model-rules"
+setup = "configured-fullkb-ne8000"
+auth = true
+body = { profile = "huawei-atn-v800r023" }
+expect_status = 422
+expect_json = { "code" = 1001 }

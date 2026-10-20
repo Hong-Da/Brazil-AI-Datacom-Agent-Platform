@@ -51,6 +51,8 @@ export interface NonEff { node: string; schema: string; domain: string; object: 
 export interface TextLine { op: 'equal' | 'del' | 'add'; a: number | null; b: number | null; text: string; node: string | null; fmt?: boolean }
 export interface Hunk { a_start: number; a_len: number; b_start: number; b_len: number; lines: TextLine[] }
 export interface DiffResult {
+  /** REQ-044：只存原文的设备（认不出厂商）只有原文差异 */
+  raw_only?: boolean
   device: Timeline['device']
   a: Snapshot
   b: Snapshot

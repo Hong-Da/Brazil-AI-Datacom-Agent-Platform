@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import VendorBadge from '@/components/vendor-badge.vue'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import Icon from '@/components/Icon.vue'
 import { errorText, post } from '@/api'
 import {
   acceptFile, fmtBytes, importTotals, MAX_FILE_BYTES, sanitizedEntries, sanitizedTotal, vendorLabel,
   type ImportFileResult,
 } from './logic'
+import IdentifyStep from './IdentifyStep.vue'
+import { buildChoices, hasCondition, initialChoice, pct, regexOk, type FileChoice, type InspectFile } from './model'
 
 const emit = defineEmits<{ close: []; imported: [results: ImportFileResult[]] }>()
 
 type Src = 'file' | 'folder' | 'zip'
-const step = ref(0) // 0 选择文件，1 脱敏级别，2 导入结果
+const step = ref(0) // 0 选择文件，1 脱敏级别，2 识别与 Profile（REQ-044），3 导入结果
 const src = ref<Src>('file')
 const level = ref<'basic' | 'strict'>('basic')
 const files = ref<File[]>([])
@@ -24,7 +26,43 @@ const dragging = ref(false)
 
 const totalBytes = computed(() => files.value.reduce((a, f) => a + f.size, 0))
 const totals = computed(() => importTotals(results.value))
-const STEPS = ['stepSource', 'stepLevel', 'stepResult'] as const
+const STEPS = ['stepSource', 'stepLevel', 'stepIdentify', 'stepResult'] as const
+
+// ---- 识别与 Profile（REQ-044）：POST /configs/inspect（不入库），每个文件的选择按来源名保存
+const inspecting = ref(false)
+const inspected = ref<InspectFile[]>([])
+const canGlobal = ref(false)
+const choices = reactive<Record<string, FileChoice>>({})
+const skippedByUser = ref<Set<string>>(new Set())
+const choiceErrors = computed(() =>
+  inspected.value.some((f) => {
+    const c = choices[f.source]
+    return !!c && c.remember && (!hasCondition(c.rule) || !regexOk(c.rule.version) || !regexOk(c.rule.feature))
+  }),
+)
+function formFiles(): FormData {
+  const fd = new FormData()
+  for (const f of files.value) fd.append('files', f, f.name)
+  fd.append('level', level.value)
+  return fd
+}
+async function inspect(): Promise<void> {
+  step.value = 2
+  inspecting.value = true
+  error.value = ''
+  try {
+    const data = await post<{ files: InspectFile[]; can_global: boolean }>('/configs/inspect', formFiles())
+    inspected.value = data.files
+    canGlobal.value = data.can_global
+    for (const k of Object.keys(choices)) delete choices[k]
+    for (const f of data.files) if (f.ok) choices[f.source] = initialChoice(f)
+  } catch (e) {
+    error.value = errorText(e)
+  } finally {
+    inspecting.value = false
+  }
+}
+const resultInfo = computed(() => new Map(results.value.map((r) => [r.source, r as ImportFileResult & { profile_source?: string; rule_created?: number | null; raw_only?: boolean }])))
 
 function relName(f: File): string {
   return f.webkitRelativePath || f.name
@@ -67,14 +105,15 @@ function clearFiles(): void {
 }
 
 async function upload(): Promise<void> {
-  step.value = 2
+  step.value = 3
   uploading.value = true
   error.value = ''
   results.value = []
   try {
-    const fd = new FormData()
-    for (const f of files.value) fd.append('files', f, f.name)
-    fd.append('level', level.value)
+    const fd = formFiles()
+    const built = buildChoices(inspected.value, choices)
+    skippedByUser.value = new Set(built.skip)
+    fd.append('choices', JSON.stringify(built.choices))
     const data = await post<{ files: ImportFileResult[] }>('/configs', fd)
     results.value = data.files
     emit('imported', data.files)
@@ -160,7 +199,20 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
           <p class="small muted mt12">{{ $t('devices.levelFlow') }}</p>
         </template>
 
-        <!-- 3. 导入结果 -->
+        <!-- 3. 识别与 Profile（REQ-044） -->
+        <template v-else-if="step === 2">
+          <div v-if="inspecting" class="stack" data-testid="inspect-progress">
+            <b>{{ $t('model.inspecting', { n: files.length }) }}</b>
+            <div class="progress striped"><i style="width: 100%" /></div>
+          </div>
+          <div v-else-if="error" class="notice err" data-testid="inspect-error">
+            <Icon name="err" /><div class="grow">{{ error }}</div>
+            <button class="btn btn-sm" @click="inspect">{{ $t('c.retry') }}</button>
+          </div>
+          <IdentifyStep v-else :files="inspected" :choices="choices" :can-global="canGlobal" />
+        </template>
+
+        <!-- 4. 导入结果 -->
         <template v-else>
           <div v-if="uploading" class="stack" data-testid="import-progress">
             <div class="row"><b>{{ $t('devices.uploading', { n: files.length }) }}</b><span class="faint small ml-auto">{{ fmtBytes(totalBytes) }}</span></div>
@@ -183,6 +235,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
                     <th>{{ $t('devices.colFile') }}</th>
                     <th>{{ $t('devices.colDetected') }}</th>
                     <th>Profile</th>
+                    <th>{{ $t('model.colSource') }}</th>
                     <th class="num">{{ $t('devices.colLines') }}</th>
                     <th class="num">{{ $t('devices.colUnknown') }}</th>
                     <th>{{ $t('devices.colSanitized') }}</th>
@@ -194,7 +247,8 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
                       {{ r.source }}
                       <div v-if="r.ok" class="small faint" style="font-family: var(--font-ui)">{{ $t('devices.deviceName') }} <span class="mono">{{ r.device }}</span></div>
                     </td>
-                    <td v-if="!r.ok" colspan="5"><span class="tag fail">{{ $t('c.failed') }}</span> <span class="small">{{ r.error }}</span></td>
+                    <td v-if="!r.ok && skippedByUser.has(r.source)" colspan="6"><span class="tag">{{ $t('model.skipped') }}</span></td>
+                    <td v-else-if="!r.ok" colspan="6"><span class="tag fail">{{ $t('c.failed') }}</span> <span class="small">{{ r.error }}</span></td>
                     <template v-else>
                       <td class="nowrap">
                         <VendorBadge v-if="r.vendor" :of="r.vendor">{{ vendorLabel(r.vendor) }}</VendorBadge>
@@ -202,6 +256,11 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
                         <div class="mono faint small">{{ r.version || $t('devices.noVersion') }}</div>
                       </td>
                       <td class="mono nowrap">{{ r.profile || '—' }}</td>
+                      <td class="nowrap" :data-testid="`import-src-${r.device}`">
+                        <span class="src-chip" :class="resultInfo.get(r.source)?.profile_source">{{ $t(`model.src.${resultInfo.get(r.source)?.profile_source || 'auto'}`) }}</span>
+                        <span v-if="resultInfo.get(r.source)?.rule_created" class="tag t-teal" style="margin-left: 4px">{{ $t('model.remembered', { id: resultInfo.get(r.source)?.rule_created }) }}</span>
+                        <div v-if="r.coverage !== null && r.coverage !== undefined" class="unk-r">{{ $t('model.unk', { p: pct(1 - r.coverage) }) }}</div>
+                      </td>
                       <td class="num">{{ r.lines.toLocaleString() }}</td>
                       <td class="num" :class="r.unknown ? 'unk' : 'faint'">{{ r.unknown }}</td>
                       <td>
@@ -225,10 +284,14 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
         </template>
         <template v-else-if="step === 1">
           <button class="btn" @click="step = 0">{{ $t('c.back') }}</button>
-          <button class="btn btn-primary" data-testid="start-import" @click="upload"><Icon name="upload" small />{{ $t('devices.startImport') }}</button>
+          <button class="btn btn-primary" data-testid="to-identify" @click="inspect">{{ $t('devices.toIdentify') }}</button>
+        </template>
+        <template v-else-if="step === 2">
+          <button class="btn" :disabled="inspecting" @click="step = 1">{{ $t('c.back') }}</button>
+          <button class="btn btn-primary" :disabled="inspecting || !!error || choiceErrors" data-testid="start-import" @click="upload"><Icon name="upload" small />{{ $t('devices.startImport') }}</button>
         </template>
         <template v-else>
-          <button v-if="!uploading && error" class="btn" @click="step = 1">{{ $t('c.back') }}</button>
+          <button v-if="!uploading && error" class="btn" @click="step = 2">{{ $t('c.back') }}</button>
           <button v-if="!uploading && !error" class="btn" @click="clearFiles(); results = []; step = 0">{{ $t('devices.importMore') }}</button>
           <button class="btn btn-primary" :disabled="uploading" data-testid="import-done" @click="close">{{ $t('c.close') }}</button>
         </template>
@@ -249,6 +312,10 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
 .tbl .unk { color: var(--red-ink); font-weight: 600; }
 tr.failed td { background: color-mix(in srgb, var(--red-soft) 55%, transparent); }
 .tag.san { margin: 0 4px 2px 0; }
+.src-chip { display: inline-flex; align-items: center; font-size: 11px; padding: 0 6px; border-radius: 3px; border: 1px dashed var(--line-strong); color: var(--ink-2); white-space: nowrap; }
+.src-chip.fallback, .src-chip.manual, .src-chip.rule { border-style: solid; border-color: var(--amber-line); color: var(--amber-ink); background: var(--amber-soft); }
+.src-chip.none { border-style: solid; border-color: var(--red-line); color: var(--red-ink); background: var(--red-soft); }
+.unk-r { font: 11px var(--font-mono); color: var(--ink-3); margin-top: 2px; }
 .skip { margin-left: 10px; }
 @media (max-width: 1100px) { .src-cards { grid-template-columns: 1fr; } }
 </style>

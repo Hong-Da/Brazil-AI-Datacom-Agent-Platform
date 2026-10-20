@@ -90,6 +90,19 @@ def test_draft_extractors_tasks(client) -> None:  # type: ignore[no-untyped-def]
     assert data(client.get("/api/v1/tasks", headers=H))["tasks"] == []
 
 
+def test_releases_reuse_cached_kb(client, monkeypatch: pytest.MonkeyPatch) -> None:  # type: ignore[no-untyped-def]
+    """发布页的刷新（版本列表 + 草稿区）复用按修改时间缓存的知识库，不再每次整库加载（几千张命令卡，慢机器上要几秒）。"""
+    from lmesh.core import kb as kbmod
+
+    assert data(client.get("/api/v1/kb/releases", headers=H))["kb_version"]
+    calls: list[object] = []
+    real = kbmod.load
+    monkeypatch.setattr(kbmod, "load", lambda *a, **k: calls.append(a) or real(*a, **k))
+    data(client.get("/api/v1/kb/releases", headers=H))
+    data(client.get("/api/v1/kb/draft", headers=H))
+    assert calls == []
+
+
 def test_unknown_to_review(client) -> None:  # type: ignore[no-untyped-def]
     cfg = b"sysname X\n#\ninterface GigabitEthernet0/2/1\n mtu notanumber\n#\nreturn\n"
     data(client.post("/api/v1/configs", headers=H, files=[("files", ("x.cfg", cfg, "text/plain"))]))

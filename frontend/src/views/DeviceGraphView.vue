@@ -25,6 +25,7 @@ import DeviceIcon from '@/components/devicon/DeviceIcon.vue'
 import { useDeviceIcon } from '@/components/devicon/useDeviceIcon'
 import { buildForce, domainColorVar, domainCounts } from './device-graph/force'
 import NodeDetail from './device-graph/NodeDetail.vue'
+import { pct } from './devices/model'
 import ConfigText from './device-graph/ConfigText.vue'
 import {
   DEP_KINDS, EDGE_KINDS, EDGE_SHORT, RAW_DOMAIN, aggregateEdges, ancestors, autoExpand, buildModel, collapseSubtree,
@@ -88,14 +89,18 @@ async function loadDevices(): Promise<void> {
 async function loadSchema(): Promise<void> {
   try { schema.value = await getRetry<SchemaTree>('/kb/schema') } catch { schema.value = null /* 取不到时按 Schema 前缀分域 */ }
 }
+// REQ-044：只存原文的设备（认不出厂商）没有配置图，接口返回 409 data.raw_only
+const rawOnly = ref(false)
 async function loadGraph(): Promise<void> {
   if (!deviceId.value) return
   loading.value = true
   loadErr.value = ''
+  rawOnly.value = false
   try {
     graph.value = await getRetry<GraphData>(`/devices/${deviceId.value}/graph?raw=true`)
   } catch (e) {
-    loadErr.value = errorText(e)
+    rawOnly.value = e instanceof ApiError && !!(e.data as { raw_only?: boolean } | null)?.raw_only
+    loadErr.value = rawOnly.value ? '' : errorText(e)
     graph.value = null
   } finally {
     loading.value = false
@@ -532,14 +537,24 @@ onMounted(async () => {
         <button class="btn btn-xs btn-icon" :title="$t('c.close')" @click="rt = null"><Icon name="x" small /></button>
       </div>
 
-      <div v-if="loadErr" class="notice err" data-testid="graph-error">
+      <div v-if="graph?.profile_info?.approx" class="notice warn approx" data-testid="graph-approx">
+        <Icon name="warn" />
+        <div class="grow small">{{ $t('model.graphApprox', { p: graph.profile_info.profile, s: $t(`model.src.${graph.profile_info.profile_source}`) + (graph.profile_info.profile_rule_id ? ` #${graph.profile_info.profile_rule_id}` : ''), r: pct(graph.profile_info.unknown_ratio) }) }}</div>
+        <router-link class="btn btn-sm" :to="{ name: 'devices' }">{{ $t('model.changeProfile') }}</router-link>
+      </div>
+      <div v-if="rawOnly" class="notice warn" data-testid="graph-raw-only">
+        <Icon name="warn" /><div class="grow">{{ $t('model.rawOnlyGraph') }}</div>
+        <router-link class="btn btn-sm" :to="{ name: 'history', params: { id: deviceId } }"><Icon name="history" small />{{ $t('model.openHistory') }}</router-link>
+        <router-link class="btn btn-sm" :to="{ name: 'devices' }">{{ $t('model.changeProfile') }}</router-link>
+      </div>
+      <div v-else-if="loadErr" class="notice err" data-testid="graph-error">
         <Icon name="err" /><div class="grow"><b>{{ $t('device-graph.loadFail') }}</b><div class="small">{{ loadErr }}</div></div>
         <button class="btn btn-sm" @click="loadGraph">{{ $t('c.retry') }}</button>
         <router-link class="btn btn-sm" :to="{ name: 'device-graph' }">{{ $t('device-graph.chooseTitle') }}</router-link>
       </div>
-      <div v-else-if="!model" class="panel loading-box faint">{{ $t('c.loading') }}</div>
+      <div v-else-if="!model && !rawOnly" class="panel loading-box faint">{{ $t('c.loading') }}</div>
 
-      <FullscreenPane v-else class="work" data-testid="graph-fs">
+      <FullscreenPane v-else-if="model" class="work" data-testid="graph-fs">
         <section class="panel p-graph" aria-label="Graph">
           <div class="gbar">
             <div class="seg" role="group" :aria-label="$t('device-graph.viewMode')" data-testid="view-switch">

@@ -68,8 +68,19 @@
 | `DELETE /users/{username}?transfer_to=&delete_projects=false` | 管理员 | 删除账号；不能删除自己和最后一个启用的管理员（409）；拥有非空项目时必须 `transfer_to`（项目、私有模板与规则集转交给该账号）或 `delete_projects=true`（一并删除），否则 409（`data.projects`）；自动建的空默认项目直接删除 |
 | `GET /config` | 管理员 | 当前生效的配置，敏感值只显示是否已设置 |
 | `POST /sanitize` | 是 | 脱敏一段配置文本：`{"text": "…", "level": "basic\|strict"}`；返回脱敏后的文本、厂商、各类替换数量和不含原值的替换报告 |
-| `POST /configs` | 是 | 上传并导入配置（multipart：一个或多个 `files`，可以是 zip；`level` 默认 basic） |
-| `GET /devices` | 是 | 已导入的设备与最新配置版本 |
+| `POST /configs` | 是 | 上传并导入配置（multipart：一个或多个 `files`，可以是 zip；`level` 默认 basic）。REQ-044：`profile` 对所有文件指定 Profile；`choices` 按文件名指定（JSON：`{"文件名": {"profile", "raw_only", "remember": {"scope": "project\|global", "name_pattern", "version", "feature"}}}`，`remember` 同时新建型号规则，`scope=global` 只限维护员与管理员，否则 403）；`unsupported=skip\|raw`（认不出厂商的文件不导入 / 只存原文，默认 skip）。手工选择只允许同厂商 / 同平台族（认不出厂商时任意），不允许的文件 `ok=false`、`error` 说明原因。每个文件的结果带 `profile_source`（auto / fallback / rule / manual / none）、`match_level`（exact / approx / none）、`rule_id`、`rule_created`、`raw_only` |
+| `POST /configs/inspect` | 是 | 导入前识别（不入库，multipart 同上）：每个文件的设备名、厂商、版本、`match_level`、按选择顺序会用的 `profile` 与 `profile_source`、命中的型号规则 `rule`、设备之前的选择 `previous`、候选的试解析结果 `candidates`（同厂商 / 同平台族；认不出厂商时为全部 Profile；按识别出的命令行比例 `ratio` 排序，不用 AI）、`recommended`、“记住”预填的规则 `suggested_rule`；`can_global` 表示调用者能否建全局规则 |
+| `GET /devices` | 是 | 已导入的设备与最新配置版本；REQ-044 起每台带 `profile_source`、`profile_rule_id`、`match_level`、`approx`（近似：厂商默认、型号规则、手工选择）、`unsupported`（认不出厂商，只存原文）、`unknown_ratio`（未识别行比例） |
+| `GET /devices/{id}/profile-candidates` | 是 | 更换 Profile 的候选：当前选择与来源、`auto`（按选择顺序会自动选到的）、`candidates`（试解析结果）、`recommended`、`suggested_rule` |
+| `PUT /devices/{id}/profile` | 是 | 更换 Profile 并重新解析最新版本：`{"profile": "…" \| null, "remember": {"scope", "name_pattern", "version", "feature"} \| null}`；`profile` 为空时改回自动选择；之后的导入与重新解析沿用手工选择；跨厂商 422；公共设备库的设备只限管理员（403）；只读成员 403 |
+| `POST /devices/{id}/support-request` | 是（只读成员也可以） | 申请支持此型号：`{"model", "reason"}`；附设备信息与未识别行的前 20 种写法，进审核队列（类型 `suggestion`，`payload.kind = model`），提出人在 `GET /kb/suggestions` 看到结果 |
+| `GET /model-rules` | 是 | 型号规则：`project`（本项目）与 `global`（全局），按生效顺序（本项目 > 全局；条件多的优先；一样多时先建的优先；停用的在后），每条带命中设备数 `devices`；`can_global` |
+| `POST /model-rules` | 是（全局只限维护员与管理员） | 新建：`{"scope": "project\|global", "vendor", "name_pattern", "version", "feature", "profile", "note", "enabled", "reparse"}`；至少一个条件、正则有效、只能指向同厂商的 Profile（422）；`reparse=true` 时重新解析本项目里命中的设备（手工选择的不动），返回 `reparsed` |
+| `POST /model-rules/test` | 是 | 试匹配（不保存）：本项目里会命中的设备，`taken_by` 为抢先的更早规则 |
+| `PUT /model-rules/{id}` / `DELETE /model-rules/{id}` | 是（全局只限维护员与管理员） | 修改（只给要改的项，可带 `reparse`）/ 删除；别的项目的规则 404 |
+| `GET /kb/model-support/{审核编号}` | 维护员 | 型号支持申请的处理状态：`derived`（派生的 Profile）、`released`（是否已在最近一次发布中）、`plan`（将改指向的规则、没有规则时将新建的全局规则、将重新解析的设备）、`bases`（基础 Profile 的试解析） |
+| `POST /kb/model-support/{审核编号}/derive` | 维护员 | 从现有 Profile 派生：`{"id", "base", "title", "platform", "software", "version"}`；继承 `base`，只写差异，写入知识库草稿区；申请已处理 409 |
+| `POST /kb/model-support/{审核编号}/retarget` | 维护员 | 匹配申请设备的型号规则改指向派生的 Profile（没有规则时新建一条全局规则），相关设备（所有项目，手工选择的不动；申请设备本身手工选的近似 Profile 改回自动）重新解析，申请标为通过；没有派生 409 |
 | `POST /kb/validate` | 是 | 校验知识库 |
 | `GET /kb/export` | 是 | 下载知识库包（zip） |
 | `POST /kb/import?dry_run=false` | 是 | 上传知识库包（multipart 字段 `file`）；冲突送审核队列 |
@@ -97,7 +108,7 @@
 | `POST /review/{id}` | 是 | `{"action": "approve" \| "reject", "note": "", "edited": {…}}` |
 | `POST /parse` | 是 | 解析配置文本：`{"text": "…", "profile": null}`；返回 Profile、各类行数、覆盖率与每一行的结果 |
 | `POST /render` | 是 | 解析建图后渲染回文本：`{"text": "…", "profile": null, "canonical": false, "with_defaults": false}`；默认往返模式（`mode: roundtrip`）；`canonical: true` 规范模式，`with_defaults: true` 含默认值的完整配置（默认值行前有 `! default` 注释），返回 `text`、`lines`（`no`、`text`、`kind`、`origin` explicit / default、`nodes`、`card`）、`default_lines`、`uncovered`、`skipped_extras` |
-| `POST /translate` | 是 | 配置翻译：`{"text": "…" 或 "version_id": 1 或 "device_id": 1, "profile": null, "to": "<目标 Profile>", "interface_map": {"Port-channel1": "Eth-Trunk1"}, "verify": true}`；返回 `text` 译文、`lines`（同 `/render`）、`warnings`（`default_differs` / `default_unknown` / `inferred_value` / `implicit_object` / `interface_type` / `verify_diff` / `verify_unknown`）、`unsupported`（`kind` node / ext / raw / unknown / negated，`params.reason` 为 `profile_unsupported` / `no_render` / `secret` / `not_translated`）、`defaults`（`explicit_equals_default` 省略的默认值）、`stats` 与 `verify`（`checked`、`equal`、`diffs`、`unexplained`）；每一项都有 `kind`、`key`（文案键）、`params`（文案参数）、`node`（源图中的节点）、`schema`、`lines`（原文行号）；目标 Profile 不存在或没有给出源配置时 422，设备或版本不存在时 404；`rule_set`（规则集编号）或 `rules`（规则集内容）选用翻译规则集（REQ-032），结果另有 `naming`（同 `POST /translate-rules/test`），不给时结果不变 |
+| `POST /translate` | 是 | 配置翻译：`{"text": "…" 或 "version_id": 1 或 "device_id": 1, "profile": null, "to": "<目标 Profile>", "interface_map": {"Port-channel1": "Eth-Trunk1"}, "verify": true}`；返回 `text` 译文、`lines`（同 `/render`）、`warnings`（`default_differs` / `default_unknown` / `inferred_value` / `implicit_object` / `interface_type` / `verify_diff` / `verify_unknown`）、`unsupported`（`kind` node / ext / raw / unknown / negated，`params.reason` 为 `profile_unsupported` / `no_render` / `secret` / `not_translated`）、`defaults`（`explicit_equals_default` 省略的默认值）、`stats` 与 `verify`（`checked`、`equal`、`diffs`、`unexplained`）；每一项都有 `kind`、`key`（文案键）、`params`（文案参数）、`node`（源图中的节点）、`schema`、`lines`（原文行号）；目标 Profile 不存在或没有给出源配置时 422，设备或版本不存在时 404；源是使用近似 Profile 的设备时 `approx_profile`（`device`、`profile`、`source`、`rule_id`）提示下发前核对（REQ-044），否则为 null；`rule_set`（规则集编号）或 `rules`（规则集内容）选用翻译规则集（REQ-032），结果另有 `naming`（同 `POST /translate-rules/test`），不给时结果不变 |
 | `GET /translate-rules` | 是 | 翻译规则集（REQ-032）列表：`items`（`id`、`title`、`description`、`from` / `to` 平台族、`builtin`、`file`、`counts`（`names`、`naming`、`ports`）、`valid`、`issues`、`updated`）与 `types`（可改名的对象类型：被引用的单键对象，`id`、`domain`、`title` 三语） |
 | `GET /translate-rules/{id}` | 是 | 读取规则集：上面的字段 + `rules`（结构化，字段名 `names` / `naming` / `ports`，匹配源写 `from`）与 `source`（YAML 原文）；不存在 404 |
 | `PUT /translate-rules/{id}` | 是 | 保存规则集到 `data/translate-rules/<id>.yaml`：`{"rules": {…}}`（合并进已有文件，保留注释与顺序）或 `{"source": "<YAML>"}`（原样写入）；规则有误 422（`data.issues`：`where`、`key`、`args`），内置规则集只读 409；登录用户都可保存 |
@@ -114,7 +125,7 @@
 | `POST /baseline` | 是 | 安全基线审计：`{"baseline": "basic", "configs": [{"name": "R1", "text": "…", "profile": null}], "device_ids": [1], "all": false}`（三者至少给一项，可混合；`all` 为全部已导入设备的最新版本）；返回 `baseline`、`baseline_info`（`title`、`description`、`includes`、`chain`）、`rules`（`id`、`severity`、`target`、`tags`、`profiles`、三语 `title` / `message` / `suggestion`、`remedy`（`huawei` / `cisco` 参考命令））、`matrix`（`rules`、`devices`、`cells[规则][设备]` 为 `pass` / `fail` / `na`）、`devices`（`device`、`profile`、`family`、`style`、`score`、`summary`（`pass`、`fail`、`na`、`failed_by_severity`、`has_errors`）、`results`、`failures`（`rule`、`severity`、`node`、`schema`、`key`、`lines`、`evidence`、`message` / `suggestion` 为文案键 + 参数、`remedy` 按设备平台族写法））、`summary`（`devices`、`rules`、`score`、`pass`、`fail`、`na`、`failures`、`has_errors`、`by_rule`）、`texts`；基线名写错或没有目标时 422，设备不存在时 404，规则文件写错时 409 |
 | `GET /baseline/rules?baseline=strict` | 是 | 基线与规则：`profiles`（`id`、三语 `title` / `description`、`includes`、`chain`、`rules` 条数）、`rules`（字段同上，给出 `baseline` 时只列该基线的规则）、`total` |
 | `POST /baseline/report` | 是 | 导出基线报告，直接返回文件（Content-Disposition: attachment）：请求同 `POST /baseline`，另加 `lang`（zh-CN / en）、`format`（html / md）、`style`（huawei / cisco）；内容为概要、设备 × 规则矩阵、每台设备的不符合项（含参考命令）与规则清单 |
-| `POST /change` | 是 | 增量变更脚本：`{"current": {"text" 或 "version_id" 或 "device_id", "profile"}, "target": {…}, "rollback": true, "verify": true, "impact": true, "style": null, "lang": null}`（当前与目标同一平台族）；返回 `ops`（逐条命令：`seq`、`action` add / modify / delete / side_effect / mutex、`text`、`context`、`view`、`depth`、`object`、`label`、`domain`、`risk` low / medium / high、`risk_reasons`、`after`（排在哪些命令之后：`seq`、`kind`、`node`、`label`、`note` 三语说明对象）、`fallback`、`lines`）、`script`（带说明）、`script_plain`、`script_rows`（按视图分块的脚本行：`kind` frame / enter / cmd / quit、`depth`、`text`、`seq`（cmd 行对应的命令序号），与 `script_plain` 逐行对应）、`risk`、`summary`、`unsupported`、`warnings`、`verify`（模拟执行：`ok`、`equal`、`diff_count`、`new_dangling`、`order_violations`、`issues`、`unknown`）、`rollback`（同样结构）、`impact`（`seeds`、`objects`、`business`、`by_domain`、`by_business`、`summary`）；平台族不同或没有给出配置时 422，设备或版本不存在时 404 |
+| `POST /change` | 是 | 增量变更脚本：`{"current": {"text" 或 "version_id" 或 "device_id", "profile"}, "target": {…}, "rollback": true, "verify": true, "impact": true, "style": null, "lang": null}`（当前与目标同一平台族）；返回 `ops`（逐条命令：`seq`、`action` add / modify / delete / side_effect / mutex、`text`、`context`、`view`、`depth`、`object`、`label`、`domain`、`risk` low / medium / high、`risk_reasons`、`after`（排在哪些命令之后：`seq`、`kind`、`node`、`label`、`note` 三语说明对象）、`fallback`、`lines`）、`script`（带说明）、`script_plain`、`script_rows`（按视图分块的脚本行：`kind` frame / enter / cmd / quit、`depth`、`text`、`seq`（cmd 行对应的命令序号），与 `script_plain` 逐行对应）、`risk`、`summary`、`unsupported`、`warnings`、`verify`（模拟执行：`ok`、`equal`、`diff_count`、`new_dangling`、`order_violations`、`issues`、`unknown`）、`rollback`（同样结构）、`impact`（`seeds`、`objects`、`business`、`by_domain`、`by_business`、`summary`）、`approx_profile`（当前配置来自使用近似 Profile 的设备时的下发前提示，REQ-044；否则 null）；平台族不同或没有给出配置时 422，设备或版本不存在时 404 |
 | `POST /change/report` | 是 | 导出变更报告，直接返回文件：请求同 `POST /change`，另加 `report_lang`（zh-CN / en）、`format`（html / md） |
 | `GET /devices/{id}/history` | 是 | 版本历史时间线：`snapshots`（旧的在前：`id` 配置版本编号、`seq` 序号、`imports`（`imported_at`、`source_kind` file / dir / zip / api、`source_name`、`actor`、`duplicate`）、`import_count`、`kb_version`、`kb_current`、`fingerprint`、`tag`、`lines`、`nodes`、`graph_stored`、`vs_previous`（`added` / `modified` / `removed` / `renamed` / `noneff` / `fmt`）、`latest`）、`count`、`imports`、`tagged`、`keep` |
 | `GET /devices/{id}/history/diff?a=&b=&rebuild=&show_noneff=&domain=&text=&context=` | 是 | 两个快照之间的变化（`context` 是原文差异每块前后保留的相同行数，默认 3，界面取 100000 拿整份原文在本地折叠；快照写法：配置版本编号、`v<编号>`、`#<序号>`、`latest`、`prev`、`tag:<标签>`；默认上一个 → 最新，A 总是较早的一侧）：`a` / `b`（快照信息与 `graph` stored / rebuilt）、`kb`（`a`、`b`、`current`、`differs`、`rebuilt`）、`summary`（对象级计数、`noneff` 只是写法不同、`fmt` 只是格式不同的行、`by_domain`）、`items`（`object` 规范编号、`schema`、`domain`、`kind` added / modified / removed / renamed、`from` / `to`、`lines_a` / `lines_b`、`changes`：`field`、`node`、`kind`、`a` / `b`（值、来源、行号））、`noneff`（`show_noneff=true` 时列出：`reason` default_explicit / spelling）、`text`（`hunks`：每行 `op` equal / del / add、`a` / `b` 行号、`node`、`fmt`）、`compare`（逐节点的对比结果） |
@@ -167,7 +178,7 @@
 | `POST /check-projects/diff/report` | 是 | 下载差异，直接返回文件：请求同上，另加 `format`（unified：`.diff`；html：自包含报告）、`report_lang`（zh-CN / en） |
 | `POST /impact` | 是 | 变更影响分析：`{"text" 或 "device_id" 或 "version_id", "profile": null, "nodes": ["<节点编号>"], "direction": "up"}`（up 谁受影响 / down 依赖谁 / both）；返回 `seeds`、`nodes`（遍历到的节点：`node`、`schema`、`kind`、`domain`、`depth`、`via`（从哪个节点到达）、`edge`、`direction`、`business`）、`objects`、`business`（业务对象与从起点出发的 `path`）、`by_domain`、`by_business`、`summary`；节点不存在时 404 |
 | `POST /roundtrip` | 是 | 往返测试：给出 `text` 时同步返回差异；`{"samples": true}` 时作为后台任务跑全部样本，返回 `task_id` |
-| `GET /devices/{id}/graph?domain=D&raw=false&version_id=V` | 是 | 设备最新配置版本（给出 `version_id` 时为该版本，不属于该设备时 404）的配置图：节点、边（`note` 为三语说明对象 `{zh-CN, en, pt-BR}`，没有时为 `{}`）、悬空引用、统计；`raw=true` 时包含功能域外的原文节点与原始配置文本 |
+| `GET /devices/{id}/graph?domain=D&raw=false&version_id=V` | 是 | 设备最新配置版本（给出 `version_id` 时为该版本，不属于该设备时 404）的配置图：节点、边（`note` 为三语说明对象 `{zh-CN, en, pt-BR}`，没有时为 `{}`）、悬空引用、统计；`raw=true` 时包含功能域外的原文节点与原始配置文本；`profile_info` 为 Profile 来源与近似标记（REQ-044）；只存原文的设备（认不出厂商）没有配置图，409（`data.raw_only = true`） |
 | `GET /devices/{id}/analysis?parts=&version_id=&defaults=true` | 是 | 设备配置分析（REQ-034）：`parts` 为 `summary`、`layers`、`script`、`graph` 中的若干个（逗号分隔，默认全部；写错时 422）。总有 `device`、`device_id`、`version_id`、`profile`、`family`、`kb_version`、`layer_info`（层与跨层特性的三语名称）。`summary`：`lines`（`total`、各类行数、`coverage`）、`domains`（`domain`、`objects`、`attrs`、`defaults`、`lines`）、`layers`、`cross_layer`、`dangling`、`defaults`（`total` 默认值节点数、`key` 其他平台族默认值不同的个数、`items`：`node`、`owner`、`schema`、`value`、`others`）、`unknown_lines`、`check`（`summary`、`top`、`texts`）、`baseline`（`score`、`summary`、`failures`、`failure_count`、`texts`；基线规则有错时为 null）、`history`（`current`、`previous`（第一个版本时为 null）、`summary`、`items`）。`layers`：`layers`（各层对象 / 属性 / 默认值计数）、`features`、`nodes`（节点 → 层）、`features_of`、`cross`（`from`、`to`、`kind` contains / reference / prerequisite、`from_layer`、`to_layer`、`via`、`count`）、`cross_by_layers`、`outside`、`unclassified`。`script`：`lines`（`no`、`kind`、`text`、`depth`、`parent`、`node`、`layer`、`domain`、`card`、`spans`：`s` / `e` 字符区间、`t` kw / param / ref、`p` 参数名、`ref` 目标节点）、`refs`（目标 → 引用行）、`defs`（目标 → 定义行）、`defaults`（`node`、`owner`、`schema`、`value`、`after` 插在哪一行之后、`depth`、`text` 该平台的命令写法；`defaults=false` 时为空）。`graph`：同 `GET /devices/{id}/graph?raw=true` |
 | `POST /analysis` | 是 | 分析一份配置文本（不需要先导入）：`{"text", "profile", "name", "parts", "defaults": true}`；返回结构同上（没有版本历史与忽略记录，`summary.history` 为 null） |
 | `POST /compare` | 是 | 配置对比：`{"a": {"text": "…" \| "version_id": 1 \| "device_id": 1, "profile": null}, "b": {…}, "domain": null, "include_raw": false, "interface_map": {"GE0/2/1": "Gi0/0/1"}, "rename_threshold": 1.0, "hide_identity": false}`（每边给 `text`、`version_id`、`device_id`（最新版本）之一；同时给 `device_id` 与 `version_id` 时检查版本属于该设备）；返回 `diffs`（`kind` added / removed / changed / renamed、`node_kind` object / attr / ext / raw、`node` 规范编号、`schema`、`domain`、`a` / `b` 各自的 `node` 原始编号、`value` 有效值、`origin`、`lines`，改名的 `from` / `to` / `similarity`，删除或新增对象的 `count`，`related` 关联差异）、`renames`、`summary`（`total`、`by_kind`、`by_domain`、`by_object`、`unknown`、`default_only`）、`unknown`（两边的未识别行）、`default_only`（只有一侧 Profile 有默认值、不可比的属性）、`a` / `b`（来源、设备、Profile、版本）与 `options`；`hide_identity: true` 时隐藏设备身份差异（Router ID、接口 IPv4 地址、BGP 对等体地址、IS-IS NET、主机名等，清单见 `options.hidden_identity`），被隐藏的差异放在 `hidden_diffs`，个数为 `summary.hidden_identity`；设备或版本不存在时 404 |
@@ -3027,6 +3038,194 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.map.0.confidence` = `0.8`
 - `data.unmapped.0.source` = `"Ethernet0/0/0"`
 - `data.unmapped.0.reason` = `"management"`
+
+### 导入前识别：匹配程度、会用的 Profile、试解析推荐（不入库）
+
+`POST /api/v1/configs/inspect`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/configs/inspect' \
+  -H 'Authorization: Bearer <令牌>' \
+  -F 'files=@tests/inputs/configs/ne8000/ne8000-x8-01.cfg' \
+  -F 'files=@tests/inputs/configs/other/edge-mx-01.conf' \
+  -F 'level=basic'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/configs/inspect' -Headers @{'Authorization'='Bearer <令牌>'} -Form @{'files'=Get-Item 'tests/inputs/configs/ne8000/ne8000-x8-01.cfg'; 'level'='basic'}
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/configs/inspect', headers={'Authorization': 'Bearer <令牌>'}, files=[('files', open('tests/inputs/configs/ne8000/ne8000-x8-01.cfg', 'rb')), ('files', open('tests/inputs/configs/other/edge-mx-01.conf', 'rb'))], data={'level': 'basic'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.files.0.device` = `"NE8000-X8-01"`
+- `data.files.0.vendor` = `"huawei"`
+- `data.files.0.match_level` = `"approx"`
+- `data.files.0.profile` = `"huawei-atn-v800r025"`
+- `data.files.0.profile_source` = `"fallback"`
+- `data.files.0.recommended` = `"huawei-atn-v800r025"`
+- `data.files.0.candidates.0.unknown` = `2`
+- `data.files.0.suggested_rule.name_pattern` = `"NE8000-X8-*"`
+- `data.files.1.device` = `"edge-mx-01"`
+- `data.files.1.vendor` = `""`
+- `data.files.1.match_level` = `"none"`
+- `data.can_global` = `true`
+
+### 导入时按文件指定 Profile 并记住；认不出厂商的只存原文
+
+`POST /api/v1/configs`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/configs' \
+  -H 'Authorization: Bearer <令牌>' \
+  -F 'files=@tests/inputs/configs/ne8000/ne8000-x8-01.cfg' \
+  -F 'files=@tests/inputs/configs/other/edge-mx-01.conf' \
+  -F 'level=basic' \
+  -F 'unsupported=raw' \
+  -F 'choices={"ne8000-x8-01.cfg": {"profile": "huawei-atn-v800r023", "remember": {"scope": "project", "name_pattern": "NE8000-*"}}}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/configs' -Headers @{'Authorization'='Bearer <令牌>'} -Form @{'files'=Get-Item 'tests/inputs/configs/ne8000/ne8000-x8-01.cfg'; 'level'='basic'; 'unsupported'='raw'; 'choices'='{"ne8000-x8-01.cfg": {"profile": "huawei-atn-v800r023", "remember": {"scope": "project", "name_pattern": "NE8000-*"}}}'}
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/configs', headers={'Authorization': 'Bearer <令牌>'}, files=[('files', open('tests/inputs/configs/ne8000/ne8000-x8-01.cfg', 'rb')), ('files', open('tests/inputs/configs/other/edge-mx-01.conf', 'rb'))], data={'level': 'basic', 'unsupported': 'raw', 'choices': '{"ne8000-x8-01.cfg": {"profile": "huawei-atn-v800r023", "remember": {"scope": "project", "name_pattern": "NE8000-*"}}}'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.files.0.profile` = `"huawei-atn-v800r023"`
+- `data.files.0.profile_source` = `"rule"`
+- `data.files.0.rule_created` = `1`
+- `data.files.0.unknown` = `2`
+- `data.files.1.ok` = `true`
+- `data.files.1.raw_only` = `true`
+- `data.files.1.profile_source` = `"none"`
+
+### 设备的候选 Profile 与试解析结果
+
+`GET /api/v1/devices/1/profile-candidates`（需要令牌）
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/devices/1/profile-candidates' \
+  -H 'Authorization: Bearer <令牌>'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/devices/1/profile-candidates' -Headers @{'Authorization'='Bearer <令牌>'}
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/devices/1/profile-candidates', headers={'Authorization': 'Bearer <令牌>'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.device.name` = `"NE8000-X8-01"`
+- `data.profile_source` = `"fallback"`
+- `data.match_level` = `"approx"`
+- `data.candidates.0.profile` = `"huawei-atn-v800r025"`
+- `data.candidates.0.fallback` = `true`
+- `data.candidates.1.profile` = `"huawei-atn-v800r023"`
+- `data.auto.source` = `"fallback"`
+
+### 更换 Profile 并重新解析
+
+`PUT /api/v1/devices/1/profile`（需要令牌）
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/devices/1/profile' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"profile": "huawei-atn-v800r023"}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/devices/1/profile' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"profile": "huawei-atn-v800r023"}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/devices/1/profile', headers={'Authorization': 'Bearer <令牌>'}, json={'profile': 'huawei-atn-v800r023'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.profile` = `"huawei-atn-v800r023"`
+- `data.profile_source` = `"manual"`
+- `data.match_level` = `"approx"`
+- `data.result.parsed` = `true`
+
+### 申请支持此型号
+
+`POST /api/v1/devices/1/support-request`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/devices/1/support-request' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"model": "NE8000 X8", "reason": "城域汇聚，主要用 VPN、BGP"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/devices/1/support-request' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"model": "NE8000 X8", "reason": "城域汇聚，主要用 VPN、BGP"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/devices/1/support-request', headers={'Authorization': 'Bearer <令牌>'}, json={'model': 'NE8000 X8', 'reason': '城域汇聚，主要用 VPN、BGP'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.status` = `"pending"`
+
+### 新建本项目的型号规则
+
+`POST /api/v1/model-rules`（需要令牌）
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/model-rules' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"scope": "project", "name_pattern": "NE8000-*", "version": "V800R022", "profile": "huawei-atn-v800r023", "reparse": true}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/model-rules' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"scope": "project", "name_pattern": "NE8000-*", "version": "V800R022", "profile": "huawei-atn-v800r023", "reparse": true}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/model-rules', headers={'Authorization': 'Bearer <令牌>'}, json={'scope': 'project', 'name_pattern': 'NE8000-*', 'version': 'V800R022', 'profile': 'huawei-atn-v800r023', 'reparse': True})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.id` = `1`
+- `data.scope` = `"project"`
+- `data.vendor` = `"huawei"`
+- `data.conditions` = `3`
+- `data.reparsed` = `1`
 
 ### 规则集列表与可改名的对象类型
 

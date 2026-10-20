@@ -1,0 +1,19 @@
+# 升级时合并程序自带的知识库（REQ-046）lmesh kb upgrade 的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 有冲突、回滚等多步场景见 tests/cli/test_kb_upgrade_cli.py。
+
+[[case]]
+id = "kb-upgrade-dry-run"
+title = { zh-CN = "预览升级时知识库的合并（自带知识库没变时无需合并）", en = "Preview merging the bundled knowledge base after an upgrade", pt-BR = "Prever a mesclagem da base embutida após uma atualização" }
+args = ["--output", "json", "kb", "upgrade", "--dry-run"]
+setup = "configured"
+expect_exit = 0
+expect_json = { "data.changed" = false, "data.has_base" = true }
+in_docs = true
+
+[[case]]
+id = "kb-upgrade-rollback-none"
+title = { zh-CN = "没有升级合并记录时回滚", en = "Roll back when no upgrade merge exists", pt-BR = "Reverter sem mesclagem registrada" }
+args = ["--yes", "kb", "upgrade", "--rollback"]
+setup = "configured"
+expect_exit = 4
+expect_stderr = ["没有升级合并的记录"]

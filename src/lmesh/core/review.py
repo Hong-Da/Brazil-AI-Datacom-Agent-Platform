@@ -153,11 +153,17 @@ def _apply_suggestion(kb_root: Path, item: ReviewItem, edited: dict[str, Any] | 
 
 @register_action("conflict")
 def _apply_conflict(kb_root: Path, item: ReviewItem, edited: dict[str, Any] | None) -> None:
-    """导入冲突：采用包内的版本（或审核时修改后的内容）覆盖知识库文件。"""
+    """导入或升级冲突：采用包内 / 新版本自带的内容（或审核时修改后的内容）覆盖知识库文件。
+
+    升级冲突里新版本已删除该文件（theirs_deleted）时，采用新版本就是删除它。
+    """
     payload = item.payload or {}
     target = (kb_root / item.target).resolve()
     if kb_root.resolve() not in target.parents:
         raise ReviewError("review.unsafe_path")
+    if payload.get("theirs_deleted") and not (edited and "text" in edited):
+        target.unlink(missing_ok=True)
+        return
     if edited and "text" in edited:
         data = str(edited["text"]).encode("utf-8")
     else:

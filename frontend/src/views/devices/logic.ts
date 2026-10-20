@@ -19,9 +19,14 @@ export interface Device {
   roundtrip?: boolean
   kb_version?: string
   stale?: boolean
+  // REQ-044：Profile 来源与近似标记
+  profile_source?: string
+  approx?: boolean
+  unsupported?: boolean
+  unknown_ratio?: number | null
 }
 
-export type DevState = '' | 'fail' | 'stale' | 'err' | 'unknown'
+export type DevState = '' | 'fail' | 'stale' | 'err' | 'unknown' | 'approx' | 'unsupported'
 export interface DevFilter { q: string; vendor: string; state: DevState }
 
 export function filterDevices(list: Device[], f: DevFilter): Device[] {
@@ -33,6 +38,8 @@ export function filterDevices(list: Device[], f: DevFilter): Device[] {
     if (f.state === 'stale' && !d.stale) return false
     if (f.state === 'err' && d.parsed !== false) return false
     if (f.state === 'unknown' && !(d.unknown && d.unknown > 0)) return false
+    if (f.state === 'approx' && !d.approx) return false
+    if (f.state === 'unsupported' && !d.unsupported) return false
     return true
   })
 }

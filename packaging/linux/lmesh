@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# 透网 LucidMesh 命令行（Linux 离线包）：lmesh <命令> …，例如 lmesh status、lmesh setup、lmesh serve
+# 可以从 /usr/local/bin/lmesh 的符号链接调用；程序目录按本文件的真实位置确定。
+SELF="$(readlink -f "${BASH_SOURCE[0]}")"
+ROOT="$(cd "$(dirname "$SELF")/.." && pwd)"
+export LMESH_ROOT="$ROOT"
+export PYTHONUTF8=1 PYTHONNOUSERSITE=1
+unset PYTHONPATH PYTHONHOME
+# 临时文件放在程序目录内
+export TMPDIR="$ROOT/tmp/os"
+mkdir -p "$TMPDIR" 2>/dev/null || true
+exec "$ROOT/runtime/python/bin/python3" -m lmesh "$@"

@@ -35,6 +35,8 @@ export interface TranslateStats {
 export interface VerifyInfo { checked: boolean; equal?: boolean; diffs?: number; unexplained?: number }
 
 export interface TranslateResult {
+  /** REQ-044：来源设备使用近似 Profile 时的下发前提示 */
+  approx_profile?: { device: string; profile: string; source: string; rule_id: number | null } | null
   source: { device: string | null; profile: string; family: string }
   target: { profile: string; family: string }
   interface_map: Record<string, string>

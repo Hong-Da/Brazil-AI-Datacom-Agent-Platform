@@ -1,7 +1,8 @@
 /** 设备页在项目里的纯逻辑（REQ-035）：来源筛选、统计、引用的版本序号、有新版本的引用、行菜单项。 */
 import type { Device } from './logic'
+import type { ProfileInfo } from './model'
 
-export interface ProjectDevice extends Device {
+export interface ProjectDevice extends Device, Partial<Omit<ProfileInfo, 'profile' | 'profile_source' | 'approx' | 'unsupported' | 'unknown_ratio'>> {
   source?: 'private' | 'public'
   origin?: string | null
   origin_note?: string | null
@@ -35,20 +36,22 @@ export function currentSeq(d: ProjectDevice): number | null {
 /** 固定在旧版本、公共库已有更新版本的引用（页面顶部提示）。 */
 export const newerRefs = (list: ProjectDevice[]): ProjectDevice[] => list.filter((d) => isPublic(d) && d.policy === 'pin' && d.newer_available)
 
-export type RowAction = 'follow' | 'pinLatest' | 'copyPrivate' | 'unlink' | 'rebuild' | 'history' | 'copyTo' | 'delete'
+export type RowAction = 'follow' | 'pinLatest' | 'copyPrivate' | 'unlink' | 'rebuild' | 'profile' | 'support' | 'history' | 'copyTo' | 'delete'
 
 /**
  * 行尾菜单：引用的公共设备可以改版本策略、复制为私有、解除引用；私有设备可以重新解析、看版本、复制到其他项目、删除。
  * canWrite 为假（只读成员、只读令牌）时只留查看类与“复制到我的其他项目”（只需能查看本项目）。
+ * REQ-044：私有设备可“更换 Profile 并重新解析”（可写时）；近似、手工或不支持厂商的设备都可“申请支持此型号”（建议，只读也可以）。
  */
 export function rowActions(d: ProjectDevice, canWrite: boolean): RowAction[] {
+  const support: RowAction[] = d.approx || d.unsupported ? ['support'] : []
   if (isPublic(d)) {
-    if (!canWrite) return ['history', 'copyTo']
+    if (!canWrite) return ['history', ...support, 'copyTo']
     const out: RowAction[] = []
     if (d.policy === 'pin') out.push('follow')
     if (d.policy !== 'pin' || d.newer_available) out.push('pinLatest')
-    out.push('copyPrivate', 'history', 'copyTo', 'unlink')
+    out.push('copyPrivate', 'history', ...support, 'copyTo', 'unlink')
     return out
   }
-  return canWrite ? ['rebuild', 'history', 'copyTo', 'delete'] : ['history', 'copyTo']
+  return canWrite ? ['rebuild', 'profile', ...support, 'history', 'copyTo', 'delete'] : ['history', ...support, 'copyTo']
 }

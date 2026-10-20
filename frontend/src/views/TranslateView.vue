@@ -7,6 +7,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } 
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
+import ModelApproxNote from '@/components/model-approx-note.vue'
 import FullscreenPane from '@/components/FullscreenPane.vue'
 import FullscreenButton from '@/components/FullscreenButton.vue'
 import type { FsMode } from '@/components/fullscreen'
@@ -496,6 +497,7 @@ onMounted(async () => {
 
       <!-- ===================== 结果 ===================== -->
       <template v-if="result">
+        <ModelApproxNote :note="result.approx_profile" />
         <div class="res-head">
           <h2>{{ $t('translate.result') }}</h2>
           <span class="meta"><span>{{ result.source.profile }} → {{ result.target.profile }}</span><span>{{ ranAt }}</span><span>{{ ms }} ms</span></span>

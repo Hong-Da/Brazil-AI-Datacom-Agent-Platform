@@ -21,10 +21,16 @@ describe('项目里的设备', () => {
     expect(currentSeq(pinned)).toBe(2)
   })
   it('行菜单按来源与权限', () => {
-    expect(rowActions(priv, true)).toEqual(['rebuild', 'history', 'copyTo', 'delete'])
+    expect(rowActions(priv, true)).toEqual(['rebuild', 'profile', 'history', 'copyTo', 'delete'])
     expect(rowActions(priv, false)).toEqual(['history', 'copyTo'])
     expect(rowActions(follow, true)).toEqual(['pinLatest', 'copyPrivate', 'history', 'copyTo', 'unlink'])
     expect(rowActions(pinned, true)).toEqual(['follow', 'pinLatest', 'copyPrivate', 'history', 'copyTo', 'unlink'])
     expect(rowActions(pinned, false)).toEqual(['history', 'copyTo'])
+  })
+  it('近似或不支持厂商的设备可以申请支持（只读也可以）', () => {
+    const ap: ProjectDevice = { ...priv, approx: true, profile_source: 'fallback' }
+    expect(rowActions(ap, true)).toEqual(['rebuild', 'profile', 'support', 'history', 'copyTo', 'delete'])
+    expect(rowActions({ ...ap, approx: false, unsupported: true }, false)).toEqual(['history', 'support', 'copyTo'])
+    expect(rowActions({ ...follow, approx: true }, false)).toEqual(['history', 'support', 'copyTo'])
   })
 })

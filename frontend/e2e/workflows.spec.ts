@@ -113,6 +113,8 @@ test('设备与导入：样本设备都在，上传一份新配置后多 1 台�
   await expect(dlg.getByTestId('chosen-files')).toContainText('e2e-cs-01.cfg')
   await dlg.getByTestId('to-level').click()
   await expect(dlg.getByTestId('sanitize-level')).toBeVisible()
+  await dlg.getByTestId('to-identify').click() // M8-7：识别与 Profile 一步
+  await expect(dlg.getByTestId('identify-table')).toContainText('e2e-cs-01.cfg')
   await dlg.getByTestId('start-import').click()
   const res = dlg.getByTestId('import-results')
   await expect(res).toContainText('e2e-cs-01.cfg', { timeout: 60_000 })

@@ -14,6 +14,7 @@ const PROJECT_VIEWS: Record<string, () => Promise<RouteComponent | { default: Ro
   'device-analysis': () => import('@/views/DeviceAnalysisView.vue'),
   history: () => import('@/views/HistoryView.vue'),
   'unknown-lines': () => import('@/views/UnknownLinesView.vue'),
+  'model-rules': () => import('@/views/ModelRulesView.vue'),
   compare: () => import('@/views/CompareView.vue'),
   check: () => import('@/views/CheckView.vue'),
   cleanup: () => import('@/views/CleanupView.vue'),

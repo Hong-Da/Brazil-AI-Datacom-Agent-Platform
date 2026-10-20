@@ -3,7 +3,7 @@
   "info": {
     "title": "LucidMesh API",
     "description": "透网 LucidMesh 远程 API。除 /health、/auth/status、/auth/login 与首次运行向导外，所有接口都需要登录：网页用会话 Cookie，脚本用 Authorization: Bearer <令牌>（全局令牌或个人令牌 lmp_…）。设备相关接口在 /api/v1/projects/{project}/… 下；旧的无项目路径保留为兼容别名（调用者的默认项目，已弃用）。",
-    "version": "0.5.0"
+    "version": "0.8.0"
   },
   "paths": {
     "/api/v1/health": {
@@ -824,6 +824,1087 @@
         }
       }
     },
+    "/api/v1/projects/{project}/configs/inspect": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "导入前识别（不入库）：每个文件的匹配程度、会用的 Profile、候选 Profile 的试解析结果、“记住”预填的规则",
+        "operationId": "inspect_api_v1_projects__project__configs_inspect_post",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_inspect_api_v1_projects__project__configs_inspect_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Inspect Api V1 Projects  Project  Configs Inspect Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/devices/{device_id}/support-request": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "申请支持此型号：附设备信息与未识别行写法，进审核队列（建议），由维护员处理",
+        "operationId": "support_request_api_v1_projects__project__devices__device_id__support_request_post",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Support Request Api V1 Projects  Project  Devices  Device Id  Support Request Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/model-rules/test": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "试匹配：规则条件（未保存）在本项目设备上的命中情况",
+        "operationId": "rules_test_api_v1_projects__project__model_rules_test_post",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleTest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Rules Test Api V1 Projects  Project  Model Rules Test Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/configs/inspect": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "导入前识别（不入库）：每个文件的匹配程度、会用的 Profile、候选 Profile 的试解析结果、“记住”预填的规则",
+        "operationId": "inspect_api_v1_configs_inspect_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_inspect_api_v1_configs_inspect_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Inspect Api V1 Configs Inspect Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": true
+      }
+    },
+    "/api/v1/devices/{device_id}/support-request": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "申请支持此型号：附设备信息与未识别行写法，进审核队列（建议），由维护员处理",
+        "operationId": "support_request_api_v1_devices__device_id__support_request_post",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupportBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Support Request Api V1 Devices  Device Id  Support Request Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/model-rules/test": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "试匹配：规则条件（未保存）在本项目设备上的命中情况",
+        "operationId": "rules_test_api_v1_model_rules_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleTest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Rules Test Api V1 Model Rules Test Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": true
+      }
+    },
+    "/api/v1/projects/{project}/devices/{device_id}/profile-candidates": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "更换 Profile 的候选：当前选择与试解析结果（不修改）",
+        "operationId": "device_candidates_api_v1_projects__project__devices__device_id__profile_candidates_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Device Candidates Api V1 Projects  Project  Devices  Device Id  Profile Candidates Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/model-rules": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "型号规则：本项目与全局，按生效顺序（停用的排在后面），带命中设备数",
+        "operationId": "rules_list_api_v1_projects__project__model_rules_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Rules List Api V1 Projects  Project  Model Rules Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "新建型号规则（scope=global 只限维护员与管理员）；reparse=true 时重新解析命中的设备",
+        "operationId": "rules_create_api_v1_projects__project__model_rules_post",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Rules Create Api V1 Projects  Project  Model Rules Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/profile-candidates": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "更换 Profile 的候选：当前选择与试解析结果（不修改）",
+        "operationId": "device_candidates_api_v1_devices__device_id__profile_candidates_get",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Device Candidates Api V1 Devices  Device Id  Profile Candidates Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/model-rules": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "型号规则：本项目与全局，按生效顺序（停用的排在后面），带命中设备数",
+        "operationId": "rules_list_api_v1_model_rules_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Rules List Api V1 Model Rules Get"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": true
+      },
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "新建型号规则（scope=global 只限维护员与管理员）；reparse=true 时重新解析命中的设备",
+        "operationId": "rules_create_api_v1_model_rules_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Rules Create Api V1 Model Rules Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "deprecated": true
+      }
+    },
+    "/api/v1/projects/{project}/devices/{device_id}/profile": {
+      "put": {
+        "tags": [
+          "models"
+        ],
+        "summary": "更换 Profile 并重新解析最新版本（只允许同厂商 / 同平台族；之后的导入与重新解析沿用手工选择）",
+        "operationId": "device_profile_api_v1_projects__project__devices__device_id__profile_put",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/lmesh__api__routes_models__ProfileBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Device Profile Api V1 Projects  Project  Devices  Device Id  Profile Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/model-rules/{rule_id}": {
+      "put": {
+        "tags": [
+          "models"
+        ],
+        "summary": "修改型号规则（全局规则只限维护员与管理员）",
+        "operationId": "rules_update_api_v1_projects__project__model_rules__rule_id__put",
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Rule Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Rules Update Api V1 Projects  Project  Model Rules  Rule Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "models"
+        ],
+        "summary": "删除型号规则（全局规则只限维护员与管理员）；按它选的设备下次重新解析时重新选择",
+        "operationId": "rules_delete_api_v1_projects__project__model_rules__rule_id__delete",
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Rule Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Rules Delete Api V1 Projects  Project  Model Rules  Rule Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/devices/{device_id}/profile": {
+      "put": {
+        "tags": [
+          "models"
+        ],
+        "summary": "更换 Profile 并重新解析最新版本（只允许同厂商 / 同平台族；之后的导入与重新解析沿用手工选择）",
+        "operationId": "device_profile_api_v1_devices__device_id__profile_put",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/lmesh__api__routes_models__ProfileBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Device Profile Api V1 Devices  Device Id  Profile Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/model-rules/{rule_id}": {
+      "put": {
+        "tags": [
+          "models"
+        ],
+        "summary": "修改型号规则（全局规则只限维护员与管理员）",
+        "operationId": "rules_update_api_v1_model_rules__rule_id__put",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Rule Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RuleUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Rules Update Api V1 Model Rules  Rule Id  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "models"
+        ],
+        "summary": "删除型号规则（全局规则只限维护员与管理员）；按它选的设备下次重新解析时重新选择",
+        "operationId": "rules_delete_api_v1_model_rules__rule_id__delete",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Rule Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Rules Delete Api V1 Model Rules  Rule Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/model-support/{item_id}": {
+      "get": {
+        "tags": [
+          "models"
+        ],
+        "summary": "型号支持申请的处理状态：派生的 Profile、是否已发布、改指向的预演、基础 Profile 的试解析（维护员）",
+        "operationId": "support_get_api_v1_kb_model_support__item_id__get",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Support Get Api V1 Kb Model Support  Item Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/model-support/{item_id}/derive": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "从现有 Profile 派生（继承，只写差异），记在申请上（维护员）",
+        "operationId": "support_derive_api_v1_kb_model_support__item_id__derive_post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeriveBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Support Derive Api V1 Kb Model Support  Item Id  Derive Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/kb/model-support/{item_id}/retarget": {
+      "post": {
+        "tags": [
+          "models"
+        ],
+        "summary": "型号规则改指向派生的 Profile（没有规则时新建全局规则），相关设备重新解析，申请标为通过（维护员）",
+        "operationId": "support_retarget_api_v1_kb_model_support__item_id__retarget_post",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Item Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/RetargetBody"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Support Retarget Api V1 Kb Model Support  Item Id  Retarget Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/sanitize": {
       "post": {
         "tags": [
@@ -872,7 +1953,7 @@
         "tags": [
           "configs"
         ],
-        "summary": "导入配置（可多个文件或 zip；识别厂商 → 脱敏 → 入库）",
+        "summary": "导入配置（可多个文件或 zip；识别厂商 → 选 Profile → 脱敏 → 入库）",
         "operationId": "import_configs_api_v1_projects__project__configs_post",
         "parameters": [
           {
@@ -928,7 +2009,7 @@
         "tags": [
           "configs"
         ],
-        "summary": "导入配置（可多个文件或 zip；识别厂商 → 脱敏 → 入库）",
+        "summary": "导入配置（可多个文件或 zip；识别厂商 → 选 Profile → 脱敏 → 入库）",
         "operationId": "import_configs_api_v1_configs_post",
         "requestBody": {
           "content": {
@@ -6969,7 +8050,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProfileBody"
+                "$ref": "#/components/schemas/lmesh__api__routes_workbench__ProfileBody"
               }
             }
           },
@@ -16690,6 +17771,28 @@
             ],
             "title": "Level",
             "default": "basic"
+          },
+          "profile": {
+            "type": "string",
+            "title": "Profile",
+            "description": "对所有文件指定 Profile（只允许同厂商 / 同平台族；认不出厂商时任意）",
+            "default": ""
+          },
+          "choices": {
+            "type": "string",
+            "title": "Choices",
+            "description": "按文件指定（JSON）：{\"文件名\": {\"profile\": \"…\", \"raw_only\": false, \"remember\": {\"scope\": \"project\", \"name_pattern\": \"NE8000-*\", \"version\": \"V800R022\", \"feature\": \"\"}}}",
+            "default": ""
+          },
+          "unsupported": {
+            "type": "string",
+            "enum": [
+              "skip",
+              "raw"
+            ],
+            "title": "Unsupported",
+            "description": "认不出厂商的文件：skip 不导入；raw 只存原文",
+            "default": "skip"
           }
         },
         "type": "object",
@@ -16716,6 +17819,28 @@
             ],
             "title": "Level",
             "default": "basic"
+          },
+          "profile": {
+            "type": "string",
+            "title": "Profile",
+            "description": "对所有文件指定 Profile（只允许同厂商 / 同平台族；认不出厂商时任意）",
+            "default": ""
+          },
+          "choices": {
+            "type": "string",
+            "title": "Choices",
+            "description": "按文件指定（JSON）：{\"文件名\": {\"profile\": \"…\", \"raw_only\": false, \"remember\": {\"scope\": \"project\", \"name_pattern\": \"NE8000-*\", \"version\": \"V800R022\", \"feature\": \"\"}}}",
+            "default": ""
+          },
+          "unsupported": {
+            "type": "string",
+            "enum": [
+              "skip",
+              "raw"
+            ],
+            "title": "Unsupported",
+            "description": "认不出厂商的文件：skip 不导入；raw 只存原文",
+            "default": "skip"
           }
         },
         "type": "object",
@@ -16723,6 +17848,58 @@
           "files"
         ],
         "title": "Body_import_configs_api_v1_projects__project__configs_post"
+      },
+      "Body_inspect_api_v1_configs_inspect_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "strict"
+            ],
+            "title": "Level",
+            "default": "basic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_inspect_api_v1_configs_inspect_post"
+      },
+      "Body_inspect_api_v1_projects__project__configs_inspect_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "strict"
+            ],
+            "title": "Level",
+            "default": "basic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_inspect_api_v1_projects__project__configs_inspect_post"
       },
       "Body_kb_extract_text_api_v1_projects__project__ai_kb_extract_text_post": {
         "properties": {
@@ -17408,6 +18585,53 @@
           "project"
         ],
         "title": "DefaultBody"
+      },
+      "DeriveBody": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Id",
+            "description": "新 Profile 编号"
+          },
+          "base": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Base",
+            "description": "基础 Profile（继承它，只写差异）"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Title",
+            "default": ""
+          },
+          "platform": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Platform",
+            "default": ""
+          },
+          "software": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Software",
+            "default": ""
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Version",
+            "description": "版本规则（正则）",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "base"
+        ],
+        "title": "DeriveBody"
       },
       "DiffBody": {
         "properties": {
@@ -18929,60 +20153,6 @@
         "type": "object",
         "title": "PinBody"
       },
-      "ProfileBody": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "title": {
-            "type": "string",
-            "title": "Title",
-            "default": ""
-          },
-          "family": {
-            "type": "string",
-            "title": "Family",
-            "default": ""
-          },
-          "vendor": {
-            "type": "string",
-            "title": "Vendor",
-            "default": ""
-          },
-          "platform": {
-            "type": "string",
-            "title": "Platform",
-            "default": ""
-          },
-          "software": {
-            "type": "string",
-            "title": "Software",
-            "default": ""
-          },
-          "inherits": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Inherits"
-          },
-          "version": {
-            "type": "string",
-            "title": "Version",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "required": [
-          "id"
-        ],
-        "title": "ProfileBody"
-      },
       "QueryBody": {
         "properties": {
           "query": {
@@ -19145,6 +20315,45 @@
         },
         "type": "object",
         "title": "ReleaseBody"
+      },
+      "RememberBody": {
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "project",
+              "global"
+            ],
+            "title": "Scope",
+            "default": "project"
+          },
+          "name_pattern": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Name Pattern",
+            "default": ""
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Version",
+            "default": ""
+          },
+          "feature": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Feature",
+            "default": ""
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "RememberBody"
       },
       "RenderBody": {
         "properties": {
@@ -19393,6 +20602,18 @@
         ],
         "title": "RestoreBody"
       },
+      "RetargetBody": {
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "RetargetBody"
+      },
       "RoundtripBody": {
         "properties": {
           "text": {
@@ -19426,6 +20647,70 @@
         },
         "type": "object",
         "title": "RoundtripBody"
+      },
+      "RuleBody": {
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": [
+              "project",
+              "global"
+            ],
+            "title": "Scope",
+            "default": "project"
+          },
+          "vendor": {
+            "type": "string",
+            "maxLength": 40,
+            "title": "Vendor",
+            "default": ""
+          },
+          "name_pattern": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Name Pattern",
+            "default": ""
+          },
+          "version": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Version",
+            "default": ""
+          },
+          "feature": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Feature",
+            "default": ""
+          },
+          "profile": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Profile"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Note",
+            "default": ""
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "reparse": {
+            "type": "boolean",
+            "title": "Reparse",
+            "description": "保存后重新解析本项目里命中的设备（手工选择的不动）",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile"
+        ],
+        "title": "RuleBody"
       },
       "RulePatch": {
         "properties": {
@@ -19461,6 +20746,145 @@
         },
         "type": "object",
         "title": "RulePatch"
+      },
+      "RuleTest": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "description": "正在编辑的规则（试匹配时不算作“被更早的规则抢先”）"
+          },
+          "vendor": {
+            "type": "string",
+            "title": "Vendor",
+            "default": ""
+          },
+          "name_pattern": {
+            "type": "string",
+            "title": "Name Pattern",
+            "default": ""
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": ""
+          },
+          "feature": {
+            "type": "string",
+            "title": "Feature",
+            "default": ""
+          },
+          "profile": {
+            "type": "string",
+            "title": "Profile"
+          }
+        },
+        "type": "object",
+        "required": [
+          "profile"
+        ],
+        "title": "RuleTest"
+      },
+      "RuleUpdate": {
+        "properties": {
+          "vendor": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor"
+          },
+          "name_pattern": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name Pattern"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          },
+          "feature": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feature"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enabled"
+          },
+          "reparse": {
+            "type": "boolean",
+            "title": "Reparse",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "RuleUpdate"
       },
       "RunBody": {
         "properties": {
@@ -19899,6 +21323,28 @@
           "reason"
         ],
         "title": "SuggestionBody"
+      },
+      "SupportBody": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Model",
+            "description": "型号，例如 NE8000 X8"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 4000,
+            "title": "Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "model"
+        ],
+        "title": "SupportBody"
       },
       "TableBody": {
         "properties": {
@@ -21017,6 +22463,35 @@
         ],
         "title": "RollbackBody"
       },
+      "lmesh__api__routes_models__ProfileBody": {
+        "properties": {
+          "profile": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile",
+            "description": "Profile 编号；为空（null 或空串）时改回自动选择"
+          },
+          "remember": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RememberBody"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "同时记住为型号规则"
+          }
+        },
+        "type": "object",
+        "title": "ProfileBody"
+      },
       "lmesh__api__routes_projects__CopyBody": {
         "properties": {
           "name": {
@@ -21671,6 +23146,60 @@
         "type": "object",
         "title": "TestBody",
         "description": "配置来源：text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一。"
+      },
+      "lmesh__api__routes_workbench__ProfileBody": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "default": ""
+          },
+          "family": {
+            "type": "string",
+            "title": "Family",
+            "default": ""
+          },
+          "vendor": {
+            "type": "string",
+            "title": "Vendor",
+            "default": ""
+          },
+          "platform": {
+            "type": "string",
+            "title": "Platform",
+            "default": ""
+          },
+          "software": {
+            "type": "string",
+            "title": "Software",
+            "default": ""
+          },
+          "inherits": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inherits"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "ProfileBody"
       }
     }
   }

@@ -36,6 +36,7 @@ const NAV: { g: string; s: string; admin?: boolean; proj?: boolean; items: Item[
       { name: 'translate', icon: 'swap' },
       { name: 'check', icon: 'shield' },
       { name: 'unknown-lines', icon: 'unknown', count: () => status.summary?.unknown.patterns, tone: 'plain' },
+      { name: 'model-rules', icon: 'rules' },
     ],
   },
   { g: 'chg', s: 'chg', proj: true, items: [{ name: 'scripts', icon: 'file' }, { name: 'change', icon: 'branch' }, { name: 'migration', icon: 'swap2' }] },

@@ -27,6 +27,7 @@ PUBLIC: set[str] = {
 PROJECT: set[str] = {
     "/summary",
     "/configs",
+    "/configs/inspect",
     "/devices",
     "/devices/rebuild",
     "/devices/{device_id}/rebuild",
@@ -44,6 +45,12 @@ PROJECT: set[str] = {
     "/devices/{device_id}/history/{version_id}/tag",
     "/devices/{device_id}/history/restore",
     "/devices/{device_id}/history/report",
+    "/devices/{device_id}/profile-candidates",
+    "/devices/{device_id}/profile",
+    "/devices/{device_id}/support-request",
+    "/model-rules",
+    "/model-rules/test",
+    "/model-rules/{rule_id}",
     "/unknown-lines",
     "/unknown-lines/states",
     "/unknown-lines/review",
@@ -128,6 +135,9 @@ COMPUTE: set[tuple[str, str]] = {
         "/unknown-lines/review",
         "/ai/suggestions/estimate",
         "/ai/kb/extract-text",
+        "/configs/inspect",
+        "/devices/{device_id}/support-request",
+        "/model-rules/test",
     )
 }
 
@@ -156,6 +166,8 @@ KB: set[tuple[str, str]] = {
     ("POST", "/review/{item_id}"),
     ("POST", "/review/batch"),
     ("PUT", "/kb/rules/{rule_id}"),
+    ("POST", "/kb/model-support/{item_id}/derive"),
+    ("POST", "/kb/model-support/{item_id}/retarget"),
 }
 
 

@@ -14,5 +14,5 @@ export function saveText(filename: string, text: string, type = 'text/csv;charse
   a.href = url
   a.download = filename
   a.click()
-  setTimeout(() => URL.revokeObjectURL(url), 0)
+  setTimeout(() => URL.revokeObjectURL(url), 10_000)
 }

@@ -63,8 +63,10 @@ export function diffOf(it: SuggestionItem): { current: string; proposed: string 
   return { current: String(p.current ?? '').trim(), proposed: String(p.proposed ?? '').trim() }
 }
 
-export function kindOf(it: SuggestionItem): SuggestKind {
-  const k = it.payload?.kind
+/** 类型；model 是设备页“申请支持此型号”（REQ-044）提交的型号支持申请。 */
+export function kindOf(it: SuggestionItem): SuggestKind | 'model' {
+  const k = it.payload?.kind as string | undefined
+  if (k === 'model') return 'model'
   return k && (SUGGEST_KINDS as string[]).includes(k) ? (k as SuggestKind) : 'other'
 }
 

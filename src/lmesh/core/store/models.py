@@ -49,6 +49,12 @@ class Device(Base):
     )
     origin: Mapped[str] = mapped_column(String(20), default="import")
     origin_note: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 复制来源：项目、设备、版本序号
+    # Profile 来源（REQ-044）：auto 版本规则命中 / fallback 厂商默认 / rule 型号规则 / manual 手工选择 / none 不解析
+    # （认不出厂商只存原文，或没有可用的 Profile）。fallback、rule、manual 属于“近似”，界面与下发前提示核对。
+    profile_source: Mapped[str] = mapped_column(String(10), default="auto")
+    profile_rule_id: Mapped[int | None] = mapped_column(
+        ForeignKey("model_rules.id", ondelete="SET NULL"), nullable=True
+    )
     versions: Mapped[list[ConfigVersion]] = relationship(back_populates="device", cascade="all, delete-orphan")
     __table_args__ = (UniqueConstraint("project_id", "name", name="uq_devices_project_name"),)
 
@@ -642,3 +648,27 @@ class ViewAnnotation(Base):
     __table_args__ = (
         UniqueConstraint("project_id", "target_type", "target", "key", name="uq_view_annotations_target_key"),
     )
+
+
+class ModelRule(Base):
+    """型号规则（REQ-044）：条件全部满足时导入用指定的 Profile。project_id 为空是全局规则（知识库维护员与管理员管理）。
+
+    条件：name_pattern 设备名（* ? 通配，不分大小写）、version 软件版本正则、feature 特征命令正则（按行匹配，配置里有这一行
+    才算命中）、vendor 厂商（空表示任意）；至少要有一个条件。优先级：本项目规则 > 全局规则；同一范围内条件多的优先，
+    一样多时编号小（先建）的优先。"""
+
+    __tablename__ = "model_rules"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int | None] = mapped_column(
+        ForeignKey("projects.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    vendor: Mapped[str] = mapped_column(String(40), default="")
+    name_pattern: Mapped[str] = mapped_column(String(200), default="")
+    version: Mapped[str] = mapped_column(String(200), default="")
+    feature: Mapped[str] = mapped_column(String(400), default="")
+    profile: Mapped[str] = mapped_column(String(120))
+    note: Mapped[str] = mapped_column(Text, default="")
+    enabled: Mapped[bool] = mapped_column(default=True)
+    created_by: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

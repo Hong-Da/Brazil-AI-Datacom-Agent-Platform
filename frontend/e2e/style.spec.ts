@@ -81,11 +81,28 @@ test('关系图谱：出现圆点，能拖动，点击打开详情', async ({ pa
   const moved = await handle.evaluate((cy: any, id: string) => cy.getElementById(id).position(), p0.id)
   expect(Math.abs(moved.x - p0.model.x) + Math.abs(moved.y - p0.model.y)).toBeGreaterThan(10)
 
-  // 点击圆点打开详情：先把它放大到视野中央，避免较挤的布局里相邻圆点压在上面
+  // 点击圆点打开详情。图里近千个圆点、cose 随机初始位置，目标圆点可能被后画的相邻圆点盖住（放大也分不开，
+  // 点中心会打开上面那个）：放大居中后，在目标圆点上找一处没有被其他圆点盖住的位置再点；整个被盖住时把它挪开一点再找
   const p1 = await handle.evaluate((cy: any, id: string) => {
     const n = cy.getElementById(id)
     cy.zoom({ level: Math.max(cy.zoom() * 2, 1.5), renderedPosition: n.renderedPosition() })
-    cy.center(n)
+    for (let k = 0; k < 8; k++) {
+      cy.center(n)
+      const b = n.renderedBoundingBox({ includeLabels: false, includeOverlays: false })
+      const others = cy.nodes(':visible').not(n).filter((x: any) => !x.hasClass('band'))
+        .map((x: any) => x.renderedBoundingBox({ includeLabels: false, includeOverlays: false }))
+        .filter((o: any) => o.x1 < b.x2 && o.x2 > b.x1 && o.y1 < b.y2 && o.y2 > b.y1)
+      const c = n.renderedPosition()
+      const r = Math.min(b.w, b.h) / 2
+      for (const f of [0, 0.4, 0.7]) {
+        for (let a = 0; a < 8; a++) {
+          const x = c.x + Math.cos((a * Math.PI) / 4) * r * f
+          const y = c.y + Math.sin((a * Math.PI) / 4) * r * f
+          if (!others.some((o: any) => x >= o.x1 - 2 && x <= o.x2 + 2 && y >= o.y1 - 2 && y <= o.y2 + 2)) return { x, y }
+        }
+      }
+      n.shift({ x: n.width() * 2, y: n.height() })
+    }
     return n.renderedPosition()
   }, p0.id)
   await page.mouse.click(box.x + p1.x, box.y + p1.y)

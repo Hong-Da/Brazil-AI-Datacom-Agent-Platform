@@ -65,8 +65,9 @@ def _status(ver: ConfigVersion) -> dict[str, Any]:
 
 
 def device_rows(db_url: str, kb_version: str) -> list[dict[str, Any]]:
-    """当前项目的设备（私有与引用的公共设备）：当前版本（引用固定了版本时为该版本）、解析状态、来源。"""
-    from lmesh.core import projects
+    """当前项目的设备（私有与引用的公共设备）：当前版本（引用固定了版本时为该版本）、解析状态、来源、
+    Profile 来源与近似标记（REQ-044）。"""
+    from lmesh.core import model_support, projects
 
     with store.session(db_url) as s:
         pinned = projects.pins(s)
@@ -89,25 +90,38 @@ def device_rows(db_url: str, kb_version: str) -> list[dict[str, Any]]:
             if latest is not None:
                 row.update(_status(latest))
                 row["stale"] = bool(latest.kb_version) and latest.kb_version != kb_version
+            row.update(model_support.device_info(d, latest))
             row.update(projects.source_info(s, d, newest.id if newest else None))
             out.append(row)
         return out
 
 
-def analyse_version(db_url: str, version_id: int, kb_root: Path) -> dict[str, Any]:
-    """按当前知识库重新解析一个配置版本：结构化结果、未识别行、配置图、往返结果。"""
-    kb = analysis.load_kb(kb_root)
+def analyse_version(
+    db_url: str, version_id: int, kb_root: Path, kb: Any = None, override: str | None = None
+) -> dict[str, Any]:
+    """按当前知识库重新解析一个配置版本：结构化结果、未识别行、配置图、往返结果。
+
+    Profile 按 REQ-044 的选择顺序确定（override 是设备页“更换 Profile”的手工选择；之前的手工选择沿用；
+    再按设备所属项目的型号规则、版本规则、fallback）；选不出时只存原文（parsed=False）。"""
+    from lmesh.core import model_support
+
+    kb = kb if kb is not None else analysis.load_kb(kb_root)
     with store.session(db_url) as s:
         ver = s.get(ConfigVersion, version_id)
         if ver is None:
             raise KeyError(version_id)
         dev = ver.device
         text = ver.raw_text
+        ch = model_support.device_choice(s, kb, dev, text, override)
+        model_support.apply_choice(dev, ch)
         try:
-            res = analysis.parse_text(text, kb, dev.profile if dev.profile in kb.profiles else None)
+            if not ch.profile:
+                raise analysis.AnalysisError("parse.no_profile")
+            res = analysis.parse_text(text, kb, ch.profile)
         except analysis.AnalysisError:
             ver.structured = None
-            return {"version_id": version_id, "parsed": False}
+            s.execute(delete(UnknownLine).where(UnknownLine.version_id == version_id))
+            return {"version_id": version_id, "parsed": False, "profile": ch.profile, "profile_source": ch.source}
         dev.profile = res.profile
         g = graphmod.build(res.parsed, kb, res.profile, dev.name)
         st = res.parsed.as_dict()
@@ -123,6 +137,10 @@ def analyse_version(db_url: str, version_id: int, kb_root: Path) -> dict[str, An
         "parsed": True,
         "roundtrip": st["roundtrip"],
         "unknown": st["counts"].get("unknown", 0),
+        "coverage": st.get("coverage"),
+        "profile": ch.profile,
+        "profile_source": ch.source,
+        "profile_rule_id": ch.rule_id,
     }
 
 
@@ -134,8 +152,9 @@ def rebuild_all(
         q = select(Device) if device_ids is None else select(Device).where(Device.id.in_(device_ids))
         ids = [max(d.versions, key=lambda v: v.id).id for d in s.scalars(q) if d.versions]
     results = []
+    kb = analysis.load_kb(kb_root)
     for i, vid in enumerate(ids):
-        results.append(analyse_version(db_url, vid, kb_root))
+        results.append(analyse_version(db_url, vid, kb_root, kb=kb))
         if progress:
             progress(int((i + 1) * 100 / max(len(ids), 1)), f"{i + 1}/{len(ids)}")
     return {
