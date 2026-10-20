@@ -394,7 +394,8 @@ def main() -> None:
                 lines[n] = d
     for p in made:
         lines[p.name] = sha256(p)
-    sums.write_text("".join(f"{d}  {n}\n" for n, d in sorted(lines.items())), encoding="utf-8")
+    # 固定 LF 换行：Windows 默认写 CRLF，Linux 上 sha256sum -c 会把 \r 当成文件名的一部分
+    sums.write_text("".join(f"{d}  {n}\n" for n, d in sorted(lines.items())), encoding="utf-8", newline="\n")
     print("\n生成的文件：")
     for p in made:
         print(f"  {p}  {p.stat().st_size / 1e6:.1f} MB")
