@@ -1,5 +1,5 @@
 import { i18n } from '@/i18n'
-import { scopedPath } from '@/project/scope'
+import { networkPath, scopedPath } from '@/project/scope'
 
 export interface ApiBody<T> { code: number; message: string; data: T }
 
@@ -23,18 +23,26 @@ let currentProject: string | null = null
 export function setApiProject(slug: string | null): void { currentProject = slug }
 export function apiProject(): string | null { return currentProject }
 
-/** 完整的接口地址：设备相关接口按当前项目改写（project 为 false 时不改写，例如管理员的“全部设备重新解析”）。 */
-export function apiUrl(path: string, project: string | false | null = currentProject): string {
-  return `/api/v1${project === false ? path : scopedPath(path, project)}`
+// M9：当前网络（由路由守卫按网址设置；项目层页面为 null，接口作用于默认网络）。按网络的接口改走 /projects/{项目}/n/{网络}/…
+let currentNetwork: string | null = null
+export function setApiNetwork(slug: string | null): void { currentNetwork = slug }
+export function apiNetwork(): string | null { return currentNetwork }
+
+/** 完整的接口地址：设备相关接口按当前项目改写（project 为 false 时不改写，例如管理员的“全部设备重新解析”）；
+ *  有当前网络时，当前项目里按网络的接口再改走网络路径（项目层的接口，例如删除设备、型号规则、网络管理，不改）。 */
+export function apiUrl(path: string, project: string | false | null = currentProject, method = 'GET', network?: false): string {
+  if (project === false) return `/api/v1${path}`
+  const net = network === false || project !== currentProject ? null : currentNetwork
+  return `/api/v1${networkPath(scopedPath(path, project), project, net, method)}`
 }
 
 /** 统一请求：带上语言（认证靠同源的会话 Cookie），按 {code, message, data} 解析；code 非 0 时抛出 ApiError。 */
-export async function api<T>(path: string, init: RequestInit & { project?: string | false } = {}): Promise<T> {
+export async function api<T>(path: string, init: RequestInit & { project?: string | false; network?: false } = {}): Promise<T> {
   const headers = new Headers(init.headers)
   headers.set('Accept-Language', String(i18n.global.locale.value))
   if (init.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
-  const { project, ...rest } = init
-  const res = await fetch(apiUrl(path, project === undefined ? currentProject : project), { credentials: 'same-origin', ...rest, headers })
+  const { project, network, ...rest } = init
+  const res = await fetch(apiUrl(path, project === undefined ? currentProject : project, rest.method ?? 'GET', network), { credentials: 'same-origin', ...rest, headers })
   let body: ApiBody<T>
   try { body = await res.json() } catch { throw new ApiError(1000, res.statusText, res.status, null) }
   if (body.code !== 0) {
@@ -44,7 +52,7 @@ export async function api<T>(path: string, init: RequestInit & { project?: strin
   return body.data
 }
 
-export const get = <T>(path: string) => api<T>(path)
+export const get = <T>(path: string, opts: { network?: false } = {}) => api<T>(path, opts)
 export const post = <T>(path: string, body?: unknown, opts: { project?: string | false } = {}) =>
   api<T>(path, { method: 'POST', body: body instanceof FormData ? body : JSON.stringify(body ?? {}), ...opts })
 export const put = <T>(path: string, body?: unknown) => api<T>(path, { method: 'PUT', body: JSON.stringify(body ?? {}) })

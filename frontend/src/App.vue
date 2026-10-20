@@ -10,11 +10,13 @@ import { usePrefs } from '@/stores/prefs'
 const prefs = usePrefs()
 const route = useRoute()
 const elLocale = computed(() => ({ 'zh-CN': zhCn, en, 'pt-BR': ptBr })[prefs.lang])
+// M9：换网络时页面重新加载（同一页面组件只换了网址里的网络参数时 vue-router 会复用组件）
+const netKey = computed(() => String(route.params.network ?? ''))
 </script>
 
 <template>
   <el-config-provider :locale="elLocale">
     <router-view v-if="route.meta.bare" />
-    <AppShell v-else><router-view /></AppShell>
+    <AppShell v-else><router-view v-slot="{ Component }"><component :is="Component" :key="netKey" /></router-view></AppShell>
   </el-config-provider>
 </template>

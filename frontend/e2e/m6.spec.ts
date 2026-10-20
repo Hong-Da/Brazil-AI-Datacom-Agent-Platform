@@ -100,8 +100,9 @@ test('旧网址跳到默认项目的对应页面', async ({ page }) => {
   await login(page)
   await page.goto('/devices')
   await expect(page).toHaveURL(/\/p\/[^/]+\/devices$/)
+  // M9：项目只有默认网络时，按网络的页面直接进默认网络（/p/<项目>/n/<网络>/scripts）
   await page.goto('/check-projects')
-  await expect(page).toHaveURL(/\/p\/[^/]+\/scripts$/)
+  await expect(page).toHaveURL(/\/p\/[^/]+\/n\/[^/]+\/scripts$/)
   await page.goto('/p/no-such-project/devices')
   await expect(page).toHaveURL(/\/projects\?missing=no-such-project/)
   await expect(page.getByTestId('projects-missing')).toBeVisible()

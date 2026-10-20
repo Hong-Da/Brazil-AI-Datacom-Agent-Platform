@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import IconSetSwitch from '@/components/devicon/IconSetSwitch.vue'
 import { LOGO_SVG } from '@/components/icons'
@@ -11,6 +12,10 @@ import { useTerms } from '@/stores/terms'
 import { useAuth } from '@/stores/auth'
 import { useProject } from '@/stores/project'
 import ProjectSwitcher from '@/components/project-switcher.vue'
+import NetworkSwitcher from '@/components/network-switcher.vue'
+import { useNetwork } from '@/stores/network'
+import { basePage, pageNet } from '@/project/scope'
+import { colorClass, netName } from '@/views/networks/logic'
 import ProjRole from '@/components/proj-role.vue'
 import { shortTime } from '@/views/account/account'
 
@@ -21,34 +26,36 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuth()
 const project = useProject()
+const network = useNetwork()
+const { t } = useI18n()
 
 interface Item { name: string; icon: string; count?: () => number | undefined; tone?: string; ai?: boolean }
-// proj：这一组是当前项目的页面（网址带 /p/<项目>/，REQ-035）
-const NAV: { g: string; s: string; admin?: boolean; proj?: boolean; items: Item[] }[] = [
+// proj：这一组是当前项目的页面（网址带 /p/<项目>/，REQ-035）；net：按网络的页面（M9，网址带 /n/<网络>/，评审预览的导航分组）
+const NAV: { g: string; s: string; admin?: boolean; proj?: boolean; net?: boolean; items: Item[] }[] = [
   { g: 'home', s: 'home', items: [{ name: 'dashboard', icon: 'home' }, { name: 'projects', icon: 'folders' }, { name: 'ask', icon: 'spark', ai: true }] },
   {
-    g: 'dev', s: 'dev', proj: true, items: [
+    g: 'pool', s: 'dev', proj: true, items: [
       { name: 'devices', icon: 'server' },
+      { name: 'networks', icon: 'network' },
       { name: 'device-graph', icon: 'graph' },
-      { name: 'device-analysis', icon: 'strata' },
       { name: 'history', icon: 'history' },
       { name: 'compare', icon: 'compare' },
       { name: 'translate', icon: 'swap' },
-      { name: 'check', icon: 'shield' },
       { name: 'unknown-lines', icon: 'unknown', count: () => status.summary?.unknown.patterns, tone: 'plain' },
       { name: 'model-rules', icon: 'rules' },
     ],
   },
-  { g: 'chg', s: 'chg', proj: true, items: [{ name: 'scripts', icon: 'file' }, { name: 'change', icon: 'branch' }, { name: 'migration', icon: 'swap2' }] },
   {
-    g: 'ana', s: 'ana', proj: true, items: [
-      { name: 'impact', icon: 'target' },
+    g: 'net', s: 'net', proj: true, net: true, items: [
+      { name: 'members', icon: 'users' },
       { name: 'topology', icon: 'network' },
+      { name: 'check', icon: 'shield' },
       { name: 'consistency', icon: 'link' },
       { name: 'baseline', icon: 'shield' },
-      { name: 'export', icon: 'table' },
     ],
   },
+  { g: 'chg', s: 'chg', proj: true, net: true, items: [{ name: 'scripts', icon: 'file' }, { name: 'change', icon: 'branch' }, { name: 'migration', icon: 'swap2' }] },
+  { g: 'ana', s: 'ana', proj: true, net: true, items: [{ name: 'device-analysis', icon: 'strata' }, { name: 'impact', icon: 'target' }, { name: 'export', icon: 'table' }] },
   { g: 'tpl', s: 'tpl', items: [{ name: 'templates', icon: 'stencil' }, { name: 'generate', icon: 'rows' }, { name: 'translate-rules', icon: 'rules' }] },
   {
     g: 'kb', s: 'kb', items: [
@@ -80,8 +87,22 @@ function navTo(name: string, proj?: boolean): RouteLocationRaw {
   return project.ref ? { name, params: { project: project.ref } } : { name }
 }
 // 同一项导航对应的其他页面（清理属于检查、脚本编辑器属于项目脚本、单个 skill 属于 skill 列表）
-const ALIAS: Record<string, string> = { cleanup: 'check', 'check-project': 'scripts', 'ai-skill': 'ai-skills', 'add-device': 'devices', 'ai-connection': 'ai-settings' }
-const current = computed(() => ALIAS[String(route.name)] ?? String(route.name))
+const ALIAS: Record<string, string> = { cleanup: 'check', 'check-project': 'scripts', 'ai-skill': 'ai-skills', 'add-device': 'devices', 'ai-connection': 'ai-settings', 'network-suggest': 'networks' }
+const current = computed(() => ALIAS[basePage(route.name)] ?? basePage(route.name))
+
+// M9：当前网络（导航带、范围条）。网络层网址 → 该网络；项目层的按网络页面 → “全部设备”；其他页面沿用上次的网络
+const netInfo = computed(() => network.info)
+const netAll = computed(() => !network.cur || !netInfo.value)
+const netLabel = computed(() => (netAll.value ? t('net.all') : netName(netInfo.value, t('net.defaultName'))))
+const netCls = computed(() => (netAll.value ? 'nc-all' : colorClass(netInfo.value?.color)))
+/** 页面顶部的网络范围条：net 网络层、all 项目层的按网络页面（pool = 设备池页面） */
+const netScope = computed<'net' | 'all' | 'pool' | null>(() => {
+  if (!route.meta.project || !project.ref) return null
+  const level = pageNet(route.name)
+  if (!level) return null
+  if (route.meta.network) return netInfo.value ? 'net' : null
+  return level === 'both' ? 'pool' : 'all'
+})
 const roleTag = computed(() => (auth.me?.role === 'admin' ? 'admin' : auth.me?.role === 'maintainer' ? 'maintainer' : null))
 
 // 提示条：管理员在他人项目里、只读成员、只读令牌（项目页面与首页、AI 查询这类用当前项目数据的页面）
@@ -96,7 +117,7 @@ const scopeBar = computed<'foreign' | 'ro' | 'token' | null>(() => {
 async function leave(): Promise<void> {
   const d = project.defaultSlug ?? (await project.loadDefault())
   if (!d) { await router.push({ name: 'projects' }); return }
-  if (route.meta.project) await router.push({ name: route.name as string, params: { project: d } })
+  if (route.meta.project) await router.push({ name: basePage(route.name), params: { project: d, network: null } })
   else { await project.enter(d); void status.refresh() }
 }
 // 换了项目：外壳计数（/summary 按项目）跟着变
@@ -127,7 +148,7 @@ watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void
 </script>
 
 <template>
-  <div :class="['shell', { 'has-scope': scopeBar }]">
+  <div :class="['shell', { 'has-scope': scopeBar || netScope }]">
     <header class="topbar">
       <router-link class="brand" to="/">
         <!-- eslint-disable-next-line vue/no-v-html -->
@@ -135,6 +156,7 @@ watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void
         <span class="brand-name">{{ $t('app.name') }}</span>
       </router-link>
       <ProjectSwitcher />
+      <NetworkSwitcher />
       <router-link v-if="kb" class="kbchip" to="/releases" :title="$t('kb.chipTitle')" data-testid="kb-chip">
         <span v-if="kb.draft_changes" class="dot" />
         KB <b>{{ kb.version }}</b>
@@ -193,7 +215,12 @@ watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void
         </div>
         <div class="npb-h">{{ $t('proj.bandHint') }}</div>
       </div>
-      <div :class="['nav-group', { 'is-proj': g.proj }]">
+      <div v-if="g.net && !nav.slice(0, gi).some((x) => x.net) && project.ref" :class="['nav-net-band', netCls, { 'is-all': netAll }]" data-testid="nav-network-band">
+        <div class="nnb-k"><span>{{ $t('net.current') }}</span></div>
+        <div class="nnb-n"><i :class="['nw-sq', { all: netAll }]" /><span class="t">{{ netLabel }}</span></div>
+        <div class="nnb-m">{{ netAll ? $t('net.bandAll') : $t('net.bandNet', { n: netInfo?.counts.devices ?? 0 }) }}</div>
+      </div>
+      <div :class="['nav-group', { 'is-proj': g.proj, 'is-net': g.net, 'is-off': g.net && netAll }, g.net ? netCls : '']">
         <div class="nav-gh"><i :class="['stratum', `s-${g.s}`]" /><span>{{ $t(`grp.${g.g}`) }}</span></div>
         <router-link
           v-for="it in g.items"
@@ -215,19 +242,28 @@ watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void
         <div v-if="status.appVersion">{{ $t('foot.version', { v: status.appVersion }) }}</div>
       </div>
     </nav>
-    <div v-if="scopeBar === 'foreign'" class="scope-bar foreign" data-testid="scope-foreign">
-      <Icon name="shield" />
-      <div class="grow"><b>{{ $t('proj.foreignBar', { u: project.info?.owner ?? '—', p: project.info?.name ?? '' }) }}</b> · {{ $t('proj.foreignNote') }}</div>
-      <router-link v-if="auth.isAdmin" class="btn btn-sm" :to="{ name: 'all-projects' }">{{ $t('proj.allProjects') }}</router-link>
-      <button type="button" class="btn btn-sm" data-testid="scope-leave" @click="leave"><Icon name="logout" small />{{ $t('proj.leave') }}</button>
-    </div>
-    <div v-else-if="scopeBar === 'ro'" class="scope-bar ro" data-testid="scope-readonly">
-      <Icon name="eye" />
-      <div class="grow"><b>{{ $t('proj.roBar') }}</b> · {{ $t('proj.roNote', { u: project.info?.owner ?? '—' }) }}</div>
-    </div>
-    <div v-else-if="scopeBar === 'token'" class="scope-bar ro" data-testid="scope-token">
-      <Icon name="key" />
-      <div class="grow"><b>{{ $t('proj.roToken') }}</b> · {{ $t('proj.roTokenNote') }}</div>
+    <div v-if="scopeBar || netScope" class="scope-stack">
+      <div v-if="scopeBar === 'foreign'" class="scope-bar foreign" data-testid="scope-foreign">
+        <Icon name="shield" />
+        <div class="grow"><b>{{ $t('proj.foreignBar', { u: project.info?.owner ?? '—', p: project.info?.name ?? '' }) }}</b> · {{ $t('proj.foreignNote') }}</div>
+        <router-link v-if="auth.isAdmin" class="btn btn-sm" :to="{ name: 'all-projects' }">{{ $t('proj.allProjects') }}</router-link>
+        <button type="button" class="btn btn-sm" data-testid="scope-leave" @click="leave"><Icon name="logout" small />{{ $t('proj.leave') }}</button>
+      </div>
+      <div v-else-if="scopeBar === 'ro'" class="scope-bar ro" data-testid="scope-readonly">
+        <Icon name="eye" />
+        <div class="grow"><b>{{ $t('proj.roBar') }}</b> · {{ $t('proj.roNote', { u: project.info?.owner ?? '—' }) }}</div>
+      </div>
+      <div v-else-if="scopeBar === 'token'" class="scope-bar ro" data-testid="scope-token">
+        <Icon name="key" />
+        <div class="grow"><b>{{ $t('proj.roToken') }}</b> · {{ $t('proj.roTokenNote') }}</div>
+      </div>
+      <div v-if="netScope" :class="['nw-scope', netScope === 'net' ? netCls : 'nc-all is-all']" data-testid="net-scope">
+        <b class="nn"><i :class="['nw-sq', { all: netScope !== 'net' }]" />{{ netScope === 'net' ? netLabel : $t('net.all') }}<span v-if="netScope === 'net' && netInfo?.default" class="nw-def">{{ $t('net.defaultNet') }}</span></b>
+        <span v-if="netScope === 'net'">{{ $t('net.devices', { n: netInfo?.counts.devices ?? 0 }) }}<template v-if="netInfo?.counts.shared && !netInfo.default">{{ $t('net.scopeShared', { n: netInfo.counts.shared }) }}</template></span>
+        <span v-else>{{ netScope === 'pool' ? $t('net.scopePool', { n: network.list?.overview.devices ?? 0 }) : $t('net.scopeAll') }}</span>
+        <span class="grow" />
+        <span class="path"><Icon name="link" small /><span>{{ route.path }}</span></span>
+      </div>
     </div>
     <slot />
   </div>

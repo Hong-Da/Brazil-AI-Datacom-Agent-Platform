@@ -74,7 +74,7 @@ lmesh/
 ├── frontend/                   Vue 3 + Vite 前端（package.json、pnpm-lock.yaml、.nvmrc、pnpm-workspace.yaml、src/）
 │   ├── src/views/              各页面（每页一个 *View.vue，子组件与纯逻辑放同名目录）
 │   ├── src/project/            当前项目：接口路径改写（/projects/<项目>/…）、项目页面路由 /p/<项目>/…（M6）
-│   ├── src/stores/             共享状态：账号、当前项目、外壳计数、偏好
+│   ├── src/stores/             共享状态：账号、当前项目、当前网络、外壳计数、偏好
 │   ├── src/i18n/pages/         各页面的三语文案
 │   └── e2e/                    Playwright 端到端测试
 ├── knowledge/                  程序自带的知识库（M1-4 起）

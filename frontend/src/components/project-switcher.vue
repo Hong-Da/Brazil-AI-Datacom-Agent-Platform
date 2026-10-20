@@ -5,7 +5,7 @@
  * 切换时：在项目页面就换掉网址里的项目，在其他页面留在原页（数据随当前项目变化）。
  */
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, type RouteParamsRaw } from 'vue-router'
 import Icon from '@/components/Icon.vue'
 import ProjRole from '@/components/proj-role.vue'
 import { errorText } from '@/api'
@@ -13,6 +13,7 @@ import { useAuth } from '@/stores/auth'
 import { useProject, type ProjectRow } from '@/stores/project'
 import { useStatus } from '@/stores/status'
 import { matchProject } from '@/views/projects/logic'
+import { basePage } from '@/project/scope'
 
 const project = useProject()
 const auth = useAuth()
@@ -46,7 +47,11 @@ async function go(p: ProjectRow, confirmed = false): Promise<void> {
   confirmFor.value = null
   close()
   if (route.meta.project) {
-    await router.push({ name: route.name as string, params: { ...route.params, project: p.ref }, query: keepQuery() })
+    // 网络属于项目：换项目后回到项目层（“全部设备”），网络概览这类只有网络层的页面去网络列表
+    const params: RouteParamsRaw = { ...route.params, project: p.ref, network: null }
+    let name = basePage(route.name)
+    if (name === 'check-project') { name = 'scripts'; delete params.id }
+    await router.push({ name, params, query: keepQuery() })
   } else {
     try { await project.enter(p.ref) } catch (e) { err.value = errorText(e); return }
     void status.refresh()

@@ -64,7 +64,7 @@ test('配置检查项目：边写边查、顺序核查、按依赖重排、对�
     // 导航入口在“变更”组：配置检查项目并入项目脚本（M6，/p/<项目>/scripts）
     await page.goto('/')
     await page.getByTestId('nav-scripts').click()
-    await expect(page).toHaveURL(/\/p\/[^/]+\/scripts$/)
+    await expect(page).toHaveURL(/\/p\/[^/]+(\/n\/[^/]+)?\/scripts$/) // M9：只有默认网络时进默认网络
 
     // 新建变更脚本：基线为本项目的设备，同时建好保存基线与检查设置的脚本组，直接进入编辑器
     await page.getByTestId('scripts-new').click()
@@ -72,7 +72,7 @@ test('配置检查项目：边写边查、顺序核查、按依赖重排、对�
     await page.getByTestId('scripts-ns-kind').getByRole('button').first().click()
     await page.getByTestId('scripts-ns-device').selectOption({ label: 'ATN-CHANGE-01' })
     await page.getByTestId('scripts-ns-create').click()
-    await expect(page).toHaveURL(/\/p\/[^/]+\/scripts\/\d+/)
+    await expect(page).toHaveURL(/\/p\/[^/]+(\/n\/[^/]+)?\/scripts\/\d+/)
     projectId = Number(/\/scripts\/(\d+)/.exec(page.url())![1])
     await expect(page.getByTestId('cp-basechip')).toContainText('ATN-CHANGE-01')
     await expect(page.getByTestId('cp-fn')).toHaveText('bind-vpn.txt')

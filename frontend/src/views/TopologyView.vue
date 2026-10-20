@@ -26,6 +26,11 @@ import { ROLES, glyphOfRole, isRole, type Annotation, type PendingSuggestion, ty
 import { bandLayout, bandOfRole, buildMarks, useBands, type NodeMark } from './m4/topomarks'
 import { rememberedFlag, usePrefs } from '@/stores/prefs'
 import { useProject } from '@/stores/project'
+import { useNetwork } from '@/stores/network'
+import { useAuth } from '@/stores/auth'
+import NetChip from '@/components/net-chip.vue'
+import { basePage } from '@/project/scope'
+import { outsideKey, peerStubs, type NetBrief, type OutsideLink, type PeerStub } from './networks/logic'
 import { keyText } from './m4/texts'
 import { blockOf, lines as splitLines, snippet, stamp } from './m4/common'
 import {
@@ -50,7 +55,7 @@ async function runAi(): Promise<void> {
   await aiPanel.value?.start()
 }
 
-const view = computed<'map' | 'consistency'>(() => (route.name === 'consistency' ? 'consistency' : 'map'))
+const view = computed<'map' | 'consistency'>(() => (basePage(route.name) === 'consistency' ? 'consistency' : 'map'))
 function setView(v: 'map' | 'consistency'): void {
   void router.replace({ name: v === 'map' ? 'topology' : 'consistency', query: route.query })
 }
@@ -85,6 +90,7 @@ async function onFiles(ev: Event): Promise<void> {
 // ---------------------------------------------------------------- 推导
 const running = ref(false)
 const runError = ref('')
+let pendingSel: string | null = null
 const result = ref<ConsistencyResult | null>(null)
 const canRun = computed(() => uploads.value.length > 0 || (includeImported.value && picked.value.size > 0))
 
@@ -97,6 +103,9 @@ async function run(): Promise<void> {
     result.value = await post<ConsistencyResult>('/consistency', { configs: uploads.value, device_ids: ids })
     texts.value = {}
     if (sel.value && !selValid()) sel.value = null
+    if (pendingSel && nodeOf(pendingSel)) sel.value = { k: 'dev', id: pendingSel }
+    pendingSel = null
+    void loadOutside()
     const q: Record<string, string> = {}
     if (includeImported.value && !allPicked.value) q.devices = ids.join(',')
     void router.replace({ query: q })
@@ -128,9 +137,49 @@ function selValid(): boolean {
   if (!sel.value) return true
   return sel.value.k === 'link' ? groups.value.some((g) => g.id === sel.value!.id) : !!nodeOf(sel.value.id)
 }
-function pick(k: 'link' | 'dev', id: string): void {
+function pick(k: 'link' | 'dev' | 'out', id: string): void {
+  if (k === 'out') { selPeer.value = id; sel.value = null; return }
+  selPeer.value = null
   sel.value = { k, id }
 }
+
+// ---------------------------------------------------------------- 网络外的对端（M9）：只在非默认网络里有；开关按账号与网络记在浏览器里，默认关
+const network = useNetwork()
+const auth = useAuth()
+const outsideAvail = computed(() => !!route.params.network && !!network.info && !network.info.default)
+const outKey = computed(() => outsideKey(auth.me?.username, useProject().ref, network.cur))
+const showOutside = ref(false)
+watch(outKey, (k) => { try { showOutside.value = localStorage.getItem(k) === '1' } catch { showOutside.value = false } }, { immediate: true })
+function setOutside(v: boolean): void {
+  showOutside.value = v
+  try { localStorage.setItem(outKey.value, v ? '1' : '0') } catch { /* 忽略 */ }
+  void loadOutside()
+}
+const outside = ref<OutsideLink[]>([])
+const alsoIn = ref<Record<string, NetBrief[]>>({})
+const outErr = ref('')
+const outBusy = ref(false)
+/** 网络外的对端与节点的“还在哪些网络”：另调 POST /topology（outside），一致性接口不带这些 */
+async function loadOutside(): Promise<void> {
+  outErr.value = ''
+  if (!outsideAvail.value || !result.value) { outside.value = []; alsoIn.value = {}; return }
+  const ids = result.value.nodes.map((n) => n.device_id).filter((x): x is number => x !== null)
+  if (!ids.length) return
+  outBusy.value = true
+  try {
+    const r = await post<{ nodes: { id: string; also_in?: NetBrief[] }[]; outside?: { links: OutsideLink[] } }>('/topology', { device_ids: ids, outside: showOutside.value })
+    outside.value = showOutside.value ? r.outside?.links ?? [] : []
+    alsoIn.value = Object.fromEntries(r.nodes.map((n) => [n.id, n.also_in ?? []]))
+  } catch (e) {
+    outErr.value = errorText(e)
+  } finally {
+    outBusy.value = false
+  }
+}
+const stubs = computed<PeerStub[]>(() => (showOutside.value && outsideAvail.value ? peerStubs(outside.value) : []))
+const selPeer = ref<string | null>(null)
+const selStub = computed(() => stubs.value.find((s) => s.id === selPeer.value) ?? null)
+watch(() => sel.value, (v) => { if (v) selPeer.value = null })
 function goFinding(f: Finding): void {
   const g = byLink.value.get(f.link)
   if (g) sel.value = { k: 'link', id: g.id }
@@ -239,12 +288,18 @@ const mapShow = computed<Record<string, NodeShow>>(() => {
 })
 const mapExtra = computed<ExtraShow>(() => {
   const ids = new Set(mapNodes.value.map((n) => n.id))
-  const edges = built.value.extraEdges.filter((e) => ids.has(e.source)).map((e) => ({ ...e, label: e.kind === 'ai' ? t('topology.aiGuess') : e.label }))
+  const edges: ExtraShow['edges'] = built.value.extraEdges.filter((e) => ids.has(e.source)).map((e) => ({ ...e, label: e.kind === 'ai' ? t('topology.aiGuess') : e.label }))
   const used = new Set(edges.map((e) => e.target))
-  const nodesX = built.value.extraNodes.filter((x) => used.has(x.id)).map((x) => {
+  const nodesX: ExtraShow['nodes'] = built.value.extraNodes.filter((x) => used.has(x.id)).map((x) => {
     const src = edges.find((e) => e.target === x.id)?.source
     return { ...x, label: x.label || t('devicon.peer'), group: (src && markOf(src)?.group) || '' }
   })
+  // 网络外的对端：短线连到本网络里的设备，末端写对端名与它所在的网络
+  for (const st of stubs.value) {
+    if (!st.inside.some((d) => ids.has(d))) continue
+    nodesX.push({ id: st.id, label: `${st.peer}\n${st.networks.map((n) => n.name).join(' · ') || t('net.t.noNet')}`, glyph: 'peer', ghost: false, group: '', out: true })
+    for (const l of st.links) if (ids.has(l.inside.device)) edges.push({ id: `${st.id}|${l.id}`, source: l.inside.device, target: st.id, kind: 'out', label: l.inside.interface ? shortIf(l.inside.interface) : '' })
+  }
   return { nodes: nodesX, edges }
 })
 const mapPositions = computed(() => {
@@ -322,6 +377,7 @@ onMounted(async () => {
   }
   const want = String(route.query.devices ?? '').split(',').filter((x) => /^\d+$/.test(x)).map(Number)
   picked.value = new Set(want.length ? want.filter((id) => devices.value.some((d) => d.id === id)) : devices.value.map((d) => d.id))
+  if (typeof route.query.sel === 'string') pendingSel = route.query.sel // 从别的网络点对端跳过来：选中它
   if (canRun.value) void run()
   void reloadMarks()
 })
@@ -370,6 +426,7 @@ watch(() => project.ref, () => void reloadMarks())
         <button class="btn btn-primary btn-sm ml-auto" type="button" :disabled="!canRun || running" data-testid="topo-run" @click="run"><Icon name="refresh" small />{{ running ? $t('topology.running') : result ? $t('topology.rebuild') : $t('topology.run') }}</button>
       </section>
 
+      <div v-if="outErr" class="notice warn mt12"><Icon name="warn" /><div class="grow">{{ outErr }}</div></div>
       <div v-if="runError" class="notice err mt12" data-testid="topo-error"><Icon name="err" /><div class="grow">{{ runError }}</div><button class="btn btn-sm" type="button" @click="run">{{ $t('c.retry') }}</button></div>
       <div v-if="!result && !runError" class="empty mt16"><Icon name="network" /><h3>{{ running ? $t('c.loading') : $t('topology.emptyTitle') }}</h3><p v-if="!running">{{ $t('topology.emptyText') }}</p></div>
 
@@ -396,6 +453,7 @@ watch(() => project.ref, () => void reloadMarks())
                 <label v-for="k in (['phy', 'bgp', 'l2', 'ifn', 'iso'] as const)" :key="k" class="check"><input v-model="layers[k]" type="checkbox" :data-testid="`topo-layer-${k}`"><span>{{ $t(`topology.l.${k}`) }}</span></label>
               </div>
               <label class="check aitog"><input v-model="showAi" type="checkbox" data-testid="topo-ai-toggle"><span>{{ $t('topology.showAi') }}</span></label>
+              <label v-if="outsideAvail" class="check nw-outtog" :title="$t('net.t.outsideTip')"><input :checked="showOutside" type="checkbox" data-testid="topo-outside-toggle" @change="setOutside(($event.target as HTMLInputElement).checked)"><span>{{ $t('net.t.outside') }}</span><span v-if="showOutside" class="faint small" data-testid="topo-outside-count">{{ outBusy ? '…' : stubs.length }}</span></label>
               <IconSetSwitch small class="ml-auto" />
               <button class="btn btn-xs btn-ghost" type="button" @click="map?.fit()"><Icon name="expand" small />{{ $t('topology.fit') }}</button>
             </div>
@@ -409,13 +467,37 @@ watch(() => project.ref, () => void reloadMarks())
               <span v-for="[g, name] in legendGlyphs" :key="g" data-testid="topo-legend-role"><DeviceIcon :kind="g" :size="16" />{{ name }}</span>
               <span v-if="anyPending" class="lg-ai"><DeviceIcon kind="core" :size="16" ghost />{{ $t('devicon.src.pending') }}</span>
               <span v-if="mapExtra.edges.some((e) => e.kind === 'ai')"><svg viewBox="0 0 26 10"><path d="M1 5h24" class="lg-ai-line" /></svg>{{ $t('topology.aiGuess') }}</span>
+              <span v-if="stubs.length"><svg viewBox="0 0 26 10"><path d="M1 5h24" class="lg-out-line" /></svg>{{ $t('net.t.legend') }}</span>
               <span class="ml-auto faint">{{ $t('topology.lg.hint') }}</span>
             </div>
           </section>
 
           <section class="panel side" aria-label="Details" data-testid="topo-side">
+            <!-- 网络外的对端（M9） -->
+            <template v-if="selStub">
+              <div class="panel-h"><h3>{{ $t('net.t.peerTitle') }}</h3><span class="meta mono">{{ selStub.peer }}</span></div>
+              <div class="sb" data-testid="topo-peer">
+                <p class="small muted" style="margin: 0">{{ $t('net.t.peerNote') }}</p>
+                <div>
+                  <div class="sec-k">{{ $t('net.t.peerIn') }}</div>
+                  <div class="nw-chips">
+                    <NetChip v-for="n in selStub.networks" :key="n.id" :net="n" :to="{ name: 'topology', params: { network: n.slug }, query: { sel: selStub.peer } }" />
+                    <span v-if="!selStub.networks.length" class="small faint">{{ $t('net.t.noNet') }}</span>
+                  </div>
+                </div>
+                <div>
+                  <div class="sec-k">{{ $t('net.t.peerLinks', { n: selStub.links.length }) }}</div>
+                  <div class="nw-peers">
+                    <div v-for="l in selStub.links" :key="l.id" class="nw-peer"><code>{{ l.inside.device }} {{ shortIf(l.inside.interface ?? '') }}</code><span>→</span><code>{{ l.peer.device }} {{ shortIf(l.peer.interface ?? '') }}</code><span class="r small faint">{{ $t(`topology.type.${l.type}`) }}</span></div>
+                  </div>
+                </div>
+                <div class="acts">
+                  <router-link v-for="n in selStub.networks.slice(0, 1)" :key="n.id" class="btn btn-sm btn-primary" :to="{ name: 'topology', params: { network: n.slug }, query: { sel: selStub.peer } }" data-testid="topo-peer-go"><Icon name="network" small />{{ $t('net.t.goPeer', { n: n.name }) }}</router-link>
+                </div>
+              </div>
+            </template>
             <!-- 链路 -->
-            <template v-if="selGroup">
+            <template v-else-if="selGroup">
               <div class="panel-h"><h3>{{ $t('topology.link') }}</h3><span class="ls" :class="selGroup.status">{{ $t(`topology.lg.${selGroup.status}`) }}</span><span class="meta mono">{{ selGroup.segment }}</span></div>
               <div class="sb" data-testid="topo-link">
                 <div class="ends">
@@ -512,6 +594,10 @@ watch(() => project.ref, () => void reloadMarks())
                   </div>
                   <p class="small faint" style="margin: 0">{{ $t('topology.annoNote') }}</p>
                   <div v-if="annoErr" class="notice err"><Icon name="err" /><div class="grow small">{{ annoErr }}</div></div>
+                </div>
+                <div v-if="alsoIn[selNode.id]?.length" data-testid="topo-also-in">
+                  <div class="sec-k">{{ $t('net.t.alsoIn') }}</div>
+                  <div class="nw-chips"><NetChip v-for="n in alsoIn[selNode.id]" :key="n.id" :net="n" :to="{ name: 'topology', params: { network: n.slug }, query: { sel: selNode.id } }" /></div>
                 </div>
                 <dl class="kvs">
                   <dt>{{ $t('topology.profile') }}</dt><dd>{{ selNode.profile }}</dd>

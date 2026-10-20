@@ -96,31 +96,57 @@ export function scopedPath(path: string, ref: string | null | undefined): string
  * 带项目前缀的页面：/p/<标识>/…（自己的项目）或 /p/<属主>/<标识>/…（别人的项目），路由里是可重复参数 :project+。
  * 页面路径的第二段只有数字编号（:id(\d+)），所以“标识/页面”与“属主/标识/页面”不会混淆。旧路径用于兼容重定向。
  */
-export const PROJECT_PAGES: readonly { name: string; path: string; legacy?: string }[] = [
-  { name: 'devices', path: 'devices', legacy: '/devices' },
-  { name: 'add-device', path: 'devices/add' },
-  { name: 'device-graph', path: 'graph/:id(\\d+)?', legacy: '/graph/:id?' },
-  { name: 'device-analysis', path: 'analysis/:id(\\d+)?', legacy: '/analysis/:id?' },
-  { name: 'history', path: 'history/:id(\\d+)?', legacy: '/history/:id?' },
+/** 页面在网络维度上的位置（M9，REQ-045）：
+ *  - net：按网络的页面；网址 /p/<项目>/n/<网络>/…，项目层网址（“全部设备”）显示各网络汇总；
+ *  - both：项目层与网络里都能用（项目层为项目全部设备，网络里只有本网络的设备与本网络用的版本）；
+ *  - only：只有网络层（网络概览）；
+ *  - 不写：只在项目层（设备池管理、项目设置、网络管理）。 */
+export type NetLevel = 'net' | 'both' | 'only'
+
+export const PROJECT_PAGES: readonly { name: string; path: string; legacy?: string; net?: NetLevel }[] = [
+  { name: 'devices', path: 'devices', legacy: '/devices', net: 'both' },
+  { name: 'add-device', path: 'devices/add', net: 'both' },
+  { name: 'device-graph', path: 'graph/:id(\\d+)?', legacy: '/graph/:id?', net: 'both' },
+  { name: 'device-analysis', path: 'analysis/:id(\\d+)?', legacy: '/analysis/:id?', net: 'net' },
+  { name: 'history', path: 'history/:id(\\d+)?', legacy: '/history/:id?', net: 'both' },
   { name: 'unknown-lines', path: 'unknown-lines', legacy: '/unknown-lines' },
   { name: 'model-rules', path: 'model-rules', legacy: '/model-rules' },
-  { name: 'compare', path: 'compare', legacy: '/compare' },
-  { name: 'check', path: 'check', legacy: '/check' },
-  { name: 'cleanup', path: 'cleanup', legacy: '/cleanup' },
-  { name: 'translate', path: 'translate', legacy: '/translate' },
-  { name: 'change', path: 'change', legacy: '/change' },
-  { name: 'scripts', path: 'scripts', legacy: '/check-projects' },
-  { name: 'check-project', path: 'scripts/:id(\\d+)', legacy: '/check-projects/:id' },
-  { name: 'migration', path: 'migration', legacy: '/migration' },
-  { name: 'impact', path: 'impact', legacy: '/impact' },
-  { name: 'topology', path: 'topology', legacy: '/topology' },
-  { name: 'consistency', path: 'consistency', legacy: '/consistency' },
-  { name: 'baseline', path: 'baseline', legacy: '/baseline' },
-  { name: 'export', path: 'export', legacy: '/export' },
+  { name: 'compare', path: 'compare', legacy: '/compare', net: 'both' },
+  { name: 'check', path: 'check', legacy: '/check', net: 'net' },
+  { name: 'cleanup', path: 'cleanup', legacy: '/cleanup', net: 'net' },
+  { name: 'translate', path: 'translate', legacy: '/translate', net: 'both' },
+  { name: 'change', path: 'change', legacy: '/change', net: 'net' },
+  { name: 'scripts', path: 'scripts', legacy: '/check-projects', net: 'net' },
+  { name: 'check-project', path: 'scripts/:id(\\d+)', legacy: '/check-projects/:id', net: 'net' },
+  { name: 'migration', path: 'migration', legacy: '/migration', net: 'net' },
+  { name: 'impact', path: 'impact', legacy: '/impact', net: 'net' },
+  { name: 'topology', path: 'topology', legacy: '/topology', net: 'net' },
+  { name: 'consistency', path: 'consistency', legacy: '/consistency', net: 'net' },
+  { name: 'baseline', path: 'baseline', legacy: '/baseline', net: 'net' },
+  { name: 'export', path: 'export', legacy: '/export', net: 'net' },
   { name: 'project-settings', path: 'settings' },
+  // M9：网络管理（项目层）、成员（按网络）、网络概览（只有网络层）
+  { name: 'networks', path: 'networks' },
+  { name: 'network-suggest', path: 'networks/suggest' },
+  { name: 'members', path: 'members', net: 'net' },
+  { name: 'network-home', path: '', net: 'only' },
 ]
 
-export const PROJECT_PAGE_NAMES: ReadonlySet<string> = new Set(PROJECT_PAGES.map((p) => p.name))
+/** 网络层路由的名称：n-<页面>。 */
+export const NET_PREFIX = 'n-'
+export const netName = (name: string): string => `${NET_PREFIX}${name}`
+/** 路由名称 → 页面名称（去掉 n-）。 */
+export function basePage(name: unknown): string {
+  const s = String(name ?? '')
+  return s.startsWith(NET_PREFIX) && PROJECT_PAGES.some((p) => p.name === s.slice(NET_PREFIX.length)) ? s.slice(NET_PREFIX.length) : s
+}
+/** 页面在网络维度上的位置（见 NetLevel）。 */
+export function pageNet(name: unknown): NetLevel | undefined {
+  const b = basePage(name)
+  return PROJECT_PAGES.find((p) => p.name === b)?.net
+}
+
+export const PROJECT_PAGE_NAMES: ReadonlySet<string> = new Set([...PROJECT_PAGES.map((p) => p.name), ...PROJECT_PAGES.filter((p) => p.net).map((p) => netName(p.name))])
 
 /** 项目引用 → 网址里的项目段：oam → oam，liwei/oam → liwei/oam（各段分别编码）。 */
 export function refPath(ref: string): string {
@@ -190,7 +216,75 @@ export function withProject<T>(to: T, ref: string | null): T {
 
 /** 项目页面的旧网址（没有旧网址的页面去“我的项目”）。 */
 export function legacyPath(name: string, params: Record<string, unknown> = {}): string {
-  const page = PROJECT_PAGES.find((p) => p.name === name)
+  const page = PROJECT_PAGES.find((p) => p.name === basePage(name))
   if (!page?.legacy) return '/projects'
   return page.legacy.replace(/\/:(\w+)\??/g, (_m, k: string) => (params[k] !== undefined && params[k] !== '' ? `/${encodeURIComponent(String(params[k]))}` : ''))
+}
+
+/**
+ * 跳到页面时带上当前网络（M9）：按网络的页面（net / both / only）在有当前网络时用网络层路由 n-<页面>，没有时用项目层。
+ * params.network 明确给出时按它（null / '' = 项目层“全部设备”）；已经是 n-<页面> 且没给 network 时交给 vue-router 沿用当前参数。
+ * 只有网络层的页面（网络概览）没有网络时去网络列表。
+ */
+export function withNetwork<T>(to: T, net: string | null): T {
+  if (!to || typeof to !== 'object') return to
+  const loc = to as unknown as { name?: unknown; params?: Record<string, unknown> }
+  if (typeof loc.name !== 'string') return to
+  const base = basePage(loc.name)
+  const level = pageNet(base)
+  const params = { ...(loc.params ?? {}) }
+  if (!level) {
+    if (!('network' in params)) return to
+    delete params.network
+    return { ...(to as object), params } as T
+  }
+  const given = 'network' in params
+  const want = given ? params.network : loc.name.startsWith(NET_PREFIX) ? undefined : net
+  delete params.network
+  if (given || !loc.name.startsWith(NET_PREFIX)) {
+    if (typeof want === 'string' && want) return { ...(to as object), name: netName(base), params: { ...params, network: want } } as T
+    if (level === 'only') return { ...(to as object), name: 'networks', params } as T
+    return { ...(to as object), name: base, params } as T
+  }
+  return to
+}
+
+// ---------------------------------------------------------------- 接口路径：按网络（M9，与后端 api/access.network_ok 一致）
+
+/** 只在项目层、不挂网络路径的接口（后端 NETWORK_EXCLUDE）：[方法, 路径模板]。 */
+const NETWORK_EXCLUDE: readonly [string, string][] = [
+  ['DELETE', '/devices/{id}'],
+  ['DELETE', '/devices/{id}/versions/{vid}'],
+  ['GET', '/devices/{id}/delete-preview'],
+  ['*', '/model-rules'],
+  ['*', '/model-rules/test'],
+  ['*', '/model-rules/{id}'],
+  ['PUT', '/devices/{id}/history/{vid}/tag'],
+  ['DELETE', '/devices/{id}/history/{vid}/tag'],
+]
+const EXCLUDE_RE = NETWORK_EXCLUDE.map(([m, p]) => [m, new RegExp('^' + p.replace(/\{[a-z]+\}/g, '[^/]+') + '$')] as const)
+/** 只在项目路径下、按网络的接口（后端 NETWORK_PROJECT_ONLY）。 */
+const NETWORK_PROJECT_ONLY = ['/rules', '/scripts', '/ai/', '/view-annotations']
+
+/** 项目路径后面的部分（例如 /topology、/view-annotations?x=1）是否也挂在网络路径下。 */
+export function networkable(method: string, rest: string): boolean {
+  const bare = rest.split('?')[0].split('#')[0]
+  const m = method.toUpperCase()
+  if (EXCLUDE_RE.some(([em, re]) => (em === '*' || em === m) && re.test(bare))) return false
+  if (bare === '/ai/kb/sanitize-redact') return false
+  if (isProjectApi(bare)) return true
+  return NETWORK_PROJECT_ONLY.some((x) => bare === x || bare.startsWith(x.endsWith('/') ? x : `${x}/`))
+}
+
+/**
+ * 当前项目的接口路径改走当前网络：/projects/<项目>/topology → /projects/<项目>/n/<网络>/topology。
+ * 没有当前网络（项目层）、不是当前项目、已经带网络、项目层的接口原样返回。
+ */
+export function networkPath(path: string, ref: string | null | undefined, net: string | null | undefined, method = 'GET'): string {
+  if (!ref || !net) return path
+  const pre = `/projects/${encodeURIComponent(ref)}`
+  if (!path.startsWith(`${pre}/`)) return path
+  const rest = path.slice(pre.length)
+  if (rest.startsWith('/n/') || !networkable(method, rest)) return path
+  return `${pre}/n/${encodeURIComponent(net)}${rest}`
 }

@@ -20,6 +20,10 @@ import VendorBadge from '@/components/vendor-badge.vue'
 import DeviceIcon from '@/components/devicon/DeviceIcon.vue'
 import { loadMarks } from '@/components/devicon/data'
 import { annoByDevice, badgesOf, pendingOf, resolveRole, vendorCode, type DeviceAnno, type PendingSuggestion } from '@/components/devicon/logic'
+import NetChip from '@/components/net-chip.vue'
+import NetUpgrade from '@/components/net-upgrade.vue'
+import { useNetwork } from '@/stores/network'
+import { netDevFilter, type DevNet, type NetDevFilter } from './networks/logic'
 
 const route = useRoute()
 const router = useRouter()
@@ -80,7 +84,14 @@ onMounted(() => {
 })
 
 const src = ref<SrcFilter>('')
-const rows = computed(() => bySource(filterDevices(devices.value, filter), src.value))
+// M9：设备在哪些网络里；在网络里看时（网址带网络）只列本网络的设备，并显示本网络用的版本、本网络的检查结果
+const network = useNetwork()
+const inNet = computed(() => !!route.params.network && !!network.info)
+type NetDev = ProjectDevice & { networks?: DevNet[]; network_policy?: 'follow' | 'pin'; network_pinned_seq?: number | null; network_newer_available?: boolean; network_findings?: { error: number; warning: number; info: number } | null }
+const netOf = (d: ProjectDevice) => d as NetDev
+const nonDefault = (d: ProjectDevice) => (netOf(d).networks ?? []).filter((x) => !x.default && x.slug !== network.cur)
+const netFilter = ref<NetDevFilter>('')
+const rows = computed(() => netDevFilter(bySource(filterDevices(devices.value, filter), src.value) as NetDev[], netFilter.value, inNet.value ? network.cur : null))
 const st = computed(() => stats(devices.value))
 const newer = computed(() => newerRefs(devices.value))
 const vendors = computed(() => vendorCounts(devices.value))
@@ -269,7 +280,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
       <div class="ph">
         <div class="ph-text">
           <h1>{{ $t('nav.devices') }}</h1>
-          <p class="ph-sub">{{ $t('devices.sub') }}</p>
+          <p class="ph-sub">{{ inNet ? $t('net.d.subNet') : $t('devices.sub') }}</p>
         </div>
         <div class="ph-actions">
           <button v-if="devices.length && canWrite" class="btn" :disabled="rebuilding" data-testid="rebuild-all" @click="rebuildAll()">
@@ -280,11 +291,12 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
           </button>
           <router-link v-if="canWrite" class="btn" :to="{ name: 'add-device' }" data-testid="add-device"><Icon name="plus" small /><span>{{ $t('nav.add-device') }}</span></router-link>
           <button v-if="canWrite" class="btn btn-primary" data-testid="open-import" @click="showImport = true">
-            <Icon name="upload" small /><span>{{ $t('devices.import') }}</span>
+            <Icon name="upload" small /><span>{{ inNet ? $t('net.d.importHere') : $t('devices.import') }}</span>
           </button>
         </div>
       </div>
 
+      <NetUpgrade v-if="!inNet" />
       <div v-if="rebuilding" class="notice info rebuild" data-testid="rebuild-progress">
         <Icon name="refresh" />
         <div class="grow">
@@ -363,6 +375,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
               <option value="approx">{{ $t('model.onlyApprox') }}</option>
               <option value="unsupported">{{ $t('model.onlyUnsupported') }}</option>
             </select>
+            <select v-if="network.networks.length > 1" v-model="netFilter" class="select" :aria-label="$t('net.d.colNets')" data-testid="filter-network">
+              <option value="">{{ $t('net.d.fAll') }}</option>
+              <option value="several">{{ inNet ? $t('net.d.fElsewhere') : $t('net.d.fSeveral') }}</option>
+              <option v-if="!inNet" value="only">{{ $t('net.d.fOnly') }}</option>
+              <option v-if="inNet" value="pin">{{ $t('net.d.fPin') }}</option>
+              <template v-if="!inNet"><option v-for="n in network.networks.filter((x) => !x.default)" :key="n.slug" :value="`n:${n.slug}`">{{ $t('net.d.fIn', { n: n.name }) }}</option></template>
+            </select>
             <span class="grow" />
             <span class="faint small">{{ $t('devices.showing', { n: rows.length, t: devices.length }) }}</span>
             <button class="btn btn-ghost btn-icon btn-sm" :title="$t('c.refresh')" :aria-label="$t('c.refresh')" @click="load"><Icon name="refresh" small /></button>
@@ -380,6 +399,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
                 <th style="width: 30px"><input type="checkbox" class="ck" :checked="allChecked" :aria-label="$t('devices.selectAll')" @change="toggleAll(($event.target as HTMLInputElement).checked)"></th>
                 <th>{{ $t('devices.colDevice') }}</th>
                 <th>{{ $t('devices.colSource') }}</th>
+                <th v-if="network.networks.length">{{ inNet ? $t('net.d.colHere') : $t('net.d.colNets') }}</th>
                 <th>{{ $t('devices.colVendor') }}</th>
                 <th>Profile</th>
                 <th class="num">{{ $t('devices.colLines') }}</th>
@@ -393,7 +413,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
             </thead>
             <tbody>
               <tr v-if="!rows.length">
-                <td colspan="12">
+                <td :colspan="network.networks.length ? 13 : 12">
                   <div class="empty">
                     <h3>{{ $t('devices.noMatch') }}</h3>
                     <p>{{ $t('devices.noMatchHint') }}</p>
@@ -414,6 +434,18 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
                 </td>
                 <td class="nowrap" :title="d.origin_note ?? undefined">
                   <ProjSource :source="d.source" :policy="d.policy" :seq="currentSeq(d)" :latest-seq="d.versions" :newer="d.newer_available" />
+                </td>
+                <td v-if="network.networks.length" :data-testid="`dev-nets-${d.id}`">
+                  <div class="nw-netcol">
+                    <template v-if="inNet">
+                      <span v-if="netOf(d).network_policy === 'pin'" class="verchip pin"><Icon name="pin" small />v{{ netOf(d).network_pinned_seq ?? '—' }}</span>
+                      <span v-else class="verchip follow"><Icon name="refresh" small />{{ $t('net.d.latest') }}</span>
+                      <span v-if="netOf(d).network_newer_available" class="nw-newer"><Icon name="info" small />{{ $t('net.m.newer', { v: d.versions }) }}</span>
+                      <span v-if="netOf(d).network_findings" class="nw-cnt3" :title="$t('net.d.findingsHere')"><span><i class="sevdot error" />{{ netOf(d).network_findings!.error }}</span><span><i class="sevdot warning" />{{ netOf(d).network_findings!.warning }}</span></span>
+                    </template>
+                    <span class="nw-chips"><NetChip v-for="x in nonDefault(d)" :key="x.slug" :net="x" :to="{ name: 'devices', params: { network: x.slug } }" /></span>
+                    <span v-if="!nonDefault(d).length" class="nw-defnote">{{ inNet ? $t('net.m.noOther') : $t('net.d.onlyDefault') }}</span>
+                  </div>
                 </td>
                 <td class="nowrap">
                   <VendorBadge v-if="d.vendor" :of="d.vendor">{{ vendorLabel(d.vendor) }}</VendorBadge>
@@ -448,11 +480,12 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
                 </td>
                 <td class="nowrap faint" :title="fmtTime(d.collected_at, true)">{{ fmtTime(d.collected_at) }}</td>
                 <td class="right nowrap">
-                  <button v-if="canWrite && d.source !== 'public'" class="btn btn-ghost btn-icon btn-sm del-btn" type="button" :title="$t('devdel.deleteDevice')" :aria-label="`${$t('devdel.deleteDevice')} ${d.name}`" data-testid="device-delete" @click="delId = d.id"><Icon name="trash" small /></button>
+                  <router-link v-if="inNet" class="btn btn-ghost btn-sm" :to="{ name: 'members' }" :data-testid="`dev-member-${d.id}`">{{ $t('net.d.membership') }}</router-link>
+                  <button v-if="canWrite && d.source !== 'public' && !inNet" class="btn btn-ghost btn-icon btn-sm del-btn" type="button" :title="$t('devdel.deleteDevice')" :aria-label="`${$t('devdel.deleteDevice')} ${d.name}`" data-testid="device-delete" @click="delId = d.id"><Icon name="trash" small /></button>
                   <span class="kebab">
                     <button class="btn btn-ghost btn-icon btn-sm" type="button" :aria-label="$t('devices.more', { d: d.name })" :aria-expanded="menuFor === d.id" data-testid="device-menu" @click.stop="menuFor = menuFor === d.id ? null : d.id"><Icon name="more" small /></button>
                     <span v-if="menuFor === d.id" class="kebab-pop" role="menu">
-                      <button v-for="a in rowActions(d, canWrite)" :key="a" type="button" role="menuitem" :class="{ danger: a === 'delete' || a === 'unlink' }" :data-testid="`device-act-${a}`" @click="act(d, a)">
+                      <button v-for="a in rowActions(d, canWrite).filter((x) => !inNet || (x !== 'delete' && x !== 'unlink'))" :key="a" type="button" role="menuitem" :class="{ danger: a === 'delete' || a === 'unlink' }" :data-testid="`device-act-${a}`" @click="act(d, a)">
                         <Icon :name="ACT_ICON[a]" small />{{ $t(`devices.act.${a}`) }}
                       </button>
                     </span>

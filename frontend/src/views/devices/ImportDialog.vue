@@ -8,6 +8,8 @@ import {
   type ImportFileResult,
 } from './logic'
 import IdentifyStep from './IdentifyStep.vue'
+import NetChip from '@/components/net-chip.vue'
+import type { NetBrief } from '@/views/networks/logic'
 import { buildChoices, hasCondition, initialChoice, pct, regexOk, type FileChoice, type InspectFile } from './model'
 
 const emit = defineEmits<{ close: []; imported: [results: ImportFileResult[]] }>()
@@ -26,6 +28,9 @@ const dragging = ref(false)
 
 const totalBytes = computed(() => files.value.reduce((a, f) => a + f.size, 0))
 const totals = computed(() => importTotals(results.value))
+// M9：导入后自动加入的网络（默认网络不列：新设备都会进默认网络）
+type Joined = NetBrief & { via: 'default' | 'current' | 'rule'; rule?: { pattern: string } | null }
+const joinedOf = (r: ImportFileResult) => ((r as ImportFileResult & { joined_networks?: Joined[] }).joined_networks ?? []).filter((j) => !j.default)
 const STEPS = ['stepSource', 'stepLevel', 'stepIdentify', 'stepResult'] as const
 
 // ---- 识别与 Profile（REQ-044）：POST /configs/inspect（不入库），每个文件的选择按来源名保存
@@ -246,6 +251,10 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKey))
                     <td class="mono nowrap">
                       {{ r.source }}
                       <div v-if="r.ok" class="small faint" style="font-family: var(--font-ui)">{{ $t('devices.deviceName') }} <span class="mono">{{ r.device }}</span></div>
+                      <div v-if="r.ok && joinedOf(r).length" class="nw-joined" style="font-family: var(--font-ui); margin-top: 3px" :data-testid="`import-joined-${r.device}`">
+                        <span>{{ $t('net.d.joined') }}</span>
+                        <template v-for="j in joinedOf(r)" :key="j.id"><NetChip :net="j" /><span class="faint">{{ j.via === 'rule' ? $t('net.d.viaRule', { p: j.rule?.pattern ?? '' }) : $t('net.d.viaCurrent') }}</span></template>
+                      </div>
                     </td>
                     <td v-if="!r.ok && skippedByUser.has(r.source)" colspan="6"><span class="tag">{{ $t('model.skipped') }}</span></td>
                     <td v-else-if="!r.ok" colspan="6"><span class="tag fail">{{ $t('c.failed') }}</span> <span class="small">{{ r.error }}</span></td>

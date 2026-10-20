@@ -9,6 +9,8 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import { del, errorText, get } from '@/api'
 import { canConfirm, deletePath, planDelete, projectList, type DeletePreview } from '@/views/devices/deleteLogic'
+import NetChip from '@/components/net-chip.vue'
+import type { NetBrief } from '@/views/networks/logic'
 
 const props = defineProps<{ deviceId: number; versionId?: number | null }>()
 const emit = defineEmits<{ (e: 'close'): void; (e: 'deleted', result: Record<string, unknown>, message: string): void }>()
@@ -38,6 +40,8 @@ const title = computed(() => {
   return vid.value === null ? T('titleDevice', { name }) : T('titleVersion', { name, seq: plan.value?.version?.seq ?? vid.value })
 })
 const ok = computed(() => !!plan.value && canConfirm(plan.value, force.value) && !busy.value)
+// M9：设备在哪些网络里（删除设备后从这些网络里一起移出）
+const nets = computed(() => (pv.value as (DeletePreview & { networks?: NetBrief[] }) | null)?.networks ?? [])
 
 async function confirm(): Promise<void> {
   if (!plan.value || !pv.value || !ok.value) return
@@ -93,6 +97,14 @@ async function confirm(): Promise<void> {
               <div class="grow">
                 <div>{{ T('moved', { n: plan.moved.length, seq: plan.nextLatest.seq }) }}</div>
                 <div class="mono small plist">{{ projectList(plan.moved) }}</div>
+              </div>
+            </div>
+            <div v-if="vid === null && nets.length > 1" class="notice warn mt12" data-testid="devdel-networks">
+              <Icon name="warn" />
+              <div class="grow small">
+                <b>{{ $t('net.d.delIn') }}</b>
+                <div class="nw-chips" style="margin: 6px 0"><NetChip v-for="n in nets" :key="n.id" :net="n" /></div>
+                {{ $t('net.d.delNote') }}
               </div>
             </div>
             <p class="small faint mt8">{{ T('logged') }}</p>

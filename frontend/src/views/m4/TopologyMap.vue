@@ -15,7 +15,8 @@ import '@/components/devicon/devicon.css'
 
 /** 每台设备的显示（父组件按标注与建议算好，文字已是当前语言）。 */
 export interface NodeShow { glyph: string; vendor: VendorCode | ''; badges: Badge[]; ghost: boolean; sub: string; subAi: boolean; group: string }
-export interface ExtraShow { nodes: { id: string; label: string; glyph: string; ghost: boolean; group: string }[]; edges: { id: string; source: string; target: string; kind: 'peer' | 'ai'; label: string }[] }
+/** 额外的节点与边：推测的对端（peer / ai），以及 M9 网络外的对端（out：灰色虚线短线，节点可点，点了 emit pick('out', id)）。 */
+export interface ExtraShow { nodes: { id: string; label: string; glyph: string; ghost: boolean; group: string; out?: boolean }[]; edges: { id: string; source: string; target: string; kind: 'peer' | 'ai' | 'out'; label: string }[] }
 
 const props = withDefaults(defineProps<{
   nodes: TopoNode[]
@@ -27,7 +28,7 @@ const props = withDefaults(defineProps<{
   positions?: Record<string, Pos> | null
   iconSet?: string
 }>(), { show: () => ({}), extra: () => ({ nodes: [], edges: [] }), positions: null, iconSet: 'geo' })
-const emit = defineEmits<{ (e: 'pick', k: 'link' | 'dev', id: string): void; (e: 'clear'): void }>()
+const emit = defineEmits<{ (e: 'pick', k: 'link' | 'dev' | 'out', id: string): void; (e: 'clear'): void }>()
 
 const box = ref<HTMLDivElement>()
 const tip = ref<{ x: number; y: number; text: string } | null>(null)
@@ -79,6 +80,8 @@ function style(): StylesheetJson {
     { selector: 'edge.l2.st-warn', style: { 'line-color': v('amber') } },
     { selector: 'edge.xpeer', style: { width: 1.4, 'line-color': v('ink-3'), label: 'data(label)', 'font-family': ui } },
     { selector: 'edge.xai', style: { width: 1.6, 'line-color': v('violet'), 'line-style': 'dashed', 'line-dash-pattern': [5, 4], label: 'data(label)', color: v('violet'), 'font-family': ui, 'font-weight': 600, 'font-size': 10.5 } },
+    { selector: 'edge.xout', style: { width: 1.6, 'line-color': v('ink-3'), 'line-style': 'dashed', 'line-dash-pattern': [3, 3], label: 'data(label)', color: v('ink-3'), 'font-family': mono, 'font-size': 9.5, opacity: 0.85 } },
+    { selector: 'node.out', style: { opacity: 0.72, color: v('ink-2'), 'font-weight': 500 } },
     { selector: 'edge.is-sel', style: { width: 6, 'z-index': 20 } },
     { selector: 'edge.dim', style: { opacity: 0.18 } },
     { selector: '.off', style: { display: 'none' } },
@@ -128,7 +131,7 @@ function elements(): ElementDefinition[] {
     out.push({
       group: 'nodes',
       data: { id: x.id, label: x.label, img: icon(x.glyph, { ghost: x.ghost }), tip: x.label, ...(x.group ? { parent: `grp:${x.group}` } : {}) },
-      classes: `ext${x.ghost ? ' ghost' : ''}`,
+      classes: `ext${x.ghost ? ' ghost' : ''}${x.out ? ' out' : ''}`,
       ...(pos?.[x.id] ? { position: { ...pos[x.id] } } : {}),
     })
   }
@@ -143,7 +146,7 @@ function elements(): ElementDefinition[] {
   }
   for (const e of props.extra.edges) {
     if (!ids.has(e.source) || !ids.has(e.target)) continue
-    out.push({ group: 'edges', data: { id: e.id, source: e.source, target: e.target, label: e.label, tip: e.label }, classes: e.kind === 'ai' ? 'xai' : 'xpeer' })
+    out.push({ group: 'edges', data: { id: e.id, source: e.source, target: e.target, label: e.label, tip: e.label }, classes: e.kind === 'ai' ? 'xai' : e.kind === 'out' ? 'xout' : 'xpeer' })
   }
   return out
 }
@@ -215,7 +218,11 @@ onMounted(() => {
   cy = cytoscape({ container: box.value, style: style(), minZoom: 0.15, maxZoom: 3, boxSelectionEnabled: false, autounselectify: true })
   ;(box.value as unknown as { __cy?: Core }).__cy = cy
   cy.on('tap', 'node.dev', (ev) => emit('pick', 'dev', ev.target.id() as string))
-  cy.on('tap', 'edge', (ev) => { if (!ev.target.hasClass('xpeer') && !ev.target.hasClass('xai')) emit('pick', 'link', ev.target.id() as string) })
+  cy.on('tap', 'node.out', (ev) => emit('pick', 'out', ev.target.id() as string))
+  cy.on('tap', 'edge', (ev) => {
+    if (ev.target.hasClass('xout')) emit('pick', 'out', ev.target.target().id() as string)
+    else if (!ev.target.hasClass('xpeer') && !ev.target.hasClass('xai')) emit('pick', 'link', ev.target.id() as string)
+  })
   cy.on('tap', (ev) => { if (ev.target === cy) emit('clear') })
   cy.on('mouseover', 'node.dev, node.ext, edge', (ev) => {
     const p = ev.renderedPosition ?? { x: 0, y: 0 }
@@ -241,7 +248,7 @@ watch(() => [props.sel, props.layers], marks, { deep: true })
 
 <template>
   <div class="mapw">
-    <div ref="box" class="gview" data-testid="topo-canvas" :data-nodes="nodes.length" :data-links="groups.length" :data-icon-set="iconSet" :data-extra="extra.edges.length" />
+    <div ref="box" class="gview" data-testid="topo-canvas" :data-nodes="nodes.length" :data-links="groups.length" :data-icon-set="iconSet" :data-extra="extra.edges.length" :data-outside="extra.edges.filter((e) => e.kind === 'out').length" />
     <div v-if="tip" class="gtip" :style="{ left: `${tip.x}px`, top: `${tip.y}px` }">{{ tip.text }}</div>
   </div>
 </template>

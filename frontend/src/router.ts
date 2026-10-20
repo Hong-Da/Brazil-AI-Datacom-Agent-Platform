@@ -1,9 +1,10 @@
-import { createRouter, createWebHistory, type RouteComponent, type RouteRecordRaw, type RouteLocationRaw } from 'vue-router'
+import { createRouter, createWebHistory, type RouteComponent, type RouteRecordRaw, type RouteLocationRaw, type RouteLocationNormalized } from 'vue-router'
 import { defineComponent } from 'vue'
 import { api, ApiError } from '@/api'
 import { useAuth } from '@/stores/auth'
 import { useProject } from '@/stores/project'
-import { legacyTarget, PROJECT_PAGES, refFromParam, refParam, withProject } from '@/project/scope'
+import { basePage, legacyTarget, netName, pageNet, PROJECT_PAGES, refFromParam, refParam, withNetwork, withProject } from '@/project/scope'
+import { useNetwork } from '@/stores/network'
 import { shouldShowUpgrade, upgradeSeen } from '@/project/upgrade'
 
 /** 项目页面（/p/<项目>/…，REQ-035）的组件；consistency 是拓扑页的另一个视图。 */
@@ -29,17 +30,40 @@ const PROJECT_VIEWS: Record<string, () => Promise<RouteComponent | { default: Ro
   baseline: () => import('@/views/BaselineView.vue'),
   export: () => import('@/views/ExportView.vue'),
   'project-settings': () => import('@/views/ProjectSettingsView.vue'),
+  networks: () => import('@/views/NetworksView.vue'),
+  'network-suggest': () => import('@/views/NetworkSuggestView.vue'),
+  members: () => import('@/views/NetworkMembersView.vue'),
+  'network-home': () => import('@/views/NetworkHomeView.vue'),
 }
+/** 按网络的页面在项目层（“全部设备”）显示各网络汇总（M9 评审：allpages = summary）。 */
+const NetSummary = () => import('@/views/NetSummaryView.vue')
 
 /** 旧网址只用来跳到当前项目的对应页面（守卫里处理），不渲染内容。 */
 const Legacy = defineComponent({ render: () => null })
 
-const projectRoutes: RouteRecordRaw[] = PROJECT_PAGES.map((p) => ({
-  path: `/p/:project+/${p.path}`, // /p/<标识>/… 或 /p/<属主>/<标识>/…（标识按属主唯一）
-  name: p.name,
-  component: PROJECT_VIEWS[p.name],
-  meta: { project: true, ...(p.name === 'consistency' ? { view: 'consistency' } : {}) },
-}))
+// M9：按网络的页面另有网络层路由 n-<页面>（/p/<项目>/n/<网络>/…）；项目层网址是“全部设备”（net 页面显示各网络汇总）
+const projectRoutes: RouteRecordRaw[] = PROJECT_PAGES.flatMap((p) => {
+  const meta = { project: true, page: p.name, ...(p.name === 'consistency' ? { view: 'consistency' } : {}) }
+  const out: RouteRecordRaw[] = []
+  if (p.net !== 'only') {
+    out.push({
+      path: `/p/:project+/${p.path}`, // /p/<标识>/… 或 /p/<属主>/<标识>/…（标识按属主唯一）
+      name: p.name,
+      component: p.net === 'net' ? NetSummary : PROJECT_VIEWS[p.name],
+      meta,
+    })
+  }
+  if (p.net) {
+    out.push({
+      // :network 写成自定义正则：排序时与项目层的 :id(\d+)? 同级加分，否则 /p/a/n/b/analysis/1 会被项目层路由当成项目 a/n/b
+      path: `/p/:project+/n/:network([^/]+)${p.path ? `/${p.path}` : ''}`,
+      name: netName(p.name),
+      component: PROJECT_VIEWS[p.name],
+      meta: { ...meta, network: true },
+    })
+  }
+  return out
+})
 const legacyRoutes: RouteRecordRaw[] = PROJECT_PAGES.filter((p) => p.legacy).map((p) => ({
   path: p.legacy as string,
   name: `legacy-${p.name}`,
@@ -86,10 +110,12 @@ export const router = createRouter({
 })
 
 // 从非项目页面按名称跳到项目页面（{ name: 'devices' }）时补上当前项目；在项目页面之间跳转时 vue-router 自己沿用
+// 按网络的页面（M9）：补上当前网络（有当前网络时去网络层路由 n-<页面>，params.network 为 null 时去项目层）
 const { resolve, push, replace } = router
-router.resolve = ((to: RouteLocationRaw, current?: Parameters<typeof resolve>[1]) => resolve(withProject(to, useProject().ref), current)) as typeof resolve
-router.push = ((to: RouteLocationRaw) => push(withProject(to, useProject().ref))) as typeof push
-router.replace = ((to: RouteLocationRaw) => replace(withProject(to, useProject().ref))) as typeof replace
+const scoped = (to: RouteLocationRaw): RouteLocationRaw => withProject(withNetwork(to, useNetwork().cur), useProject().ref)
+router.resolve = ((to: RouteLocationRaw, current?: Parameters<typeof resolve>[1]) => resolve(scoped(to), current)) as typeof resolve
+router.push = ((to: RouteLocationRaw) => push(scoped(to))) as typeof push
+router.replace = ((to: RouteLocationRaw) => replace(scoped(to))) as typeof replace
 
 let configured: boolean | null = null
 let upgradeChecked = false
@@ -140,8 +166,9 @@ router.beforeEach(async (to) => {
     }
     // 网址里的写法不是规范引用（例如别人的项目只写了标识、或写了编号）：换成规范的网址
     if (detail.ref !== want) return { name: to.name as string, params: { ...to.params, project: refParam(detail.ref) }, query: to.query, hash: to.hash, replace: true }
-    return true
+    return enterNetwork(to, detail.ref)
   }
+  useNetwork().leave()
   // 其他页面（首页、AI 查询、模板……）的设备数据也来自当前项目
   await project.ensure()
   // 升级到 0.6.0 后第一次登录：说明现有数据移入了哪些项目（每次打开网页最多检查一次；看过的账号不再查）
@@ -154,6 +181,42 @@ router.beforeEach(async (to) => {
   }
   return true
 })
+
+/**
+ * 网络（M9）：网络层网址 → 当前网络（不存在时回到网络列表并说明）；项目层的按网络页面 → “全部设备”汇总，
+ * 只有默认网络时、或网址指向具体对象（设备、脚本编号，?device=）时直接进默认网络（默认网络包含全部设备）。
+ */
+async function enterNetwork(to: RouteLocationNormalized, ref: string): Promise<true | RouteLocationRaw> {
+  const network = useNetwork()
+  if (network.project !== ref) network.reset()
+  const page = basePage(to.name)
+  const level = pageNet(page)
+  if (!level) {
+    network.leave()
+    return true
+  }
+  if (to.meta.network) {
+    const want = String(to.params.network ?? '')
+    let list = await network.load(ref)
+    if (!list.networks.some((n) => n.slug === want)) list = await network.load(ref, true) // 刚建的或刚改名的网络
+    if (!list.networks.some((n) => n.slug === want)) {
+      network.enter(null)
+      return { name: 'networks', params: { project: refParam(ref) }, query: { missing: want } }
+    }
+    network.enter(want)
+    return true
+  }
+  network.enter(null)
+  if (level !== 'net') return true
+  const list = await network.load(ref)
+  const def = list.networks.find((n) => n.default)
+  const specific = to.params.id !== undefined && to.params.id !== '' || typeof to.query.device === 'string'
+  if (def && (list.networks.length <= 1 || specific)) {
+    network.enter(def.slug)
+    return { name: netName(page), params: { ...to.params, network: def.slug }, query: to.query, hash: to.hash, replace: true }
+  }
+  return true
+}
 
 export function markConfigured(): void {
   configured = true
