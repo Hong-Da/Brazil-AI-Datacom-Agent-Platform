@@ -1,4 +1,4 @@
-"""生成可部署的发布包（REQ-046），产物只放在本机 dist/。
+"""生成可部署的发布包（REQ-046），产物只放在本机 dist/<版本>/（每个版本一个文件夹）。
 
 用法：uv run --no-project python scripts/build_release.py [版本号] [--targets 目标,…] [--skip-frontend]
   版本号    默认取 pyproject.toml 的版本；可以加后缀，例如 0.5.0-rc（必须以 pyproject.toml 的版本开头）
@@ -342,7 +342,7 @@ def build_docker(version: str, image_out: Path, compose_out: Path) -> None:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="生成发布包到 dist/")
+    ap = argparse.ArgumentParser(description="生成发布包到 dist/<版本>/")
     ap.add_argument("version", nargs="?", default=None)
     ap.add_argument("--targets", default="win-zip,win-exe" if IS_WIN else "linux,docker")
     ap.add_argument("--skip-frontend", action="store_true")
@@ -363,7 +363,8 @@ def main() -> None:
         sys.exit("win-zip / win-exe 只能在 Windows 上生成")
     if ({"linux", "docker"} & set(targets)) and IS_WIN:
         sys.exit("linux / docker 只能在 Linux 上生成")
-    DIST.mkdir(exist_ok=True)
+    out = DIST / version  # 每个版本一个文件夹，方便区分
+    out.mkdir(parents=True, exist_ok=True)
     WORK.mkdir(parents=True, exist_ok=True)
     made: list[Path] = []
     if not a.skip_frontend and set(targets) - {"docker"}:
@@ -372,20 +373,20 @@ def main() -> None:
         stage = WORK / f"lmesh-{version}"
         stage_windows(stage, version)
         if "win-zip" in targets:
-            made.append(DIST / f"lmesh_{version}_windows-x64.zip")
+            made.append(out / f"lmesh_{version}_windows-x64.zip")
             make_zip(stage, made[-1])
         if "win-exe" in targets:
-            made.append(DIST / f"lmesh_{version}_windows-x64_setup.exe")
+            made.append(out / f"lmesh_{version}_windows-x64_setup.exe")
             make_exe(stage, version, made[-1])
     if "linux" in targets:
         stage = WORK / f"lmesh-{version}"
         stage_linux(stage, version)
-        made.append(DIST / f"lmesh_{version}_linux-x86_64.tar.gz")
+        made.append(out / f"lmesh_{version}_linux-x86_64.tar.gz")
         make_tar(stage, made[-1])
     if "docker" in targets:
-        made += [DIST / f"lmesh_{version}_docker-image.tar.gz", DIST / f"lmesh_{version}_docker-compose.tar.gz"]
+        made += [out / f"lmesh_{version}_docker-image.tar.gz", out / f"lmesh_{version}_docker-compose.tar.gz"]
         build_docker(version, made[-2], made[-1])
-    sums = DIST / f"lmesh_{version}_SHA256SUMS.txt"
+    sums = out / f"lmesh_{version}_SHA256SUMS.txt"
     lines = {}
     if sums.exists():
         for line in sums.read_text(encoding="utf-8").splitlines():

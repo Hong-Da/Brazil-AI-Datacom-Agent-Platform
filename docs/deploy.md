@@ -2,7 +2,7 @@
 
 本文说明四种可部署形式的安装、升级、卸载，以及改用 PostgreSQL、端口与防火墙、备份。所有形式都可以离线安装：包内自带 Python 运行时、全部依赖、已构建的界面和程序自带的知识库，目标机器不需要联网，也不需要安装 Python、Node 或 Git。
 
-| 形式 | 文件（`dist/`） | 适用 |
+| 形式 | 文件（`dist/<版本>/`） | 适用 |
 |---|---|---|
 | Docker 镜像 + compose | `lmesh_<版本>_docker-image.tar.gz`、`lmesh_<版本>_docker-compose.tar.gz` | 已有 Docker 的 Linux 服务器 |
 | Linux 离线安装包 | `lmesh_<版本>_linux-x86_64.tar.gz` | x86_64 Linux（glibc 2.28 以上，如 RHEL 8、Ubuntu 20.04、Debian 10 及更新），systemd 服务 |
@@ -189,4 +189,4 @@ scripts/build_release.sh 0.8.0
 # 只生成部分：--targets win-zip | win-exe | linux | docker（可用逗号组合）；版本号可加后缀，如 0.8.0-rc
 ```
 
-版本号必须与 `pyproject.toml` 一致（可加后缀）。构建会先按需构建前端，复制项目内 `.toolchain/` 中 uv 管理的 Python 运行时，按 `uv.lock` 把依赖装进运行时，再打包；NSIS（3.11 便携版）和 WinSW 按固定的 SHA256 下载到 `.toolchain/`。Docker 镜像多阶段构建（Node 构建前端、Python 运行），基础镜像版本固定；代理与镜像源用环境变量 `HTTP_PROXY`、`HTTPS_PROXY`、`UV_INDEX_URL`、`NPM_CONFIG_REGISTRY` 传入。产物只放在本机 `dist/`，发布前须经用户同意。
+版本号必须与 `pyproject.toml` 一致（可加后缀）。构建会先按需构建前端，复制项目内 `.toolchain/` 中 uv 管理的 Python 运行时，按 `uv.lock` 把依赖装进运行时，再打包；NSIS（3.11 便携版）和 WinSW 按固定的 SHA256 下载到 `.toolchain/`。Docker 镜像多阶段构建（Node 构建前端、Python 运行），基础镜像版本固定；代理与镜像源用环境变量 `HTTP_PROXY`、`HTTPS_PROXY`、`UV_INDEX_URL`、`NPM_CONFIG_REGISTRY` 传入。产物只放在本机 `dist/<版本>/`（每个版本一个文件夹），发布前须经用户同意。

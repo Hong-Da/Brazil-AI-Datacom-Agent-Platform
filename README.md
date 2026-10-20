@@ -36,7 +36,7 @@
 | Windows 离线包 | 解压 `lmesh_<版本>_windows-x64.zip`，双击 `start.bat`；`service-install.bat` 注册为 Windows 服务 |
 | Windows 安装程序 | 运行 `lmesh_<版本>_windows-x64_setup.exe` |
 
-各形式都自带 Python 运行时与依赖；数据库默认 SQLite，可在配置中改为 PostgreSQL。升级时保留配置与数据，自动迁移数据库，并把新版本自带的知识库合并进运行时知识库（双方都改过的文件进审核队列）。发布包由 `scripts/build_release.bat`（Windows：zip、exe）与 `scripts/build_release.sh`（Linux：tar.gz、Docker 镜像）生成到 `dist/`。
+各形式都自带 Python 运行时与依赖；数据库默认 SQLite，可在配置中改为 PostgreSQL。升级时保留配置与数据，自动迁移数据库，并把新版本自带的知识库合并进运行时知识库（双方都改过的文件进审核队列）。发布包由 `scripts/build_release.bat`（Windows：zip、exe）与 `scripts/build_release.sh`（Linux：tar.gz、Docker 镜像）生成到 `dist/<版本>/`（每个版本一个文件夹）。
 
 ## 使用方式
 
@@ -110,7 +110,7 @@ lmesh/
 │   ├── build_frontend.py       按需构建前端
 │   ├── run_tests.py            一键测试的实际逻辑
 │   ├── gen_docs.py             从测试用例生成调用文档示例、导出 OpenAPI
-│   ├── build_release.py        生成发布包到 dist/（外层 build_release.bat / .sh；REQ-046）
+│   ├── build_release.py        生成发布包到 dist/<版本>/（外层 build_release.bat / .sh；REQ-046）
 │   ├── linux_sync.sh           开发辅助：把代码同步到 Linux 测试机
 │   ├── e2e_server.py           端到端测试用的临时服务（全量知识库 + 样本）
 │   └── build_icons.py          从 logo.svg 导出图标
@@ -119,7 +119,7 @@ lmesh/
 ├── .claude/skills/             项目专属 skill（lmesh-docs-to-graph：产品文档 → 配置图）
 ├── data/ logs/ cache/ tmp/     运行时文件（不入库；用户的翻译规则集在 data/translate-rules/，我的模板在 data/user-templates/，管理员修改的 AI skill 版本在 data/ai-skills/，访问审计在 logs/audit.log）
 ├── .toolchain/                 依赖缓存与项目内的 Python、Node，以及打包用的 NSIS 便携版、WinSW（不入库）
-└── dist/                       发布包（不入库，不推送远程）
+└── dist/<版本>/                发布包，每个版本一个文件夹（不入库，不推送远程）
 ```
 
 `DevelopDocs/` 是开发文档的本地仓库，不随主仓库发布。
