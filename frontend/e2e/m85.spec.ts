@@ -24,7 +24,8 @@ test('AI 规范转规则、脱敏复核、报告摘要（未配置 AI 时入口�
 
   await page.goto('/check#rules')
   const box = page.getByTestId('rule-draft')
-  await expect(box).toBeVisible()
+  // 这套配置用 Vite 开发服务：首次打开页面要现场编译，较慢的机器上会超过默认的 15 秒
+  await expect(box).toBeVisible({ timeout: 60_000 })
   if (!skills.ai.configured) {
     await expect(box.getByTestId('ai-entry')).toHaveAttribute('data-off', 'true')
     expect(errors).toEqual([])
