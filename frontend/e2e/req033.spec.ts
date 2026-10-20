@@ -20,17 +20,17 @@ test('AI skill：列表、编辑保存为新版本、回滚与恢复内置、未
   await page.goto('/')
   await page.getByTestId('nav-ai-skills').click()
   await expect(page).toHaveURL(/\/ai-skills$/)
-  await expect(page.getByTestId('sk-row')).toHaveCount(8) // 原有 6 个 + M8-2 的两个示范（设备摘要、拓扑角色）
+  await expect(page.getByTestId('sk-row')).toHaveCount(24) // 原有 6 个 + M8 新增 18 个（日常分析 6、变更与割接 5、规范与合规 3、知识库 3、报告 1）
   // 按功能分组（REQ-033 评审修改）：问答组 2 个；按组筛选、跨组搜索、折叠
   await expect(page.locator('[data-group="qa"] [data-testid="sk-row"]')).toHaveCount(2)
   await page.getByTestId('sk-group-kb').click()
-  await expect(page.getByTestId('sk-row')).toHaveCount(1)
+  await expect(page.getByTestId('sk-row')).toHaveCount(4)
   await page.getByTestId('sk-group-all').click()
   await page.getByTestId('sk-filter').fill('ask-')
   await expect(page.getByTestId('sk-group-block')).toHaveCount(1)
   await page.getByTestId('sk-filter').fill('')
   await page.getByTestId('sk-group-toggle-qa').click()
-  await expect(page.getByTestId('sk-row')).toHaveCount(6)
+  await expect(page.getByTestId('sk-row')).toHaveCount(22)
   await page.getByTestId('sk-group-toggle-qa').click()
   await expect(page.getByTestId('sk-ai-off')).toBeVisible()
   await expectNoKeys(page)

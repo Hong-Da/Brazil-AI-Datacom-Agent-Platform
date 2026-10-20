@@ -1,0 +1,114 @@
+# 内置 AI skill（只读）：变更意图转脚本（M8-4，REQ-041）：用一句话描述对一台现网设备的变更，AI 只给出目标图上的改动。
+# 管理员修改后的版本保存在 data/ai-skills/intent-script/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。AI 只能用代码给出的对象编号（d1、n1……）与 Schema 节点表示改动；
+# 脚本、回滚脚本、影响分析与模拟执行都由代码完成（core/ai_suggest_change.py）。
+id: intent-script
+version: 1
+title: {zh-CN: 变更意图转脚本, en: Change intent to script, pt-BR: Intenção de mudança em script}
+description: {zh-CN: 用一句话描述对一台现网设备的变更，AI 只给出目标图上的增、删、改；节点必须在 Schema 中、取值合法、引用存在，脚本、回滚、影响分析与模拟执行都由代码完成，校验不通过的拒绝。, en: 'Describe a change to a live device in one sentence; the AI only proposes additions, deletions and edits on the target graph. Nodes must exist in the Schema, values must be valid and references must exist; the script, rollback, impact analysis and simulation are all done by code, and failing edits are rejected.', pt-BR: 'Descreva em uma frase uma mudança em um dispositivo em produção; a IA só propõe inclusões, exclusões e alterações no grafo-alvo. Os nós devem existir no Schema, os valores devem ser válidos e as referências devem existir; script, reversão, análise de impacto e simulação são feitos pelo código, e edições reprovadas são rejeitadas.'}
+task: generate
+used_by: ai_suggest
+group: change
+enabled: true
+system: |-
+  You turn a change request for ONE router into edits on its configuration graph. You never write CLI commands: code renders the commands, the rollback, the impact analysis and a simulation from your edits.
+  Rules:
+  - Refer to existing objects ONLY by the ids given (d1 is the device, n1, n2 ... are objects). Never invent ids.
+  - Use ONLY the Schema nodes listed (id | type | parent). Attribute values must match the type, range and choices shown; a ref value must be the key of an existing object (or one you add) of the referenced type.
+  - Edit operations:
+    {{"op": "set", "target": "n3", "attr": "<schema attribute id>", "value": <value>}}   set or change an attribute of an object
+    {{"op": "unset", "target": "n3", "attr": "<schema attribute id>"}}                     remove an attribute
+    {{"op": "add", "id": "+1", "parent": "d1|n2|+1", "schema": "<schema object id>", "key": "<key>" or {{"<field>": "<value>"}}, "attrs": {{"<schema attribute id>": <value>}}}}   create an object; its parent must be an object of the schema shown as "parent" (d1 for top-level objects); later edits may use "+1" as target or parent
+    {{"op": "delete", "target": "n5"}}                                                       delete an object and everything under it
+  - One suggestion per independent part of the request (for example the interface part and the routing part), so each can be adopted on its own. Do only what is asked.
+  - In the title and the explanation, mention existing objects only as [[id]] and do not type names, addresses or numbers of new objects; write them in {lang}.
+  Reply with JSON only: {{"suggestions": [{{"category": "graph_edit", "kind": "edit", "title": "<short title>", "content": {{"edits": [ ... ], "explain": "<one sentence>"}}, "refs": [{{"id": "n3"}}]}}]}}
+  refs lists the existing ids the edits rely on.
+prompt: |-
+  Change request:
+  {intent}
+
+  Device:
+  {device}
+
+  Objects (id | schema | key | parent | attributes):
+  {objects}
+
+  Schema nodes you may use (id | type | parent object):
+  {schema}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format, using only the given ids and Schema nodes.
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 回复语言（按界面语言）, en: Reply language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}
+  - name: intent
+    in: prompt
+    desc: {zh-CN: 用户写的变更描述（发送前脱敏）, en: The change request written by the user (sanitized before sending), pt-BR: O pedido de mudança escrito pelo usuário (anonimizado antes do envio)}
+  - name: device
+    in: prompt
+    desc: {zh-CN: 设备（编号 d1、名称、厂商、Profile）, en: 'The device (id d1, name, vendor, profile)', pt-BR: 'O dispositivo (id d1, nome, fabricante, perfil)'}
+  - name: objects
+    in: prompt
+    desc: {zh-CN: 图中的对象（编号、Schema、键、父对象、属性），与描述有关的在前, en: 'Objects in the graph (id, schema, key, parent, attributes), related ones first', pt-BR: 'Objetos do grafo (id, schema, chave, pai, atributos), os relacionados primeiro'}
+  - name: schema
+    in: prompt
+    desc: {zh-CN: 可以使用的 Schema 节点（Profile 支持的，带类型、范围、可选值、引用目标）, en: 'Schema nodes that may be used (supported by the profile, with type, range, choices and ref target)', pt-BR: 'Nós do Schema que podem ser usados (suportados pelo perfil, com tipo, faixa, opções e alvo de referência)'}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - gquery
+  - sanitize
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "graph_edit", "kind": "edit", "title": "...", "content": {"edits": [{"op": "set", "target": "n1", "attr": "interface.mtu", "value": 9000}], "explain": "..."}, "refs": [{"id": "n1"}]}]}'
+checks:
+  - suggest.refs_exist
+  - suggest.graph_edit
+samples:
+  - title: {zh-CN: 改接口描述（通过）, en: Change an interface description (passes), pt-BR: Alterar a descrição de uma interface (aprovado)}
+    input:
+      vars:
+        lang: English
+        intent: 'Rename the OAM link description to OAM-UPLINK.'
+        device: 'd1 | ATN-DEMO | vendor=huawei | profile=huawei-atn-v800r025'
+        objects: "n1 | vrf.instance | OAM | parent d1 | \nn2 | interface | GigabitEthernet0/2/2 | parent d1 | interface.description=OAM-LINK"
+        schema: "interface | object key(name) | parent -\ninterface.description | text | parent interface\ninterface.mtu | integer 46..16000 | parent interface"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-DEMO, profile: huawei-atn-v800r025}
+          n1: {type: vrf.instance, label: OAM, device: d1, node: 'vrf.instance[OAM]', line: 3}
+          n2: {type: interface, label: GigabitEthernet0/2/2, device: d1, node: 'interface[GigabitEthernet0/2/2]', line: 7}
+        numbers: {lines: 11}
+        lines: {d1: 11}
+        names: [ATN-DEMO, OAM, GigabitEthernet0/2/2, OAM-LINK]
+        profile: huawei-atn-v800r025
+        intent: 'Rename the OAM link description to OAM-UPLINK.'
+        configs:
+          d1: "sysname ATN-DEMO\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip address 10.3.0.1 255.255.255.252\n#\nreturn\n"
+    reply: '{"suggestions": [{"category": "graph_edit", "kind": "edit", "title": "Update the description of [[n2]]", "content": {"edits": [{"op": "set", "target": "n2", "attr": "interface.description", "value": "OAM-UPLINK"}], "explain": "Only [[n2]] changes."}, "refs": [{"id": "n2"}]}]}'
+  - title: {zh-CN: 取值超出范围、引用了不存在的对象（演示拒绝）, en: Out-of-range value and an object that does not exist (shows a rejection), pt-BR: Valor fora da faixa e objeto inexistente (mostra a rejeição)}
+    input:
+      vars:
+        lang: English
+        intent: 'Set the MTU of the OAM link to 99999.'
+        device: 'd1 | ATN-DEMO | vendor=huawei | profile=huawei-atn-v800r025'
+        objects: "n1 | vrf.instance | OAM | parent d1 | \nn2 | interface | GigabitEthernet0/2/2 | parent d1 | interface.description=OAM-LINK"
+        schema: "interface.mtu | integer 46..16000 | parent interface"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-DEMO, profile: huawei-atn-v800r025}
+          n1: {type: vrf.instance, label: OAM, device: d1, node: 'vrf.instance[OAM]', line: 3}
+          n2: {type: interface, label: GigabitEthernet0/2/2, device: d1, node: 'interface[GigabitEthernet0/2/2]', line: 7}
+        numbers: {lines: 11}
+        lines: {d1: 11}
+        names: [ATN-DEMO, OAM, GigabitEthernet0/2/2, OAM-LINK]
+        profile: huawei-atn-v800r025
+        intent: 'Set the MTU of the OAM link to 99999.'
+        configs:
+          d1: "sysname ATN-DEMO\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\ninterface GigabitEthernet0/2/2\n description OAM-LINK\n ip address 10.3.0.1 255.255.255.252\n#\nreturn\n"
+    reply: '{"suggestions": [{"category": "graph_edit", "kind": "edit", "title": "Raise the MTU of [[n9]]", "content": {"edits": [{"op": "set", "target": "n2", "attr": "interface.mtu", "value": 99999}]}, "refs": [{"id": "n9"}]}]}'

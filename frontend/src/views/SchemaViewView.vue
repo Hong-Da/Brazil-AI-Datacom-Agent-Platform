@@ -22,6 +22,8 @@ import KbRoRibbon from '@/components/kb-ro-ribbon.vue'
 import KbSuggest from '@/components/kb-suggest.vue'
 import type { SuggestKind } from '@/views/kbsugg/logic'
 import VendorBadge from '@/components/vendor-badge.vue'
+import MappingSuggest from '@/components/ai-kb/MappingSuggest.vue'
+const mapOpen = ref(false) // M8-5 映射建议（AI）
 
 type Mode = 'one' | 'cmp' | 'all'
 
@@ -277,7 +279,9 @@ function cmpValue(r: CompareRow): string {
           <span v-if="schema" class="tag mono">{{ $t('schema-view.kbVersion', { v: schema.kb_version }) }}</span>
           <router-link class="btn" :to="{ name: 'coverage' }" data-testid="sv-to-coverage"><Icon name="matrix" small />{{ $t('nav.coverage') }}</router-link>
           <router-link v-if="auth.isKbEditor" class="btn" :to="{ name: 'schema-edit', query: sel ? { node: sel } : {} }" data-testid="sv-to-edit"><Icon name="tree" small />{{ $t('nav.schema-edit') }}</router-link>
+          <button class="btn btn-aio" type="button" data-testid="sv-map-suggest" @click="mapOpen = true"><Icon name="spark" small />{{ $t('kb-ai.ms.btn') }}</button>
         </div>
+        <MappingSuggest v-if="mapOpen" @close="mapOpen = false" />
       </div>
 
       <KbRoRibbon ref="ribbon" full />

@@ -1,0 +1,91 @@
+# 内置 AI skill（只读）：脱敏复核（M8-5）：找出代码脱敏规则漏掉的敏感信息（描述里的客户名、人名、电话、邮箱等）。
+# 管理员修改后的版本保存在 data/ai-skills/sanitize-review/，可回滚或恢复为本文件的内置版本。
+# 只允许本地模型：当前生效的 AI 接口不是 local 时，接口与界面都拒绝运行（代码判断，见 core/ai_suggest_kb.local_gate）。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。
+id: sanitize-review
+version: 1
+title: {zh-CN: 脱敏复核, en: Sanitize review, pt-BR: Revisão de anonimização}
+description: {zh-CN: 找出代码规则没发现的敏感信息（描述里的客户名、人名、电话、邮箱等），作为补充的脱敏规则。只允许本地模型；代码先挑出含自由文本的行，标出的文字必须原样在该行，补上规则重新脱敏后不再出现才通过。采纳后加入本项目的脱敏补充，之后导入与发给 AI 的配置都会替换。, en: 'Finds sensitive text the code rules missed (customer names, people, phone numbers, e-mails in descriptions) and proposes extra sanitizing rules. Local model only; code picks the lines with free text, the flagged text must be in that line as is, and it must be gone after re-sanitizing with the extra rule. Adopted rules join this project''s sanitize supplement and apply to later imports and to everything sent to AI.', pt-BR: 'Encontra dados sensíveis que as regras do código não pegaram (nomes de clientes, pessoas, telefones, e-mails em descrições) e propõe regras extras. Só modelo local; o código escolhe as linhas com texto livre, o texto marcado deve estar na linha e sumir após reanonimizar com a regra extra. As regras adotadas entram no complemento de anonimização do projeto e valem para importações e para tudo enviado à IA.'}
+task: ask
+used_by: ai_suggest
+group: compliance
+enabled: true
+system: |-
+  You review router configuration lines that were already sanitized by rules, and point out sensitive text the rules missed:
+  people's names, phone numbers, e-mail addresses, customer or company names, street addresses, site names that identify a customer.
+  Placeholders such as LMESH-..., DESC-xxxxxx, ORG-xxxxxx, DEVICE-xxxxxx, ID-xxxxxx, user-xxxxxx are already sanitized: never flag them.
+  Interface names, protocol keywords, VLAN numbers and private addresses are not sensitive.
+  One suggestion per finding:
+    content.line   the line number shown
+    content.text   the exact sensitive substring, copied character by character from that line
+    content.kind   one of {kinds}
+    content.pattern  optional: a regular expression when the same kind of text repeats with variations (keep it narrow)
+    content.explain  one sentence in {lang}
+  Reply with JSON only: {{"suggestions": [{{"category": "sanitize_rule", "kind": "person", "title": "L12: <short title>", "content": {{"line": 12, "text": "...", "kind": "person", "explain": "..."}}, "refs": [{{"line": 12, "of": "d1"}}]}}]}}
+  Reply {{"suggestions": []}} when nothing is missed.
+prompt: |-
+  Device:
+  {device}
+
+  Lines with free text (line  text):
+  {lines}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format; copy the sensitive text exactly from the given line.
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 说明的语言（按界面语言）, en: Explanation language (from the UI language), pt-BR: Idioma da explicação (do idioma da interface)}
+  - name: kinds
+    in: system
+    desc: {zh-CN: 敏感信息的种类, en: Kinds of sensitive text, pt-BR: Tipos de dado sensível}
+  - name: device
+    in: prompt
+    desc: {zh-CN: 设备（编号 d1）, en: The device (id d1), pt-BR: O dispositivo (id d1)}
+  - name: lines
+    in: prompt
+    desc: {zh-CN: 代码挑出的含自由文本的行（行号与原文，已按规则脱敏）, en: 'Lines with free text picked by code (number and text, already rule-sanitized)', pt-BR: 'Linhas com texto livre escolhidas pelo código (número e texto, já anonimizadas)'}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - sanitize
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "sanitize_rule", "kind": "person", "title": "...", "content": {"line": 12, "text": "...", "kind": "person"}, "refs": [{"line": 12, "of": "d1"}]}]}'
+checks:
+  - suggest.local_only
+  - suggest.resanitize
+samples:
+  - title: {zh-CN: 描述里的人名与手机号（重新脱敏后消失）, en: Name and phone number in a description (gone after re-sanitizing), pt-BR: Nome e telefone na descrição (somem ao reanonimizar)}
+    input:
+      vars:
+        lang: English
+        kinds: person, phone, email, customer, site, address, other
+        device: 'd1 | ATN-CHANGE-01 | vendor=huawei'
+        lines: "    4   description to-ZhangSan-13800138000\n    8   description CUST:ACME-Bank-Branch-07"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01, device_id: 1}
+        numbers: {lines: 15, picked: 2}
+        lines: {d1: 15}
+        names: [ATN-CHANGE-01]
+        san_lines: {'4': ' description to-ZhangSan-13800138000', '8': ' description CUST:ACME-Bank-Branch-07'}
+    reply: '{"suggestions": [{"category": "sanitize_rule", "kind": "person", "title": "L4: name and mobile number", "content": {"line": 4, "text": "ZhangSan-13800138000", "kind": "person", "explain": "A person''s name and mobile number in an interface description."}, "refs": [{"line": 4, "of": "d1"}]}]}'
+  - title: {zh-CN: 标出的文字不在该行（演示拒绝）, en: The flagged text is not in that line (shows a rejection), pt-BR: O texto marcado não está na linha (mostra a rejeição)}
+    input:
+      vars:
+        lang: English
+        kinds: person, phone, email, customer, site, address, other
+        device: 'd1 | ATN-CHANGE-01 | vendor=huawei'
+        lines: "    4   description to-ZhangSan-13800138000"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01, device_id: 1}
+        numbers: {lines: 15, picked: 1}
+        lines: {d1: 15}
+        names: [ATN-CHANGE-01]
+        san_lines: {'4': ' description to-ZhangSan-13800138000'}
+    reply: '{"suggestions": [{"category": "sanitize_rule", "kind": "customer", "title": "L4: customer name", "content": {"line": 4, "text": "ACME-Bank", "kind": "customer"}, "refs": [{"line": 4, "of": "d1"}]}]}'

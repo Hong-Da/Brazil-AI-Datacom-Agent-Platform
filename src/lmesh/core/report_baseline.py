@@ -94,8 +94,9 @@ def baseline_report(
     now: datetime | None = None,
     namer: Namer | None = None,
     kb_version: str | None = None,
+    ai: dict[str, Any] | None = None,
 ) -> Report:
-    """result 是 baseline.audit 的结果。"""
+    """result 是 baseline.audit 的结果；ai 是已采纳的 AI 摘要（ai_report_summary.for_export，可省）。"""
     report._check_args(lang, fmt)
     doc = _BaselineDoc(fmt, lang, namer)
     texts = result.get("texts") or {}
@@ -115,6 +116,7 @@ def baseline_report(
     if kb_version:
         rows.append([doc.esc(doc.t("kb_version")), doc.esc(kb_version)])
     doc.table([doc.t("item"), doc.t("value")], rows, "meta")
+    report.ai_section(doc, ai)
     desc = (info.get("description") or {}).get(lang)
     if desc:
         doc.p(desc, "note")
@@ -215,4 +217,5 @@ def baseline_report(
     doc.end()
     name = devices[0]["device"] if len(devices) == 1 else f"{len(devices)}-devices"
     filename = f"baseline-{result.get('baseline')}-{_safe(name)}.{lang}.{fmt}"
+    report.ai_note(doc, ai)
     return Report(filename, doc.render(title), report._media(fmt))

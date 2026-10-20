@@ -7,7 +7,7 @@ from typing import Annotated
 
 import typer
 
-from lmesh.cli import cmd_ai, cmd_ai_suggest, output
+from lmesh.cli import cmd_ai, cmd_ai_change, cmd_ai_suggest, output
 from lmesh.cli.cmd_configs import require_db
 from lmesh.cli.cmd_kb import _root
 from lmesh.cli.output import emit, fail
@@ -86,6 +86,7 @@ def register(app: typer.Typer) -> None:
 
     cmd_ai.register(ai_app)
     cmd_ai_suggest.register(ai_app)
+    cmd_ai_change.register(ai_app)  # M8-4 变更与割接
 
     @ai_app.command("test", help="测试当前生效的 AI 接口（按 --as 账号的选择）/ test the effective AI connection")
     def ai_test(ctx: typer.Context) -> None:

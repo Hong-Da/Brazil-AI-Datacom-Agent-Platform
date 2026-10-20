@@ -33,6 +33,10 @@ class ChangeBody(BaseModel):
 class ChangeReportBody(ChangeBody):
     report_lang: Literal["zh-CN", "en"] = Field("zh-CN", description="报告语言（界面是 pt-BR 时用 en）")
     format: Literal["html", "md"] = Field("html", description="html：自包含单文件、可打印；md：贴进工单")
+    include_ai_summary: bool = Field(
+        True,
+        description="包含本项目已采纳的 AI 摘要（M8-5；两边都是已导入的设备 / 版本时才有，与数据不一致时只给说明）",
+    )
 
 
 class ImpactBody(BaseModel):
@@ -96,7 +100,12 @@ def change_report(request: Request, body: ChangeReportBody) -> Response:
     root = kbservice.runtime_root(settings)
     namer = terms.namer(root, analysis.load_kb(root), body.style or str(settings.get("ui.term_style")))
     try:
-        rep = report_change.change_report(result, body.report_lang, body.format, namer=namer)
+        ai = None
+        if body.include_ai_summary:
+            from lmesh.core import ai_report_summary
+
+            ai = ai_report_summary.lookup(settings.database_url, "change", body.model_dump(), body.report_lang, result)
+        rep = report_change.change_report(result, body.report_lang, body.format, namer=namer, ai=ai)
     except report.ReportError as e:
         raise ApiError(E_PARAM, 422, e.key, **e.fmt) from e
     return Response(

@@ -574,6 +574,167 @@ JSON 输出中的关键字段：
 - `ok` = `true`
 - `data.totals.calls` = `0`
 
+### 问题解读与修复（检查问题，回放回复）：编造的问题被拒绝
+
+```bash
+lmesh --output json --project alice/lab ai suggest run finding-fix --device ATN-CHANGE-01 --params '{"source": "check"}' --replay tests/inputs/ai-suggest/finding-explain.json
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.batch.status` = `"done"`
+- `data.batch.counts.pass` = `1`
+- `data.batch.counts.reject` = `1`
+- `data.batch.params.source` = `"check"`
+
+### 手工标注设备角色（优先于 AI 建议）
+
+```bash
+lmesh --output json --project alice/lab ai suggest annotate ATN-CHANGE-01 --key role --value access
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.item.key` = `"role"`
+- `data.item.value` = `"access"`
+- `data.item.source` = `"user"`
+
+### 导出设备交接文档（含已采纳的 AI 设备摘要）
+
+```bash
+lmesh --lang en --project alice/lab ai suggest handover ATN-CHANGE-01 --doc-lang en --format md
+```
+
+退出码：`0`
+
+输出包含：`# Device handover note · ATN-CHANGE-01`、`Device summary`
+
+### 变更意图转脚本（回放）：改动应用到目标图，代码生成脚本并模拟执行
+
+```bash
+lmesh --output json --project alice/lab ai suggest run intent-script --device ATN-CHANGE-01 --params '{"intent": "Set the description of GigabitEthernet0/2/2"}' --replay tests/inputs/ai-change/intent-desc.json
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.batch.status` = `"done"`
+- `data.items.0.category` = `"graph_edit"`
+- `data.items.0.check_status` = `"pass"`
+- `data.items.0.check.result.summary.verify` = `true`
+
+### 割接方案文档（回放）：中英双语的一节通过，直接写出命令的一节被拒绝
+
+```bash
+lmesh --output json --project alice/lab ai suggest run cutover-plan --device ATN-CHANGE-01 --params '{"to": "cisco-iosxe-asr920-17.15"}' --replay tests/inputs/ai-change/cutover-overview.json
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.batch.counts.pass` = `1`
+- `data.batch.counts.reject` = `1`
+
+### 翻译未支持项（回放）：用目标平台的命令卡解析验证
+
+```bash
+lmesh --output json --project alice/lab ai suggest run translate-gap --device ATN-CHANGE-01 --params '{"to": "cisco-iosxe-asr920-17.15"}' --replay tests/inputs/ai-change/translate-gap.json
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.batch.counts.pass` = `1`
+- `data.batch.counts.warn` = `1`
+
+### 命名映射建议（回放）：代码列出映射表，冲突的规则被拒绝
+
+```bash
+lmesh --output json --project alice/lab ai suggest run naming-map --device ATN-CHANGE-01 --params '{"to": "cisco-iosxe-asr920-17.15"}' --replay tests/inputs/ai-change/naming-vrf.json
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.batch.counts.pass` = `1`
+- `data.batch.counts.reject` = `1`
+
+### 模板提取（回放）：用设备自己的取值渲染须与原配置等价
+
+```bash
+lmesh --output json --project alice/lab ai suggest run template-extract --devices ATN-CHANGE-01 --replay tests/inputs/ai-change/template-loopback.json
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.batch.counts.pass` = `1`
+- `data.batch.counts.reject` = `1`
+
+### 规范转规则：读入规范文件（--doc），规则草稿过规则引擎并在样本上试跑
+
+```bash
+lmesh --output json --project alice/lab ai suggest run rule-draft --doc tests/inputs/ai-kb/std.md --replay tests/inputs/ai-kb/rule-draft.json
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.batch.status` = `"done"`
+- `data.batch.scope_key` = `"rules:standard"`
+- `data.batch.counts.pass` = `1`
+- `data.batch.counts.reject` = `1`
+- `data.items.0.check.reasons.0.code` = `"rule_invalid"`
+- `data.items.1.check_status` = `"pass"`
+- `data.items.1.refs.0.label` = `"4.2.1"`
+
+### 脱敏复核：标出的文字在该行，补规则重新脱敏后消失
+
+```bash
+lmesh --output json --project alice/lab ai suggest run sanitize-review --device ATN-CHANGE-01 --replay tests/inputs/ai-kb/sanitize.json
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.items.0.category` = `"sanitize_rule"`
+- `data.items.0.check_status` = `"pass"`
+- `data.items.0.check.result.pattern` = `"RAN\\-SITE"`
+
+### 报告摘要：中英文两段，数字由代码填入
+
+```bash
+lmesh --output json --project alice/lab ai suggest run report-summary --device ATN-CHANGE-01 --params '{"kind": "check"}' --replay tests/inputs/ai-kb/report-summary.json
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.batch.counts.pass` = `2`
+- `data.items.0.kind` = `"en"`
+
 ### 运行设备摘要（回放回复，代码校验后入库）
 
 ```bash
@@ -1934,8 +2095,8 @@ JSON 输出中的关键字段：
 - `data.skills.0.stats.calls` = `0`
 - `data.skills.3.id` = `"device-summary"`
 - `data.skills.3.group` = `"analysis"`
-- `data.skills.6.id` = `"card-extract"`
-- `data.skills.7.id` = `"skill-evolve"`
+- `data.skills.18.id` = `"card-extract"`
+- `data.skills.23.id` = `"skill-evolve"`
 
 ### 只列一个功能分组的 skill
 

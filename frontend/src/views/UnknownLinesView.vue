@@ -10,6 +10,21 @@ import {
   filterPatterns, patKey, patternParts, patternsToSend, stateOf, views,
   type PatFilter, type PatState, type UnknownPattern,
 } from './unknown-lines/logic'
+import AiEntryButton from '@/components/ai-suggest/AiEntryButton.vue'
+import UnknownTriage from '@/components/ai-kb/UnknownTriage.vue'
+import TriageChip from '@/components/ai-kb/TriageChip.vue'
+import type { TriageMark } from '@/components/ai-kb/logic'
+
+// M8-5 未识别行归因（AI）：右侧面板与表格的“AI 归因”列
+const triage = ref<InstanceType<typeof UnknownTriage> | null>(null)
+const aiOpen = ref(false)
+const aiState = ref('loading')
+const marks = ref<Record<string, TriageMark>>({})
+const triagePatterns = computed(() => [...new Set(patterns.value.filter((p) => checked.value.has(patKey(p))).map((p) => p.pattern))])
+async function runTriage(): Promise<void> {
+  aiOpen.value = true
+  await triage.value?.start()
+}
 
 const status = useStatus()
 const { t } = useI18n()
@@ -165,6 +180,7 @@ function stateClass(s: PatState): string {
           </select>
           <span class="grow" />
           <span v-if="checked.size" class="small faint">{{ $t('unknown-lines.selected', { n: checked.size }) }}</span>
+          <AiEntryButton :skills="['unknown-triage']" :busy="aiState === 'running'" small @run="runTriage" />
           <button class="btn btn-sm" :disabled="!toSend.length || sending" data-testid="batch-send" @click="send(toSend)">
             <Icon name="inbox" small /><span>{{ $t('unknown-lines.batchSend') }}</span>
           </button>
@@ -182,10 +198,11 @@ function stateClass(s: PatState): string {
                     <th class="col-view">{{ $t('unknown-lines.colView') }}</th>
                     <th class="right">{{ $t('unknown-lines.colCount') }}</th>
                     <th>{{ $t('unknown-lines.colState') }}</th>
+                    <th data-testid="col-ai-triage">{{ $t('kb-ai.ut.col') }}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-if="!rows.length"><td colspan="5"><div class="empty"><p>{{ $t('unknown-lines.noMatch') }}</p></div></td></tr>
+                  <tr v-if="!rows.length"><td colspan="6"><div class="empty"><p>{{ $t('unknown-lines.noMatch') }}</p></div></td></tr>
                   <tr
                     v-for="p in rows" :key="patKey(p)" class="ul-row" :class="{ 'row-sel': patKey(p) === selKey }"
                     data-testid="unknown-row" @click="selKey = patKey(p)"
@@ -195,6 +212,7 @@ function stateClass(s: PatState): string {
                     <td class="mono col-view"><span class="trunc" style="display: inline-block; max-width: 220px; vertical-align: bottom" :title="p.view">{{ p.view || '—' }}</span></td>
                     <td><div class="freq"><span class="b"><i :style="{ width: Math.max(4, Math.round((p.count / maxCount) * 100)) + '%' }" /></span><b>{{ p.count.toLocaleString() }}</b></div></td>
                     <td><span class="tag" :class="stateClass(stateOf(states, p.pattern))">{{ $t('unknown-lines.st_' + stateOf(states, p.pattern)) }}</span></td>
+                    <td @click.stop="marks[p.pattern] && (aiOpen = true)"><TriageChip :mark="marks[p.pattern]" /></td>
                   </tr>
                 </tbody>
               </table>
@@ -206,7 +224,8 @@ function stateClass(s: PatState): string {
             </div>
           </section>
 
-          <aside class="panel ul-detail" data-testid="unknown-detail">
+          <UnknownTriage v-show="aiOpen" ref="triage" :patterns="triagePatterns" @marks="marks = $event" @state="aiState = $event" @close="aiOpen = false" />
+          <aside v-show="!aiOpen" class="panel ul-detail" data-testid="unknown-detail">
             <div class="panel-h"><h3>{{ $t('unknown-lines.detail') }}</h3></div>
             <div v-if="!selected" class="body"><div class="empty"><p>{{ $t('unknown-lines.pickOne') }}</p></div></div>
             <template v-else>

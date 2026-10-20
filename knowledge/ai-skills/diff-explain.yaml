@@ -1,0 +1,90 @@
+# 内置 AI skill（只读）：变化解读（M8-3）：把配置对比或版本历史的差异归纳成变更意图，按风险排序。
+# 管理员修改后的版本保存在 data/ai-skills/diff-explain/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。差异条目由代码按有效值计算并编号（c1、c2……）。
+id: diff-explain
+version: 1
+title: {zh-CN: 变化解读, en: Change explanation, pt-BR: Explicação de mudanças}
+description: {zh-CN: 把对比、版本历史中由代码算出的差异归纳成变更意图并按风险排序。每个意图必须挂上对应的差异条目（c 编号），没被任何意图解释的差异由代码列出。, en: 'Groups the differences computed by code (compare or version history) into change intents ranked by risk. Every intent must cite its difference entries (c ids); code lists the differences no intent explains.', pt-BR: 'Agrupa as diferenças calculadas pelo código (comparação ou histórico) em intenções de mudança ordenadas por risco. Cada intenção deve citar seus itens de diferença (ids c); o código lista as diferenças que nenhuma intenção explica.'}
+task: ask
+used_by: ai_suggest
+group: analysis
+enabled: true
+system: |-
+  You explain the differences between two versions of router configuration as change intents, for the engineer who reviews the change. The differences were computed by code; never invent any.
+  Rules:
+  - Each intent groups one or more differences and MUST cite them in refs as {{"id": "c3"}}. Cite only the ids given (c1, c2 ...).
+  - Mention objects in the text ONLY as [[id]] (c1, d1 ...); write counts ONLY as <<key>> with the fact keys given. Do not type interface names, addresses or numbers yourself.
+  - risk is high (may break traffic or sessions), medium (needs a look) or low (additions only, cosmetic).
+  - Order intents from the highest risk. The text is 1 to 3 sentences in {lang}.
+  Reply with JSON only: {{"suggestions": [{{"category": "refs_exist", "kind": "intent", "title": "<short intent>", "content": {{"text": "<explanation>", "risk": "high"}}, "refs": [{{"id": "c1"}}, {{"id": "c2"}}]}}]}}
+prompt: |-
+  Versions:
+  {versions}
+
+  Facts (key = value):
+  {facts}
+
+  Differences (id | kind | domain | object | before -> after):
+  {diffs}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format; every intent must cite difference ids (c1, c2 ...) that exist.
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 回复语言（按界面语言）, en: Reply language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}
+  - name: versions
+    in: prompt
+    desc: {zh-CN: 对比的两个版本（设备、版本编号、采集时间）, en: 'The two versions compared (device, version id, collected at)', pt-BR: 'As duas versões comparadas (dispositivo, id, data da coleta)'}
+  - name: facts
+    in: prompt
+    desc: {zh-CN: 代码算出的数字（差异总数与各类数量）, en: Numbers computed by code (total and per kind), pt-BR: Números calculados pelo código (total e por tipo)}
+  - name: diffs
+    in: prompt
+    desc: {zh-CN: 差异条目（编号 c1……、类型、功能域、对象、前后取值）, en: 'Difference entries (ids c1…, kind, domain, object, before and after)', pt-BR: 'Itens de diferença (ids c1…, tipo, domínio, objeto, antes e depois)'}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - sanitize
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "refs_exist", "kind": "intent", "title": "...", "content": {"text": "...", "risk": "high | medium | low"}, "refs": [{"id": "c1"}]}]}'
+checks:
+  - suggest.refs_exist
+  - suggest.diff_refs
+samples:
+  - title: {zh-CN: 两个意图都挂上差异条目, en: Two intents citing their differences, pt-BR: Duas intenções citando suas diferenças}
+    input:
+      vars:
+        lang: English
+        versions: 'A = ATN-CHANGE-01 version 1; B = ATN-CHANGE-01 version 2'
+        facts: "diffs = 3\ndiffs.added = 3"
+        diffs: "c1 | added | interface | interface[GigabitEthernet0/2/1.300] | - -> GigabitEthernet0/2/1.300\nc2 | added | vrf | vrf.instance[IOT] | - -> IOT\nc3 | added | bgp | bgp.instance[65000]/bgp.af[afi=ipv4,vrf=IOT] | - -> afi=ipv4, vrf=IOT"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01, device_id: 1}
+          c1: {type: diff, label: 'interface[GigabitEthernet0/2/1.300]', op: added, node: 'interface[GigabitEthernet0/2/1.300]', device: d1}
+          c2: {type: diff, label: 'vrf.instance[IOT]', op: added, node: 'vrf.instance[IOT]', device: d1}
+          c3: {type: diff, label: 'bgp.instance[65000]/bgp.af[afi=ipv4,vrf=IOT]', op: added, node: 'bgp.instance[65000]/bgp.af[afi=ipv4,vrf=IOT]', device: d1}
+        numbers: {diffs: 3, diffs.added: 3}
+        lines: {}
+        names: [ATN-CHANGE-01, IOT]
+    reply: '{"suggestions": [{"category": "refs_exist", "kind": "intent", "title": "Turn up the IOT VPN", "content": {"text": "[[c2]] and its BGP address family [[c3]] add the IOT VPN; additions only.", "risk": "low"}, "refs": [{"id": "c2"}, {"id": "c3"}]}, {"category": "refs_exist", "kind": "intent", "title": "New sub-interface for IOT", "content": {"text": "[[c1]] is added for the new service.", "risk": "low"}, "refs": [{"id": "c1"}]}]}'
+  - title: {zh-CN: 编造差异条目、没挂差异的意图（演示拒绝）, en: 'Invented difference and an intent without differences (shows rejections)', pt-BR: 'Diferença inventada e intenção sem diferenças (mostra as rejeições)'}
+    input:
+      vars:
+        lang: English
+        versions: 'A = ATN-CHANGE-01 version 1; B = ATN-CHANGE-01 version 2'
+        facts: "diffs = 1"
+        diffs: 'c1 | added | vrf | vrf.instance[IOT] | - -> IOT'
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01, device_id: 1}
+          c1: {type: diff, label: 'vrf.instance[IOT]', op: added, node: 'vrf.instance[IOT]', device: d1}
+        numbers: {diffs: 1}
+        lines: {}
+        names: [ATN-CHANGE-01, IOT]
+    reply: '{"suggestions": [{"category": "refs_exist", "kind": "intent", "title": "Clean up test VLAN", "content": {"text": "[[c14]] removes the test VLAN.", "risk": "low"}, "refs": [{"id": "c14"}]}, {"category": "refs_exist", "kind": "intent", "title": "Something changed", "content": {"text": "Routing was tuned.", "risk": "urgent"}, "refs": [{"id": "d1"}]}]}'

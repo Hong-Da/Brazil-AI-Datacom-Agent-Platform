@@ -1,0 +1,102 @@
+# 内置 AI skill（只读）：报告摘要（M8-5）：检查、基线、对比、变更（割接）报告开头的中英文摘要。
+# 管理员修改后的版本保存在 data/ai-skills/report-summary/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。数字一律写 <<键>>、对象写 [[编号]]，由代码填入；直接写出的数字拒绝。
+id: report-summary
+version: 1
+title: {zh-CN: 报告摘要, en: Report summary, pt-BR: Resumo do relatório}
+description: {zh-CN: 为检查、基线、对比、变更（割接）报告开头写一段中英文摘要。AI 只写句子，数字和编号用占位符，由代码填入并核对；写了代码没提供的数字的句子会被拒绝。采纳的摘要默认放进导出的报告，并注明 AI 撰写、所用 skill 与接口。, en: 'Writes a Chinese and an English summary at the top of check, baseline, compare and change (cutover) reports. The AI writes sentences with placeholders; code fills in and checks the numbers and ids, and sentences with numbers code did not supply are rejected. Adopted summaries go into exported reports by default, labelled as AI-written with the skill and interface used.', pt-BR: 'Escreve um resumo em chinês e em inglês no topo dos relatórios de verificação, linha de base, comparação e mudança. A IA escreve as frases com marcadores; o código preenche e confere números e ids, e frases com números não fornecidos são rejeitadas. Os resumos adotados entram nos relatórios exportados, indicados como escritos pela IA, com a skill e a interface.'}
+task: ask
+used_by: ai_suggest
+group: report
+enabled: true
+system: |-
+  You write the summary at the top of a network {kind} report, for engineers and managers. All facts come from code.
+  Give exactly two suggestions: kind "zh-CN" (Simplified Chinese) and kind "en" (English), with the same content.
+  Each summary: 2 to 5 sentences — scope, the overall result, the most important items and what to do first.
+  Rules:
+  - Write EVERY number ONLY as <<key>> with the fact keys given (for example <<findings.total>>). Never type a digit yourself, not even percentages.
+  - Mention devices, findings, rules and changes ONLY as [[id]] (d1, f1, r1, c1 ...). Do not type names, addresses or interfaces yourself.
+  - Do not invent results that are not in the facts.
+  The title is short, in {lang}.
+  Reply with JSON only: {{"suggestions": [{{"category": "text_only", "kind": "zh-CN", "title": "...", "content": {{"text": "..."}}, "refs": [{{"id": "d1"}}]}}, {{"category": "text_only", "kind": "en", "title": "...", "content": {{"text": "..."}}, "refs": [{{"id": "d1"}}]}}]}}
+prompt: |-
+  Report: {kind}
+  Risk (change reports only): {risk}
+
+  Facts (key = value):
+  {facts}
+
+  Objects (id | type | name):
+  {objects}
+
+  Details:
+  {details}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format; write numbers only as <<key>> and objects only as [[id]].
+variables:
+  - name: kind
+    in: system
+    desc: {zh-CN: 报告类型（check / baseline / compare / change）, en: Report kind (check / baseline / compare / change), pt-BR: Tipo de relatório (check / baseline / compare / change)}
+  - name: lang
+    in: system
+    desc: {zh-CN: 标题的语言（按界面语言）, en: Title language (from the UI language), pt-BR: Idioma do título (do idioma da interface)}
+  - name: risk
+    in: prompt
+    desc: {zh-CN: 变更的风险等级（代码计算）, en: Change risk level (computed by code), pt-BR: Nível de risco da mudança (calculado pelo código)}
+  - name: facts
+    in: prompt
+    desc: {zh-CN: 代码算好的数字（键 = 值）, en: Numbers computed by code (key = value), pt-BR: Números calculados pelo código (chave = valor)}
+  - name: objects
+    in: prompt
+    desc: {zh-CN: 设备、问题、规则、差异条目的编号, en: 'Ids of devices, findings, rules and changes', pt-BR: 'Ids de dispositivos, achados, regras e mudanças'}
+  - name: details
+    in: prompt
+    desc: {zh-CN: 主要条目（级别、规则、对象）, en: 'Main items (severity, rule, object)', pt-BR: 'Itens principais (nível, regra, objeto)'}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - gquery
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "text_only", "kind": "zh-CN|en", "title": "...", "content": {"text": "..."}, "refs": [{"id": "d1"}]}]}'
+checks:
+  - suggest.text_only
+  - suggest.report_numbers
+samples:
+  - title: {zh-CN: 数字与编号都用占位符, en: Numbers and ids all use placeholders, pt-BR: Números e ids usam marcadores}
+    input:
+      vars:
+        kind: check
+        lang: English
+        risk: '-'
+        facts: "devices = 1\nfindings.total = 4\nfindings.error = 1\nfindings.warning = 2\nfindings.info = 1\nfindings.ignored = 0"
+        objects: "d1 | device | ATN-CHANGE-01\nf1 | finding | bgp.peer.remote_as_missing @ bgp.peer[10.0.0.1]"
+        details: "f1 | error | bgp.peer.remote_as_missing | bgp.peer[10.0.0.1] | lines [40]"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01}
+          f1: {type: finding, label: 'bgp.peer.remote_as_missing @ bgp.peer[10.0.0.1]'}
+        numbers: {devices: 1, findings.total: 4, findings.error: 1, findings.warning: 2, findings.info: 1, findings.ignored: 0}
+        lines: {}
+        names: [ATN-CHANGE-01, bgp.peer.remote_as_missing]
+    reply: '{"suggestions": [{"category": "text_only", "kind": "zh-CN", "title": "Check summary (Chinese)", "content": {"text": "本次检查 [[d1]] 发现 <<findings.total>> 个问题，其中严重 <<findings.error>> 个、警告 <<findings.warning>> 个。最需要先处理的是 [[f1]]：对等体缺少对端 AS，会话无法建立。"}, "refs": [{"id": "d1"}, {"id": "f1"}]}, {"category": "text_only", "kind": "en", "title": "Check summary", "content": {"text": "The check of [[d1]] found <<findings.total>> issues: <<findings.error>> critical and <<findings.warning>> warnings. Fix [[f1]] first: the peer has no remote AS, so the session cannot come up."}, "refs": [{"id": "d1"}, {"id": "f1"}]}]}'
+  - title: {zh-CN: 写了代码没提供的数字（演示拒绝）, en: Types a number code did not supply (shows a rejection), pt-BR: Digita um número não fornecido (mostra a rejeição)}
+    input:
+      vars:
+        kind: check
+        lang: English
+        risk: '-'
+        facts: "devices = 1\nfindings.total = 4"
+        objects: "d1 | device | ATN-CHANGE-01"
+        details: '-'
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01}
+        numbers: {devices: 1, findings.total: 4}
+        lines: {}
+        names: [ATN-CHANGE-01]
+    reply: '{"suggestions": [{"category": "text_only", "kind": "en", "title": "Conclusion", "content": {"text": "[[d1]] is 96% compliant with <<findings.total>> issues left."}, "refs": [{"id": "d1"}]}]}'

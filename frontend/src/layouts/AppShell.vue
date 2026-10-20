@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 import Icon from '@/components/Icon.vue'
+import IconSetSwitch from '@/components/devicon/IconSetSwitch.vue'
 import { LOGO_SVG } from '@/components/icons'
 import { LANGS } from '@/i18n'
 import { usePrefs, type Theme } from '@/stores/prefs'
@@ -169,6 +170,7 @@ watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void
               <span v-else-if="auth.me.via === 'pat'">{{ $t(auth.me.read_only ? 'account.viaPatRo' : 'account.viaPat', { p: auth.me.token_prefix ?? '' }) }}</span>
               <span v-else>{{ $t(auth.isAdmin ? 'account.sessionAdmin' : roleTag === 'maintainer' ? 'account.sessionMaintainer' : 'account.sessionUser', { t: shortTime(auth.me.expires_at) }) }}</span>
             </div>
+            <div class="um-icons" data-testid="menu-icon-set"><span class="small faint">{{ $t('devicon.iconSet') }}</span><IconSetSwitch small /></div>
             <router-link v-if="auth.me.via === 'session'" role="menuitem" :to="{ name: 'password' }" data-testid="menu-password"><Icon name="key" small />{{ $t('account.changePassword') }}</router-link>
             <router-link v-if="auth.me.via !== 'token'" role="menuitem" :to="{ name: 'tokens' }" data-testid="menu-tokens"><Icon name="key" small />{{ $t('nav.tokens') }}</router-link>
             <router-link v-if="auth.me.via !== 'token'" role="menuitem" :to="{ name: 'my-ai' }" data-testid="menu-my-ai"><Icon name="spark" small />{{ $t('my-ai.title') }}</router-link>
@@ -241,6 +243,9 @@ watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void
 .um-pop { position: absolute; right: 0; top: calc(100% + 6px); min-width: 240px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow-pop); padding: 6px; z-index: 60; display: flex; flex-direction: column; }
 .um-h { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
 .um-h span { font-size: 11.5px; color: var(--ink-3); }
+.um-icons { display: flex; flex-direction: column; gap: 4px; padding: 4px 8px 8px; border-bottom: 1px solid var(--line); margin-bottom: 4px; }
+.um-icons :deep(.seg) { flex-wrap: nowrap; }
+.um-icons :deep(.seg button) { font-size: 11.5px; padding: 0 7px; white-space: nowrap; }
 .um-pop a, .um-pop button { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 5px; color: var(--ink); text-decoration: none; font: inherit; font-size: 13px; background: none; border: 0; cursor: pointer; text-align: left; width: 100%; }
 .um-pop a:hover, .um-pop button:hover, .um-pop a:focus-visible, .um-pop button:focus-visible { background: var(--surface-2); outline: none; }
 @media (max-width: 760px) { .un, .um-btn .tag { display: none; } }

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 /** 导出检查报告：中文 / English × HTML / Markdown，POST /api/v1/reports（kind=check）直接返回文件。 */
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import { errorText } from '@/api'
 import { useTerms } from '@/stores/terms'
 import { postFile, reportName, saveBlob, target, targetBody, type ReportFormat, type ReportLang } from './report'
+import ReportAiSummary from '@/components/ai-kb/ReportAiSummary.vue'
 
 const props = defineProps<{ device: string | null }>()
 const emit = defineEmits<{ close: []; toast: [msg: string, err?: boolean] }>()
@@ -16,8 +17,11 @@ const terms = useTerms()
 const LANGS: { code: ReportLang; label: string }[] = [{ code: 'zh-CN', label: '中文' }, { code: 'en', label: 'English' }]
 const FORMATS: { code: ReportFormat; label: string }[] = [{ code: 'html', label: 'HTML' }, { code: 'md', label: 'Markdown' }]
 
+const incAi = ref(true)
+const aiParams = computed(() => (target.mode === 'device' && target.deviceId != null ? { device_id: target.deviceId } : null))
+
 function body(lang: ReportLang, format: ReportFormat) {
-  return { kind: 'check', lang, format, style: terms.style, check: targetBody() }
+  return { kind: 'check', lang, format, style: terms.style, check: targetBody(), include_ai_summary: incAi.value }
 }
 
 async function dl(lang: ReportLang, format: ReportFormat): Promise<void> {
@@ -63,6 +67,7 @@ async function preview(): Promise<void> {
       <div class="modal-b">
         <p class="muted small" style="margin-bottom: 10px">{{ $t('check.exportNote') }}</p>
         <p v-if="target.mode === 'text'" class="muted small" style="margin-bottom: 10px">{{ $t('check.exportTextNote') }}</p>
+        <ReportAiSummary v-model="incAi" kind="check" :params="aiParams" style="margin-bottom: 12px" />
         <div class="dl-grid">
           <div class="h"></div>
           <div v-for="l in LANGS" :key="l.code" class="h">{{ l.label }}</div>

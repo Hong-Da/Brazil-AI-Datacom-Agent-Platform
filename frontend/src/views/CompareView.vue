@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** 配置对比（预览 DevelopDocs/ui-preview/M2/compare.html）：选对比对象 → POST /compare → 计数、差异列表 / 差异图、详情、两侧原文、未识别行、报告导出。 */
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
@@ -26,6 +26,10 @@ import { buildTree, countDesc, extrasFromGraph, initialCollapsed, prefixMap, typ
 import { initialRows, mergePairs, toInterfaceMap, type MapRow } from './compare/ifmap'
 import { compareBody, defaultOptions, emptySide, fromQuery, ready, swapSides, toQuery, type Mode, type Setup } from './compare/setup'
 import type { CompareResult, DeviceGraph, VersionInfo } from './compare/types'
+import AiEntryButton from '@/components/ai-suggest/AiEntryButton.vue'
+import AiSuggestPanel from '@/components/ai-suggest/AiSuggestPanel.vue'
+import AiCoverageBar from '@/components/ai-suggest/AiCoverageBar.vue'
+import { coverageMarks, diffScope, type Coverage, type CoverageItem, type RefInfo } from '@/components/ai-suggest/logic'
 
 const route = useRoute()
 const router = useRouter()
@@ -341,6 +345,39 @@ watch(sel, (id) => {
 // ---------------------------------------------------------------- 报告
 const showExport = ref(false)
 
+// ---------------------------------------------------------------- AI 变化解读（M8-3）：两边都是导入设备的版本时可用
+const aiVers = computed(() => {
+  const r = result.value
+  if (!r || r.a.device_id === null || r.b.device_id === null || r.a.version_id == null || r.b.version_id == null) return null
+  return { a: r.a.version_id, b: r.b.version_id }
+})
+const aiScope = computed(() => (aiVers.value ? diffScope('compare', aiVers.value.a, aiVers.value.b) : ''))
+const aiParams = computed(() => (aiVers.value ? { source: 'compare', a_version: aiVers.value.a, b_version: aiVers.value.b } : {}))
+const aiPanel = ref<InstanceType<typeof AiSuggestPanel> | null>(null)
+const aiCov = ref<InstanceType<typeof AiCoverageBar> | null>(null)
+const aiOpen = ref(false)
+const aiState = ref('loading')
+const aiShown = computed(() => aiOpen.value || ['done', 'running', 'empty', 'failed', 'cancelled'].includes(aiState.value))
+const coverage = ref<Coverage | null>(null)
+const marks = computed<Record<string, string>>(() => {
+  const m = coverageMarks(rows.value.map((r) => ({ node: r.node })), coverage.value)
+  return Object.fromEntries(rows.value.map((r, i) => [r.id, m[i]]))
+})
+async function runAi(): Promise<void> {
+  aiOpen.value = true
+  await nextTick()
+  await aiPanel.value?.start()
+}
+/** 引用的差异条目 / 覆盖条里的条目 → 选中差异表中对应的行 */
+function aiJump(r: RefInfo | CoverageItem): void {
+  const node = 'node' in r ? r.node : null
+  const hit = rows.value.find((x) => (node && x.node === node) || x.node === r.label)
+  if (!hit) return
+  filter.type = ''
+  filter.q = ''
+  sel.value = hit.id
+}
+
 // ---------------------------------------------------------------- 启动：URL 参数
 onMounted(async () => {
   await loadBase()
@@ -365,6 +402,8 @@ onMounted(async () => {
         </div>
         <div class="ph-actions">
           <button class="btn" :disabled="!result" data-testid="open-export" @click="showExport = true"><Icon name="report" small /><span>{{ $t('compare.export') }}</span></button>
+          <AiEntryButton v-if="aiVers" :skills="['diff-explain']" :busy="aiState === 'running'" @run="runAi" />
+          <button v-else-if="result" class="btn btn-ai" type="button" disabled :title="$t('ai-suggest.needVersions')" data-testid="cmp-ai-off"><Icon name="spark" small />{{ $t('ai-suggest.btn') }}</button>
         </div>
       </div>
 
@@ -394,6 +433,10 @@ onMounted(async () => {
             <span v-if="hiddenIdentity" data-testid="hidden-identity">{{ $t('compare.res.hidden', { n: hiddenIdentity }) }}</span>
             <span>{{ $t('compare.res.ms', { n: ran?.ms ?? 0 }) }}</span>
           </span>
+        </div>
+        <div v-if="aiVers" v-show="aiShown" class="cmp-ai" data-testid="cmp-ai">
+          <AiSuggestPanel ref="aiPanel" skill="diff-explain" :params="aiParams" :scope="aiScope" @state="aiState = $event" @changed="aiCov?.reload()" @jump="aiJump" />
+          <AiCoverageBar ref="aiCov" skill="diff-explain" :scope="aiScope" @loaded="coverage = $event" @jump="aiJump" />
         </div>
         <div v-if="stale" class="notice info" data-testid="stale-result"><Icon name="info" /><div class="grow">{{ $t('compare.res.stale') }}</div></div>
 
@@ -443,7 +486,7 @@ onMounted(async () => {
             <section class="panel p-main">
               <DiffList
                 v-if="view === 'list'"
-                :groups="groups" :sel="sel" :collapsed="groupCollapsed" :a-label="sideName('a')" :b-label="sideName('b')"
+                :groups="groups" :sel="sel" :collapsed="groupCollapsed" :a-label="sideName('a')" :b-label="sideName('b')" :marks="marks"
                 @select="sel = $event" @step="step" @toggle="toggleGroup" @show-na="showDefault = true" @reset="resetFilters"
               />
               <DiffGraph
@@ -506,6 +549,7 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.cmp-ai { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
 .mt12 { margin-top: 12px; }
 .res-head { display: flex; align-items: center; gap: 12px; margin: 18px 0 10px; flex-wrap: wrap; }
 .res-head h2 { font-size: 15px; }

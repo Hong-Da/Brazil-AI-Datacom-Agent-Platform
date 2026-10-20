@@ -75,3 +75,37 @@ describe('审核队列逻辑', () => {
     expect(unknownCardEmpty({ ...c, id: 'a' })).toBe(false)
   })
 })
+
+describe('审核队列：M8-5 AI 草稿条目', () => {
+  it('新种类可通过、有顺序与配色，AI 来源', async () => {
+    const m = await import('./logic')
+    for (const k of ['rule', 'unknown_card', 'card_maps']) {
+      expect(m.APPROVABLE.has(k)).toBe(true)
+      expect(m.AI_KB_KINDS.has(k)).toBe(true)
+      expect(m.KIND_TONE[k]).toBeTruthy()
+    }
+    expect(m.sortedKinds({ card_maps: 1, rule: 2, card: 1, unknown_card: 3 })).toEqual(['card', 'rule', 'unknown_card', 'card_maps'])
+    expect(m.isAi({ method: 'ai', skill: 'unknown-triage' })).toBe(true)
+  })
+
+  it('未识别行命令卡：只提交改过的字段', async () => {
+    const { ucardEdited, ucardForm } = await import('./logic')
+    const card = { id: 'f.a', syntax: 'a <n>', view: 'interface', params: { n: { type: 'integer' } } }
+    const f = ucardForm(card)
+    expect(f).toEqual({ id: 'f.a', syntax: 'a <n>', view: 'interface', undo: '' })
+    expect(ucardEdited(card, f, true)).toBeNull()
+    expect(ucardEdited(card, { ...f, syntax: ' a <m> ', undo: 'undo a' }, true)).toEqual({ syntax: 'a <m>', undo: 'undo a' })
+    expect(ucardEdited(card, { ...f, id: 'f.b' }, false)).toBeNull()
+    expect(ucardEdited(card, { ...f, view: '' }, true)).toBe('incomplete')
+  })
+
+  it('映射表：JSON 对象、不能为空、未改为 null', async () => {
+    const { parseMaps } = await import('./logic')
+    const orig = { 'interface.mtu': '{mtu}' }
+    expect(parseMaps('{"interface.mtu": "{mtu}"}', orig)).toEqual({ maps: null })
+    expect(parseMaps('{"interface.mtu": "{bytes}"}', orig)).toEqual({ maps: { 'interface.mtu': '{bytes}' } })
+    expect(parseMaps('{}', orig)).toEqual({ error: 'empty' })
+    expect(parseMaps('[1]', orig)).toEqual({ error: 'json' })
+    expect(parseMaps('{x', orig)).toEqual({ error: 'json' })
+  })
+})

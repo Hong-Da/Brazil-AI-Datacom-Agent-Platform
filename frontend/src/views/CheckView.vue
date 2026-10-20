@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /** 配置检查：按 DevelopDocs/ui-preview/M2/check.html。发现（筛选、列表、详情、忽略）、规则（开关与级别）、报告导出。 */
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
@@ -13,6 +13,10 @@ import type { Device } from './devices/logic'
 import CheckTabs from './check/CheckTabs.vue'
 import TargetBar from './check/TargetBar.vue'
 import ExportDialog from './check/ExportDialog.vue'
+import AiEntryButton from '@/components/ai-suggest/AiEntryButton.vue'
+import AiSuggestPanel from '@/components/ai-suggest/AiSuggestPanel.vue'
+import RuleDraftBox from '@/components/ai-kb/RuleDraftBox.vue'
+import { checkScope, type RefInfo } from '@/components/ai-suggest/logic'
 import { target, targetBody } from './check/report'
 import {
   cleanable, codeWindows, countBy, emptyFilter, findingKey, isComment, matches, nodeChips, orderWithCascade,
@@ -99,6 +103,27 @@ const visible = computed(() => findings.value.filter((f) => matches(f, filter, `
 const rows = computed(() => orderWithCascade(visible.value))
 const selected = computed(() => rows.value.find((r) => r.key === selKey.value)?.f ?? rows.value[0]?.f ?? null)
 watch(selected, () => { ignoreOpen.value = false; ignoreErr.value = false })
+
+// ---------------------------------------------------------------- AI 问题解读与修复（M8-3）：只对导入设备的检查结果
+const aiDevice = computed(() => (result.value && target.mode === 'device' && graphFor.value != null ? graphFor.value : null))
+const aiScope = computed(() => (aiDevice.value != null ? checkScope(aiDevice.value) : ''))
+const aiParams = computed(() => ({ source: 'check', device_id: aiDevice.value }))
+const aiPanel = ref<InstanceType<typeof AiSuggestPanel> | null>(null)
+const aiOpen = ref(false)
+const aiState = ref('loading')
+const aiShown = computed(() => aiOpen.value || ['done', 'running', 'empty', 'failed', 'cancelled'].includes(aiState.value))
+watch(aiScope, () => { aiOpen.value = false })
+async function runAi(): Promise<void> {
+  aiOpen.value = true
+  await nextTick()
+  await aiPanel.value?.start()
+}
+/** 引用的问题条目 → 选中问题列表中对应的一行 */
+function aiJump(r: RefInfo): void {
+  if (r.type !== 'finding' || !r.node) return
+  const hit = rows.value.find((x) => x.f.node === r.node && (!r.label || x.f.rule === r.label)) ?? rows.value.find((x) => x.f.node === r.node)
+  if (hit) selKey.value = hit.key
+}
 
 function resetFilter(): void { Object.assign(filter, emptyFilter()) }
 function sevStrip(s: Severity | ''): void { filter.sev = toggleSevOnly(filter.sev, s) }
@@ -280,10 +305,16 @@ onMounted(async () => {
         </div>
         <div class="ph-actions">
           <button class="btn" type="button" :disabled="!result" data-testid="btn-export" @click="exportOpen = true"><Icon name="report" small />{{ $t('check.export') }}</button>
+          <AiEntryButton v-if="aiDevice != null" :skills="['finding-fix']" :busy="aiState === 'running'" @run="runAi" />
+          <button v-else-if="result" class="btn btn-ai" type="button" disabled :title="$t('ai-suggest.needDevice')" data-testid="check-ai-off"><Icon name="spark" small />{{ $t('ai-suggest.btn') }}</button>
           <button class="btn btn-primary" type="button" :disabled="loading || !targetBody()" data-testid="btn-run" @click="run()">
             <Icon :name="loading ? 'refresh' : 'play'" small />{{ $t('check.run') }}
           </button>
         </div>
+      </div>
+
+      <div v-if="aiDevice != null" v-show="aiShown" class="check-ai" data-testid="check-ai">
+        <AiSuggestPanel ref="aiPanel" skill="finding-fix" :params="aiParams" :scope="aiScope" @state="aiState = $event" @jump="aiJump" />
       </div>
 
       <CheckTabs :active="tab" :findings="result ? activeCount : null" :rules="rulesLabel" :orphans="target.orphans" />
@@ -481,6 +512,7 @@ onMounted(async () => {
       <section v-else class="ck-rules" data-testid="tab-rules-panel">
         <div class="notice info rules-note"><Icon name="info" /><div class="grow">{{ $t('check.rulesNote') }}</div></div>
         <div v-if="!auth.isKbEditor" class="ro-ribbon rules-note" data-testid="rules-ro"><Icon name="lock" small /><div class="grow">{{ $t('kbsugg.kbEditorOnly') }}</div></div>
+        <RuleDraftBox v-if="auth.isKbEditor" />
         <div v-if="rulesError" class="notice err rules-note">
           <Icon name="err" /><div class="grow">{{ rulesError }}
             <ul v-if="failIssues.length" class="issues mono small"><li v-for="(x, i) in failIssues" :key="i">{{ x }}</li></ul>
@@ -521,6 +553,7 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.check-ai { margin-bottom: 12px; }
 .remedy { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .remedy pre.block { width: 100%; margin: 0; font-size: 11.5px; max-height: 260px; }
 .ck-head { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }

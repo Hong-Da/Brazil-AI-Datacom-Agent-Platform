@@ -51,7 +51,7 @@ def _fake_ai() -> None:
     def hook(conn: Any, m: str, system: str, prompt: str) -> Any:
         if "handover summary" in system:
             text = json.dumps(SUMMARY)
-        elif "topology role" in system:
+        elif "topology" in system:
             text = json.dumps(ROLES)
         else:
             text = "{}"

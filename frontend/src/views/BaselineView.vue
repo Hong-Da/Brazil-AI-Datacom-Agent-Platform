@@ -8,6 +8,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import DevChip from '@/components/m4-dev.vue'
+import ReportAiSummary from '@/components/ai-kb/ReportAiSummary.vue'
+import WaiverDialog from '@/components/ai-kb/WaiverDialog.vue'
 import { errorText, get, post } from '@/api'
 import { pickLang } from '@/i18n'
 import { useTerms } from '@/stores/terms'
@@ -48,6 +50,14 @@ const runError = ref('')
 const result = ref<BaselineResult | null>(null)
 const ranAt = ref('')
 let lastBody: Record<string, unknown> | null = null
+/** M8-5 报告摘要与例外说明用的范围（最近一次审计的基线与设备）；导出时是否包含 AI 摘要。 */
+const aiBody = ref<{ baseline: string; device_ids: number[] } | null>(null)
+const incAi = ref(true)
+const waiver = ref<{ deviceId: number; deviceName: string; rule: string; baseline: string } | null>(null)
+function openWaiver(device: string, rule: string): void {
+  const d = devOf(device)
+  if (d) waiver.value = { deviceId: d.id, deviceName: d.name, rule, baseline: aiBody.value?.baseline ?? baseline.value }
+}
 
 async function run(): Promise<void> {
   if (!picked.value.size || running.value) return
@@ -57,6 +67,7 @@ async function run(): Promise<void> {
   try {
     result.value = await post<BaselineResult>('/baseline', body)
     lastBody = body
+    aiBody.value = body
     ranAt.value = new Date().toLocaleString()
     const keep = mode.value === 'dev' && result.value.devices.some((d) => d.device === selDev.value)
     if (!keep) {
@@ -147,7 +158,7 @@ async function report(rl: 'zh-CN' | 'en'): Promise<void> {
   if (!lastBody) return
   reporting.value = rl
   try {
-    const f = await postFile('/baseline/report', { ...lastBody, lang: rl, format: reportFmt.value, style: terms.style }, `baseline-${baseline.value}.${rl}.${reportFmt.value}`)
+    const f = await postFile('/baseline/report', { ...lastBody, lang: rl, format: reportFmt.value, style: terms.style, include_ai_summary: incAi.value }, `baseline-${baseline.value}.${rl}.${reportFmt.value}`)
     saveBlob(f.blob, f.name)
   } catch (e) {
     flash(t('baseline.reportFail', { e: errorText(e) }))
@@ -228,6 +239,7 @@ onMounted(async () => {
           <div><div class="k"><Icon name="server" small />{{ $t('baseline.s.affected') }}</div><div class="v">{{ strip.affected }}<small>/ {{ result.devices.length }}</small></div><div class="s">{{ $t('baseline.s.affectedHint') }}</div></div>
           <div><div class="k">{{ $t('baseline.s.bySev') }}</div><div class="sevrow"><span v-for="s in (['error', 'warning', 'info'] as const)" :key="s" class="sev" :class="s"><Icon :name="sevIcon(s)" small />{{ $t(`baseline.sev.${s}`) }}<b>{{ strip.bySev[s] }}</b></span></div></div>
         </div>
+        <ReportAiSummary v-model="incAi" kind="baseline" :params="aiBody" style="margin-bottom: 12px" />
 
         <div class="bl">
           <section class="panel">
@@ -294,7 +306,7 @@ onMounted(async () => {
               <div v-if="!groups.length" class="okall"><Icon name="ok" /><p>{{ $t('baseline.okAll') }}</p></div>
               <div v-else class="items">
                 <div v-for="g in groups" :id="`bl-it-${g.rule}`" :key="g.rule" class="it" :class="[`k-${g.items[0].severity === 'error' ? 'fail' : 'warn'}`, { cur: cell === `${dr.device}|${g.rule}` }]" data-testid="bl-failure">
-                  <div class="ih"><span class="nm">{{ title(g.rule) }}</span><span class="sev" :class="g.items[0].severity"><Icon :name="sevIcon(g.items[0].severity)" small />{{ $t(`baseline.sev.${g.items[0].severity}`) }}</span><span class="rid">{{ g.rule }}</span><span v-if="g.items.length > 1" class="small faint">{{ $t('baseline.instances', { n: g.items.length }) }}</span></div>
+                  <div class="ih"><span class="nm">{{ title(g.rule) }}</span><span class="sev" :class="g.items[0].severity"><Icon :name="sevIcon(g.items[0].severity)" small />{{ $t(`baseline.sev.${g.items[0].severity}`) }}</span><span class="rid">{{ g.rule }}</span><span v-if="g.items.length > 1" class="small faint">{{ $t('baseline.instances', { n: g.items.length }) }}</span><button v-if="devOf(dr.device)" class="btn btn-xs btn-aio ml-auto" type="button" :data-testid="`baseline-waiver-open-${g.rule}`" @click="openWaiver(dr.device, g.rule)"><Icon name="spark" small />{{ $t('ai-kb.bw.open') }}</button></div>
                   <div v-for="(f, k) in g.items" :key="k" class="inst">
                     <div class="risk-t">{{ keyText(f.message, lang, result.texts) }}</div>
                     <div class="small muted">{{ keyText(f.suggestion, lang, result.texts) }}</div>
@@ -327,6 +339,7 @@ onMounted(async () => {
         </div>
       </template>
     </div>
+    <WaiverDialog v-if="waiver" :device-id="waiver.deviceId" :device-name="waiver.deviceName" :rule="waiver.rule" :rule-title="title(waiver.rule)" :baseline="waiver.baseline" @close="waiver = null" />
     <div v-if="toast" class="toast" role="status">{{ toast }}</div>
   </main>
 </template>

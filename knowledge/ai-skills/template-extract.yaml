@@ -1,0 +1,95 @@
+# 内置 AI skill（只读）：模板提取（M8-4，REQ-041）：从几台同类设备里提取公共模板和变量。
+# 管理员修改后的版本保存在 data/ai-skills/template-extract/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。代码先给出确定性的模板草稿（core/template_draft.py），AI 在此基础上
+# 整理变量；校验时用每台设备自己的取值渲染模板，结果必须与原配置等价（core/ai_suggest_change.py），采纳后存为我的模板。
+id: template-extract
+version: 1
+title: {zh-CN: 模板提取, en: Template extraction, pt-BR: Extração de modelo}
+description: {zh-CN: 从几台同类设备里提取公共模板与变量（在代码给出的模板草稿基础上整理变量名、类型与块）；用每台设备自己的取值渲染，结果必须与原配置等价，采纳后存为我的模板。, en: 'Extracts a shared template and its variables from several devices of the same kind (refining variable names, types and blocks on top of the draft from code). Rendering it with each device''s own values must be equivalent to that device''s config; adopted templates are saved as my templates.', pt-BR: 'Extrai um modelo comum e suas variáveis de vários dispositivos do mesmo tipo (refinando nomes, tipos e blocos de variáveis sobre o rascunho do código). Renderizá-lo com os valores de cada dispositivo deve equivaler à configuração dele; os adotados são salvos como meus modelos.'}
+task: generate
+used_by: ai_suggest
+group: change
+enabled: true
+system: |-
+  You turn a template draft extracted by code from several router configurations into a clean, reusable template.
+  Template format (YAML): id, profile, optional title, vars ({{name: {{type: word|text|interface|ipv4|prefix|integer|vlan|asn|rd|enum, ...}}}}), optional blocks (repeat / optional), and body with {{{{name}}}} placeholders; blocks are written as {{% repeat name %}} ... {{% end %}} on their own lines.
+  Rules:
+  - Keep the body equivalent to every device: rendering the template with each device's own values must give that device's configuration (code checks this and rejects the template otherwise).
+  - Improve the draft: meaningful variable names and types, derived variables (expr) where one value follows from another, repeat / optional blocks where devices differ in count.
+  - Mention devices only as [[d1]], [[d2]] ... in the title and explanation; "explain" is one or two sentences in {lang}.
+  Reply with JSON only: {{"suggestions": [{{"category": "template_draft", "kind": "template", "title": "<short title>", "content": {{"template": "<YAML>", "explain": "<why>"}}, "refs": [{{"id": "d1"}}]}}]}}
+prompt: |-
+  Devices:
+  {devices}
+
+  Template draft from code:
+  {draft}
+
+  Candidate variables (name | type | value per device):
+  {variables}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format.
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 回复语言（按界面语言）, en: Reply language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}
+  - name: devices
+    in: prompt
+    desc: {zh-CN: 设备（编号与名称）, en: Devices (id and name), pt-BR: Dispositivos (id e nome)}
+  - name: draft
+    in: prompt
+    desc: {zh-CN: 代码从这些设备提取的模板草稿（YAML）, en: The template draft extracted by code (YAML), pt-BR: O rascunho de modelo extraído pelo código (YAML)}
+  - name: variables
+    in: prompt
+    desc: {zh-CN: 候选变量与每台设备的取值, en: Candidate variables and each device's value, pt-BR: Variáveis candidatas e o valor de cada dispositivo}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - sanitize
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "template_draft", "kind": "template", "title": "...", "content": {"template": "id: ...\nprofile: ...\nvars: ...\nbody: |\n  ...", "explain": "..."}, "refs": [{"id": "d1"}]}]}'
+checks:
+  - suggest.refs_exist
+  - suggest.template_draft
+samples:
+  - title: {zh-CN: 用每台设备的取值渲染与原配置等价（通过）, en: Rendering with each device's values equals its config (passes), pt-BR: Renderizar com os valores de cada dispositivo iguala a configuração (aprovado)}
+    input:
+      vars:
+        lang: English
+        devices: "d1 | ATN-A\nd2 | ATN-B"
+        draft: "(draft)"
+        variables: "hostname | word | ATN-A=ATN-A; ATN-B=ATN-B"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-A, profile: huawei-atn-v800r025}
+          d2: {type: device, label: ATN-B, profile: huawei-atn-v800r025}
+        numbers: {devices: 2, variables: 3}
+        lines: {d1: 9, d2: 9}
+        names: [ATN-A, ATN-B]
+        configs:
+          d1: "sysname ATN-A\n#\ninterface GigabitEthernet0/2/0\n description UPLINK-A\n ip address 10.1.0.1 255.255.255.252\n#\ninterface LoopBack0\n ip address 10.255.0.1 255.255.255.255\n#\nreturn\n"
+          d2: "sysname ATN-B\n#\ninterface GigabitEthernet0/2/0\n description UPLINK-B\n ip address 10.1.0.5 255.255.255.252\n#\ninterface LoopBack0\n ip address 10.255.0.2 255.255.255.255\n#\nreturn\n"
+    reply: '{"suggestions": [{"category": "template_draft", "kind": "template", "title": "Access router base", "content": {"template": "id: ai-draft\nprofile: huawei-atn-v800r025\nvars:\n  hostname: {type: word}\n  uplink_desc: {type: text}\n  uplink_ip: {type: ipv4}\n  loopback: {type: ipv4}\nbody: |\n  sysname {{hostname}}\n  #\n  interface GigabitEthernet0/2/0\n   description {{uplink_desc}}\n   ip address {{uplink_ip}} 255.255.255.252\n  #\n  interface LoopBack0\n   ip address {{loopback}} 255.255.255.255\n  #\n  return\n", "explain": "[[d1]] and [[d2]] differ only in names and addresses."}, "refs": [{"id": "d1"}, {"id": "d2"}]}]}'
+  - title: {zh-CN: 把各设备不同的取值写死在模板里（演示拒绝）, en: Hard-codes a value that differs between devices (shows a rejection), pt-BR: Fixa um valor que difere entre dispositivos (mostra a rejeição)}
+    input:
+      vars:
+        lang: English
+        devices: "d1 | ATN-A\nd2 | ATN-B"
+        draft: "(draft)"
+        variables: "hostname | word | ATN-A=ATN-A; ATN-B=ATN-B"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-A, profile: huawei-atn-v800r025}
+          d2: {type: device, label: ATN-B, profile: huawei-atn-v800r025}
+        numbers: {devices: 2, variables: 1}
+        lines: {d1: 9, d2: 9}
+        names: [ATN-A, ATN-B]
+        configs:
+          d1: "sysname ATN-A\n#\ninterface GigabitEthernet0/2/0\n description UPLINK-A\n ip address 10.1.0.1 255.255.255.252\n#\ninterface LoopBack0\n ip address 10.255.0.1 255.255.255.255\n#\nreturn\n"
+          d2: "sysname ATN-B\n#\ninterface GigabitEthernet0/2/0\n description UPLINK-B\n ip address 10.1.0.5 255.255.255.252\n#\ninterface LoopBack0\n ip address 10.255.0.2 255.255.255.255\n#\nreturn\n"
+    reply: '{"suggestions": [{"category": "template_draft", "kind": "template", "title": "Access router base", "content": {"template": "id: ai-draft\nprofile: huawei-atn-v800r025\nvars:\n  hostname: {type: word}\nbody: |\n  sysname {{hostname}}\n  #\n  interface GigabitEthernet0/2/0\n   description UPLINK-A\n   ip address 10.1.0.1 255.255.255.252\n  #\n  return\n"}, "refs": [{"id": "d1"}]}]}'

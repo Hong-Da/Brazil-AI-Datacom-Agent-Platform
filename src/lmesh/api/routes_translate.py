@@ -63,4 +63,11 @@ def run_translate(request: Request, body: TranslateBody) -> dict[str, Any]:
         raise ApiError(E_PARAM, 422, e.key, **e.fmt) from e
     except translate.TranslateError as e:
         raise ApiError(E_PARAM, 422, e.key, **e.fmt) from e
+    scope = getattr(request.state, "scope", None)
+    if body.device_id is not None and not body.text and scope is not None:
+        # M8-4：项目里采纳的“翻译未支持项”AI 写法写进译文（标为 AI 来源：ai_lines、ai_patches）
+        from lmesh.core import ai_suggest_change
+
+        patches = ai_suggest_change.translate_patches(_db(request), scope.project_id, body.device_id, body.to)
+        result = ai_suggest_change.apply_translate_patches(result, patches, kb, body.to)
     return ok(request, result)

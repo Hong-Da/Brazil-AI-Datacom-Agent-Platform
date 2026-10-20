@@ -3,7 +3,7 @@
  * 变更影响分析（预览 DevelopDocs/ui-preview/M4/impact.html）：选设备与起点节点（可从设备配置图、增量变更跳转过来），
  * 方向 up / down / both → POST /impact → 概况、关系图（cytoscape）、按类型 / 距离 / 功能域分组的列表，每项给出从起点出发的路径。
  */
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Icon from '@/components/Icon.vue'
 import FullscreenPane from '@/components/FullscreenPane.vue'
@@ -13,6 +13,9 @@ import { errorText, get, post } from '@/api'
 import { useTerms } from '@/stores/terms'
 import type { Device } from '@/views/devices/logic'
 import ImpactGraph from './m4/ImpactGraph.vue'
+import AiEntryButton from '@/components/ai-suggest/AiEntryButton.vue'
+import AiSuggestPanel from '@/components/ai-suggest/AiSuggestPanel.vue'
+import { impactScope, type RefInfo } from '@/components/ai-suggest/logic'
 import {
   edgeClass, fromQuery, groupBy, listed, pathTo, presets, searchNodes, stripCounts, withinDepth,
   type Direction, type GNode, type ImpactResult, type Tab,
@@ -71,6 +74,24 @@ const runError = ref('')
 const result = ref<ImpactResult | null>(null)
 const focus = ref<string | null>(null)
 
+// ---------------------------------------------------------------- AI 影响说明（M8-3）：影响范围由代码计算，AI 只改写成运维语言
+/** 最近一次分析的设备、起点与方向（指定了历史版本时不提供：AI 按设备的最新版本取事实） */
+const ran = ref<{ device_id: number; nodes: string[]; direction: Direction } | null>(null)
+const aiScope = computed(() => (ran.value ? impactScope(ran.value.device_id, ran.value.direction, ran.value.nodes) : ''))
+const aiPanel = ref<InstanceType<typeof AiSuggestPanel> | null>(null)
+const aiOpen = ref(false)
+const aiState = ref('loading')
+const aiShown = computed(() => aiOpen.value || ['done', 'running', 'empty', 'failed', 'cancelled'].includes(aiState.value))
+watch(aiScope, () => { aiOpen.value = false })
+async function runAi(): Promise<void> {
+  aiOpen.value = true
+  await nextTick()
+  await aiPanel.value?.start()
+}
+function aiJump(r: RefInfo): void {
+  if (r.node && result.value?.nodes.some((n) => n.node === r.node)) focus.value = r.node
+}
+
 async function run(): Promise<void> {
   if (deviceId.value === null || !starts.value.length) return
   running.value = true
@@ -80,6 +101,7 @@ async function run(): Promise<void> {
   if (versionId.value !== null) body.version_id = versionId.value
   try {
     result.value = await post<ImpactResult>('/impact', body)
+    ran.value = versionId.value === null ? { device_id: deviceId.value, nodes: [...starts.value], direction: dir.value } : null
     const q: Record<string, string | string[]> = { device: String(deviceId.value), node: starts.value, dir: dir.value }
     if (versionId.value !== null) q.version = String(versionId.value)
     if (fromChange.value) q.from = 'change'
@@ -158,6 +180,9 @@ onMounted(async () => {
           <h1>{{ $t('impact.title') }}</h1>
           <p class="ph-sub">{{ $t('impact.sub') }}</p>
         </div>
+        <div v-if="ran && result" class="ph-actions">
+          <AiEntryButton :skills="['impact-explain']" :busy="aiState === 'running'" @run="runAi" />
+        </div>
       </div>
       <div v-if="loadError" class="notice err" style="margin-bottom: 12px"><Icon name="err" /><div class="grow">{{ loadError }}</div></div>
 
@@ -201,6 +226,9 @@ onMounted(async () => {
       <div v-if="runError" class="notice err mt12" data-testid="imp-error"><Icon name="err" /><div class="grow">{{ runError }}</div><button class="btn btn-sm" type="button" @click="run">{{ $t('c.retry') }}</button></div>
       <div v-if="!result && !runError" class="empty mt16" data-testid="imp-empty"><Icon name="target" /><h3>{{ running ? $t('c.loading') : $t('impact.emptyTitle') }}</h3><p v-if="!running">{{ $t('impact.emptyText') }}</p></div>
 
+      <div v-if="ran && result" v-show="aiShown" class="mt12" data-testid="impact-ai">
+        <AiSuggestPanel ref="aiPanel" skill="impact-explain" :params="ran" :scope="aiScope" @state="aiState = $event" @jump="aiJump" />
+      </div>
       <FullscreenPane v-if="result" class="imp-fs" :title="$t('impact.title')" data-testid="imp-fs">
         <div class="istrip" data-testid="imp-strip">
           <div><div class="v">{{ strip.objects }}</div><div class="k">{{ $t(`impact.s.objects.${result.direction}`) }}</div></div>

@@ -34,7 +34,7 @@ export interface ReviewList {
 }
 
 /** 已知类型的显示顺序与配色（未知类型按原名显示，排在后面）。 */
-export const KIND_ORDER = ['card', 'schema_node', 'unknown_line', 'mapping', 'conflict', 'profile_entry', 'suggestion'] as const
+export const KIND_ORDER = ['card', 'schema_node', 'unknown_line', 'mapping', 'conflict', 'profile_entry', 'suggestion', 'rule', 'unknown_card', 'card_maps'] as const
 export const KIND_TONE: Record<string, string> = {
   card: 'card',
   schema_node: 'node',
@@ -43,10 +43,16 @@ export const KIND_TONE: Record<string, string> = {
   conflict: 'conflict',
   profile_entry: 'card',
   suggestion: 'node',
+  rule: 'node',
+  unknown_card: 'unknown',
+  card_maps: 'node',
 }
 
 /** 后端已注册通过动作的类型；其他类型通过时后端会返回 review.no_action。 */
-export const APPROVABLE = new Set(['card', 'conflict', 'unknown_line', 'suggestion'])
+export const APPROVABLE = new Set(['card', 'conflict', 'unknown_line', 'suggestion', 'rule', 'unknown_card', 'card_maps'])
+
+/** M8-5：AI 建议采纳后进入审核队列的知识库草稿（规则、未识别行命令卡、命令卡映射），由 ai-kb/KbReviewItem.vue 显示与编辑。 */
+export const AI_KB_KINDS = new Set(['rule', 'unknown_card', 'card_maps'])
 
 export function sortedKinds(counts: Record<string, number>): string[] {
   const known = KIND_ORDER.filter((k) => (counts[k] ?? 0) > 0) as string[]
@@ -67,7 +73,7 @@ export function splitTitle(title: string, target = ''): { id: string; text: stri
 
 /** 是否 AI 抽取（卡片来源带 extracted_by=ai）。 */
 export function isAi(src: ReviewSource | null | undefined): boolean {
-  return (src?.extracted_by ?? '') === 'ai'
+  return (src?.extracted_by ?? '') === 'ai' || (src?.method ?? '') === 'ai'
 }
 
 /** 来源一行文字：文档 / 文件 / 行号。 */
@@ -153,4 +159,40 @@ export function unknownCardReady(c: UnknownCard): boolean {
 }
 export function unknownCardEmpty(c: UnknownCard): boolean {
   return (['id', 'syntax', 'view', 'family', 'domain'] as const).every((k) => c[k].trim() === '')
+}
+
+// ---------- M8-5：AI 草稿条目（rule / unknown_card / card_maps）通过时的修改
+
+/** 未识别行命令卡可改的字段（id 只在“缺命令卡”时可改）。 */
+export const UCARD_FIELDS = ['id', 'syntax', 'view', 'undo'] as const
+export type UcardField = (typeof UCARD_FIELDS)[number]
+
+/** 草稿卡 → 表单（对象字段转 JSON 文本）。 */
+export function ucardForm(card: Record<string, unknown> | null | undefined): Record<UcardField, string> {
+  const c = card ?? {}
+  const s = (v: unknown) => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v))
+  return { id: s(c.id), syntax: s(c.syntax), view: s(c.view), undo: s(c.undo) }
+}
+
+/** 与草稿相比改过的字段（去掉首尾空白；syntax、view 不能改成空）；没有改动时为 null。 */
+export function ucardEdited(card: Record<string, unknown> | null | undefined, form: Record<UcardField, string>, idEditable: boolean): Record<string, string> | null | 'incomplete' {
+  const o = ucardForm(card)
+  const out: Record<string, string> = {}
+  for (const k of UCARD_FIELDS) {
+    if (k === 'id' && !idEditable) continue
+    const v = form[k].trim()
+    if (v === o[k].trim()) continue
+    if (!v && k !== 'undo') return 'incomplete'
+    out[k] = v
+  }
+  return Object.keys(out).length ? out : null
+}
+
+/** 映射表编辑：JSON 对象（Schema 节点 → 表达式），不能为空；与原值相同时为 null。 */
+export function parseMaps(text: string, original: unknown): { maps: Record<string, unknown> | null } | { error: 'json' | 'empty' } {
+  let v: unknown
+  try { v = JSON.parse(text) } catch { return { error: 'json' } }
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return { error: 'json' }
+  if (!Object.keys(v).length) return { error: 'empty' }
+  return { maps: JSON.stringify(v) === JSON.stringify(original ?? {}) ? null : (v as Record<string, unknown>) }
 }

@@ -24,6 +24,22 @@ def _line(c: Ctx, item: dict[str, Any]) -> str:
         return f"{item['kind']} {item.get('node') or ''}{at}"
 
 
+def _ai_patches(c: Ctx, target: str, to: str, r: dict[str, Any], kb: Any) -> dict[str, Any]:
+    """已导入的设备：把当前项目里采纳的“翻译未支持项”AI 写法写进译文（标为 AI 来源，M8-4，与 API 相同）。"""
+    from lmesh.cli.cmd_configs import require_db
+    from lmesh.core import ai_suggest_change, importer, projects
+
+    if Path(target).exists():
+        return r
+    scope = projects.current()
+    db = require_db(c)
+    dev = next((d for d in importer.list_devices(db) if d["name"] == target), None)
+    if scope is None or dev is None:
+        return r
+    patches = ai_suggest_change.translate_patches(db, scope.project_id, int(dev["id"]), to)
+    return ai_suggest_change.apply_translate_patches(r, patches, kb, to)
+
+
 def text_report(c: Ctx, r: dict[str, Any]) -> str:
     st = r["stats"]
     lines = [
@@ -98,6 +114,7 @@ def register(app: typer.Typer) -> None:
             fail(c, output.EXIT_NOT_FOUND if e.kind == "not_found" else output.EXIT_USAGE, c.t(e.key, **e.fmt))
         except translate.TranslateError as e:
             fail(c, output.EXIT_USAGE, c.t(e.key, **e.fmt))
+        r = _ai_patches(c, target, to, r, kb)
         report = text_report(c, r)
         if r.get("naming") is not None:
             report += "\n" + report_text(c, r["naming"])

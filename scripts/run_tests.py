@@ -165,6 +165,15 @@ def run_frontend(script: str) -> tuple[str, int]:
     return ("passed" if r.returncode == 0 else "failed"), r.returncode
 
 
+def run_frontend_args(args: list[str]) -> tuple[str, int]:
+    """在 frontend/ 下运行 pnpm 的任意参数（例如 exec playwright test -c 某配置）。"""
+    cmd = pnpm()
+    if not cmd:
+        return "skipped", 0
+    r = subprocess.run([*cmd, *args], cwd=ROOT / "frontend", env={**os.environ, "COREPACK_ENABLE_DOWNLOAD_PROMPT": "0"})
+    return ("passed" if r.returncode == 0 else "failed"), r.returncode
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(prog="test")
     for c in [*BACKEND, "frontend", "e2e"]:
@@ -230,6 +239,18 @@ def main() -> int:
         state, _ = run_frontend("e2e")
         rows.append(("e2e", int(state == "passed"), int(state == "failed"), int(state == "skipped")))
         failed |= state == "failed"
+        # 接假 AI 服务的 e2e（M8 各组 skill）：各自独立端口与数据目录，依次运行
+        for cfg in sorted((ROOT / "frontend").glob("playwright.m8*.config.ts")):
+            state, _ = run_frontend_args(["exec", "playwright", "test", "-c", cfg.name])
+            rows.append(
+                (
+                    f"e2e-{cfg.name.split('.')[1]}",
+                    int(state == "passed"),
+                    int(state == "failed"),
+                    int(state == "skipped"),
+                )
+            )
+            failed |= state == "failed"
 
     print("\n分类         通过   失败   跳过")
     for cat, p, f, s in rows:

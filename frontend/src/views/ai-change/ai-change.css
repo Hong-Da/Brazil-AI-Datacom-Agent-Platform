@@ -1,0 +1,45 @@
+/* 变更与割接组 AI 的页面接入（M8-4，样式移植自预览 DevelopDocs/ui-preview/M8/assets/m8.css 与 change.html） */
+.aic-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(380px, 460px); gap: 12px; align-items: start; }
+@media (max-width: 1360px) { .aic-grid { grid-template-columns: minmax(0, 1fr) 420px; } }
+@media (max-width: 1100px) { .aic-grid { grid-template-columns: minmax(0, 1fr); } }
+.aic-side { position: sticky; top: 8px; max-height: calc(100vh - 80px); overflow: auto; min-width: 0; }
+.aic-stack { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.aic-intent { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+.aic-intent .textarea { min-height: 70px; }
+.aic-empty { padding: 22px 14px; text-align: center; color: var(--ink-3); font-size: 12.5px; }
+.flow { display: flex; align-items: stretch; flex-wrap: wrap; }
+.flow .fs { display: flex; gap: 8px; align-items: center; padding: 7px 12px; border: 1px solid var(--line); background: var(--surface); font-size: 12px; color: var(--ink-2); }
+.flow .fs + .fs { border-left: 0; }
+.flow .fs:first-child { border-radius: 6px 0 0 6px; }
+.flow .fs:last-child { border-radius: 0 6px 6px 0; }
+.flow .fs.ai { border-style: dashed; border-color: var(--ai-line); background: var(--ai-wash); color: var(--ai); }
+.flow .fs.ai + .fs { border-left: 1px solid var(--line); }
+.flow .fs.code { color: var(--teal-ink); }
+.flow .fs.cur { font-weight: 600; color: var(--ink); }
+.aic-code { font: 12px/18px var(--font-mono); max-height: 320px; overflow: auto; border-top: 1px solid var(--line); padding: 4px 0; background: var(--surface); }
+.aic-code .l { display: flex; white-space: pre; }
+.aic-code .n { width: 40px; flex: none; text-align: right; padding-right: 10px; color: var(--ink-3); border-left: 3px solid transparent; }
+.aic-code .l.ai .n { border-left-color: var(--ai); color: var(--ai); font-weight: 600; }
+.aic-code .l.code .t { color: var(--teal-ink); }
+.aic-code .l.frame .t { color: var(--ink-3); }
+.aic-impact { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line); }
+.aic-impact > div { padding: 9px 12px; border-left: 1px solid var(--line); font-size: 12px; color: var(--ink-2); }
+.aic-impact > div:first-child { border-left: 0; }
+.aic-impact b { display: block; font: 600 17px/1.3 var(--font-display); color: var(--ink); }
+@media (max-width: 620px) { .aic-impact { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.aic-doc { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; max-width: 900px; }
+.aic-doc h2 { font-size: 17px; }
+.aic-doc h3 { font-size: 13.5px; margin-bottom: 6px; }
+.aic-doc .meta { font-size: 12px; color: var(--ink-3); }
+.aic-doc .missing { border: 1px dashed var(--line-strong); border-radius: 7px; padding: 10px 12px; font-size: 12.5px; color: var(--ink-3); }
+.aic-doc.hide-ai .ai-block { background: transparent; border-color: transparent; box-shadow: none; }
+.aic-doc.hide-ai .ai-block .ai-by { visibility: hidden; }
+.aic-steps { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.aic-steps th { text-align: left; font-size: 11.5px; color: var(--ink-3); font-weight: 600; padding: 4px 8px; border-bottom: 1px solid var(--line); }
+.aic-steps td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.aic-steps code { font: 11.5px var(--font-mono); display: block; white-space: pre-wrap; color: var(--teal-ink); }
+.aic-gap td { vertical-align: top; }
+.aic-gap .src { font: 12px var(--font-mono); white-space: pre-wrap; }
+.aic-gap .dst { font: 12px var(--font-mono); white-space: pre-wrap; border-left: 3px solid var(--ai); padding-left: 6px; color: var(--ink); }
+.aic-gap .none { color: var(--ink-3); font-size: 12px; }
+.aic-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; }

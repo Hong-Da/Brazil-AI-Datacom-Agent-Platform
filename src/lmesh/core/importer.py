@@ -151,15 +151,16 @@ def import_sources(
     版本历史（M5-2）：每个配置版本是一个快照（原文 + 当时的图 + 知识库版本 + 内容指纹）；内容与该设备最新快照相同的
     重复导入不存新快照，只记导入记录（source_kind：file / dir / zip / api，actor：导入人或令牌说明）。
     导入后按 keep（配置项 history.keep，None 时读取配置）清理旧快照，贴了标签的永久保留。"""
-    from lmesh.core import history
+    from lmesh.core import history, projects
 
-    sanitizer = Sanitizer(level, local_key())
+    sc = None if public else projects.current()
+    # 项目的脱敏补充（M8-5 脱敏复核采纳的规则）：导入到这个项目时一并替换
+    sanitizer = Sanitizer(level, local_key(), redact=list(sc.redact) if sc else None)
     kb = None
     if kb_root is not None and (kb_root / "kb.yaml").exists():
         from lmesh.core.analysis import load_kb
 
         kb = load_kb(kb_root)
-    from lmesh.core import projects
 
     results: list[ImportResult] = []
     graphs: list[tuple[int, Any]] = []

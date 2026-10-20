@@ -233,7 +233,7 @@ onBeforeUnmount(() => { window.removeEventListener('keydown', onKey); clearTimeo
                 <div style="min-width: 0">
                   <div class="t1">
                     <span :class="['typ', KIND_TONE[it.kind] ?? 'card']">{{ kindName(it.kind) }}</span>
-                    <span v-if="it.kind === 'card'" :class="['srcb', { ai: isAi(it.source) }]">{{ isAi(it.source) ? 'AI' : $t('review.rule') }}</span>
+                    <span v-if="it.kind === 'card' || isAi(it.source)" :class="['srcb', { ai: isAi(it.source) }]">{{ isAi(it.source) ? 'AI' : $t('review.rule') }}</span>
                     <span v-if="it.source?.rules" class="mono faint" style="font-size: 11px">{{ it.source.rules }}</span>
                     <span class="age">{{ ageText(it.created_at) }}</span>
                   </div>

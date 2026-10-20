@@ -5,8 +5,10 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import { apiUrl } from '@/api'
 import { i18n } from '@/i18n'
+import type { SideSpec } from '@/components/ai-suggest/logic'
 import { useTerms } from '@/stores/terms'
 import { dispositionName, reportName } from './setup'
+import ReportAiSummary from '@/components/ai-kb/ReportAiSummary.vue'
 
 const props = defineProps<{ body: Record<string, unknown> | null; aName: string; bName: string }>()
 const emit = defineEmits<{ (e: 'close'): void }>()
@@ -21,6 +23,8 @@ const LANGS: [Lang, string][] = [['zh-CN', '中文'], ['en', 'English']]
 const FMTS: [Fmt, string][] = [['html', 'HTML'], ['md', 'Markdown']]
 const name = (lang: Lang, fmt: Fmt) => reportName(props.aName, props.bName, lang, fmt)
 const previewLang = computed<Lang>(() => (locale.value === 'zh-CN' ? 'zh-CN' : 'en'))
+const incAi = ref(true)
+const aiParams = computed(() => (props.body ? { a: props.body.a as SideSpec, b: props.body.b as SideSpec } : null))
 
 /** POST 版的下载（api.ts 的 download 只支持 GET）。 */
 async function fetchReport(lang: Lang, fmt: Fmt): Promise<{ blob: Blob; filename: string }> {
@@ -30,7 +34,7 @@ async function fetchReport(lang: Lang, fmt: Fmt): Promise<{ blob: Blob; filename
       'Content-Type': 'application/json',
       'Accept-Language': String(i18n.global.locale.value),
     },
-    body: JSON.stringify({ kind: 'compare', lang, format: fmt, style: terms.style, compare: props.body }),
+    body: JSON.stringify({ kind: 'compare', lang, format: fmt, style: terms.style, compare: props.body, include_ai_summary: incAi.value }),
   })
   if (res.status === 404 || res.status === 405) throw new Error(t('compare.export.unavailable'))
   const type = res.headers.get('Content-Type') ?? ''
@@ -91,7 +95,8 @@ async function preview(): Promise<void> {
       <div class="modal-b">
         <p class="muted" style="margin-bottom: 12px">{{ $t('compare.export.sub') }}</p>
         <div v-if="!body" class="notice warn"><Icon name="warn" /><div class="grow">{{ $t('compare.export.needRun') }}</div></div>
-        <div v-else class="dl-grid">
+        <ReportAiSummary v-if="body" v-model="incAi" kind="compare" :params="aiParams" style="margin-bottom: 12px" />
+        <div v-if="body" class="dl-grid">
           <div class="h" /><div v-for="[, l] in LANGS" :key="l" class="h">{{ l }}</div>
           <template v-for="[f, fl] in FMTS" :key="f">
             <div class="rh">{{ fl }}</div>

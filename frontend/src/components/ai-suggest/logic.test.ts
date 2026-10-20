@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   adoptable, batchIds, bigRequest, canRevert, categoriesOf, counts, defaultOpen, editContent, editText, filterItems, fmtTokens,
   jumpTarget, needsConfirm, pick, projectPath, query, refText, stepOf, type Suggestion,
+  bodyText, checkScope, commandsOf, coverageMarks, diffScope, featureScope, impactScope, levelOf, peerLine, suspectOf, type Coverage,
 } from './logic'
 
 function sg(id: number, extra: Partial<Suggestion> = {}): Suggestion {
@@ -97,5 +98,52 @@ describe('ai-suggest logic', () => {
     expect(query({})).toBe('')
     expect(pick({ 'zh-CN': '中', en: 'en' }, 'pt-BR')).toBe('en')
     expect(pick(undefined, 'en')).toBe('')
+  })
+})
+
+describe('ai-suggest logic · M8-3 日常分析', () => {
+  const ref = (id: string, label: string, type = 'device') => ({ id, label, type, found: true, device_id: 1 })
+
+  it('正文、风险与优先级、更可能出错的一端', () => {
+    const a = sg(1, { category: 'refs_exist', content: { text: 'x [[c1]]', risk: 'HIGH' } })
+    expect(bodyText(a)).toBe('x [[c1]]')
+    expect(levelOf(a)).toEqual({ k: 'risk', v: 'high', cls: 'hi' })
+    const b = sg(2, { category: 'refs_exist', content: { text: 't', priority: 'low', suspect: 'd2' }, refs: [ref('d2', 'AGG-01')] })
+    expect(levelOf(b)).toEqual({ k: 'prio', v: 'low', cls: 'lo' })
+    expect(suspectOf(b)).toBe('AGG-01')
+    expect(levelOf(sg(3, { content: { risk: 'extreme' } }))).toBeNull()
+    expect(bodyText(sg(4, { category: 'script_valid', content: { script: 's', explain: 'why' } }))).toBe('why')
+    expect(bodyText(sg(5))).toBe('')
+  })
+
+  it('推测对端与命令写法', () => {
+    const p = sg(1, { category: 'peer_link', content: { a: 'd1', a_interface: 'GE0/1', b: 'd2' }, refs: [ref('d1', 'A'), ref('d2', 'B')] })
+    expect(peerLine(p)).toEqual({ a: 'A GE0/1', b: 'B', external: false })
+    const e = sg(2, { category: 'peer_link', content: { a: 'd1', b: 'u1', external: true, label: 'AS 65010' }, refs: [ref('d1', 'A')] })
+    expect(peerLine(e)).toEqual({ a: 'A', b: 'AS 65010', external: true })
+    expect(peerLine(sg(3))).toBeNull()
+    const f = sg(4, { category: 'text_only', content: { text: 't', commands: [{ card: 'k1', text: 'mtu 9000' }, null] }, refs: [ref('k1', 'hw.mtu', 'card')] })
+    expect(commandsOf(f)).toEqual([{ card: 'hw.mtu', text: 'mtu 9000' }])
+  })
+
+  it('差异、问题、命令卡的引用由页面处理，不换页', () => {
+    expect(jumpTarget({ id: 'c1', type: 'diff', found: true, device_id: 3, node: 'interface[GE0/1]' })).toBeNull()
+    expect(jumpTarget({ id: 'f1', type: 'finding', found: true, device_id: 3 })).toBeNull()
+    expect(jumpTarget({ id: 'n1', type: 'interface', found: true, device_id: 3, node: 'x' })).not.toBeNull()
+  })
+
+  it('覆盖核对给差异表打标', () => {
+    const cov: Coverage = { batch_id: 9, prefix: 'c', total: 3, covered: ['c1'], uncovered: [{ id: 'c2', label: 'L2', node: 'n2' }, { id: 'c3', label: 'L3' }], by_suggestion: {} }
+    expect(coverageMarks([{ node: 'n1', label: 'L1' }, { node: 'n2' }, { label: 'L3' }], cov)).toEqual(['cov', 'uncov', 'uncov'])
+    expect(coverageMarks([{ node: 'n1' }], null)).toEqual([''])
+    expect(coverageMarks([{ node: 'n1' }], { ...cov, batch_id: null })).toEqual([''])
+  })
+
+  it('各页面的范围与后端一致', () => {
+    expect(diffScope('compare', 3, 7)).toBe('compare:3:7')
+    expect(checkScope(4)).toBe('check:4')
+    expect(impactScope(2, 'up', ['b', 'a'])).toBe('impact:2:up:a,b')
+    expect(impactScope(2, 'up', ['x'.repeat(300)]).length).toBe(200)
+    expect(featureScope('interface.mtu', 'p1', 'p2')).toBe('feature:interface.mtu:p1:p2')
   })
 })

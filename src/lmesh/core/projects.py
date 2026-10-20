@@ -99,6 +99,7 @@ class Scope:
     identity: Identity = SYSTEM
     overrides: dict[str, dict[str, Any]] = field(default_factory=dict)
     ref: str = ""  # 规范引用：调用者自己的（或属主为空的）项目写“标识”，别人的写“属主/标识”
+    redact: tuple[str, ...] = ()  # 项目的脱敏补充（M8-5 脱敏复核采纳的规则，正则）：导入与发给 AI 前都按它替换
 
     @property
     def label(self) -> str:
@@ -383,7 +384,8 @@ def _load_overrides(s: Any, project_id: int) -> dict[str, dict[str, Any]]:
 
 
 def _scope(s: Any, p: Project, ident: Identity, role: str) -> Scope:
-    return Scope(p.id, p.slug, role, ident, _load_overrides(s, p.id), ref_of(s, p, ident))
+    redact = tuple(str(x) for x in ((p.settings or {}).get("sanitize_redact") or []))
+    return Scope(p.id, p.slug, role, ident, _load_overrides(s, p.id), ref_of(s, p, ident), redact)
 
 
 def resolve(db_url: str, ident: Identity, ref: str | int) -> Scope:

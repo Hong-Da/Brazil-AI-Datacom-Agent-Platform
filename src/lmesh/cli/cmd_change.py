@@ -117,6 +117,12 @@ def register(app: typer.Typer) -> None:
         report_lang: Annotated[
             str | None, typer.Option("--report-lang", help="报告语言 zh-CN | en（默认跟随界面语言，pt-BR 用英文）")
         ] = None,
+        with_ai: Annotated[
+            bool,
+            typer.Option(
+                "--ai-summary/--no-ai-summary", help="报告包含当前项目已采纳的 AI 摘要（M8-5，两边都是已导入的设备时）"
+            ),
+        ] = True,
     ) -> None:
         c = output.get(ctx)
         kb, _ = _kb(c)
@@ -143,8 +149,14 @@ def register(app: typer.Typer) -> None:
             data["rollback_out"] = str(rollback)
         if report_file is not None:
             fmt = "md" if report_file.suffix.lower() == ".md" else "html"
+            rl = report.report_lang(report_lang or c.lang)
+            ai = None
+            if with_ai:
+                from lmesh.cli.cmd_report import ai_summary, side_spec
+
+                ai = ai_summary("change", {"current": side_spec(current, a), "target": side_spec(target, b)}, rl, r)
             try:
-                rep = report_change.change_report(r, report.report_lang(report_lang or c.lang), fmt, namer=namer)
+                rep = report_change.change_report(r, rl, fmt, namer=namer, ai=ai)
             except report.ReportError as e:
                 fail(c, output.EXIT_USAGE, c.t(e.key, **e.fmt))
             _write(report_file, rep.content)

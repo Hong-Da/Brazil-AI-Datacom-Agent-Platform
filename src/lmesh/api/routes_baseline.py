@@ -93,6 +93,9 @@ class BaselineReportBody(BaselineBody):
     style: Literal["huawei", "cisco", "nokia"] | None = Field(
         None, description="节点的显示风格；不填时用配置 ui.term_style"
     )
+    include_ai_summary: bool = Field(
+        True, description="包含本项目已采纳的 AI 摘要（M8-5；只对 device_ids 给出的设备，与数据不一致时只给说明）"
+    )
 
 
 @router.post(
@@ -106,7 +109,12 @@ def baseline_report(request: Request, body: BaselineReportBody) -> Response:
     res, kb, root = run(request, body)
     settings = settings_of(request)
     namer = terms.namer(root, kb, body.style or str(settings.get("ui.term_style")))
-    rep = render(res, body.lang, body.format, namer=namer, kb_version=kb.version)
+    ai = None
+    if body.include_ai_summary:
+        from lmesh.core import ai_report_summary
+
+        ai = ai_report_summary.lookup(settings.database_url, "baseline", body.model_dump(), body.lang, res)
+    rep = render(res, body.lang, body.format, namer=namer, kb_version=kb.version, ai=ai)
     return Response(
         content=rep.content.encode("utf-8"),
         media_type=rep.media_type,

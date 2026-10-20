@@ -1,0 +1,98 @@
+# 内置 AI skill（只读）：问题解读与修复（M8-3）：检查、跨设备一致性问题的原因、优先级与修复脚本草稿，跨设备时判断哪端更可能出错。
+# 管理员修改后的版本保存在 data/ai-skills/finding-fix/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。问题由代码检查得出并编号（f1、f2……）。
+id: finding-fix
+version: 1
+title: {zh-CN: 问题解读与修复, en: Explain and fix findings, pt-BR: Explicar e corrigir achados}
+description: {zh-CN: 说明检查与跨设备一致性问题的原因与优先级，起草修复脚本，跨设备时判断哪一端更可能出错。修复脚本先过脚本检查，并在模拟图上复检后问题必须消失；采纳的脚本进入项目脚本。, en: 'Explains why config-check and cross-device consistency findings happen and how urgent they are, drafts fix scripts and, across devices, judges which end is more likely wrong. A fix script must pass the script check and the finding must be gone when re-checked on the simulated graph; adopted scripts go to the project scripts.', pt-BR: 'Explica a causa e a prioridade dos achados de verificação e de consistência entre dispositivos, rascunha scripts de correção e, entre dispositivos, indica qual ponta é mais provavelmente a errada. O script deve passar na verificação e o achado deve sumir ao reverificar no grafo simulado; scripts adotados vão para os scripts do projeto.'}
+task: ask
+used_by: ai_suggest
+group: analysis
+enabled: true
+system: |-
+  You help an engineer fix configuration findings found by code. Never invent findings or devices.
+  For each finding you may give:
+  - an explanation: {{"category": "refs_exist", "kind": "explain", "title": "...", "content": {{"text": "<cause and what to do>", "priority": "high | medium | low", "suspect": "<device id of the end more likely wrong, only for findings between two devices>"}}, "refs": [{{"id": "f1"}}]}}
+  - a fix script draft: {{"category": "script_valid", "kind": "fix", "title": "...", "content": {{"device": "d1", "script": "<commands in the device's own syntax>", "explain": "<one sentence>", "fixes": [{{"finding": "f1"}}]}}, "refs": [{{"id": "f1"}}]}}
+    Code runs the script on a simulated copy of the device and re-checks; the finding must be gone.
+  Rules:
+  - Cite findings ONLY by the ids given (f1, f2 ...) and devices by d1, d2 ...; mention them in text only as [[id]].
+  - A fix script contains only the commands to change, for the device it targets, written for that device's platform.
+  - Write the text in {lang}.
+  Reply with JSON only: {{"suggestions": [ ... ]}}
+prompt: |-
+  Devices:
+  {devices}
+
+  Facts (key = value):
+  {facts}
+
+  Findings (id | severity | rule | message, then the configuration lines around them):
+  {findings}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format, citing only the given finding and device ids.
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 回复语言（按界面语言）, en: Reply language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}
+  - name: devices
+    in: prompt
+    desc: {zh-CN: 设备（编号 d1……、名称、Profile）, en: 'Devices (ids d1…, name, profile)', pt-BR: 'Dispositivos (ids d1…, nome, perfil)'}
+  - name: facts
+    in: prompt
+    desc: {zh-CN: 代码算出的数字（问题数与各级别数量）, en: Numbers computed by code (findings per severity), pt-BR: Números calculados pelo código (achados por severidade)}
+  - name: findings
+    in: prompt
+    desc: {zh-CN: 问题（编号 f1……、级别、规则、说明与相关配置行）, en: 'Findings (ids f1…, severity, rule, message and nearby config lines)', pt-BR: 'Achados (ids f1…, severidade, regra, mensagem e linhas próximas)'}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - sanitize
+  - rules
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "refs_exist | script_valid", "kind": "explain | fix", "title": "...", "content": {"text": "...", "priority": "high", "suspect": "d2"}, "refs": [{"id": "f1"}]}]}'
+checks:
+  - suggest.refs_exist
+  - suggest.finding_fix
+  - suggest.script_valid
+samples:
+  - title: {zh-CN: 跨设备问题的原因与出错一端, en: Cause and suspected end of a cross-device finding, pt-BR: Causa e ponta suspeita de um achado entre dispositivos}
+    input:
+      vars:
+        lang: English
+        devices: "d1 | TOPO-AGG-01 | profile=cisco-iosxe-asr920-17.15\nd2 | TOPO-AGG-02 | profile=cisco-iosxe-asr920-17.15"
+        facts: "findings = 1\nfindings.error = 1"
+        findings: "f1 | error | xd.subnet.ldp_one_side | LDP enabled on one end only\n  end d1 GigabitEthernet0/0/2: value=True\n  end d2 GigabitEthernet0/0/2: value=False"
+      facts:
+        objects:
+          d1: {type: device, label: TOPO-AGG-01, device_id: 1}
+          d2: {type: device, label: TOPO-AGG-02, device_id: 2}
+          f1: {type: finding, label: 'xd.subnet.ldp_one_side @ subnet', rule: xd.subnet.ldp_one_side, device: d1, devices: [d1, d2]}
+        numbers: {findings: 1, findings.error: 1}
+        lines: {d1: 60, d2: 60}
+        names: [TOPO-AGG-01, TOPO-AGG-02, GigabitEthernet0/0/2]
+        source: consistency
+    reply: '{"suggestions": [{"category": "refs_exist", "kind": "explain", "title": "LDP missing on one end", "content": {"text": "[[f1]]: the link interface on [[d2]] lacks LDP while [[d1]] has it, so LSPs over this link break.", "priority": "high", "suspect": "d2"}, "refs": [{"id": "f1"}]}]}'
+  - title: {zh-CN: 编造问题、出错一端不在问题里（演示拒绝）, en: 'Invented finding and a suspect outside the finding (shows rejections)', pt-BR: 'Achado inventado e ponta suspeita fora do achado (mostra as rejeições)'}
+    input:
+      vars:
+        lang: English
+        devices: "d1 | TOPO-AGG-01 | profile=cisco-iosxe-asr920-17.15\nd2 | TOPO-AGG-02 | profile=cisco-iosxe-asr920-17.15\nd3 | TOPO-RR-01 | profile=cisco-iosxe-asr920-17.15"
+        facts: "findings = 1"
+        findings: 'f1 | error | xd.subnet.ldp_one_side | LDP enabled on one end only'
+      facts:
+        objects:
+          d1: {type: device, label: TOPO-AGG-01, device_id: 1}
+          d2: {type: device, label: TOPO-AGG-02, device_id: 2}
+          d3: {type: device, label: TOPO-RR-01, device_id: 3}
+          f1: {type: finding, label: 'xd.subnet.ldp_one_side @ subnet', rule: xd.subnet.ldp_one_side, device: d1, devices: [d1, d2]}
+        numbers: {findings: 1}
+        lines: {d1: 60, d2: 60, d3: 60}
+        names: [TOPO-AGG-01, TOPO-AGG-02, TOPO-RR-01]
+        source: consistency
+    reply: '{"suggestions": [{"category": "refs_exist", "kind": "explain", "title": "MTU mismatch", "content": {"text": "[[f7]] is an MTU mismatch.", "priority": "high"}, "refs": [{"id": "f7"}]}, {"category": "refs_exist", "kind": "explain", "title": "Route reflector is wrong", "content": {"text": "[[d3]] is to blame for [[f1]].", "priority": "high", "suspect": "d3"}, "refs": [{"id": "f1"}]}]}'

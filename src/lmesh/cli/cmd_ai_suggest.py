@@ -1,4 +1,5 @@
-"""AI 建议命令（M8-2，REQ-041）：lmesh ai suggest run|list|show|adopt|dismiss|revert|annotations。
+"""AI 建议命令（M8-2，REQ-041）：lmesh ai suggest run|list|show|adopt|dismiss|revert|annotations；
+M8-3 加 annotate（手工标注设备角色 / 分组）、coverage（变化解读的覆盖核对）、handover（设备交接文档）。
 
 与 API 共用 core/ai_suggest；作用于当前项目（--project，不给时默认项目）；命令行权限等同管理员。
 run 同步执行：需要 AI（未配置时退出码 3）；--replay <文件> 用文件里的回复代替真实 AI（同样经过代码校验，批次标明 replay）。
@@ -16,7 +17,7 @@ from lmesh.cli import output
 from lmesh.cli.cmd_configs import require_db
 from lmesh.cli.cmd_graph import _kb
 from lmesh.cli.output import Ctx, emit, fail
-from lmesh.core import ai_suggest, config, importer, projects
+from lmesh.core import ai_suggest, ai_suggest_analysis, config, importer, projects
 
 _EXIT = {
     "param": output.EXIT_USAGE,
@@ -128,10 +129,38 @@ def register(ai_app: typer.Typer) -> None:
         replay: Annotated[
             Path | None, typer.Option("--replay", help="用文件里的回复代替真实 AI（仍经过代码校验）")
         ] = None,
+        params_json: Annotated[
+            str | None,
+            typer.Option(
+                "--params",
+                help='skill 的其他参数（JSON 对象），例如 {"source": "history", "a_version": 1, "b_version": 2}',
+            ),
+        ] = None,
+        doc: Annotated[
+            Path | None,
+            typer.Option("--doc", help="规范文件（txt / md / docx），文字作为参数 text（M8-5 规范转规则）"),
+        ] = None,
     ) -> None:
         c = output.get(ctx)
         env = _env(c)
         params: dict[str, Any] = {}
+        if params_json:
+            try:
+                params = json.loads(params_json)
+            except json.JSONDecodeError:
+                params = None  # type: ignore[assignment]
+            if not isinstance(params, dict):
+                fail(c, output.EXIT_USAGE, c.t("ai_suggest.bad_params"))
+        if doc is not None:
+            from lmesh.core import ai_suggest_kb
+
+            if not doc.is_file():
+                fail(c, output.EXIT_NOT_FOUND, c.t("ai_kb.doc_missing", path=str(doc)))
+            try:
+                got = ai_suggest_kb.extract_text(doc.name, doc.read_bytes())
+            except ai_suggest.SuggestError as e:
+                _fail(c, e)
+            params["text"], params["doc_name"] = got["text"], got["name"]
         if device:
             params["device_id"] = _device_id(c, env.db, device)
         if devices:
@@ -255,3 +284,75 @@ def register(ai_app: typer.Typer) -> None:
             f"{a['target_type']}:{a['target']} {a['key']} = {a['value']} ({a['source']})" for a in items
         ) or c.t("ai_suggest.empty")
         emit(c, {"items": items}, text)
+
+    @sapp.command(
+        "annotate", help="手工标注设备的角色、分组、标签或层次（优先于 AI 建议）/ set a manual view annotation"
+    )
+    def s_annotate(
+        ctx: typer.Context,
+        device: Annotated[str, typer.Argument(help="设备名或编号")],
+        key: Annotated[str, typer.Option("--key", help="role | group | label | layer")] = "role",
+        value: Annotated[str | None, typer.Option("--value", help="取值；不给或 --clear 时清除")] = None,
+        clear: Annotated[bool, typer.Option("--clear", help="清除这项标注")] = False,
+    ) -> None:
+        c = output.get(ctx)
+        env = _env(c)
+        did = _device_id(c, env.db, device)
+        val: Any = None if clear else value
+        if key == "layer" and isinstance(val, str) and val.isdigit():
+            val = int(val)
+        try:
+            item = ai_suggest_analysis.set_annotation(env, "device", str(did), key, val)
+        except ai_suggest.SuggestError as e:
+            _fail(c, e)
+        text = (
+            c.t("ai_suggest.annotated", target=device, item=key, value=item["value"])
+            if item
+            else c.t("ai_suggest.annotation_cleared", target=device, item=key)
+        )
+        emit(c, {"item": item}, text)
+
+    @sapp.command("coverage", help="覆盖核对：没有被任何意图解释的差异条目（代码计算）/ coverage of difference entries")
+    def s_coverage(
+        ctx: typer.Context,
+        scope: Annotated[str, typer.Argument(help="范围，例如 compare:3:5、history:3:5")],
+        skill: Annotated[str, typer.Option("--skill")] = "diff-explain",
+    ) -> None:
+        c = output.get(ctx)
+        env = _env(c)
+        r = ai_suggest_analysis.coverage(env, skill, scope)
+        if r["batch_id"] is None:
+            emit(c, r, c.t("ai_suggest.coverage_none"))
+            return
+        lst = ", ".join(f"{u['id']} {u['label']}" for u in r["uncovered"]) or "-"
+        emit(c, r, c.t("ai_suggest.coverage", covered=len(r["covered"]), total=r["total"], list=lst))
+
+    @sapp.command("handover", help="导出设备交接文档（含采纳的 AI 设备摘要）/ export the device handover note")
+    def s_handover(
+        ctx: typer.Context,
+        device: Annotated[str, typer.Argument(help="设备名或编号")],
+        lang: Annotated[str, typer.Option("--doc-lang", help="文档语言 zh-CN | en")] = "zh-CN",
+        fmt: Annotated[str, typer.Option("--format", help="html | md")] = "md",
+        out: Annotated[Path | None, typer.Option("-o", "--out", help="写入文件；不给时打印到屏幕")] = None,
+    ) -> None:
+        c = output.get(ctx)
+        env = _env(c)
+        did = _device_id(c, env.db, device)
+        try:
+            rep = ai_suggest_analysis.handover(env, did, lang, fmt)
+        except ai_suggest.SuggestError as e:
+            _fail(c, e)
+        if out is not None:
+            out.write_text(rep.content, encoding="utf-8")
+            emit(c, {"file": str(out), "name": rep.filename}, c.t("ai_suggest.handover_saved", path=str(out)))
+            return
+        emit(c, {"name": rep.filename, "content": rep.content}, rep.content)
+
+    @sapp.command("redact", help="本项目的脱敏补充（采纳的脱敏复核建议，M8-5）/ the project's sanitize supplement")
+    def s_redact(ctx: typer.Context) -> None:
+        from lmesh.core import ai_suggest_kb
+
+        c = output.get(ctx)
+        env = _env(c)
+        pats = ai_suggest_kb.project_redact(env.db, env.project_id)
+        emit(c, {"patterns": pats}, "\n".join(pats) or c.t("ai_suggest.empty"))

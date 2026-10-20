@@ -1,0 +1,128 @@
+# 内置 AI skill（只读）：基线例外说明（M8-5）：某台设备不满足一条安全基线规则时，起草例外理由与补偿措施两段文字。
+# 管理员修改后的版本保存在 data/ai-skills/baseline-waiver/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。AI 只能用 [[编号]] 提到对象、用 <<键>> 引用由代码填入的数字。
+id: baseline-waiver
+version: 1
+title: {zh-CN: 基线例外说明, en: Baseline waiver text, pt-BR: Texto de exceção da linha de base}
+description: {zh-CN: 某条安全基线不满足时，起草例外理由与补偿措施，填进例外申请。只生成文字，不改规则与结果；提到的对象必须在图中，数字由代码填入。, en: 'When a device fails a security baseline rule, drafts the waiver reason and the compensating controls for the waiver request. Text only: rules and results are untouched; mentioned objects must be in the graph and numbers are filled in by code.', pt-BR: 'Quando um dispositivo não atende a uma regra da linha de base, redige a justificativa da exceção e os controles compensatórios. Só texto: regras e resultados não mudam; objetos citados devem estar no grafo e os números vêm do código.'}
+task: ask
+used_by: ai_suggest
+group: compliance
+enabled: true
+system: |-
+  You draft a security-baseline waiver request for ONE failed rule on ONE router, for the approver to read. Facts come from code; never invent anything.
+  Give exactly two suggestions:
+  - kind "reason": why the device cannot meet the rule for now (operational constraint, legacy service, migration window ...), 2 to 4 sentences;
+  - kind "compensating": compensating controls that reduce the risk until the rule is met, 2 to 5 short sentences, and when the waiver should be reviewed.
+  Rules:
+  - Mention the device, the rule and the failing objects ONLY as [[id]] (d1, r1, n1 ...). Do not type interface names, addresses or hostnames yourself.
+  - Write counts ONLY as <<key>> with the fact keys given. Do not type other numbers.
+  - Write in {lang}. Do not claim the device is compliant.
+  Reply with JSON only: {{"suggestions": [{{"category": "text_only", "kind": "reason", "title": "<short title>", "content": {{"text": "..."}}, "refs": [{{"id": "r1"}}]}}, {{"category": "text_only", "kind": "compensating", "title": "<short title>", "content": {{"text": "..."}}, "refs": [{{"id": "r1"}}]}}]}}
+prompt: |-
+  Device:
+  {device}
+
+  Failed rule:
+  {rule}
+  Message: {message}
+  Suggestion: {suggestion}
+  Reference commands:
+  {remedy}
+
+  Failing objects (id | type | name | lines):
+  {failures}
+
+  Evidence lines (line  text):
+  {evidence}
+
+  Facts (key = value):
+  {facts}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format, citing only the given ids.
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 回复语言（按界面语言）, en: Reply language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}
+  - name: device
+    in: prompt
+    desc: {zh-CN: 设备（编号 d1）, en: The device (id d1), pt-BR: O dispositivo (id d1)}
+  - name: rule
+    in: prompt
+    desc: {zh-CN: 不满足的规则（编号 r1、级别、标题）, en: 'The failed rule (id r1, severity, title)', pt-BR: 'A regra reprovada (id r1, nível, título)'}
+  - name: message
+    in: prompt
+    desc: {zh-CN: 规则说明, en: Rule message, pt-BR: Mensagem da regra}
+  - name: suggestion
+    in: prompt
+    desc: {zh-CN: 规则的修复建议, en: Rule suggestion, pt-BR: Sugestão da regra}
+  - name: remedy
+    in: prompt
+    desc: {zh-CN: 修复参考命令, en: Reference remedy commands, pt-BR: Comandos de correção de referência}
+  - name: failures
+    in: prompt
+    desc: {zh-CN: 不符合的对象（编号、类型、名称、行号）, en: 'Failing objects (id, type, name, lines)', pt-BR: 'Objetos reprovados (id, tipo, nome, linhas)'}
+  - name: evidence
+    in: prompt
+    desc: {zh-CN: 证据行（已脱敏）, en: Evidence lines (sanitized), pt-BR: Linhas de evidência (anonimizadas)}
+  - name: facts
+    in: prompt
+    desc: {zh-CN: 代码算好的数字（键 = 值）, en: Numbers computed by code (key = value), pt-BR: Números calculados pelo código (chave = valor)}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - rules
+  - sanitize
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "text_only", "kind": "reason|compensating", "title": "...", "content": {"text": "..."}, "refs": [{"id": "r1"}]}]}'
+checks:
+  - suggest.refs_exist
+  - suggest.text_only
+samples:
+  - title: {zh-CN: 理由与补偿措施只引用给定的对象, en: Reason and controls cite only the given objects, pt-BR: Justificativa e controles citam só os objetos dados}
+    input:
+      vars:
+        lang: English
+        device: 'd1 | ATN-CHANGE-01 | platform=ATN | profile=huawei-atn-v800r025'
+        rule: 'r1 | snmp.v3_only | severity=warning | SNMP v1/v2c enabled'
+        message: SNMP v1/v2c is enabled
+        suggestion: Use SNMPv3 only
+        remedy: snmp-agent sys-info version v3
+        failures: "n1 | mgmt.snmp | snmp | lines [40]"
+        evidence: "   40  snmp-agent sys-info version v2c v3"
+        facts: "failures = 1\nlines = 99"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01, device_id: 1}
+          r1: {type: rule, label: snmp.v3_only}
+          n1: {type: mgmt.snmp, label: snmp, device: d1, node: mgmt.snmp, line: 40}
+        numbers: {failures: 1, lines: 99}
+        lines: {d1: 99}
+        names: [ATN-CHANGE-01, snmp.v3_only, snmp]
+    reply: '{"suggestions": [{"category": "text_only", "kind": "reason", "title": "Legacy NMS still polls with v2c", "content": {"text": "[[d1]] fails [[r1]] because the regional NMS still polls it with SNMP v2c; the NMS upgrade is planned for the next maintenance window."}, "refs": [{"id": "r1"}, {"id": "n1"}]}, {"category": "text_only", "kind": "compensating", "title": "Restrict and monitor SNMP", "content": {"text": "Bind [[n1]] to an ACL that only allows the NMS hosts, use a read-only view and alert on SNMP authentication failures. Review the waiver when the NMS upgrade is done."}, "refs": [{"id": "n1"}]}]}'
+  - title: {zh-CN: 提到了图中没有的接口（演示拒绝）, en: Mentions an interface not in the graph (shows a rejection), pt-BR: Cita uma interface fora do grafo (mostra a rejeição)}
+    input:
+      vars:
+        lang: English
+        device: 'd1 | ATN-CHANGE-01 | platform=ATN | profile=huawei-atn-v800r025'
+        rule: 'r1 | snmp.v3_only | severity=warning | SNMP v1/v2c enabled'
+        message: SNMP v1/v2c is enabled
+        suggestion: Use SNMPv3 only
+        remedy: snmp-agent sys-info version v3
+        failures: "n1 | mgmt.snmp | snmp | lines [40]"
+        evidence: "   40  snmp-agent sys-info version v2c v3"
+        facts: "failures = 1"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01, device_id: 1}
+          r1: {type: rule, label: snmp.v3_only}
+          n1: {type: mgmt.snmp, label: snmp, device: d1, node: mgmt.snmp, line: 40}
+        numbers: {failures: 1}
+        lines: {d1: 99}
+        names: [ATN-CHANGE-01, snmp.v3_only, snmp]
+    reply: '{"suggestions": [{"category": "text_only", "kind": "compensating", "title": "Filter on the management port", "content": {"text": "Apply an ACL on GigabitEthernet0/9/9 so that only 10.250.0.9 can reach [[d1]]."}, "refs": [{"id": "r1"}]}]}'

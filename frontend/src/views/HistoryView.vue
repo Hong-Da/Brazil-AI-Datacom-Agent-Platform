@@ -4,7 +4,7 @@
  * 图差异 / 配置差异 / 对象历史三个标签页；知识库版本不同时提示并可按当前知识库重建；标签；回到 A 的变更脚本；中英文差异报告。
  * 差异由后端在图上计算（GET /devices/{id}/history/diff）；对象名按显示风格（华为 / Cisco）写成命令路径。
  */
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
@@ -19,6 +19,10 @@ import { saveText } from '@/views/profiles/csv'
 import type { Device } from '@/views/devices/logic'
 import HistoryTimeline from './m5/HistoryTimeline.vue'
 import DevDelDialog from '@/components/devdel-dialog.vue'
+import AiEntryButton from '@/components/ai-suggest/AiEntryButton.vue'
+import AiSuggestPanel from '@/components/ai-suggest/AiSuggestPanel.vue'
+import AiCoverageBar from '@/components/ai-suggest/AiCoverageBar.vue'
+import { coverageMarks, diffScope, type Coverage, type CoverageItem, type RefInfo } from '@/components/ai-suggest/logic'
 import {
   diffCli, fmtTime, foldRows, groupItems, itemOfNode, markWords, matrixRow, noneffByObject, objectLog, objectOptions,
   pairLines, showVal, underObject, type DiffResult, type Item, type ObjectHistory, type PairRow, type SideVal, type Timeline,
@@ -152,6 +156,34 @@ const domRows = computed(() => {
 
 // ---------------------------------------------------------------- 选中项与详情
 const sel = ref<string | null>(null)
+
+// ---------------------------------------------------------------- AI 变化解读（M8-3）：两个快照之间的差异归纳成变更意图
+const aiScope = computed(() => (sa.value && sb.value && !single.value ? diffScope('history', sa.value.id, sb.value.id) : ''))
+const aiParams = computed(() => ({ source: 'history', device_id: devId.value, a_version: sa.value?.id, b_version: sb.value?.id }))
+const aiPanel = ref<InstanceType<typeof AiSuggestPanel> | null>(null)
+const aiCov = ref<InstanceType<typeof AiCoverageBar> | null>(null)
+const aiOpen = ref(false)
+const aiState = ref('loading')
+const aiShown = computed(() => aiOpen.value || ['done', 'running', 'empty', 'failed', 'cancelled'].includes(aiState.value))
+const coverage = ref<Coverage | null>(null)
+const covMarks = computed<Record<string, string>>(() => {
+  const m = coverageMarks(items.value.map((x) => ({ node: x.object })), coverage.value)
+  return Object.fromEntries(items.value.map((x, i) => [x.object, m[i]]))
+})
+watch(aiScope, () => { aiOpen.value = false; coverage.value = null })
+async function runAi(): Promise<void> {
+  aiOpen.value = true
+  await nextTick()
+  await aiPanel.value?.start()
+}
+/** 引用的差异条目 / 覆盖条里的条目 → 在图差异里选中该对象 */
+function aiJump(r: RefInfo | CoverageItem): void {
+  const node = r.node ?? null
+  const hit = items.value.find((x) => (node && (x.object === node || underObject(node, x.object))) || x.object === r.label)
+  if (!hit) return
+  tab.value = 'graph'
+  sel.value = hit.object
+}
 const selItem = computed(() => items.value.find((x) => x.object === sel.value) ?? null)
 const selNoneff = computed(() => noneffGroups.value.find((x) => x.object === sel.value) ?? null)
 const hunkLines = computed(() => (diff.value?.text?.hunks ?? []).flatMap((h) => h.lines))
@@ -460,7 +492,13 @@ onMounted(async () => {
               <button class="btn" type="button" :disabled="restoring" data-testid="hist-restore" @click="doRestore"><Icon name="rollback" small />{{ restoring ? $t('c.running') : $t('history.restore') }}</button>
               <button class="btn btn-ghost" type="button" :disabled="!!reporting" data-testid="hist-report-zh" @click="report('zh-CN')"><Icon name="download" small />{{ $t('history.reportZh') }}</button>
               <button class="btn btn-ghost" type="button" :disabled="!!reporting" data-testid="hist-report-en" @click="report('en')"><Icon name="download" small />{{ $t('history.reportEn') }}</button>
+              <AiEntryButton v-if="aiScope" :skills="['diff-explain']" :busy="aiState === 'running'" @run="runAi" />
               <div class="cmdline"><span class="pfx">$</span><span>{{ cli }}</span><button class="btn btn-xs btn-ghost ml-auto" type="button" @click="copy(cli)"><Icon name="copy" small />{{ $t('c.copy') }}</button></div>
+            </div>
+
+            <div v-if="aiScope" v-show="aiShown" class="hist-ai" data-testid="hist-ai">
+              <AiSuggestPanel ref="aiPanel" skill="diff-explain" :params="aiParams" :scope="aiScope" @state="aiState = $event" @changed="aiCov?.reload()" @jump="aiJump" />
+              <AiCoverageBar ref="aiCov" skill="diff-explain" :scope="aiScope" @loaded="coverage = $event" @jump="aiJump" />
             </div>
 
             <!-- 标签页 -->
@@ -481,7 +519,7 @@ onMounted(async () => {
                   </div>
                   <template v-for="g in groups" :key="g.domain">
                     <div class="dg-h">{{ domName(g.domain) }}<span class="cnt">{{ g.items.length + g.noneff.length }}</span></div>
-                    <div v-for="it in g.items" :key="it.object" class="di" :class="{ 'is-sel': sel === it.object }" tabindex="0" data-testid="hist-item" @click="pick(it.object)" @keydown.enter="pick(it.object)">
+                    <div v-for="it in g.items" :key="it.object" class="di" :class="{ 'is-sel': sel === it.object, 'cov-ai': covMarks[it.object] === 'cov', uncov: covMarks[it.object] === 'uncov' }" tabindex="0" data-testid="hist-item" @click="pick(it.object)" @keydown.enter="pick(it.object)">
                       <div><span class="dk" :class="it.kind">{{ kindName(it.kind) }}</span></div>
                       <div class="nm">
                         <template v-if="it.kind === 'renamed' && it.from && it.to"><code :title="it.from">{{ objLabel(it.from) }}</code><span class="faint">⇢</span><code :title="it.to">{{ objLabel(it.to) }}</code></template>
@@ -667,6 +705,9 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.hist-ai { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.di.cov-ai { box-shadow: inset 3px 0 0 var(--violet); }
+.di.uncov { background: color-mix(in srgb, var(--amber-soft) 50%, transparent); }
 .hbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
 .hbar .lbl { font-size: 12px; color: var(--ink-2); }
 .hbar .select { width: auto; max-width: 280px; }

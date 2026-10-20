@@ -60,8 +60,12 @@ def _require(settings: config.Settings) -> None:
 
 
 def sanitize_text(text: str) -> str:
-    """发给 AI 之前的脱敏：与导入时同一密钥，同一原值替换成同一个值（与库里已脱敏的配置一致）。"""
-    return Sanitizer("basic", local_key()).sanitize(text).text
+    """发给 AI 之前的脱敏：与导入时同一密钥，同一原值替换成同一个值（与库里已脱敏的配置一致）。
+    当前项目有脱敏补充（M8-5 脱敏复核采纳的规则）时一并替换。"""
+    from lmesh.core import projects
+
+    sc = projects.current()
+    return Sanitizer("basic", local_key(), redact=list(sc.redact) if sc else None).sanitize(text).text
 
 
 class _Session:

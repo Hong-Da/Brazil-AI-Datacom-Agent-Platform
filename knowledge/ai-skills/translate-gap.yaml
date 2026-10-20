@@ -1,0 +1,92 @@
+# 内置 AI skill（只读）：翻译未支持项（M8-4，REQ-041）：对翻译时报“不支持”或原文保留的行，给出目标平台的等价写法和理由。
+# 管理员修改后的版本保存在 data/ai-skills/translate-gap/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。每条写法都用目标平台的命令卡解析验证（core/ai_suggest_change.py），
+# 逐条确认；采纳后写进翻译结果并标为 AI 来源。
+id: translate-gap
+version: 1
+title: {zh-CN: 翻译未支持项, en: Untranslated lines, pt-BR: Linhas não traduzidas}
+description: {zh-CN: 为翻译时不支持或原文保留的行给出目标平台的等价写法和理由；每条用目标平台的命令卡解析，能识别并映射到预期节点才算通过，逐条确认，采纳后写进翻译结果并标为 AI 来源。, en: 'Suggests target-platform syntax, with a reason, for lines the translation reported as unsupported or kept verbatim. Each one is parsed with the target command cards and passes only if it is recognized and maps to the expected node; confirm one by one, and adopted ones are written into the translation marked as AI.', pt-BR: 'Sugere a sintaxe da plataforma de destino, com o motivo, para linhas que a tradução marcou como não suportadas ou mantidas. Cada uma é analisada pelos cartões de comando do destino e só passa se for reconhecida e mapear para o nó esperado; confirme uma a uma, e as adotadas entram na tradução marcadas como IA.'}
+task: generate
+used_by: ai_suggest
+group: change
+enabled: true
+system: |-
+  You help translate router configuration lines that the translator could not handle into the target platform: {target}.
+  Rules:
+  - One suggestion per item (u1, u2 ...). Cite the item as "item" and in refs; never invent items.
+  - kind "equivalent": "config" holds complete target-platform configuration lines, including the parent context line when a command lives inside a view (for example the interface line). Keep names, addresses and numbers from the source.
+  - "expect" (optional) lists the Schema node ids the config should create when they differ from the item's schema.
+  - kind "none": the target has no equivalent; leave "config" empty and explain why.
+  - "reason" is one or two sentences in {lang}; mention the device only as [[d1]].
+  Reply with JSON only: {{"suggestions": [{{"category": "translate_eq", "kind": "equivalent", "title": "L<line> → <short summary>", "content": {{"item": "u1", "config": "<target lines>", "reason": "<why>"}}, "refs": [{{"id": "u1"}}]}}]}}
+prompt: |-
+  Source device:
+  {source}
+
+  Target platform:
+  {target}
+
+  Items the translator could not handle (id | line | kind | reason | schema, then the source lines):
+  {items}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format, citing only the given item ids.
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 回复语言（按界面语言）, en: Reply language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}
+  - name: target
+    in: system
+    desc: {zh-CN: 目标 Profile 与平台族, en: Target profile and platform family, pt-BR: Perfil e família de destino}
+  - name: source
+    in: prompt
+    desc: {zh-CN: 源设备（编号 d1、名称、Profile）, en: 'Source device (id d1, name, profile)', pt-BR: 'Dispositivo de origem (id d1, nome, perfil)'}
+  - name: items
+    in: prompt
+    desc: {zh-CN: 不支持或原文保留的项（编号、行号、类型、原因、Schema 节点与原文）, en: 'Unsupported or verbatim items (id, line, kind, reason, Schema node and source lines)', pt-BR: 'Itens não suportados ou mantidos (id, linha, tipo, motivo, nó do Schema e linhas de origem)'}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - sanitize
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "translate_eq", "kind": "equivalent", "title": "...", "content": {"item": "u1", "config": "...", "reason": "..."}, "refs": [{"id": "u1"}]}]}'
+checks:
+  - suggest.refs_exist
+  - suggest.translate_eq
+samples:
+  - title: {zh-CN: 目标命令卡能解析并映射到预期节点（通过）, en: Parses with the target cards and maps to the expected node (passes), pt-BR: Analisado pelos cartões de destino e mapeado ao nó esperado (aprovado)}
+    input:
+      vars:
+        lang: English
+        source: 'd1 | ATN-DEMO | profile=huawei-atn-v800r025'
+        target: 'cisco-iosxe-asr920-17.15 (cisco-iosxe)'
+        items: "u1 | line 7 | node | no_render | schema=interface.description\ninterface GigabitEthernet0/2/2\n description OAM-LINK"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-DEMO}
+          u1: {type: gap, label: L7, kind: node, reason: no_render, schema: interface.description, device: d1, line: 7, lines: [7, 8], text: "interface GigabitEthernet0/2/2\n description OAM-LINK"}
+        numbers: {gaps: 1}
+        lines: {d1: 11}
+        names: [ATN-DEMO, GigabitEthernet0/2/2, OAM-LINK]
+        to: cisco-iosxe-asr920-17.15
+    reply: '{"suggestions": [{"category": "translate_eq", "kind": "equivalent", "title": "L7 → interface description", "content": {"item": "u1", "config": "interface GigabitEthernet0/0/2\n description OAM-LINK", "reason": "The description is written under the interface on the target."}, "refs": [{"id": "u1"}]}]}'
+  - title: {zh-CN: 目标命令卡不认识的写法、编造的项（演示拒绝）, en: Syntax the target cards do not recognize and an invented item (shows a rejection), pt-BR: Sintaxe não reconhecida pelos cartões e item inventado (mostra a rejeição)}
+    input:
+      vars:
+        lang: English
+        source: 'd1 | ATN-DEMO | profile=huawei-atn-v800r025'
+        target: 'cisco-iosxe-asr920-17.15 (cisco-iosxe)'
+        items: "u1 | line 7 | node | no_render | schema=interface.description\ninterface GigabitEthernet0/2/2\n description OAM-LINK"
+      facts:
+        objects:
+          d1: {type: device, label: ATN-DEMO}
+          u1: {type: gap, label: L7, kind: node, reason: no_render, schema: interface.description, device: d1, line: 7, lines: [7, 8], text: "interface GigabitEthernet0/2/2\n description OAM-LINK"}
+        numbers: {gaps: 1}
+        lines: {d1: 11}
+        names: [ATN-DEMO, GigabitEthernet0/2/2, OAM-LINK]
+        to: cisco-iosxe-asr920-17.15
+    reply: '{"suggestions": [{"category": "translate_eq", "kind": "equivalent", "title": "L7 → storm control", "content": {"item": "u1", "config": "interface GigabitEthernet0/0/2\n storm-control broadcast level pps 1k shared", "reason": "Equivalent."}, "refs": [{"id": "u7"}]}]}'

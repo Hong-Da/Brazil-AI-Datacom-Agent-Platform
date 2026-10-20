@@ -1,0 +1,105 @@
+# 内置 AI skill（只读）：影响说明（M8-3）：把代码算出的依赖链与影响范围改写成运维看得懂的话。
+# 管理员修改后的版本保存在 data/ai-skills/impact-explain/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。受影响的对象由代码计算并编号（n1、n2……）。
+id: impact-explain
+version: 1
+title: {zh-CN: 影响说明, en: Impact explanation, pt-BR: Explicação do impacto}
+description: {zh-CN: 把影响分析得到的依赖链转写成运维语言：影响哪些业务、建议的操作顺序、要观察什么。影响范围由代码计算，说明里只能提到代码给出的对象。, en: 'Rewrites the dependency chains from the impact analysis in operations language: which services are affected, the order of steps and what to watch. The scope is computed by code; the text may only mention objects given by code.', pt-BR: 'Reescreve as cadeias de dependência da análise de impacto em linguagem de operação: serviços afetados, ordem dos passos e o que observar. O escopo é calculado pelo código; o texto só cita objetos dados pelo código.'}
+task: ask
+used_by: ai_suggest
+group: analysis
+enabled: true
+system: |-
+  You explain to network operators what a planned change affects. The impact scope was computed by code; never add objects.
+  Write three short parts in {lang}: affected services, the order of steps, what to watch during and after the change.
+  Rules:
+  - Mention objects ONLY as [[id]] with the ids given (d1, n1, n2 ...); mention at least one affected object.
+  - Write counts ONLY as <<key>> with the fact keys given. Do not type interface names, addresses or numbers yourself.
+  Reply with JSON only: {{"suggestions": [{{"category": "text_only", "kind": "impact", "title": "<short title>", "content": {{"text": "<the three parts>"}}, "refs": [{{"id": "n1"}}]}}]}}
+prompt: |-
+  Device:
+  {device}
+
+  Facts (key = value):
+  {facts}
+
+  Starting objects (id | type | object):
+  {seeds}
+
+  Affected objects (id | type | domain | depth | edge):
+  {objects}
+
+  Affected services (id | type | object | dependency path):
+  {business}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format, citing only the given ids.
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 回复语言（按界面语言）, en: Reply language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}
+  - name: device
+    in: prompt
+    desc: {zh-CN: 设备与分析方向, en: The device and the direction of the analysis, pt-BR: O dispositivo e a direção da análise}
+  - name: facts
+    in: prompt
+    desc: {zh-CN: 代码算出的影响范围数字, en: Impact numbers computed by code, pt-BR: Números de impacto calculados pelo código}
+  - name: seeds
+    in: prompt
+    desc: {zh-CN: 起点对象, en: Starting objects, pt-BR: Objetos de partida}
+  - name: objects
+    in: prompt
+    desc: {zh-CN: 受影响的对象（代码沿依赖边计算）, en: Affected objects (computed by code along the dependency edges), pt-BR: Objetos afetados (calculados pelo código pelas arestas)}
+  - name: business
+    in: prompt
+    desc: {zh-CN: 受影响的业务对象与依赖路径, en: Affected service objects and their dependency paths, pt-BR: Objetos de serviço afetados e caminhos}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - sanitize
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "text_only", "kind": "impact", "title": "...", "content": {"text": "..."}, "refs": [{"id": "n1"}]}]}'
+checks:
+  - suggest.text_only
+  - suggest.impact_scope
+samples:
+  - title: {zh-CN: 删除 VPN 的影响, en: Impact of deleting a VPN, pt-BR: Impacto de remover uma VPN}
+    input:
+      vars:
+        lang: English
+        device: 'd1 | ATN-CHANGE-01 | profile=huawei-atn-v800r025 | direction=up'
+        facts: "impact.objects = 4\nimpact.business = 1"
+        seeds: 'n1 | vrf.instance | vrf.instance[RAN]'
+        objects: "n2 | bgp.af | bgp | depth=1 | via key"
+        business: 'n3 | interface | interface[GigabitEthernet0/2/1.101] | path: n1 -> n3'
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01, device_id: 1}
+          n1: {type: vrf.instance, label: RAN, node: 'vrf.instance[RAN]', device: d1}
+          n2: {type: bgp.af, label: 'afi=ipv4, vrf=RAN', node: 'bgp.instance[65000]/bgp.af[afi=ipv4,vrf=RAN]', device: d1}
+          n3: {type: interface, label: GigabitEthernet0/2/1.101, node: 'interface[GigabitEthernet0/2/1.101]', device: d1}
+        numbers: {impact.objects: 4, impact.business: 1}
+        lines: {}
+        names: [ATN-CHANGE-01, RAN, GigabitEthernet0/2/1.101]
+    reply: '{"suggestions": [{"category": "text_only", "kind": "impact", "title": "Deleting RAN", "content": {"text": "Services: [[n3]] loses its VPN and the BGP address family [[n2]] goes away (<<impact.objects>> objects). Order: move or delete [[n3]] first, then [[n2]], then [[n1]]. Watch: BGP routes of [[n1]] and traffic on [[n3]]."}, "refs": [{"id": "n1"}, {"id": "n3"}]}]}'
+  - title: {zh-CN: 编造对象与数字（演示拒绝）, en: Invented objects and numbers (shows a rejection), pt-BR: Objetos e números inventados (mostra a rejeição)}
+    input:
+      vars:
+        lang: English
+        device: 'd1 | ATN-CHANGE-01 | profile=huawei-atn-v800r025 | direction=up'
+        facts: 'impact.objects = 1'
+        seeds: 'n1 | vrf.instance | vrf.instance[RAN]'
+        objects: '(none)'
+        business: '(none)'
+      facts:
+        objects:
+          d1: {type: device, label: ATN-CHANGE-01, device_id: 1}
+          n1: {type: vrf.instance, label: RAN, node: 'vrf.instance[RAN]', device: d1}
+        numbers: {impact.objects: 1}
+        lines: {}
+        names: [ATN-CHANGE-01, RAN]
+    reply: '{"suggestions": [{"category": "text_only", "kind": "impact", "title": "Deleting RAN", "content": {"text": "GigabitEthernet0/9/9 and [[n7]] stop forwarding."}, "refs": [{"id": "n7"}]}]}'

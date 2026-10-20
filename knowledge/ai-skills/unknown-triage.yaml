@@ -1,0 +1,114 @@
+# 内置 AI skill（只读）：未识别行归因（M8-5）：判断每组未识别行是缺命令卡、版本差异还是写法变体，并起草命令卡。
+# 管理员修改后的版本保存在 data/ai-skills/unknown-triage/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。AI 只能引用代码给出的编号（u1 未识别行组、k1 已有命令卡）。
+id: unknown-triage
+version: 1
+title: {zh-CN: 未识别行归因, en: Unknown line triage, pt-BR: Triagem de linhas não reconhecidas}
+description: {zh-CN: 判断每组未识别行属于缺命令卡、版本差异还是写法变体，并起草命令卡或对已有卡的修改。代码用草稿重新解析这些行，必须真的变成已识别，否则拒绝；改已有卡时样本往返不能变差。采纳后进入审核队列，由维护员或管理员决定。, en: 'Classifies each group of unknown lines as a missing card, a version difference or a syntax variant, and drafts the card or the change to an existing card. Code re-parses the lines with the draft: they must really become recognised, otherwise it is rejected; changing an existing card must not break sample round-trips. Adopted drafts go to the review queue for maintainers or admins.', pt-BR: 'Classifica cada grupo de linhas não reconhecidas como cartão ausente, diferença de versão ou variante de sintaxe, e redige o cartão ou a alteração. O código reanalisa as linhas com o rascunho: elas precisam ser reconhecidas, senão é rejeitado; alterar um cartão não pode quebrar as amostras. Os adotados vão para a fila de revisão.'}
+task: ask
+used_by: ai_suggest
+group: kb
+enabled: true
+system: |-
+  You help maintain a knowledge base of router command cards. Each group u* below is a command pattern the parser did not recognise.
+  For each group decide the cause (one of {causes}):
+  - missing: no card covers the command -> draft a new card;
+  - version: an existing card k* is the same command, but only for another software version -> give the changed card;
+  - variant: an existing card k* is the same command written another way (extra keyword, enum value, optional part) -> give the changed card.
+  Card fields: id (<family>.<name>, new ids only for missing), syntax, view, undo (optional), params (optional {{name: {{type, range}}}}).
+  Syntax notation: keywords as is, <param>, [ optional ], {{ a | b }} choice. The syntax must match the example lines.
+  Views of the families: {views}
+  Domains: {domains}
+  Rules:
+  - Cite the group (and the existing card) with refs [{{"id": "u1"}}, {{"id": "k2"}}]. Never invent cards or groups.
+  - content.target is the card id. For version / variant, payload.base is the k* id and payload.card holds only the fields you change.
+  - Title in {lang}.
+  Reply with JSON only: {{"suggestions": [{{"category": "kb_review", "kind": "missing", "title": "<pattern>: missing card", "content": {{"review_kind": "unknown_card", "target": "<card id>", "payload": {{"group": "u1", "cause": "missing", "domain": "<domain>", "card": {{"id": "...", "syntax": "...", "view": "..."}}}}}}, "refs": [{{"id": "u1"}}]}}]}}
+prompt: |-
+  Unknown line groups (id | family | view | lines | pattern | examples):
+  {groups}
+
+  Existing cards that start with the same keyword (id | card id | view | domain | version | syntax):
+  {cards}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format, citing only the given group and card ids.
+variables:
+  - name: causes
+    in: system
+    desc: {zh-CN: 归因的取值, en: Allowed causes, pt-BR: Causas permitidas}
+  - name: views
+    in: system
+    desc: {zh-CN: 各平台族的视图, en: Views of each family, pt-BR: Visões de cada família}
+  - name: domains
+    in: system
+    desc: {zh-CN: 功能域, en: Domains, pt-BR: Domínios}
+  - name: lang
+    in: system
+    desc: {zh-CN: 标题的语言（按界面语言）, en: Title language (from the UI language), pt-BR: Idioma do título (do idioma da interface)}
+  - name: groups
+    in: prompt
+    desc: {zh-CN: 未识别行组（编号、平台族、视图、行数、模式、示例）, en: 'Unknown line groups (id, family, view, count, pattern, examples)', pt-BR: 'Grupos de linhas (id, família, visão, quantidade, padrão, exemplos)'}
+  - name: cards
+    in: prompt
+    desc: {zh-CN: 开头关键字相同的已有命令卡, en: Existing cards with the same first keyword, pt-BR: Cartões existentes com a mesma primeira palavra}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - syntax
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "kb_review", "kind": "missing|version|variant", "title": "...", "content": {"review_kind": "unknown_card", "target": "<card id>", "payload": {"group": "u1", "cause": "missing", "domain": "...", "card": {"id": "...", "syntax": "...", "view": "..."}}}, "refs": [{"id": "u1"}]}]}'
+checks:
+  - suggest.kb_review
+  - suggest.reparse
+samples:
+  - title: {zh-CN: 缺命令卡：起草的卡能识别这些行, en: 'Missing card: the draft recognises the lines', pt-BR: 'Cartão ausente: o rascunho reconhece as linhas'}
+    input:
+      vars:
+        causes: missing, version, variant
+        views: 'huawei-vrp8: system, interface, bgp'
+        domains: interface, vrf, bgp
+        lang: English
+        groups: "u1 | family=huawei-vrp8 | view=interface | lines=12 | port-isolate enable group <n> | e.g. ATN-01 L23: port-isolate enable group 1"
+        cards: (none)
+      facts:
+        objects:
+          u1:
+            type: unknown
+            label: port-isolate enable group <n>
+            family: huawei-vrp8
+            view: interface
+            count: 12
+            examples:
+              - {text: ' port-isolate enable group 1', line: 2, version_id: 0, device: ATN-01, context: [interface GigabitEthernet0/2/1, ' port-isolate enable group 1']}
+        numbers: {groups: 1, count.u1: 12}
+        lines: {}
+        names: [interface]
+    reply: '{"suggestions": [{"category": "kb_review", "kind": "missing", "title": "port-isolate enable group: missing card", "content": {"review_kind": "unknown_card", "target": "huawei-vrp8.port-isolate-enable-ai", "payload": {"group": "u1", "cause": "missing", "domain": "interface", "card": {"id": "huawei-vrp8.port-isolate-enable-ai", "syntax": "port-isolate enable [ group <group-id> ]", "view": "interface", "undo": "undo port-isolate enable", "params": {"group-id": {"type": "integer", "range": [1, 64]}}}}}, "refs": [{"id": "u1"}]}]}'
+  - title: {zh-CN: 草稿少了参数，重新解析仍未识别（演示拒绝）, en: The draft lacks a parameter and the lines stay unknown (shows a rejection), pt-BR: O rascunho não tem um parâmetro e as linhas seguem não reconhecidas (mostra a rejeição)}
+    input:
+      vars:
+        causes: missing, version, variant
+        views: 'huawei-vrp8: system, interface, bgp'
+        domains: interface, vrf, bgp
+        lang: English
+        groups: "u1 | family=huawei-vrp8 | view=system | lines=3 | ptp clock-source local priority <n> | e.g. ATN-01 L5: ptp clock-source local priority 1"
+        cards: (none)
+      facts:
+        objects:
+          u1:
+            type: unknown
+            label: ptp clock-source local priority <n>
+            family: huawei-vrp8
+            view: system
+            count: 3
+            examples:
+              - {text: ptp clock-source local priority 1, line: 1, version_id: 0, device: ATN-01, context: [ptp clock-source local priority 1]}
+        numbers: {groups: 1, count.u1: 3}
+        lines: {}
+        names: [system]
+    reply: '{"suggestions": [{"category": "kb_review", "kind": "missing", "title": "ptp clock-source: missing card", "content": {"review_kind": "unknown_card", "target": "huawei-vrp8.ptp-clock-source-local-ai", "payload": {"group": "u1", "cause": "missing", "domain": "clock", "card": {"id": "huawei-vrp8.ptp-clock-source-local-ai", "syntax": "ptp clock-source local", "view": "system"}}}, "refs": [{"id": "u1"}]}]}'

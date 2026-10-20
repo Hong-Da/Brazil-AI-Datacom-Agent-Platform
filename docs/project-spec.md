@@ -64,8 +64,9 @@
 | REQ-039 | 用户自助注册：设置中开启 / 关闭注册（默认关闭）；可选注册后直接生效或需管理员审核（默认需审核）；注册频率限制 | 用户 2026-10-19 | M6（0.6.0） | 设置项、登录页注册入口、注册接口、账号管理“待审核”、注册后自动建工作空间与默认项目 | 待开发 | 设计见“用户自助注册（REQ-039）”一节，经用户确认 |
 | REQ-040 | AI 接口：管理员配置一个或多个 AI 接口并设定是否允许公共使用；每个用户可选用个人 API 或允许的公共 API | 用户 2026-10-19 | M6（0.6.0） | AI 接口表、设置页、账号设置“我的 AI”、AI 调用按用户选择的接口 | 已完成（M6-8） | 设计见“AI 接口：公共与个人（REQ-040）”一节 |
 | REQ-041 | AI 增强：为各功能新增内置 AI skill（日常分析、变更与割接、规范与合规、知识库构建、报告共 21 个），AI 只给建议，代码验证后由用户确认生效 | 用户 2026-10-19 | M8（0.8.0） | `knowledge/ai-skills/`、各功能页的 AI 入口、审核与采纳流程 | 待开发 | 设计见“AI 增强（REQ-041）”一节 |
-| REQ-042 | 网元拓扑视图的设备图标：按设备角色与类型设计图标，显示厂商与平台 | 用户 2026-10-19 | M8（0.8.0） | 拓扑视图、关系图谱、图标资源 | 待开发 | 设计见“拓扑设备图标（REQ-042）”一节；先做预览 |
+| REQ-042 | 网元拓扑视图的设备图标：按设备角色与类型设计图标，显示厂商与平台 | 用户 2026-10-19 | M8（0.8.0） | 拓扑视图、关系图谱、图标资源 | 已实现（M8-3），待 M8 验收 | 设计见“拓扑设备图标（REQ-042）”一节；实现见“M8-3 结果” |
 | REQ-043 | 所有视图可以全屏显示与操作（配置图、关系图谱、拓扑、设备分析各视图、对比、脚本编辑器等） | 用户 2026-10-19 | M7（0.7.0） | 前端通用全屏组件 | 已完成（M7-7） | 设计见“视图全屏（REQ-043）”一节 |
+| REQ-044 | 未支持型号的处理：导入时可手工选择 Profile（同厂商 / 同平台族）、试解析推荐、型号规则记住选择、近似标记与下发前提示、申请支持与派生 Profile、认不出的厂商只存原文 | 用户 2026-10-19 | M8（0.8.0） | 导入、设备页、Profile、审核队列 | 待开发 | 设计见“未支持型号的处理（REQ-044）”一节，经用户确认 |
 
 ## 待确认
 
@@ -1491,6 +1492,83 @@ M6-7 实现。预览 `DevelopDocs/ui-preview/REQ-039/`（登录与注册、账�
 
 **与预览的差异**：采纳记录按条撤销（没有“回退本批”）；运行中只显示四步与接口、模型，不显示逐 token 的接收进度（后端不流式）；超时由 `ai.timeout` 决定，按失败显示（重试 / 改用其他接口）；“把握”百分比没有（AI 的自评不经代码校验，不展示）；入口菜单的“本月我已用”改为“查看用量”链接。
 
+### M8-3 结果（日常分析组的 AI skill、拓扑设备图标）
+
+日常分析组 6 个 skill 全部按 M8-2 框架接入（`group: analysis`），拓扑设备图标（REQ-042）按评审结果实现（决策 D-0268～D-0273）。页面照预览 `DevelopDocs/ui-preview/M8/analysis.html`、`REQ-042/icons.html`、`topology.html`。代码：`core/ai_suggest_analysis.py`（skill 注册、新类别 `peer_link`、手工标注、覆盖核对、交接文档）；设备摘要的上下文仍在 `core/ai_suggest_skills.py`（事实里加了 `lang`）。公共代码的改动：`SkillSpec.check`（skill 自己的额外校验，在类别校验之后）、`script_valid` 的 `fixes` 跳过没有 `rule` 的条目（由 skill 的额外校验处理 `{"finding": "f3"}`）、`_load_skills` 导入本模块。
+
+| skill | 类别 | 代码校验 | 入口 |
+|---|---|---|---|
+| `topology-roles` 拓扑整理 | `view_hint`（角色 / 分组 / 层次）、`peer_link`（新） | 角色、分组、层次同 M8-2；推测对端：两端（给出接口时只看该接口）有一对同 VRF 的接口地址同网段（一端网段包含另一端地址，掩码不同也算）才通过；对未解析对端 `u*`，设备有直连网段包含该地址才当作外部设备连上；没有同网段 `no_shared_subnet`、已有链路 `already_linked` 都拒绝 | 拓扑页 |
+| `device-summary` 设备摘要 | `text_only` | 同 M8-2 | 设备配置分析页、设备列表（“设备摘要”链接打开分析页的摘要面板，不自动运行） |
+| `diff-explain` 变化解读 | `refs_exist` | 每个意图至少挂上一个差异条目 `c*`（`no_diff_refs`）；风险 high / medium / low；正文对象与数字核对 | 配置对比页（两边都是导入设备的版本）、版本历史页 |
+| `finding-fix` 问题解读与修复 | `refs_exist`（原因、优先级、更可能出错的一端）、`script_valid`（修复脚本） | 必须引用问题 `f*`；`suspect` 必须是问题涉及的设备；脚本设备必须是问题的一端（`fix_wrong_device`）；`fixes: [{"finding": "f3"}]` 要求复检后问题消失：检查问题看脚本检查的 `findings_fixed`，跨设备问题把该设备换成脚本执行后的模拟图重新做一致性检查（`finding_not_fixed`） | 检查页（导入设备）、跨设备一致性视图 |
+| `impact-explain` 影响说明 | `text_only` | 影响范围由 `impact.analyze` 计算并编号 `n*`；正文至少提到一个受影响对象（`no_impact_refs`） | 影响分析页（设备来源） |
+| `feature-compare` 能力对比说明 | `text_only` | `content.commands` 的每条命令必须能被所引命令卡（`k*`）的语法或取消语法解析（`syntax_mismatch`、`card_not_found`）；知识库里没有该卡时用事实里记下的语法（回放） | 特性能力查询页的对比标签（选中一个特性） |
+
+**编号**：`d` 设备、`u` 未解析对端、`c` 差异条目（对比用 compare 的逐节点差异，版本历史用按对象归并的条目）、`f` 问题、`n` 对象、`k` 命令卡、`p` Profile。范围（`scope_key`）：`topology`、`device:<编号>`、`compare:<A 版本>:<B 版本>`、`history:<A 版本>:<B 版本>`、`check:<设备>`、`consistency`、`impact:<设备>:<方向>:<排序后的起点>`（截到 200 字符）、`feature:<节点>:<A>:<B>`；前端用同样的规则生成（`components/ai-suggest/logic.ts`）。
+
+**手工标注**：`PUT /projects/{p}/view-annotations {target_type: device, target, key: role|group|label|layer, value}`（`value: null` 清除），来源 user，优先于 AI；AI 建议会覆盖手工标注时警告（逐条采纳）；采纳后又被手工改过的 AI 建议不能撤销（409）。推测对端采纳后写 `target_type: link, key: peer` 的标注（值是代码核对过的两端设备、接口与地址），撤销删除。命令行 `lmesh ai suggest annotate <设备> --key role --value core`（`--clear` 清除）。
+
+**覆盖核对**：`GET …/ai/suggestions/coverage?skill=diff-explain&scope=…`：范围内最近一次完成的运行里，未被拒绝、未忽略、未撤销的意图引用到的条目与没被任何意图解释的条目（带 `node`、`label` 供页面对行）；命令行 `lmesh ai suggest coverage <范围>`。
+
+**设备交接文档**：`GET …/devices/{id}/handover?lang=zh-CN|en&format=html|md`（直接返回文件）：设备信息、角色与分组标注、代码算出的对象统计、最近采纳的设备摘要（优先同语言的；只有别的语言时注明原文语言）；页面分别提供中文、English 下载；命令行 `lmesh ai suggest handover <设备> --doc-lang en --format md [-o 文件]`。命令行 `run` 加 `--params '<JSON>'` 传 skill 的其他参数。
+
+**设备图标（REQ-042）**：`frontend/src/components/devicon/`：`sets.ts`（三套图形，从预览 `icons-cyl.js`、`icons-geo.js`、`icons-line.js` 原样移植）、`lmi.ts`（移植 `lmi.js`：尺寸分档 72 / 48 / 32 / 24 / 16、厂商标识 HW / CS / NK、状态角标按 检查 > 一致性 > 过期 > AI 取前 2 个，其余“+n”，16 px 只画一个点；待采纳的 AI 建议 ghost：紫色虚线半透明）、`logic.ts`（角色取值：手工 > 采纳的 AI > 平台外形；角色未知按平台画设备外形：ATN、ASR 920、7750 SR，其他按厂商取最接近的外形）、`DeviceIcon.vue`（页面内联 SVG，currentColor 着色，`--lmi-*` 变量明暗两套）、`IconSetSwitch.vue`。拓扑图（cytoscape）的节点用 SVG data URI：渲染前按当前主题读出颜色写进 SVG 自带的样式，切换主题或图标风格只重绘图标。图标风格是个人偏好（浏览器本地 `lmesh-icon-set`，默认 B 几何徽章），在用户菜单和拓扑工具栏切换。用在拓扑视图（分组为 compound 父节点、有标注时按“分组成列、角色分层”排版，否则仍用 cose；采纳的推测对端画灰线、外部对端加 peer 节点；待采纳的角色建议用 ghost 图标，“显示 AI 建议”可关；待采纳的推测对端画紫色虚线加“AI 推测”）、设备侧栏（72 px 图标、来源标识、角色 / 分组 / 层次编辑，只读成员不显示）、设备列表（24 px，过期与 AI 待采纳角标）、设备配置分析页与配置图页标题、关系图谱（设备根节点）。
+
+**测试**：单元 `tests/unit/test_ai_suggest_analysis.py`（每个 skill 的通过与拒绝；推测对端的同网段、已有链路、环回地址；手工标注优先与覆盖后不能撤销；意图挂差异与覆盖核对（版本历史与对比两种来源）；修复脚本在单台检查与跨设备一致性上的复检；影响说明；命令写法核对；交接文档；未配置 AI 降级与回放；REQ-033 回放样例）；API `tests/api/test_ai_analysis_api.py` 与用例 `api_cases.ai_analysis.toml`；CLI 用例 `cli_cases.ai_analysis.toml`；vitest `components/devicon/devicon.test.ts`、`views/m4/topomarks.test.ts`、`components/ai-suggest/logic.test.ts`；e2e `frontend/e2e/m83.spec.ts`（`playwright.m83.config.ts`，`e2e/m83_server.py` 的假 AI，端口 9483；主配置下只验证图标、手工标注与“不可用”）。
+
+**与预览的差异**：拓扑仍用 cytoscape（没有照搬预览手画的 SVG）：没有“建议位置”的幽灵复制节点与弧线，待采纳的分组显示在侧栏；名称与角色小字同一样式；“检查问题”角标暂不显示（拓扑与设备列表拿不到每台设备的检查结果）；“把握”百分比不显示（同 M8-2）；特性对比的 AI 入口在对比标签（先选中一个特性）；一致性视图里点引用只过滤列表。
+
+### M8-4 结果（变更与割接组的 AI skill）
+
+按已评审的预览 `DevelopDocs/ui-preview/M8/change.html` 实现 5 个 skill（`group: change`，`knowledge/ai-skills/` 下各一个 yaml，带三语标题与说明、`retry` 模板与一条通过、一条被拒绝的回放样例）。上下文构造、校验器与采纳动作都在 `src/lmesh/core/ai_suggest_change.py`（由 `ai_suggest._load_skills` 导入）。决策 D-0281～D-0284。
+
+| skill | 类别（新） | AI 给出 | 代码校验 | 采纳 / 撤销 |
+|---|---|---|---|---|
+| `intent-script` 变更意图转脚本（增量变更页） | `graph_edit` | 目标图上的 `set` / `unset` / `add` / `delete`，用图中对象编号（n1…）与 Schema 节点表示，新对象用 `+1` 互相引用 | 节点在 Schema 中且设备 Profile 支持、挂在正确的父对象下、取值类型与范围（integer 范围、enum、ipv4、prefix、rd、asn、community、interface…）、键完整；应用到目标图后先在当前配置上模拟执行得到目标配置并重新解析，每条改动都要落到图上（否则 `edit_not_realized`），新出现的悬空引用拒绝（`ref_missing`）；再用增量变更（`core/change.py`）生成下发与回滚脚本、影响分析与两向模拟执行，不通过拒绝；代码补发的副作用 / 互斥命令、高风险变更给警告 | 需二次确认；同一次运行里已采纳的改动合并后重新校验（不通过 409），生成项目脚本（下发 + 回滚，同一检查项目）；之前采纳生成的脚本没被人改过时更新它，否则另建。撤销：去掉这一条重新生成（没有剩下的改动时删除），脚本被人改过 409；设备在生成后有新版本时采纳 409（`device_changed`） |
+| `cutover-plan` 割接方案文档（割接迁移页） | `plan_section` | 方案的一节（overview / window / steps / checks / rollback / risks），`zh` 与 `en` 两种语言，步骤只写编号 `s3` 与说明、检查点 | 两种语言都要有；`[[编号]]`、`<<键>>` 与正文中的名称、地址按 `text_only` 的规则核对；直接写出命令拒绝（`command_in_text`：代码格式、常见运维命令写法、能被源 / 目标平台族命令卡在根视图识别为命令的片段）；引用的步骤必须是代码生成的步骤 | 写入方案（只记录）。方案由代码组装：标题、元数据、步骤清单与每步的命令来自割接迁移结果（`core/migration.build_steps`），各节只放已采纳的 AI 文字，没有采纳的写“需要人工填写”；中文版、英文版分别导出 Markdown |
+| `translate-gap` 翻译未支持项（配置翻译页） | `translate_eq` | 对不支持 / 原文保留的项（u1…，附原文行）给出目标平台写法（`equivalent`，可用 `expect` 声明映射到的 Schema 节点）或“无对应”（`none`）与理由 | 用目标 Profile 解析：有未识别行拒绝，没有一行被识别为命令拒绝，部分行在功能域外给警告；必须映射到预期节点（项本身的 Schema 节点或 `expect`，与原节点不同时警告）；“无对应”时目标 Profile 其实支持该节点给警告；密码类不交给 AI | 写入翻译结果：翻译接口与 `lmesh translate <设备>` 在项目里把采纳的写法插在结尾标记前，`ai_lines` 标出来自 AI 的行，`unsupported` 对应项带 `ai`；撤销后不再写入 |
+| `naming-map` 命名映射建议（翻译自定义规则页，REQ-032） | `naming_rules` | REQ-032 规则集的 `names` / `ports` / `naming` | 规则集语法（`naming.parse`）；在旧设备上试运行（`naming.run`，给了新设备时按新设备查重名），卡片列出完整映射表；冲突拒绝，遗漏、命名规范告警、没用上的规则、没映射的物理端口给警告 | 保存为我的规则集 `ai-naming-<编号>`（`data/translate-rules/`，归属记在 user_assets）；撤销时文件没被改过才删除，否则 409（`asset_modified`） |
+| `template-extract` 模板提取（模板页“从设备提取”） | `template_draft` | 在代码的模板草稿（`template_draft.draft`）基础上整理变量、类型、块后的模板 YAML | 模板语法与编译；对每台设备按模板校验并提取取值，用它自己的取值渲染、解析后与原配置比较，渲染出的每个节点都必须在原配置中且取值相同（模板覆盖的部分等价），列出覆盖率；没有变量给警告 | 存为我的模板 `ai-template-<编号>`（`data/user-templates/`）；撤销同上 |
+
+**样例回放**：上下文的事实里记下配置版本（运行时按版本重新建图）；skill 管理页的回放样例没有设备，事实里直接给出配置文本 `configs`。
+
+**接口与命令行**：运行、采纳、撤销用通用接口与 `lmesh ai suggest run <skill> --params '{…}'`（模板提取用 `--devices`）。新接口（`routes_ai_change.py`，只挂项目路径、所有成员可看）：`GET /projects/{p}/ai/change/plan?batch_id=`（已采纳改动合并后的脚本逐行，`k` = ai / code / frame，回滚、影响、模拟）、`GET /projects/{p}/ai/cutover-plan/{batch}?lang=`（方案预览，含待采纳的段落）、`GET …/cutover-plan/{batch}/export?lang=zh-CN|en`（Markdown 下载）、`GET /projects/{p}/ai/translate-patches?device_id=&to=`；`POST /translate` 带 `device_id` 时写入采纳的 AI 写法。新命令：`lmesh ai change-plan <运行编号>`、`lmesh ai cutover-doc <运行编号> --lang zh-CN|en [--out 文件]`。
+
+**界面**：通用组件只加了最少的东西——卡片对新类别显示说明文字与代码给出的预览行（`AiPreviewLines.vue`：紫色左条是 AI 内容，其余是代码生成或补发，红色删除线是被拒绝的部分，琥珀色是代码无法确认的行），`graph_edit` 采纳需二次确认。页面接入在 `frontend/src/views/ai-change/`：`IntentPanel.vue`（增量变更页：描述框、流程条“自然语言 → 目标图改动（AI）→ 变更脚本 / 影响分析 / 模拟执行（代码）”、合并后的脚本与回滚切换、影响数字与模拟结果、右侧建议面板）、`CutoverPlanPanel.vue`（割接迁移页“步骤”页签下：方案预览中英切换、标出 AI 部分、分别下载）、`TranslateGapPanel.vue`（配置翻译页结果下：未支持项表与采纳的写法，采纳后重新翻译）、`NamingPanel.vue`（翻译自定义规则页）、`TemplateExtractPanel.vue`（模板页从设备提取）。文案 `i18n/pages/ai-change.json` 与 `ai-suggest.json`（类别、原因、skill 说明）三语。
+
+**测试**：单元 `tests/unit/test_ai_suggest_change.py`（意图转脚本的通过、合并采纳、项目脚本更新与撤销、人工改过不能撤销，编造对象 / 超范围 / 引用不存在 / 不在 Schema / 父对象不对被拒绝；割接方案的双语、写出命令、编造对象与中英导出；命令识别；翻译未支持项的解析校验与写入译文；命名映射的映射表、冲突、规则不合法、遗漏提醒与规则集撤销；模板提取的等价核对与我的模板；五个 skill 未配置 AI 时降级与回放；REQ-033 回放样例）；API `tests/api/test_ai_change_api.py` 与用例 `api_cases.ai_change.toml`；CLI `tests/cli/test_ai_change_cli.py` 与用例 `cli_cases.ai_change.toml`（回复在 `tests/inputs/ai-change/`）；vitest `views/ai-change/logic.test.ts`；e2e `frontend/e2e/m84.spec.ts`（`playwright.m84.config.ts`，`e2e/m84_server.py` 的假 AI，端口 9484；主配置下只验证入口“不可用”）。
+
+**与预览的差异**：预览是一个“变更与割接”组页面加页签，实现为接入各自的真实页面（增量变更、割接迁移的步骤页签、配置翻译结果下方、翻译自定义规则、模板从设备提取）；命名映射只接在翻译自定义规则页（割接迁移与翻译页可通过规则集选用采纳后的规则）；脚本区不用预览的行号着色而用左侧紫条；翻译页的译文代码区本身没有逐行着紫，未支持项表与提示条标出 AI 写法与行数；方案中的时间窗口时长、受影响基站数等预览里的代码估算数字没有（代码没有这类数据，AI 只能引用代码给出的步骤数、接口数等）；“把握”百分比不显示（同 M8-2）。
+
+### M8-5 结果（规范与合规、知识库构建、报告的 AI skill）
+
+7 个 skill 按 M8-2 框架接入（`core/ai_suggest_kb.py`，报告摘要在 `core/ai_report_summary.py`；`group` 为 compliance / kb / report），决策 D-0274～D-0279。页面照预览 `DevelopDocs/ui-preview/M8/compliance.html`、`kb.html`、`report.html`。
+
+| skill | 类别 | 代码校验 | 采纳 |
+|---|---|---|---|
+| `rule-draft` 规范转规则（含规则编写助手） | `kb_review`（`review_kind: rule`） | 条款由代码切分编号 `s*`；草稿 YAML 与知识库现有检查规则一起交给规则引擎加载（YAML 错误、字段 / 路径 / 编号重复都拒绝：`rule_yaml`、`rule_invalid`）；在 `knowledge/samples` 清单的样本上试跑并列出命中（`check.result.trial`），零命中提醒（`rule_no_hits`），适用实例全部命中提醒（`rule_all_hit`） | 进审核队列；通过时追加到 `rules/standards.yaml`，写后重新加载全部规则，失败恢复原文件 |
+| `baseline-waiver` 基线例外说明 | `text_only` | 该设备该基线规则必须确实不符合（否则 `ai_kb.rule_not_failed`）；`kind` 为 reason / compensating；正文对象与数字核对同 M8-2 | 只记录结论 |
+| `sanitize-review` 脱敏复核 | `sanitize_rule`（新） | **只允许本地模型**；代码挑出含自由文本的行（描述、名称、联系人、横幅、邮箱、长数字…）才发送；标出的文字必须原样在所标的行（`san_not_in_line`），不能是占位符，补规则（`pattern` 或按字面）重新脱敏后不再出现（`san_still_there`），规则太宽提醒 | 写进项目设置 `sanitize_redact`（项目的脱敏补充）；之后导入到该项目、发给 AI 前（`ask.sanitize_text`）都按它替换；撤销时移除 |
+| `unknown-triage` 未识别行归因 | `kb_review`（`review_kind: unknown_card`） | 组 `u*`、已有卡 `k*` 由代码给出；草稿卡字段、语法、视图、参数检查；用草稿重新解析这些行所在的配置，这些行必须变成已识别（`still_unknown` 拒绝，部分识别提醒）；改已有卡（版本差异 / 写法变体）时该平台族门槛样本往返不能变差 | 进审核队列；通过时新增卡（缺命令卡）或修改已有卡，状态 reviewed |
+| `card-review` 命令卡审核助手 | `text_only` / `refs_exist` | 字段编号 `f*` 与维护员粘贴的文档原文行号（`{"line": n, "of": "doc"}`）必须存在；必须引用字段（`no_field_ref`）；给出的原文摘录必须在所引的行里（`quote_not_in_doc`） | 只记录结论（只标注，不改卡） |
+| `mapping-suggest` 映射建议 | `kb_review`（`review_kind: card_maps`） | 卡 `c*` 必须在事实里；目标节点存在、表达式参数在语法里；换上映射后知识库校验不新增错误、该平台族门槛样本往返不变差、翻译回归（该平台族的用例，每条最多 20 秒）不变差，否则拒绝（超时跳过的给提醒） | 进审核队列；通过时写 `maps` 并标 `maps_manual` |
+| `report-summary` 报告摘要 | `text_only` | 结果由导出报告同一套 core 函数算出；数字只能写 `<<键>>`，直接写出的数字拒绝（`number_not_from_code`）；`kind` 为 zh-CN / en | 放进导出的报告（见下） |
+
+**审核队列新增的通过动作**（`review.register_action`，`review._load_actions` 导入本模块）：`rule`（edited.yaml 可改）、`unknown_card`（edited.card）、`card_maps`（edited.maps）。只有维护员与管理员能通过（审核接口原有权限），AI 建议的采纳也只有维护员与管理员。
+
+**本地模型限制**：`ai_suggest_kb.local_gate(env, skill)` 按发起人当前生效的 AI 接口（`ai.resolve`）判断 provider 是否为 `local`；skill 的 `prepare`（运行提交、估计）与 `build`（后台执行时再确认）都会拒绝（409，`ai_kb.local_only`，data 给出 provider 与接口），一个字也不发送；`GET /projects/{p}/ai/kb/gate?skill=sanitize-review` 给界面在运行前拦住。没有配置 AI 的回放不拦（不发送内容）。
+
+**报告摘要的导出**：范围 `report:check:<设备>`、`report:baseline:<基线>:<设备,…>`、`report:compare:<A>:<B>`、`report:change:<当前>:<目标>`（A / B 写 `d<设备>` 或 `v<版本>`；配置文本不支持）。导出接口 `POST /reports`、`/baseline/report`、`/change/report` 加 `include_ai_summary`（默认 true），命令行 `lmesh report check|compare`、`lmesh baseline --report`、`lmesh change --report` 加 `--ai-summary/--no-ai-summary`。导出时取本项目该范围、该报告语言最近采纳的一条，用导出时的结果重新计算数字与对象名填入；采纳后数据变了（数字不同或编号不存在）时只写一行说明。HTML 中 AI 部分是紫色虚线框“摘要（AI 撰写）”，代码填入的部分加粗下划线；Markdown 为 `> [AI]` 引用块；末尾注明 AI 撰写、skill 与版本、接口与模型。“割接报告”对应变更报告（割接迁移没有报告导出）。
+
+**新的接口与命令**：`GET /projects/{p}/ai/kb/gate`、`POST /projects/{p}/ai/kb/extract-text`（txt / md / docx → 文字，docx 用标准库读取）、`GET /projects/{p}/ai/kb/sanitize-redact`；`lmesh ai suggest run … --doc <规范文件>`、`lmesh ai suggest redact`。
+
+**界面**（新组件在 `frontend/src/components/ai-kb/`，文案 `i18n/pages/ai-kb.json`、`kb-ai.json`；知识库与脱敏草稿的卡片内容 `components/ai-suggest/AiKbDetail.vue`）：配置检查页“规则”标签的规范转规则（上传 txt / md / docx 或粘贴、条款状态、四步步骤条、规则编写助手、已送审列表，只对维护员与管理员显示）；安全基线页设备详情里不符合规则的“申请例外”弹窗（两段文字可复制）；设备配置分析页页头“脱敏复核”（先查 gate，非本地模型不显示运行入口；已脱敏配置中标出的行、本项目的脱敏补充）；未识别行页的归因入口与“AI 归因”列；审核队列的命令卡审核助手（可粘贴文档原文）与 rule / unknown_card / card_maps 三种条目的显示、编辑后通过；Schema 视图页头“映射建议”对话框；检查、对比导出对话框与基线、变更页的报告摘要块（`ReportAiSummary.vue`，“包含 AI 摘要”默认勾选）。通用面板新增 `canEstimate`（参数不完整时不请求估计），忽略 / 恢复后也发出 `changed`。
+
+**与预览的差异**：脱敏复核发给模型的是已按规则脱敏的行（预览写“读未脱敏原文”，与“发给 AI 的配置一律先脱敏”冲突，D-0275）；没有接口切换开关（改为去“我的 AI”切换并重新检查）与“已替换 N 处”的数字；命令卡审核助手只标注，没有“按标注修改”的效果；映射建议放在 Schema 视图的对话框里，没有未映射卡的计数；未识别行没有设备、平台列；报告页没有导出预览纸面、“标出 AI 部分”和“标注接口”两个开关（报告总会标注）与报告类型切换，摘要块放在各报告自己的导出处。
+
+**测试**：单元 `tests/unit/test_ai_suggest_kb.py`（7 个 skill 的通过与拒绝、未配置降级、样例回放、审核队列三种动作、本地模型限制、重新脱敏、报告导出与数据变化）；API `tests/api/test_ai_kb_api.py` 与用例 `api_cases.ai_kb.toml`；CLI 用例 `cli_cases.ai_kb.toml`（回放 `tests/inputs/ai-kb/`）；vitest `components/ai-suggest/kb.test.ts`；e2e `frontend/e2e/m85.spec.ts`（`playwright.m85.config.ts` + `e2e/m85_server.py` 假的本地模型）。
+
 ## 拓扑设备图标（REQ-042）
 
 用户 2026-10-19 提出：网元拓扑视图需要设计设备的图标。做法（Claude 按推荐，等预览评审）：
@@ -1560,6 +1638,17 @@ M6-7 实现。预览 `DevelopDocs/ui-preview/REQ-039/`（登录与注册、账�
 
 - 单元：`wizard.test.ts`、`schema.test.ts`（按类型的字段规则、换类型清理、enum / ref 校验、格式校验）、`profiles.test.ts`（默认值输入方式、校验、转换）。
 - 端到端：`frontend/e2e/m69.spec.ts`（向导确认页：浏览器内替换 `/health` 与 `/setup` 为未配置实例的应答，检查汇总、需重启、只看已修改、重新检查出问题后不能提交、返回修改后回到确认页、窄屏；Schema 编辑换类型）。
+
+## 未支持型号的处理（REQ-044）
+
+用户 2026-10-19 提出：导入的设备款型不存在怎么办，可以手工选择（例如华为 NE8000 选 ATN 的 Profile）。现状：认不出厂商时拒绝导入（提示文字漏了 Nokia）；认得厂商但版本不匹配时静默套用该厂商的 fallback Profile，界面没有提示；导入只识别厂商与软件版本，不识别硬件型号。经用户确认的做法（【用户确认】，排期 M8，M8 整合后做，先做预览页）：
+
+1. 手工选择 Profile：导入对话框每个文件显示识别结果与匹配程度（精确：版本规则命中；近似：只按厂商套用 fallback；无：认不出厂商），可改选 Profile。**只允许同厂商 / 同平台族**【用户确认】；认不出厂商时可在全部 Profile 中选。设备记录 Profile 来源（auto / fallback / manual），之后的导入与重新解析沿用手工选择；设备页可“更换 Profile 并重新解析”。API `POST /configs` 可按文件指定 Profile，CLI `lmesh import --profile`。
+2. 试解析推荐：用候选 Profile（同厂商 / 同平台族）各试解析一次，按识别出的命令行比例排序推荐（确定性，不用 AI）。
+3. 型号规则：手工选择时可“记住”，生成匹配规则（设备名模式、版本、特征命令 → Profile），作用范围为项目或全局（全局由维护员管理），导入时优先按规则自动选择。
+4. 近似标记：近似或手工 Profile 的设备在设备列表、配置图、报告中标出并显示未识别行比例；变更脚本、翻译结果下发前提示“基于近似 Profile，请核对”（默认值按所选 Profile 补，可能与真实型号不同）。
+5. 申请支持：设备页“申请支持此型号”进入审核队列（建议）；维护员可从现有 Profile 派生（继承，只写差异）并补命令卡（可用 M8-5 未识别行归因）；派生 Profile 发布后型号规则改指向它，已导入设备一键重新解析。
+6. 认不出的厂商：可只存原文、不解析（标“不支持的厂商”），可查看、文本对比、版本历史；按通用规则脱敏。提示文字补上 Nokia。
 
 ## 接入 Nokia 7750 SR（REQ-037）
 

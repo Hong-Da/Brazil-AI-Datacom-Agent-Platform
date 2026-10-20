@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, Query, Request
+from fastapi.responses import Response
 from pydantic import BaseModel, Field
 
 from lmesh.api.common import (
@@ -25,7 +26,7 @@ from lmesh.api.common import (
     require_token,
     settings_of,
 )
-from lmesh.core import ai_suggest, analysis, kbservice, projects
+from lmesh.core import ai_suggest, ai_suggest_analysis, analysis, kbservice, projects
 
 router = APIRouter(dependencies=[Depends(require_token)])
 _KIND = {
@@ -131,6 +132,62 @@ def suggest_adoptions(request: Request, limit: int = Query(200, ge=1, le=1000)) 
 def view_annotations(request: Request, target_type: str | None = None) -> dict[str, Any]:
     scope: projects.Scope = request.state.scope
     return ok(request, {"items": ai_suggest.list_annotations(db_of(request), scope.project_id, target_type)})
+
+
+class AnnotationBody(BaseModel):
+    target_type: Literal["device"] = Field("device", description="目标类型（目前只有设备）")
+    target: str = Field(..., max_length=200, description="设备编号")
+    key: Literal["role", "group", "label", "layer"] = Field(..., description="角色、分组、标签或层次")
+    value: str | int | None = Field(
+        None, description="取值：role 为 core / aggregation / access / pe / p / ce；layer 为 0～9；null 表示清除"
+    )
+
+
+@router.put(
+    "/view-annotations",
+    summary="手工设置或清除设备的视图标注（来源 user，优先于 AI 建议）；需要可编辑",
+)
+def put_view_annotation(request: Request, body: AnnotationBody) -> dict[str, Any]:
+    try:
+        item = ai_suggest_analysis.set_annotation(_env(request), body.target_type, body.target, body.key, body.value)
+    except ai_suggest.SuggestError as e:
+        raise _err(e) from e
+    return ok(request, {"item": item})
+
+
+@router.get(
+    "/ai/suggestions/coverage",
+    summary="覆盖核对（代码计算）：范围内最近一次运行的建议引用到的条目，与没有被任何建议解释到的条目（变化解读用 c 编号）",
+)
+def suggest_coverage(
+    request: Request,
+    skill: str = Query("diff-explain", max_length=60),
+    scope: str = Query(..., max_length=200, description="范围，例如 compare:3:5、history:3:5"),
+    prefix: str = Query("c", pattern="^[a-z]$"),
+) -> dict[str, Any]:
+    return ok(request, ai_suggest_analysis.coverage(_env(request), skill, scope, prefix))
+
+
+@router.get(
+    "/devices/{device_id}/handover",
+    summary="设备交接文档（中文 / English，HTML / Markdown）：设备信息、视图标注、对象统计与最近采纳的 AI 设备摘要，直接返回文件",
+    response_class=Response,
+)
+def device_handover(
+    request: Request,
+    device_id: int,
+    lang: Literal["zh-CN", "en"] = Query("zh-CN", description="文档语言（界面是 pt-BR 时用 en）"),
+    format: Literal["html", "md"] = Query("html"),
+) -> Response:
+    try:
+        rep = ai_suggest_analysis.handover(_env(request), device_id, lang, format)
+    except ai_suggest.SuggestError as e:
+        raise _err(e) from e
+    return Response(
+        content=rep.content.encode("utf-8"),
+        media_type=rep.media_type,
+        headers={"Content-Disposition": rep.disposition()},
+    )
 
 
 @router.get("/ai/suggestions", summary="建议列表：按 skill、状态、校验结果、类别、设备、批次、范围过滤（新的在前）")

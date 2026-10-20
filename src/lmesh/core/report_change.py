@@ -175,8 +175,9 @@ def change_report(
     fmt: str,
     now: datetime | None = None,
     namer: Namer | None = None,
+    ai: dict[str, Any] | None = None,
 ) -> Report:
-    """result 是 change.change 的结果。"""
+    """result 是 change.change 的结果；ai 是已采纳的 AI 摘要（ai_report_summary.for_export，可省）。"""
     report._check_args(lang, fmt)
     doc = _ChangeDoc(fmt, lang, namer)
     cur, tgt, s = result["current"], result["target"], result["summary"]
@@ -192,6 +193,7 @@ def change_report(
         ],
         "meta",
     )
+    report.ai_section(doc, ai)
     doc.section("summary")
     doc.h(2, doc.t("summary"))
     report._stats(
@@ -243,4 +245,5 @@ def change_report(
         )
         doc.end()
     name = f"change-{report._safe(cur.get('label'))}-{report._safe(tgt.get('label'))}.{lang}.{fmt}"
+    report.ai_note(doc, ai)
     return Report(name, doc.render(title), report._media(fmt))

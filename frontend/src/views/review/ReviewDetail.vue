@@ -8,6 +8,9 @@ import {
   APPROVABLE, EDIT_FIELDS, KIND_TONE, changedFields, isAi, previewComplete, rejectNote, splitTitle,
   unknownCardEmpty, unknownCardReady, type EditField, type ReviewItem, type UnknownCard,
 } from './logic'
+import { AI_KB_KINDS } from './logic'
+import KbReviewItem from '@/components/ai-kb/KbReviewItem.vue'
+import CardReviewAid from '@/components/ai-kb/CardReviewAid.vue'
 
 const props = defineProps<{ itemId: number | null }>()
 const emit = defineEmits<{ decided: [id: number, approved: boolean] }>()
@@ -26,6 +29,7 @@ const rejectExtra = ref('')
 const form = reactive<Record<EditField, string>>({ syntax: '', view: '', enters_view: '', undo: '', default: '' })
 const ucard = reactive<UnknownCard>({ id: '', syntax: '', view: '', family: '', domain: '' })
 const conflictText = ref('')
+const kbItem = ref<InstanceType<typeof KbReviewItem> | null>(null) // M8-5 AI 草稿（rule / unknown_card / card_maps）
 
 const REASONS = ['wrong', 'mapping', 'duplicate', 'scope', 'other'] as const
 const DOMAINS = ['interface', 'vrf', 'static-route', 'bgp', 'routing-policy']
@@ -58,7 +62,7 @@ const examples = computed(() => (payload.value.examples ?? []) as { text: string
 const preview = computed(() => String(payload.value.theirs_preview ?? ''))
 const canEdit = computed(() => {
   const k = item.value?.kind
-  if (k === 'card' || k === 'unknown_line') return true
+  if (k === 'card' || k === 'unknown_line' || AI_KB_KINDS.has(k ?? '')) return true
   return k === 'conflict' && previewComplete(preview.value)
 })
 
@@ -116,6 +120,11 @@ async function decide(approve: boolean): Promise<void> {
         edited = { card: { ...ucard } }
       }
     } else if (it.kind === 'conflict' && conflictText.value !== preview.value) edited = { text: conflictText.value }
+    else if (AI_KB_KINDS.has(it.kind)) {
+      const r = kbItem.value?.edited() ?? null
+      if (r && 'error' in r) { actError.value = String(r.error); return }
+      edited = r
+    }
   }
   const n = approve ? note.value.trim() : rejectNote(t(`review.reason_${reason.value}`), rejectExtra.value)
   busy.value = true
@@ -174,6 +183,9 @@ defineExpose({
             <template v-else-if="item.kind === 'unknown_line'">
               <div><b>{{ $t('review.fromUnknown') }}</b></div>
             </template>
+            <template v-else-if="item.source.method === 'ai'">
+              <div><b>{{ $t('kb-ai.rv.fromAi') }}</b><span v-if="item.source.skill" class="mono small faint"> · {{ item.source.skill }}</span></div>
+            </template>
             <template v-else>
               <div><b>{{ item.source.title || item.source.file || item.source.doc }}</b><span v-if="item.source.version" class="mono small faint"> · {{ item.source.version }}</span></div>
               <div v-if="item.source.file" class="p">{{ item.source.doc ? item.source.doc + ' / ' : '' }}{{ item.source.file }}<span v-if="item.source.line">:{{ item.source.line }}</span></div>
@@ -209,7 +221,11 @@ defineExpose({
             <div class="section-t" style="margin-top: 18px">{{ $t('review.related') }}</div>
             <div class="rel"><span v-for="m in maps" :key="m" class="tag mono">{{ m }}</span></div>
           </template>
+          <CardReviewAid :key="item.target" :card-id="item.target" />
         </template>
+
+        <!-- M8-5 AI 建议采纳后的知识库草稿 -->
+        <KbReviewItem v-else-if="AI_KB_KINDS.has(item.kind)" ref="kbItem" :item="item" :editing="mode === 'edit'" />
 
         <!-- 未识别行 -->
         <template v-else-if="item.kind === 'unknown_line'">

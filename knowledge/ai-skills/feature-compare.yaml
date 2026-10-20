@@ -1,0 +1,89 @@
+# 内置 AI skill（只读）：能力对比说明（M8-3）：选型、迁移前解释两家厂商在同一特性上的差异与替代写法。
+# 管理员修改后的版本保存在 data/ai-skills/feature-compare/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。命令卡由代码从知识库取出并编号（k1、k2……）。
+id: feature-compare
+version: 1
+title: {zh-CN: 能力对比说明, en: Feature comparison note, pt-BR: Nota de comparação de recursos}
+description: {zh-CN: 选型、迁移前解释两个 Profile（厂商 / 平台）在同一特性上的差异与替代写法。写法必须来自命令卡，写出的每条命令都要能被所引命令卡的语法解析。, en: 'Before selection or migration, explains how two profiles (vendors / platforms) differ on one feature and the alternative syntax. Syntax must come from the command cards: every command written must parse with the cited card.', pt-BR: 'Antes de escolher ou migrar, explica como dois perfis (fabricantes / plataformas) diferem num recurso e a sintaxe alternativa. A sintaxe deve vir dos cartões: todo comando escrito deve ser analisado pelo cartão citado.'}
+task: ask
+used_by: ai_suggest
+group: analysis
+enabled: true
+system: |-
+  You explain to a network engineer how two platforms differ on one configuration feature and how to write it on each. Use only the command cards given; never invent commands.
+  Rules:
+  - Mention profiles and cards ONLY as [[id]] (p1, p2, k1 ...).
+  - List every command you write in content.commands as {{"card": "k1", "text": "<a concrete command>"}}; it must follow the syntax of that card exactly (fill in parameters with example values).
+  - 2 to 5 sentences in {lang}: the difference (support, defaults, structure) and the alternative on the other platform.
+  Reply with JSON only: {{"suggestions": [{{"category": "text_only", "kind": "feature", "title": "<short title>", "content": {{"text": "<explanation>", "commands": [{{"card": "k1", "text": "..."}}]}}, "refs": [{{"id": "k1"}}]}}]}}
+prompt: |-
+  Feature:
+  {feature}
+
+  Profiles and their command cards (id | profile | state | default; cards: id | card | view | syntax | undo):
+  {profiles}
+
+  Dependencies:
+  {deps}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format; every command must follow the syntax of the card it cites.
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 回复语言（按界面语言）, en: Reply language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}
+  - name: feature
+    in: prompt
+    desc: {zh-CN: 特性（Schema 节点、类型、功能域、含义）, en: 'The feature (Schema node, type, domain, meaning)', pt-BR: 'O recurso (nó do Schema, tipo, domínio, significado)'}
+  - name: profiles
+    in: prompt
+    desc: {zh-CN: 两个 Profile 的支持情况、默认值与命令卡（语法、取消写法）, en: 'Support, defaults and command cards (syntax, undo) of both profiles', pt-BR: 'Suporte, padrões e cartões (sintaxe, desfazer) dos dois perfis'}
+  - name: deps
+    in: prompt
+    desc: {zh-CN: 该特性的依赖, en: Dependencies of the feature, pt-BR: Dependências do recurso}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - syntax
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "text_only", "kind": "feature", "title": "...", "content": {"text": "...", "commands": [{"card": "k1", "text": "..."}]}, "refs": [{"id": "k1"}]}]}'
+checks:
+  - suggest.text_only
+  - suggest.card_syntax
+samples:
+  - title: {zh-CN: 接口 MTU 的两家写法, en: Interface MTU on two platforms, pt-BR: MTU de interface em duas plataformas}
+    input:
+      vars:
+        lang: English
+        feature: 'interface.mtu | type=int | domain=interface | Interface MTU'
+        profiles: "p1 | huawei-atn-v800r025 | family=huawei-vrp8 | state=supported | default=1500\n  k1 | card huawei-vrp8.mtu | view=interface | syntax: mtu <mtu> | undo: undo mtu\np2 | cisco-iosxe-asr920-17.15 | family=cisco-iosxe | state=supported | default=1500\n  k2 | card cisco-iosxe.mtu | view=interface | syntax: mtu <bytes>"
+        deps: '(none)'
+      facts:
+        objects:
+          p1: {type: profile, label: huawei-atn-v800r025, family: huawei-vrp8}
+          p2: {type: profile, label: cisco-iosxe-asr920-17.15, family: cisco-iosxe}
+          k1: {type: card, label: huawei-vrp8.mtu, profile: p1, family: huawei-vrp8, syntax: 'mtu <mtu>'}
+          k2: {type: card, label: cisco-iosxe.mtu, profile: p2, family: cisco-iosxe, syntax: 'mtu <bytes>'}
+        numbers: {cards: 2}
+        lines: {}
+        names: [interface.mtu, huawei-atn-v800r025, cisco-iosxe-asr920-17.15, huawei-vrp8.mtu, cisco-iosxe.mtu]
+    reply: '{"suggestions": [{"category": "text_only", "kind": "feature", "title": "MTU is set the same way", "content": {"text": "Both [[p1]] and [[p2]] set the MTU in the interface view with one command: [[k1]] and [[k2]].", "commands": [{"card": "k1", "text": "mtu 9000"}, {"card": "k2", "text": "mtu 9000"}]}, "refs": [{"id": "k1"}, {"id": "k2"}]}]}'
+  - title: {zh-CN: 写法与命令卡不一致（演示拒绝）, en: Syntax that does not match the card (shows a rejection), pt-BR: Sintaxe que não confere com o cartão (mostra a rejeição)}
+    input:
+      vars:
+        lang: English
+        feature: 'interface.mtu | type=int | domain=interface | Interface MTU'
+        profiles: "p1 | huawei-atn-v800r025 | family=huawei-vrp8 | state=supported\n  k1 | card huawei-vrp8.mtu | view=interface | syntax: mtu <mtu>"
+        deps: '(none)'
+      facts:
+        objects:
+          p1: {type: profile, label: huawei-atn-v800r025, family: huawei-vrp8}
+          k1: {type: card, label: huawei-vrp8.mtu, profile: p1, family: huawei-vrp8, syntax: 'mtu <mtu>'}
+        numbers: {cards: 1}
+        lines: {}
+        names: [interface.mtu, huawei-atn-v800r025, huawei-vrp8.mtu]
+    reply: '{"suggestions": [{"category": "text_only", "kind": "feature", "title": "Jumbo frames", "content": {"text": "On [[p1]] use [[k1]], or [[k9]].", "commands": [{"card": "k1", "text": "ip mtu jumbo 9000"}, {"card": "k9", "text": "jumbo-frame enable"}]}, "refs": [{"id": "k1"}]}]}'

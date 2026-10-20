@@ -11,6 +11,8 @@ const props = defineProps<{
   collapsed: Set<string>
   aLabel: string
   bLabel: string
+  /** M8-3 变化解读的覆盖核对：行编号 → cov（已归入意图，左侧紫条）/ uncov（没有被解释，黄底） */
+  marks?: Record<string, string>
 }>()
 const emit = defineEmits<{
   (e: 'select', id: string): void
@@ -78,7 +80,7 @@ function onKey(ev: KeyboardEvent): void {
       <template v-if="!collapsed.has(g.domain)">
         <div
           v-for="r in g.rows" :key="r.id"
-          class="drow" :class="['t-' + r.type, { child: r.child, 'is-sel': sel === r.id, 'hid-default': defaultOnly(r) }]"
+          class="drow" :class="['t-' + r.type, { child: r.child, 'is-sel': sel === r.id, 'hid-default': defaultOnly(r), 'cov-ai': props.marks?.[r.id] === 'cov', uncov: props.marks?.[r.id] === 'uncov' }]"
           tabindex="0" :data-id="r.id" data-testid="diff-row"
           @click="emit('select', r.id)" @keydown.enter.prevent="emit('select', r.id)"
         >
@@ -113,6 +115,8 @@ function onKey(ev: KeyboardEvent): void {
 </template>
 
 <style scoped>
+.drow.cov-ai { box-shadow: inset 3px 0 0 var(--violet); }
+.drow.uncov { background: color-mix(in srgb, var(--amber-soft) 50%, transparent); }
 .dl-cols, .drow { display: grid; grid-template-columns: 92px minmax(0, 1.15fr) minmax(0, 1fr) 16px minmax(0, 1fr); gap: 10px; align-items: center; }
 .dl-cols { padding: 7px 12px; border-bottom: 1px solid var(--line); background: var(--surface-2); font-size: 12px; font-weight: 600; color: var(--ink-2); }
 .dl-cols .side-k { display: inline-flex; gap: 6px; align-items: center; min-width: 0; }

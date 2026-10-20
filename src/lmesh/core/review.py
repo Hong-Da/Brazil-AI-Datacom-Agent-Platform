@@ -105,6 +105,8 @@ class ReviewError(ValueError):
 
 def _load_actions() -> None:
     """各类型的通过动作分散在各自模块里注册，用到前先导入。"""
+    # M8-5：rule、unknown_card、card_maps
+    from lmesh.core import ai_suggest_kb  # noqa: F401
     from lmesh.core.ingest import service  # noqa: F401  命令卡
 
 

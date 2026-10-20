@@ -5,7 +5,9 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import AiText from './AiText.vue'
-import { adoptable, editContent, editText, refText, type RefInfo, type Suggestion } from './logic'
+import AiKbDetail from './AiKbDetail.vue'
+import AiPreviewLines from './AiPreviewLines.vue'
+import { CHANGE_CATEGORIES, adoptable, bodyText, previewLines, commandsOf, editContent, editText, levelOf, peerLine, refText, suspectOf, type RefInfo, type Suggestion } from './logic'
 
 const props = defineProps<{ item: Suggestion; open: boolean; canWrite: boolean; canKb: boolean; busy?: boolean }>()
 const emit = defineEmits<{
@@ -38,6 +40,15 @@ const hintLine = computed(() => {
   return { target: target?.label ?? String(c.value.target ?? ''), key: keyT, value: valT }
 })
 const scriptRes = computed(() => it.value.check.result?.result ?? null)
+// M8-3：正文（text_only / refs_exist 的 text，脚本的 explain）、风险或优先级、更可能出错的一端、推测对端、命令写法
+const body = computed(() => bodyText(it.value))
+const level = computed(() => levelOf(it.value))
+const suspect = computed(() => suspectOf(it.value))
+const peer = computed(() => peerLine(it.value))
+const cmds = computed(() => commandsOf(it.value))
+// M8-4：变更与割接组由代码给出的预览行，以及说明 / 理由文字（AI 文字，对象名由代码填入）
+const preview = computed(() => (CHANGE_CATEGORIES.has(it.value.category) ? previewLines(it.value) : []))
+const explain = computed(() => (CHANGE_CATEGORIES.has(it.value.category) ? it.value.check.display ?? '' : ''))
 
 // ---------- 编辑后采纳 ----------
 const editing = ref(false)
@@ -81,19 +92,31 @@ defineExpose({ stopEdit: () => { editing.value = false }, setEditError: (m: stri
 
     <div v-if="open" class="sg-b">
       <template v-if="!editing">
-        <AiText v-if="it.category === 'text_only'" :segments="it.check.segments" :text="String(c.text ?? '')" :refs="it.refs" :adopted="adopted" @jump="emit('jump', $event)" />
+        <div v-if="level || suspect" class="lvrow">
+          <span v-if="level" class="risk" :class="level.cls" data-testid="ai-sg-level">{{ T(`${level.k}.${level.v}`) }}</span>
+          <span v-if="suspect" class="small" data-testid="ai-sg-suspect">{{ T('suspect', { d: suspect }) }}</span>
+        </div>
+        <AiText v-if="body && it.category !== 'script_valid'" :segments="it.check.segments" :text="body" :refs="it.refs" :adopted="adopted" @jump="emit('jump', $event)" />
+        <div v-if="cmds.length" class="body" data-testid="ai-sg-commands">
+          <h4>{{ T('commands') }}</h4>
+          <div v-for="(x, i) in cmds" :key="i" class="cmdrow"><span class="cv">{{ x.card }}</span><code class="mono">{{ x.text }}</code></div>
+        </div>
+        <div v-if="peer" class="body" data-testid="ai-sg-peer">
+          <div><b class="mono">{{ peer.a }}</b> ⟷ <b class="mono hintv">{{ peer.b }}</b><span v-if="peer.external" class="small faint"> · {{ T('external') }}</span></div>
+          <AiText v-if="c.reason" inline :segments="it.check.segments" :text="String(c.reason)" :refs="it.refs" :adopted="adopted" @jump="emit('jump', $event)" />
+        </div>
         <div v-else-if="it.category === 'view_hint'" class="body">
           <div><b>{{ hintLine.key }}</b> · {{ hintLine.target }} → <b class="hintv">{{ hintLine.value }}</b></div>
           <AiText v-if="c.reason" inline :segments="it.check.segments" :text="String(c.reason)" :refs="it.refs" :adopted="adopted" @jump="emit('jump', $event)" />
         </div>
         <template v-else-if="it.category === 'script_valid'">
+          <AiText v-if="body" inline :segments="null" :text="body" :refs="it.refs" :adopted="adopted" />
           <pre class="code-pre mono" data-testid="ai-sg-script">{{ String(c.script ?? '') }}</pre>
           <div v-if="scriptRes" class="small faint">{{ T('scriptRes', { a: scriptRes.lines_added ?? 0, d: scriptRes.lines_removed ?? 0, o: scriptRes.lines_overridden ?? 0 }) }}</div>
         </template>
-        <template v-else-if="it.category === 'kb_review'">
-          <div class="small mono">{{ c.review_kind }} · {{ c.target }}</div>
-          <pre class="code-pre mono">{{ JSON.stringify(c.payload ?? {}, null, 2) }}</pre>
-        </template>
+        <AiKbDetail v-else-if="it.category === 'kb_review' || it.category === 'sanitize_rule'" :item="it" />
+        <AiText v-if="explain" inline :segments="it.check.segments" :text="explain" :refs="it.refs" :adopted="adopted" @jump="emit('jump', $event)" />
+        <AiPreviewLines v-if="preview.length" :lines="preview" />
       </template>
       <div v-else class="editbox" data-testid="ai-sg-editbox">
         <label class="small faint">{{ T('editHint') }}</label>
@@ -160,4 +183,11 @@ defineExpose({ stopEdit: () => { editing.value = false }, setEditError: (m: stri
 .code-pre { margin: 0; padding: 8px 10px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface); max-height: 220px; overflow: auto; font-size: 12px; white-space: pre; }
 .hintv { color: var(--ai); }
 .sg-h .tw { pointer-events: none; }
+.lvrow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.risk { font-size: 11px; font-weight: 600; border-radius: 3px; padding: 0 5px; line-height: 17px; display: inline-flex; }
+.risk.hi { color: var(--red-ink); background: var(--red-soft); }
+.risk.mid { color: var(--amber-ink); background: var(--amber-soft); }
+.risk.lo { color: var(--teal-ink); background: var(--teal-soft); }
+.cmdrow { display: flex; gap: 8px; align-items: baseline; margin-top: 4px; min-width: 0; }
+.cmdrow code { font-size: 12px; overflow-wrap: anywhere; }
 </style>

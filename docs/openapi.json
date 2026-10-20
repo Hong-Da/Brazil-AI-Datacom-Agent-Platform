@@ -3,7 +3,7 @@
   "info": {
     "title": "LucidMesh API",
     "description": "透网 LucidMesh 远程 API。除 /health、/auth/status、/auth/login 与首次运行向导外，所有接口都需要登录：网页用会话 Cookie，脚本用 Authorization: Bearer <令牌>（全局令牌或个人令牌 lmp_…）。设备相关接口在 /api/v1/projects/{project}/… 下；旧的无项目路径保留为兼容别名（调用者的默认项目，已弃用）。",
-    "version": "0.3.0"
+    "version": "0.5.0"
   },
   "paths": {
     "/api/v1/health": {
@@ -14618,6 +14618,216 @@
             }
           }
         }
+      },
+      "put": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "手工设置或清除设备的视图标注（来源 user，优先于 AI 建议）；需要可编辑",
+        "operationId": "put_view_annotation_api_v1_projects__project__view_annotations_put",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnotationBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put View Annotation Api V1 Projects  Project  View Annotations Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/suggestions/coverage": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "覆盖核对（代码计算）：范围内最近一次运行的建议引用到的条目，与没有被任何建议解释到的条目（变化解读用 c 编号）",
+        "operationId": "suggest_coverage_api_v1_projects__project__ai_suggestions_coverage_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "skill",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 60,
+              "default": "diff-explain",
+              "title": "Skill"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "范围，例如 compare:3:5、history:3:5",
+              "title": "Scope"
+            },
+            "description": "范围，例如 compare:3:5、history:3:5"
+          },
+          {
+            "name": "prefix",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z]$",
+              "default": "c",
+              "title": "Prefix"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Suggest Coverage Api V1 Projects  Project  Ai Suggestions Coverage Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/devices/{device_id}/handover": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "设备交接文档（中文 / English，HTML / Markdown）：设备信息、视图标注、对象统计与最近采纳的 AI 设备摘要，直接返回文件",
+        "operationId": "device_handover_api_v1_projects__project__devices__device_id__handover_get",
+        "parameters": [
+          {
+            "name": "device_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh-CN",
+                "en"
+              ],
+              "type": "string",
+              "description": "文档语言（界面是 pt-BR 时用 en）",
+              "default": "zh-CN",
+              "title": "Lang"
+            },
+            "description": "文档语言（界面是 pt-BR 时用 en）"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "html",
+                "md"
+              ],
+              "type": "string",
+              "default": "html",
+              "title": "Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/projects/{project}/ai/suggestions": {
@@ -15342,6 +15552,419 @@
         }
       }
     },
+    "/api/v1/projects/{project}/ai/change/plan": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "变更意图转脚本：一次运行中已采纳的改动合并后由代码生成的脚本（逐行标出来自 AI 改动的行）、回滚、影响分析与模拟执行",
+        "operationId": "change_plan_api_v1_projects__project__ai_change_plan_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "batch_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "intent-script 的运行编号",
+              "title": "Batch Id"
+            },
+            "description": "intent-script 的运行编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Change Plan Api V1 Projects  Project  Ai Change Plan Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/cutover-plan/{batch_id}": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "割接方案文档（预览）：代码给出的标题、步骤与命令，加上各节的 AI 文字（含待采纳的，标明状态）",
+        "operationId": "cutover_doc_api_v1_projects__project__ai_cutover_plan__batch_id__get",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh-CN",
+                "en"
+              ],
+              "type": "string",
+              "description": "文档语言（中英双语分别查看与导出）",
+              "default": "zh-CN",
+              "title": "Lang"
+            },
+            "description": "文档语言（中英双语分别查看与导出）"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Cutover Doc Api V1 Projects  Project  Ai Cutover Plan  Batch Id  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/cutover-plan/{batch_id}/export": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "导出割接方案（Markdown，只含已采纳的 AI 文字；命令来自代码生成的步骤）：中文版与英文版分别下载",
+        "operationId": "cutover_export_api_v1_projects__project__ai_cutover_plan__batch_id__export_get",
+        "parameters": [
+          {
+            "name": "batch_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Batch Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "zh-CN",
+                "en"
+              ],
+              "type": "string",
+              "default": "zh-CN",
+              "title": "Lang"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/translate-patches": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "翻译未支持项：项目中已采纳的 AI 写法（同一设备、同一目标 Profile），翻译接口会把它们写进译文并标为 AI 来源",
+        "operationId": "translate_patches_api_v1_projects__project__ai_translate_patches_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "device_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Device Id"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 120,
+              "description": "目标 Profile",
+              "title": "To"
+            },
+            "description": "目标 Profile"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Translate Patches Api V1 Projects  Project  Ai Translate Patches Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/kb/gate": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "skill 能否在当前生效的 AI 接口上运行：脱敏复核只允许本地模型（provider 不是 local 时 allowed 为 false）",
+        "operationId": "kb_gate_api_v1_projects__project__ai_kb_gate_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "skill",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 60,
+              "title": "Skill"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Kb Gate Api V1 Projects  Project  Ai Kb Gate Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/kb/sanitize-redact": {
+      "get": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "本项目的脱敏补充：采纳的脱敏复核建议（正则列表），导入与发给 AI 前一并替换",
+        "operationId": "kb_sanitize_redact_api_v1_projects__project__ai_kb_sanitize_redact_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Kb Sanitize Redact Api V1 Projects  Project  Ai Kb Sanitize Redact Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ai/kb/extract-text": {
+      "post": {
+        "tags": [
+          "ai-suggestions"
+        ],
+        "summary": "上传的规范文件（txt / md / docx，5 MB 以内）→ 文字（前 60000 字），给“规范转规则”作为参数 text",
+        "operationId": "kb_extract_text_api_v1_projects__project__ai_kb_extract_text_post",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_kb_extract_text_api_v1_projects__project__ai_kb_extract_text_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Kb Extract Text Api V1 Projects  Project  Ai Kb Extract Text Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/tokens": {
       "get": {
         "tags": [
@@ -15720,6 +16343,55 @@
         ],
         "title": "AnalysisBody"
       },
+      "AnnotationBody": {
+        "properties": {
+          "target_type": {
+            "type": "string",
+            "const": "device",
+            "title": "Target Type",
+            "description": "目标类型（目前只有设备）",
+            "default": "device"
+          },
+          "target": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Target",
+            "description": "设备编号"
+          },
+          "key": {
+            "type": "string",
+            "enum": [
+              "role",
+              "group",
+              "label",
+              "layer"
+            ],
+            "title": "Key",
+            "description": "角色、分组、标签或层次"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value",
+            "description": "取值：role 为 core / aggregation / access / pe / p / ce；layer 为 0～9；null 表示清除"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target",
+          "key"
+        ],
+        "title": "AnnotationBody"
+      },
       "AskBody": {
         "properties": {
           "question": {
@@ -15905,6 +16577,12 @@
             ],
             "title": "Style",
             "description": "节点的显示风格；不填时用配置 ui.term_style"
+          },
+          "include_ai_summary": {
+            "type": "boolean",
+            "title": "Include Ai Summary",
+            "description": "包含本项目已采纳的 AI 摘要（M8-5；只对 device_ids 给出的设备，与数据不一致时只给说明）",
+            "default": true
           }
         },
         "type": "object",
@@ -16045,6 +16723,20 @@
           "files"
         ],
         "title": "Body_import_configs_api_v1_projects__project__configs_post"
+      },
+      "Body_kb_extract_text_api_v1_projects__project__ai_kb_extract_text_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_kb_extract_text_api_v1_projects__project__ai_kb_extract_text_post"
       },
       "Body_kb_import_api_v1_kb_import_post": {
         "properties": {
@@ -16285,6 +16977,12 @@
             "title": "Format",
             "description": "html：自包含单文件、可打印；md：贴进工单",
             "default": "html"
+          },
+          "include_ai_summary": {
+            "type": "boolean",
+            "title": "Include Ai Summary",
+            "description": "包含本项目已采纳的 AI 摘要（M8-5；两边都是已导入的设备 / 版本时才有，与数据不一致时只给说明）",
+            "default": true
           }
         },
         "type": "object",
@@ -18608,6 +19306,12 @@
             ],
             "title": "Style",
             "description": "节点的显示风格；不填时用配置 ui.term_style"
+          },
+          "include_ai_summary": {
+            "type": "boolean",
+            "title": "Include Ai Summary",
+            "description": "包含本项目已采纳的 AI 摘要（M8-5；只有已导入的设备 / 版本才有，与数据不一致时只给说明）",
+            "default": true
           }
         },
         "type": "object",

@@ -1,0 +1,70 @@
+# 变更与割接组 AI skill（M8-4，REQ-041）的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-fullkb-suggest：alice 的项目 lab 里已有两次回放运行（#1 拓扑角色、#2 设备摘要）。AI 未配置；
+# run 用 --replay 回放 tests/inputs/ai-change/ 里的回复（同样经过代码校验）；连续操作（采纳 → 查看 → 撤销）见 tests/cli/test_ai_change_cli.py。
+
+[[case]]
+id = "ai-change-intent-replay"
+title = { zh-CN = "变更意图转脚本（回放）：改动应用到目标图，代码生成脚本并模拟执行", en = "Change intent to script (replayed): edits applied to the target graph, script generated and simulated by code", pt-BR = "Intenção em script (reproduzida): edições no grafo-alvo, script gerado e simulado pelo código" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "run", "intent-script", "--device", "ATN-CHANGE-01", "--params", "{\"intent\": \"Set the description of GigabitEthernet0/2/2\"}", "--replay", "{inputs}/ai-change/intent-desc.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.batch.status" = "done", "data.items.0.category" = "graph_edit", "data.items.0.check_status" = "pass", "data.items.0.check.result.summary.verify" = true }
+in_docs = true
+
+[[case]]
+id = "ai-change-intent-invented"
+title = { zh-CN = "改动引用了不存在的对象、取值超出范围：被代码拒绝", en = "Edits citing a missing object or an out-of-range value are rejected", pt-BR = "Edições com objeto inexistente ou valor fora da faixa são rejeitadas" }
+args = ["--lang", "en", "--project", "alice/lab", "ai", "suggest", "run", "intent-script", "--device", "ATN-CHANGE-01", "--params", "{\"intent\": \"Bind GigabitEthernet0/2/2\"}", "--replay", "{inputs}/ai-change/intent-invented.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_stdout = ["1 rejected"]
+
+[[case]]
+id = "ai-change-intent-need-intent"
+title = { zh-CN = "没有变更描述：退出码 2", en = "No change request: exit 2", pt-BR = "Sem pedido de mudança: saída 2" }
+args = ["--project", "alice/lab", "ai", "suggest", "run", "intent-script", "--device", "ATN-CHANGE-01", "--replay", "{inputs}/ai-change/intent-desc.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 2
+
+[[case]]
+id = "ai-change-cutover-replay"
+title = { zh-CN = "割接方案文档（回放）：中英双语的一节通过，直接写出命令的一节被拒绝", en = "Cutover plan (replayed): a bilingual section passes, one that types a command is rejected", pt-BR = "Plano de migração (reproduzido): seção bilíngue aprovada, a que digita comando é rejeitada" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "run", "cutover-plan", "--device", "ATN-CHANGE-01", "--params", "{\"to\": \"cisco-iosxe-asr920-17.15\"}", "--replay", "{inputs}/ai-change/cutover-overview.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.batch.counts.pass" = 1, "data.batch.counts.reject" = 1 }
+in_docs = true
+
+[[case]]
+id = "ai-change-cutover-doc-missing"
+title = { zh-CN = "导出割接方案：运行编号不是割接方案时退出码 4", en = "Export a cutover plan: exit 4 for a run of another skill", pt-BR = "Exportar plano: saída 4 para execução de outra skill" }
+args = ["--project", "alice/lab", "ai", "cutover-doc", "1", "--lang", "en"]
+setup = "configured-fullkb-suggest"
+expect_exit = 4
+
+[[case]]
+id = "ai-change-translate-replay"
+title = { zh-CN = "翻译未支持项（回放）：用目标平台的命令卡解析验证", en = "Untranslated lines (replayed): checked with the target command cards", pt-BR = "Linhas não traduzidas (reproduzidas): verificadas pelos cartões de destino" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "run", "translate-gap", "--device", "ATN-CHANGE-01", "--params", "{\"to\": \"cisco-iosxe-asr920-17.15\"}", "--replay", "{inputs}/ai-change/translate-gap.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.batch.counts.pass" = 1, "data.batch.counts.warn" = 1 }
+in_docs = true
+
+[[case]]
+id = "ai-change-naming-replay"
+title = { zh-CN = "命名映射建议（回放）：代码列出映射表，冲突的规则被拒绝", en = "Naming map (replayed): code lists the mapping, clashing rules are rejected", pt-BR = "Mapeamento de nomes (reproduzido): o código lista o mapeamento, regras conflitantes são rejeitadas" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "run", "naming-map", "--device", "ATN-CHANGE-01", "--params", "{\"to\": \"cisco-iosxe-asr920-17.15\"}", "--replay", "{inputs}/ai-change/naming-vrf.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.batch.counts.pass" = 1, "data.batch.counts.reject" = 1 }
+in_docs = true
+
+[[case]]
+id = "ai-change-template-replay"
+title = { zh-CN = "模板提取（回放）：用设备自己的取值渲染须与原配置等价", en = "Template extraction (replayed): rendering with the device's own values must equal its config", pt-BR = "Extração de modelo (reproduzida): renderizar com os valores do dispositivo deve igualar a configuração" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "run", "template-extract", "--devices", "ATN-CHANGE-01", "--replay", "{inputs}/ai-change/template-loopback.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.batch.counts.pass" = 1, "data.batch.counts.reject" = 1 }
+in_docs = true

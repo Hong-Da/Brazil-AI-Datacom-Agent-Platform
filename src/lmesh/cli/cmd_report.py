@@ -22,6 +22,30 @@ OutOpt = Annotated[Path | None, typer.Option("-o", "--out", help="写到文件�
 StyleOpt = Annotated[
     str | None, typer.Option("--style", help="节点的显示风格 huawei | cisco | nokia（默认取配置 ui.term_style）")
 ]
+AiOpt = Annotated[
+    bool,
+    typer.Option(
+        "--ai-summary/--no-ai-summary",
+        help="包含当前项目已采纳的 AI 摘要（M8-5，只对已导入的设备；与数据不一致时只写一行说明）",
+    ),
+]
+
+
+def side_spec(target: str, side: Any) -> dict[str, Any]:
+    """命令行的对比 / 变更一边 → 摘要范围用的 {device_id} 或 {version_id}（设备名@版本 时用版本）；文件没有摘要。"""
+    if Path(target).exists() or side is None:
+        return {}
+    if "@" in target and target.rpartition("@")[2].isdigit() and side.version_id is not None:
+        return {"version_id": side.version_id}
+    return {"device_id": side.device_id} if side.device_id is not None else {}
+
+
+def ai_summary(kind: str, body: dict[str, Any], lang: str, result: dict[str, Any]) -> dict[str, Any] | None:
+    if not config.is_configured():
+        return None
+    from lmesh.core import ai_report_summary
+
+    return ai_report_summary.lookup(config.load().database_url, kind, body, lang, result)
 
 
 def _namer(c: Ctx, kb: Any, root: Path, style: str | None) -> Any:
@@ -84,6 +108,7 @@ def register(app: typer.Typer) -> None:
         profile_b: Annotated[str | None, typer.Option("--profile-b")] = None,
         rename_threshold: Annotated[float, typer.Option("--rename-threshold")] = 1.0,
         style: StyleOpt = None,
+        with_ai: AiOpt = True,
     ) -> None:
         c = output.get(ctx)
         use = _args(c, lang, fmt)
@@ -109,7 +134,8 @@ def register(app: typer.Typer) -> None:
         if config.is_configured():
             db = config.load().database_url
             meta = {k: report.version_meta(db, s.version_id) for k, s in (("a", sa), ("b", sb))}
-        _deliver(c, report.compare_report(r, use, fmt, meta, namer=namer), out, use, fmt)
+        ai = ai_summary("compare", {"a": side_spec(a, sa), "b": side_spec(b, sb)}, use, r) if with_ai else None
+        _deliver(c, report.compare_report(r, use, fmt, meta, namer=namer, ai=ai), out, use, fmt)
 
     @report_app.command("check", help="配置检查报告（有孤儿时附清理脚本）/ check report")
     def report_check(
@@ -123,6 +149,7 @@ def register(app: typer.Typer) -> None:
         rules: Annotated[Path | None, typer.Option("--rules", help="规则目录（默认知识库的 rules/）")] = None,
         profile: Annotated[str | None, typer.Option()] = None,
         style: StyleOpt = None,
+        with_ai: AiOpt = True,
     ) -> None:
         c = output.get(ctx)
         use = _args(c, lang, fmt)
@@ -134,4 +161,9 @@ def register(app: typer.Typer) -> None:
         g, kb = _graph_for(c, target, profile)
         res = checks.check(g, kb, rule_list, severity, domain, overrides, device_ignores(target))
         namer = _namer(c, kb, root, style)
-        _deliver(c, report.build_check_report(g, kb, res, use, fmt, _meta(target), namer=namer), out, use, fmt)
+        ai = None
+        if with_ai and not Path(target).exists() and config.is_configured():
+            dev_id = compare.device_id_by_name(config.load().database_url, target)
+            ai = ai_summary("check", {"device_id": dev_id}, use, res) if dev_id is not None else None
+        rep = report.build_check_report(g, kb, res, use, fmt, _meta(target), namer=namer, ai=ai)
+        _deliver(c, rep, out, use, fmt)

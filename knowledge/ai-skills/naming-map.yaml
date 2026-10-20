@@ -1,0 +1,100 @@
+# 内置 AI skill（只读）：命名映射建议（M8-4，REQ-041 / REQ-032）：根据新旧两台设备的名称风格建议映射规则（名称、端口、命名规范）。
+# 管理员修改后的版本保存在 data/ai-skills/naming-map/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。规则由代码在源配置上试运行，列出完整映射表，冲突拒绝、
+# 遗漏与没用上的规则提醒（core/ai_suggest_change.py）；采纳后保存为我的规则集。
+id: naming-map
+version: 1
+title: {zh-CN: 命名映射建议, en: Naming map suggestions, pt-BR: Sugestões de mapeamento de nomes}
+description: {zh-CN: 根据新旧两台设备的接口名、VPN 名、策略名风格建议映射规则（REQ-032 的规则集格式）；由代码在源配置上试运行列出完整映射表，冲突拒绝、遗漏提醒，采纳后保存为我的规则集。, en: 'Suggests mapping rules (in the REQ-032 rule-set format) from the interface, VPN and policy naming styles of the old and new devices. Code runs them on the source config and lists the full mapping; clashes are rejected and gaps flagged; adopted rules are saved as my rule set.', pt-BR: 'Sugere regras de mapeamento (no formato de conjunto de regras do REQ-032) a partir dos estilos de nomes de interfaces, VPNs e políticas dos dispositivos antigo e novo. O código as executa na configuração de origem e lista o mapeamento completo; conflitos são rejeitados e lacunas sinalizadas; as adotadas são salvas como meu conjunto de regras.'}
+task: generate
+used_by: ai_suggest
+group: change
+enabled: true
+system: |-
+  You suggest naming rules for moving a router configuration to a new device whose naming style differs.
+  Rule format (REQ-032), applied in order, first match wins:
+    names: [{{"type": "<object type>", "match": "exact|wildcard|regex", "from": "<pattern>", "to": "<template>", "ignore_case": false}}]
+      wildcard: * any text, ? one character, each is a capture group; regex: whole-name match; {{1}} or {{name}} refer to groups, {{0}} is the whole name.
+    ports: [{{"match": "exact|pattern|type", "from": "GigabitEthernet0/2/{{n}}", "to": "GigabitEthernet0/0/{{n+1}}", "range": [1, 7]}}]
+    naming: [{{"type": "<object type>", "pattern": "<regex the final name must match>", "fix": true, "case": "upper|lower|keep", "replace": [{{"from": "-", "to": "_"}}]}}]
+  Object types you may rename: {types}. Name length limits on the target: {limits}.
+  Rules:
+  - Base every rule on the names listed; mention devices only as [[d1]] / [[d2]] and do not type other names in the title or explanation.
+  - Two different source names must never map to the same new name.
+  - Put all rules in one suggestion unless there are clearly separate alternatives. "explain" is one or two sentences in {lang}.
+  Reply with JSON only: {{"suggestions": [{{"category": "naming_rules", "kind": "rules", "title": "<short title>", "content": {{"names": [], "ports": [], "naming": [], "explain": "<why>"}}, "refs": [{{"id": "d1"}}]}}]}}
+prompt: |-
+  Old device names by type:
+  {source}
+
+  New device names by type:
+  {target}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format.
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 回复语言（按界面语言）, en: Reply language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}
+  - name: types
+    in: system
+    desc: {zh-CN: 可以改名的对象类型, en: Object types that can be renamed, pt-BR: Tipos de objeto que podem ser renomeados}
+  - name: limits
+    in: system
+    desc: {zh-CN: 目标平台的名称长度上限, en: Name length limits of the target platform, pt-BR: Limites de comprimento de nome no destino}
+  - name: source
+    in: prompt
+    desc: {zh-CN: 旧设备（d1）按类型列出的名称, en: 'Names on the old device (d1) by type', pt-BR: 'Nomes no dispositivo antigo (d1) por tipo'}
+  - name: target
+    in: prompt
+    desc: {zh-CN: 新设备（d2，可选）按类型列出的名称, en: 'Names on the new device (d2, optional) by type', pt-BR: 'Nomes no novo dispositivo (d2, opcional) por tipo'}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - sanitize
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "naming_rules", "kind": "rules", "title": "...", "content": {"names": [{"type": "vrf.instance", "match": "wildcard", "from": "*", "to": "VRF_{1}"}], "ports": [], "naming": [], "explain": "..."}, "refs": [{"id": "d1"}]}]}'
+checks:
+  - suggest.refs_exist
+  - suggest.naming_rules
+samples:
+  - title: {zh-CN: 规则应用后没有冲突（通过）, en: No clashes after applying the rules (passes), pt-BR: Sem conflitos após aplicar as regras (aprovado)}
+    input:
+      vars:
+        lang: English
+        types: 'vrf.instance, rp.policy'
+        limits: '-'
+        source: "d1 | ATN-DEMO | profile=huawei-atn-v800r025\nvrf.instance: OAM, RAN"
+        target: '(no device; profile cisco-iosxe-asr920-17.15)'
+      facts:
+        objects:
+          d1: {type: device, label: ATN-DEMO, profile: huawei-atn-v800r025}
+        numbers: {types: 2}
+        lines: {d1: 14}
+        names: [ATN-DEMO, OAM, RAN]
+        to: cisco-iosxe-asr920-17.15
+        configs:
+          d1: "sysname ATN-DEMO\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:100\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn\n"
+    reply: '{"suggestions": [{"category": "naming_rules", "kind": "rules", "title": "VRF names with a VRF_ prefix", "content": {"names": [{"type": "vrf.instance", "match": "wildcard", "from": "*", "to": "VRF_{1}"}], "ports": [], "naming": [], "explain": "The new device prefixes VRF names."}, "refs": [{"id": "d1"}]}]}'
+  - title: {zh-CN: 两个名称映射到同一个新名（演示拒绝）, en: Two names map to the same new name (shows a rejection), pt-BR: Dois nomes mapeados para o mesmo novo nome (mostra a rejeição)}
+    input:
+      vars:
+        lang: English
+        types: 'vrf.instance, rp.policy'
+        limits: '-'
+        source: "d1 | ATN-DEMO | profile=huawei-atn-v800r025\nvrf.instance: OAM, RAN"
+        target: '(no device; profile cisco-iosxe-asr920-17.15)'
+      facts:
+        objects:
+          d1: {type: device, label: ATN-DEMO, profile: huawei-atn-v800r025}
+        numbers: {types: 2}
+        lines: {d1: 14}
+        names: [ATN-DEMO, OAM, RAN]
+        to: cisco-iosxe-asr920-17.15
+        configs:
+          d1: "sysname ATN-DEMO\n#\nip vpn-instance RAN\n ipv4-family\n  route-distinguisher 65000:100\n#\nip vpn-instance OAM\n ipv4-family\n  route-distinguisher 65000:200\n#\nreturn\n"
+    reply: '{"suggestions": [{"category": "naming_rules", "kind": "rules", "title": "One VRF", "content": {"names": [{"type": "vrf.instance", "match": "wildcard", "from": "*", "to": "VRF_MAIN"}], "ports": [], "naming": []}, "refs": [{"id": "d1"}]}]}'

@@ -1,0 +1,103 @@
+# 内置 AI skill（只读）：规范转规则（M8-5，含规则编写助手）：公司配置规范 / 安全要求的文字，或维护员一句话描述的规则，起草成检查规则。
+# 管理员修改后的版本保存在 data/ai-skills/rule-draft/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。AI 只能引用代码给出的条款编号（s1、s2 …）。
+id: rule-draft
+version: 1
+title: {zh-CN: 规范转规则, en: Standard to rules, pt-BR: Norma em regras}
+description: {zh-CN: 把公司配置规范或安全要求逐条转为检查规则草稿，也可以用一句话描述一条规则。草稿必须能被规则引擎加载、知识库校验通过，并在样本上试跑列出命中；语法错误直接拒绝，零命中给提醒。采纳后进入审核队列，由维护员或管理员通过后写入知识库。, en: 'Turns each clause of a company configuration standard or security requirement into a check rule draft; a rule can also be described in one sentence. A draft must load in the rule engine, pass KB validation and run on the samples, listing the hits; syntax errors are rejected and zero hits warn. Adopted drafts go to the review queue and are written to the KB when a maintainer or admin approves them.', pt-BR: 'Converte cada cláusula de uma norma de configuração ou requisito de segurança em um rascunho de regra; também é possível descrever uma regra em uma frase. O rascunho deve carregar no motor de regras, passar na validação e rodar nas amostras, listando as ocorrências; erros de sintaxe são rejeitados e zero ocorrências gera aviso. Os adotados vão para a fila de revisão e entram na base quando um mantenedor ou administrador aprova.'}
+task: ask
+used_by: ai_suggest
+group: compliance
+enabled: true
+system: |-
+  You turn network configuration standards into check rules for a rule engine that evaluates a vendor-neutral configuration graph.
+  One suggestion = one rule. Write the rule as YAML in content.payload.yaml, exactly in this format:
+    id: std.<short_snake_case_name>        # lower case letters, digits, . _ - ; must be new
+    target: <object node from the schema list, or device>
+    when: {{exists: <path>}}               # optional precondition
+    assert: {{exists: <path>}}             # required; the rule reports an instance when the assert is false
+    severity: <one of {severities}>
+    title: {{zh-CN: ..., en: ..., pt-BR: ...}}
+    message: {{zh-CN: ..., en: ..., pt-BR: ...}}        # may use {{key}} (the instance key)
+    suggestion: {{zh-CN: ..., en: ..., pt-BR: ...}}
+  Conditions: exists: path | count: {{path: p, min: N, max: N}} | equals: {{path: p, value: V}} | in: {{path: p, values: [..]}} |
+  match: {{path: p, pattern: regex}} | range: {{path: p, min: N, max: N}} | key: {{pattern: regex}} | all: [..] | any: [..] | not: cond.
+  Paths start at the target and use the child names of the schema list (for example description, ipv4/address, group->remote_as).
+  Rules:
+  - Use ONLY object nodes and child names from the schema list. If a clause needs something the schema does not have, skip it.
+  - Cite the clause with refs [{{"id": "s3"}}]; content.target must equal the rule id.
+  - All three languages are required in title, message and suggestion.
+  - The suggestion title is "<clause number> → <what the rule checks>", short, in {lang}, without the rule id.
+  Reply with JSON only: {{"suggestions": [{{"category": "kb_review", "kind": "rule", "title": "<clause number> → <what it checks>", "content": {{"review_kind": "rule", "target": "<rule id>", "payload": {{"yaml": "<the rule YAML>", "clause": "s3"}}}}, "refs": [{{"id": "s3"}}]}}]}}
+prompt: |-
+  Document: {doc}
+
+  Clauses (id | number | text):
+  {clauses}
+
+  Schema object nodes (object id | child names (type)):
+  {schema}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format: one rule YAML per suggestion, citing only the given clause ids.
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 标题的语言（按界面语言）, en: Title language (from the UI language), pt-BR: Idioma do título (do idioma da interface)}
+  - name: severities
+    in: system
+    desc: {zh-CN: 允许的级别, en: Allowed severities, pt-BR: Níveis permitidos}
+  - name: doc
+    in: prompt
+    desc: {zh-CN: 规范文件名, en: Name of the standard, pt-BR: Nome da norma}
+  - name: clauses
+    in: prompt
+    desc: {zh-CN: 代码切分并编号的条款（编号、原文编号、文字）, en: 'Clauses split and numbered by code (id, number, text)', pt-BR: 'Cláusulas separadas e numeradas pelo código (id, número, texto)'}
+  - name: schema
+    in: prompt
+    desc: {zh-CN: Schema 的对象节点与子节点名, en: Schema object nodes and their child names, pt-BR: Nós de objeto do Schema e nomes dos filhos}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - schema
+  - rules
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "kb_review", "kind": "rule", "title": "...", "content": {"review_kind": "rule", "target": "<rule id>", "payload": {"yaml": "..."}}, "refs": [{"id": "s1"}]}]}'
+checks:
+  - suggest.kb_review
+  - suggest.rule_trial
+samples:
+  - title: {zh-CN: 三层接口必须有描述（样本上有命中）, en: Layer-3 interfaces need a description (hits in the samples), pt-BR: Interfaces L3 precisam de descrição (com ocorrências)}
+    input:
+      vars:
+        lang: English
+        severities: error, warning, info
+        doc: Metro network configuration standard v3.2
+        clauses: "s1 | 4.2.1 | Every layer-3 interface must have a description naming the peer."
+        schema: "interface | description(string), ipv4(object), shutdown(flag), mtu(integer)"
+      facts:
+        objects:
+          s1: {type: clause, label: 4.2.1, text: Every layer-3 interface must have a description naming the peer.}
+        numbers: {clauses: 1}
+        lines: {}
+        names: [4.2.1, interface, interface.description, interface.ipv4]
+    reply: '{"suggestions": [{"category": "kb_review", "kind": "rule", "title": "4.2.1 → Layer 3 interfaces need a description", "content": {"review_kind": "rule", "target": "std.interface_l3_description", "payload": {"clause": "s1", "yaml": "id: std.interface_l3_description\ntarget: interface\nwhen: {exists: ipv4}\nassert: {exists: description}\nseverity: warning\ntitle: {zh-CN: 三层接口没有描述, en: Layer-3 interface without description, pt-BR: Interface L3 sem descrição}\nmessage: {zh-CN: \"接口 {key} 有 IP 地址但没有描述\", en: \"Interface {key} has an IP address but no description\", pt-BR: \"A interface {key} tem endereço IP mas não tem descrição\"}\nsuggestion: {zh-CN: 按规范 4.2.1 写明对端, en: Name the peer as clause 4.2.1 requires, pt-BR: Cite o par conforme a cláusula 4.2.1}\n"}}, "refs": [{"id": "s1"}]}]}'
+  - title: {zh-CN: 用了 Schema 中没有的节点（演示拒绝）, en: Uses a node the schema does not have (shows a rejection), pt-BR: Usa um nó que o Schema não tem (mostra a rejeição)}
+    input:
+      vars:
+        lang: English
+        severities: error, warning, info
+        doc: Metro network configuration standard v3.2
+        clauses: "s1 | 4.4 | Customer-facing ports should enable broadcast storm control."
+        schema: "interface | description(string), ipv4(object), shutdown(flag), mtu(integer)"
+      facts:
+        objects:
+          s1: {type: clause, label: '4.4', text: Customer-facing ports should enable broadcast storm control.}
+        numbers: {clauses: 1}
+        lines: {}
+        names: ['4.4', interface]
+    reply: '{"suggestions": [{"category": "kb_review", "kind": "rule", "title": "4.4 → Storm control on customer ports", "content": {"review_kind": "rule", "target": "std.storm_control", "payload": {"clause": "s1", "yaml": "id: std.storm_control\ntarget: interface\nassert: {exists: storm_control/broadcast}\nseverity: warning\ntitle: {zh-CN: 未开启风暴抑制, en: No storm control, pt-BR: Sem controle de tempestade}\nmessage: {zh-CN: \"接口 {key} 没有风暴抑制\", en: \"Interface {key} has no storm control\", pt-BR: \"A interface {key} não tem controle\"}\nsuggestion: {zh-CN: 开启广播风暴抑制, en: Enable broadcast storm control, pt-BR: Ative o controle de broadcast}\n"}}, "refs": [{"id": "s1"}]}]}'

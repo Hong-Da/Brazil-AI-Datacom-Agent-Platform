@@ -128,6 +128,8 @@ class SkillSpec:
     default_category: str
     scope: str = "device"  # device：需要 device_id；project：整个项目
     prepare: Callable[[Env, dict[str, Any]], None] | None = None  # 提交前的快速检查（设备是否存在等）
+    # skill 自己的额外校验（在类别校验之后，例如“每个意图必须挂上差异条目”）；返回原因列表（M8-3）
+    check: Callable[[dict[str, Any], dict[str, Any], Env], list[dict[str, Any]]] | None = None
 
 
 @dataclass
@@ -165,7 +167,12 @@ def spec_of(skill_id: str) -> SkillSpec:
 
 def _load_skills() -> None:
     """示范与后续 skill 的上下文构造分散在各自模块里注册，用到前先导入。"""
-    from lmesh.core import ai_suggest_skills  # noqa: F401
+    from lmesh.core import (
+        ai_suggest_analysis,  # noqa: F401  （M8-3 日常分析）
+        ai_suggest_change,  # noqa: F401  （M8-4 变更与割接）
+        ai_suggest_kb,  # noqa: F401  （M8-5 规范与合规、知识库构建、报告）
+        ai_suggest_skills,  # noqa: F401
+    )
 
 
 # ---------------------------------------------------------------- 校验结果
@@ -230,8 +237,11 @@ def validate(skill_id: str, draft: dict[str, Any], facts: dict[str, Any], env: E
         reasons += [r for r in check_text(str(draft["title"]), facts) if r["level"] == "reject"]
     reasons += check_refs(draft.get("refs"), facts)
     extra: dict[str, Any] = {}
+    env2 = dataclasses.replace(env, out=extra)
     try:
-        reasons += CATEGORIES[cat].check(draft, facts, dataclasses.replace(env, out=extra))
+        reasons += CATEGORIES[cat].check(draft, facts, env2)
+        if spec.check is not None:
+            reasons += spec.check(draft, facts, env2)
     except SuggestError as e:
         reasons.append(reason(e.key.rsplit(".", 1)[-1]))
     seen: set[tuple[Any, ...]] = set()
@@ -609,7 +619,7 @@ def _check_script(d: dict[str, Any], facts: dict[str, Any], env: Env) -> list[di
         out.append(reason("script_unverifiable", "warn", detail=", ".join(f"L{n}" for n in unver[:10])))
     fixed = {(f.get("rule"), f.get("node")) for f in (res.get("result") or {}).get("findings_fixed") or []}
     for fx in c.get("fixes") or []:
-        if isinstance(fx, dict) and (fx.get("rule"), fx.get("node")) not in fixed:
+        if isinstance(fx, dict) and fx.get("rule") and (fx.get("rule"), fx.get("node")) not in fixed:
             out.append(reason("problem_not_fixed", ref=f"{fx.get('rule')}@{fx.get('node')}"))
     _out(env)["result"] = {
         "summary": res.get("summary"),

@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from lmesh.api import routes_check, routes_compare
 from lmesh.api.common import E_PARAM, ApiError, require_token, settings_of
-from lmesh.core import analysis, graphstore, kbservice, report, terms
+from lmesh.core import ai_report_summary, analysis, graphstore, kbservice, report, terms
 
 router = APIRouter(dependencies=[Depends(require_token)])
 
@@ -23,6 +23,9 @@ class ReportBody(BaseModel):
     check: routes_check.CheckBody | None = Field(None, description="kind=check 时必填，与 POST /check 相同")
     style: Literal["huawei", "cisco", "nokia"] | None = Field(
         None, description="节点的显示风格；不填时用配置 ui.term_style"
+    )
+    include_ai_summary: bool = Field(
+        True, description="包含本项目已采纳的 AI 摘要（M8-5；只有已导入的设备 / 版本才有，与数据不一致时只给说明）"
     )
 
 
@@ -41,7 +44,12 @@ def export_report(request: Request, body: ReportBody) -> Response:
             raise ApiError(E_PARAM, 422, "report.need_body", kind="compare")
         result, a, b = routes_compare.run(request, body.compare)
         meta = {k: report.version_meta(db, s.version_id) for k, s in (("a", a), ("b", b))}
-        rep = report.compare_report(result, body.lang, body.format, meta, namer=namer)
+        ai = (
+            ai_report_summary.lookup(db, "compare", body.compare.model_dump(), body.lang, result)
+            if body.include_ai_summary
+            else None
+        )
+        rep = report.compare_report(result, body.lang, body.format, meta, namer=namer, ai=ai)
     else:
         if body.check is None:
             raise ApiError(E_PARAM, 422, "report.need_body", kind="check")
@@ -50,7 +58,12 @@ def export_report(request: Request, body: ReportBody) -> Response:
         if body.check.device_id is not None:
             ver = graphstore.latest_version(db, body.check.device_id)
             meta = report.version_meta(db, ver.id if ver else None)
-        rep = report.build_check_report(g, kb, res, body.lang, body.format, meta, namer=namer)
+        ai = (
+            ai_report_summary.lookup(db, "check", body.check.model_dump(), body.lang, res)
+            if body.include_ai_summary
+            else None
+        )
+        rep = report.build_check_report(g, kb, res, body.lang, body.format, meta, namer=namer, ai=ai)
     return Response(
         content=rep.content.encode("utf-8"),
         media_type=rep.media_type,

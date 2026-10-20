@@ -14,6 +14,9 @@ import DevDelDialog from '@/components/devdel-dialog.vue'
 import { filterDevices, fmtTime, vendorCounts, vendorLabel, type DevFilter } from './devices/logic'
 import { bySource, currentSeq, newerRefs, rowActions, stats, type ProjectDevice, type RowAction, type SrcFilter } from './devices/project'
 import VendorBadge from '@/components/vendor-badge.vue'
+import DeviceIcon from '@/components/devicon/DeviceIcon.vue'
+import { loadMarks } from '@/components/devicon/data'
+import { annoByDevice, badgesOf, pendingOf, resolveRole, vendorCode, type DeviceAnno, type PendingSuggestion } from '@/components/devicon/logic'
 
 const route = useRoute()
 const router = useRouter()
@@ -32,7 +35,24 @@ const filter = reactive<DevFilter>({ q: '', vendor: '', state: '' })
 const checked = ref<Set<number>>(new Set())
 const showImport = ref(false)
 
+// 设备图标（REQ-042）：角色按项目视图标注（手工 > 采纳的 AI > 平台默认），角标：配置过期、AI 待采纳
+const annos = ref<Map<string, DeviceAnno>>(new Map())
+const pendingAi = ref<PendingSuggestion[]>([])
+async function loadIcons(): Promise<void> {
+  if (!project.ref) return
+  const m = await loadMarks(project.ref)
+  annos.value = annoByDevice(m.annotations)
+  pendingAi.value = m.pending
+}
+const pendingDevs = computed(() => new Set(pendingOf(pendingAi.value).hints.map((h) => h.device_id)))
+function iconOf(d: ProjectDevice): { kind: string; vendor: ReturnType<typeof vendorCode>; badges: ReturnType<typeof badgesOf>; title: string } {
+  const r = resolveRole(annos.value.get(String(d.id)), d.profile, d.vendor)
+  const role = r.role ? t(`devicon.role.${r.role}`) : t(`devicon.plat.${r.glyph}`)
+  return { kind: r.glyph, vendor: vendorCode(d.vendor, d.profile), badges: badgesOf({ stale: !!d.stale, ai: pendingDevs.value.has(d.id) }), title: `${role} · ${t(`devicon.src.${r.source}`)}` }
+}
+
 async function load(): Promise<void> {
+  void loadIcons()
   loading.value = true
   loadError.value = ''
   try {
@@ -357,8 +377,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
               <tr v-for="d in rows" :key="d.id" :class="{ 'is-sel': checked.has(d.id) }">
                 <td><input type="checkbox" class="ck" :checked="checked.has(d.id)" :aria-label="d.name" @change="toggle(d.id, ($event.target as HTMLInputElement).checked)"></td>
                 <td class="nm nowrap">
+                  <div class="nmrow">
+                  <DeviceIcon v-bind="iconOf(d)" :size="24" />
+                  <div class="nmcol">
                   <router-link class="trunc" style="display: block; max-width: 220px" :title="d.name" :to="{ name: 'device-graph', params: { id: d.id } }" data-testid="device-link">{{ d.name }}</router-link>
-                  <div class="mono faint src" :title="d.source_name">{{ d.source_name }}<template v-if="d.parsed"> · <router-link :to="{ name: 'device-analysis', params: { id: d.id } }" :title="$t('nav.device-analysis')" data-testid="device-analysis-link">{{ $t('devices.analyze') }}</router-link></template><template v-if="d.versions > 1"> · <router-link :to="{ name: 'history', params: { id: d.id } }" :title="$t('nav.history')" data-testid="device-history">{{ $t('devices.versions', { n: d.versions }) }}</router-link></template></div>
+                  <div class="mono faint src" :title="d.source_name">{{ d.source_name }}<template v-if="d.parsed"> · <router-link :to="{ name: 'device-analysis', params: { id: d.id } }" :title="$t('nav.device-analysis')" data-testid="device-analysis-link">{{ $t('devices.analyze') }}</router-link> · <router-link class="aisum" :to="{ name: 'device-analysis', params: { id: d.id }, query: { ai: 'summary' } }" :title="$t('devices.summaryTip')" :data-testid="`dev-summary-${d.id}`">{{ $t('devices.summary') }}</router-link></template><template v-if="d.versions > 1"> · <router-link :to="{ name: 'history', params: { id: d.id } }" :title="$t('nav.history')" data-testid="device-history">{{ $t('devices.versions', { n: d.versions }) }}</router-link></template></div>
+                  </div>
+                  </div>
                 </td>
                 <td class="nowrap" :title="d.origin_note ?? undefined">
                   <ProjSource :source="d.source" :policy="d.policy" :seq="currentSeq(d)" :latest-seq="d.versions" :newer="d.newer_available" />
@@ -434,6 +459,10 @@ onBeforeUnmount(() => document.removeEventListener('click', onDoc))
 .dev-tbl .nm a { font-family: var(--font-mono); font-size: 12px; color: var(--ink); }
 .dev-tbl .nm a:hover { color: var(--blue-ink); }
 .dev-tbl .nm .src { font-size: 11px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+.dev-tbl .nmrow { display: flex; gap: 8px; align-items: center; }
+.dev-tbl .nmcol { min-width: 0; }
+.dev-tbl .nm :deep(.devicon) { color: var(--ink-2); }
+.dev-tbl .nm .aisum { color: var(--violet); }
 .dev-tbl .unk { color: var(--red-ink); font-weight: 600; }
 .ck { accent-color: var(--teal); }
 .del-btn { color: var(--ink-3); }

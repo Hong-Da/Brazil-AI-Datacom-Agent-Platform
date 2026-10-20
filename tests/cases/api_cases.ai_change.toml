@@ -1,0 +1,65 @@
+# 变更与割接组 AI skill（M8-4，REQ-041）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-fullkb-suggest：alice 的项目 lab（ATN-CHANGE-01 编号 1，引用的公共设备 ASR920-BASE），已有两次回放运行
+# （#1 拓扑角色、#2 设备摘要）。AI 未配置：运行接口返回 409，查看接口照常。真实 AI 的运行（假 AI）见 tests/api/test_ai_change_api.py。
+
+[[case]]
+id = "ai-change-run-intent-not-configured"
+title = { zh-CN = "变更意图转脚本：未配置 AI 时 409（增量变更照常可用“目标配置”方式）", en = "Change intent to script: 409 when AI is not configured", pt-BR = "Intenção em script: 409 sem IA configurada" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/run"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { skill = "intent-script", device_id = 1, params = { intent = "把 GigabitEthernet0/2/2 的描述改为 OAM-UPLINK" } }
+expect_status = 409
+expect_json = { "code" = 1003, "data.status" = "not_configured" }
+in_docs = true
+
+[[case]]
+id = "ai-change-skills-group"
+title = { zh-CN = "变更与割接组的 skill（分组 change）", en = "Skills of the change group", pt-BR = "Skills do grupo de mudanças" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/suggestions/skills"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.ai.configured" = false }
+
+[[case]]
+id = "ai-change-plan-wrong-batch"
+title = { zh-CN = "变更脚本：运行编号不是变更意图转脚本时 404", en = "Change plan: 404 when the run is not an intent-script run", pt-BR = "Plano de mudança: 404 quando a execução não é intent-script" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/change/plan?batch_id=1"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "ai-change-cutover-wrong-batch"
+title = { zh-CN = "割接方案：运行编号不是割接方案时 404", en = "Cutover plan: 404 for a run of another skill", pt-BR = "Plano de migração: 404 para execução de outra skill" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/cutover-plan/2?lang=en"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "ai-change-translate-patches"
+title = { zh-CN = "翻译结果中采纳的 AI 写法（还没有采纳时为空）", en = "Adopted AI syntax for a translation (empty before any adoption)", pt-BR = "Sintaxe da IA adotada para uma tradução (vazia antes da adoção)" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/translate-patches?device_id=1&to=cisco-iosxe-asr920-17.15"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.items" = [] }
+in_docs = true
+
+[[case]]
+id = "ai-change-translate-patches-non-member"
+title = { zh-CN = "不是项目成员：404", en = "Not a project member: 404", pt-BR = "Não membro do projeto: 404" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/translate-patches?device_id=1&to=cisco-iosxe-asr920-17.15"
+setup = "configured-fullkb-suggest"
+login = ["carol", "Carol-pass-1"]
+expect_status = 404

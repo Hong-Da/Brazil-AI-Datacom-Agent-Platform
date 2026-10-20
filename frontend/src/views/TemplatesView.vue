@@ -309,7 +309,7 @@ onMounted(async () => {
               <button v-if="selId" type="button" role="tab" :aria-selected="false" @click="tab = 'check'">{{ $t('templates.tabCheck') }}</button>
               <button type="button" role="tab" :aria-selected="true">{{ $t('templates.tabDraft') }}</button>
             </div>
-            <div class="td-b"><DraftTab :devices="devices" :profiles="profiles" @saved="onDraftSaved" /></div>
+            <div class="td-b"><DraftTab :devices="devices" :profiles="profiles" @saved="onDraftSaved" @list-changed="loadList" /></div>
           </template>
           <template v-else-if="isNew || detail">
             <div class="td-h">

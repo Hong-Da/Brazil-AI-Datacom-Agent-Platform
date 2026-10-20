@@ -13,11 +13,19 @@ import FullscreenButton from '@/components/FullscreenButton.vue'
 import DevChip from '@/components/m4-dev.vue'
 import AiEntryButton from '@/components/ai-suggest/AiEntryButton.vue'
 import AiSuggestPanel from '@/components/ai-suggest/AiSuggestPanel.vue'
+import { CONSISTENCY_SCOPE, type RefInfo } from '@/components/ai-suggest/logic'
 import { errorText, get, post } from '@/api'
 import { useTerms } from '@/stores/terms'
 import { saveText, toCsv } from '@/views/profiles/csv'
 import type { Device } from '@/views/devices/logic'
-import TopologyMap from './m4/TopologyMap.vue'
+import TopologyMap, { type ExtraShow, type NodeShow } from './m4/TopologyMap.vue'
+import DeviceIcon from '@/components/devicon/DeviceIcon.vue'
+import IconSetSwitch from '@/components/devicon/IconSetSwitch.vue'
+import { loadMarks, saveAnnotation } from '@/components/devicon/data'
+import { ROLES, glyphOfRole, isRole, type Annotation, type PendingSuggestion, type Role } from '@/components/devicon/logic'
+import { bandLayout, bandOfRole, buildMarks, useBands, type NodeMark } from './m4/topomarks'
+import { rememberedFlag, usePrefs } from '@/stores/prefs'
+import { useProject } from '@/stores/project'
 import { keyText } from './m4/texts'
 import { blockOf, lines as splitLines, snippet, stamp } from './m4/common'
 import {
@@ -167,6 +175,24 @@ function endLines(dev: string, iface: string): ({ no: number; text: string; bad:
   return out
 }
 
+// ---------------------------------------------------------------- AI 问题解读与修复（M8-3，一致性视图）：只用已导入的设备
+const consAiIds = computed(() => (result.value?.nodes ?? []).map((n) => n.device_id).filter((x): x is number => x !== null))
+const consAiParams = computed(() => ({ source: 'consistency', device_ids: consAiIds.value }))
+const consAiPanel = ref<InstanceType<typeof AiSuggestPanel> | null>(null)
+const consAiOpen = ref(false)
+const consAiState = ref('loading')
+const consAiShown = computed(() => consAiOpen.value || ['done', 'running', 'empty', 'failed', 'cancelled'].includes(consAiState.value))
+async function runConsAi(): Promise<void> {
+  consAiOpen.value = true
+  await nextTick()
+  await consAiPanel.value?.start()
+}
+/** 引用的问题条目 / 设备 → 一致性列表按该设备过滤 */
+function consAiJump(r: RefInfo): void {
+  const dev = r.type === 'device' ? r.label : r.device
+  if (dev && nodes.value.some((n) => n.id === dev)) { sevFilter.value = ''; devFilter.value = dev }
+}
+
 // ---------------------------------------------------------------- 一致性列表
 const sevFilter = ref<SevFilter>('')
 const devFilter = ref('')
@@ -181,6 +207,113 @@ const bgpCount = computed(() => groups.value.filter((g) => g.kind === 'bgp').len
 const phyCount = computed(() => groups.value.filter((g) => g.kind === 'phy').length)
 const map = ref<InstanceType<typeof TopologyMap>>()
 
+// ---------------------------------------------------------------- 设备图标、角色与分组（REQ-042，M8-3 拓扑整理）
+const prefs = usePrefs()
+const project = useProject()
+const annotations = ref<Annotation[]>([])
+const pendingAi = ref<PendingSuggestion[]>([])
+const showAi = rememberedFlag('topo-show-ai', true)
+const staleOf = computed(() => Object.fromEntries(devices.value.map((d) => [d.id, !!(d as Device & { stale?: boolean }).stale])) as Record<number, boolean>)
+async function reloadMarks(): Promise<void> {
+  if (!project.ref) return
+  const m = await loadMarks(project.ref)
+  annotations.value = m.annotations
+  pendingAi.value = m.pending
+}
+const built = computed(() => buildMarks({ nodes: nodes.value, annotations: annotations.value, pending: pendingAi.value, stale: staleOf.value, showAi: showAi.value }))
+const markOf = (id: string): NodeMark | undefined => built.value.marks.get(id)
+const roleShort = (r: Role) => t(`devicon.short.${r}`)
+function subOf(n: TopoNode, m: NodeMark | undefined): { text: string; ai: boolean } {
+  if (m?.pendingRole) return { text: t('topology.aiRole', { r: roleShort(m.pendingRole) }), ai: true }
+  if (m?.resolved.role) return { text: roleShort(m.resolved.role) + (m.resolved.source === 'ai' ? ' · AI' : ''), ai: m.resolved.source === 'ai' }
+  return { text: n.loopbacks[0] ?? n.lsr_id ?? '', ai: false }
+}
+const mapShow = computed<Record<string, NodeShow>>(() => {
+  const out: Record<string, NodeShow> = {}
+  for (const n of mapNodes.value) {
+    const m = markOf(n.id)
+    const sub = subOf(n, m)
+    out[n.id] = { glyph: m?.glyph ?? 'plat_atn', vendor: m?.vendor ?? '', badges: m?.badges ?? [], ghost: !!m?.ghost, sub: sub.text, subAi: sub.ai, group: m?.group ?? '' }
+  }
+  return out
+})
+const mapExtra = computed<ExtraShow>(() => {
+  const ids = new Set(mapNodes.value.map((n) => n.id))
+  const edges = built.value.extraEdges.filter((e) => ids.has(e.source)).map((e) => ({ ...e, label: e.kind === 'ai' ? t('topology.aiGuess') : e.label }))
+  const used = new Set(edges.map((e) => e.target))
+  const nodesX = built.value.extraNodes.filter((x) => used.has(x.id)).map((x) => {
+    const src = edges.find((e) => e.target === x.id)?.source
+    return { ...x, label: x.label || t('devicon.peer'), group: (src && markOf(src)?.group) || '' }
+  })
+  return { nodes: nodesX, edges }
+})
+const mapPositions = computed(() => {
+  if (!useBands(built.value.marks)) return null
+  const items = mapNodes.value.map((n) => {
+    const m = markOf(n.id)
+    return { id: n.id, group: m?.group ?? '', band: m?.layer ?? bandOfRole(m?.resolved.role) }
+  })
+  for (const x of mapExtra.value.nodes) items.push({ id: x.id, group: x.group, band: 0 })
+  return Object.fromEntries(bandLayout(items))
+})
+/** 图例：图上用到的角色与平台外形 */
+const legendGlyphs = computed(() => {
+  const seen = new Map<string, string>()
+  for (const n of mapNodes.value) {
+    const m = markOf(n.id)
+    if (!m) continue
+    const r = m.resolved
+    if (r.role) seen.set(glyphOfRole(r.role), t(`devicon.short.${r.role}`))
+    else seen.set(r.glyph, t(`devicon.plat.${r.glyph}`))
+  }
+  return [...seen.entries()]
+})
+const anyPending = computed(() => showAi.value && [...built.value.marks.values()].some((m) => m.ghost || m.badges.includes('ai')))
+
+// 选中设备的角色与分组（手工标注，来源 user，优先于 AI）
+const canEdit = computed(() => project.canWrite)
+const selMark = computed(() => (selNode.value ? markOf(selNode.value.id) : undefined))
+const edit = reactive<{ role: string; group: string; layer: string }>({ role: '', group: '', layer: '' })
+const annoBusy = ref(false)
+const annoErr = ref('')
+const annoMsg = ref('')
+function fillEdit(): void {
+  const m = selMark.value
+  edit.role = m?.resolved.source !== 'platform' && m?.resolved.role ? m.resolved.role : ''
+  edit.group = m?.group ?? ''
+  edit.layer = m?.layer !== null && m?.layer !== undefined ? String(m.layer) : ''
+}
+watch(selNode, () => { fillEdit(); annoErr.value = ''; annoMsg.value = '' })
+async function saveAnno(): Promise<void> {
+  const n = selNode.value
+  const m = selMark.value
+  if (!n || n.device_id === null || !project.ref) return
+  annoBusy.value = true
+  annoErr.value = ''
+  annoMsg.value = ''
+  try {
+    const curRole = m?.resolved.source !== 'platform' ? m?.resolved.role ?? '' : ''
+    // 角色：改了，或者把 AI 采纳的角色确认为手工（来源变为 user）
+    if (edit.role !== curRole || (edit.role && m?.resolved.source === 'ai')) await saveAnnotation(project.ref, n.device_id, 'role', isRole(edit.role) ? edit.role : null)
+    if (edit.group.trim() !== (m?.group ?? '')) await saveAnnotation(project.ref, n.device_id, 'group', edit.group.trim() || null)
+    const lay = edit.layer === '' ? null : Number(edit.layer)
+    if (lay !== (m?.layer ?? null)) await saveAnnotation(project.ref, n.device_id, 'layer', lay)
+    await reloadMarks()
+    fillEdit()
+    annoMsg.value = t('topology.annoSaved')
+  } catch (e) {
+    annoErr.value = errorText(e)
+  } finally {
+    annoBusy.value = false
+  }
+}
+async function clearAnno(): Promise<void> {
+  edit.role = ''
+  edit.group = ''
+  edit.layer = ''
+  await saveAnno()
+}
+
 onMounted(async () => {
   try {
     devices.value = [...(await get<{ devices: Device[] }>('/devices')).devices].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
@@ -190,7 +323,9 @@ onMounted(async () => {
   const want = String(route.query.devices ?? '').split(',').filter((x) => /^\d+$/.test(x)).map(Number)
   picked.value = new Set(want.length ? want.filter((id) => devices.value.some((d) => d.id === id)) : devices.value.map((d) => d.id))
   if (canRun.value) void run()
+  void reloadMarks()
 })
+watch(() => project.ref, () => void reloadMarks())
 </script>
 
 <template>
@@ -205,10 +340,15 @@ onMounted(async () => {
         <div class="ph-actions">
           <button class="btn btn-sm" type="button" :disabled="!result" data-testid="topo-csv" @click="exportCsv"><Icon name="download" small />{{ $t('topology.exportCsv') }}</button>
           <AiEntryButton v-if="view === 'map'" :skills="['topology-roles']" :busy="aiState === 'running'" small @run="runAi" />
+          <AiEntryButton v-if="view === 'consistency' && consAiIds.length" :skills="['finding-fix']" :busy="consAiState === 'running'" small @run="runConsAi" />
+          <button v-else-if="view === 'consistency' && result" class="btn btn-sm btn-ai" type="button" disabled :title="$t('ai-suggest.needImported')" data-testid="cons-ai-off"><Icon name="spark" small />{{ $t('ai-suggest.btn') }}</button>
         </div>
       </div>
       <div v-if="view === 'map'" v-show="aiShown" style="margin-bottom: 12px" data-testid="topo-ai">
-        <AiSuggestPanel ref="aiPanel" skill="topology-roles" scope="topology" @state="aiState = $event" />
+        <AiSuggestPanel ref="aiPanel" skill="topology-roles" scope="topology" @state="aiState = $event" @changed="reloadMarks" />
+      </div>
+      <div v-if="view === 'consistency' && consAiIds.length" v-show="consAiShown" style="margin-bottom: 12px" data-testid="cons-ai">
+        <AiSuggestPanel ref="consAiPanel" skill="finding-fix" :params="consAiParams" :scope="CONSISTENCY_SCOPE" @state="consAiState = $event" @jump="consAiJump" />
       </div>
       <div v-if="loadError" class="notice err" style="margin-bottom: 12px"><Icon name="err" /><div class="grow">{{ loadError }}</div></div>
 
@@ -255,15 +395,20 @@ onMounted(async () => {
               <div class="layers">
                 <label v-for="k in (['phy', 'bgp', 'l2', 'ifn', 'iso'] as const)" :key="k" class="check"><input v-model="layers[k]" type="checkbox" :data-testid="`topo-layer-${k}`"><span>{{ $t(`topology.l.${k}`) }}</span></label>
               </div>
-              <button class="btn btn-xs btn-ghost ml-auto" type="button" @click="map?.fit()"><Icon name="expand" small />{{ $t('topology.fit') }}</button>
+              <label class="check aitog"><input v-model="showAi" type="checkbox" data-testid="topo-ai-toggle"><span>{{ $t('topology.showAi') }}</span></label>
+              <IconSetSwitch small class="ml-auto" />
+              <button class="btn btn-xs btn-ghost" type="button" @click="map?.fit()"><Icon name="expand" small />{{ $t('topology.fit') }}</button>
             </div>
-            <TopologyMap ref="map" :nodes="mapNodes" :groups="groups" :layers="layers" :sel="sel" @pick="pick" @clear="sel = null" />
+            <TopologyMap ref="map" :nodes="mapNodes" :groups="groups" :layers="layers" :sel="sel" :show="mapShow" :extra="mapExtra" :positions="mapPositions" :icon-set="prefs.iconSet" @pick="pick" @clear="sel = null" />
             <div class="mapf">
               <span><svg viewBox="0 0 26 10"><path d="M1 5h24" class="topo-link st-ok" style="stroke-width: 3" /></svg>{{ $t('topology.lg.ok') }}</span>
               <span><svg viewBox="0 0 26 10"><path d="M1 5h24" class="topo-link st-warn" style="stroke-width: 3" /></svg>{{ $t('topology.lg.warn') }}</span>
               <span><svg viewBox="0 0 26 10"><path d="M1 5h24" class="topo-link st-bad" style="stroke-width: 3" /></svg>{{ $t('topology.lg.bad') }}</span>
               <span><svg viewBox="0 0 26 10"><path d="M1 5h24" class="topo-bgp" /></svg>{{ $t('topology.lg.bgp') }}</span>
               <span><svg viewBox="0 0 26 10"><path d="M1 5h24" class="topo-link st-na" style="stroke-width: 1.6" /></svg>{{ $t('topology.lg.l2') }}</span>
+              <span v-for="[g, name] in legendGlyphs" :key="g" data-testid="topo-legend-role"><DeviceIcon :kind="g" :size="16" />{{ name }}</span>
+              <span v-if="anyPending" class="lg-ai"><DeviceIcon kind="core" :size="16" ghost />{{ $t('devicon.src.pending') }}</span>
+              <span v-if="mapExtra.edges.some((e) => e.kind === 'ai')"><svg viewBox="0 0 26 10"><path d="M1 5h24" class="lg-ai-line" /></svg>{{ $t('topology.aiGuess') }}</span>
               <span class="ml-auto faint">{{ $t('topology.lg.hint') }}</span>
             </div>
           </section>
@@ -328,6 +473,46 @@ onMounted(async () => {
             <template v-else-if="selNode">
               <div class="panel-h"><h3><DevChip :name="selNode.id" :vendor="selNode.family" /></h3><span class="meta">{{ $t('topology.interfacesN', { n: selNode.interfaces }) }}</span></div>
               <div class="sb" data-testid="topo-dev">
+                <div class="sp-h">
+                  <DeviceIcon :kind="selMark?.glyph ?? 'plat_atn'" :size="72" :vendor="selMark?.vendor" :badges="selMark?.badges" :ghost="selMark?.ghost" :title="selNode.id" />
+                  <div>
+                    <div class="sp-role">{{ selMark?.resolved.role ? $t(`devicon.role.${selMark.resolved.role}`) : $t(`devicon.plat.${selMark?.resolved.glyph ?? 'plat_atn'}`) }}</div>
+                    <div class="sp-sub">
+                      <span class="rolesrc" :class="`s-${selMark?.resolved.source ?? 'platform'}`" data-testid="topo-role-src"><Icon :name="selMark?.resolved.source === 'user' ? 'pencil' : selMark?.resolved.source === 'ai' ? 'spark' : 'cpu'" small />{{ $t(`devicon.src.${selMark?.resolved.source ?? 'platform'}`) }}</span>
+                      <span v-if="selMark?.group" class="small faint">{{ $t('topology.groupIs', { g: selMark.group }) }}</span>
+                    </div>
+                    <div v-if="selMark?.pendingRole || selMark?.pendingGroup" class="sp-pend" data-testid="topo-pending">
+                      <span class="rolesrc s-pending"><Icon name="spark" small />{{ $t('devicon.src.pending') }}</span>
+                      <span v-if="selMark.pendingRole">{{ $t(`devicon.role.${selMark.pendingRole}`) }}</span>
+                      <span v-if="selMark.pendingGroup">{{ $t('topology.groupIs', { g: selMark.pendingGroup }) }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div v-if="selNode.device_id !== null && canEdit" class="annob" data-testid="topo-role-edit">
+                  <div class="sec-k">{{ $t('topology.annoTitle') }}</div>
+                  <div class="annorow">
+                    <label><span>{{ $t('topology.roleLbl') }}</span>
+                      <select v-model="edit.role" class="select" data-testid="topo-role-select">
+                        <option value="">{{ $t('topology.rolePlatform') }}</option>
+                        <option v-for="r in ROLES" :key="r" :value="r">{{ $t(`devicon.role.${r}`) }}</option>
+                      </select>
+                    </label>
+                    <label><span>{{ $t('topology.groupLbl') }}</span><input v-model="edit.group" class="input" maxlength="60" :placeholder="$t('topology.groupPh')" data-testid="topo-group-input"></label>
+                    <label><span>{{ $t('topology.layerLbl') }}</span>
+                      <select v-model="edit.layer" class="select" data-testid="topo-layer-select">
+                        <option value="">{{ $t('topology.layerAuto') }}</option>
+                        <option v-for="i in 5" :key="i" :value="String(i - 1)">{{ $t(`topology.band.${i - 1}`) }}</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="row" style="gap: 8px; align-items: center">
+                    <button class="btn btn-sm btn-primary" type="button" :disabled="annoBusy" data-testid="topo-anno-save" @click="saveAnno"><Icon name="check" small />{{ $t('c.save') }}</button>
+                    <button class="btn btn-sm" type="button" :disabled="annoBusy" data-testid="topo-anno-clear" @click="clearAnno">{{ $t('topology.annoClear') }}</button>
+                    <span v-if="annoMsg" class="small" style="color: var(--teal-ink)">{{ annoMsg }}</span>
+                  </div>
+                  <p class="small faint" style="margin: 0">{{ $t('topology.annoNote') }}</p>
+                  <div v-if="annoErr" class="notice err"><Icon name="err" /><div class="grow small">{{ annoErr }}</div></div>
+                </div>
                 <dl class="kvs">
                   <dt>{{ $t('topology.profile') }}</dt><dd>{{ selNode.profile }}</dd>
                   <dt>{{ $t('topology.loopbacks') }}</dt><dd>{{ selNode.loopbacks.join(', ') || '—' }}</dd>
@@ -464,6 +649,20 @@ onMounted(async () => {
 .ctbl .why { color: var(--ink); font-size: 12px; max-width: 520px; }
 .ctbl .lk { font: 11.5px var(--font-mono); color: var(--ink-2); }
 .tabs-fs { margin-left: auto; align-self: center; }
+.aitog span { color: var(--violet); }
+.lg-ai { color: var(--violet); }
+.lg-ai-line { stroke: var(--violet); stroke-width: 1.6; stroke-dasharray: 5 4; fill: none; }
+.mapf :deep(.devicon) { color: var(--ink-2); --lmi-bg: var(--surface); }
+.mapf .lg-ai :deep(.devicon) { color: var(--violet); }
+.sp-h { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; align-items: center; }
+.sp-h :deep(.devicon) { --lmi-bg: var(--surface); }
+.sp-role { font-weight: 600; font-size: 13.5px; }
+.sp-sub, .sp-pend { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 4px; font-size: 12px; color: var(--ink-2); }
+.sp-pend { color: var(--violet); }
+.annob { border-top: 1px solid var(--line); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.annorow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.annorow label { display: flex; flex-direction: column; gap: 3px; font-size: 11.5px; color: var(--ink-3); min-width: 0; }
+.annorow .select, .annorow .input { width: 100%; }
 .topo-fs.is-fs .tabs, .topo-fs.is-fs .tstrip { margin: 0; }
 .topo-fs.is-fs .tw { flex: 1; height: auto; min-height: 0; }
 .topo-fs.is-fs [data-testid="topo-cons"] { flex: 1; min-height: 0; overflow: auto; margin: 0; }

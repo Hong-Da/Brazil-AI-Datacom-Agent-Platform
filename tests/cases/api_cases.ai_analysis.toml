@@ -1,0 +1,115 @@
+# 日常分析组的 AI skill（M8-3）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-fullkb-suggest：alice 的项目 lab（ATN-CHANGE-01 是设备 1，bob 只读成员），已有拓扑角色与设备摘要的回放运行；AI 未配置。
+# 真实运行（假 AI）、推测对端核对、修复脚本复检、覆盖核对、交接文档下载见 tests/api/test_ai_analysis_api.py。
+
+[[case]]
+id = "ai-analysis-annotate"
+title = { zh-CN = "手工标注设备角色（来源 user，优先于 AI 建议）", en = "Set a device role by hand (source user, wins over AI suggestions)", pt-BR = "Definir o papel do dispositivo manualmente (origem user, prevalece sobre a IA)" }
+method = "PUT"
+path = "/api/v1/projects/alice~lab/view-annotations"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { target_type = "device", target = "1", key = "role", value = "core" }
+expect_status = 200
+expect_json = { "code" = 0, "data.item.target" = "1", "data.item.key" = "role", "data.item.value" = "core", "data.item.source" = "user" }
+in_docs = true
+
+[[case]]
+id = "ai-analysis-annotate-group"
+title = { zh-CN = "手工设置分组（站点 / 区域）", en = "Set a group (site / region) by hand", pt-BR = "Definir um grupo (site / região) manualmente" }
+method = "PUT"
+path = "/api/v1/projects/alice~lab/view-annotations"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { target = "1", key = "group", value = "East POP" }
+expect_status = 200
+expect_json = { "code" = 0, "data.item.value" = "East POP", "data.item.source" = "user" }
+
+[[case]]
+id = "ai-analysis-annotate-bad-value"
+title = { zh-CN = "角色取值不合法：422", en = "Role value not allowed: 422", pt-BR = "Valor de papel não permitido: 422" }
+method = "PUT"
+path = "/api/v1/projects/alice~lab/view-annotations"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { target = "1", key = "role", value = "firewall" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "ai-analysis-annotate-read-only"
+title = { zh-CN = "只读成员不能标注：403", en = "A read-only member cannot annotate: 403", pt-BR = "Membro somente leitura não pode anotar: 403" }
+method = "PUT"
+path = "/api/v1/projects/alice~lab/view-annotations"
+setup = "configured-fullkb-suggest"
+login = ["bob", "Bob-pass-12"]
+body = { target = "1", key = "role", value = "core" }
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "ai-analysis-annotate-unknown-device"
+title = { zh-CN = "设备不在项目里：404", en = "Device not in the project: 404", pt-BR = "Dispositivo fora do projeto: 404" }
+method = "PUT"
+path = "/api/v1/projects/alice~lab/view-annotations"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { target = "999", key = "role", value = "pe" }
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "ai-analysis-coverage-empty"
+title = { zh-CN = "变化解读的覆盖核对：这个范围还没有运行时为空", en = "Coverage of the change explanation: empty before any run in the scope", pt-BR = "Cobertura da explicação de mudanças: vazia antes de qualquer execução" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/suggestions/coverage?skill=diff-explain&scope=history:1:3"
+setup = "configured-fullkb-suggest"
+login = ["bob", "Bob-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.prefix" = "c", "data.total" = 0, "data.covered" = [], "data.uncovered" = [] }
+in_docs = true
+
+[[case]]
+id = "ai-analysis-skills"
+title = { zh-CN = "日常分析组的 skill：变化解读、问题解读与修复、影响说明、能力对比说明", en = "Daily-analysis skills: change explanation, explain and fix findings, impact explanation, feature comparison", pt-BR = "Skills de análise: mudanças, achados, impacto, comparação de recursos" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/suggestions/skills"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.skills.1.id" = "topology-roles", "data.skills.1.categories" = ["view_hint", "peer_link"], "data.skills.2.id" = "diff-explain", "data.skills.2.group" = "analysis", "data.skills.3.id" = "finding-fix", "data.skills.3.categories" = ["refs_exist", "script_valid"], "data.skills.4.id" = "impact-explain", "data.skills.5.id" = "feature-compare" }
+
+[[case]]
+id = "ai-analysis-run-diff-not-configured"
+title = { zh-CN = "运行变化解读（版本历史的两个快照）：未配置 AI 时 409", en = "Run the change explanation (two history snapshots): 409 without AI", pt-BR = "Executar a explicação de mudanças (dois instantâneos): 409 sem IA" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/run"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { skill = "diff-explain", params = { source = "history", device_id = 1, a_version = 1, b_version = 3 } }
+expect_status = 409
+expect_json = { "code" = 1003, "data.status" = "not_configured" }
+in_docs = true
+
+[[case]]
+id = "ai-analysis-estimate-fix"
+title = { zh-CN = "问题解读与修复：运行前估计发送量（检查页的单台设备）", en = "Explain and fix findings: estimate before running (one device on the check page)", pt-BR = "Explicar e corrigir achados: estimativa antes de executar" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/estimate"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { skill = "finding-fix", params = { source = "check", device_id = 1 } }
+expect_status = 200
+expect_json = { "code" = 0, "data.skill" = "finding-fix", "data.warn" = false }
+in_docs = true
+
+[[case]]
+id = "ai-analysis-estimate-feature-bad-profile"
+title = { zh-CN = "能力对比说明：Profile 不存在时 404", en = "Feature comparison: 404 for an unknown profile", pt-BR = "Comparação de recursos: 404 para perfil inexistente" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/estimate"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { skill = "feature-compare", params = { node = "interface.mtu", a = "huawei-atn-v800r025", b = "no-such-profile" } }
+expect_status = 404
+expect_json = { "code" = 1004 }

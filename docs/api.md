@@ -1105,6 +1105,207 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.from` = `"2026-10-01"`
 - `data.totals.calls` = `0`
 
+### 手工标注设备角色（来源 user，优先于 AI 建议）
+
+`PUT /api/v1/projects/alice~lab/view-annotations`
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/projects/alice~lab/view-annotations' \
+  -H 'Content-Type: application/json' \
+  -d '{"target_type": "device", "target": "1", "key": "role", "value": "core"}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/view-annotations' -ContentType 'application/json; charset=utf-8' -Body '{"target_type": "device", "target": "1", "key": "role", "value": "core"}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/view-annotations', json={'target_type': 'device', 'target': '1', 'key': 'role', 'value': 'core'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.item.target` = `"1"`
+- `data.item.key` = `"role"`
+- `data.item.value` = `"core"`
+- `data.item.source` = `"user"`
+
+### 变化解读的覆盖核对：这个范围还没有运行时为空
+
+`GET /api/v1/projects/alice~lab/ai/suggestions/coverage?skill=diff-explain&scope=history:1:3`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/coverage?skill=diff-explain&scope=history:1:3'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/coverage?skill=diff-explain&scope=history:1:3'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/coverage?skill=diff-explain&scope=history:1:3')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.prefix` = `"c"`
+- `data.total` = `0`
+- `data.covered` = `[]`
+- `data.uncovered` = `[]`
+
+### 运行变化解读（版本历史的两个快照）：未配置 AI 时 409
+
+`POST /api/v1/projects/alice~lab/ai/suggestions/run`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/run' \
+  -H 'Content-Type: application/json' \
+  -d '{"skill": "diff-explain", "params": {"source": "history", "device_id": 1, "a_version": 1, "b_version": 3}}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/run' -ContentType 'application/json; charset=utf-8' -Body '{"skill": "diff-explain", "params": {"source": "history", "device_id": 1, "a_version": 1, "b_version": 3}}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/run', json={'skill': 'diff-explain', 'params': {'source': 'history', 'device_id': 1, 'a_version': 1, 'b_version': 3}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`409`；返回中的关键字段：
+
+- `code` = `1003`
+- `data.status` = `"not_configured"`
+
+### 问题解读与修复：运行前估计发送量（检查页的单台设备）
+
+`POST /api/v1/projects/alice~lab/ai/suggestions/estimate`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/estimate' \
+  -H 'Content-Type: application/json' \
+  -d '{"skill": "finding-fix", "params": {"source": "check", "device_id": 1}}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/estimate' -ContentType 'application/json; charset=utf-8' -Body '{"skill": "finding-fix", "params": {"source": "check", "device_id": 1}}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/estimate', json={'skill': 'finding-fix', 'params': {'source': 'check', 'device_id': 1}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.skill` = `"finding-fix"`
+- `data.warn` = `false`
+
+### 变更意图转脚本：未配置 AI 时 409（增量变更照常可用“目标配置”方式）
+
+`POST /api/v1/projects/alice~lab/ai/suggestions/run`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/run' \
+  -H 'Content-Type: application/json' \
+  -d '{"skill": "intent-script", "device_id": 1, "params": {"intent": "把 GigabitEthernet0/2/2 的描述改为 OAM-UPLINK"}}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/run' -ContentType 'application/json; charset=utf-8' -Body '{"skill": "intent-script", "device_id": 1, "params": {"intent": "把 GigabitEthernet0/2/2 的描述改为 OAM-UPLINK"}}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/suggestions/run', json={'skill': 'intent-script', 'device_id': 1, 'params': {'intent': '把 GigabitEthernet0/2/2 的描述改为 OAM-UPLINK'}})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`409`；返回中的关键字段：
+
+- `code` = `1003`
+- `data.status` = `"not_configured"`
+
+### 翻译结果中采纳的 AI 写法（还没有采纳时为空）
+
+`GET /api/v1/projects/alice~lab/ai/translate-patches?device_id=1&to=cisco-iosxe-asr920-17.15`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/translate-patches?device_id=1&to=cisco-iosxe-asr920-17.15'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/translate-patches?device_id=1&to=cisco-iosxe-asr920-17.15'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/translate-patches?device_id=1&to=cisco-iosxe-asr920-17.15')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.items` = `[]`
+
+### skill 能否在当前 AI 接口上运行：脱敏复核只允许本地模型（未配置 AI 时由“未配置”的提示处理）
+
+`GET /api/v1/projects/alice~lab/ai/kb/gate?skill=sanitize-review`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/kb/gate?skill=sanitize-review'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/kb/gate?skill=sanitize-review'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/kb/gate?skill=sanitize-review')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.skill` = `"sanitize-review"`
+- `data.local_only` = `true`
+- `data.allowed` = `true`
+
+### 本项目的脱敏补充（采纳的脱敏复核建议）
+
+`GET /api/v1/projects/alice~lab/ai/kb/sanitize-redact`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/kb/sanitize-redact'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/kb/sanitize-redact'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/ai/kb/sanitize-redact')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.patterns` = `[]`
+
 ### 可生成建议的 skill 与 AI 是否可用（入口按钮据此显示不可用的原因）
 
 `GET /api/v1/projects/alice~lab/ai/suggestions/skills`

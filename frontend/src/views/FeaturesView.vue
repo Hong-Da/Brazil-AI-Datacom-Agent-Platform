@@ -3,11 +3,14 @@
  * 特性能力查询（预览 DevelopDocs/ui-preview/M5/features.html，REQ-023）：搜索特性 / 命令 / Schema 路径 → 一句话结论（由知识库计算，非 AI）
  * → 特性矩阵（行 = Schema 节点，列 = Profile，格子 = 支持情况与默认值）→ 格子详情（命令写法、默认值来源、可信度、继承）；Profile 对比。
  */
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import DevChip from '@/components/m4-dev.vue'
+import AiEntryButton from '@/components/ai-suggest/AiEntryButton.vue'
+import AiSuggestPanel from '@/components/ai-suggest/AiSuggestPanel.vue'
+import { featureScope } from '@/components/ai-suggest/logic'
 import { errorText, get } from '@/api'
 import { pickLang } from '@/i18n'
 import { noteText, type Note } from '@/i18n/note'
@@ -127,6 +130,20 @@ const cmpRows = computed(() => {
   const all = (cmp.value?.rows ?? []).filter((r) => (r.kind !== 'same' || r.syntax_differs) && (!hit || hit.has(r.node)))
   return sortDiff(all.filter((r) => !ctype.value || (ctype.value === 'syntax' ? r.kind === 'same' : r.kind === ctype.value)))
 })
+// ---------- AI 能力对比说明（M8-3）：在对比表里选中一个特性后，解释两家的差异与替代写法（写法由代码与命令卡核对）
+const cmpSel = ref<string | null>(null)
+const aiFeat = computed(() => (cmpSel.value && pa.value && pb.value && pa.value !== pb.value && cmpRows.value.some((r) => r.node === cmpSel.value) ? { node: cmpSel.value, a: pa.value, b: pb.value } : null))
+const aiScope = computed(() => (aiFeat.value ? featureScope(aiFeat.value.node, aiFeat.value.a, aiFeat.value.b) : ''))
+const aiPanel = ref<InstanceType<typeof AiSuggestPanel> | null>(null)
+const aiOpen = ref(false)
+const aiState = ref('loading')
+const aiShown = computed(() => aiOpen.value || ['done', 'running', 'empty', 'failed', 'cancelled'].includes(aiState.value))
+watch(aiScope, () => { aiOpen.value = false })
+async function runAi(): Promise<void> {
+  aiOpen.value = true
+  await nextTick()
+  await aiPanel.value?.start()
+}
 const syntaxCount = computed(() => (cmp.value?.rows ?? []).filter((r) => r.kind === 'same' && r.syntax_differs).length)
 const inheritNote = computed(() => {
   const c = cmp.value
@@ -337,6 +354,8 @@ onMounted(async () => {
             <label class="check"><input v-model="withSyntax" type="checkbox"> <span>{{ $t('features.withSyntax') }}</span></label>
             <span class="ml-auto" />
             <button class="btn btn-sm" type="button" :disabled="!cmpRows.length" data-testid="feat-cmp-csv" @click="dlCsv"><Icon name="download" small /><span>{{ $t('features.csvBtn') }}</span></button>
+            <AiEntryButton v-if="aiFeat" :skills="['feature-compare']" :busy="aiState === 'running'" small @run="runAi" />
+            <button v-else class="btn btn-sm btn-ai" type="button" disabled :title="$t('ai-suggest.needTwoProfiles')" data-testid="feat-ai-off"><Icon name="spark" small />{{ $t('ai-suggest.btn') }}</button>
           </div>
         </section>
         <div v-if="pa === pb" class="notice warn mt12"><Icon name="warn" small /><div class="grow">{{ $t('features.sameProfile') }}</div></div>
@@ -349,6 +368,9 @@ onMounted(async () => {
             <button type="button" :class="{ static: !withSyntax }" :aria-pressed="ctype === 'syntax'" :disabled="!withSyntax" @click="ctype = ctype === 'syntax' ? '' : 'syntax'"><div class="v">{{ withSyntax ? syntaxCount : '—' }}</div><div class="k">{{ $t('features.k.syntax') }}</div></button>
           </div>
           <div v-if="inheritNote" class="notice ok mt12"><Icon name="ok" small /><div class="grow"><b>{{ $t('features.inheritTitle', inheritNote) }}</b> {{ cmp.counts.default + cmp.counts.only_a + cmp.counts.only_b === 0 ? $t('features.inheritSame') : $t('features.inheritDiff') }}</div></div>
+          <div v-if="aiFeat" v-show="aiShown" class="mt12" data-testid="feat-ai">
+            <AiSuggestPanel ref="aiPanel" skill="feature-compare" :params="aiFeat" :scope="aiScope" @state="aiState = $event" />
+          </div>
           <section class="panel mt12">
             <div class="panel-h">
               <h3>{{ $t('features.diffs') }}</h3><span class="meta">{{ cmpRows.length }}</span><span v-if="q.trim()" class="small faint">{{ $t('features.cmpFiltered', { q }) }}</span>
@@ -359,7 +381,7 @@ onMounted(async () => {
               <table class="tbl ctbl" data-testid="feat-cmp-table">
                 <thead><tr><th>{{ $t('features.colFeature') }}</th><th><span class="row" style="gap: 6px"><span class="vm a sm">A</span>{{ cmp.a.id }}</span></th><th><span class="row" style="gap: 6px"><span class="vm b sm">B</span>{{ cmp.b.id }}</span></th><th>{{ $t('features.kindCol') }}</th></tr></thead>
                 <tbody>
-                  <tr v-for="r in cmpRows" :key="r.node" :class="`t-${r.kind}`">
+                  <tr v-for="r in cmpRows" :key="r.node" :class="[`t-${r.kind}`, { 'is-sel': cmpSel === r.node }]" data-testid="feat-cmp-row" @click="cmpSel = r.node">
                     <td><div class="fn"><b>{{ featName(r) }}</b><code class="small faint">{{ r.node }}</code></div></td>
                     <td v-for="(c, i) in [cellSide(r.a), cellSide(r.b)]" :key="i">
                       <template v-if="supported(c)">
@@ -388,6 +410,8 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.ctbl tbody tr { cursor: pointer; }
+.ctbl tbody tr.is-sel td { background: var(--hl-line); }
 .qbar { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; padding: 10px 14px; }
 .qbar .lbl { font-size: 12px; color: var(--ink-2); }
 .qbar .qsearch { flex: 1; min-width: 280px; }

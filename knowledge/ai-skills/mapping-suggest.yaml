@@ -1,0 +1,88 @@
+# 内置 AI skill（只读）：映射建议（M8-5）：为新厂商（还没有映射）的命令卡建议映射到哪个 Schema 节点。
+# 管理员修改后的版本保存在 data/ai-skills/mapping-suggest/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。AI 只能引用代码给出的命令卡编号（c1 …）与 Schema 节点。
+id: mapping-suggest
+version: 1
+title: {zh-CN: 映射建议, en: Mapping suggestions, pt-BR: Sugestões de mapeamento}
+description: {zh-CN: 为新厂商的命令卡建议映射到哪个 Schema 节点。代码校验：目标节点存在、表达式里的参数在命令语法里，换上映射后知识库校验不新增错误、该平台族样本往返与翻译回归不变差，不通过就拒绝。采纳后进入审核队列。, en: 'Suggests the Schema node for each new-vendor command card. Code checks that the target nodes exist and the expression uses parameters of the syntax; with the mapping, KB validation must not report new errors and the family''s sample round-trips and translation regression must not get worse, otherwise it is rejected. Adopted mappings go to the review queue.', pt-BR: 'Sugere o nó do Schema para cada cartão de um novo fabricante. O código verifica que os nós existem e que a expressão usa parâmetros da sintaxe; com o mapeamento, a validação não pode ter novos erros e a ida e volta e a regressão de tradução da família não podem piorar, senão é rejeitado. Os adotados vão para a fila de revisão.'}
+task: ask
+used_by: ai_suggest
+group: kb
+enabled: true
+system: |-
+  You map router command cards of the platform family {family} to a vendor-neutral Schema.
+  For each card c* you can map, give payload.maps = {{"<schema node>": "<expression>"}}:
+    $param        the value of a syntax parameter;   flag   true when the command is present (false for undo / no);
+    kw:a|b|c      which keyword appears;              fmt:{{a}}-{{b}}  text built from parameters;
+    a node of an object type takes the object key (for example {{"interface": "$port-id"}});
+    "@container": ""  for a card that only opens a block and has no value of its own.
+  Rules:
+  - Use ONLY Schema nodes from the list and parameters that appear in the card syntax. Skip cards that do not fit any node.
+  - Cite the card with refs [{{"id": "c1"}}]; content.target is the card id (not c1); payload.card is the c* id.
+  - Title in {lang}: "<syntax> → <node>".
+  Reply with JSON only: {{"suggestions": [{{"category": "kb_review", "kind": "<domain>", "title": "...", "content": {{"review_kind": "card_maps", "target": "<card id>", "payload": {{"card": "c1", "maps": {{"interface.mtu": "$mtu-bytes"}}}}}}, "refs": [{{"id": "c1"}}]}}]}}
+prompt: |-
+  Cards without a mapping (id | card id | view | domain | params | syntax):
+  {cards}
+
+  Schema nodes of these domains (node | type | key | meaning):
+  {schema}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format, citing only the given card ids and Schema nodes.
+variables:
+  - name: family
+    in: system
+    desc: {zh-CN: 平台族, en: Platform family, pt-BR: Família de plataforma}
+  - name: lang
+    in: system
+    desc: {zh-CN: 标题的语言（按界面语言）, en: Title language (from the UI language), pt-BR: Idioma do título (do idioma da interface)}
+  - name: cards
+    in: prompt
+    desc: {zh-CN: 待映射的命令卡（编号、卡编号、视图、功能域、参数、语法）, en: 'Unmapped cards (id, card id, view, domain, params, syntax)', pt-BR: 'Cartões sem mapeamento (id, cartão, visão, domínio, parâmetros, sintaxe)'}
+  - name: schema
+    in: prompt
+    desc: {zh-CN: 这些功能域的 Schema 节点, en: Schema nodes of these domains, pt-BR: Nós do Schema desses domínios}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - schema
+  - syntax
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "kb_review", "kind": "<domain>", "title": "...", "content": {"review_kind": "card_maps", "target": "<card id>", "payload": {"card": "c1", "maps": {"<node>": "<expression>"}}}, "refs": [{"id": "c1"}]}]}'
+checks:
+  - suggest.kb_review
+  - suggest.kb_regression
+samples:
+  - title: {zh-CN: 只打开块的卡映射为容器（三项检查通过）, en: A block-only card mapped as a container (all checks pass), pt-BR: Cartão que só abre bloco mapeado como contêiner (verificações ok)}
+    input:
+      vars:
+        family: nokia-sros-md
+        lang: English
+        cards: "c1 | nokia-sros-md.port-ethernet-egress | view=port.ethernet | domain=interface | params: - | egress"
+        schema: "interface | object | key=name | interface"
+      facts:
+        objects:
+          c1: {type: card, label: nokia-sros-md.port-ethernet-egress, domain: interface}
+        numbers: {cards: 1}
+        lines: {}
+        names: [nokia-sros-md.port-ethernet-egress, interface]
+    reply: '{"suggestions": [{"category": "kb_review", "kind": "interface", "title": "egress → @container", "content": {"review_kind": "card_maps", "target": "nokia-sros-md.port-ethernet-egress", "payload": {"card": "c1", "maps": {"@container": ""}}}, "refs": [{"id": "c1"}]}]}'
+  - title: {zh-CN: 映射到 Schema 中没有的节点（演示拒绝）, en: Maps to a node the schema does not have (shows a rejection), pt-BR: Mapeia para um nó inexistente (mostra a rejeição)}
+    input:
+      vars:
+        family: nokia-sros-md
+        lang: English
+        cards: "c1 | nokia-sros-md.port-ethernet-dot1q-etype | view=port.ethernet | domain=interface | params: dot1q-etype | dot1q-etype <dot1q-etype>"
+        schema: "interface | object | key=name | interface"
+      facts:
+        objects:
+          c1: {type: card, label: nokia-sros-md.port-ethernet-dot1q-etype, domain: interface}
+        numbers: {cards: 1}
+        lines: {}
+        names: [nokia-sros-md.port-ethernet-dot1q-etype, interface]
+    reply: '{"suggestions": [{"category": "kb_review", "kind": "interface", "title": "dot1q-etype → interface.storm_control", "content": {"review_kind": "card_maps", "target": "nokia-sros-md.port-ethernet-dot1q-etype", "payload": {"card": "c1", "maps": {"interface.storm_control": "$dot1q-etype"}}}, "refs": [{"id": "c1"}]}]}'

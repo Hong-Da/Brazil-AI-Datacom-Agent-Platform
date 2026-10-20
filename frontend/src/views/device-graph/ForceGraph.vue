@@ -6,12 +6,18 @@
  * 功能域开关、依赖类型开关、选中、搜索只改样式类，不重新布局。
  * 设备配置分析页（REQ-034）另用 layout="bands"：按层分带（预设位置 + 每层一条背景带），跨层的引用 / 前置依赖加粗；
  * colorOf 可把圆点颜色改为按层着色。
+ * root（REQ-042）：力导向布局时在中心加一个设备根节点，画成设备图标（按项目标注的角色或平台外形），连到顶层对象。
  */
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import cytoscape, { type Core, type ElementDefinition, type StylesheetJson } from 'cytoscape'
 import { EDGE_SHORT } from './model'
 import { bandLayout, dotSize, domainColorVar, type FNode, type ForceData } from './force'
 import { readPalette, truncate, type Palette } from './style'
+import { dataUri, readPalette as iconPalette, svg as iconSvg, type Badge, type VendorCode } from '@/components/devicon/lmi'
+import { usePrefs } from '@/stores/prefs'
+
+const ROOT = '__device'
+const prefs = usePrefs()
 
 const props = defineProps<{
   data: ForceData
@@ -30,6 +36,8 @@ const props = defineProps<{
   bands?: { order: string[]; of: (id: string) => string | null; label: (band: string) => string }
   /** 圆点颜色的 CSS 变量名（默认按功能域） */
   colorOf?: (n: FNode) => string
+  /** 设备根节点（REQ-042 设备图标）；只在力导向布局时画 */
+  root?: { label: string; glyph: string; vendor?: VendorCode | ''; badges?: Badge[] } | null
 }>()
 const emit = defineEmits<{ (e: 'tap', id: string): void; (e: 'background'): void }>()
 
@@ -114,7 +122,20 @@ function style(p: Palette): StylesheetJson {
     { selector: 'node.k-object, node.k-raw, node.k-unknown, node.k-ext', style: { 'z-index': 10 } },
     { selector: 'edge.cross', style: { width: 2.4, 'line-color': p['e-cross'], 'target-arrow-color': p['e-cross'], opacity: 1, 'z-index': 11 } },
     { selector: 'edge.faded, edge.is-dim', style: { opacity: 0.05 } },
+    {
+      selector: 'node.root',
+      style: {
+        shape: 'round-rectangle', width: 52, height: 52, 'background-opacity': 0, 'background-image': 'data(img)', 'background-width': '48px', 'background-height': '48px',
+        'border-width': 0, label: 'data(label)', 'font-size': 11.5, 'font-weight': 600, color: p.ink, 'z-index': 30,
+      },
+    },
   ]
+}
+
+const showRoot = (): boolean => !!props.root && !banded()
+function rootImg(): string {
+  const r = props.root!
+  return dataUri(iconSvg(prefs.iconSet, r.glyph, { size: 48, vendor: r.vendor || null, badges: r.badges, palette: iconPalette() }))
 }
 
 function elements(): ElementDefinition[] {
@@ -134,6 +155,13 @@ function elements(): ElementDefinition[] {
     const cls = [EDGE_SHORT[e.kind] ?? 'ref']
     if (bandOf && (e.kind === 'reference' || e.kind === 'prerequisite') && bandOf(e.source) !== bandOf(e.target)) cls.push('cross')
     out.push({ group: 'edges', data: { id: e.id, source: e.source, target: e.target, kind: e.kind }, classes: cls.join(' ') })
+  }
+  if (showRoot()) {
+    out.push({ group: 'nodes', data: { id: ROOT, label: truncate(props.root!.label, 60), short: truncate(props.root!.label, 28), img: rootImg(), size: 52, degree: 0, domain: '' }, classes: 'root', grabbable: true })
+    const inner = new Set(props.data.edges.filter((e) => e.kind === 'contains').map((e) => e.target))
+    for (const n of props.data.nodes) {
+      if (n.kind === 'object' && !inner.has(n.id)) out.push({ group: 'edges', data: { id: `${ROOT}|${n.id}`, source: ROOT, target: n.id, kind: 'contains' }, classes: 'contains' })
+    }
   }
   return out
 }
@@ -215,7 +243,7 @@ function layout(): void {
 
 function refresh(): void {
   if (!cy) return
-  const key = `${props.layout ?? 'cose'}\u0000` + props.data.nodes.map((n) => n.id).join('\n') + '\u0000' + props.data.edges.map((e) => e.id).join('\n')
+  const key = `${props.layout ?? 'cose'}\u0000${showRoot() ? props.root!.label : ''}\u0000` + props.data.nodes.map((n) => n.id).join('\n') + '\u0000' + props.data.edges.map((e) => e.id).join('\n')
   if (key !== structureKey) {
     structureKey = key
     cy.elements().remove()
@@ -231,6 +259,10 @@ function refresh(): void {
       }
     })
     applyClasses()
+  }
+  if (showRoot()) {
+    const r = cy.getElementById(ROOT)
+    if (r.nonempty()) r.data('img', rootImg())
   }
 }
 
@@ -284,7 +316,7 @@ onMounted(() => {
   })
   // e2e 用：在容器元素上留一个 cytoscape 实例的引用（拖动测试）
   ;(box.value as unknown as { __cy?: Core }).__cy = cy
-  cy.on('tap', 'node:not(.band)', (ev) => emit('tap', ev.target.id() as string))
+  cy.on('tap', 'node:not(.band):not(.root)', (ev) => emit('tap', ev.target.id() as string))
   cy.on('tap', (ev) => { if (ev.target === cy) emit('background') })
   cy.on('mouseover', 'node:not(.band)', (ev) => {
     const n = ev.target
@@ -310,6 +342,7 @@ onMounted(() => {
     cy.batch(() => {
       cy!.nodes(':not(.band)').forEach((n) => { const fn = byId.get(n.id()); if (fn) n.data('color', color(fn)) })
       cy!.nodes('.band').forEach((n) => { n.data('color', bandColor(n.id().slice(5))) })
+      if (showRoot()) cy!.getElementById(ROOT).data('img', rootImg())
     })
   })
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
@@ -325,7 +358,7 @@ onBeforeUnmount(() => {
   cy = null
 })
 
-watch(() => [props.data, props.hiddenDomains, props.kinds, props.selected, props.matches, props.dimOthers, props.layout], refresh)
+watch(() => [props.data, props.hiddenDomains, props.kinds, props.selected, props.matches, props.dimOthers, props.layout, props.root, prefs.iconSet], refresh)
 </script>
 
 <template>

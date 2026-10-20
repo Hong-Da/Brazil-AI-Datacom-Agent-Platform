@@ -127,6 +127,7 @@ COMPUTE: set[tuple[str, str]] = {
         "/kb/validate",
         "/unknown-lines/review",
         "/ai/suggestions/estimate",
+        "/ai/kb/extract-text",
     )
 }
 

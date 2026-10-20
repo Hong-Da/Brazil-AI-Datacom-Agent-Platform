@@ -11,9 +11,10 @@ import { ApiError, errorText, get, post, put } from '@/api'
 import type { Device } from '@/views/devices/logic'
 import { msg, show } from '@/views/m3/texts'
 import type { DraftResult, TemplateIssue } from './types'
+import TemplateExtractPanel from '@/views/ai-change/TemplateExtractPanel.vue'
 
 const props = defineProps<{ devices: Device[]; profiles: { id: string; family: string }[] }>()
-const emit = defineEmits<{ (e: 'saved', id: string): void }>()
+const emit = defineEmits<{ (e: 'saved', id: string): void; (e: 'listChanged'): void }>()
 const { t, locale } = useI18n()
 const lang = computed(() => String(locale.value))
 
@@ -26,6 +27,8 @@ const firstFam = computed(() => {
   const d = props.devices.find((x) => x.id === picked.value[0])
   return d ? famOf(d) : ''
 })
+/** M8-4：AI 模板提取用的设备平台族（与草稿相同的选择） */
+const pickedFams = computed(() => picked.value.map((id) => { const d = props.devices.find((x) => x.id === id); return d ? famOf(d) : '' }))
 const off = (d: Device) => !!firstFam.value && famOf(d) !== firstFam.value
 function toggle(id: number, on: boolean): void {
   picked.value = on ? [...picked.value, id] : picked.value.filter((x) => x !== id)
@@ -160,6 +163,7 @@ const STEPS = ['templates.dStep1', 'templates.dStep2', 'templates.dStep3']
         <button class="btn btn-primary" type="button" :disabled="saving" data-testid="tpl-dsave" @click="save"><Icon name="check" small />{{ saving ? $t('templates.saving') : $t('templates.dSave') }}</button>
       </div>
     </template>
+    <TemplateExtractPanel :ids="picked" :families="pickedFams" @changed="emit('listChanged')" />
   </div>
 </template>
 

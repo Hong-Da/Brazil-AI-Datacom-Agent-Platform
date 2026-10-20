@@ -1,0 +1,62 @@
+# 规范与合规、知识库构建、报告三组 AI skill（M8-5，REQ-041）的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-fullkb-suggest：alice 的项目 lab（ATN-CHANGE-01）。AI 未配置；run 用 --replay 回放 tests/inputs/ai-kb/ 里的回复
+# （同样经过代码校验）。脱敏复核只允许本地模型：未配置 AI 的回放不发送任何内容，不按“非本地”拦。
+
+[[case]]
+id = "ai-kb-rule-draft"
+title = { zh-CN = "规范转规则：读入规范文件（--doc），规则草稿过规则引擎并在样本上试跑", en = "Standard to rules: read the standard (--doc); drafts load in the rule engine and run on the samples", pt-BR = "Norma em regras: lê a norma (--doc); os rascunhos carregam no motor e rodam nas amostras" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "run", "rule-draft", "--doc", "{inputs}/ai-kb/std.md", "--replay", "{inputs}/ai-kb/rule-draft.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.batch.status" = "done", "data.batch.scope_key" = "rules:standard", "data.batch.counts.pass" = 1, "data.batch.counts.reject" = 1, "data.items.0.check.reasons.0.code" = "rule_invalid", "data.items.1.check_status" = "pass", "data.items.1.refs.0.label" = "4.2.1" }
+in_docs = true
+
+[[case]]
+id = "ai-kb-rule-draft-empty"
+title = { zh-CN = "规范转规则：没有规范文字也没有一句话描述，退出码 2", en = "Standard to rules: no text and no sentence, exit 2", pt-BR = "Norma em regras: sem texto nem frase, saída 2" }
+args = ["--lang", "zh-CN", "--project", "alice/lab", "ai", "suggest", "run", "rule-draft", "--replay", "{inputs}/ai-kb/rule-draft.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 2
+expect_stderr = ["请上传规范文字"]
+
+[[case]]
+id = "ai-kb-sanitize-review"
+title = { zh-CN = "脱敏复核：标出的文字在该行，补规则重新脱敏后消失", en = "Sanitize review: the flagged text is in the line and gone after re-sanitizing", pt-BR = "Revisão de anonimização: o texto está na linha e some ao reanonimizar" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "run", "sanitize-review", "--device", "ATN-CHANGE-01", "--replay", "{inputs}/ai-kb/sanitize.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.items.0.category" = "sanitize_rule", "data.items.0.check_status" = "pass", "data.items.0.check.result.pattern" = 'RAN\-SITE' }
+in_docs = true
+
+[[case]]
+id = "ai-kb-card-review"
+title = { zh-CN = "命令卡审核助手：对照文档原文标注（只标注，不改卡）", en = "Card review assistant: flags against the document text (flags only)", pt-BR = "Assistente de revisão: marca em relação ao documento (só marca)" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "run", "card-review", "--params", "{\"card_id\": \"huawei-vrp8.carrier\", \"doc_text\": \"Default: 0\"}", "--replay", "{inputs}/ai-kb/card-review.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.batch.scope_key" = "card:huawei-vrp8.carrier", "data.items.0.check_status" = "pass" }
+
+[[case]]
+id = "ai-kb-report-summary"
+title = { zh-CN = "报告摘要：中英文两段，数字由代码填入", en = "Report summary: Chinese and English, numbers filled in by code", pt-BR = "Resumo do relatório: chinês e inglês, números do código" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "run", "report-summary", "--device", "ATN-CHANGE-01", "--params", "{\"kind\": \"check\"}", "--replay", "{inputs}/ai-kb/report-summary.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.batch.counts.pass" = 2, "data.items.0.kind" = "en" }
+in_docs = true
+
+[[case]]
+id = "ai-kb-report-summary-typed"
+title = { zh-CN = "报告摘要：写了代码没提供的数字（96%），整句被拒绝", en = "Report summary: a number code did not supply (96%) is rejected", pt-BR = "Resumo: um número não fornecido (96%) é rejeitado" }
+args = ["--lang", "en", "--project", "alice/lab", "ai", "suggest", "run", "report-summary", "--device", "ATN-CHANGE-01", "--params", "{\"kind\": \"check\"}", "--replay", "{inputs}/ai-kb/report-summary-typed.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_stdout = ["1 rejected", "96"]
+
+[[case]]
+id = "ai-kb-redact"
+title = { zh-CN = "本项目的脱敏补充（采纳的脱敏复核建议）", en = "The project's sanitize supplement", pt-BR = "Complemento de anonimização do projeto" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "redact"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.patterns" = [] }

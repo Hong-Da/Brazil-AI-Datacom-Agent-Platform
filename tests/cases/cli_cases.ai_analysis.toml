@@ -1,0 +1,70 @@
+# 日常分析组的 AI skill（M8-3）的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-fullkb-suggest：alice 的项目 lab（ATN-CHANGE-01 有两个孤儿对象：vrf.instance[OAM] 与 acl.instance[3001]）；
+# AI 未配置，run 用 --replay 回放 tests/inputs/ai-suggest/ 里的回复（同样经过代码校验）。
+
+[[case]]
+id = "ai-analysis-fix-replay"
+title = { zh-CN = "问题解读与修复（检查问题，回放回复）：编造的问题被拒绝", en = "Explain and fix findings (check findings, replayed): the invented finding is rejected", pt-BR = "Explicar e corrigir achados (reproduzido): o achado inventado é rejeitado" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "run", "finding-fix", "--device", "ATN-CHANGE-01", "--params", "{\"source\": \"check\"}", "--replay", "{inputs}/ai-suggest/finding-explain.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.batch.status" = "done", "data.batch.counts.pass" = 1, "data.batch.counts.reject" = 1, "data.batch.params.source" = "check" }
+in_docs = true
+
+[[case]]
+id = "ai-analysis-feature-replay"
+title = { zh-CN = "能力对比说明（回放）：写法与命令卡不一致的被拒绝", en = "Feature comparison (replayed): syntax that does not match the card is rejected", pt-BR = "Comparação de recursos (reproduzida): sintaxe fora do cartão é rejeitada" }
+args = ["--lang", "en", "--project", "alice/lab", "ai", "suggest", "run", "feature-compare", "--params", "{\"node\": \"interface.mtu\", \"a\": \"huawei-atn-v800r025\", \"b\": \"cisco-iosxe-asr920-17.15\"}", "--replay", "{inputs}/ai-suggest/feature-mtu.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_stdout = ["1 passed", "1 rejected", "The command does not match the syntax of the command card"]
+
+[[case]]
+id = "ai-analysis-bad-params"
+title = { zh-CN = "--params 不是 JSON 对象：退出码 2", en = "--params is not a JSON object: exit 2", pt-BR = "--params não é um objeto JSON: saída 2" }
+args = ["--lang", "en", "--project", "alice/lab", "ai", "suggest", "run", "feature-compare", "--params", "[1, 2]", "--replay", "{inputs}/ai-suggest/feature-mtu.json"]
+setup = "configured-fullkb-suggest"
+expect_exit = 2
+expect_stderr = ["--params must be a JSON object"]
+
+[[case]]
+id = "ai-analysis-annotate"
+title = { zh-CN = "手工标注设备角色（优先于 AI 建议）", en = "Set a device role by hand (wins over AI suggestions)", pt-BR = "Definir o papel do dispositivo manualmente" }
+args = ["--output", "json", "--project", "alice/lab", "ai", "suggest", "annotate", "ATN-CHANGE-01", "--key", "role", "--value", "access"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_json = { "ok" = true, "data.item.key" = "role", "data.item.value" = "access", "data.item.source" = "user" }
+in_docs = true
+
+[[case]]
+id = "ai-analysis-annotate-bad"
+title = { zh-CN = "标注取值不合法：退出码 2", en = "Annotation value not allowed: exit 2", pt-BR = "Valor de anotação inválido: saída 2" }
+args = ["--lang", "zh-CN", "--project", "alice/lab", "ai", "suggest", "annotate", "ATN-CHANGE-01", "--key", "role", "--value", "firewall"]
+setup = "configured-fullkb-suggest"
+expect_exit = 2
+expect_stderr = ["取值不合法：firewall"]
+
+[[case]]
+id = "ai-analysis-annotate-clear"
+title = { zh-CN = "清除手工标注", en = "Clear a manual annotation", pt-BR = "Remover uma anotação manual" }
+args = ["--lang", "en", "--project", "alice/lab", "ai", "suggest", "annotate", "ATN-CHANGE-01", "--key", "group", "--clear"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_stdout = ["Cleared group of ATN-CHANGE-01"]
+
+[[case]]
+id = "ai-analysis-coverage-none"
+title = { zh-CN = "覆盖核对：范围内还没有完成的运行", en = "Coverage: no finished run in the scope yet", pt-BR = "Cobertura: ainda não há execução no escopo" }
+args = ["--lang", "en", "--project", "alice/lab", "ai", "suggest", "coverage", "history:1:3"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_stdout = ["No finished run in this scope yet"]
+
+[[case]]
+id = "ai-analysis-handover"
+title = { zh-CN = "导出设备交接文档（含已采纳的 AI 设备摘要）", en = "Export the device handover note (with the adopted AI device summary)", pt-BR = "Exportar a nota de passagem do dispositivo" }
+args = ["--lang", "en", "--project", "alice/lab", "ai", "suggest", "handover", "ATN-CHANGE-01", "--doc-lang", "en", "--format", "md"]
+setup = "configured-fullkb-suggest"
+expect_exit = 0
+expect_stdout = ["# Device handover note · ATN-CHANGE-01", "Device summary"]
+in_docs = true

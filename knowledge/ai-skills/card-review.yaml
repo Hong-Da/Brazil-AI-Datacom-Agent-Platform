@@ -1,0 +1,97 @@
+# 内置 AI skill（只读）：命令卡审核助手（M8-5）：对照文档原文，指出参数类型、默认值、取消写法可疑的地方。只标注，不改卡。
+# 管理员修改后的版本保存在 data/ai-skills/card-review/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。AI 只能引用代码给出的字段编号（f1 …）与文档行号。
+id: card-review
+version: 1
+title: {zh-CN: 命令卡审核助手, en: Card review assistant, pt-BR: Assistente de revisão de cartões}
+description: {zh-CN: 对照导入的产品文档原文，标出命令卡里参数类型、默认值、取消写法可疑的地方。只做标注，改不改由审核人决定；引用的字段与文档行号必须存在，给出的原文摘录必须真的在所引的行里。, en: 'Compares a command card with the product document text and flags doubtful parameter types, defaults and undo forms. It only flags; the reviewer decides. Cited fields and document lines must exist, and a quoted excerpt must really be in the cited lines.', pt-BR: 'Compara o cartão com o texto do documento e marca tipos de parâmetro, padrões e formas undo duvidosos. Só marca; quem revisa decide. Campos e linhas citados devem existir e o trecho citado deve estar nas linhas.'}
+task: ask
+used_by: ai_suggest
+group: kb
+enabled: true
+system: |-
+  You review ONE router command card against the product documentation text and flag doubtful parts. You never change the card.
+  Look for: wrong parameter type or range (kind "type"), wrong or missing default (kind "default"), wrong undo / no form (kind "undo"). Allowed kinds: {issues}.
+  One suggestion per doubt:
+    content.text   one or two sentences in {lang}; mention card fields ONLY as [[f3]]
+    content.quote  optional: the exact words from the document that support the doubt (copied from one cited line)
+    content.suggest  optional: the value you would expect (for example range 1-4094)
+    refs           the field ids and the document lines you rely on: [{{"id": "f3"}}, {{"line": 12, "of": "doc"}}]
+  Flag only what the document text supports. Reply {{"suggestions": []}} when the card looks right.
+  Reply with JSON only: {{"suggestions": [{{"category": "text_only", "kind": "type", "title": "<short title>", "content": {{"text": "...", "quote": "...", "suggest": "..."}}, "refs": [{{"id": "f3"}}, {{"line": 12, "of": "doc"}}]}}]}}
+prompt: |-
+  Card fields (id | field: value):
+  {card}
+
+  Card source: {source}
+
+  Document text (line  text):
+  {doc}
+templates:
+  retry: |-
+    Your previous reply could not be used: {error}
+    Reply again with JSON only, in the required format, citing only the given field ids and document lines.
+variables:
+  - name: issues
+    in: system
+    desc: {zh-CN: 标注的种类, en: Kinds of flags, pt-BR: Tipos de marca}
+  - name: lang
+    in: system
+    desc: {zh-CN: 说明的语言（按界面语言）, en: Explanation language (from the UI language), pt-BR: Idioma da explicação (do idioma da interface)}
+  - name: card
+    in: prompt
+    desc: {zh-CN: 命令卡的字段（编号与取值）, en: 'Card fields (id and value)', pt-BR: 'Campos do cartão (id e valor)'}
+  - name: source
+    in: prompt
+    desc: {zh-CN: 命令卡的来源（文档、页、版本）, en: 'Card source (document, page, version)', pt-BR: 'Origem do cartão (documento, página, versão)'}
+  - name: doc
+    in: prompt
+    desc: {zh-CN: 维护员给出的文档原文（带行号）, en: Document text given by the maintainer (numbered), pt-BR: Texto do documento dado pelo mantenedor (numerado)}
+  - name: error
+    in: retry
+    desc: {zh-CN: 上次回复不能用的原因, en: Why the previous reply could not be used, pt-BR: Por que a resposta anterior não pôde ser usada}
+examples: []
+tools:
+  - syntax
+output:
+  format: json
+  schema: '{"suggestions": [{"category": "text_only", "kind": "type|default|undo", "title": "...", "content": {"text": "...", "quote": "..."}, "refs": [{"id": "f3"}, {"line": 12, "of": "doc"}]}]}'
+checks:
+  - suggest.refs_exist
+  - suggest.text_only
+samples:
+  - title: {zh-CN: 取值范围与文档不一致（引用的原文存在）, en: The range disagrees with the document (the quote exists), pt-BR: A faixa diverge do documento (o trecho existe)}
+    input:
+      vars:
+        issues: type, default, undo
+        lang: English
+        card: "f1 | id: huawei-vrp8.port-trunk-allow-pass\nf2 | syntax: port trunk allow-pass vlan { <vlan-id> | all }\nf3 | param.vlan-id: type: integer, range: [1, 4096]"
+        source: doc=huawei-vrp8-md | title=port trunk allow-pass vlan
+        doc: "   1  port trunk allow-pass vlan\n   2  vlan-id: specifies a VLAN ID. The value is an integer ranging from 1 to 4094."
+      facts:
+        objects:
+          f1: {type: field, label: id, value: huawei-vrp8.port-trunk-allow-pass}
+          f2: {type: field, label: syntax, value: 'port trunk allow-pass vlan { <vlan-id> | all }'}
+          f3: {type: field, label: param.vlan-id, value: 'type: integer, range: [1, 4096]'}
+        numbers: {param.vlan-id.range.0: 1, param.vlan-id.range.1: 4096, doc.n0: 1, doc.n1: 4094}
+        lines: {doc: 2}
+        names: [huawei-vrp8.port-trunk-allow-pass, id, syntax, param.vlan-id]
+        doc_lines: [port trunk allow-pass vlan, 'vlan-id: specifies a VLAN ID. The value is an integer ranging from 1 to 4094.']
+    reply: '{"suggestions": [{"category": "text_only", "kind": "type", "title": "VLAN range should end at 4094", "content": {"text": "The range in [[f3]] ends at 4096, but the document says VLAN IDs go from 1 to 4094.", "quote": "an integer ranging from 1 to 4094", "suggest": "range: [1, 4094]"}, "refs": [{"id": "f3"}, {"line": 2, "of": "doc"}]}]}'
+  - title: {zh-CN: 引用的文档行里没有这段原文（演示拒绝）, en: The quote is not in the cited line (shows a rejection), pt-BR: O trecho não está na linha citada (mostra a rejeição)}
+    input:
+      vars:
+        issues: type, default, undo
+        lang: English
+        card: "f1 | id: huawei-vrp8.port-trunk-allow-pass\nf2 | syntax: port trunk allow-pass vlan { <vlan-id> | all }"
+        source: doc=huawei-vrp8-md | title=port trunk allow-pass vlan
+        doc: "   1  port trunk allow-pass vlan\n   2  vlan-id: specifies a VLAN ID. The value is an integer ranging from 1 to 4094."
+      facts:
+        objects:
+          f1: {type: field, label: id, value: huawei-vrp8.port-trunk-allow-pass}
+          f2: {type: field, label: syntax, value: 'port trunk allow-pass vlan { <vlan-id> | all }'}
+        numbers: {doc.n0: 1, doc.n1: 4094}
+        lines: {doc: 2}
+        names: [huawei-vrp8.port-trunk-allow-pass, id, syntax]
+        doc_lines: [port trunk allow-pass vlan, 'vlan-id: specifies a VLAN ID. The value is an integer ranging from 1 to 4094.']
+    reply: '{"suggestions": [{"category": "text_only", "kind": "type", "title": "Missing parameter priority", "content": {"text": "[[f2]] has no priority parameter.", "quote": "priority <priority-value> sets the port priority"}, "refs": [{"id": "f2"}, {"line": 2, "of": "doc"}]}]}'

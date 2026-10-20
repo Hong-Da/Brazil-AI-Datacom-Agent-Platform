@@ -47,6 +47,8 @@ export interface TranslateResult {
   verify: VerifyInfo
   /** 选用了翻译规则集时（REQ-032）：改名清单、端口映射、冲突、命名规范告警 */
   naming?: import('@/views/translate-rules/logic').NamingReport
+  /** M8-4：译文中来自采纳的 AI 写法的行号（翻译未支持项） */
+  ai_lines?: number[]
 }
 
 export interface RenderResult {

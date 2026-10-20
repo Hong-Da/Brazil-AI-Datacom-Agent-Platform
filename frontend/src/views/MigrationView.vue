@@ -21,6 +21,7 @@ import type { CodeLine } from '@/views/m3/code'
 import type { Device } from '@/views/devices/logic'
 import type { VersionInfo } from '@/views/compare/types'
 import { msg } from './m4/texts'
+import CutoverPlanPanel from './ai-change/CutoverPlanPanel.vue'
 import { lines as splitLines, safeName } from './m4/common'
 import {
   allItems, groupCount, mapCsvRows, mapFromCsv, overrides, packageFiles, railStates, rowState, rowTarget, splitSteps,
@@ -83,6 +84,8 @@ const canRun = computed(() => deviceId.value !== null && !!target.value && (exMo
 const running = ref(false)
 const runError = ref('')
 const result = ref<MigrateResult | null>(null)
+/** 最近一次割接迁移的输入（M8-4 割接方案文档用同一组输入，结果由代码重新计算） */
+const aiBody = ref<Record<string, unknown> | null>(null)
 const srcLines = ref<string[]>([])
 const rows = ref<MapRow[]>([])
 /** 已经交给后端的映射（再次生成时保留） */
@@ -114,6 +117,7 @@ async function run(map: Record<string, string> = sentMap.value): Promise<void> {
       vid ? get<{ text: string }>(`/devices/${deviceId.value}/versions/${vid}/text`).catch(() => ({ text: '' })) : Promise.resolve({ text: '' }),
     ])
     result.value = r
+    aiBody.value = { ...body, target_text: undefined, target_device_id: exMode.value === 'device' ? exDevice.value : null }
     srcLines.value = splitLines(src.text)
     rows.value = r.interface_map.map((item) => ({ item, edited: null }))
     sentMap.value = map
@@ -424,6 +428,7 @@ onMounted(async () => {
               </div>
             </div></section>
           </template>
+          <CutoverPlanPanel :body="aiBody" />
         </section>
 
         <!-- 5 验证 -->

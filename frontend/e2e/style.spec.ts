@@ -68,9 +68,9 @@ test('关系图谱：出现圆点，能拖动，点击打开详情', async ({ pa
 
   const box = (await canvas.boundingBox())!
   const handle = await canvas.evaluateHandle((el) => (el as unknown as { __cy: unknown }).__cy)
-  // 取连接最多的圆点，移到视野中央
+  // 取连接最多的对象圆点（跳过 M8-3 加的设备根节点），移到视野中央
   const p0 = await handle.evaluate((cy: any) => {
-    const n = cy.nodes().max((x: any) => x.degree()).ele
+    const n = cy.nodes().filter((x: any) => !x.id().startsWith('__')).max((x: any) => x.degree()).ele
     cy.center(n)
     return { id: n.id(), ...n.renderedPosition(), model: { ...n.position() } }
   })

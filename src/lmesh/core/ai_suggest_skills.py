@@ -118,6 +118,7 @@ def _summary_build(env: Env, params: dict[str, Any]) -> Context:
         "numbers": numbers,
         "lines": {"d1": numbers["lines"]},
         "names": sorted(names)[:MAX_NAMES],
+        "lang": env.lang,  # 交接文档按语言取摘要（M8-3）
     }
     return Context(vars_, facts, f"device:{dev.id}", dev.id)
 
@@ -133,67 +134,4 @@ register_skill(
     )
 )
 
-
-# ---------------------------------------------------------------- 拓扑整理：设备角色（view_hint）
-
-
-def _roles_build(env: Env, params: dict[str, Any]) -> Context:
-    from lmesh.core import topology
-
-    targets = [str(x) for x in params.get("device_ids") or []] or None
-    devices, missing = topology.from_db(env.db, env.kb, targets)
-    if missing:
-        raise SuggestError("ai_suggest.device_not_found", "not_found", id=", ".join(missing))
-    if not devices:
-        raise SuggestError("ai_suggest.no_devices", "state")
-    devices = devices[:MAX_DEVICES]
-    topo = topology.to_json(topology.build(devices, env.kb))
-    ref_of: dict[str, str] = {}
-    objects: dict[str, dict[str, Any]] = {}
-    names: set[str] = set()
-    numbers: dict[str, Any] = {"devices": len(devices), "links": topo["summary"]["links"]}
-    rows = []
-    for i, (d, node) in enumerate(zip(devices, topo["nodes"], strict=True), 1):
-        ref = f"d{i}"
-        ref_of[d.name] = ref
-        objects[ref] = {"type": "device", "label": d.name, "device_id": d.device_id, "version_id": d.version_id}
-        names.add(d.name)
-        descs = []
-        for _, nd in d.g.nodes(data=True):
-            if nd.get("schema") == "interface.description" and isinstance(nd.get("value"), str):
-                descs.append(_short(nd["value"], 40))
-                names.add(nd["value"])
-            if len(descs) >= 8:
-                break
-        numbers[f"links.{ref}"] = node["links"]
-        rows.append(
-            f"{ref} | {d.name} | family={node.get('family') or '-'} | profile={node.get('profile') or '-'} | "
-            f"links={node['links']} | interfaces={node['interfaces']} | asn={node.get('asn') or '-'} | "
-            f"loopbacks={len(node.get('loopbacks') or [])} | descriptions: {'; '.join(descs) or '-'}"
-        )
-    links = []
-    for lk in topo["links"][:400]:
-        a, b = lk["a"], lk["b"]
-        links.append(
-            f"{ref_of.get(a['device'], '?')}:{a.get('interface') or '-'} <-> "
-            f"{ref_of.get(b['device'], '?')}:{b.get('interface') or '-'} ({lk['type']})"
-        )
-    vars_ = {
-        "devices": "\n".join(rows),
-        "links": "\n".join(links) or "(none)",
-        "roles": ", ".join(("core", "aggregation", "access", "pe", "p", "ce")),
-        "lang": LANG_NAMES.get(env.lang, "English"),
-    }
-    facts = {"objects": objects, "numbers": numbers, "lines": {}, "names": sorted(names)[:MAX_NAMES]}
-    return Context(vars_, facts, "topology", None)
-
-
-register_skill(
-    SkillSpec(
-        id="topology-roles",
-        build=_roles_build,
-        categories=("view_hint",),
-        default_category="view_hint",
-        scope="project",
-    )
-)
+# 拓扑整理（topology-roles）在 M8-3 移到 ai_suggest_analysis.py（加了分组、分层与推测对端）。

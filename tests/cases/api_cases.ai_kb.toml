@@ -1,0 +1,36 @@
+# 规范与合规、知识库构建、报告三组 AI skill（M8-5，REQ-041）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-fullkb-suggest：alice 的项目 lab（ATN-CHANGE-01）。AI 未配置。真实运行（假 AI）、本地模型限制、
+# 知识库类权限、报告导出的 AI 摘要见 tests/api/test_ai_kb_api.py。
+
+[[case]]
+id = "ai-kb-gate"
+title = { zh-CN = "skill 能否在当前 AI 接口上运行：脱敏复核只允许本地模型（未配置 AI 时由“未配置”的提示处理）", en = "Can a skill run on the active AI interface: sanitize review is local-only", pt-BR = "A skill pode rodar na interface ativa: a revisão de anonimização é só local" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/kb/gate?skill=sanitize-review"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.skill" = "sanitize-review", "data.local_only" = true, "data.allowed" = true }
+in_docs = true
+
+[[case]]
+id = "ai-kb-sanitize-redact"
+title = { zh-CN = "本项目的脱敏补充（采纳的脱敏复核建议）", en = "This project's sanitize supplement (adopted sanitize-review suggestions)", pt-BR = "Complemento de anonimização do projeto" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/ai/kb/sanitize-redact"
+setup = "configured-fullkb-suggest"
+login = ["bob", "Bob-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.patterns" = [] }
+in_docs = true
+
+[[case]]
+id = "ai-kb-run-rule-draft-not-configured"
+title = { zh-CN = "规范转规则：未配置 AI 时 409", en = "Standard to rules: 409 without AI", pt-BR = "Norma em regras: 409 sem IA" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/ai/suggestions/run"
+setup = "configured-fullkb-suggest"
+login = ["alice", "Alice-pass-1"]
+body = { skill = "rule-draft", params = { sentence = "Every BGP peer must have a description" } }
+expect_status = 409
+expect_json = { "code" = 1003, "data.status" = "not_configured" }

@@ -23,6 +23,7 @@ import { mainInterfaces, mapCsvRows, toInterfaceMap, type MapRow } from '@/views
 import { ranges, splitLines, type CodeLine } from '@/views/m3/code'
 import IfMapPanel from './translate/IfMapPanel.vue'
 import WarnPanel from './translate/WarnPanel.vue'
+import TranslateGapPanel from './ai-change/TranslateGapPanel.vue'
 import DownloadDialog from './translate/DownloadDialog.vue'
 import RuleSetPicker from '@/components/rule-set-picker.vue'
 import NamingReportPanel from './translate-rules/NamingReportPanel.vue'
@@ -580,6 +581,12 @@ onMounted(async () => {
         </div>
         <div v-if="toast && fsMode" class="toast" role="status">{{ toast }}</div>
         </FullscreenPane>
+        <TranslateGapPanel
+          v-if="mode === 'device' && deviceId !== null"
+          :device-id="deviceId" :to="result.target.profile" :rule-set="ruleSet" :interface-map="ifMap"
+          :unsupported="result.unsupported" :ai-lines="result.ai_lines" :out-text="result.text" :src-text="srcText"
+          @changed="run"
+        />
       </template>
     </div>
     <div v-if="toast && !fsMode" class="toast" role="status">{{ toast }}</div>

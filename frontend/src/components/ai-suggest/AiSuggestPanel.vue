@@ -22,9 +22,11 @@ import {
 } from './logic'
 import './ai-suggest.css'
 
-const props = withDefaults(defineProps<{ skill: string; params?: Record<string, unknown>; scope: string; flat?: boolean }>(), {
+// canEstimate=false：参数还不完整（例如规范转规则还没有规范文字），不请求运行前估计（M8-5）
+const props = withDefaults(defineProps<{ skill: string; params?: Record<string, unknown>; scope: string; flat?: boolean; canEstimate?: boolean }>(), {
   params: () => ({}),
   flat: false,
+  canEstimate: true,
 })
 const emit = defineEmits<{ changed: []; jump: [ref: RefInfo]; state: [state: string] }>()
 const { t, locale } = useI18n()
@@ -98,7 +100,7 @@ async function load(): Promise<void> {
 async function estimate(): Promise<void> {
   estErr.value = false
   est.value = null
-  if (!canWrite.value || offReason.value) return
+  if (!canWrite.value || offReason.value || !props.canEstimate) return
   try {
     est.value = await post<Estimate>(P('/ai/suggestions/estimate'), { skill: props.skill, params: props.params })
   } catch {
@@ -247,7 +249,7 @@ async function act(it: Suggestion, what: 'dismiss' | 'restore' | 'revert'): Prom
   try {
     replace(await post<Suggestion>(P(`/ai/suggestions/${it.id}/${what}`), {}))
     await loadItems()
-    if (what === 'revert') emit('changed')
+    emit('changed') // M8-5：忽略 / 恢复也通知页面（表格上的 AI 标记随之刷新）
   } catch (e) {
     notice.value = errorText(e)
   } finally {

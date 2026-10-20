@@ -11,6 +11,7 @@ import Icon from '@/components/Icon.vue'
 import { ApiError, del, download, errorText, get, post, put } from '@/api'
 import type { Device } from '@/views/devices/logic'
 import NamingReportPanel from './translate-rules/NamingReportPanel.vue'
+import NamingPanel from './ai-change/NamingPanel.vue'
 import { canEdit, tabOf } from './templates/scope'
 import {
   SECTIONS, blankRules, copyId, issueAt, move, newNameRule, newNamingRule, newPortRule, normalize, titleOf, toSave, validId,
@@ -449,6 +450,8 @@ onMounted(async () => {
         </section>
         <div v-else class="empty"><Icon name="pencil" /><h3>{{ $t('translate-rules.emptyTitle') }}</h3><p>{{ $t('translate-rules.emptyText') }}</p></div>
       </div>
+      <!-- M8-4：命名映射建议（AI），采纳后保存为我的规则集 -->
+      <NamingPanel v-if="devices.length && profiles.length" :devices="devices" :profiles="profiles" @changed="loadList" />
     </div>
   </main>
 </template>

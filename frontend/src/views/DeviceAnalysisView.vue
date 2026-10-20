@@ -32,6 +32,12 @@ import { BAND_ORDER, VIEWS, type AnalysisData, type SummaryData, type ViewName }
 import VendorBadge from '@/components/vendor-badge.vue'
 import AiEntryButton from '@/components/ai-suggest/AiEntryButton.vue'
 import AiSuggestPanel from '@/components/ai-suggest/AiSuggestPanel.vue'
+import DeviceIcon from '@/components/devicon/DeviceIcon.vue'
+import SanitizeReview from '@/components/ai-kb/SanitizeReview.vue'
+import { useDeviceIcon } from '@/components/devicon/useDeviceIcon'
+import { download } from '@/api'
+import { projectPath } from '@/components/ai-suggest/logic'
+import { useProject } from '@/stores/project'
 
 const route = useRoute()
 const router = useRouter()
@@ -40,7 +46,8 @@ const terms = useTerms()
 
 // ---------- AI 建议：设备摘要（M8-2 示范，通用组件 components/ai-suggest/） ----------
 const aiPanel = ref<InstanceType<typeof AiSuggestPanel> | null>(null)
-const aiOpen = ref(false)
+const aiOpen = ref(route.query.ai === 'summary') // 设备列表的“设备摘要”入口：打开面板（不自动运行）
+const sanOpen = ref(route.query.ai === 'sanitize') // M8-5 脱敏复核（只允许本地模型）
 const aiState = ref('loading')
 const aiShown = computed(() => aiOpen.value || ['done', 'running', 'empty', 'failed', 'cancelled'].includes(aiState.value))
 async function runAi(): Promise<void> {
@@ -65,6 +72,22 @@ const summary = shallowRef<SummaryData | null>(null)
 const summaryLoading = ref(false)
 const summaryErr = ref('')
 const device = computed(() => devices.value?.find((d) => d.id === deviceId.value) ?? null)
+const { icon: devIcon, reload: reloadIcon } = useDeviceIcon(device) // REQ-042：标题前的设备图标、关系图谱的根节点
+const forceRoot = computed(() => (devIcon.value && device.value ? { label: device.value.name, glyph: devIcon.value.glyph, vendor: devIcon.value.vendor, badges: devIcon.value.badges } : null))
+
+// ---------- 交接文档（设备摘要，中文 / English）----------
+const proj = useProject()
+const handoverErr = ref('')
+async function handover(lang: 'zh-CN' | 'en'): Promise<void> {
+  if (deviceId.value === null) return
+  handoverErr.value = ''
+  const name = (device.value?.name ?? `device-${deviceId.value}`).replace(/[^\w.-]+/g, '_')
+  try {
+    await download(projectPath(proj.ref ?? '', `/devices/${deviceId.value}/handover?lang=${lang}&format=html`), `handover-${name}-${lang === 'en' ? 'en' : 'zh'}.html`)
+  } catch (e) {
+    handoverErr.value = errorText(e)
+  }
+}
 
 async function getRetry<T>(path: string): Promise<T> {
   try {
@@ -370,6 +393,7 @@ onMounted(async () => {
         <span>{{ $t('device-analysis.title') }}</span>
       </div>
       <div class="an-head">
+        <DeviceIcon v-if="devIcon" :kind="devIcon.glyph" :vendor="devIcon.vendor" :badges="devIcon.badges" :size="32" :title="device?.name" />
         <h1 data-testid="analysis-device">{{ device?.name ?? data?.device ?? `#${deviceId}` }}</h1>
         <div class="an-meta">
           <VendorBadge v-if="device" :of="device.vendor || device.profile">{{ device.vendor }}</VendorBadge>
@@ -384,11 +408,20 @@ onMounted(async () => {
           <router-link class="btn btn-sm" :to="{ name: 'device-graph', params: { id: deviceId }, query: selected ? { node: selected } : {} }"><Icon name="graph" small /><span>{{ $t('device-analysis.toGraph') }}</span></router-link>
           <router-link class="btn btn-sm" :to="{ name: 'history', params: { id: deviceId } }"><Icon name="history" small /><span>{{ $t('nav.history') }}</span></router-link>
           <button class="btn btn-sm btn-icon" :title="$t('c.refresh')" :disabled="loading" data-testid="analysis-refresh" @click="loadAll"><Icon name="refresh" small /></button>
+          <button class="btn btn-sm" type="button" :aria-pressed="sanOpen" data-testid="san-toggle" @click="sanOpen = !sanOpen"><Icon name="sanitize" small /><span>{{ $t('kb-ai.san.btn') }}</span></button>
           <AiEntryButton :skills="['device-summary']" :busy="aiState === 'running'" small @run="runAi" />
         </div>
       </div>
+      <SanitizeReview v-if="sanOpen && deviceId" :device-id="deviceId" @close="sanOpen = false" />
       <div v-show="aiShown" class="an-ai" data-testid="analysis-ai">
-        <AiSuggestPanel ref="aiPanel" skill="device-summary" :params="{ device_id: deviceId }" :scope="`device:${deviceId}`" @state="aiState = $event" />
+        <div class="handover" data-testid="handover">
+          <Icon name="download" small /><span>{{ $t('device-analysis.handover') }}</span>
+          <button class="link-btn" type="button" data-testid="handover-zh" @click="handover('zh-CN')">中文</button>
+          <button class="link-btn" type="button" data-testid="handover-en" @click="handover('en')">English</button>
+          <span class="faint">{{ $t('device-analysis.handoverNote') }}</span>
+          <span v-if="handoverErr" class="err-t">{{ handoverErr }}</span>
+        </div>
+        <AiSuggestPanel ref="aiPanel" skill="device-summary" :params="{ device_id: deviceId }" :scope="`device:${deviceId}`" @state="aiState = $event" @changed="reloadIcon" />
       </div>
 
       <FullscreenPane class="an-fs" :title="device?.name ?? data?.device ?? ''" data-testid="analysis-fs">
@@ -506,6 +539,7 @@ onMounted(async () => {
                 :matches="new Set<string>()"
                 :dim-others="false"
                 :edge-name="edgeName"
+                :root="forceRoot"
                 :layout="relLayout"
                 :bands="bandsCfg"
                 :color-of="layerColor"
@@ -580,6 +614,8 @@ onMounted(async () => {
 .ly i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; background: var(--c, var(--ly-unclassified)); }
 .ly.mpls i { background: repeating-linear-gradient(135deg, var(--c) 0 2px, transparent 2px 4px); outline: 1px solid var(--c); outline-offset: -1px; }
 .an-ai { max-height: 42vh; overflow: auto; margin-bottom: 10px; flex: none; }
+.handover { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; font-size: 12px; color: var(--ink-2); padding: 0 2px 6px; }
+.handover .err-t { color: var(--red-ink); }
 </style>
 
 <style scoped>

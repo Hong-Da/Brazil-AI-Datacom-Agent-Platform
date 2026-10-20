@@ -15,6 +15,8 @@ from lmesh.api import scoping
 from lmesh.api.common import E_INTERNAL, E_NOT_FOUND, E_PARAM, ApiError, error_response
 from lmesh.api.routes_ai import admin as ai_admin_router
 from lmesh.api.routes_ai import router as ai_router
+from lmesh.api.routes_ai_change import router as ai_change_router
+from lmesh.api.routes_ai_kb import router as ai_kb_router
 from lmesh.api.routes_ai_suggest import router as ai_suggest_router
 from lmesh.api.routes_analysis import router as analysis_router
 from lmesh.api.routes_ask import router as ask_router
@@ -128,6 +130,8 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     scoping.mount(app, projects_admin_router, API_PREFIX, "projects")
     scoping.mount(app, project_router, API_PREFIX, "projects", project_only=True)
     scoping.mount(app, ai_suggest_router, API_PREFIX, "ai-suggestions", project_only=True)
+    scoping.mount(app, ai_change_router, API_PREFIX, "ai-suggestions", project_only=True)
+    scoping.mount(app, ai_kb_router, API_PREFIX, "ai-suggestions", project_only=True)
     scoping.mount(app, tokens_router, API_PREFIX, "tokens")
     scoping.add_deprecation_headers(app, API_PREFIX)
     scoping.add_project_ref_rewrite(app, API_PREFIX)

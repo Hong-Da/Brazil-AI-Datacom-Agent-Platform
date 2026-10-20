@@ -13,7 +13,7 @@ from lmesh.cli.cmd_configs import require_db
 from lmesh.cli.cmd_graph import _graph_for, _kb
 from lmesh.cli.output import Ctx, emit, fail
 from lmesh.core import baseline as blmod
-from lmesh.core import graphstore, importer
+from lmesh.core import config, graphstore, importer
 from lmesh.core import rules as rulesmod
 from lmesh.core.kb import KnowledgeBase
 
@@ -114,6 +114,12 @@ def register(app: typer.Typer) -> None:
             str | None,
             typer.Option("--style", help="报告中节点的显示风格 huawei | cisco | nokia（默认取配置 ui.term_style）"),
         ] = None,
+        with_ai: Annotated[
+            bool,
+            typer.Option(
+                "--ai-summary/--no-ai-summary", help="报告包含当前项目已采纳的 AI 摘要（M8-5，只对已导入的设备）"
+            ),
+        ] = True,
     ) -> None:
         c = output.get(ctx)
         kb, root = _kb(c)
@@ -140,8 +146,19 @@ def register(app: typer.Typer) -> None:
 
             fmt = "md" if report_out.suffix.lower() == ".md" else "html"
             use = _args(c, report_lang, fmt)
+            ai = None
+            if with_ai and config.is_configured():
+                from lmesh.cli.cmd_report import ai_summary
+                from lmesh.core import compare
+
+                db = config.load().database_url
+                ids = [compare.device_id_by_name(db, t) for t in targets or [] if not Path(t).exists()]
+                if all_devices:
+                    ids += [d["id"] for d in importer.list_devices(db) if d["latest_version_id"]]
+                if ids and None not in ids and len(ids) == len(graphs):
+                    ai = ai_summary("baseline", {"device_ids": ids, "baseline": profile}, use, res)
             rep = baseline_report(
-                res, use, fmt, namer=_namer(c, kb, root, style), kb_version=graphs[0].graph.get("kb_version")
+                res, use, fmt, namer=_namer(c, kb, root, style), kb_version=graphs[0].graph.get("kb_version"), ai=ai
             )
             report_out.parent.mkdir(parents=True, exist_ok=True)
             report_out.write_text(rep.content, encoding="utf-8", newline="\n")

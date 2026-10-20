@@ -21,6 +21,8 @@ import ShowDefaultToggle from '@/components/show-default-toggle.vue'
 import DevDelDialog from '@/components/devdel-dialog.vue'
 import GraphCanvas from './device-graph/GraphCanvas.vue'
 import ForceGraph from './device-graph/ForceGraph.vue'
+import DeviceIcon from '@/components/devicon/DeviceIcon.vue'
+import { useDeviceIcon } from '@/components/devicon/useDeviceIcon'
 import { buildForce, domainColorVar, domainCounts } from './device-graph/force'
 import NodeDetail from './device-graph/NodeDetail.vue'
 import ConfigText from './device-graph/ConfigText.vue'
@@ -61,6 +63,8 @@ const loading = ref(false)
 const loadErr = ref('')
 const schema = shallowRef<SchemaTree | null>(null)
 const device = computed(() => devices.value?.find((d) => d.id === deviceId.value) ?? null)
+const { icon: devIcon } = useDeviceIcon(device) // REQ-042：设备图标（关系图谱的根节点、标题）
+const forceRoot = computed(() => (devIcon.value && device.value ? { label: device.value.name, glyph: devIcon.value.glyph, vendor: devIcon.value.vendor, badges: devIcon.value.badges } : null))
 
 /** 服务器内部错误时稍后重试一次（后端并发请求偶发 500）。 */
 async function getRetry<T>(path: string): Promise<T> {
@@ -479,7 +483,7 @@ onMounted(async () => {
         <span>{{ device?.name ?? graph?.device ?? `#${deviceId}` }}</span>
       </div>
       <div class="dg-head">
-        <div class="dg-title"><h1>{{ device?.name ?? graph?.device ?? `#${deviceId}` }}</h1></div>
+        <div class="dg-title"><DeviceIcon v-if="devIcon" :kind="devIcon.glyph" :vendor="devIcon.vendor" :badges="devIcon.badges" :size="32" :title="device?.name" /><h1>{{ device?.name ?? graph?.device ?? `#${deviceId}` }}</h1></div>
         <div class="dg-meta">
           <VendorBadge v-if="device" :of="device.vendor || device.profile">{{ device.vendor }}</VendorBadge>
           <span v-if="device?.sw_version" class="tag mono">{{ device.sw_version }}</span>
@@ -579,6 +583,7 @@ onMounted(async () => {
             :matches="forceMatches"
             :dim-others="!!debouncedQuery"
             :edge-name="edgeName"
+            :root="forceRoot"
             @tap="(id) => select(id, 'graph')"
             @background="select(null)"
           />

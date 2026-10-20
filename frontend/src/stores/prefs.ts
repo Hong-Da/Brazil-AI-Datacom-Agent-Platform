@@ -5,6 +5,10 @@ import { i18n, saveLang, type Lang } from '@/i18n'
 export type Theme = 'auto' | 'light' | 'dark'
 const THEME_KEY = 'lmesh-theme'
 const STYLE_KEY = 'lmesh-term-style'
+const ICONS_KEY = 'lmesh-icon-set'
+/** 设备图标风格（REQ-042）：A 圆柱 cyl、B 几何徽章 geo（默认）、C 线框 line */
+export type IconSetPref = 'cyl' | 'geo' | 'line'
+const ICON_SETS: IconSetPref[] = ['cyl', 'geo', 'line']
 
 function read(key: string, fallback: string): string {
   try { return localStorage.getItem(key) ?? fallback } catch { return fallback }
@@ -21,6 +25,8 @@ export const usePrefs = defineStore('prefs', () => {
   const theme = ref<Theme>(read(THEME_KEY, 'auto') as Theme)
   /** 显示风格（huawei / cisco / nokia）；空表示还没选过，跟随系统默认（/kb/terms 的 default） */
   const termStyle = ref<string>(read(STYLE_KEY, ''))
+  /** 设备图标风格（个人偏好，保存在浏览器本地；默认 B 几何徽章） */
+  const iconSet = ref<IconSetPref>(((s) => (ICON_SETS.includes(s as IconSetPref) ? s : 'geo'))(read(ICONS_KEY, 'geo')) as IconSetPref)
 
   function applyTheme(): void {
     const dark = theme.value === 'dark' || (theme.value === 'auto' && media.matches)
@@ -33,7 +39,8 @@ export const usePrefs = defineStore('prefs', () => {
   watch(theme, (t) => { write(THEME_KEY, t); applyTheme() }, { immediate: true })
   watch(lang, (l) => { i18n.global.locale.value = l; saveLang(l) }, { immediate: true })
   watch(termStyle, (s) => write(STYLE_KEY, s))
-  return { lang, theme, termStyle }
+  watch(iconSet, (s) => write(ICONS_KEY, s))
+  return { lang, theme, termStyle, iconSet }
 })
 
 /** 每个浏览器记住的开关（例如各视图的“显示默认配置”），name 是视图名。 */

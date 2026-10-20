@@ -9,6 +9,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import DevChip from '@/components/m4-dev.vue'
+import ReportAiSummary from '@/components/ai-kb/ReportAiSummary.vue'
+import type { SideSpec } from '@/components/ai-suggest/logic'
 import { errorText, get, post } from '@/api'
 import { useTerms } from '@/stores/terms'
 import { postFile, saveBlob } from '@/views/check/report'
@@ -21,6 +23,7 @@ import { noteText } from '@/i18n/note'
 import { stamp } from './m4/common'
 import { isNokiaMd, vendorKey } from '@/vendor'
 import { takeHandoff } from './m5/ask'
+import IntentPanel from './ai-change/IntentPanel.vue'
 import {
   ACTIONS, EDGE_VAR, REASON, chainOf, changeBody, contextBlock, dependents, edgeOf, fileName, fromQuery, opMap,
   pairRollback, ready, riskOps, rowsOf, toQuery, verifyChecks, viewLines, type ChangeResult, type Filter, type Op,
@@ -103,6 +106,9 @@ const running = ref(false)
 const runError = ref('')
 const result = ref<ChangeResult | null>(null)
 let lastBody: Record<string, unknown> | null = null
+/** M8-5 报告摘要：范围取最近一次生成的当前 / 目标；导出时是否包含 AI 摘要。 */
+const aiBody = ref<{ current: SideSpec; target: SideSpec } | null>(null)
+const incAi = ref(true)
 
 async function run(): Promise<void> {
   if (!canRun.value || running.value) return
@@ -112,6 +118,7 @@ async function run(): Promise<void> {
   try {
     result.value = await post<ChangeResult>('/change', body)
     lastBody = body
+    aiBody.value = { current: body.current as SideSpec, target: body.target as SideSpec }
     sel.value = null
     filter.value = ''
     chainOpen.value = false
@@ -211,7 +218,7 @@ async function report(rl: 'zh-CN' | 'en'): Promise<void> {
   reporting.value = rl
   try {
     const name = `change-${devName.value.replace(/[^\w.@-]+/g, '_')}.${rl}.${reportFmt.value}`
-    const f = await postFile('/change/report', { ...lastBody, report_lang: rl, format: reportFmt.value }, name)
+    const f = await postFile('/change/report', { ...lastBody, report_lang: rl, format: reportFmt.value, include_ai_summary: incAi.value }, name)
     saveBlob(f.blob, f.name)
   } catch (e) {
     flash(t('change.reportFail', { e: errorText(e) }))
@@ -319,6 +326,9 @@ onMounted(async () => {
       <div v-if="runError" class="notice err mt12" data-testid="chg-error"><Icon name="err" /><div class="grow">{{ runError }}</div><button class="btn btn-sm" type="button" @click="run">{{ $t('c.retry') }}</button></div>
       <div v-if="!result && !runError && !running" class="empty mt16" data-testid="chg-empty"><Icon name="branch" /><h3>{{ $t('change.emptyTitle') }}</h3><p>{{ $t('change.emptyText') }}</p></div>
       <div v-if="running && !result" class="empty mt16"><p>{{ $t('c.loading') }}</p></div>
+
+      <!-- ===================== 变更意图转脚本（M8-4，AI） ===================== -->
+      <IntentPanel :device-id="setup.device" :device-name="curDev?.name" />
 
       <!-- ===================== 结果 ===================== -->
       <template v-if="result">
@@ -496,6 +506,7 @@ onMounted(async () => {
             <button class="btn btn-sm" type="button" :disabled="!!reporting" data-testid="chg-report-zh" @click="report('zh-CN')"><Icon name="report" small />{{ $t('change.reportZh') }}</button>
             <button class="btn btn-sm" type="button" :disabled="!!reporting" data-testid="chg-report-en" @click="report('en')"><Icon name="report" small />{{ $t('change.reportEn') }}</button>
           </div>
+          <ReportAiSummary v-model="incAi" kind="change" :params="aiBody" style="margin-top: 10px" />
         </template>
       </template>
     </div>
