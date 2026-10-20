@@ -22,7 +22,7 @@ export default defineConfig({
       stderr: 'pipe',
     },
     {
-      command: `pnpm exec vite --port ${WEB_PORT} --strictPort --host 127.0.0.1`,
+      command: `node node_modules/vite/bin/vite.js --port ${WEB_PORT} --strictPort --host 127.0.0.1`,
       url: `http://127.0.0.1:${WEB_PORT}/`,
       timeout: 120_000,
       reuseExistingServer: false,

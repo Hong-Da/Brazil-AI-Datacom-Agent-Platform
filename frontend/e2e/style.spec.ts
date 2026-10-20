@@ -81,8 +81,13 @@ test('关系图谱：出现圆点，能拖动，点击打开详情', async ({ pa
   const moved = await handle.evaluate((cy: any, id: string) => cy.getElementById(id).position(), p0.id)
   expect(Math.abs(moved.x - p0.model.x) + Math.abs(moved.y - p0.model.y)).toBeGreaterThan(10)
 
-  // 点击圆点打开详情
-  const p1 = await handle.evaluate((cy: any, id: string) => cy.getElementById(id).renderedPosition(), p0.id)
+  // 点击圆点打开详情：先把它放大到视野中央，避免较挤的布局里相邻圆点压在上面
+  const p1 = await handle.evaluate((cy: any, id: string) => {
+    const n = cy.getElementById(id)
+    cy.zoom({ level: Math.max(cy.zoom() * 2, 1.5), renderedPosition: n.renderedPosition() })
+    cy.center(n)
+    return n.renderedPosition()
+  }, p0.id)
   await page.mouse.click(box.x + p1.x, box.y + p1.y)
   await expect(page.getByTestId('node-detail').getByTestId('detail-name')).toHaveAttribute('title', p0.id)
   await page.getByTestId('view-switch').locator('[data-view="tree"]').click()
