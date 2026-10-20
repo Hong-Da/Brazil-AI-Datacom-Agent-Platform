@@ -1837,7 +1837,7 @@ M6-7 实现。预览 `DevelopDocs/ui-preview/REQ-039/`（登录与注册、账�
   - 显示风格：Profile 条目表第一行是当前风格的写法、第二行是规范编号；Schema 视图图上的节点显示当前风格的写法，图例显示当前风格，对比列表加写法；Schema 编辑树的写法更醒目。明暗主题都检查过。
 - 系统设置（REQ-049）：管理员页面 `/settings`（`SettingsView.vue`，导航“系统管理 → 系统设置”）；`GET / PUT /api/v1/settings` 与 `lmesh config get / set` 共用 `core/setup.py` 的 `settings_view`、`check_settings`、`save_settings`（与向导同一份参数定义与校验，端口与正在运行的不同时检查占用）。写入 `config/config.toml`（按参数定义重新生成，注释保留）；监听地址、端口、数据库、知识库目录、日志标“需重启”，保存后与本进程启动时的配置比较列出待重启的项，不自动重启。敏感值、[ai] 接口项（在 AI 接口页管理）、环境变量指定的项只读。记入审计 `settings.update`（只记配置键）。
 - 测试：单元 `tests/unit/test_m97.py`（迁移 0013、偏好校验、测试连接、只读原因、校验汇总、待重启）；接口 `tests/api/test_m97_api.py` 与用例（`setup-ai-test-*`、`settings-*`、`me-prefs-*`）；命令行用例 `config-get*`、`config-set*`；前端单元 `stores/prefs-merge.test.ts`、`views/settings/settings.test.ts`、`views/wizard/wizard.test.ts`；e2e `frontend/e2e/m97.spec.ts`（不闪主界面、语言按钮、换浏览器沿用偏好、风格切换后表格变化、系统设置保存与待重启、普通用户看不到、向导居中与测试连接）。e2e 的 `login()` 先清掉账号里的偏好，各用例仍从浏览器本地值开始。
-- 遗留：`layouts/LangSwitch.vue`、`ThemeSwitch.vue` 已无引用，删除待用户确认（D-0335）。
+- 已删除不再使用的 `layouts/LangSwitch.vue`、`ThemeSwitch.vue`（用户 2026-10-20 同意，D-0335）。
 
 ## 接入 Nokia 7750 SR（REQ-037）
 
