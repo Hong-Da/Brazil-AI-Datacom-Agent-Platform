@@ -45,6 +45,15 @@ def _prepare_device(env: Env, params: dict[str, Any]) -> None:
         raise SuggestError("ai_suggest.device_not_found", "not_found", id=did)
 
 
+def node_label(d: dict[str, Any], nid: str) -> str:
+    """对象在文字里显示的名字：有键用键；没有键（整段功能，例如 mpls ldp、telnet server，内部键为 _）用配置路径。"""
+    key = d.get("key")
+    if key is not None and str(key) not in ("", "_"):
+        return str(key)
+    schema = str(d.get("schema") or "")
+    return schema.replace(".", " ") if schema else nid
+
+
 def _short(v: Any, n: int = 80) -> str:
     t = " ".join(str(v).split())
     return t if len(t) <= n else t[: n - 1] + "…"
@@ -58,7 +67,9 @@ def _summary_build(env: Env, params: dict[str, Any]) -> Context:
     objects: dict[str, dict[str, Any]] = {
         "d1": {"type": "device", "label": dev.name, "device_id": dev.id, "version_id": ver.id}
     }
-    names: set[str] = {dev.name}
+    # 代码交给 AI 的设备信息（厂商、平台、Profile）也是事实，文字里提到不算“图中没有的对象”
+    profile = str(g.graph.get("profile") or dev.profile or "")
+    names: set[str] = {dev.name} | {x for x in (dev.vendor, dev.platform, profile) if x}
     children: dict[str, list[str]] = {}
     top: list[str] = []
     for a, b, d in g.edges(data=True):
@@ -81,7 +92,7 @@ def _summary_build(env: Env, params: dict[str, Any]) -> Context:
         lines = d.get("lines") or []
         objects[ref] = {
             "type": d.get("schema"),
-            "label": d.get("key") if d.get("key") is not None else nid,
+            "label": node_label(d, nid),
             "device": "d1",
             "node": nid,
             "line": lines[0] if lines else None,
@@ -109,8 +120,7 @@ def _summary_build(env: Env, params: dict[str, Any]) -> Context:
         }
     )
     vars_ = {
-        "device": f"d1 | {dev.name} | vendor={dev.vendor} | platform={dev.platform or '-'} | "
-        f"profile={g.graph.get('profile') or dev.profile or '-'}",
+        "device": f"d1 | {dev.name} | vendor={dev.vendor} | platform={dev.platform or '-'} | profile={profile or '-'}",
         "objects": "\n".join(rows) or "(none)",
         "facts": "\n".join(f"{k} = {v}" for k, v in numbers.items()),
         "lang": LANG_NAMES.get(env.lang, "English"),

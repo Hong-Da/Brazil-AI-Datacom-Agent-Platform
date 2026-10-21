@@ -179,14 +179,22 @@ def test_device_summary_and_not_configured(env, monkeypatch: pytest.MonkeyPatch)
     did = next(d["id"] for d in (devs["devices"] if isinstance(devs, dict) else devs) if d["name"] == "ATN-CHANGE-01")
     reply = {
         "suggestions": [
-            {"category": "text_only", "title": "S", "content": {"text": "[[d1]] has <<count.interface>> interfaces."}}
+            {
+                "category": "text_only",
+                "title": "S",
+                "content": {"text": "[[d1]] (huawei-atn-v800r025) has <<count.interface>> interfaces."},
+            }
         ]
     }
     _fake(monkeypatch, json.dumps(reply))
     r = alice.post(f"{P}/ai/suggestions/run", json={"skill": "device-summary", "device_id": did, "wait": True})
     assert r.status_code == 200 and r.json()["data"]["scope_key"] == f"device:{did}"
     lst = alice.get(f"{P}/ai/suggestions", params={"device_id": did}).json()["data"]["items"]
-    assert lst[0]["check"]["display"].startswith("ATN-CHANGE-01 has ") and lst[0]["refs"] == []
+    assert lst[0]["check"]["display"].startswith("ATN-CHANGE-01 (huawei-atn-v800r025) has ") and lst[0]["refs"] == []
+    # 代码交给 AI 的 Profile 不算“图中没有的对象”；没有键的整段功能显示配置路径，不显示 _
+    assert not [x for x in lst[0]["check"].get("reasons", []) if x.get("code") == "unknown_object"]
+    labels = [o["label"] for o in (lst[0].get("facts") or {}).get("objects", {}).values()]
+    assert "_" not in labels
 
 
 def test_not_configured_409(full_kb_root: Path, projects_root: Path) -> None:

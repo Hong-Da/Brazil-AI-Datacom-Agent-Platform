@@ -33,7 +33,15 @@ from lmesh.core.ai_suggest import (
     register_category,
     register_skill,
 )
-from lmesh.core.ai_suggest_skills import LANG_NAMES, MAX_DEVICES, MAX_NAMES, _device_row, _prepare_device, _short
+from lmesh.core.ai_suggest_skills import (
+    LANG_NAMES,
+    MAX_DEVICES,
+    MAX_NAMES,
+    _device_row,
+    _prepare_device,
+    _short,
+    node_label,
+)
 from lmesh.core.store.models import AISuggestion, AISuggestionBatch, ConfigVersion, ViewAnnotation, iso
 
 MAX_ITEMS = 300  # 每次发给 AI 的差异条目、问题、受影响对象的上限
@@ -872,11 +880,10 @@ def _impact_build(env: Env, params: dict[str, Any]) -> Context:
         ref = f"n{len(ref_of) + 1}"
         nd = g.nodes[node] if node in g else {}
         lines = nd.get("lines") or []
-        key = nd.get("key")
         ref_of[node] = ref
         objects[ref] = {
             "type": nd.get("schema") or kind,
-            "label": str(key) if key is not None else node,
+            "label": node_label(nd, node),
             "node": node,
             "device": "d1",
             "line": lines[0] if lines else None,
