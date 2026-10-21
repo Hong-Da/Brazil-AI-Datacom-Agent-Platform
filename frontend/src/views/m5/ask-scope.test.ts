@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { scopeList, scopeVendors, vendorLabel } from './ask-scope'
+import { applyBulk, scopeList, scopeVendors, vendorLabel } from './ask-scope'
 
 const devs = [
   { name: 'SMAIA01-RMP01', vendor: 'cisco', profile: 'cisco-iosxe-asr920-17.15' },
@@ -23,5 +23,12 @@ describe('AI 查询范围（REQ-051）', () => {
   it('厂商显示名首字母大写', () => {
     expect(vendorLabel('huawei')).toBe('Huawei')
     expect(vendorLabel('')).toBe('')
+  })
+  it('全选、清空、反选只作用于筛出来的设备', () => {
+    const scope = ['A', 'B', 'X']
+    expect(applyBulk(scope, ['A', 'C'], 'all').sort()).toEqual(['A', 'B', 'C', 'X'])
+    expect(applyBulk(scope, ['A', 'C'], 'none').sort()).toEqual(['B', 'X'])
+    expect(applyBulk(scope, ['A', 'C'], 'invert').sort()).toEqual(['B', 'C', 'X'])
+    expect(applyBulk([], ['A'], 'invert')).toEqual(['A'])
   })
 })

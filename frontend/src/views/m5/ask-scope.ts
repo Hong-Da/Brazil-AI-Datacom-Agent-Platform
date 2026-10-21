@@ -20,3 +20,15 @@ export function scopeList<T extends Pick<Device, 'name' | 'vendor' | 'profile'>>
 export function vendorLabel(v: string): string {
   return v ? v.charAt(0).toUpperCase() + v.slice(1) : v
 }
+
+export type BulkOp = 'all' | 'none' | 'invert'
+
+/** 全选 / 清空 / 反选（REQ-051 评审）：只作用于 targets（筛出来的可查询设备），其他已选的保持不变。 */
+export function applyBulk(scope: string[], targets: string[], op: BulkOp): string[] {
+  const t = new Set(targets)
+  const kept = scope.filter((n) => !t.has(n))
+  if (op === 'none') return kept
+  if (op === 'all') return [...kept, ...targets]
+  const cur = new Set(scope)
+  return [...kept, ...targets.filter((n) => !cur.has(n))]
+}

@@ -125,7 +125,7 @@ test('AI 查询（未配置 AI）：降级说明 + 校验粘贴的配置（拦�
   expect(errors).toEqual([])
 })
 
-test('AI 查询（REQ-051）：范围按网络、只存原文的设备置灰、顶部说明可折叠并随账号记住', async ({ page }) => {
+test('AI 查询（REQ-051）：范围按网络、反选、隐藏或置灰只存原文的设备、顶部说明可折叠并随账号记住', async ({ page }) => {
   const errors = collectErrors(page)
   await login(page)
   await page.route('**/api/v1/ask/status', (r) => r.fulfill({ json: { code: 0, message: 'ok', data: FIX.status } }))
@@ -145,8 +145,14 @@ test('AI 查询（REQ-051）：范围按网络、只存原文的设备置灰、�
   await page.getByTestId('ask-input').fill('哪些接口没有描述？')
   await page.getByTestId('ask-scope-clear').click()
   await expect(page.getByTestId('ask-submit')).toBeDisabled()
-  await page.getByTestId('ask-scope-all').click()
+  await page.getByTestId('ask-scope-invert').click()
+  await expect(page.getByTestId('ask-scope-dev-901')).toHaveAttribute('aria-pressed', 'true')
   await expect(page.getByTestId('ask-submit')).toBeEnabled()
+  // 隐藏只存原文的设备
+  await page.getByTestId('ask-scope-hide-raw').check()
+  await expect(page.getByTestId('ask-scope-raw-902')).toHaveCount(0)
+  await page.getByTestId('ask-scope-hide-raw').uncheck()
+  await expect(page.getByTestId('ask-scope-raw-902')).toBeDisabled()
   // 顶部说明收起后刷新仍收起（随账号保存），再展开
   await page.getByTestId('ask-intro-fold').click()
   await expect(page.getByTestId('ask-on')).toHaveClass(/is-folded/)

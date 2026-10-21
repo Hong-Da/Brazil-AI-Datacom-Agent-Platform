@@ -17,9 +17,9 @@ import { useStatus } from '@/stores/status'
 import { useTerms } from '@/stores/terms'
 import { useProject } from '@/stores/project'
 import { useNetwork } from '@/stores/network'
-import { usePrefs } from '@/stores/prefs'
+import { rememberedFlag, usePrefs } from '@/stores/prefs'
 import { colorClass, netName, type NetRow } from '@/views/networks/logic'
-import { scopeList, scopeVendors, vendorLabel } from './m5/ask-scope'
+import { applyBulk, scopeList, scopeVendors, vendorLabel, type BulkOp } from './m5/ask-scope'
 import type { Device } from '@/views/devices/logic'
 import GuardResult from './m5/GuardResult.vue'
 import AiFeedback from '@/components/ai-feedback.vue'
@@ -96,7 +96,14 @@ const SCOPE_CLAMP = 14
 const usable = computed(() => netDevices.value.filter((d) => !!d.profile))
 const rawCount = computed(() => netDevices.value.length - usable.value.length)
 const vendors = computed(() => scopeVendors(usable.value))
-const shownDevices = computed(() => scopeList(netDevices.value, scopeQ.value, scopeVendor.value))
+/** 隐藏只存原文的设备（REQ-051 评审，本浏览器记住） */
+const hideRaw = rememberedFlag('ask-hide-raw')
+const shownDevices = computed(() => scopeList(hideRaw.value ? usable.value : netDevices.value, scopeQ.value, scopeVendor.value))
+/** 全选 / 清空 / 反选作用的设备：筛出来的可查询设备（没有筛选时就是全部） */
+const bulkTargets = computed(() => shownDevices.value.filter((d) => !!d.profile).map((d) => d.name))
+const bulkAllOn = computed(() => bulkTargets.value.every((n) => scope.value.includes(n)))
+const bulkNoneOn = computed(() => !bulkTargets.value.some((n) => scope.value.includes(n)))
+function bulk(op: BulkOp): void { scope.value = applyBulk(scope.value, bulkTargets.value, op) }
 const clamped = computed(() => !scopeOpen.value && !scopeQ.value.trim() && shownDevices.value.length > SCOPE_CLAMP)
 const curNet = computed(() => nets.value.find((n) => n.slug === scopeNet.value) ?? null)
 const netLabel = (n: NetRow) => netName(n, t('net.defaultName'))
@@ -298,24 +305,26 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
                 </label>
                 <span class="sumtag" data-testid="ask-scope-sum">{{ $t('ask.scopeSel', { n: scope.length, m: usable.length }) }}</span>
                 <span class="grow" />
-                <button class="link-btn small" type="button" :disabled="allScope" data-testid="ask-scope-all" @click="scope = usable.map((d) => d.name)">{{ $t('ask.scopeSelAll') }}</button>
-                <button class="link-btn small" type="button" :disabled="!scope.length" data-testid="ask-scope-clear" @click="scope = []">{{ $t('ask.scopeClear') }}</button>
+                <button class="link-btn small" type="button" :disabled="!bulkTargets.length || bulkAllOn" data-testid="ask-scope-all" @click="bulk('all')">{{ $t('ask.scopeSelAll') }}</button>
+                <button class="link-btn small" type="button" :disabled="!bulkTargets.length" data-testid="ask-scope-invert" @click="bulk('invert')">{{ $t('ask.scopeInvert') }}</button>
+                <button class="link-btn small" type="button" :disabled="!bulkTargets.length || bulkNoneOn" data-testid="ask-scope-clear" @click="bulk('none')">{{ $t('ask.scopeClear') }}</button>
               </div>
-              <div v-if="netDevices.length > 6" class="scope-tools">
+              <div v-if="netDevices.length > 6 || rawCount" class="scope-tools">
                 <label class="input-wrap"><Icon name="search" small /><input v-model="scopeQ" class="input" type="search" :placeholder="$t('ask.scopeFilter')" data-testid="ask-scope-q"></label>
                 <div v-if="vendors.length > 1" class="seg" role="group" data-testid="ask-scope-vendor">
                   <button type="button" :aria-pressed="scopeVendor === ''" @click="scopeVendor = ''">{{ $t('ask.scopeVendorAll') }}</button>
                   <button v-for="v in vendors" :key="v" type="button" :aria-pressed="scopeVendor === v" :data-v="v" @click="scopeVendor = v">{{ vendorLabel(v) }}</button>
                 </div>
+                <label v-if="rawCount" class="check small"><input v-model="hideRaw" type="checkbox" data-testid="ask-scope-hide-raw"> {{ $t('ask.hideRaw', { n: rawCount }) }}</label>
               </div>
-              <div class="chips" :class="{ 'is-clamped': clamped }">
+              <div class="chips" :class="{ 'is-clamped': clamped, 'is-stable': netDevices.length > SCOPE_CLAMP }">
                 <template v-for="d in shownDevices" :key="d.id">
                   <button v-if="!d.profile" type="button" class="scopechip is-raw" disabled :title="$t('ask.rawOnlyTip')" :data-testid="`ask-scope-raw-${d.id}`"><DevChip :name="d.name" :vendor="d.vendor" /><span class="rawtag">{{ $t('ask.rawOnly') }}</span></button>
                   <button v-else type="button" class="scopechip" :aria-pressed="scope.includes(d.name)" :data-testid="`ask-scope-dev-${d.id}`" @click="toggleScope(d.name)"><DevChip :name="d.name" :vendor="d.vendor" /></button>
                 </template>
                 <span v-if="!shownDevices.length" class="small faint">{{ netDevices.length ? $t('ask.scopeNoMatch') : $t('ask.scopeNoDevices') }}</span>
               </div>
-              <div v-if="!scopeQ.trim() && shownDevices.length > SCOPE_CLAMP" class="chips-more"><button class="link-btn small" type="button" data-testid="ask-scope-more" @click="scopeOpen = !scopeOpen">{{ scopeOpen ? $t('ask.scopeLess') : $t('ask.scopeMore', { n: shownDevices.length }) }}</button></div>
+              <div v-if="netDevices.length > SCOPE_CLAMP" class="chips-more"><button v-show="!scopeQ.trim() && shownDevices.length > SCOPE_CLAMP" class="link-btn small" type="button" data-testid="ask-scope-more" @click="scopeOpen = !scopeOpen">{{ scopeOpen ? $t('ask.scopeLess') : $t('ask.scopeMore', { n: shownDevices.length }) }}</button></div>
               <div class="scope-note small faint"><template v-if="rawCount"><Icon name="info" small />{{ $t('ask.rawNote', { n: rawCount }) }} </template>{{ $t('ask.latestNote') }}</div>
             </div>
             <div v-if="!turns.length" class="empty" style="padding: 36px 16px"><Icon name="chat" /><h3>{{ $t('ask.emptyTitle') }}</h3><p>{{ $t('ask.emptyText') }}</p></div>
@@ -567,8 +576,10 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
 .scope-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 0 14px 10px; }
 .scope-tools .input-wrap { flex: 1; min-width: 180px; max-width: 300px; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
+.chips.is-stable { min-height: 64px; align-content: flex-start; }
+.scope-tools .check { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); cursor: pointer; }
 .chips.is-clamped { max-height: 64px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 65%, transparent); mask-image: linear-gradient(#000 65%, transparent); }
-.chips-more { display: flex; justify-content: center; padding: 0 14px 8px; }
+.chips-more { display: flex; justify-content: center; padding: 0 14px 8px; min-height: 26px; }
 .scope-note { display: flex; gap: 6px; align-items: center; padding: 0 14px 10px; }
 .scopechip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-strong); border-radius: 5px; background: var(--surface); padding: 2px 6px; cursor: pointer; font: inherit; color: var(--ink); }
 .scopechip[aria-pressed="false"] { opacity: .5; border-style: dashed; }
