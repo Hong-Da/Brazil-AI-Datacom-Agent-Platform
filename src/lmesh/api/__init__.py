@@ -12,7 +12,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from lmesh import __version__, paths
 from lmesh.api import scoping
-from lmesh.api.common import E_INTERNAL, E_NOT_FOUND, E_PARAM, ApiError, error_response
+from lmesh.api.common import E_INTERNAL, E_NOT_FOUND, E_PARAM, ApiError, error_response, project_error
 from lmesh.api.routes_ai import admin as ai_admin_router
 from lmesh.api.routes_ai import router as ai_router
 from lmesh.api.routes_ai_change import router as ai_change_router
@@ -33,6 +33,9 @@ from lmesh.api.routes_export import router as export_router
 from lmesh.api.routes_features import router as features_router
 from lmesh.api.routes_graph import router as graph_router
 from lmesh.api.routes_history import router as history_router
+from lmesh.api.routes_joining import admin as joining_admin_router
+from lmesh.api.routes_joining import project as joining_project_router
+from lmesh.api.routes_joining import router as joining_router
 from lmesh.api.routes_kb import router as kb_router
 from lmesh.api.routes_migrate import router as migrate_router
 from lmesh.api.routes_models import router as models_router
@@ -52,7 +55,7 @@ from lmesh.api.routes_topology import router as topology_router
 from lmesh.api.routes_translate import router as translate_router
 from lmesh.api.routes_translate_rules import router as translate_rules_router
 from lmesh.api.routes_workbench import router as workbench_router
-from lmesh.core import config
+from lmesh.core import config, projects
 
 API_PREFIX = "/api/v1"
 _log = logging.getLogger("lmesh.api")
@@ -80,10 +83,17 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     app.state.settings = settings or config.load()
     app.state.listen_host = listen_host or app.state.settings.get("server.host")
     app.state.boot_settings = app.state.settings  # 启动时的配置：系统设置页据此判断哪些修改要重启后才生效（REQ-049）
+    # 创建项目的总开关（M9-8，REQ-050）：core 判断权限时用；保存设置时随之更新
+    projects.set_create_open(bool(app.state.settings.get("auth.user_create_projects")))
 
     @app.exception_handler(ApiError)
     async def _api_error(request: Request, exc: ApiError) -> JSONResponse:
         return error_response(request, exc)
+
+    @app.exception_handler(projects.ProjectError)
+    async def _project_error(request: Request, exc: projects.ProjectError) -> JSONResponse:
+        # 守卫或延迟解析默认项目时的项目错误（例如没有项目也不能创建项目：projects.no_project → 409）
+        return error_response(request, project_error(exc))
 
     @app.exception_handler(RequestValidationError)
     async def _validation(request: Request, exc: RequestValidationError) -> JSONResponse:
@@ -134,6 +144,9 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     scoping.mount(app, projects_router, API_PREFIX, "projects")
     scoping.mount(app, projects_admin_router, API_PREFIX, "projects")
     scoping.mount(app, project_router, API_PREFIX, "projects", project_only=True)
+    scoping.mount(app, joining_router, API_PREFIX, "projects")
+    scoping.mount(app, joining_admin_router, API_PREFIX, "projects")
+    scoping.mount(app, joining_project_router, API_PREFIX, "projects", project_only=True)
     scoping.mount(app, networks_router, API_PREFIX, "networks", project_only=True)
     scoping.mount(app, ai_suggest_router, API_PREFIX, "ai-suggestions", project_only=True)
     scoping.mount(app, ai_change_router, API_PREFIX, "ai-suggestions", project_only=True)

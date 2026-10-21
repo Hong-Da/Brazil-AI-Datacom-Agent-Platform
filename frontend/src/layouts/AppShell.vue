@@ -11,6 +11,7 @@ import { useStatus } from '@/stores/status'
 import { useTerms } from '@/stores/terms'
 import { useAuth } from '@/stores/auth'
 import { useProject } from '@/stores/project'
+import { useNotify } from '@/stores/notify'
 import ProjectSwitcher from '@/components/project-switcher.vue'
 import NetworkSwitcher from '@/components/network-switcher.vue'
 import { useNetwork } from '@/stores/network'
@@ -27,12 +28,13 @@ const router = useRouter()
 const auth = useAuth()
 const project = useProject()
 const network = useNetwork()
+const notify = useNotify()
 const { t } = useI18n()
 
 interface Item { name: string; icon: string; count?: () => number | undefined; tone?: string; ai?: boolean }
 // proj：这一组是当前项目的页面（网址带 /p/<项目>/，REQ-035）；net：按网络的页面（M9，网址带 /n/<网络>/，评审预览的导航分组）
 const NAV: { g: string; s: string; admin?: boolean; proj?: boolean; net?: boolean; items: Item[] }[] = [
-  { g: 'home', s: 'home', items: [{ name: 'dashboard', icon: 'home' }, { name: 'projects', icon: 'folders' }, { name: 'ask', icon: 'spark', ai: true }] },
+  { g: 'home', s: 'home', items: [{ name: 'dashboard', icon: 'home' }, { name: 'projects', icon: 'folders', count: () => notify.data?.join_requests || undefined, tone: 'amber' }, { name: 'discover', icon: 'search' }, { name: 'ask', icon: 'spark', ai: true }] },
   {
     g: 'pool', s: 'dev', proj: true, items: [
       { name: 'devices', icon: 'server' },
@@ -69,7 +71,7 @@ const NAV: { g: string; s: string; admin?: boolean; proj?: boolean; net?: boolea
       { name: 'releases', icon: 'tag' },
     ],
   },
-  { g: 'sys', s: 'sys', admin: true, items: [{ name: 'public-devices', icon: 'db' }, { name: 'all-projects', icon: 'folders' }, { name: 'ai-settings', icon: 'spark' }, { name: 'ai-skills', icon: 'skill' }, { name: 'users', icon: 'users' }, { name: 'settings', icon: 'gear' }] },
+  { g: 'sys', s: 'sys', admin: true, items: [{ name: 'public-devices', icon: 'db' }, { name: 'all-projects', icon: 'folders' }, { name: 'ai-settings', icon: 'spark' }, { name: 'ai-skills', icon: 'skill' }, { name: 'users', icon: 'users', count: () => notify.data?.create_requests || undefined, tone: 'amber' }, { name: 'settings', icon: 'gear' }] },
 ]
 const THEMES: { v: Theme; icon: string }[] = [
   { v: 'auto', icon: 'monitor' },
@@ -87,7 +89,7 @@ function navTo(name: string, proj?: boolean): RouteLocationRaw {
   return project.ref ? { name, params: { project: project.ref } } : { name }
 }
 // 同一项导航对应的其他页面（清理属于检查、脚本编辑器属于项目脚本、单个 skill 属于 skill 列表）
-const ALIAS: Record<string, string> = { cleanup: 'check', 'check-project': 'scripts', 'ai-skill': 'ai-skills', 'add-device': 'devices', 'ai-connection': 'ai-settings', 'network-suggest': 'networks' }
+const ALIAS: Record<string, string> = { invite: 'projects', cleanup: 'check', 'check-project': 'scripts', 'ai-skill': 'ai-skills', 'add-device': 'devices', 'ai-connection': 'ai-settings', 'network-suggest': 'networks' }
 const current = computed(() => ALIAS[basePage(route.name)] ?? basePage(route.name))
 
 // M9：当前网络（导航带、范围条）。网络层网址 → 该网络；项目层的按网络页面 → “全部设备”；其他页面沿用上次的网络
@@ -130,6 +132,7 @@ function closeMenu(): void { menuOpen.value = false }
 async function signOut(): Promise<void> {
   closeMenu()
   await auth.logout()
+  notify.reset()
   await router.replace({ name: 'login' })
   project.reset() // 离开项目页面后再清掉，免得页面上的链接在跳转前缺项目参数
 }
@@ -142,7 +145,11 @@ onBeforeUnmount(() => { document.removeEventListener('click', onDocClick); docum
 watch(() => route.fullPath, closeMenu)
 
 onMounted(() => { status.refresh(); void terms.load() })
-watch(() => route.name, () => { status.refresh(); void terms.load() })
+watch(() => route.name, () => { status.refresh(); void terms.load(); void notify.refresh() })
+// 导航上等我处理的申请数（M9-8）：进入外壳时与换页面时刷新，另每分钟刷新一次
+let notifyTimer: ReturnType<typeof setInterval> | null = null
+onMounted(() => { void notify.refresh(); notifyTimer = setInterval(() => void notify.refresh(), 60_000) })
+onBeforeUnmount(() => { if (notifyTimer) clearInterval(notifyTimer) })
 // 知识库发布 / 回滚后术语表可能变化
 watch(() => status.summary?.kb.version, (v, old) => { if (old && v !== old) void terms.load(true) })
 </script>

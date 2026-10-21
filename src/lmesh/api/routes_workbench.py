@@ -15,6 +15,7 @@ from lmesh.api.common import (
     ApiError,
     lang_of,
     ok,
+    projects_policy,
     require_admin,
     require_token,
     settings_of,
@@ -321,4 +322,5 @@ def ai_settings_put(request: Request, body: AISettingsBody) -> dict[str, Any]:
         raise ApiError(E_PARAM, 422, data={"error": str(e)}) from e
     if new is not None:
         request.app.state.settings = new
+        projects_policy(new)
     return ok(request, workbench.ai_settings(settings_of(request)))

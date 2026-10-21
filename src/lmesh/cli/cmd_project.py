@@ -1,6 +1,7 @@
 """项目、个人令牌、公共设备库命令（M6，REQ-035 / REQ-036）。
 
 - lmesh project list|show|create|delete|members|transfer|copy|default|ref
+- 加入项目与创建权限（M9-8）：见 cmd_joining
 - lmesh token create|list|revoke
 - lmesh public-device list|import|delete（管理员维护的公共设备库）
 命令行直接操作本机数据库，权限等同管理员；--as <账号> 决定以谁的身份（默认项目、新建项目与令牌的属主），
@@ -157,7 +158,7 @@ def cmd_members(
     ctx: typer.Context,
     project: Annotated[str, typer.Argument(help="项目")],
     add: Annotated[str | None, typer.Option("--add", help="邀请的账号（已是成员时改角色）")] = None,
-    role: Annotated[str, typer.Option("--role", help="edit | read")] = "read",
+    role: Annotated[str, typer.Option("--role", help="manage | edit | read")] = "read",
     remove: Annotated[str | None, typer.Option("--remove", help="移除的账号")] = None,
 ) -> None:
     c = output.get(ctx)
@@ -183,7 +184,9 @@ def cmd_transfer(
     ctx: typer.Context,
     project: Annotated[str, typer.Argument(help="项目")],
     to: Annotated[str, typer.Argument(help="新属主账号")],
-    keep_as: Annotated[str, typer.Option("--keep-as", help="原属主留作成员的角色：edit | read | none")] = "edit",
+    keep_as: Annotated[
+        str, typer.Option("--keep-as", help="原属主留作成员的角色：manage | edit | read | none")
+    ] = "edit",
     slug: Annotated[str | None, typer.Option("--slug", help="同时改标识（新属主已有同名项目时必须给）")] = None,
 ) -> None:
     c = output.get(ctx)

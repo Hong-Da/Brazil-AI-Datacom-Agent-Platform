@@ -58,8 +58,14 @@ export function projectsCsv(rows: ProjectRow[], head: string[]): string {
 export interface AuditEvent { id: number; at: string; actor: string; project: string | null; project_id: number | null; action: string; detail: { method?: string; path?: string; [k: string]: unknown } | null }
 
 /** 审计事件的动作：已知的 enter / write / transfer / delete，其他原样显示。 */
-export function auditAction(a: string): 'enter' | 'write' | 'transfer' | 'delete' | null {
-  return a === 'enter' || a === 'write' || a === 'transfer' || a === 'delete' ? a : null
+/** 有文案的审计动作（M9-8 加入项目与创建权限的动作另见 JOIN_ACTIONS）；其他动作原样显示。 */
+export const JOIN_ACTIONS = [
+  'create.request', 'create.cancel', 'create.grant', 'create.revoke', 'create.decline',
+  'join.request', 'join.cancel', 'join.approve', 'join.decline',
+  'invite.create', 'invite.revoke', 'invite.join', 'project.discoverable',
+] as const
+export function auditAction(a: string): string | null {
+  return a === 'enter' || a === 'write' || a === 'transfer' || a === 'delete' || (JOIN_ACTIONS as readonly string[]).includes(a) ? a : null
 }
 
 /** 审计事件的说明：方法与路由（不含请求内容）。 */

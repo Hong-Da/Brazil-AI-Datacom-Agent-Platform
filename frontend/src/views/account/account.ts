@@ -16,6 +16,8 @@ export interface UserRow {
   projects?: number
   /** 有效的个人 API 令牌数（M6） */
   tokens?: number
+  /** 单独授权创建项目（M9-8） */
+  can_create_projects?: boolean
   /** active 正常 / pending 自助注册后待审核（REQ-039） */
   status?: 'active' | 'pending'
   /** admin 管理员建 / register 自助注册（REQ-039） */

@@ -3,9 +3,13 @@
 三层：系统（知识库、公共设备库，管理员维护）→ 用户工作空间（每个账号一个：默认项目、我的模板、我的规则集）→ 项目
 （私有设备与对公共设备的引用、脚本、检查忽略项、规则调整、项目设置）。
 
-项目角色：owner 属主 / edit 可编辑成员 / read 只读成员 / admin（管理员访问不是自己参与的项目，完全权限，写审计）。
-属主与可编辑成员可以修改项目内的数据与项目设置（D-0176）；成员管理、转交、删除只限属主与管理员。不是成员的普通账号
-看不到项目（返回“不存在”，不暴露项目是否存在）。
+项目角色：owner 属主 / manage 管理成员（M9-8）/ edit 可编辑成员 / read 只读成员 / admin（管理员访问不是自己参与的
+项目，完全权限，写审计）。属主、管理成员与可编辑成员可以修改项目内的数据与项目设置（D-0176）；成员管理、加入申请的
+审批、邀请链接、“可被搜索”限属主、管理成员与管理员（can_manage）；删除、转交、改标识只限属主与管理员（can_own）。
+不是成员的普通账号看不到项目（返回“不存在”，不暴露项目是否存在）。
+
+创建项目（M9-8，REQ-050）：管理员始终可以；普通账号要么系统设置“普通用户可以创建项目”打开，要么管理员单独授权
+（users.can_create_projects）。不能创建的账号不自动建默认项目，已有的项目照常使用。
 
 当前项目（Scope）放在上下文变量里：API 的项目路径依赖、旧的无项目接口（落到调用者的默认项目）与命令行（--project，
 不带时默认项目）设置它；设备列表、最新版本、版本访问、忽略项、检查规则调整等按它过滤。没有设置时（单元测试直接调用
@@ -46,6 +50,8 @@ from lmesh.core.store.models import (
     Node,
     Project,
     ProjectDeviceRef,
+    ProjectInvite,
+    ProjectJoinRequest,
     ProjectMember,
     ProjectRuleOverride,
     UnknownLine,
@@ -55,7 +61,7 @@ from lmesh.core.store.models import (
 )
 
 SLUG_RE = re.compile(r"^[a-z0-9][a-z0-9-]{1,63}$")
-MEMBER_ROLES = ("edit", "read")
+MEMBER_ROLES = ("manage", "edit", "read")
 SEVERITIES = ("error", "warning", "info")
 STYLES = ("huawei", "cisco", "nokia")
 # 项目设置的默认值：style 显示风格（空 = 按设备自动）、rule_set 翻译规则集（空 = 不用）、baseline 安全基线（空 = 不用）
@@ -124,10 +130,16 @@ class Scope:
 
     @property
     def can_write(self) -> bool:
-        return self.role in ("owner", "edit", "admin")
+        return self.role in ("owner", "manage", "edit", "admin")
 
     @property
     def can_manage(self) -> bool:
+        """成员与加入申请、邀请链接、可被搜索：属主、管理成员、管理员。"""
+        return self.role in ("owner", "manage", "admin")
+
+    @property
+    def can_own(self) -> bool:
+        """删除、转交、改标识：只限属主与管理员。"""
         return self.role in ("owner", "admin")
 
 
@@ -573,7 +585,48 @@ def require_write(scope: Scope) -> None:
 
 def require_manage(scope: Scope) -> None:
     if not scope.can_manage:
+        raise ProjectError("projects.manager_only", "forbidden", project=scope.label)
+
+
+def require_own(scope: Scope) -> None:
+    if not scope.can_own:
         raise ProjectError("projects.owner_only", "forbidden", project=scope.label)
+
+
+# ---------------------------------------------------------------- 创建项目的权限（M9-8，REQ-050）
+
+# 系统设置“普通用户可以创建项目”（auth.user_create_projects）：API 启动与保存设置时、命令行启动时设置；
+# 没有设置时（直接调用 core 的场合）读配置文件
+_CREATE_OPEN: bool | None = None
+
+
+def set_create_open(value: bool | None) -> None:
+    global _CREATE_OPEN
+    _CREATE_OPEN = None if value is None else bool(value)
+
+
+def create_open() -> bool:
+    if _CREATE_OPEN is not None:
+        return _CREATE_OPEN
+    from lmesh.core import config
+
+    try:
+        return bool(config.load().get("auth.user_create_projects"))
+    except Exception:  # noqa: BLE001  配置读不到时按默认值（关）
+        return False
+
+
+def can_create(s: Any, ident: Identity) -> bool:
+    """能否新建项目：全局令牌与没有账号的命令行、管理员始终可以；普通账号看总开关或单独授权。"""
+    if ident.user_id is None or ident.is_admin or create_open():
+        return True
+    u = s.get(User, ident.user_id)
+    return bool(u is not None and u.can_create_projects)
+
+
+def require_create(s: Any, ident: Identity) -> None:
+    if not can_create(s, ident):
+        raise ProjectError("projects.create_forbidden", "forbidden")
 
 
 # ---------------------------------------------------------------- 默认项目与工作空间
@@ -651,7 +704,17 @@ def _ensure_default(s: Any, ident: Identity) -> Project:
         p = s.scalar(
             select(Project).where(Project.owner_id == ident.user_id).order_by(Project.created_at, Project.id).limit(1)
         )
+        if p is None:  # 没有自己的项目：先用加入的第一个项目（M9-8）
+            p = s.scalar(
+                select(Project)
+                .join(ProjectMember, ProjectMember.project_id == Project.id)
+                .where(ProjectMember.user_id == ident.user_id)
+                .order_by(ProjectMember.created_at, ProjectMember.id)
+                .limit(1)
+            )
         if p is None:
+            if not can_create(s, ident):  # 不能创建项目的账号不自动建默认项目（M9-8，REQ-050）
+                raise ProjectError("projects.no_project", "state")
             p = Project(
                 slug=_free_slug(s, "default", ident.user_id),  # 标识按属主唯一：每个人的默认项目都可以叫 default
                 name=DEFAULT_NAME,
@@ -675,10 +738,21 @@ def cli_identity(db_url: str, username: str | None = None) -> Identity:
 
 
 def default_project(db_url: str, ident: Identity) -> dict[str, Any]:
-    """调用者的默认项目（不存在时自动创建）：命令行不带 --project、旧的无项目接口都用它。"""
+    """调用者的默认项目（不存在时自动创建）：命令行不带 --project、旧的无项目接口都用它。
+    没有任何项目、也不能创建项目的账号：ProjectError（projects.no_project，state）。"""
     with store.session(db_url) as s:
         p = _ensure_default(s, ident)
         return {"id": p.id, "slug": p.slug, "ref": ref_of(s, p, ident)}
+
+
+def default_project_or_none(db_url: str, ident: Identity) -> dict[str, Any] | None:
+    """同 default_project；没有项目也不能创建时返回 None（注册、批准账号、工作空间页用）。"""
+    try:
+        return default_project(db_url, ident)
+    except ProjectError as e:
+        if e.key == "projects.no_project":
+            return None
+        raise
 
 
 def default_scope(db_url: str, ident: Identity) -> Scope:
@@ -780,6 +854,7 @@ def project_dict(
         "member_names": [m["username"] for m in members],
         "settings": _settings(p),
         "migrated_from": p.migrated_from,
+        "discoverable": bool(p.discoverable),
         "last_activity": p.last_activity,
         "counts": _counts(s, p),
         "created_at": iso(p.created_at),
@@ -862,6 +937,7 @@ def create_project(db_url: str, ident: Identity, data: dict[str, Any]) -> dict[s
     """新建项目：属主是调用者（全局令牌与没有账号的命令行建的项目属于第一个管理员）；标识在属主的项目里唯一。"""
     name = _validate_name(data.get("name"))
     with store.session(db_url) as s:
+        require_create(s, ident)
         owner_id = _home_owner(s, ident)
         slug = _validate_slug(data["slug"]) if data.get("slug") else _free_slug(s, name, owner_id)
         if slug_taken(s, owner_id, slug):
@@ -872,6 +948,7 @@ def create_project(db_url: str, ident: Identity, data: dict[str, Any]) -> dict[s
             description=str(data.get("description") or "")[:4000],
             owner_id=owner_id,
             settings=_validate_settings(data.get("settings")),
+            discoverable=bool(data.get("discoverable") or False),
             last_activity={"actor": ident.username, "action": "create", "at": iso(_now())},
         )
         s.add(p)
@@ -885,13 +962,17 @@ def create_project(db_url: str, ident: Identity, data: dict[str, Any]) -> dict[s
 
 
 def update_project(db_url: str, scope: Scope, data: dict[str, Any]) -> dict[str, Any]:
-    """改名称、说明、设置（属主与可编辑成员）；改标识只限属主与管理员。"""
+    """改名称、说明、设置（属主、管理与可编辑成员）；改标识只限属主与管理员；“可被搜索”限属主、管理成员与管理员。"""
     require_write(scope)
+    changed_disc = None
     with store.session(db_url) as s:
         p = s.get(Project, scope.project_id)
         assert p is not None
-        if "slug" in data and data["slug"] and data["slug"] != p.slug:
+        if data.get("discoverable") is not None and bool(data["discoverable"]) != bool(p.discoverable):
             require_manage(scope)
+            p.discoverable = changed_disc = bool(data["discoverable"])
+        if "slug" in data and data["slug"] and data["slug"] != p.slug:
+            require_own(scope)
             slug = _validate_slug(data["slug"])
             if slug_taken(s, p.owner_id, slug, ignore=p.id):
                 owner = s.get(User, p.owner_id) if p.owner_id else None
@@ -913,7 +994,10 @@ def update_project(db_url: str, scope: Scope, data: dict[str, Any]) -> dict[str,
             p.settings = {**(p.settings or {}), **_validate_settings(data["settings"])}
         p.updated_at = _now()
         s.flush()
-        return project_dict(s, p, scope.role, full=True, ident=scope.identity)
+        out = project_dict(s, p, scope.role, full=True, ident=scope.identity)
+    if changed_disc is not None:
+        audit(db_url, scope.identity, scope.project_id, out["slug"], "project.discoverable", {"on": changed_disc})
+    return out
 
 
 # ---------------------------------------------------------------- 删除项目
@@ -969,7 +1053,7 @@ def delete_preview(db_url: str, scope: Scope) -> dict[str, Any]:
 
 def delete_project(db_url: str, scope: Scope, confirm: str | None = None) -> dict[str, Any]:
     """删除项目：私有设备与它们的全部版本一起删除（D-0173），引用的公共设备只解除引用；confirm 必须等于项目标识。"""
-    require_manage(scope)
+    require_own(scope)
     if confirm is not None and confirm != scope.slug:
         raise ProjectError("projects.confirm_mismatch", slug=scope.slug)
     info = delete_preview(db_url, scope)
@@ -983,7 +1067,14 @@ def delete_project(db_url: str, scope: Scope, confirm: str | None = None) -> dic
                 s.execute(delete(CheckRevision).where(CheckRevision.script_id.in_(sids)))
                 s.execute(delete(CheckScript).where(CheckScript.id.in_(sids)))
             s.execute(delete(CheckProject).where(CheckProject.id.in_(cps)))
-        for model in (ProjectDeviceRef, ProjectMember, ProjectRuleOverride, CheckIgnore):
+        for model in (
+            ProjectDeviceRef,
+            ProjectMember,
+            ProjectRuleOverride,
+            CheckIgnore,
+            ProjectJoinRequest,
+            ProjectInvite,
+        ):
             s.execute(delete(model).where(model.project_id == scope.project_id))  # type: ignore[attr-defined]
         s.execute(
             update(Workspace).where(Workspace.default_project_id == scope.project_id).values(default_project_id=None)
@@ -1008,7 +1099,7 @@ def list_members(db_url: str, scope: Scope) -> list[dict[str, Any]]:
 
 
 def set_member(db_url: str, scope: Scope, username: str, role: str) -> dict[str, Any]:
-    """邀请成员或改成员角色（属主与管理员）。"""
+    """邀请成员或改成员角色（属主、管理成员与管理员）。"""
     require_manage(scope)
     if role not in MEMBER_ROLES:
         raise ProjectError("projects.bad_member_role", role=role)
@@ -1032,7 +1123,7 @@ def set_member(db_url: str, scope: Scope, username: str, role: str) -> dict[str,
 
 
 def remove_member(db_url: str, scope: Scope, username: str) -> dict[str, Any]:
-    """移除成员（属主与管理员）；成员自己退出项目也走这里。"""
+    """移除成员（属主、管理成员与管理员）；成员自己退出项目也走这里。"""
     self_leave = scope.identity.username.lower() == username.lower() and scope.role in MEMBER_ROLES
     if not self_leave:
         require_manage(scope)
@@ -1061,10 +1152,10 @@ def transfer(
     new_slug: str | None = None,
     auto_rename: bool = False,
 ) -> dict[str, Any]:
-    """把项目转交给其他账号（属主与管理员）。原属主默认留作可编辑成员（keep_as 为空时退出）；
+    """把项目转交给其他账号（属主与管理员；管理成员不能）。原属主默认留作可编辑成员（keep_as 为空时退出）；
     项目设置里用到的、原属主私有的翻译规则集复制一份给新属主（D-0179）。标识按属主唯一：新属主已有同名项目时
     拒绝（409，data.suggested 给出他那里可用的标识），可以用 new_slug 同时改标识。"""
-    require_manage(scope)
+    require_own(scope)
     if keep_as is not None and keep_as not in MEMBER_ROLES:
         raise ProjectError("projects.bad_member_role", role=keep_as)
     with store.session(db_url) as s:

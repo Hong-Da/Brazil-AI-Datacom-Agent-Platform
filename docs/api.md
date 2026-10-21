@@ -39,9 +39,11 @@
 - 项目路径：设备相关接口（导入、设备列表、配置图、对比、检查、清理、忽略项、翻译、变更、影响分析、拓扑与一致性、割接迁移、基线、版本历史、表格导出、报告、图查询与 AI 查询、配置检查项目与脚本、首页概况）写成 `/api/v1/projects/{project}/…`，例如 `GET /api/v1/projects/oam-vpn/devices`。`{project}` 是项目标识（在属主的项目里唯一，不同的人可以有同名项目；用户 2026-10-19 评审改选），也可以写 `属主/标识`（路径里写成 `属主%2F标识`，即 URL 编码后的样子，或 `属主~标识`）或项目编号。只写标识时先找调用者自己的项目（全局令牌为第一个管理员的）；自己没有时在调用者能访问的项目（成员；管理员为全部项目）里找，唯一匹配就用它，有多个时返回 409（code 1003，`data.candidates` 列出 `属主/标识`，提示“请写成 属主/标识”），不会静默挑一个。项目返回体的 `ref` 是规范引用：自己的项目写标识，别人的写 `属主/标识`；`full_ref` 总是 `属主/标识`。下表中“项目”一栏为“是”的接口都有项目路径版本
 - 兼容别名（已弃用）：旧的无项目路径（例如 `GET /api/v1/devices`）仍然可用，落到调用者的默认项目（全局令牌为第一个管理员的默认项目）；响应头带 `Deprecation: true` 与 `Link: </api/v1/projects/<默认项目>/…>; rel="successor-version"`，OpenAPI 中标为 deprecated
 - 项目里的设备：项目私有设备（导入或复制而来）与引用的公共设备（`source`：`private` / `public`）。引用的公共设备跟随公共库最新版本（`policy: follow`）或固定在某个版本（`policy: pin`，`pinned_version_id`，固定版本的序号 `pinned_seq`（第几版），公共库有更新版本时 `newer_available: true`）；设备列表、对比、检查等用到“最新版本”的地方都按项目的版本策略取当前版本
-- 项目角色：属主（owner）、可编辑成员（edit）、只读成员（read）；管理员访问不是自己参与的项目时角色为 admin，拥有完全权限，访问写入审计（`GET /admin/audit`、`logs/audit.log`）
-- 权限：查看（GET）与计算（不修改数据的 POST：对比、检查、清理脚本生成、翻译、变更脚本生成、影响分析、拓扑、导出、报告、图查询、模板校验与生成……）对所有项目角色开放；修改数据（导入、删除、忽略、规则调整、脚本保存、重新解析本项目）只限属主、可编辑成员与管理员；成员管理、转交、删除项目只限属主与管理员；退出项目、复制项目或把设备复制到自己的项目只需能查看。不是成员的普通账号访问项目返回 404（不暴露项目是否存在）
+- 项目角色：属主（owner）、管理成员（manage，M9-8：可编辑的全部权限，另可审批加入申请、增减成员、管理邀请链接、设置“可被搜索”）、可编辑成员（edit）、只读成员（read）；管理员访问不是自己参与的项目时角色为 admin，拥有完全权限，访问写入审计（`GET /admin/audit`、`logs/audit.log`）
+- 权限：查看（GET）与计算（不修改数据的 POST：对比、检查、清理脚本生成、翻译、变更脚本生成、影响分析、拓扑、导出、报告、图查询、模板校验与生成……）对所有项目角色开放；修改数据（导入、删除、忽略、规则调整、脚本保存、重新解析本项目）只限属主、可编辑成员与管理员；成员管理、加入申请的审批、邀请链接只限属主、管理成员与管理员；转交、删除项目、改标识只限属主与管理员；退出项目、复制项目或把设备复制到自己的项目只需能查看。不是成员的普通账号访问项目返回 404（不暴露项目是否存在）
 - 只读的个人令牌只能调用查看与计算接口，其他接口返回 403（code 1006）
+- 创建项目（M9-8，REQ-050）：管理员始终可以；普通账号要么配置 `auth.user_create_projects`（系统设置“普通用户可以创建项目”，默认关）打开，要么管理员单独授权（`PUT /users/{username}` 的 `can_create_projects`），否则 `POST /projects` 与复制项目返回 403（`projects.create_forbidden`）。不能创建的账号不自动建默认项目：没有任何项目时 `GET /workspace` 的 `default_project` 为 null，旧的无项目接口返回 409（`projects.no_project`）。已有的项目照常使用
+- 加入项目（M9-8）：属主按用户名添加；“可被搜索”的项目可以在 `GET /discover` 里找到并申请（对外只显示名称、简介、属主、设备数）；邀请链接（有效期、角色、可选仍需审批，可撤销）。申请、审批、授权、邀请链接的建立 / 撤销 / 使用都写入审计
 
 ## 项目内的网络（M9，REQ-045）
 
@@ -73,7 +75,7 @@
 | `POST /auth/password` | 是（会话） | 修改自己的密码：`{"old_password", "new_password"}`（至少 8 个字符）；当前会话保留，其他会话失效（`sessions_closed`）；旧密码不对 422；用令牌调用 409 |
 | `GET /users?status=` | 管理员 | 账号列表：`username`、`role`（admin / maintainer / user）、`status`（active / pending 待审核）、`origin`（admin 管理员建 / register 自助注册）、`projects`（拥有的非空项目数）、`tokens`（有效的个人令牌数）、`disabled`、`locked`、`locked_until`、`last_login_at`、`password_changed_at`、`created_at`（不含密码哈希） |
 | `POST /users` | 管理员 | 新建账号：`{"username", "password", "role": "user\|maintainer\|admin"}`；用户名 2–64 个字符（字母、数字、点、下划线、短横线），不区分大小写唯一 |
-| `PUT /users/{username}` | 管理员 | 改角色、停用 / 启用、解除锁定：`{"role", "disabled", "unlock"}`；停用时会话立即失效；最后一个启用的管理员不能停用或降级、不能停用或降级自己（409） |
+| `PUT /users/{username}` | 管理员 | 改角色、停用 / 启用、解除锁定、单独授权创建项目（M9-8）：`{"role", "disabled", "unlock", "can_create_projects"}`；停用时会话立即失效；最后一个启用的管理员不能停用或降级、不能停用或降级自己（409） |
 | `POST /users/{username}/approve` | 管理员 | 批准自助注册的待审核账号（REQ-039）：可以登录，并建好工作空间与默认项目；不是待审核时 409；记入审计 |
 | `POST /users/{username}/reject` | 管理员 | 拒绝待审核账号：删除它（用户名可以再注册）；不是待审核时 409；记入审计 |
 | `GET /auth/settings` | 管理员 | 自助注册设置：`registration`、`approval`、`rate_per_hour` 与各项来源（`sources`：default / file / env） |
@@ -242,17 +244,20 @@
 | `GET /ai/settings` | 管理员 | （已弃用，改用 `/ai/connections`）第一个管理员 AI 接口的内容与全局的 `timeout`、`max_tokens`；API Key 只返回是否已设置 |
 | `PUT /ai/settings` | 管理员 | （已弃用）`{"provider", "base_url", "api_key", "clear_api_key", "model", "model_extract", "model_merge", "timeout", "max_tokens"}`：接口字段写入第一个管理员 AI 接口（没有时新建 `default`，允许公共使用；`provider` 为空表示停用它），`timeout`、`max_tokens` 写入配置文件 |
 | `GET /projects?all=false&owner=U` | 是 | 我的项目（`mine`，属主）与共享给我的（`shared`，成员）；管理员 `all=true` 时另列出其他人的项目（`others`）。每个项目：`slug`、`name`、`owner`、`role`、`members`、`settings`（`style` 显示风格、`rule_set` 翻译规则集、`baseline` 安全基线）、`counts`（`devices`、`private`、`refs`、`scripts`、`scripts_with_errors`）、`last_activity`、`migrated_from`；`default_project` 为我的默认项目 |
-| `POST /projects` | 是 | 新建项目：`{"name", "slug", "description", "settings"}`；`slug` 全站唯一（2–64 个小写字母、数字、短横线），不给时由名称生成；已被使用 409，不合法 422；还没有默认项目时它成为默认项目 |
-| `GET /workspace` | 是 | 我的工作空间：默认项目、项目数、私有模板与规则集数、有效的个人令牌数 |
+| `POST /projects` | 是 | 新建项目：`{"name", "slug", "description", "settings"}`；`slug` 全站唯一（2–64 个小写字母、数字、短横线），不给时由名称生成；已被使用 409，不合法 422；还没有默认项目时它成为默认项目；没有创建权限 403（M9-8） |
+| `GET /workspace` | 是 | 我的工作空间：默认项目（没有项目也不能创建时为 null）、项目数、私有模板与规则集数、有效的个人令牌数、`can_create` 能否新建项目 |
 | `PUT /workspace/default-project` | 是 | 设置默认项目：`{"project"}`（旧的无项目接口与命令行不带 `--project` 时用它） |
 | `GET /projects/{p}` | 项目成员 | 项目详情：另含 `member_list`（`username`、`role`、`since`）与 `overrides`（本项目的规则调整） |
-| `PUT /projects/{p}` | 属主 / 可编辑 | 修改名称、说明、设置：`{"name", "description", "settings", "slug"}`；改标识只限属主与管理员 |
+| `PUT /projects/{p}` | 属主 / 管理成员 / 可编辑 | 修改名称、说明、设置：`{"name", "description", "settings", "slug", "discoverable"}`；改标识只限属主与管理员；`discoverable`（可被搜索，M9-8）限属主、管理成员与管理员 |
 | `GET /projects/{p}/delete-preview` | 项目成员 | 删除项目的影响：私有设备与版本数、引用数（只解除）、检查项目与脚本数、忽略项、成员数 |
 | `DELETE /projects/{p}?confirm=<标识>` | 属主 / 管理员 | 删除项目：私有设备与它们的全部版本一起删除，引用的公共设备只解除引用；`confirm` 必须等于项目标识（否则 422） |
-| `GET /projects/{p}/members` | 项目成员 | 成员：属主与成员（`edit` / `read`），加入时间 |
-| `PUT /projects/{p}/members/{username}` | 属主 / 管理员 | 邀请成员或改角色：`{"role": "edit\|read"}`；账号不存在 404，已停用 409 |
-| `DELETE /projects/{p}/members/{username}` | 属主 / 管理员；本人 | 移除成员；成员移除自己即退出项目 |
-| `POST /projects/{p}/transfer` | 属主 / 管理员 | 转交：`{"to", "keep_as": "edit\|read\|null"}`；原属主默认留作可编辑成员；项目设置中用到的、原属主私有的翻译规则集复制一份给新属主（`rule_set_copied`） |
+| `GET /projects/{p}/members` | 项目成员 | 成员：属主与成员（`manage` / `edit` / `read`），加入时间 |
+| `PUT /projects/{p}/members/{username}` | 属主 / 管理成员 / 管理员 | 添加成员或改角色：`{"role": "manage\|edit\|read"}`；账号不存在 404，已停用 409 |
+| `DELETE /projects/{p}/members/{username}` | 属主 / 管理成员 / 管理员；本人 | 移除成员；成员移除自己即退出项目 |
+| `GET /projects/{p}/join-requests?status=pending` | 属主 / 管理成员 / 管理员 | 加入申请（M9-8）：`username`、`role`（申请的）、`reason`、`via`（search / invite）、`invite_prefix`、`status`、`decided_by`、`decided_role`、`note` |
+| `POST /projects/{p}/join-requests/{id}/approve` / `…/decline` | 属主 / 管理成员 / 管理员 | 通过（`{"role"}` 可改角色，可给 `manage`）/ 拒绝（`{"note"}`）；已处理过 409 |
+| `GET /projects/{p}/invites` / `POST /projects/{p}/invites` / `DELETE /projects/{p}/invites/{id}` | 属主 / 管理成员 / 管理员 | 邀请链接：列表（`prefix`、`role`、`requires_approval`、`expires_at`、`uses`、`state`）/ 新建（`{"role", "days": 1–90, "requires_approval", "note"}`，返回的 `token` 与 `path` 只出现这一次，服务器只存 SHA-256）/ 撤销 |
+| `POST /projects/{p}/transfer` | 属主 / 管理员 | 转交（管理成员不能）：`{"to", "keep_as": "manage\|edit\|read\|null"}`；原属主默认留作可编辑成员；项目设置中用到的、原属主私有的翻译规则集复制一份给新属主（`rule_set_copied`） |
 | `POST /projects/{p}/copy` | 项目成员 | 复制为我的新项目：`{"name", "slug", "devices", "scripts"}`；复制设置、规则调整、私有设备（各复制当前版本）、引用（同样的版本策略）、脚本（当前内容）；不复制成员 |
 | `GET /projects/{p}/refs` | 项目成员 | 本项目引用的公共设备：`policy`、`pinned_version_id`、`pinned_seq`（固定版本的序号）、`public_latest_version_id`、`newer_available` |
 | `POST /projects/{p}/refs` | 属主 / 可编辑 | 引用公共设备：`{"device_id", "version_id"}`（不给版本时跟随最新）；项目里已有同名设备 409 |
@@ -288,6 +293,13 @@
 | `DELETE /public-devices/{id}?force=false` | 管理员 | 删除公共设备；还有项目引用时 409（`data.projects`），`force=true` 一并解除引用 |
 | `DELETE /public-devices/{id}/versions/{vid}` | 管理员 | 删除公共设备的一个版本；固定在该版本的引用改为跟随最新 |
 | `POST /public-devices/rebuild` | 管理员 | 按当前知识库重新解析公共设备库（后台任务） |
+| `GET /discover?q=` | 是 | 可被搜索的项目（M9-8）：只有 `ref`、`name`、`description`、`owner`、`devices` 与我的状态 `my_status`（owner / member / pending / declined / none） |
+| `POST /discover/{编号或属主~标识}/join-requests` | 是（有账号） | 申请加入：`{"role": "read\|edit", "reason"}`；不可被搜索或不存在 404，已是成员或已有待审批的申请 409 |
+| `GET /me/join-requests` / `DELETE /me/join-requests/{id}` | 是 | 我提交的加入申请 / 撤回 |
+| `GET /me/create-permission` / `POST /me/create-permission/request` / `DELETE …/request` | 是 | 我能否新建项目（`can_create`、`open` 总开关、`granted` 单独授权、`request`）/ 申请创建权限 / 撤回 |
+| `GET /me/notifications` | 是 | 等我处理的：我是属主或管理成员的项目里待审批的加入申请（`by_project`），管理员另有 `create_requests` |
+| `GET /invites/{token}` / `POST /invites/{token}/accept` | 是（有账号） | 打开邀请链接（项目公开信息、角色、是否需审批、`state`）/ 加入：`status` 为 joined / pending / member；无效 404，过期或撤销 409 |
+| `GET /admin/create-requests` / `POST /admin/create-requests/{id}/approve` / `…/decline` | 管理员 | 创建权限的申请与处理（通过即单独授权）；单独授权也可用 `PUT /users/{username}` 的 `can_create_projects` |
 | `GET /admin/projects` | 管理员 | 所有项目：属主（`owner_disabled` 标出属主已停用）、成员、计数、最近活动；`owners`、`with_members`、`owner_disabled` 汇总 |
 | `GET /admin/audit?project=&limit=200` | 管理员 | 访问审计：管理员进入（只读访问同一项目 30 分钟记一次）或修改他人项目、转交、删除；`at`、`actor`、`project`、`action`（enter / write / transfer / delete）、`detail`（方法与路由，不含请求内容） |
 | `GET /users/{username}/projects` | 管理员 | 账号拥有的非空项目（删除账号前选择转交或一并删除） |
@@ -3114,6 +3126,418 @@ print(r.status_code, r.json())
 HTTP 状态：`404`；返回中的关键字段：
 
 - `code` = `1004`
+
+### 没有创建权限时新建项目：403
+
+`POST /api/v1/projects`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects' \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "新园区"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects' -ContentType 'application/json; charset=utf-8' -Body '{"name": "新园区"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects', json={'name': '新园区'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`403`；返回中的关键字段：
+
+- `code` = `1006`
+
+### 我能否新建项目与我的创建权限申请
+
+`GET /api/v1/me/create-permission`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/me/create-permission'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/me/create-permission'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/me/create-permission')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.can_create` = `false`
+- `data.open` = `false`
+- `data.request.status` = `"pending"`
+
+### 申请创建项目的权限（通知管理员）
+
+`POST /api/v1/me/create-permission/request`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/me/create-permission/request' \
+  -H 'Content-Type: application/json' \
+  -d '{"reason": "负责 IP RAN 扩容"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/me/create-permission/request' -ContentType 'application/json; charset=utf-8' -Body '{"reason": "负责 IP RAN 扩容"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/me/create-permission/request', json={'reason': '负责 IP RAN 扩容'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.status` = `"pending"`
+- `data.username` = `"carol"`
+
+### 创建权限的申请（管理员）
+
+`GET /api/v1/admin/create-requests`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/admin/create-requests'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/admin/create-requests'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/admin/create-requests')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.count` = `1`
+- `data.requests.0.username` = `"dave"`
+
+### 通过创建权限的申请：给该账号单独授权
+
+`POST /api/v1/admin/create-requests/1/approve`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/admin/create-requests/1/approve'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/admin/create-requests/1/approve'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/admin/create-requests/1/approve')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.status` = `"approved"`
+- `data.decided_by` = `"admin"`
+
+### 管理员单独授权账号创建项目
+
+`PUT /api/v1/users/carol`（需要令牌）
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/users/carol' \
+  -H 'Authorization: Bearer <令牌>' \
+  -H 'Content-Type: application/json' \
+  -d '{"can_create_projects": true}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/users/carol' -Headers @{'Authorization'='Bearer <令牌>'} -ContentType 'application/json; charset=utf-8' -Body '{"can_create_projects": true}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/users/carol', headers={'Authorization': 'Bearer <令牌>'}, json={'can_create_projects': True})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.user.username` = `"carol"`
+- `data.user.can_create_projects` = `true`
+
+### 发现项目：只有名称、简介、属主、设备数与我的状态
+
+`GET /api/v1/discover?q=lab`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/discover?q=lab'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/discover?q=lab'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/discover?q=lab')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.count` = `1`
+- `data.projects.0.ref` = `"alice/lab"`
+- `data.projects.0.owner` = `"alice"`
+- `data.projects.0.devices` = `2`
+- `data.projects.0.my_status` = `"pending"`
+
+### 申请加入可被搜索的项目
+
+`POST /api/v1/discover/alice~lab/join-requests`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/discover/alice~lab/join-requests' \
+  -H 'Content-Type: application/json' \
+  -d '{"role": "edit", "reason": "负责华东分支的割接脚本"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/discover/alice~lab/join-requests' -ContentType 'application/json; charset=utf-8' -Body '{"role": "edit", "reason": "负责华东分支的割接脚本"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/discover/alice~lab/join-requests', json={'role': 'edit', 'reason': '负责华东分支的割接脚本'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.status` = `"pending"`
+- `data.role` = `"edit"`
+- `data.project.ref` = `"alice/lab"`
+- `data.via` = `"search"`
+
+### 我提交的加入申请
+
+`GET /api/v1/me/join-requests`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/me/join-requests'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/me/join-requests'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/me/join-requests')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.requests.0.status` = `"pending"`
+- `data.requests.0.project.ref` = `"alice/lab"`
+
+### 等我处理的申请数（导航上的数字）
+
+`GET /api/v1/me/notifications`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/me/notifications'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/me/notifications'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/me/notifications')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.join_requests` = `1`
+- `data.by_project.0.ref` = `"alice/lab"`
+- `data.create_requests` = `0`
+
+### 项目的加入申请（“管理”成员）
+
+`GET /api/v1/projects/alice~lab/join-requests`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/projects/alice~lab/join-requests'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/join-requests'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/join-requests')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.requests.0.username` = `"carol"`
+- `data.requests.0.reason` = `"参与割接评审"`
+
+### 通过加入申请并改角色
+
+`POST /api/v1/projects/alice~lab/join-requests/1/approve`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/alice~lab/join-requests/1/approve' \
+  -H 'Content-Type: application/json' \
+  -d '{"role": "edit"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/join-requests/1/approve' -ContentType 'application/json; charset=utf-8' -Body '{"role": "edit"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/join-requests/1/approve', json={'role': 'edit'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.status` = `"approved"`
+- `data.decided_role` = `"edit"`
+- `data.decided_by` = `"erin"`
+
+### 新建邀请链接（token 只返回这一次）
+
+`POST /api/v1/projects/alice~lab/invites`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/projects/alice~lab/invites' \
+  -H 'Content-Type: application/json' \
+  -d '{"role": "read", "days": 7, "requires_approval": false, "note": "运维二组"}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab/invites' -ContentType 'application/json; charset=utf-8' -Body '{"role": "read", "days": 7, "requires_approval": false, "note": "运维二组"}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/projects/alice~lab/invites', json={'role': 'read', 'days': 7, 'requires_approval': False, 'note': '运维二组'})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.role` = `"read"`
+- `data.state` = `"active"`
+- `data.uses` = `0`
+- `data.created_by` = `"erin"`
+
+### 打开邀请链接
+
+`GET /api/v1/invites/lmi_test-invite-token-0001`
+
+```bash
+curl -X GET 'http://127.0.0.1:9090/api/v1/invites/lmi_test-invite-token-0001'
+```
+
+```powershell
+Invoke-RestMethod -Method GET -Uri 'http://127.0.0.1:9090/api/v1/invites/lmi_test-invite-token-0001'
+```
+
+```python
+import requests
+r = requests.request('GET', 'http://127.0.0.1:9090/api/v1/invites/lmi_test-invite-token-0001')
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.project.ref` = `"alice/lab"`
+- `data.role` = `"read"`
+- `data.requires_approval` = `false`
+- `data.state` = `"active"`
+- `data.my_status` = `"none"`
+
+### 用邀请链接直接加入
+
+`POST /api/v1/invites/lmi_test-invite-token-0001/accept`
+
+```bash
+curl -X POST 'http://127.0.0.1:9090/api/v1/invites/lmi_test-invite-token-0001/accept' \
+  -H 'Content-Type: application/json' \
+  -d '{}'
+```
+
+```powershell
+Invoke-RestMethod -Method POST -Uri 'http://127.0.0.1:9090/api/v1/invites/lmi_test-invite-token-0001/accept' -ContentType 'application/json; charset=utf-8' -Body '{}'
+```
+
+```python
+import requests
+r = requests.request('POST', 'http://127.0.0.1:9090/api/v1/invites/lmi_test-invite-token-0001/accept', json={})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.status` = `"joined"`
+- `data.project` = `"alice/lab"`
+- `data.role` = `"read"`
+
+### 设置项目可被搜索（属主、“管理”成员、管理员）
+
+`PUT /api/v1/projects/alice~lab`
+
+```bash
+curl -X PUT 'http://127.0.0.1:9090/api/v1/projects/alice~lab' \
+  -H 'Content-Type: application/json' \
+  -d '{"discoverable": false}'
+```
+
+```powershell
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/projects/alice~lab' -ContentType 'application/json; charset=utf-8' -Body '{"discoverable": false}'
+```
+
+```python
+import requests
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/projects/alice~lab', json={'discoverable': False})
+print(r.status_code, r.json())
+```
+
+HTTP 状态：`200`；返回中的关键字段：
+
+- `code` = `0`
+- `data.discoverable` = `false`
 
 ### Cisco 设备迁移到华为（新设备已有管理口与端口，只生成增量；端口冲突以旧设备为准）
 

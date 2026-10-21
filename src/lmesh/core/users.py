@@ -154,6 +154,7 @@ def to_dict(u: User) -> dict[str, Any]:
         "last_login_at": iso(u.last_login_at),
         "password_changed_at": iso(u.password_changed_at),
         "created_at": iso(u.created_at),
+        "can_create_projects": bool(u.can_create_projects),  # 单独授权创建项目（M9-8，REQ-050）
     }
 
 
@@ -443,7 +444,7 @@ REGISTER_LIMITER = RateLimiter()
 
 
 def register(url: str, username: str, password: str, approval: bool) -> dict[str, Any]:
-    """自助注册：普通用户；approval 为真时待审核（不能登录），否则直接可用并建好默认项目。"""
+    """自助注册：普通用户；approval 为真时待审核（不能登录），否则直接可用（能创建项目时建好默认项目）。"""
     u = create_user(url, username, password, "user", status="pending" if approval else "active", origin="register")
     if not approval:
         _provision(url, u)
@@ -452,10 +453,10 @@ def register(url: str, username: str, password: str, approval: bool) -> dict[str
 
 
 def _provision(url: str, u: dict[str, Any]) -> None:
-    """新账号可以使用时：建工作空间与默认项目（REQ-035）。"""
+    """新账号可以使用时：建工作空间与默认项目（REQ-035）；不能创建项目的账号不建（M9-8，REQ-050）。"""
     from lmesh.core import projects
 
-    projects.default_project(url, projects.Identity(u["id"], u["username"], u["role"]))
+    projects.default_project_or_none(url, projects.Identity(u["id"], u["username"], u["role"]))
 
 
 def approve(url: str, username: str) -> dict[str, Any]:

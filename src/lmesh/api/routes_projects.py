@@ -72,7 +72,10 @@ class ProjectBody(BaseModel):
     settings: dict[str, Any] | None = Field(None, description="style 显示风格、rule_set 翻译规则集、baseline 安全基线")
 
 
-@router.post("/projects", summary="新建项目（属主是自己）；还没有默认项目时它成为默认项目")
+@router.post(
+    "/projects",
+    summary="新建项目（属主是自己）；还没有默认项目时它成为默认项目；没有创建权限时 403（projects.create_forbidden，M9-8）",
+)
 def create_project(request: Request, body: ProjectBody) -> dict[str, Any]:
     try:
         return ok(request, projects.create_project(db_of(request), _ident(request), body.model_dump()))
@@ -80,13 +83,18 @@ def create_project(request: Request, body: ProjectBody) -> dict[str, Any]:
         raise project_error(e) from e
 
 
-@router.get("/workspace", summary="我的工作空间：默认项目、项目数、私有模板与规则集数、有效的个人令牌数")
+@router.get(
+    "/workspace",
+    summary="我的工作空间：默认项目（没有项目也不能创建时为 null）、项目数、私有模板与规则集数、有效的个人令牌数、能否新建项目",
+)
 def workspace(request: Request) -> dict[str, Any]:
     from lmesh.core import assets, tokens
 
     p = principal_of(request)
     db = db_of(request)
-    default = projects.default_project(db, p.identity())
+    from lmesh.core import joining
+
+    default = projects.default_project_or_none(db, p.identity())
     lists = projects.list_projects(db, p.identity())
     mine = {"template": 0, "ruleset": 0}
     for kind in mine:
@@ -96,7 +104,8 @@ def workspace(request: Request) -> dict[str, Any]:
         request,
         {
             "user": {"username": p.username, "role": p.role, "via": p.via, "read_only": p.read_only},
-            "default_project": default["ref"],
+            "default_project": default["ref"] if default else None,
+            "can_create": joining.creation_status(db, p.identity())["can_create"],
             "projects": {"mine": len(lists["mine"]), "shared": len(lists["shared"])},
             "templates": mine["template"],
             "rule_sets": mine["ruleset"],
@@ -130,9 +139,13 @@ class ProjectPatch(BaseModel):
     slug: str | None = Field(None, max_length=64, description="改标识只限属主与管理员")
     description: str | None = Field(None, max_length=4000)
     settings: dict[str, Any] | None = None
+    discoverable: bool | None = Field(None, description="可被搜索（M9-8）：属主、管理成员与管理员可以改")
 
 
-@project.put("", summary="修改项目名称、说明、设置（属主与可编辑成员）；改标识只限属主与管理员")
+@project.put(
+    "",
+    summary="修改项目名称、说明、设置（属主、管理与可编辑成员）；改标识只限属主与管理员；可被搜索限属主、管理成员与管理员",
+)
 def update_project(request: Request, body: ProjectPatch) -> dict[str, Any]:
     try:
         return ok(
@@ -170,10 +183,10 @@ def members(request: Request) -> dict[str, Any]:
 
 
 class MemberBody(BaseModel):
-    role: Literal["edit", "read"]
+    role: Literal["manage", "edit", "read"]
 
 
-@project.put("/members/{username}", summary="邀请成员或改成员角色（属主与管理员）")
+@project.put("/members/{username}", summary="添加成员或改成员角色（属主、管理成员与管理员）")
 def set_member(request: Request, username: str, body: MemberBody) -> dict[str, Any]:
     try:
         return ok(request, projects.set_member(db_of(request), _scope(request), username, body.role))
@@ -181,7 +194,7 @@ def set_member(request: Request, username: str, body: MemberBody) -> dict[str, A
         raise project_error(e) from e
 
 
-@project.delete("/members/{username}", summary="移除成员（属主与管理员）；成员移除自己即退出项目")
+@project.delete("/members/{username}", summary="移除成员（属主、管理成员与管理员）；成员移除自己即退出项目")
 def remove_member(request: Request, username: str) -> dict[str, Any]:
     try:
         return ok(request, projects.remove_member(db_of(request), _scope(request), username))
@@ -191,7 +204,7 @@ def remove_member(request: Request, username: str) -> dict[str, Any]:
 
 class TransferBody(BaseModel):
     to: str = Field(..., max_length=64, description="新属主账号")
-    keep_as: Literal["edit", "read"] | None = Field("edit", description="原属主留作成员的角色；null 表示退出")
+    keep_as: Literal["manage", "edit", "read"] | None = Field("edit", description="原属主留作成员的角色；null 表示退出")
     slug: str | None = Field(
         None, max_length=64, description="同时改标识：新属主已有同名项目时必须给（409 的 data.suggested 是可用的标识）"
     )

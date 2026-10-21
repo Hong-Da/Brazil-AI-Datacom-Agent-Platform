@@ -44,6 +44,7 @@ describe('all-projects logic', () => {
   it('审计动作与说明', () => {
     expect(auditAction('enter')).toBe('enter')
     expect(auditAction('other')).toBeNull()
+    expect(auditAction('join.approve')).toBe('join.approve')
     expect(auditDetail({ method: 'GET', path: '' })).toBe('GET /')
     expect(auditDetail({ method: 'PUT', path: '/rules/{rule_id}' })).toBe('PUT /rules/{rule_id}')
     expect(auditDetail({ project_id: 3 })).toBe('project_id=3')

@@ -67,6 +67,11 @@ def settings_of(request: Request) -> config.Settings:
     return s.for_actor(p.identity()) if p is not None else s
 
 
+def projects_policy(settings: config.Settings) -> None:
+    """保存设置后：把“普通用户可以创建项目”（M9-8，REQ-050）交给 core。"""
+    projects.set_create_open(bool(settings.get("auth.user_create_projects")))
+
+
 SESSION_COOKIE = "lmesh_session"
 TOKEN_USER = "api-token"  # Bearer 令牌调用时的显示名
 

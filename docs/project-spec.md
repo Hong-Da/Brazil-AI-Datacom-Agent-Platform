@@ -72,6 +72,7 @@
 | REQ-047 | 个人偏好按账号保存：语言、明暗主题、显示风格、设备图标风格随账号保存，换浏览器登录后沿用；语言切换改为图标按钮，点击后选择语言 | 用户 2026-10-20 | M9（M9-7 评审修改） | 前端偏好、账号接口 | 已实现（M9-7），待 M9 验收 | 未登录时仍用浏览器本地值；登录后以账号保存的值为准 |
 | REQ-048 | 界面问题修复：首次运行向导的表格居中、界面优化、厂商名称首字母大写、AI 接口加“测试连接”；切换显示风格后 Schema 视图与 Profile 管理没有变化；打开网页时先闪过主界面再跳到登录页 | 用户 2026-10-20 | M9（M9-7 评审修改） | 向导、Schema 视图、Profile 管理、路由 | 已实现（M9-7），待 M9 验收 | 问题修复 |
 | REQ-049 | 系统设置页：管理员在界面中修改服务监听地址与端口（以及向导中的其他配置项），写入 config/config.toml，提示重启后生效 | 用户 2026-10-20 | M9（M9-7 评审修改） | 系统设置页、设置接口 | 已实现（M9-7），待 M9 验收 | 现在只有首次运行向导能改，配置完成后只能手改配置文件；复用向导的参数定义与校验 |
+| REQ-050 | 创建项目的权限与加入项目：系统设置里“普通用户可以创建项目”总开关（默认关），管理员可给个别用户单独授权，管理员始终可建；已有项目保留照常使用。加入方式：属主按用户名添加（现有）、搜索“可被搜索”的项目并申请（审批后加入）、邀请链接（有效期、角色，可选仍需审批）。审批人：属主、系统管理员、新增成员角色“管理”（可审批、加减成员，不能删除或转交项目）。可被搜索的项目对外只显示名称、简介、属主、设备数。没有项目的用户登录后提示等人邀请，可一键申请创建权限 | 用户 2026-10-20 | M9（M9-8） | 项目、成员、用户管理、系统设置、通知 | 已实现（M9-8），待 M9 验收 | 用户在对话中逐项确认；结果见“M9-8 结果” |
 
 ## 待确认
 
@@ -1838,6 +1839,21 @@ M6-7 实现。预览 `DevelopDocs/ui-preview/REQ-039/`（登录与注册、账�
 - 系统设置（REQ-049）：管理员页面 `/settings`（`SettingsView.vue`，导航“系统管理 → 系统设置”）；`GET / PUT /api/v1/settings` 与 `lmesh config get / set` 共用 `core/setup.py` 的 `settings_view`、`check_settings`、`save_settings`（与向导同一份参数定义与校验，端口与正在运行的不同时检查占用）。写入 `config/config.toml`（按参数定义重新生成，注释保留）；监听地址、端口、数据库、知识库目录、日志标“需重启”，保存后与本进程启动时的配置比较列出待重启的项，不自动重启。敏感值、[ai] 接口项（在 AI 接口页管理）、环境变量指定的项只读。记入审计 `settings.update`（只记配置键）。
 - 测试：单元 `tests/unit/test_m97.py`（迁移 0013、偏好校验、测试连接、只读原因、校验汇总、待重启）；接口 `tests/api/test_m97_api.py` 与用例（`setup-ai-test-*`、`settings-*`、`me-prefs-*`）；命令行用例 `config-get*`、`config-set*`；前端单元 `stores/prefs-merge.test.ts`、`views/settings/settings.test.ts`、`views/wizard/wizard.test.ts`；e2e `frontend/e2e/m97.spec.ts`（不闪主界面、语言按钮、换浏览器沿用偏好、风格切换后表格变化、系统设置保存与待重启、普通用户看不到、向导居中与测试连接）。e2e 的 `login()` 先清掉账号里的偏好，各用例仍从浏览器本地值开始。
 - 已删除不再使用的 `layouts/LangSwitch.vue`、`ThemeSwitch.vue`（用户 2026-10-20 同意，D-0335）。
+
+### M9-8 结果（创建项目的权限与加入项目，REQ-050）
+
+预览 `DevelopDocs/ui-preview/M9-8/`（我的项目、发现项目、项目成员、邀请链接落地页、账号管理、系统设置）；自动模式按推荐编码，评审意见随后修改。决策记录 D-0337～D-0346。
+
+- 创建权限：配置项 `auth.user_create_projects`（“普通用户可以创建项目”，默认 false，向导“安全”一步、系统设置页、`config.example.toml`）；管理员单独授权存在 `users.can_create_projects`。`core/projects.py` 的 `can_create` / `require_create`：全局令牌、管理员始终可以，其次总开关，其次单独授权；`create_project`、`copy_project` 检查它（403 `projects.create_forbidden`）。不能创建的账号不自动建默认项目（自助注册、批准注册、旧的无项目接口、命令行默认项目都一样）：没有自己的项目时先用加入的第一个项目，都没有时 `projects.no_project`（API 409，`GET /workspace` 的 `default_project` 为 null，命令行退出码 1）。已有项目照常使用。
+- 创建权限申请：`POST / DELETE /api/v1/me/create-permission/request`、`GET /me/create-permission`；管理员 `GET /admin/create-requests`、`POST …/{id}/approve|decline`，或 `PUT /users/{username}` 的 `can_create_projects`；命令行 `lmesh project can-create / request-create`、`lmesh user grant-create / create-requests / approve-create / decline-create`。
+- 成员角色新增 `manage`（管理）：`Scope.can_manage`（成员、加入申请、邀请链接、可被搜索）为属主、管理、管理员；新增 `Scope.can_own`（删除、转交、改标识）只限属主与管理员；`can_write` 含管理。
+- 加入项目：项目设置“可被搜索”（`projects.discoverable`）；`GET /discover`（只给名称、简介、属主、设备数与我的状态）、`POST /discover/{编号或属主~标识}/join-requests`（只读 / 可编辑，默认只读）、`GET / DELETE /me/join-requests`；审批 `GET /projects/{p}/join-requests`、`POST …/{id}/approve`（可改角色，可给管理）/ `decline`。邀请链接 `GET / POST /projects/{p}/invites`、`DELETE …/{id}`（角色、1–90 天、可选仍需审批、备注；令牌 `lmi_…` 只返回一次，只存 SHA-256 与前 6 个字符），使用 `GET /invites/{token}`、`POST /invites/{token}/accept`（joined / pending / member）。核心在 `core/joining.py`，接口 `api/routes_joining.py`，命令行 `cli/cmd_joining.py`。
+- 通知：`GET /me/notifications`（我是属主或管理成员的项目里待审批的加入申请，按项目；管理员另有创建权限申请），导航“我的项目”“账号管理”显示数字，每次换页与每分钟刷新。
+- 审计：`create.request / cancel / grant / revoke / decline`、`join.request / cancel / approve / decline`、`invite.create / revoke / join`、`project.discoverable`，在“所有项目 → 审计”里有文案。
+- 迁移 `0014_project_joining`（接在 `0013_user_prefs` 之后）：`users.can_create_projects`、`projects.discoverable`、`project_invites`、`project_join_requests`、`project_create_requests`；删除项目时一并删除它的申请与邀请链接。
+- 界面：`DiscoverView.vue`（`/discover`）、`InviteView.vue`（`/invite/:token`，没登录时先登录再回来）、`views/join/`（等人邀请的提示与创建权限申请 `WaitHero.vue`、我的加入申请 `MyRequests.vue`、接口与纯函数 `join.ts`）、项目设置的 `JoinRequestsPanel.vue` / `InvitesPanel.vue` 与“可被搜索”开关、账号管理的 `CreatePermPanel.vue` 与“可创建项目”列、`stores/notify.ts`、`styles/m98.css`（明暗主题都用变量）；文案 `i18n/pages/join.json`（中文、English、Português (Brasil)）。
+- 测试：单元 `tests/unit/test_joining.py`；接口 `tests/api/test_joining_api.py` 与用例 `api_cases.joining.toml`；命令行用例 `cli_cases.joining.toml`（准备方式 `configured-joining`）；前端单元 `views/join/join.test.ts`；e2e `frontend/e2e/m98.spec.ts`（申请创建权限与授权、发现并申请加入、审批给“管理”、管理成员的危险操作锁定、邀请链接只显示一次与撤销、暗色）。测试夹具与 e2e 服务默认打开总开关（D-0345）。
+- 遗留：邀请链接不限使用次数；管理员的导航数字不含全站所有项目的加入申请（D-0341）；没有项目的账号外壳仍显示项目分组（点进去回到“我的项目”）。
 
 ## 接入 Nokia 7750 SR（REQ-037）
 

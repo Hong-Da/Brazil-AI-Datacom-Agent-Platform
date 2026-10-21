@@ -757,7 +757,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "改角色、停用 / 启用、解除锁定（管理员）",
+        "summary": "改角色、停用 / 启用、解除锁定、单独授权创建项目（管理员）",
         "operationId": "users_update_api_v1_users__username__put",
         "parameters": [
           {
@@ -18790,7 +18790,7 @@
         "tags": [
           "projects"
         ],
-        "summary": "新建项目（属主是自己）；还没有默认项目时它成为默认项目",
+        "summary": "新建项目（属主是自己）；还没有默认项目时它成为默认项目；没有创建权限时 403（projects.create_forbidden，M9-8）",
         "operationId": "create_project_api_v1_projects_post",
         "requestBody": {
           "required": true,
@@ -18833,7 +18833,7 @@
         "tags": [
           "projects"
         ],
-        "summary": "我的工作空间：默认项目、项目数、私有模板与规则集数、有效的个人令牌数",
+        "summary": "我的工作空间：默认项目（没有项目也不能创建时为 null）、项目数、私有模板与规则集数、有效的个人令牌数、能否新建项目",
         "operationId": "workspace_api_v1_workspace_get",
         "responses": {
           "200": {
@@ -19373,7 +19373,7 @@
         "tags": [
           "projects"
         ],
-        "summary": "修改项目名称、说明、设置（属主与可编辑成员）；改标识只限属主与管理员",
+        "summary": "修改项目名称、说明、设置（属主、管理与可编辑成员）；改标识只限属主与管理员；可被搜索限属主、管理成员与管理员",
         "operationId": "update_project_api_v1_projects__project__put",
         "parameters": [
           {
@@ -19850,7 +19850,7 @@
         "tags": [
           "projects"
         ],
-        "summary": "邀请成员或改成员角色（属主与管理员）",
+        "summary": "添加成员或改成员角色（属主、管理成员与管理员）",
         "operationId": "set_member_api_v1_projects__project__members__username__put",
         "parameters": [
           {
@@ -19913,7 +19913,7 @@
         "tags": [
           "projects"
         ],
-        "summary": "移除成员（属主与管理员）；成员移除自己即退出项目",
+        "summary": "移除成员（属主、管理成员与管理员）；成员移除自己即退出项目",
         "operationId": "remove_member_api_v1_projects__project__members__username__delete",
         "parameters": [
           {
@@ -20713,6 +20713,910 @@
                   "type": "object",
                   "additionalProperties": true,
                   "title": "Response Delete Override Api V1 Projects  Project  Rules  Rule Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/discover": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "发现项目：可被搜索的项目（只有名称、简介、属主、设备数）与我在其中的状态（owner / member / pending / declined / none）",
+        "operationId": "discover_api_v1_discover_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "按名称、简介、属主、标识搜索",
+              "default": "",
+              "title": "Q"
+            },
+            "description": "按名称、简介、属主、标识搜索"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Discover Api V1 Discover Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/join-requests": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "我提交的加入申请（新的在前）",
+        "operationId": "my_requests_api_v1_me_join_requests_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "pending",
+                "approved",
+                "declined",
+                "cancelled",
+                "all"
+              ],
+              "type": "string",
+              "default": "all",
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response My Requests Api V1 Me Join Requests Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/create-permission": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "我能否新建项目（can_create）、总开关（open）、是否单独授权（granted）与我最近的创建权限申请",
+        "operationId": "create_permission_api_v1_me_create_permission_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Create Permission Api V1 Me Create Permission Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/notifications": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "等我处理的：我是属主或管理成员的项目里待审批的加入申请（按项目）；管理员另有创建权限的申请",
+        "operationId": "notifications_api_v1_me_notifications_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Notifications Api V1 Me Notifications Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/invites/{token}": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "打开邀请链接：项目名称、简介、属主、设备数、加入后的角色、是否需审批、有效期、链接状态（active / expired / revoked）",
+        "operationId": "invite_info_api_v1_invites__token__get",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Invite Info Api V1 Invites  Token  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/discover/{project_ref}/join-requests": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "申请加入可被搜索的项目（project_ref：编号或 属主~标识）；已是成员或已有待审批的申请时 409",
+        "operationId": "request_join_api_v1_discover__project_ref__join_requests_post",
+        "parameters": [
+          {
+            "name": "project_ref",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Project Ref"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JoinBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Request Join Api V1 Discover  Project Ref  Join Requests Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/join-requests/{request_id}": {
+      "delete": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "撤回我待审批的加入申请",
+        "operationId": "cancel_request_api_v1_me_join_requests__request_id__delete",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Cancel Request Api V1 Me Join Requests  Request Id  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/create-permission/request": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "申请创建项目的权限（通知管理员）；已经能创建或已有待处理的申请时 409",
+        "operationId": "request_create_api_v1_me_create_permission_request_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Request Create Api V1 Me Create Permission Request Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "撤回我待处理的创建权限申请",
+        "operationId": "cancel_create_api_v1_me_create_permission_request_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Cancel Create Api V1 Me Create Permission Request Delete"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/invites/{token}/accept": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "用邀请链接加入：status=joined 已加入 / pending 已提交申请（链接要求审批）/ member 已是成员；失效时 409",
+        "operationId": "invite_accept_api_v1_invites__token__accept_post",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Invite Accept Api V1 Invites  Token  Accept Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/create-requests": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "创建项目权限的申请（管理员）；status 默认 pending",
+        "operationId": "create_requests_api_v1_admin_create_requests_get",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "pending",
+                "approved",
+                "declined",
+                "cancelled",
+                "all"
+              ],
+              "type": "string",
+              "default": "pending",
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Requests Api V1 Admin Create Requests Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/create-requests/{request_id}/approve": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "通过创建权限的申请：给该账号单独授权",
+        "operationId": "create_approve_api_v1_admin_create_requests__request_id__approve_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Approve Api V1 Admin Create Requests  Request Id  Approve Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/create-requests/{request_id}/decline": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "拒绝创建权限的申请",
+        "operationId": "create_decline_api_v1_admin_create_requests__request_id__decline_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/lmesh__api__routes_joining__NoteBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Decline Api V1 Admin Create Requests  Request Id  Decline Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/join-requests": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "项目的加入申请（属主、管理成员、管理员）；status 默认 pending",
+        "operationId": "list_requests_api_v1_projects__project__join_requests_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "pending",
+                "approved",
+                "declined",
+                "cancelled",
+                "all"
+              ],
+              "type": "string",
+              "default": "pending",
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Requests Api V1 Projects  Project  Join Requests Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/invites": {
+      "get": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "邀请链接（属主、管理成员、管理员）：角色、是否需审批、有效期、使用次数、状态",
+        "operationId": "list_invites_api_v1_projects__project__invites_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Invites Api V1 Projects  Project  Invites Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "新建邀请链接：返回的 token / path 只出现这一次（服务器只存它的 SHA-256）",
+        "operationId": "create_invite_api_v1_projects__project__invites_post",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Invite Api V1 Projects  Project  Invites Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/join-requests/{request_id}/approve": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "通过加入申请（可改角色，可给“管理”）",
+        "operationId": "approve_api_v1_projects__project__join_requests__request_id__approve_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Request Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Approve Api V1 Projects  Project  Join Requests  Request Id  Approve Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/join-requests/{request_id}/decline": {
+      "post": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "拒绝加入申请",
+        "operationId": "decline_api_v1_projects__project__join_requests__request_id__decline_post",
+        "parameters": [
+          {
+            "name": "request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Request Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/lmesh__api__routes_joining__NoteBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Decline Api V1 Projects  Project  Join Requests  Request Id  Decline Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/invites/{invite_id}": {
+      "delete": {
+        "tags": [
+          "projects"
+        ],
+        "summary": "撤销邀请链接",
+        "operationId": "revoke_invite_api_v1_projects__project__invites__invite_id__delete",
+        "parameters": [
+          {
+            "name": "invite_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Invite Id"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Revoke Invite Api V1 Projects  Project  Invites  Invite Id  Delete"
                 }
               }
             }
@@ -23736,7 +24640,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NoteBody"
+                "$ref": "#/components/schemas/lmesh__api__routes_ai_suggest__NoteBody"
               }
             }
           }
@@ -23878,7 +24782,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NoteBody"
+                "$ref": "#/components/schemas/lmesh__api__routes_ai_suggest__NoteBody"
               }
             }
           }
@@ -24175,7 +25079,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NoteBody"
+                "$ref": "#/components/schemas/lmesh__api__routes_ai_suggest__NoteBody"
               }
             }
           }
@@ -24295,7 +25199,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NoteBody"
+                "$ref": "#/components/schemas/lmesh__api__routes_ai_suggest__NoteBody"
               }
             }
           }
@@ -25770,6 +26674,29 @@
           "key"
         ],
         "title": "AnnotationBody"
+      },
+      "ApproveBody": {
+        "properties": {
+          "role": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "manage",
+                  "edit",
+                  "read"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Role",
+            "description": "给的角色；不给时按申请的角色"
+          }
+        },
+        "type": "object",
+        "title": "ApproveBody"
       },
       "AskBody": {
         "properties": {
@@ -27863,6 +28790,65 @@
         ],
         "title": "IngestBody"
       },
+      "InviteBody": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "manage",
+              "edit",
+              "read"
+            ],
+            "title": "Role",
+            "default": "read"
+          },
+          "days": {
+            "type": "integer",
+            "maximum": 90.0,
+            "minimum": 1.0,
+            "title": "Days",
+            "description": "有效天数",
+            "default": 7
+          },
+          "requires_approval": {
+            "type": "boolean",
+            "title": "Requires Approval",
+            "description": "打开链接后仍需审批",
+            "default": false
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "InviteBody"
+      },
+      "JoinBody": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "read",
+              "edit"
+            ],
+            "title": "Role",
+            "description": "希望的角色；“管理”只能由审批人给",
+            "default": "read"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Reason",
+            "description": "申请理由（可选）",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "JoinBody"
+      },
       "LoginBody": {
         "properties": {
           "username": {
@@ -27955,6 +28941,7 @@
           "role": {
             "type": "string",
             "enum": [
+              "manage",
               "edit",
               "read"
             ],
@@ -28583,18 +29570,6 @@
         ],
         "title": "NodeBody"
       },
-      "NoteBody": {
-        "properties": {
-          "note": {
-            "type": "string",
-            "maxLength": 2000,
-            "title": "Note",
-            "default": ""
-          }
-        },
-        "type": "object",
-        "title": "NoteBody"
-      },
       "OverrideBody": {
         "properties": {
           "enabled": {
@@ -28969,6 +29944,18 @@
           "query"
         ],
         "title": "QueryBody"
+      },
+      "ReasonBody": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "ReasonBody"
       },
       "RefBody": {
         "properties": {
@@ -30473,6 +31460,7 @@
               {
                 "type": "string",
                 "enum": [
+                  "manage",
                   "edit",
                   "read"
                 ]
@@ -30641,6 +31629,18 @@
             "type": "boolean",
             "title": "Unlock",
             "default": false
+          },
+          "can_create_projects": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Can Create Projects",
+            "description": "单独授权创建项目（M9-8）：总开关关闭时，普通账号要有它才能新建项目"
           }
         },
         "type": "object",
@@ -30738,6 +31738,18 @@
         },
         "type": "object",
         "title": "AdoptBody"
+      },
+      "lmesh__api__routes_ai_suggest__NoteBody": {
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "NoteBody"
       },
       "lmesh__api__routes_ask__GenerateBody": {
         "properties": {
@@ -31180,6 +32192,19 @@
         },
         "type": "object",
         "title": "ProjectPatch"
+      },
+      "lmesh__api__routes_joining__NoteBody": {
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Note",
+            "description": "说明（可选，申请人能看到）",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "NoteBody"
       },
       "lmesh__api__routes_kb__DecideBody": {
         "properties": {
@@ -31659,6 +32684,18 @@
               }
             ],
             "title": "Settings"
+          },
+          "discoverable": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Discoverable",
+            "description": "可被搜索（M9-8）：属主、管理成员与管理员可以改"
           }
         },
         "type": "object",

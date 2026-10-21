@@ -2,7 +2,8 @@
 /**
  * 项目设置与成员（REQ-035 / REQ-036，预览 DevelopDocs/ui-preview/M6/project-settings.html）：
  * 常规、默认设置、检查规则调整（只影响本项目）、成员、转交与删除。
- * 权限以后端为准：属主与管理员全部；可编辑成员改设置与规则；只读成员只能查看（D-0198）。
+ * 权限以后端为准：属主与管理员全部；“管理”成员另可管理成员、加入申请、邀请链接与“可被搜索”（M9-8，不能转交、删除、
+ * 改标识）；可编辑成员改设置与规则；只读成员只能查看（D-0198）。
  */
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
@@ -23,6 +24,8 @@ import CopyProjectDialog from './projects/CopyProjectDialog.vue'
 import TransferDialog from './projects/TransferDialog.vue'
 import DeleteProjectDialog from './projects/DeleteProjectDialog.vue'
 import LeaveDialog from './projects/LeaveDialog.vue'
+import JoinRequestsPanel from './project-settings/JoinRequestsPanel.vue'
+import InvitesPanel from './project-settings/InvitesPanel.vue'
 
 const { t, te } = useI18n()
 const router = useRouter()
@@ -35,6 +38,7 @@ const terms = useTerms()
 const info = computed(() => project.info)
 const canEdit = computed(() => project.canWrite)
 const canManage = computed(() => project.canManage)
+const canOwn = computed(() => project.canOwn)
 const styleLabel = (s: string) => (te(`style.${s}`) ? t(`style.${s}`) : s)
 const toast = ref('')
 function flash(msg: string): void {
@@ -146,14 +150,14 @@ async function resetRule(r: RuleRow): Promise<void> {
 /* ---------------- 成员 ---------------- */
 const members = computed<Member[]>(() => info.value?.member_list ?? [])
 const inviteName = ref('')
-const inviteRole = ref<'edit' | 'read'>('edit')
+const inviteRole = ref<'manage' | 'edit' | 'read'>('edit')
 const memBusy = ref('')
 const memError = ref('')
 const accounts = ref<string[]>([])
 const confirmRemove = ref<string | null>(null)
 const isMe = (u: string) => auth.me?.username === u
 
-async function setMember(u: string, role: 'edit' | 'read', invite = false): Promise<void> {
+async function setMember(u: string, role: 'manage' | 'edit' | 'read', invite = false): Promise<void> {
   memBusy.value = u
   memError.value = ''
   try {
@@ -186,6 +190,24 @@ async function removeMember(u: string): Promise<void> {
     memBusy.value = ''
   }
 }
+
+/* ---------------- 可被搜索（M9-8） ---------------- */
+const discBusy = ref(false)
+const discError = ref('')
+async function setDiscoverable(on: boolean): Promise<void> {
+  discBusy.value = true
+  discError.value = ''
+  try {
+    await put(`/projects/${encodeURIComponent(project.ref ?? '')}`, { discoverable: on })
+    await project.reload()
+    flash(t(on ? 'join.discOn' : 'join.discOff'))
+  } catch (e) {
+    discError.value = errorText(e)
+  } finally {
+    discBusy.value = false
+  }
+}
+const pendingCount = ref(0)
 
 /* ---------------- 转交、复制、删除、退出 ---------------- */
 type Dlg = 'copy' | 'transfer' | 'delete' | 'leave'
@@ -226,13 +248,14 @@ onMounted(async () => {
 })
 watch(() => project.ref, (v, old) => { if (v && v !== old) void init() })
 
-const SECTIONS = [
-  { id: 's-general', icon: 'gear', key: 'general' },
-  { id: 's-defaults', icon: 'sliders', key: 'defaults' },
-  { id: 's-rules', icon: 'shield', key: 'rules' },
-  { id: 's-members', icon: 'users', key: 'members' },
-  { id: 's-danger', icon: 'warn', key: 'danger' },
-]
+const SECTIONS = computed(() => [
+  { id: 's-general', icon: 'gear', key: 'project-settings.general' },
+  { id: 's-defaults', icon: 'sliders', key: 'project-settings.defaults' },
+  { id: 's-rules', icon: 'shield', key: 'project-settings.rules' },
+  { id: 's-members', icon: 'users', key: 'project-settings.members' },
+  ...(canManage.value ? [{ id: 's-requests', icon: 'inbox', key: 'join.requests' }, { id: 's-invites', icon: 'link', key: 'join.invites' }] : []),
+  { id: 's-danger', icon: 'warn', key: 'project-settings.danger' },
+])
 const activeSec = ref('s-general')
 function goSec(id: string): void {
   activeSec.value = id
@@ -241,7 +264,7 @@ function goSec(id: string): void {
 let mainEl: HTMLElement | null = null
 function onScroll(): void {
   let cur = 's-general'
-  for (const s of SECTIONS) {
+  for (const s of SECTIONS.value) {
     const el = document.getElementById(s.id)
     if (el && el.getBoundingClientRect().top < 160) cur = s.id
   }
@@ -270,7 +293,7 @@ onBeforeUnmount(() => mainEl?.removeEventListener('scroll', onScroll))
       <p v-if="!info" class="faint">{{ $t('c.loading') }}</p>
       <div v-else class="ps-wrap">
         <nav class="ps-side" aria-label="Sections">
-          <a v-for="s in SECTIONS" :key="s.id" :href="`#${s.id}`" :aria-current="activeSec === s.id ? 'true' : 'false'" @click.prevent="goSec(s.id)"><Icon :name="s.icon" small /><span>{{ $t(`project-settings.${s.key}`) }}</span></a>
+          <a v-for="s in SECTIONS" :key="s.id" :href="`#${s.id}`" :aria-current="activeSec === s.id ? 'true' : 'false'" @click.prevent="goSec(s.id)"><Icon :name="s.icon" small /><span>{{ $t(s.key) }}</span><span v-if="s.id === 's-requests' && pendingCount" class="ps-cnt" data-testid="ps-requests-count">{{ pendingCount }}</span></a>
         </nav>
         <div>
           <section id="s-general" class="panel ps-sec" data-testid="ps-general">
@@ -282,14 +305,23 @@ onBeforeUnmount(() => mainEl?.removeEventListener('scroll', onScroll))
               </div>
               <div class="field">
                 <label for="fSlug">{{ $t('project-settings.slug') }}</label>
-                <input id="fSlug" v-model="form.slug" :class="['input mono', { 'is-error': slugErr }]" :disabled="!canManage" maxlength="64" data-testid="ps-slug">
+                <input id="fSlug" v-model="form.slug" :class="['input mono', { 'is-error': slugErr }]" :disabled="!canOwn" maxlength="64" data-testid="ps-slug">
                 <div v-if="slugErr" class="err"><Icon name="warn" small /><span>{{ $t('projects.dlg.slugErr') }}</span></div>
-                <div v-else class="hint">{{ canManage ? $t('project-settings.slugHint') : $t('project-settings.slugOwnerOnly') }}</div>
+                <div v-else class="hint">{{ canOwn ? $t('project-settings.slugHint') : $t('project-settings.slugOwnerOnly') }}</div>
               </div>
               <div class="field span2">
                 <label for="fDesc">{{ $t('project-settings.desc') }}</label>
                 <textarea id="fDesc" v-model="form.description" class="textarea" rows="2" :disabled="!canEdit" maxlength="4000" data-testid="ps-desc" />
               </div>
+            </div>
+            <div class="disc-switch" data-testid="ps-discoverable">
+              <div>
+                <b>{{ $t('join.discoverable') }}</b>
+                <p>{{ $t('join.discoverableText') }}</p>
+                <div v-if="info.discoverable" class="disc-preview"><Icon name="eye" small />{{ $t('join.othersSee') }} <b>{{ info.name }}</b> · {{ info.owner ?? '—' }} · {{ $t('join.nDevices', { n: info.counts.devices }) }}</div>
+                <div v-if="discError" class="small err-text">{{ discError }}</div>
+              </div>
+              <label class="switch" :title="canManage ? '' : $t('join.discManagerOnly')"><input type="checkbox" :checked="!!info.discoverable" :disabled="!canManage || discBusy" data-testid="ps-discoverable-switch" @change="setDiscoverable(($event.target as HTMLInputElement).checked)"><span /></label>
             </div>
           </section>
 
@@ -381,6 +413,7 @@ onBeforeUnmount(() => mainEl?.removeEventListener('scroll', onScroll))
                 <label class="input-wrap"><Icon name="userPlus" small /><input v-model="inviteName" class="input" :list="accounts.length ? 'psAcc' : undefined" autocomplete="off" :placeholder="$t('project-settings.invitePh')" data-testid="ps-invite-name" @keydown.enter="invite"></label>
                 <datalist v-if="accounts.length" id="psAcc"><option v-for="a in accounts.filter((x) => !members.some((m) => m.username === x))" :key="a" :value="a" /></datalist>
                 <select v-model="inviteRole" class="select" data-testid="ps-invite-role">
+                  <option value="manage">{{ $t('proj.role.manage') }}</option>
                   <option value="edit">{{ $t('proj.role.edit') }}</option>
                   <option value="read">{{ $t('proj.role.read') }}</option>
                 </select>
@@ -399,15 +432,17 @@ onBeforeUnmount(() => mainEl?.removeEventListener('scroll', onScroll))
                     </td>
                     <td>
                       <ProjRole v-if="m.role === 'owner' || !canManage" :role="m.role" />
-                      <select v-else class="select sev-sel" style="width: 120px" :value="m.role" :disabled="memBusy === m.username" :data-testid="`ps-member-role-${m.username}`" @change="setMember(m.username, ($event.target as HTMLSelectElement).value as 'edit' | 'read')">
+                      <select v-else class="select sev-sel" style="width: 120px" :value="m.role" :disabled="memBusy === m.username" :data-testid="`ps-member-role-${m.username}`" @change="setMember(m.username, ($event.target as HTMLSelectElement).value as 'manage' | 'edit' | 'read')">
+                        <option value="manage">{{ $t('proj.role.manage') }}</option>
                         <option value="edit">{{ $t('proj.role.edit') }}</option>
                         <option value="read">{{ $t('proj.role.read') }}</option>
                       </select>
                     </td>
                     <td class="small muted">{{ shortTime(m.since) }}</td>
                     <td class="right">
-                      <button v-if="m.role === 'owner' && canManage" class="btn btn-sm" type="button" @click="dlg = 'transfer'"><Icon name="transfer" small />{{ $t('project-settings.transferOwner') }}</button>
-                      <template v-else-if="m.role !== 'owner' && canManage">
+                      <button v-if="m.role === 'owner' && canOwn" class="btn btn-sm" type="button" @click="dlg = 'transfer'"><Icon name="transfer" small />{{ $t('project-settings.transferOwner') }}</button>
+                      <span v-else-if="m.role === 'owner' && canManage" class="why-locked"><Icon name="lock" small />{{ $t('join.ownerOnlyTransfer') }}</span>
+                      <template v-else-if="m.role !== 'owner' && canManage && !isMe(m.username)">
                         <template v-if="confirmRemove === m.username">
                           <span class="small">{{ $t('project-settings.removeConfirm', { u: m.username }) }}</span>
                           <button class="btn btn-sm btn-danger" type="button" :data-testid="`ps-member-remove-ok-${m.username}`" @click="removeMember(m.username)">{{ $t('project-settings.remove') }}</button>
@@ -423,12 +458,16 @@ onBeforeUnmount(() => mainEl?.removeEventListener('scroll', onScroll))
             </div>
           </section>
 
+          <JoinRequestsPanel v-if="canManage && project.ref" :project-ref="project.ref" @changed="(m) => { flash(m); void project.reload() }" @count="(n) => (pendingCount = n)" />
+          <InvitesPanel v-if="canManage && project.ref" :project-ref="project.ref" @changed="flash" />
+
           <section id="s-danger" class="panel ps-sec danger-zone" data-testid="ps-danger">
             <div class="panel-h"><h2>{{ $t('project-settings.danger') }}</h2><span class="meta">{{ $t('project-settings.dangerMeta') }}</span></div>
+            <div v-if="canManage && !canOwn" class="panel-b"><div class="notice info" data-testid="ps-manage-note"><Icon name="lock" /><div>{{ $t('join.manageDangerNote') }}</div></div></div>
             <div>
-              <div class="dz-row"><div><b>{{ $t('project-settings.dzTransfer') }}</b><p>{{ $t('project-settings.dzTransferText') }}</p></div><button class="btn" type="button" :disabled="!canManage" data-testid="ps-transfer" @click="dlg = 'transfer'"><Icon name="transfer" small />{{ $t('project-settings.transferBtn') }}</button></div>
+              <div class="dz-row"><div><b>{{ $t('project-settings.dzTransfer') }}</b><p>{{ $t('project-settings.dzTransferText') }}</p></div><button class="btn" type="button" :disabled="!canOwn" data-testid="ps-transfer" @click="dlg = 'transfer'"><Icon name="transfer" small />{{ $t('project-settings.transferBtn') }}</button></div>
               <div class="dz-row"><div><b>{{ $t('project-settings.dzCopy') }}</b><p>{{ $t('project-settings.dzCopyText') }}</p></div><button class="btn" type="button" :disabled="!!auth.me?.read_only" data-testid="ps-copy" @click="dlg = 'copy'"><Icon name="copy" small />{{ $t('project-settings.copyBtn') }}</button></div>
-              <div class="dz-row"><div><b>{{ $t('project-settings.dzDelete') }}</b><p>{{ $t('project-settings.dzDeleteText') }}</p></div><button class="btn btn-danger" type="button" :disabled="!canManage" data-testid="ps-delete" @click="dlg = 'delete'"><Icon name="trash" small />{{ $t('project-settings.deleteBtn') }}</button></div>
+              <div class="dz-row"><div><b>{{ $t('project-settings.dzDelete') }}</b><p>{{ $t('project-settings.dzDeleteText') }}</p></div><button class="btn btn-danger" type="button" :disabled="!canOwn" data-testid="ps-delete" @click="dlg = 'delete'"><Icon name="trash" small />{{ $t('project-settings.deleteBtn') }}</button></div>
             </div>
           </section>
         </div>

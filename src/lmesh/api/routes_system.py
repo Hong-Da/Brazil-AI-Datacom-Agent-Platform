@@ -7,7 +7,17 @@ from typing import Any
 from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel, Field
 
-from lmesh.api.common import E_EXTERNAL, E_PARAM, E_STATE, ApiError, lang_of, ok, require_admin, settings_of
+from lmesh.api.common import (
+    E_EXTERNAL,
+    E_PARAM,
+    E_STATE,
+    ApiError,
+    lang_of,
+    ok,
+    projects_policy,
+    require_admin,
+    settings_of,
+)
 from lmesh.core import ai, config, i18n, setup, status
 
 router = APIRouter()
@@ -68,6 +78,7 @@ def setup_apply(request: Request, response: Response, body: SetupBody) -> dict[s
     result = setup.apply(values, lang, current_port=current, admin=admin)
     new = config.load()
     request.app.state.settings = new
+    projects_policy(new)
     if result.get("admin"):  # 向导里创建了管理员：直接登录
         from lmesh.api.routes_auth import _start_session
 
@@ -151,6 +162,7 @@ def settings_put(request: Request, body: SettingsBody) -> dict[str, Any]:
     except setup.SetupError as e:
         raise ApiError(E_PARAM, 422, data={"errors": {k: i18n.t(v, lang) for k, v in e.errors.items()}}) from e
     request.app.state.settings = new
+    projects_policy(new)
     from lmesh.api.routes_auth import _audit
 
     p = request.state.principal

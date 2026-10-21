@@ -2,6 +2,8 @@
 /**
  * 我的项目（REQ-035，预览 DevelopDocs/ui-preview/M6/projects.html）：我的项目 / 共享给我的（管理员另有其他人的），
  * 卡片或列表，计数、成员、最近活动；卡片菜单：打开、设置与成员、复制、转交、删除或退出。
+ * M9-8（REQ-050，预览 M9-8/projects.html）：不能创建项目时“新建项目”不可用并说明；没有项目时提示等人邀请、一键申请
+ * 创建权限；我的加入申请；有等我审批的加入申请时顶部提示。
  */
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -20,6 +22,10 @@ import CopyProjectDialog from './projects/CopyProjectDialog.vue'
 import TransferDialog from './projects/TransferDialog.vue'
 import DeleteProjectDialog from './projects/DeleteProjectDialog.vue'
 import LeaveDialog from './projects/LeaveDialog.vue'
+import WaitHero from './join/WaitHero.vue'
+import MyRequests from './join/MyRequests.vue'
+import { createPermission, myRequests, type CreatePermission, type JoinRequest } from './join/join'
+import { useNotify } from '@/stores/notify'
 
 type Tab = 'mine' | 'shared' | 'others'
 type Dlg = { kind: 'new' } | { kind: 'copy' | 'transfer' | 'delete' | 'leave'; p: ProjectRow }
@@ -30,6 +36,7 @@ const router = useRouter()
 const auth = useAuth()
 const project = useProject()
 const status = useStatus()
+const notify = useNotify()
 
 const loading = ref(true)
 const loadError = ref('')
@@ -50,6 +57,12 @@ const tabs = computed<Tab[]>(() => (auth.isAdmin && lists.value?.others.length ?
 const rows = computed(() => sortProjects((lists.value?.[tab.value] ?? []).filter((p) => matchProject(p, q.value)), sort.value))
 const total = computed(() => (lists.value ? lists.value.mine.length + lists.value.shared.length : 0))
 const ro = computed(() => !!auth.me?.read_only)
+const perm = ref<CreatePermission | null>(null)
+const reqs = ref<JoinRequest[]>([])
+/** 能新建项目（没取到权限时按能，后端仍会检查） */
+const canCreate = computed(() => !ro.value && (perm.value?.can_create ?? true))
+const shownReqs = computed(() => reqs.value.filter((r) => r.status !== 'cancelled'))
+const approvals = computed(() => notify.data?.by_project ?? [])
 
 async function load(): Promise<void> {
   loading.value = true
@@ -62,6 +75,16 @@ async function load(): Promise<void> {
   } finally {
     loading.value = false
   }
+  void loadJoin()
+}
+async function loadJoin(): Promise<void> {
+  try { perm.value = await createPermission() } catch { perm.value = null }
+  try { reqs.value = (await myRequests()).requests } catch { reqs.value = [] }
+  void notify.refresh()
+}
+function onJoinChanged(msg: string): void {
+  flash(msg)
+  void load()
 }
 
 function flash(msg: string): void {
@@ -115,7 +138,7 @@ function onDoc(e: MouseEvent): void { if (menu.value && !(e.target as HTMLElemen
 onMounted(() => {
   document.addEventListener('click', onDoc)
   void load()
-  if (route.query.new === '1') dlg.value = { kind: 'new' }
+  if (route.query.new === '1' && canCreate.value) dlg.value = { kind: 'new' }
 })
 onBeforeUnmount(() => document.removeEventListener('click', onDoc))
 watch(() => route.query.new, (v) => { if (v === '1') dlg.value = { kind: 'new' } })
@@ -137,7 +160,9 @@ function closeNew(): void {
         <div class="ph-actions">
           <router-link class="btn" :to="{ name: 'templates' }" data-testid="projects-my-templates"><Icon name="stencil" small />{{ $t('projects.myTemplates') }}</router-link>
           <router-link class="btn" :to="{ name: 'translate-rules' }" data-testid="projects-my-rulesets"><Icon name="rules" small />{{ $t('projects.myRuleSets') }}</router-link>
-          <button v-if="!ro" class="btn btn-primary" type="button" data-testid="projects-new" @click="dlg = { kind: 'new' }"><Icon name="plus" small />{{ $t('projects.new') }}</button>
+          <router-link class="btn" :to="{ name: 'discover' }" data-testid="projects-discover"><Icon name="search" small />{{ $t('nav.discover') }}</router-link>
+          <span v-if="!ro && !canCreate" class="locked-new" :title="$t('join.lockedTip')" data-testid="projects-new-locked"><Icon name="lock" small />{{ $t('join.lockedNew') }}</span>
+          <button v-if="!ro" class="btn btn-primary" type="button" :disabled="!canCreate" data-testid="projects-new" @click="dlg = { kind: 'new' }"><Icon name="plus" small />{{ $t('projects.new') }}</button>
         </div>
       </div>
 
@@ -150,9 +175,15 @@ function closeNew(): void {
         </div>
       </div>
 
+      <div v-for="a in approvals" :key="a.ref" class="approve-strip" :data-testid="`approve-strip-${a.ref}`">
+        <Icon name="inbox" /><span class="grow">{{ $t('join.approveStrip', { p: a.name, n: a.count }) }}</span>
+        <router-link class="btn btn-sm" :to="{ name: 'project-settings', params: { project: a.ref }, hash: '#s-requests' }">{{ $t('join.review') }}</router-link>
+      </div>
+
       <div v-if="loadError" class="notice err" data-testid="projects-error"><Icon name="err" /><div class="grow">{{ loadError }}</div><button class="btn btn-sm" type="button" @click="load">{{ $t('c.retry') }}</button></div>
       <p v-else-if="loading && !lists" class="faint">{{ $t('c.loading') }}</p>
 
+      <WaitHero v-else-if="lists && !total && !lists.others.length && !canCreate && !ro" :perm="perm" @changed="onJoinChanged" />
       <section v-else-if="lists && !total && !lists.others.length" class="panel" data-testid="projects-empty">
         <div class="empty">
           <svg class="art" viewBox="0 0 150 96" aria-hidden="true">
@@ -165,7 +196,7 @@ function closeNew(): void {
           </svg>
           <h3>{{ $t('projects.emptyTitle') }}</h3>
           <p>{{ $t('projects.emptyText') }}</p>
-          <button v-if="!ro" class="btn btn-primary" type="button" @click="dlg = { kind: 'new' }"><Icon name="plus" small />{{ $t('projects.new') }}</button>
+          <button v-if="!ro && canCreate" class="btn btn-primary" type="button" @click="dlg = { kind: 'new' }"><Icon name="plus" small />{{ $t('projects.new') }}</button>
         </div>
       </section>
 
@@ -204,9 +235,9 @@ function closeNew(): void {
                   <button type="button" role="menuitem" @click="open(p)"><Icon name="enter" small />{{ $t('projects.open') }}</button>
                   <button type="button" role="menuitem" data-testid="pm-settings" @click="settings(p)"><Icon name="gear" small />{{ $t(abil(p).manage ? 'projects.settings' : 'projects.viewSettings') }}</button>
                   <button v-if="!ro" type="button" role="menuitem" data-testid="pm-copy" @click="act('copy', p)"><Icon name="copy" small />{{ $t('projects.copy') }}</button>
-                  <button v-if="abil(p).manage" type="button" role="menuitem" data-testid="pm-transfer" @click="act('transfer', p)"><Icon name="transfer" small />{{ $t('projects.transfer') }}</button>
-                  <template v-if="abil(p).manage || abil(p).leave"><hr></template>
-                  <button v-if="abil(p).manage" type="button" role="menuitem" class="danger" data-testid="pm-delete" @click="act('delete', p)"><Icon name="trash" small />{{ $t('projects.delete') }}</button>
+                  <button v-if="abil(p).own" type="button" role="menuitem" data-testid="pm-transfer" @click="act('transfer', p)"><Icon name="transfer" small />{{ $t('projects.transfer') }}</button>
+                  <template v-if="abil(p).own || abil(p).leave"><hr></template>
+                  <button v-if="abil(p).own" type="button" role="menuitem" class="danger" data-testid="pm-delete" @click="act('delete', p)"><Icon name="trash" small />{{ $t('projects.delete') }}</button>
                   <button v-else-if="abil(p).leave" type="button" role="menuitem" class="danger" data-testid="pm-leave" @click="act('leave', p)"><Icon name="logout" small />{{ $t('projects.leave') }}</button>
                 </div>
               </span>
@@ -256,9 +287,9 @@ function closeNew(): void {
                         <button type="button" role="menuitem" @click="open(p)"><Icon name="enter" small />{{ $t('projects.open') }}</button>
                         <button type="button" role="menuitem" @click="settings(p)"><Icon name="gear" small />{{ $t(abil(p).manage ? 'projects.settings' : 'projects.viewSettings') }}</button>
                         <button v-if="!ro" type="button" role="menuitem" @click="act('copy', p)"><Icon name="copy" small />{{ $t('projects.copy') }}</button>
-                        <button v-if="abil(p).manage" type="button" role="menuitem" @click="act('transfer', p)"><Icon name="transfer" small />{{ $t('projects.transfer') }}</button>
-                        <template v-if="abil(p).manage || abil(p).leave"><hr></template>
-                        <button v-if="abil(p).manage" type="button" role="menuitem" class="danger" @click="act('delete', p)"><Icon name="trash" small />{{ $t('projects.delete') }}</button>
+                        <button v-if="abil(p).own" type="button" role="menuitem" @click="act('transfer', p)"><Icon name="transfer" small />{{ $t('projects.transfer') }}</button>
+                        <template v-if="abil(p).own || abil(p).leave"><hr></template>
+                        <button v-if="abil(p).own" type="button" role="menuitem" class="danger" @click="act('delete', p)"><Icon name="trash" small />{{ $t('projects.delete') }}</button>
                         <button v-else-if="abil(p).leave" type="button" role="menuitem" class="danger" @click="act('leave', p)"><Icon name="logout" small />{{ $t('projects.leave') }}</button>
                       </div>
                     </span>
@@ -269,6 +300,8 @@ function closeNew(): void {
           </div>
         </section>
       </template>
+
+      <MyRequests v-if="shownReqs.length" :rows="shownReqs" @changed="onJoinChanged" />
     </div>
 
     <NewProjectDialog v-if="dlg?.kind === 'new'" @close="closeNew" @created="onCreated" />

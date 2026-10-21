@@ -82,6 +82,8 @@ export const router = createRouter({
     ...projectRoutes,
     ...legacyRoutes,
     { path: '/projects', name: 'projects', component: () => import('@/views/ProjectsView.vue') },
+    { path: '/discover', name: 'discover', component: () => import('@/views/DiscoverView.vue') },
+    { path: '/invite/:token', name: 'invite', component: () => import('@/views/InviteView.vue') },
     { path: '/tokens', name: 'tokens', component: () => import('@/views/TokensView.vue') },
     { path: '/me/ai', name: 'my-ai', component: () => import('@/views/MyAiView.vue') },
     { path: '/me/ai/personal', name: 'my-ai-personal', component: () => import('@/views/MyAiPersonalView.vue') },
@@ -171,7 +173,9 @@ router.beforeEach(async (to) => {
   }
   useNetwork().leave()
   // 其他页面（首页、AI 查询、模板……）的设备数据也来自当前项目
-  await project.ensure()
+  const cur = await project.ensure()
+  // 没有任何项目、也不能创建项目的账号（M9-8）：首页没有数据可看，去“我的项目”看提示
+  if (!cur && to.name === 'dashboard' && !auth.isAdmin) return { name: 'projects' }
   // 升级到 0.6.0 后第一次登录：说明现有数据移入了哪些项目（每次打开网页最多检查一次；看过的账号不再查）
   if (!upgradeChecked && to.name !== 'upgrade') {
     upgradeChecked = true

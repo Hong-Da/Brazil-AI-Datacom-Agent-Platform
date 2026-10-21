@@ -30,11 +30,12 @@ describe('我的项目', () => {
     expect(rows[0].name).toBe('b')
   })
   it('按角色能做的事', () => {
-    expect(projectAbilities('owner')).toEqual({ edit: true, manage: true, leave: false })
-    expect(projectAbilities('edit')).toEqual({ edit: true, manage: false, leave: true })
-    expect(projectAbilities('read')).toEqual({ edit: false, manage: false, leave: true })
-    expect(projectAbilities('admin')).toEqual({ edit: true, manage: true, leave: false })
-    expect(projectAbilities('owner', true)).toEqual({ edit: false, manage: false, leave: false })
+    expect(projectAbilities('owner')).toEqual({ edit: true, manage: true, own: true, leave: false })
+    expect(projectAbilities('manage')).toEqual({ edit: true, manage: true, own: false, leave: true })
+    expect(projectAbilities('edit')).toEqual({ edit: true, manage: false, own: false, leave: true })
+    expect(projectAbilities('read')).toEqual({ edit: false, manage: false, own: false, leave: true })
+    expect(projectAbilities('admin')).toEqual({ edit: true, manage: true, own: true, leave: false })
+    expect(projectAbilities('owner', true)).toEqual({ edit: false, manage: false, own: false, leave: false })
   })
   it('删除确认、请求体、头像', () => {
     expect(confirmMatches(' oam ', 'oam')).toBe(true)

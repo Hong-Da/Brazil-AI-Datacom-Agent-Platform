@@ -9,6 +9,8 @@ import {
   type AccountRole, type OwnedProject, type Perm, type UserRow,
 } from './account/account'
 import RegistrationPanel from './users/RegistrationPanel.vue'
+import CreatePermPanel from './users/CreatePermPanel.vue'
+import { createPermission } from './join/join'
 
 type Dialog =
   | { kind: 'new' }
@@ -56,9 +58,16 @@ const dlgOk = computed(() => {
   return true
 })
 
+// 创建项目的总开关（M9-8）：打开时单独授权不起作用
+const createOpen = ref(false)
+async function setCreate(u: UserRow, on: boolean): Promise<void> {
+  await update(u, { can_create_projects: on }, t(on ? 'join.grantedToast' : 'join.revokedCreateToast', { u: u.username }))
+}
+
 async function load(): Promise<void> {
   loading.value = true
   loadError.value = ''
+  createPermission().then((p) => { createOpen.value = p.open }).catch(() => { /* 取不到时按关闭显示 */ })
   try {
     rows.value = (await get<{ users: UserRow[] }>('/users')).users
   } catch (e) {
@@ -204,6 +213,8 @@ async function confirm(): Promise<void> {
 
       <RegistrationPanel />
 
+      <CreatePermPanel :open="createOpen" @changed="(m) => { flash(m); void load() }" />
+
       <section class="panel">
         <div class="panel-h">
           <h2>{{ $t('users.list') }}</h2>
@@ -224,7 +235,7 @@ async function confirm(): Promise<void> {
           <table class="tbl" data-testid="users-table">
             <thead><tr>
               <th>{{ $t('users.colName') }}</th><th>{{ $t('users.colRole') }}</th><th>{{ $t('users.colState') }}</th>
-              <th>{{ $t('users.colProjects') }}</th><th>{{ $t('users.colTokens') }}</th>
+              <th>{{ $t('users.colProjects') }}</th><th>{{ $t('join.colCanCreate') }}</th><th>{{ $t('users.colTokens') }}</th>
               <th>{{ $t('users.colLast') }}</th><th>{{ filter === 'pending' ? $t('users.colSignedUp') : $t('users.colCreated') }}</th><th class="right">{{ $t('users.colActions') }}</th>
             </tr></thead>
             <tbody>
@@ -243,6 +254,11 @@ async function confirm(): Promise<void> {
                   </span>
                 </td>
                 <td class="small"><span v-if="u.projects">{{ $t('users.nProjects', { n: u.projects }) }}</span><span v-else class="faint">—</span></td>
+                <td class="small" :data-testid="`user-create-${u.username}`">
+                  <span v-if="u.role === 'admin'" class="jst approved"><Icon name="check" small />{{ $t('join.always') }}</span>
+                  <span v-else-if="createOpen" class="jst approved" :title="$t('join.switchOnText')"><Icon name="check" small />{{ $t('join.bySwitch') }}</span>
+                  <span v-else class="cp-cell"><label class="switch" :title="$t('join.grantTip')"><input type="checkbox" :checked="!!u.can_create_projects" :disabled="busy === u.username || u.status === 'pending'" :data-testid="`user-create-switch-${u.username}`" @change="setCreate(u, ($event.target as HTMLInputElement).checked)"><span /></label><span v-if="!u.can_create_projects && u.projects" class="small" :title="$t('join.legacyTip')">{{ $t('join.legacyKeep') }}</span></span>
+                </td>
                 <td class="small"><span v-if="u.tokens">{{ $t('users.nTokens', { n: u.tokens }) }}</span><span v-else class="faint">—</span></td>
                 <td class="mono"><span v-if="u.last_login_at">{{ shortTime(u.last_login_at) }}</span><span v-else class="faint">{{ $t('users.never') }}</span></td>
                 <td class="mono">{{ shortTime(u.created_at).slice(0, 10) }}</td>

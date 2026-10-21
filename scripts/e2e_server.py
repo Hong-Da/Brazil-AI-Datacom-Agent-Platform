@@ -36,7 +36,8 @@ def prepare(root: Path) -> None:
     from lmesh.core import config, importer, kbservice, setup
 
     paths.project_root.cache_clear()
-    setup.apply({"security.api_token": TOKEN}, "zh-CN", check_port=False)
+    # “普通用户可以创建项目”（M9-8）在端到端测试里打开，保持此前用例的前提；m98.spec.ts 自己关闭再恢复
+    setup.apply({"security.api_token": TOKEN, "auth.user_create_projects": True}, "zh-CN", check_port=False)
     settings = config.load()
     kb_root = kbservice.runtime_root(settings)
     sources = [(Path(s).name, (ROOT / "knowledge" / "samples" / s).read_bytes()) for s in SAMPLES]

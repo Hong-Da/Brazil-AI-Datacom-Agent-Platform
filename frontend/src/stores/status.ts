@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { get } from '@/api'
+import { useAuth } from '@/stores/auth'
+import { useProject } from '@/stores/project'
 
 /** 首页概况（/summary）的精简版：外壳上的知识库版本、草稿数、审核与未识别行计数、AI 状态。各页面修改知识库后调用 refresh()。 */
 export interface Summary {
@@ -19,6 +21,9 @@ export const useStatus = defineStore('status', () => {
 
   async function refresh(): Promise<void> {
     if (inflight) return inflight
+    // 没有任何项目的普通账号（M9-8）：概况按项目统计，没有可看的（接口会返回 409），不请求
+    const auth = useAuth()
+    if (auth.me && !auth.isAdmin && !useProject().ref) return
     inflight = (async () => {
       try {
         summary.value = await get<Summary>('/summary')

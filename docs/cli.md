@@ -169,12 +169,20 @@
 | `lmesh script-diff <a> <b> [--ignore-order] [--kind full\|change] [--device 基线] [--format text\|unified\|html] [--report-lang zh-CN\|en] [--no-semantic] [-o 文件]` | 脚本 / 配置的文本差异：逐行对比、行内字符级标记，位置变化识别为移动（第几行 → 第几行），`--ignore-order` 按视图路径 + 内容只看内容差异；同时给出语义差异（按有效值比较；`--kind change` 时比较两份脚本在基线上执行后的结果）；可输出统一 diff 或中 / 英 HTML 报告 |
 | `lmesh project list [--all] [--owner 账号]` | 项目列表（M6）：我的项目与共享给我的（`--as` 账号的视角，`*` 为默认项目；第一列是规范引用：自己的项目写标识，别人的写 `属主/标识`）；`--all` 同时列出不是自己参与的项目（管理员） |
 | `lmesh project show [项目]` | 项目详情：属主、我的角色、成员、设备（私有 / 引用）与脚本计数；不给项目时为当前项目 |
-| `lmesh project create <名称> [--slug 标识] [--description 说明]` | 新建项目，属主为 `--as` 账号；标识在属主自己的项目里唯一（别人可以有同名项目）；标识不合法退出码 2，自己已有同名项目退出码 1 |
+| `lmesh project create <名称> [--slug 标识] [--description 说明]` | 新建项目，属主为 `--as` 账号；标识在属主自己的项目里唯一（别人可以有同名项目）；标识不合法退出码 2，自己已有同名项目退出码 1；没有创建权限（M9-8：配置 `auth.user_create_projects` 关闭且没有单独授权）退出码 1 |
 | `lmesh project delete <项目>` | 删除项目：私有设备与它们的全部版本一起删除，引用的公共设备只解除引用；终端里要输入项目标识确认，`--yes` 跳过 |
-| `lmesh project members <项目> [--add 账号 --role edit\|read] [--remove 账号]` | 成员列表；邀请或改角色、移除（只限属主与管理员，否则退出码 1） |
-| `lmesh project transfer <项目> <新属主> [--keep-as edit\|read\|none] [--slug 新标识]` | 转交项目；原属主默认留作可编辑成员；项目用到的原属主私有规则集复制一份给新属主；新属主已有同名标识时退出码 1（`error.data.suggested` 给出可用的标识），用 `--slug` 同时改名 |
+| `lmesh project members <项目> [--add 账号 --role manage\|edit\|read] [--remove 账号]` | 成员列表；添加或改角色、移除（属主、“管理”成员与管理员，否则退出码 1） |
+| `lmesh project transfer <项目> <新属主> [--keep-as manage\|edit\|read\|none] [--slug 新标识]` | 转交项目（只限属主与管理员，“管理”成员退出码 1）；原属主默认留作可编辑成员；项目用到的原属主私有规则集复制一份给新属主；新属主已有同名标识时退出码 1（`error.data.suggested` 给出可用的标识），用 `--slug` 同时改名 |
 | `lmesh project copy <项目> <新名称> [--slug 标识] [--no-devices] [--no-scripts]` | 复制为新项目（属主为 `--as` 账号）：设置、规则调整、私有设备（当前版本）、引用、脚本 |
 | `lmesh project default <项目>` | 设置 `--as` 账号的默认项目 |
+| `lmesh project can-create` / `request-create [--reason]` | `--as` 账号能否新建项目（原因：管理员 / 总开关 / 单独授权）与创建权限申请的状态 / 向管理员申请创建权限（M9-8）；已经能创建或已有待处理的申请退出码 1 |
+| `lmesh project discover [搜索词]` | 可被搜索的项目：编号、`属主/标识`、名称、属主、设备数、我的状态（只有这些，不显示设备名、配置与成员） |
+| `lmesh project join <编号或属主/标识> [--role read\|edit] [--reason 理由]` | 申请加入可被搜索的项目；不可被搜索或不存在退出码 4，已是成员或已有待审批的申请退出码 1 |
+| `lmesh project my-requests` / `cancel-request <编号>` | 我提交的加入申请 / 撤回待审批的申请 |
+| `lmesh project requests <项目> [--all]` / `approve <项目> <编号> [--role manage\|edit\|read]` / `decline <项目> <编号> [--note 说明]` | 项目的加入申请（属主、“管理”成员、管理员，否则退出码 1）/ 通过（可改角色）/ 拒绝 |
+| `lmesh project discoverable <项目> on\|off` | 设置项目是否可被搜索（属主、“管理”成员、管理员） |
+| `lmesh project invite <项目> [--role read] [--days 7] [--approval] [--note 备注]` / `invites <项目>` / `revoke-invite <项目> <编号>` | 新建邀请链接（令牌只显示这一次，服务器只存它的 SHA-256；`--approval` 打开后仍需审批；有效 1–90 天）/ 列表 / 撤销 |
+| `lmesh project accept-invite <令牌或链接> [--reason 留言]` | 用邀请链接加入：直接成为成员，或（链接要求审批时）提交加入申请；链接无效退出码 4，已过期或已撤销退出码 1 |
 | `lmesh project ref <公共设备> [--pin 版本编号] [--remove]` | 在当前项目（`--project`）引用公共设备（跟随最新，或 `--pin` 固定版本），`--remove` 解除引用 |
 | `lmesh token create <用途> [--read-only] [--days 90]` | 为 `--as` 账号生成个人令牌（`lmp_` 开头，只显示这一次）；`--days 0` 不过期；还没有账号时退出码 1 |
 | `lmesh token list` | `--as` 账号的个人令牌：前 8 个字符、权限、过期时间、最后使用、状态 |
@@ -190,6 +198,8 @@
 | `lmesh network folder-add <名称>` / `folder-delete <编号>` | 文件夹（只整理列表；删除时网络移到最外层） |
 | `lmesh network suggest components\|igp\|bgp\|name\|subnet\|ai [--regex] [--prefix 24] [--protocol all\|isis\|ospf] [--all-links]` | 建网建议（代码计算，预览）；依据不合格退出码 2 |
 | `lmesh network adopt <依据> [--key K]… [--with-rules] [同上参数]` | 采纳建网建议（不给 `--key` 时采纳全部可采纳的）；`--with-rules` 把设备名 / 管理网段规则设为新网络的自动加入规则 |
+| `lmesh user grant-create <账号> [--revoke]` | 单独授权账号创建项目（M9-8）/ 收回 |
+| `lmesh user create-requests [--all]` / `approve-create <编号>` / `decline-create <编号> [--note 说明]` | 创建权限的申请 / 通过（即单独授权）/ 拒绝 |
 | `lmesh public-device list` | 公共设备库：版本数、引用它的项目（跟随 / 固定） |
 | `lmesh public-device import <文件、目录或 zip> [--level basic\|strict]` | 导入到公共设备库（同名设备作为新版本） |
 | `lmesh public-device delete <设备> [--force]` | 删除公共设备；还有项目引用时退出码 1（`--force` 一并解除引用） |
@@ -1534,6 +1544,119 @@ lmesh history list NOPE
 ```
 
 退出码：`4`
+
+### 能否新建项目
+
+```bash
+lmesh --output json --as dave project can-create
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.can_create` = `false`
+- `data.request.status` = `"pending"`
+
+### 申请创建项目的权限
+
+```bash
+lmesh --output json --as carol project request-create --reason '负责 IP RAN 扩容'
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.status` = `"pending"`
+- `data.username` = `"carol"`
+
+### 通过创建权限的申请
+
+```bash
+lmesh --output json user approve-create 1
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.status` = `"approved"`
+- `data.username` = `"dave"`
+
+### 单独授权账号创建项目
+
+```bash
+lmesh --output json user grant-create carol
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.username` = `"carol"`
+- `data.can_create_projects` = `true`
+
+### 申请加入可被搜索的项目
+
+```bash
+lmesh --output json --as dave project join alice/lab --role edit --reason '负责割接脚本'
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.status` = `"pending"`
+- `data.role` = `"edit"`
+
+### 通过加入申请并改角色
+
+```bash
+lmesh --output json --as erin project approve alice/lab 1 --role edit
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.status` = `"approved"`
+- `data.decided_role` = `"edit"`
+
+### 新建邀请链接（令牌只显示这一次）
+
+```bash
+lmesh --output json --as alice project invite lab --role read --days 3 --approval
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.role` = `"read"`
+- `data.requires_approval` = `true`
+- `data.state` = `"active"`
+
+### 用邀请链接加入（可以贴整个链接）
+
+```bash
+lmesh --output json --as dave project accept-invite http://127.0.0.1:9090/invite/lmi_test-invite-token-0001
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.status` = `"joined"`
+- `data.project` = `"alice/lab"`
 
 ### 预览升级时知识库的合并（自带知识库没变时无需合并）
 

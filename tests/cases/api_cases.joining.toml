@@ -1,0 +1,356 @@
+# 创建项目的权限与加入项目（M9-8，REQ-050）的 API 用例（加载器与主文件 api_cases.toml 合并）。
+# 准备方式 configured-joining：在 configured-projects 之上关闭“普通用户可以创建项目”；alice 的 lab 可被搜索；
+# erin / Erin-pass-12 是 lab 的“管理”成员，bob / Bob-pass-12 是只读成员；carol / Carol-pass-1 已申请加入 lab（申请 1）；
+# dave / Dave-pass-12 没有任何项目，已申请创建权限（申请 1）；lab 有两个邀请链接：
+# lmi_test-invite-token-0001（只读，直接加入）与 lmi_test-invite-token-0002（可编辑，仍需审批）。
+# 路径里“属主/标识”写成 属主~标识（或 属主%2F标识）。
+
+[[case]]
+id = "joining-create-forbidden"
+title = { zh-CN = "没有创建权限时新建项目：403", en = "Creating a project without permission: 403", pt-BR = "Criar projeto sem permissão: 403" }
+method = "POST"
+path = "/api/v1/projects"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+body = { name = "新园区" }
+expect_status = 403
+expect_json = { "code" = 1006 }
+in_docs = true
+
+[[case]]
+id = "joining-workspace-no-project"
+title = { zh-CN = "没有项目也不能创建：默认项目为 null", en = "No project and can’t create: default project is null", pt-BR = "Sem projeto e sem permissão: projeto padrão nulo" }
+method = "GET"
+path = "/api/v1/workspace"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.can_create" = false }
+
+[[case]]
+id = "joining-legacy-no-project"
+title = { zh-CN = "没有项目的账号调用旧的无项目接口：409", en = "Legacy endpoint for an account without projects: 409", pt-BR = "Endpoint legado para conta sem projetos: 409" }
+method = "GET"
+path = "/api/v1/devices"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "joining-create-permission"
+title = { zh-CN = "我能否新建项目与我的创建权限申请", en = "Whether I can create projects, and my permission request", pt-BR = "Se posso criar projetos e meu pedido de permissão" }
+method = "GET"
+path = "/api/v1/me/create-permission"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.can_create" = false, "data.open" = false, "data.request.status" = "pending" }
+in_docs = true
+
+[[case]]
+id = "joining-create-request-duplicate"
+title = { zh-CN = "已有待处理的创建权限申请：409", en = "A permission request is already pending: 409", pt-BR = "Já há um pedido de permissão pendente: 409" }
+method = "POST"
+path = "/api/v1/me/create-permission/request"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+body = { reason = "再申请一次" }
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "joining-create-request"
+title = { zh-CN = "申请创建项目的权限（通知管理员）", en = "Ask for permission to create projects (notifies admins)", pt-BR = "Pedir permissão para criar projetos (avisa os administradores)" }
+method = "POST"
+path = "/api/v1/me/create-permission/request"
+setup = "configured-joining"
+login = ["carol", "Carol-pass-1"]
+body = { reason = "负责 IP RAN 扩容" }
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "pending", "data.username" = "carol" }
+in_docs = true
+
+[[case]]
+id = "joining-admin-create-requests"
+title = { zh-CN = "创建权限的申请（管理员）", en = "Permission requests (admin)", pt-BR = "Pedidos de permissão (administrador)" }
+method = "GET"
+path = "/api/v1/admin/create-requests"
+setup = "configured-joining"
+login = ["admin", "Admin-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.count" = 1, "data.requests.0.username" = "dave" }
+in_docs = true
+
+[[case]]
+id = "joining-admin-create-approve"
+title = { zh-CN = "通过创建权限的申请：给该账号单独授权", en = "Approve a permission request: grant the account", pt-BR = "Aprovar pedido de permissão: permitir a conta" }
+method = "POST"
+path = "/api/v1/admin/create-requests/1/approve"
+setup = "configured-joining"
+login = ["admin", "Admin-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "approved", "data.decided_by" = "admin" }
+in_docs = true
+
+[[case]]
+id = "joining-admin-create-requests-403"
+title = { zh-CN = "普通用户查看创建权限的申请：403", en = "A regular user lists permission requests: 403", pt-BR = "Usuário comum lista pedidos de permissão: 403" }
+method = "GET"
+path = "/api/v1/admin/create-requests"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "joining-grant-user"
+title = { zh-CN = "管理员单独授权账号创建项目", en = "An admin lets one account create projects", pt-BR = "Um administrador permite que uma conta crie projetos" }
+method = "PUT"
+path = "/api/v1/users/carol"
+setup = "configured-joining"
+auth = true
+body = { can_create_projects = true }
+expect_status = 200
+expect_json = { "code" = 0, "data.user.username" = "carol", "data.user.can_create_projects" = true }
+in_docs = true
+
+[[case]]
+id = "joining-discover"
+title = { zh-CN = "发现项目：只有名称、简介、属主、设备数与我的状态", en = "Discover projects: name, description, owner, device count and my status", pt-BR = "Descobrir projetos: nome, descrição, dono, nº de dispositivos e meu estado" }
+method = "GET"
+path = "/api/v1/discover?q=lab"
+setup = "configured-joining"
+login = ["carol", "Carol-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.count" = 1, "data.projects.0.ref" = "alice/lab", "data.projects.0.owner" = "alice", "data.projects.0.devices" = 2, "data.projects.0.my_status" = "pending" }
+in_docs = true
+
+[[case]]
+id = "joining-request"
+title = { zh-CN = "申请加入可被搜索的项目", en = "Ask to join a discoverable project", pt-BR = "Pedir para entrar num projeto visível" }
+method = "POST"
+path = "/api/v1/discover/alice~lab/join-requests"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+body = { role = "edit", reason = "负责华东分支的割接脚本" }
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "pending", "data.role" = "edit", "data.project.ref" = "alice/lab", "data.via" = "search" }
+in_docs = true
+
+[[case]]
+id = "joining-request-pending"
+title = { zh-CN = "已有待审批的申请：409", en = "A request is already pending: 409", pt-BR = "Já há um pedido pendente: 409" }
+method = "POST"
+path = "/api/v1/discover/alice~lab/join-requests"
+setup = "configured-joining"
+login = ["carol", "Carol-pass-1"]
+body = { role = "read" }
+expect_status = 409
+expect_json = { "code" = 1003 }
+
+[[case]]
+id = "joining-request-bad-role"
+title = { zh-CN = "申请时不能选“管理”：422", en = "Manage can’t be requested: 422", pt-BR = "Não é possível pedir Gerenciar: 422" }
+method = "POST"
+path = "/api/v1/discover/alice~lab/join-requests"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+body = { role = "manage" }
+expect_status = 422
+expect_json = { "code" = 1001 }
+
+[[case]]
+id = "joining-my-requests"
+title = { zh-CN = "我提交的加入申请", en = "My join requests", pt-BR = "Meus pedidos para entrar" }
+method = "GET"
+path = "/api/v1/me/join-requests"
+setup = "configured-joining"
+login = ["carol", "Carol-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.requests.0.status" = "pending", "data.requests.0.project.ref" = "alice/lab" }
+in_docs = true
+
+[[case]]
+id = "joining-cancel"
+title = { zh-CN = "撤回我待审批的申请", en = "Cancel my pending request", pt-BR = "Cancelar meu pedido pendente" }
+method = "DELETE"
+path = "/api/v1/me/join-requests/1"
+setup = "configured-joining"
+login = ["carol", "Carol-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "cancelled" }
+
+[[case]]
+id = "joining-cancel-other"
+title = { zh-CN = "撤回别人的申请：404", en = "Cancelling someone else’s request: 404", pt-BR = "Cancelar pedido de outra pessoa: 404" }
+method = "DELETE"
+path = "/api/v1/me/join-requests/1"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "joining-notifications"
+title = { zh-CN = "等我处理的申请数（导航上的数字）", en = "Requests waiting on me (nav badge)", pt-BR = "Pedidos à minha espera (contador do menu)" }
+method = "GET"
+path = "/api/v1/me/notifications"
+setup = "configured-joining"
+login = ["erin", "Erin-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.join_requests" = 1, "data.by_project.0.ref" = "alice/lab", "data.create_requests" = 0 }
+in_docs = true
+
+[[case]]
+id = "joining-list-requests"
+title = { zh-CN = "项目的加入申请（“管理”成员）", en = "A project’s join requests (Manage member)", pt-BR = "Pedidos do projeto (membro Gerenciar)" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/join-requests"
+setup = "configured-joining"
+login = ["erin", "Erin-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.requests.0.username" = "carol", "data.requests.0.reason" = "参与割接评审" }
+in_docs = true
+
+[[case]]
+id = "joining-list-requests-readonly"
+title = { zh-CN = "只读成员查看加入申请：403", en = "A read-only member lists join requests: 403", pt-BR = "Membro somente leitura lista pedidos: 403" }
+method = "GET"
+path = "/api/v1/projects/alice~lab/join-requests"
+setup = "configured-joining"
+login = ["bob", "Bob-pass-12"]
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "joining-approve"
+title = { zh-CN = "通过加入申请并改角色", en = "Approve a join request with another role", pt-BR = "Aprovar pedido com outro papel" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/join-requests/1/approve"
+setup = "configured-joining"
+login = ["erin", "Erin-pass-12"]
+body = { role = "edit" }
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "approved", "data.decided_role" = "edit", "data.decided_by" = "erin" }
+in_docs = true
+
+[[case]]
+id = "joining-decline"
+title = { zh-CN = "拒绝加入申请", en = "Decline a join request", pt-BR = "Recusar pedido" }
+method = "POST"
+path = "/api/v1/projects/lab/join-requests/1/decline"
+setup = "configured-joining"
+login = ["alice", "Alice-pass-1"]
+body = { note = "评审已结束" }
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "declined", "data.note" = "评审已结束" }
+
+[[case]]
+id = "joining-invites"
+title = { zh-CN = "项目的邀请链接", en = "A project’s invite links", pt-BR = "Links de convite do projeto" }
+method = "GET"
+path = "/api/v1/projects/lab/invites"
+setup = "configured-joining"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.invites.0.state" = "active", "data.invites.1.state" = "active" }
+
+[[case]]
+id = "joining-invite-create"
+title = { zh-CN = "新建邀请链接（token 只返回这一次）", en = "Create an invite link (the token is returned only once)", pt-BR = "Criar link de convite (o token só é devolvido uma vez)" }
+method = "POST"
+path = "/api/v1/projects/alice~lab/invites"
+setup = "configured-joining"
+login = ["erin", "Erin-pass-12"]
+body = { role = "read", days = 7, requires_approval = false, note = "运维二组" }
+expect_status = 200
+expect_json = { "code" = 0, "data.role" = "read", "data.state" = "active", "data.uses" = 0, "data.created_by" = "erin" }
+in_docs = true
+
+[[case]]
+id = "joining-invite-revoke"
+title = { zh-CN = "撤销邀请链接", en = "Revoke an invite link", pt-BR = "Revogar link de convite" }
+method = "DELETE"
+path = "/api/v1/projects/lab/invites/1"
+setup = "configured-joining"
+login = ["alice", "Alice-pass-1"]
+expect_status = 200
+expect_json = { "code" = 0, "data.state" = "revoked" }
+
+[[case]]
+id = "joining-invite-info"
+title = { zh-CN = "打开邀请链接", en = "Open an invite link", pt-BR = "Abrir link de convite" }
+method = "GET"
+path = "/api/v1/invites/lmi_test-invite-token-0001"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+expect_status = 200
+expect_json = { "code" = 0, "data.project.ref" = "alice/lab", "data.role" = "read", "data.requires_approval" = false, "data.state" = "active", "data.my_status" = "none" }
+in_docs = true
+
+[[case]]
+id = "joining-invite-accept"
+title = { zh-CN = "用邀请链接直接加入", en = "Join directly with an invite link", pt-BR = "Entrar direto com o link de convite" }
+method = "POST"
+path = "/api/v1/invites/lmi_test-invite-token-0001/accept"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+body = {}
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "joined", "data.project" = "alice/lab", "data.role" = "read" }
+in_docs = true
+
+[[case]]
+id = "joining-invite-accept-approval"
+title = { zh-CN = "邀请链接仍需审批：提交加入申请", en = "Invite link that needs approval: a join request is sent", pt-BR = "Convite com aprovação: um pedido é enviado" }
+method = "POST"
+path = "/api/v1/invites/lmi_test-invite-token-0002/accept"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+body = { reason = "收到邮件邀请" }
+expect_status = 200
+expect_json = { "code" = 0, "data.status" = "pending", "data.role" = "edit" }
+
+[[case]]
+id = "joining-invite-unknown"
+title = { zh-CN = "邀请链接无效：404", en = "Unknown invite link: 404", pt-BR = "Convite desconhecido: 404" }
+method = "GET"
+path = "/api/v1/invites/lmi_nope"
+setup = "configured-joining"
+login = ["dave", "Dave-pass-12"]
+expect_status = 404
+expect_json = { "code" = 1004 }
+
+[[case]]
+id = "joining-discoverable"
+title = { zh-CN = "设置项目可被搜索（属主、“管理”成员、管理员）", en = "Make a project discoverable (owner, Manage members, admins)", pt-BR = "Tornar o projeto visível (dono, membros Gerenciar, admins)" }
+method = "PUT"
+path = "/api/v1/projects/alice~lab"
+setup = "configured-joining"
+login = ["erin", "Erin-pass-12"]
+body = { discoverable = false }
+expect_status = 200
+expect_json = { "code" = 0, "data.discoverable" = false }
+in_docs = true
+
+[[case]]
+id = "joining-manage-cannot-delete"
+title = { zh-CN = "“管理”成员不能删除项目：403", en = "A Manage member can’t delete the project: 403", pt-BR = "Membro Gerenciar não pode excluir o projeto: 403" }
+method = "DELETE"
+path = "/api/v1/projects/alice~lab?confirm=lab"
+setup = "configured-joining"
+login = ["erin", "Erin-pass-12"]
+expect_status = 403
+expect_json = { "code" = 1006 }
+
+[[case]]
+id = "joining-manage-add-member"
+title = { zh-CN = "“管理”成员添加成员", en = "A Manage member adds a member", pt-BR = "Membro Gerenciar adiciona um membro" }
+method = "PUT"
+path = "/api/v1/projects/alice~lab/members/dave"
+setup = "configured-joining"
+login = ["erin", "Erin-pass-12"]
+body = { role = "manage" }
+expect_status = 200
+expect_json = { "code" = 0 }

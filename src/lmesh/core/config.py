@@ -208,6 +208,17 @@ FIELDS: tuple[Field, ...] = (
         maximum=1000,
     ),
     Field(
+        "auth.user_create_projects",
+        False,
+        "security",  # 向导里放在“安全”一步；配置文件里是 [auth] 分组（M9-8，REQ-050）
+        "bool",
+        _d(
+            "普通用户可以创建项目；关闭时只有管理员和在账号管理中单独授权的账号能新建，已有项目照常使用",
+            "Regular users can create projects; when off, only administrators and accounts granted in Accounts can, and existing projects keep working",
+            "Usuários comuns podem criar projetos; desligado, só administradores e contas permitidas em Contas podem, e os projetos existentes continuam",
+        ),
+    ),
+    Field(
         "log.level",
         "INFO",
         "log",

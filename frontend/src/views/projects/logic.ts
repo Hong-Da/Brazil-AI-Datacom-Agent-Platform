@@ -40,11 +40,13 @@ export function sortProjects<T extends { name: string; updated_at: string | null
   return out.sort((a, b) => t(b) - t(a))
 }
 
-/** 项目里我能做什么（卡片菜单与设置页按它显示按钮）。role 为 GET /projects 的 role。 */
-export function projectAbilities(role: string | null | undefined, readOnlyToken = false): { edit: boolean; manage: boolean; leave: boolean } {
-  const edit = !readOnlyToken && (role === 'owner' || role === 'edit' || role === 'admin')
-  const manage = !readOnlyToken && (role === 'owner' || role === 'admin')
-  return { edit, manage, leave: !readOnlyToken && (role === 'edit' || role === 'read') }
+/** 项目里我能做什么（卡片菜单与设置页按它显示按钮）。role 为 GET /projects 的 role。
+ *  manage：成员、加入申请、邀请链接（属主、“管理”成员、管理员，M9-8）；own：转交、删除、改标识（属主与管理员）。 */
+export function projectAbilities(role: string | null | undefined, readOnlyToken = false): { edit: boolean; manage: boolean; own: boolean; leave: boolean } {
+  const edit = !readOnlyToken && (role === 'owner' || role === 'manage' || role === 'edit' || role === 'admin')
+  const manage = !readOnlyToken && (role === 'owner' || role === 'manage' || role === 'admin')
+  const own = !readOnlyToken && (role === 'owner' || role === 'admin')
+  return { edit, manage, own, leave: !readOnlyToken && (role === 'manage' || role === 'edit' || role === 'read') }
 }
 
 /** 删除确认：输入的标识与项目标识一致（去掉首尾空白）。 */

@@ -1,0 +1,104 @@
+/* M9-8（REQ-050，预览 DevelopDocs/ui-preview/M9-8/）：创建项目的权限与加入项目。
+   色彩沿用层级：蓝 = 项目，青 = 已通过 / 已授权，琥珀 = 等待处理；“管理”角色用紫色（m6.css 的 --mg）。明暗主题都用变量。 */
+
+/* 状态标签 */
+.jst { display: inline-flex; align-items: center; gap: 5px; height: 21px; padding: 0 8px; border-radius: 11px; font-size: 11.5px; font-weight: 600; white-space: nowrap; border: 1px solid; }
+.jst .ico { width: 12px; height: 12px; }
+.jst.pending { color: var(--amber-ink); background: var(--amber-soft); border-color: var(--amber-line); }
+.jst.approved, .jst.active { color: var(--teal-ink); background: var(--teal-soft); border-color: var(--teal-line); }
+.jst.declined, .jst.revoked { color: var(--red-ink); background: var(--red-soft); border-color: var(--red-line); }
+.jst.cancelled, .jst.expired { color: var(--ink-3); background: var(--surface-2); border-color: var(--line); }
+
+/* 没有项目时的“我的项目” */
+.wait-hero { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 26px; align-items: center; padding: 26px 28px; }
+.wait-hero h2 { font: 600 18px var(--font-display); margin-bottom: 6px; }
+.wait-hero p { color: var(--ink-2); max-width: 62ch; }
+.wait-hero .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.wait-hero .ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 18px; border: 1px solid var(--line); border-radius: 6px; }
+.wait-hero .ways > div { padding: 10px 12px; border-left: 1px solid var(--line); font-size: 12.5px; color: var(--ink-2); }
+.wait-hero .ways > div:first-child { border-left: 0; }
+.wait-hero .ways b { display: flex; align-items: center; gap: 6px; color: var(--ink); font-size: 12.5px; margin-bottom: 3px; }
+.wait-hero .ways b .ico { color: var(--blue); }
+.req-sent { display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; padding: 10px 12px; border: 1px solid var(--amber-line); background: var(--amber-soft); border-radius: 6px; color: var(--amber-ink); font-size: 12.5px; }
+.req-sent .ico { flex: none; margin-top: 1px; }
+.req-sent b { color: var(--ink); }
+
+.locked-new { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-3); }
+.approve-strip { display: flex; align-items: center; gap: 10px; padding: 9px 12px; margin-bottom: 12px; border: 1px solid var(--amber-line); background: var(--amber-soft); border-radius: 6px; font-size: 13px; color: var(--ink); }
+.approve-strip > .ico { color: var(--amber-ink); }
+.approve-strip .grow { flex: 1; min-width: 0; }
+
+/* 发现项目 */
+.dsc-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-bottom: 12px; }
+.dsc-list { display: flex; flex-direction: column; }
+.dsc-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) 130px 92px 200px; gap: 14px; align-items: center; padding: 13px 16px; border-top: 1px solid var(--line); }
+.dsc-row:first-child { border-top: 0; }
+.dsc-ic { width: 38px; height: 38px; border-radius: 8px; background: var(--blue-soft); color: var(--blue-ink); display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--blue-line); flex: none; }
+.dsc-n { min-width: 0; }
+.dsc-n b { font: 600 14px var(--font-display); color: var(--ink); }
+.dsc-n .ref { font: 11.5px var(--font-mono); color: var(--ink-3); margin-left: 6px; }
+.dsc-n p { color: var(--ink-2); font-size: 12.5px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.dsc-own { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); min-width: 0; }
+.dsc-dev { font-size: 12.5px; color: var(--ink-2); white-space: nowrap; }
+.dsc-dev b { font: 600 15px var(--font-display); color: var(--ink); margin-right: 3px; }
+.dsc-act { display: flex; justify-content: flex-end; align-items: center; gap: 6px; flex-wrap: wrap; }
+.dsc-note { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--ink-3); margin-top: 10px; }
+mark.hl { background: var(--hl-line, var(--amber-soft)); color: inherit; border-radius: 2px; padding: 0 1px; }
+.role-pick { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.role-pick .radio-card { padding: 9px 11px; }
+.req-proj { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); margin-bottom: 14px; }
+.req-proj small { display: block; color: var(--ink-3); font-size: 12px; }
+
+/* 我的加入申请 */
+.myreq { display: grid; grid-template-columns: minmax(0, 1.4fr) 110px minmax(0, 1fr) 110px 110px; gap: 12px; align-items: center; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 13px; }
+.myreq .why { color: var(--ink-3); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 项目设置：加入申请、邀请链接、可被搜索 */
+.jr, .cr-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; padding: 12px 16px; border-top: 1px solid var(--line); align-items: start; }
+.jr:first-of-type, .cr-row:first-of-type { border-top: 0; }
+.jr-who { display: flex; gap: 10px; align-items: flex-start; min-width: 0; }
+.jr-who .m6av { width: 30px; height: 30px; font-size: 12px; }
+.jr-meta { font-size: 12px; color: var(--ink-3); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 2px; }
+.jr-reason { margin-top: 6px; padding: 6px 10px; border-left: 3px solid var(--line-strong); background: var(--surface-2); color: var(--ink-2); font-size: 12.5px; border-radius: 0 4px 4px 0; }
+.jr-act { display: flex; gap: 6px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+.jr-act .select { width: auto; height: 30px; }
+.via { font-size: 11px; color: var(--blue-ink); border: 1px solid var(--blue-line); background: var(--blue-soft); padding: 0 5px; border-radius: 3px; }
+.inv-tbl .tokp { font: 12px var(--font-mono); color: var(--ink-2); }
+.inv-tbl tr.is-dead td { color: var(--ink-3); }
+.inv-once { border: 1px solid var(--teal-line); background: var(--teal-soft); border-radius: 6px; padding: 12px 14px; margin-bottom: 12px; }
+.inv-once p { font-size: 12.5px; color: var(--teal-ink); }
+.inv-once .url { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-top: 8px; }
+.inv-once .url .input { font-family: var(--font-mono); font-size: 12px; }
+.disc-switch { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 12px 16px; border-top: 1px solid var(--line); }
+.disc-switch p { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+.disc-preview { margin-top: 8px; display: inline-flex; gap: 8px; align-items: center; font-size: 12px; color: var(--ink-3); border: 1px dashed var(--line-strong); border-radius: 5px; padding: 5px 10px; }
+.why-locked { display: inline-flex; gap: 6px; align-items: center; font-size: 12px; color: var(--ink-3); }
+.ps-side .ps-cnt { margin-left: auto; font-size: 11px; font-weight: 600; min-width: 20px; height: 18px; padding: 0 6px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; background: var(--amber-soft); color: var(--amber-ink); border: 1px solid var(--amber-line); }
+
+/* 邀请链接落地页 */
+.inv-land { max-width: 560px; margin: 28px auto 12px; }
+.inv-land .panel-b { padding: 22px 24px; }
+.inv-land .proj { display: flex; gap: 14px; align-items: center; margin-bottom: 16px; }
+.inv-land .proj .dsc-ic { width: 46px; height: 46px; }
+.inv-land h2 { font: 600 18px var(--font-display); }
+.inv-land .kvs { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 6px 12px; font-size: 13px; margin: 12px 0 16px; }
+.inv-land .kvs dt { color: var(--ink-3); }
+.inv-land .acts { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* 账号管理：创建项目的权限 */
+.cp-strip { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 14px; margin-bottom: 12px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--r-panel); font-size: 13px; }
+.cp-strip > .ico { color: var(--blue); }
+.cp-strip .off { font-weight: 600; color: var(--ink); }
+.cp-strip .grow { flex: 1; min-width: 200px; }
+.cp-cell { display: inline-flex; align-items: center; gap: 6px; }
+.cp-cell .small { color: var(--ink-3); }
+
+@media (max-width: 1000px) {
+  .dsc-row { grid-template-columns: 38px minmax(0, 1fr) 170px; }
+  .dsc-own, .dsc-dev { display: none; }
+  .wait-hero { grid-template-columns: 1fr; }
+  .wait-hero .ways { grid-template-columns: 1fr; }
+  .wait-hero .ways > div { border-left: 0; border-top: 1px solid var(--line); }
+  .wait-hero .ways > div:first-child { border-top: 0; }
+  .myreq { grid-template-columns: minmax(0, 1fr) auto; }
+}

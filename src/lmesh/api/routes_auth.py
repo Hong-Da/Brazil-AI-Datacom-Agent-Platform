@@ -23,6 +23,7 @@ from lmesh.api.common import (
     db_of,
     lang_of,
     ok,
+    projects_policy,
     require_admin,
     require_token,
     settings_of,
@@ -340,6 +341,9 @@ class UpdateUserBody(BaseModel):
     role: str | None = None
     disabled: bool | None = None
     unlock: bool = False
+    can_create_projects: bool | None = Field(
+        None, description="单独授权创建项目（M9-8）：总开关关闭时，普通账号要有它才能新建项目"
+    )
 
 
 def _not_self(request: Request, username: str) -> None:
@@ -348,7 +352,7 @@ def _not_self(request: Request, username: str) -> None:
         raise ApiError(E_STATE, 409, "users.self")
 
 
-@admin.put("/users/{username}", summary="改角色、停用 / 启用、解除锁定（管理员）")
+@admin.put("/users/{username}", summary="改角色、停用 / 启用、解除锁定、单独授权创建项目（管理员）")
 def users_update(request: Request, username: str, body: UpdateUserBody) -> dict[str, Any]:
     if body.disabled or body.role not in (None, "admin"):
         _not_self(request, username)
@@ -356,6 +360,12 @@ def users_update(request: Request, username: str, body: UpdateUserBody) -> dict[
         u = users.update_user(db_of(request), username, role=body.role, disabled=body.disabled, unlock=body.unlock)
     except users.UserError as e:
         _user_error(e)
+    if body.can_create_projects is not None:
+        from lmesh.core import joining
+
+        p: Principal = request.state.principal
+        joining.set_create_permission(db_of(request), p.identity(), username, body.can_create_projects)
+        u = users.get_user(db_of(request), username)
     return ok(request, {"user": u})
 
 
@@ -454,6 +464,7 @@ def auth_settings_put(request: Request, body: RegSettingsBody) -> dict[str, Any]
     except config.ConfigError as e:
         raise ApiError(E_PARAM, 422, data={"error": str(e)}) from e
     request.app.state.settings = new
+    projects_policy(new)
     p: Principal = request.state.principal
     _audit(request, p.username, p.user_id, "settings.registration", {k.split(".", 1)[1]: v for k, v in updates.items()})
     return ok(request, _reg_settings(new))

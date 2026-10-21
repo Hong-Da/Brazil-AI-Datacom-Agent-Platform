@@ -16,7 +16,9 @@ export interface ProjectRow {
   description: string
   owner: string | null
   owner_disabled?: boolean
-  role: 'owner' | 'edit' | 'read' | 'admin' | null
+  role: 'owner' | 'manage' | 'edit' | 'read' | 'admin' | null
+  /** 可被搜索（M9-8） */
+  discoverable?: boolean
   members: number
   member_names?: string[]
   settings: { style?: string; rule_set?: string; baseline?: string }
@@ -27,7 +29,7 @@ export interface ProjectRow {
   updated_at: string | null
   default?: boolean
 }
-export interface Member { username: string; role: 'owner' | 'edit' | 'read'; disabled?: boolean; since: string | null }
+export interface Member { username: string; role: 'owner' | 'manage' | 'edit' | 'read'; disabled?: boolean; since: string | null }
 export interface ProjectDetail extends ProjectRow {
   member_list: Member[]
   overrides: { rule: string; enabled: boolean; severity: string | null; reason: string; updated_by?: string | null; updated_at?: string | null }[]
@@ -62,10 +64,12 @@ export const useProject = defineStore('project', () => {
   const role = computed(() => info.value?.role ?? null)
   /** 当前项目的标识（只用于显示与确认删除；网址与接口用 ref） */
   const slug = computed(() => info.value?.slug ?? null)
-  /** 能修改本项目的数据：属主、可编辑成员、管理员；只读的个人令牌不行 */
-  const canWrite = computed(() => ['owner', 'edit', 'admin'].includes(role.value ?? '') && !useAuth().me?.read_only)
-  /** 能管理成员、转交、删除：属主与管理员 */
-  const canManage = computed(() => (role.value === 'owner' || role.value === 'admin') && !useAuth().me?.read_only)
+  /** 能修改本项目的数据：属主、管理与可编辑成员、管理员；只读的个人令牌不行 */
+  const canWrite = computed(() => ['owner', 'manage', 'edit', 'admin'].includes(role.value ?? '') && !useAuth().me?.read_only)
+  /** 能管理成员、审批加入申请、管理邀请链接：属主、“管理”成员与管理员（M9-8） */
+  const canManage = computed(() => ['owner', 'manage', 'admin'].includes(role.value ?? '') && !useAuth().me?.read_only)
+  /** 能转交、删除、改标识：属主与管理员 */
+  const canOwn = computed(() => (role.value === 'owner' || role.value === 'admin') && !useAuth().me?.read_only)
   /** 管理员正在访问不是自己参与的项目 */
   const foreign = computed(() => role.value === 'admin')
   const readOnly = computed(() => !!info.value && !canWrite.value)
@@ -141,5 +145,5 @@ export const useProject = defineStore('project', () => {
     defaultSlug.value = null
   }
 
-  return { ref: cur, slug, info, lists, defaultSlug, missing, candidates, role, canWrite, canManage, foreign, readOnly, loadLists, loadDefault, ensure, enter, reload, forget, reset }
+  return { ref: cur, slug, info, lists, defaultSlug, missing, candidates, role, canWrite, canManage, canOwn, foreign, readOnly, loadLists, loadDefault, ensure, enter, reload, forget, reset }
 })

@@ -126,21 +126,40 @@ def _setup_project(c: Ctx, settings: config.Settings) -> None:
             fail(c, output.EXIT_CONFIG, c.t("config.not_configured"))
         return
     db = settings.database_url
+    projects.set_create_open(bool(settings.get("auth.user_create_projects")))  # M9-8，REQ-050
 
     def ident() -> projects.Identity:
         store.upgrade(db)
         return projects.cli_identity(db, c.as_user)
 
-    if c.project or c.as_user or c.network:
+    def code_of(e: projects.ProjectError) -> int:
+        # 只写标识却匹配到多个项目：参数不够明确（退出码 2）；没有项目也不能创建（1）；其余为不存在（4）
+        return {"ambiguous": output.EXIT_USAGE, "state": output.EXIT_ERROR}.get(e.kind, output.EXIT_NOT_FOUND)
+
+    def default_or_fail(who: projects.Identity) -> projects.Scope:
+        try:
+            return projects.default_scope(db, who)
+        except projects.ProjectError as e:
+            fail(c, code_of(e), c.t(e.key, **e.fmt), e.data)
+
+    if c.as_user and not (c.project or c.network):
+        # 只给了 --as：立即检查账号，默认项目到用到时才解析（没有项目的账号也能用 discover、join 等命令，M9-8）
+        try:
+            who_only = ident()
+        except projects.ProjectError as e:
+            fail(c, code_of(e), c.t(e.key, **e.fmt), e.data)
+        projects.set_lazy(lambda: default_or_fail(who_only))
+        projects.set_identity(who_only)
+        return
+
+    if c.project or c.network:
         try:
             who = ident()
             scope = projects.resolve(db, who, c.project) if c.project else projects.default_scope(db, who)
             if c.network:  # M9：--network 在 --project（不给时默认项目）里找
                 scope = projects.with_network(db, scope, c.network)
         except projects.ProjectError as e:
-            # 只写标识却匹配到多个项目：参数不够明确（退出码 2，data.candidates 列出“属主/标识”）；其余为不存在（4）
-            code = output.EXIT_USAGE if e.kind == "ambiguous" else output.EXIT_NOT_FOUND
-            fail(c, code, c.t(e.key, **e.fmt), e.data)
+            fail(c, code_of(e), c.t(e.key, **e.fmt), e.data)
         projects.set_identity(who)
         projects.set_scope(scope)
         return
@@ -148,7 +167,7 @@ def _setup_project(c: Ctx, settings: config.Settings) -> None:
     def lazy() -> projects.Scope:
         who = ident()
         projects.set_identity(who)
-        return projects.default_scope(db, who)
+        return default_or_fail(who)
 
     projects.set_lazy(lazy)
 
@@ -476,6 +495,10 @@ cmd_models.register(app)
 from lmesh.cli import cmd_project  # noqa: E402
 
 cmd_project.register(app)
+
+from lmesh.cli import cmd_joining  # noqa: E402
+
+cmd_joining.register(app)
 
 from lmesh.cli import cmd_network  # noqa: E402
 

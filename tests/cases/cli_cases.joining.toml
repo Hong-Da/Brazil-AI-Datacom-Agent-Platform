@@ -1,0 +1,184 @@
+# 创建项目的权限与加入项目（M9-8，REQ-050）的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-joining：见 api_cases.joining.toml（总开关关闭；lab 可被搜索；erin 是“管理”成员；
+# carol 已申请加入 lab（申请 1）；dave 没有项目、已申请创建权限（申请 1）；两个邀请链接）。--as 决定以谁的身份。
+
+[[case]]
+id = "joining-cli-create-forbidden"
+title = { zh-CN = "没有创建权限时新建项目：退出码 1", en = "Creating a project without permission: exit 1", pt-BR = "Criar projeto sem permissão: saída 1" }
+args = ["--as", "dave", "project", "create", "新园区"]
+setup = "configured-joining"
+expect_exit = 1
+expect_stderr = ["申请创建权限"]
+
+[[case]]
+id = "joining-cli-no-project"
+title = { zh-CN = "没有项目的账号用到默认项目：退出码 1", en = "An account without projects needs the default project: exit 1", pt-BR = "Conta sem projetos precisa do projeto padrão: saída 1" }
+args = ["--lang", "en", "--as", "dave", "config", "list"]
+setup = "configured-joining"
+expect_exit = 1
+expect_stderr = ["haven’t joined any project"]
+
+[[case]]
+id = "joining-cli-can-create"
+title = { zh-CN = "能否新建项目", en = "Can this account create projects", pt-BR = "Esta conta pode criar projetos" }
+args = ["--output", "json", "--as", "dave", "project", "can-create"]
+setup = "configured-joining"
+expect_exit = 0
+expect_json = { "ok" = true, "data.can_create" = false, "data.request.status" = "pending" }
+in_docs = true
+
+[[case]]
+id = "joining-cli-request-create"
+title = { zh-CN = "申请创建项目的权限", en = "Ask for permission to create projects", pt-BR = "Pedir permissão para criar projetos" }
+args = ["--output", "json", "--as", "carol", "project", "request-create", "--reason", "负责 IP RAN 扩容"]
+setup = "configured-joining"
+expect_exit = 0
+expect_json = { "ok" = true, "data.status" = "pending", "data.username" = "carol" }
+in_docs = true
+
+[[case]]
+id = "joining-cli-create-requests"
+title = { zh-CN = "创建权限的申请列表", en = "Permission requests", pt-BR = "Pedidos de permissão" }
+args = ["--lang", "pt-BR", "user", "create-requests"]
+setup = "configured-joining"
+expect_exit = 0
+expect_stdout = ["dave", "Pendente"]
+
+[[case]]
+id = "joining-cli-approve-create"
+title = { zh-CN = "通过创建权限的申请", en = "Approve a permission request", pt-BR = "Aprovar pedido de permissão" }
+args = ["--output", "json", "user", "approve-create", "1"]
+setup = "configured-joining"
+expect_exit = 0
+expect_json = { "ok" = true, "data.status" = "approved", "data.username" = "dave" }
+in_docs = true
+
+[[case]]
+id = "joining-cli-grant"
+title = { zh-CN = "单独授权账号创建项目", en = "Let one account create projects", pt-BR = "Permitir que uma conta crie projetos" }
+args = ["--output", "json", "user", "grant-create", "carol"]
+setup = "configured-joining"
+expect_exit = 0
+expect_json = { "ok" = true, "data.username" = "carol", "data.can_create_projects" = true }
+in_docs = true
+
+[[case]]
+id = "joining-cli-discover"
+title = { zh-CN = "发现项目（英文）", en = "Discover projects (English)", pt-BR = "Descobrir projetos (inglês)" }
+args = ["--lang", "en", "--as", "dave", "project", "discover"]
+setup = "configured-joining"
+expect_exit = 0
+expect_stdout = ["alice/lab", "实验局", "Can ask"]
+
+[[case]]
+id = "joining-cli-join"
+title = { zh-CN = "申请加入可被搜索的项目", en = "Ask to join a discoverable project", pt-BR = "Pedir para entrar num projeto visível" }
+args = ["--output", "json", "--as", "dave", "project", "join", "alice/lab", "--role", "edit", "--reason", "负责割接脚本"]
+setup = "configured-joining"
+expect_exit = 0
+expect_json = { "ok" = true, "data.status" = "pending", "data.role" = "edit" }
+in_docs = true
+
+[[case]]
+id = "joining-cli-join-missing"
+title = { zh-CN = "项目不可被搜索或不存在：退出码 4", en = "Project not discoverable or missing: exit 4", pt-BR = "Projeto não visível ou inexistente: saída 4" }
+args = ["--as", "dave", "project", "join", "alice/nope"]
+setup = "configured-joining"
+expect_exit = 4
+expect_stderr = ["alice/nope"]
+
+[[case]]
+id = "joining-cli-my-requests"
+title = { zh-CN = "我提交的加入申请", en = "My join requests", pt-BR = "Meus pedidos para entrar" }
+args = ["--output", "json", "--as", "carol", "project", "my-requests"]
+setup = "configured-joining"
+expect_exit = 0
+expect_json = { "ok" = true, "data.requests.0.status" = "pending" }
+
+[[case]]
+id = "joining-cli-requests"
+title = { zh-CN = "项目的加入申请（“管理”成员）", en = "Join requests of a project (Manage member)", pt-BR = "Pedidos do projeto (membro Gerenciar)" }
+args = ["--as", "erin", "project", "requests", "alice/lab"]
+setup = "configured-joining"
+expect_exit = 0
+expect_stdout = ["carol", "待审批"]
+
+[[case]]
+id = "joining-cli-approve"
+title = { zh-CN = "通过加入申请并改角色", en = "Approve a join request with another role", pt-BR = "Aprovar pedido com outro papel" }
+args = ["--output", "json", "--as", "erin", "project", "approve", "alice/lab", "1", "--role", "edit"]
+setup = "configured-joining"
+expect_exit = 0
+expect_json = { "ok" = true, "data.status" = "approved", "data.decided_role" = "edit" }
+in_docs = true
+
+[[case]]
+id = "joining-cli-requests-readonly"
+title = { zh-CN = "只读成员查看加入申请：退出码 1", en = "A read-only member lists requests: exit 1", pt-BR = "Membro somente leitura lista pedidos: saída 1" }
+args = ["--as", "bob", "project", "requests", "alice/lab"]
+setup = "configured-joining"
+expect_exit = 1
+
+[[case]]
+id = "joining-cli-decline"
+title = { zh-CN = "拒绝加入申请", en = "Decline a join request", pt-BR = "Recusar pedido" }
+args = ["--output", "json", "--as", "alice", "project", "decline", "lab", "1", "--note", "评审已结束"]
+setup = "configured-joining"
+expect_exit = 0
+expect_json = { "ok" = true, "data.status" = "declined" }
+
+[[case]]
+id = "joining-cli-invite"
+title = { zh-CN = "新建邀请链接（令牌只显示这一次）", en = "Create an invite link (token shown once)", pt-BR = "Criar link de convite (token exibido uma vez)" }
+args = ["--output", "json", "--as", "alice", "project", "invite", "lab", "--role", "read", "--days", "3", "--approval"]
+setup = "configured-joining"
+expect_exit = 0
+expect_json = { "ok" = true, "data.role" = "read", "data.requires_approval" = true, "data.state" = "active" }
+in_docs = true
+
+[[case]]
+id = "joining-cli-invites"
+title = { zh-CN = "项目的邀请链接", en = "Invite links of a project", pt-BR = "Links de convite do projeto" }
+args = ["--lang", "en", "--as", "alice", "project", "invites", "lab"]
+setup = "configured-joining"
+expect_exit = 0
+expect_stdout = ["test-i", "Active", "Needs approval", "Joins directly"]
+
+[[case]]
+id = "joining-cli-revoke-invite"
+title = { zh-CN = "撤销邀请链接", en = "Revoke an invite link", pt-BR = "Revogar link de convite" }
+args = ["--output", "json", "--as", "alice", "project", "revoke-invite", "lab", "1"]
+setup = "configured-joining"
+expect_exit = 0
+expect_json = { "ok" = true, "data.state" = "revoked" }
+
+[[case]]
+id = "joining-cli-accept-invite"
+title = { zh-CN = "用邀请链接加入（可以贴整个链接）", en = "Join with an invite link (the whole URL works)", pt-BR = "Entrar com o convite (a URL inteira funciona)" }
+args = ["--output", "json", "--as", "dave", "project", "accept-invite", "http://127.0.0.1:9090/invite/lmi_test-invite-token-0001"]
+setup = "configured-joining"
+expect_exit = 0
+expect_json = { "ok" = true, "data.status" = "joined", "data.project" = "alice/lab" }
+in_docs = true
+
+[[case]]
+id = "joining-cli-accept-invite-bad"
+title = { zh-CN = "邀请链接无效：退出码 4", en = "Invalid invite link: exit 4", pt-BR = "Convite inválido: saída 4" }
+args = ["--as", "dave", "project", "accept-invite", "lmi_nope"]
+setup = "configured-joining"
+expect_exit = 4
+
+[[case]]
+id = "joining-cli-discoverable"
+title = { zh-CN = "设置项目可被搜索", en = "Make a project discoverable", pt-BR = "Tornar o projeto visível" }
+args = ["--output", "json", "--as", "erin", "project", "discoverable", "alice/lab", "off"]
+setup = "configured-joining"
+expect_exit = 0
+expect_json = { "ok" = true, "data.discoverable" = false }
+
+[[case]]
+id = "joining-cli-manage-cannot-transfer"
+title = { zh-CN = "“管理”成员不能转交项目：退出码 1", en = "A Manage member can’t transfer the project: exit 1", pt-BR = "Membro Gerenciar não pode transferir: saída 1" }
+args = ["--as", "erin", "project", "transfer", "alice/lab", "carol"]
+setup = "configured-joining"
+expect_exit = 1

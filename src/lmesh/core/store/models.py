@@ -293,6 +293,8 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     # 个人偏好（REQ-047）：{"lang", "theme", "term_style", "icon_set"}；为空表示还没保存过
     prefs: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    # 单独授权创建项目（M9-8，REQ-050）：总开关“普通用户可以创建项目”关闭时，管理员可以给个别账号打开
+    can_create_projects: Mapped[bool] = mapped_column(default=False)
 
 
 class UserSession(Base):
@@ -465,12 +467,15 @@ class Project(Base):
     settings: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 显示风格、规则集、安全基线
     migrated_from: Mapped[Any] = mapped_column(JSONType, nullable=True)  # 升级生成：{type: upgrade|check_project, …}
     last_activity: Mapped[Any] = mapped_column(JSONType, nullable=True)  # {actor, action, at}
+    # 可被搜索（M9-8，REQ-050）：所有登录用户能在“发现项目”里看到名称、简介、属主、设备数并申请加入
+    discoverable: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
 class ProjectMember(Base):
-    """项目成员：role 为 edit（可编辑）或 read（只读）；属主不在这里。"""
+    """项目成员：role 为 manage（管理：可编辑 + 审批、增减成员、邀请链接，M9-8）、edit（可编辑）或 read（只读）；
+    属主不在这里。"""
 
     __tablename__ = "project_members"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -479,6 +484,58 @@ class ProjectMember(Base):
     role: Mapped[str] = mapped_column(String(10), default="read")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     __table_args__ = (UniqueConstraint("project_id", "user_id", name="uq_project_members_project_user"),)
+
+
+class ProjectJoinRequest(Base):
+    """加入项目的申请（M9-8，REQ-050）：来自“发现项目”（via=search）或需要审批的邀请链接（via=invite）。
+    status：pending 待审批 / approved 已通过 / declined 已拒绝 / cancelled 申请人撤回。"""
+
+    __tablename__ = "project_join_requests"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    role: Mapped[str] = mapped_column(String(10), default="read")  # 申请的角色
+    reason: Mapped[str] = mapped_column(Text, default="")
+    via: Mapped[str] = mapped_column(String(10), default="search")
+    invite_id: Mapped[int | None] = mapped_column(ForeignKey("project_invites.id", ondelete="SET NULL"), nullable=True)
+    status: Mapped[str] = mapped_column(String(12), default="pending", index=True)
+    decided_by: Mapped[str] = mapped_column(String(200), default="")
+    decided_role: Mapped[str] = mapped_column(String(10), default="")  # 通过时实际给的角色
+    note: Mapped[str] = mapped_column(Text, default="")  # 拒绝的说明
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class ProjectInvite(Base):
+    """项目邀请链接（M9-8，REQ-050）：链接里的令牌只在生成时返回一次，这里只存它的 SHA-256 与前 6 个字符（列表里辨认用）。"""
+
+    __tablename__ = "project_invites"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    prefix: Mapped[str] = mapped_column(String(12), default="")
+    role: Mapped[str] = mapped_column(String(10), default="read")
+    requires_approval: Mapped[bool] = mapped_column(default=False)
+    note: Mapped[str] = mapped_column(String(200), default="")
+    created_by: Mapped[str] = mapped_column(String(200), default="")
+    uses: Mapped[int] = mapped_column(Integer, default=0)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class ProjectCreateRequest(Base):
+    """申请创建项目的权限（M9-8，REQ-050）：没有项目也不能创建的账号一键申请，管理员在账号管理里授权或拒绝。"""
+
+    __tablename__ = "project_create_requests"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    reason: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[str] = mapped_column(String(12), default="pending", index=True)
+    decided_by: Mapped[str] = mapped_column(String(200), default="")
+    note: Mapped[str] = mapped_column(Text, default="")
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
 class Workspace(Base):

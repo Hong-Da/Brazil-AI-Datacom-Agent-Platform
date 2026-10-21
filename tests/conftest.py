@@ -124,6 +124,9 @@ def pg_url() -> Iterator[str | None]:
 @pytest.fixture(params=["sqlite", "pg"])
 def db_url(request: pytest.FixtureRequest, tmp_root: Path, pg_url: str | None) -> Iterator[str]:
     """每个数据库相关用例在 SQLite 与 PostgreSQL 上各跑一次。PostgreSQL 用独立 schema（名字带并行 worker 名与随机串），用完删除。"""
+    from lmesh.core import projects
+
+    projects.set_create_open(True)  # 直接调用 core 的用例：普通账号能建项目（与 configured_root 相同，M9-8）
     if request.param == "sqlite":
         yield f"sqlite:///{(tmp_root / 'data' / 'test.db').as_posix()}"
         return
@@ -279,9 +282,12 @@ def tmp_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, request: pytest.Fi
             monkeypatch.delenv(k)
     monkeypatch.delenv("LMESH_CONFIG_FILE", raising=False)
     from lmesh import paths
+    from lmesh.core import projects
 
     paths.project_root.cache_clear()
+    projects.set_create_open(None)  # 创建项目的总开关按本用例的配置文件读（API 应用创建时会设置它）
     yield root
+    projects.set_create_open(None)
     paths.project_root.cache_clear()
     from lmesh.core import store
 
@@ -312,7 +318,7 @@ def full_kb_root(tmp_root: Path) -> Path:
 
 def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
     """用例的准备方式：fresh / configured / fresh-fullkb / configured-fullkb / configured-fullkb-history / configured-users /
-    configured-notoken / configured-fullkb-checkproj / configured-projects / configured-samename / configured-pending /
+    configured-notoken / configured-fullkb-checkproj / configured-projects / configured-joining / configured-samename / configured-pending /
     configured-ai / configured-fullkb-suggest / configured-fullkb-ne8000。"""
     if setup and "fullkb" in setup:
         request.getfixturevalue("full_kb_root")
@@ -326,6 +332,8 @@ def prepare(setup: str | None, request: pytest.FixtureRequest) -> None:
         request.getfixturevalue("checkproj_root")
     if setup and setup.endswith("-projects"):
         request.getfixturevalue("projects_root")
+    if setup and setup.endswith("-joining"):
+        request.getfixturevalue("joining_root")
     if setup and setup.endswith("-samename"):
         request.getfixturevalue("samename_root")
     if setup and setup.endswith("-pending"):
@@ -422,6 +430,49 @@ def samename_root(projects_root: Path) -> Path:
     carol = projects.cli_identity(url, "carol")
     projects.create_project(url, carol, {"name": "carol 的实验局", "slug": "lab"})
     projects.set_member(url, projects.resolve(url, carol, "lab"), "bob", "read")
+    return projects_root
+
+
+# 加入项目（M9-8，REQ-050）：邀请链接的固定令牌（只用于测试；服务器只存它的 SHA-256）
+JOIN_TOKEN = "lmi_test-invite-token-0001"
+JOIN_TOKEN_APPROVAL = "lmi_test-invite-token-0002"
+
+
+@pytest.fixture
+def joining_root(projects_root: Path) -> Path:
+    """创建权限与加入项目（M9-8，REQ-050）：在项目用例之上关闭“普通用户可以创建项目”；lab 可被搜索；erin 是 lab 的
+    “管理”成员；dave（Dave-pass-12）没有任何项目，已申请创建权限（申请 1）；carol 申请加入 lab（申请 1，只读）；
+    lab 有两个邀请链接：JOIN_TOKEN 直接加入（只读，7 天）、JOIN_TOKEN_APPROVAL 仍需审批（可编辑）。"""
+    from datetime import UTC, datetime, timedelta
+
+    from lmesh.core import config, joining, projects, store, users
+    from lmesh.core.store.models import ProjectInvite
+
+    config.update_file({"auth.user_create_projects": False})
+    projects.set_create_open(None)
+    url = config.load().database_url
+    users.create_user(url, "dave", "Dave-pass-12", "user")
+    users.create_user(url, "erin", "Erin-pass-12", "user")
+    alice = projects.cli_identity(url, "alice")
+    scope = projects.resolve(url, alice, "lab")
+    projects.update_project(url, scope, {"discoverable": True, "description": "实验室设备"})
+    projects.set_member(url, scope, "erin", "manage")
+    joining.request_create(url, projects.cli_identity(url, "dave"), "负责新园区的网络规划")
+    joining.request_join(url, projects.cli_identity(url, "carol"), "alice/lab", "read", "参与割接评审")
+    with store.session(url) as s:
+        for tok, role, appr in ((JOIN_TOKEN, "read", False), (JOIN_TOKEN_APPROVAL, "edit", True)):
+            s.add(
+                ProjectInvite(
+                    project_id=scope.project_id,
+                    token_hash=joining._hash(tok),
+                    prefix=tok[4:10],
+                    role=role,
+                    requires_approval=appr,
+                    created_by="alice",
+                    uses=0,
+                    expires_at=datetime.now(UTC) + timedelta(days=7),
+                )
+            )
     return projects_root
 
 
@@ -540,10 +591,17 @@ def ne8000_root(configured_root: Path) -> Path:
 
 @pytest.fixture
 def configured_root(tmp_root: Path) -> Path:
-    """已完成首次配置的临时项目（SQLite、固定令牌）。"""
+    """已完成首次配置的临时项目（SQLite、固定令牌）。
+
+    “普通用户可以创建项目”（M9-8，REQ-050）在测试里默认打开，保持此前用例的前提（普通账号能建项目、自动建默认项目）；
+    专门测试创建权限的用例自己关闭它。"""
     from lmesh.core import setup
 
-    setup.apply({"security.api_token": TEST_TOKEN, "server.port": 9090}, "zh-CN", check_port=False)
+    setup.apply(
+        {"security.api_token": TEST_TOKEN, "server.port": 9090, "auth.user_create_projects": True},
+        "zh-CN",
+        check_port=False,
+    )
     return tmp_root
 
 
