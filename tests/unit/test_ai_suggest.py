@@ -82,6 +82,21 @@ def _role(target: str, value: str, reason: str = "") -> dict[str, Any]:
 # ---------------------------------------------------------------- text_only：设备摘要
 
 
+def test_device_summary_tells_approximate_profile(lab, monkeypatch: pytest.MonkeyPatch) -> None:  # type: ignore[no-untyped-def]
+    """近似匹配的设备（例如 NE8000 用 ATN 的 Profile，REQ-044）：交给 AI 的设备信息注明近似，并要求摘要说明。"""
+    from lmesh.core.store.models import Device
+
+    s, scope, alice = lab
+    did = _device_id(s.database_url)
+    with store.session(s.database_url) as ss:
+        dev = ss.get(Device, did)
+        assert dev is not None
+        dev.profile_source = "fallback"
+    calls = _fake(monkeypatch, lambda sy, p: _reply(_summary("[[d1]] has <<count.interface>> interfaces.", [])))
+    ai_suggest.run(_env(s, scope, alice), "device-summary", {"device_id": did})
+    assert "profile_match=approx (approximate:" in calls[0][1] and "unknown_lines" in calls[0][1]
+
+
 def test_device_summary_pass_adopt_revert(lab, monkeypatch: pytest.MonkeyPatch) -> None:  # type: ignore[no-untyped-def]
     s, scope, alice = lab
     env = _env(s, scope, alice)
@@ -100,6 +115,7 @@ def test_device_summary_pass_adopt_revert(lab, monkeypatch: pytest.MonkeyPatch) 
     system, prompt = calls[0]
     assert "[[id]]" in system and "<<key>>" in system and "English" in system
     assert "d1 | ATN-CHANGE-01" in prompt and "count.interface = " in prompt
+    assert "profile_match=exact" in prompt and "approximate" not in prompt
     items = ai_suggest.list_suggestions(env, skill="device-summary")["items"]
     sug = items[0]
     assert sug["check_status"] == "pass" and sug["status"] == "pending" and sug["ai_call_id"] == b["ai_call_ids"][0]

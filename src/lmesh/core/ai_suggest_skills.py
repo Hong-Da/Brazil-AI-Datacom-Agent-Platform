@@ -119,8 +119,19 @@ def _summary_build(env: Env, params: dict[str, Any]) -> Context:
             "raw_lines": kinds.get("raw", 0),
         }
     )
+    # REQ-044：近似匹配（例如 NE8000 用 ATN 的 Profile）时告诉 AI，摘要里如实说明，并带上未识别行数
+    from lmesh.core import model_support
+
+    match = model_support.device_info(dev, ver)["match_level"]
+    approx_note = (
+        " (approximate: no profile for this exact model; the nearest profile of the same vendor is used, "
+        "commands it does not know are counted in unknown_lines - say so in the summary)"
+        if match == "approx"
+        else ""
+    )
     vars_ = {
-        "device": f"d1 | {dev.name} | vendor={dev.vendor} | platform={dev.platform or '-'} | profile={profile or '-'}",
+        "device": f"d1 | {dev.name} | vendor={dev.vendor} | platform={dev.platform or '-'} | profile={profile or '-'}"
+        f" | profile_match={match}{approx_note}",
         "objects": "\n".join(rows) or "(none)",
         "facts": "\n".join(f"{k} = {v}" for k, v in numbers.items()),
         "lang": LANG_NAMES.get(env.lang, "English"),
