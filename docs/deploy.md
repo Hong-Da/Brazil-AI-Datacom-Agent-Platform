@@ -25,9 +25,9 @@
 
 ```bash
 # 1. 导入镜像（离线）
-docker load -i lmesh_0.9.1_docker-image.tar.gz        # 得到 lmesh:0.9.1
+docker load -i lmesh_0.9.2_docker-image.tar.gz        # 得到 lmesh:0.9.2
 # 2. 解压 compose 文件
-tar xzf lmesh_0.9.1_docker-compose.tar.gz && cd lmesh-0.9.1-docker
+tar xzf lmesh_0.9.2_docker-compose.tar.gz && cd lmesh-0.9.2-docker
 cp .env.example .env                                   # 按需修改 LMESH_PORT 等
 # 3a. SQLite（默认）
 docker compose up -d
@@ -62,7 +62,7 @@ docker compose up -d          # PostgreSQL 版加 -f compose.postgres.yaml
 ### 安装
 
 ```bash
-tar xzf lmesh_0.9.1_linux-x86_64.tar.gz && cd lmesh-0.9.1
+tar xzf lmesh_0.9.2_linux-x86_64.tar.gz && cd lmesh-0.9.2
 sudo ./install.sh --user lmesh --create-user           # 装到 /opt/lmesh，注册并启动 systemd 服务 lmesh
 ```
 
@@ -183,10 +183,10 @@ sudo /opt/lmesh/uninstall.sh --purge --yes   # 连同配置与数据全部删除
 
 ```bash
 # Windows（生成 zip 与安装程序 exe）
-scripts\build_release.bat 0.9.1
+scripts\build_release.bat 0.9.2
 # Linux（生成离线安装包与 Docker 镜像）
-scripts/build_release.sh 0.9.1
-# 只生成部分：--targets win-zip | win-exe | linux | docker（可用逗号组合）；版本号可加后缀，如 0.9.1-rc
+scripts/build_release.sh 0.9.2
+# 只生成部分：--targets win-zip | win-exe | linux | docker（可用逗号组合）；版本号可加后缀，如 0.9.2-rc
 ```
 
 版本号必须与 `pyproject.toml` 一致（可加后缀）。构建会先按需构建前端，复制项目内 `.toolchain/` 中 uv 管理的 Python 运行时，按 `uv.lock` 把依赖装进运行时，再打包；NSIS（3.11 便携版）和 WinSW 按固定的 SHA256 下载到 `.toolchain/`。Docker 镜像多阶段构建（Node 构建前端、Python 运行），基础镜像版本固定；代理与镜像源用环境变量 `HTTP_PROXY`、`HTTPS_PROXY`、`UV_INDEX_URL`、`NPM_CONFIG_REGISTRY` 传入。产物只放在本机 `dist/<版本>/`（每个版本一个文件夹），发布前须经用户同意。
