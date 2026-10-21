@@ -52,13 +52,20 @@ def run(request: Request, body: BaselineBody) -> tuple[dict[str, Any], Knowledge
     if not body.configs and not body.device_ids and not body.all:
         raise ApiError(E_PARAM, 422, "baseline.need_target")
     graphs: list[nx.MultiDiGraph] = []
-    ids = list(body.device_ids or [])
+    for dev_id in body.device_ids or []:
+        graphs.append(_device_graph(request, kb, dev_id))
     if body.all:
         db = settings_of(request).database_url
         store.upgrade(db)
-        ids += [d["id"] for d in importer.list_devices(db) if d["latest_version_id"] and d["id"] not in ids]
-    for dev_id in ids:
-        graphs.append(_device_graph(request, kb, dev_id))
+        named = set(body.device_ids or [])
+        for d in importer.list_devices(db):
+            if not d["latest_version_id"] or d["id"] in named:
+                continue
+            try:
+                graphs.append(_device_graph(request, kb, d["id"]))
+            except ApiError as e:
+                if e.http_status != 409:  # 只存原文的设备（REQ-044）没有配置图，全部设备时跳过
+                    raise
     for item in body.configs or []:
         try:
             res = analysis.parse_text(item.text, kb, item.profile)

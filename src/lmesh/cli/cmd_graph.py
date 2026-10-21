@@ -38,7 +38,10 @@ def _graph_for(c: Ctx, target: str, profile: str | None):  # type: ignore[no-unt
     dev = next((d for d in importer.list_devices(db) if d["name"] == target), None)
     if dev is None or not dev["latest_version_id"]:
         fail(c, output.EXIT_NOT_FOUND, c.t("graph.target_not_found", target=target))
-    g, _, _ = graphstore.build_for_version(db, dev["latest_version_id"], kb)
+    try:
+        g, _, _ = graphstore.build_for_version(db, dev["latest_version_id"], kb)
+    except analysis.AnalysisError:  # 只存原文的设备（REQ-044）没有配置图
+        fail(c, output.EXIT_ERROR, c.t("model.raw_only"))
     return g, kb
 
 

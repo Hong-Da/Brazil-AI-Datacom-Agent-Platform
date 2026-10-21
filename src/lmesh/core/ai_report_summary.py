@@ -109,6 +109,8 @@ def compute_result(env: Env, kind: str, params: dict[str, Any]) -> dict[str, Any
         raise SuggestError(getattr(e, "key", str(e)), "param", **getattr(e, "fmt", {})) from e
     except rulesmod.RuleError as e:
         raise SuggestError("rules.invalid", "state", n=len(e.issues)) from e
+    except analysis.AnalysisError as e:  # 只存原文的设备（REQ-044）没有配置图
+        raise SuggestError("model.raw_only", "state") from e
 
 
 def report_facts(kind: str, result: dict[str, Any]) -> dict[str, Any]:

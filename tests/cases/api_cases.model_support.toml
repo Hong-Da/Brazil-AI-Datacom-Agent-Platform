@@ -172,3 +172,36 @@ auth = true
 body = { profile = "huawei-atn-v800r023" }
 expect_status = 422
 expect_json = { "code" = 1001 }
+
+[[case]]
+id = "baseline-all-skips-raw-only"
+title = { zh-CN = "全部设备做基线审计：跳过只存原文的设备", en = "Baseline on all devices skips raw-text-only devices", pt-BR = "Baseline em todos os dispositivos ignora os só com texto" }
+method = "POST"
+path = "/api/v1/baseline"
+setup = "configured-fullkb-ne8000"
+auth = true
+body = { all = true }
+expect_status = 200
+expect_json = { "code" = 0, "data.matrix.devices" = ["NE8000-X8-01"] }
+
+[[case]]
+id = "baseline-raw-only-device"
+title = { zh-CN = "点名只存原文的设备做基线审计：409", en = "Baseline on a named raw-text-only device: 409", pt-BR = "Baseline num dispositivo só com texto: 409" }
+method = "POST"
+path = "/api/v1/baseline"
+setup = "configured-fullkb-ne8000"
+auth = true
+body = { device_ids = [2] }
+expect_status = 409
+expect_json = { "code" = 1003, "data.raw_only" = true }
+
+[[case]]
+id = "check-raw-only-device"
+title = { zh-CN = "检查只存原文的设备：409", en = "Checking a raw-text-only device: 409", pt-BR = "Verificar um dispositivo só com texto: 409" }
+method = "POST"
+path = "/api/v1/check"
+setup = "configured-fullkb-ne8000"
+auth = true
+body = { device_id = 2 }
+expect_status = 409
+expect_json = { "code" = 1003, "data.raw_only" = true }

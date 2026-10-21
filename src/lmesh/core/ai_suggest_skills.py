@@ -20,7 +20,7 @@ LANG_NAMES = {"zh-CN": "Simplified Chinese", "en": "English", "pt-BR": "Brazilia
 
 
 def _device_row(env: Env, device_id: int) -> tuple[Any, Any, Any]:
-    from lmesh.core import graphstore
+    from lmesh.core import analysis, graphstore
 
     ver = graphstore.latest_version(env.db, int(device_id))
     if ver is None:
@@ -29,6 +29,8 @@ def _device_row(env: Env, device_id: int) -> tuple[Any, Any, Any]:
         return graphstore.build_for_version(env.db, ver.id, env.kb)
     except KeyError as e:
         raise SuggestError("ai_suggest.device_not_found", "not_found", id=device_id) from e
+    except analysis.AnalysisError as e:  # 只存原文的设备（REQ-044）没有配置图
+        raise SuggestError("model.raw_only", "state") from e
 
 
 def _prepare_device(env: Env, params: dict[str, Any]) -> None:

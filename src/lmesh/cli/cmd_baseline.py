@@ -12,8 +12,8 @@ from lmesh.cli.cmd_check import rule_error
 from lmesh.cli.cmd_configs import require_db
 from lmesh.cli.cmd_graph import _graph_for, _kb
 from lmesh.cli.output import Ctx, emit, fail
+from lmesh.core import analysis, config, graphstore, importer
 from lmesh.core import baseline as blmod
-from lmesh.core import config, graphstore, importer
 from lmesh.core import rules as rulesmod
 from lmesh.core.kb import KnowledgeBase
 
@@ -36,7 +36,15 @@ def _all_graphs(c: Ctx, kb: KnowledgeBase) -> list[Any]:
     devs = [d for d in importer.list_devices(db) if d["latest_version_id"] and d["profile"]]  # 只存原文的设备没有图
     if not devs:
         fail(c, output.EXIT_NOT_FOUND, c.t("baseline.no_devices"))
-    return [graphstore.build_for_version(db, d["latest_version_id"], kb)[0] for d in devs]
+    graphs = []
+    for d in devs:
+        try:
+            graphs.append(graphstore.build_for_version(db, d["latest_version_id"], kb)[0])
+        except analysis.AnalysisError:  # 记着 Profile 但知识库里已没有可用的，同样跳过
+            continue
+    if not graphs:
+        fail(c, output.EXIT_NOT_FOUND, c.t("baseline.no_devices"))
+    return graphs
 
 
 def _text(c: Ctx, res: dict[str, Any]) -> str:

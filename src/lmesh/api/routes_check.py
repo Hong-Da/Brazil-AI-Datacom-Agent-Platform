@@ -58,6 +58,9 @@ def _device_graph(
         g, ver, _ = graphstore.build_for_version(db, version_id, kb)
     except KeyError as e:
         raise ApiError(E_NOT_FOUND, 404, "compare.version_not_found", version=version_id) from e
+    except analysis.AnalysisError as e:
+        # REQ-044：认不出厂商（或没有可用 Profile）的设备只存原文，没有配置图
+        raise ApiError(E_STATE, 409, "model.raw_only", data={"raw_only": True, "version_id": version_id}) from e
     if ver.device_id != device_id:
         raise ApiError(E_NOT_FOUND, 404, "compare.version_not_found", version=version_id)
     return g
