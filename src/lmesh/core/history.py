@@ -805,7 +805,15 @@ def devices_from_db(db_url: str, kb: KnowledgeBase, targets: list[str] | None = 
         with store.session(db_url) as s:
             ver = s.get(ConfigVersion, vid)
             fresh = ver is not None and ver.kb_version == kb.version and bool(ver.graph_gz)
-        g, _ = _snapshot_graph(db_url, vid, kb, rebuild=not fresh)
+        try:
+            g, _ = _snapshot_graph(db_url, vid, kb, rebuild=not fresh)
+        except HistoryError as e:
+            if not e.key.startswith("parse."):
+                raise
+            # REQ-044：只存原文的设备（认不出厂商或没有可用 Profile）没有配置图；全部设备时跳过，点名时按找不到报告
+            if targets is not None:
+                missing.append(d["name"])
+            continue
         dev = topology.Device(d["name"], g, device_id=d["id"], version_id=vid, source="device")
         dev.collected_at = d.get("collected_at")  # type: ignore[attr-defined]
         out.append(dev)

@@ -228,6 +228,16 @@ def test_unknown_vendor_raw_only(url: str, kb) -> None:  # type: ignore[no-untyp
     assert m.ok and (m.profile, m.profile_source, m.vendor) == (ASR_P, "manual", "cisco")
 
 
+def test_devices_from_db_skips_raw_only(url: str, kb) -> None:  # type: ignore[no-untyped-def]
+    """AI 查询、表格导出、生成配置查重取全部设备时跳过只存原文的设备；点名时按找不到报告（不再 500）。"""
+    _imp(url, "atn.cfg", ATN)
+    _imp(url, "edge.conf", OTHER, keep_unsupported=True)
+    found, missing = history.devices_from_db(url, kb, None)
+    assert [d.name for d in found] != [] and "edge-mx-01" not in [d.name for d in found] and missing == []
+    found, missing = history.devices_from_db(url, kb, ["edge-mx-01"])
+    assert found == [] and missing == ["edge-mx-01"]
+
+
 # ---------------------------------------------------------------- 申请支持与派生
 
 

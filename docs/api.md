@@ -5691,16 +5691,16 @@ HTTP 状态：`200`；返回中的关键字段：
 ```bash
 curl -X PUT 'http://127.0.0.1:9090/api/v1/me/prefs' \
   -H 'Content-Type: application/json' \
-  -d '{"lang": "pt-BR", "theme": "dark", "term_style": "nokia", "icon_set": "line"}'
+  -d '{"lang": "pt-BR", "theme": "dark", "term_style": "nokia", "icon_set": "line", "ask_intro": "folded"}'
 ```
 
 ```powershell
-Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/me/prefs' -ContentType 'application/json; charset=utf-8' -Body '{"lang": "pt-BR", "theme": "dark", "term_style": "nokia", "icon_set": "line"}'
+Invoke-RestMethod -Method PUT -Uri 'http://127.0.0.1:9090/api/v1/me/prefs' -ContentType 'application/json; charset=utf-8' -Body '{"lang": "pt-BR", "theme": "dark", "term_style": "nokia", "icon_set": "line", "ask_intro": "folded"}'
 ```
 
 ```python
 import requests
-r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/me/prefs', json={'lang': 'pt-BR', 'theme': 'dark', 'term_style': 'nokia', 'icon_set': 'line'})
+r = requests.request('PUT', 'http://127.0.0.1:9090/api/v1/me/prefs', json={'lang': 'pt-BR', 'theme': 'dark', 'term_style': 'nokia', 'icon_set': 'line', 'ask_intro': 'folded'})
 print(r.status_code, r.json())
 ```
 
@@ -5711,6 +5711,7 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.prefs.theme` = `"dark"`
 - `data.prefs.term_style` = `"nokia"`
 - `data.prefs.icon_set` = `"line"`
+- `data.prefs.ask_intro` = `"folded"`
 
 ### 清除我保存在账号里的偏好（下次登录时网页改用浏览器本地的值并写入账号）
 

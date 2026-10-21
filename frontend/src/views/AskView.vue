@@ -15,6 +15,11 @@ import { ApiError, errorText, get, post } from '@/api'
 import { pickLang } from '@/i18n'
 import { useStatus } from '@/stores/status'
 import { useTerms } from '@/stores/terms'
+import { useProject } from '@/stores/project'
+import { useNetwork } from '@/stores/network'
+import { usePrefs } from '@/stores/prefs'
+import { colorClass, netName, type NetRow } from '@/views/networks/logic'
+import { scopeList, scopeVendors, vendorLabel } from './m5/ask-scope'
 import type { Device } from '@/views/devices/logic'
 import GuardResult from './m5/GuardResult.vue'
 import AiFeedback from '@/components/ai-feedback.vue'
@@ -30,6 +35,12 @@ const { t, locale } = useI18n()
 const lang = computed(() => String(locale.value))
 const terms = useTerms()
 const status = useStatus()
+const project = useProject()
+const network = useNetwork()
+const prefs = usePrefs()
+/** 顶部接口信息与说明折叠（REQ-051，随账号保存） */
+const introFolded = computed(() => prefs.askIntro === 'folded')
+function toggleIntro(): void { prefs.askIntro = introFolded.value ? 'open' : 'folded' }
 
 const st = ref<AskStatus | null>(null)
 const stError = ref('')
@@ -74,24 +85,58 @@ function notConfigured(e: unknown): boolean {
 // ---------------------------------------------------------------- 问配置
 interface Turn { id: number; question: string; res: AskResult | null; error: string; busy: boolean }
 const scope = ref<string[]>([])
+/** 范围（REQ-051）：按网络选设备；默认当前网络（没有时为默认网络，包含项目全部设备）。只存原文的设备置灰、不参与查询。 */
+const nets = ref<NetRow[]>([])
+const scopeNet = ref('')
+const netDevices = ref<Device[]>([])
+const scopeQ = ref('')
+const scopeVendor = ref('')
+const scopeOpen = ref(false)
+const SCOPE_CLAMP = 14
+const usable = computed(() => netDevices.value.filter((d) => !!d.profile))
+const rawCount = computed(() => netDevices.value.length - usable.value.length)
+const vendors = computed(() => scopeVendors(usable.value))
+const shownDevices = computed(() => scopeList(netDevices.value, scopeQ.value, scopeVendor.value))
+const clamped = computed(() => !scopeOpen.value && !scopeQ.value.trim() && shownDevices.value.length > SCOPE_CLAMP)
+const curNet = computed(() => nets.value.find((n) => n.slug === scopeNet.value) ?? null)
+const netLabel = (n: NetRow) => netName(n, t('net.defaultName'))
+async function loadNets(): Promise<void> {
+  if (!project.ref) { nets.value = []; return }
+  try {
+    const l = await network.load(project.ref)
+    nets.value = l.networks
+    const keep = nets.value.some((n) => n.slug === scopeNet.value) ? scopeNet.value : ''
+    scopeNet.value = keep || (network.cur && nets.value.some((n) => n.slug === network.cur) ? network.cur : nets.value.find((n) => n.default)?.slug ?? '')
+  } catch { nets.value = [] }
+}
+async function loadScope(): Promise<void> {
+  try {
+    const d = await get<{ devices: Device[] }>('/devices', scopeNet.value ? { network: scopeNet.value } : {})
+    netDevices.value = [...d.devices].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+  } catch { netDevices.value = [] }
+  scope.value = usable.value.map((d) => d.name)
+  scopeQ.value = ''
+  scopeVendor.value = ''
+  scopeOpen.value = false
+}
+watch(scopeNet, () => { void loadScope() })
+watch(() => project.ref, () => { void loadNets() })
 const turns = ref<Turn[]>([])
 const question = ref('')
 let tid = 0
 const SUGG = ['ask.sugg1', 'ask.sugg2', 'ask.sugg3']
-const allScope = computed(() => !scope.value.length || scope.value.length === devices.value.length)
+const allScope = computed(() => scope.value.length === usable.value.length)
 function toggleScope(n: string): void {
-  const cur = scope.value.length ? scope.value : devices.value.map((d) => d.name)
-  scope.value = cur.includes(n) ? cur.filter((x) => x !== n) : [...cur, n]
-  if (!scope.value.length) scope.value = devices.value.map((d) => d.name)
+  scope.value = scope.value.includes(n) ? scope.value.filter((x) => x !== n) : [...scope.value, n]
 }
 async function ask(): Promise<void> {
   const q = question.value.trim()
-  if (!q) return
+  if (!q || (!scope.value.length && usable.value.length > 0)) return
   const turn: Turn = { id: ++tid, question: q, res: null, error: '', busy: true }
   turns.value = [...turns.value, turn]
   question.value = ''
   try {
-    const r = await post<AskResult>('/ask', { question: q, devices: allScope.value ? null : scope.value, lang: lang.value })
+    const r = await post<AskResult>('/ask', { question: q, devices: allScope.value ? null : scope.value, lang: lang.value }, scopeNet.value ? { network: scopeNet.value } : {})
     turn.res = r
     const first = r.answer?.statements.find((s) => s.cites.length)?.cites[0] ?? r.result?.rows[0]?.n
     if (first) pickCite(turn.id, first)
@@ -194,7 +239,8 @@ watch(mode, () => { genError.value = '' })
 const tplTitle = (x: { id: string; title: Record<string, string> }) => pickLang(x.title, lang.value) || x.id
 
 onMounted(async () => {
-  await Promise.all([loadStatus(), loadBase()])
+  await Promise.all([loadStatus(), loadBase(), loadNets()])
+  if (!scopeNet.value) void loadScope()
   if (!on.value) mode.value = 'paste'
 })
 watch(on, (v) => { if (!v) mode.value = 'paste' })
@@ -216,15 +262,18 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
 
       <!-- ===================== AI 已配置 ===================== -->
       <template v-else-if="on">
-        <section class="panel" aria-label="AI interface" data-testid="ask-on">
+        <section class="panel aipanel" :class="{ 'is-folded': introFolded }" aria-label="AI interface" data-testid="ask-on">
           <div class="aistrip">
             <span class="it"><Icon name="spark" small />{{ $t('ask.iface') }} <b>{{ st.provider }}</b></span>
             <span class="it"><Icon name="cpu" small />{{ $t('ask.mAsk') }} <b class="mono">{{ st.models.ask }}</b></span>
             <span class="it"><Icon name="cpu" small />{{ $t('ask.mGen') }} <b class="mono">{{ st.models.generate }}</b></span>
             <span class="it"><Icon name="sanitize" small />{{ $t('ask.sanitize') }} <span class="tag t-teal">{{ $t('ask.alwaysOn') }}</span></span>
-            <router-link class="ml-auto small" :to="{ name: 'my-ai' }">{{ $t('my-ai.title') }} →</router-link>
+            <span class="tools">
+              <router-link class="small" :to="{ name: 'my-ai' }">{{ $t('my-ai.title') }} →</router-link>
+              <button class="foldbtn" type="button" :aria-expanded="!introFolded" data-testid="ask-intro-fold" @click="toggleIntro"><span class="chev">▾</span>{{ introFolded ? $t('ask.introOpen') : $t('ask.introFold') }}</button>
+            </span>
           </div>
-          <div class="rule">
+          <div v-if="!introFolded" class="rule">
             <div><span class="n ai">AI</span><div><b>{{ $t('ask.r1') }}</b><span>{{ $t('ask.r1d') }}</span></div></div>
             <div><span class="n code">✓</span><div><b>{{ $t('ask.r2') }}</b><span>{{ $t('ask.r2d') }}</span></div></div>
             <div><span class="n code"><Icon name="sanitize" small /></span><div><b>{{ $t('ask.r3') }}</b><span>{{ $t('ask.r3d') }}</span> <button class="link-btn small" type="button" :disabled="!lastSent" data-testid="ask-sent-last" @click="sentOpen = lastSent">{{ $t('ask.seeLast') }}</button></div></div>
@@ -238,12 +287,36 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
 
         <div v-if="tab === 'ask'" class="aw">
           <section class="panel thread" aria-label="Conversation">
-            <div class="scope">
-              <span class="k">{{ $t('ask.scope') }}</span>
-              <span class="row wrap" style="gap: 6px">
-                <button v-for="d in devices" :key="d.id" type="button" class="scopechip" :aria-pressed="allScope || scope.includes(d.name)" @click="toggleScope(d.name)"><DevChip :name="d.name" :vendor="d.vendor" /></button>
-              </span>
-              <span class="k ml-auto">{{ $t('ask.latestNote') }}</span>
+            <div class="scope" data-testid="ask-scope">
+              <div class="scope-h">
+                <span class="k">{{ $t('ask.scope') }}</span>
+                <label v-if="nets.length" class="netsel" :class="colorClass(curNet?.color)" :title="$t('ask.scopeNetTip')">
+                  <i class="nw-sq" />
+                  <select v-model="scopeNet" data-testid="ask-scope-net">
+                    <option v-for="n in nets" :key="n.slug" :value="n.slug">{{ netLabel(n) }}{{ n.default ? $t('ask.scopeAllDev') : '' }} · {{ n.counts.devices }}</option>
+                  </select>
+                </label>
+                <span class="sumtag" data-testid="ask-scope-sum">{{ $t('ask.scopeSel', { n: scope.length, m: usable.length }) }}</span>
+                <span class="grow" />
+                <button class="link-btn small" type="button" :disabled="allScope" data-testid="ask-scope-all" @click="scope = usable.map((d) => d.name)">{{ $t('ask.scopeSelAll') }}</button>
+                <button class="link-btn small" type="button" :disabled="!scope.length" data-testid="ask-scope-clear" @click="scope = []">{{ $t('ask.scopeClear') }}</button>
+              </div>
+              <div v-if="netDevices.length > 6" class="scope-tools">
+                <label class="input-wrap"><Icon name="search" small /><input v-model="scopeQ" class="input" type="search" :placeholder="$t('ask.scopeFilter')" data-testid="ask-scope-q"></label>
+                <div v-if="vendors.length > 1" class="seg" role="group" data-testid="ask-scope-vendor">
+                  <button type="button" :aria-pressed="scopeVendor === ''" @click="scopeVendor = ''">{{ $t('ask.scopeVendorAll') }}</button>
+                  <button v-for="v in vendors" :key="v" type="button" :aria-pressed="scopeVendor === v" :data-v="v" @click="scopeVendor = v">{{ vendorLabel(v) }}</button>
+                </div>
+              </div>
+              <div class="chips" :class="{ 'is-clamped': clamped }">
+                <template v-for="d in shownDevices" :key="d.id">
+                  <button v-if="!d.profile" type="button" class="scopechip is-raw" disabled :title="$t('ask.rawOnlyTip')" :data-testid="`ask-scope-raw-${d.id}`"><DevChip :name="d.name" :vendor="d.vendor" /><span class="rawtag">{{ $t('ask.rawOnly') }}</span></button>
+                  <button v-else type="button" class="scopechip" :aria-pressed="scope.includes(d.name)" :data-testid="`ask-scope-dev-${d.id}`" @click="toggleScope(d.name)"><DevChip :name="d.name" :vendor="d.vendor" /></button>
+                </template>
+                <span v-if="!shownDevices.length" class="small faint">{{ netDevices.length ? $t('ask.scopeNoMatch') : $t('ask.scopeNoDevices') }}</span>
+              </div>
+              <div v-if="!scopeQ.trim() && shownDevices.length > SCOPE_CLAMP" class="chips-more"><button class="link-btn small" type="button" data-testid="ask-scope-more" @click="scopeOpen = !scopeOpen">{{ scopeOpen ? $t('ask.scopeLess') : $t('ask.scopeMore', { n: shownDevices.length }) }}</button></div>
+              <div class="scope-note small faint"><template v-if="rawCount"><Icon name="info" small />{{ $t('ask.rawNote', { n: rawCount }) }} </template>{{ $t('ask.latestNote') }}</div>
             </div>
             <div v-if="!turns.length" class="empty" style="padding: 36px 16px"><Icon name="chat" /><h3>{{ $t('ask.emptyTitle') }}</h3><p>{{ $t('ask.emptyText') }}</p></div>
             <div v-for="tn in turns" :key="tn.id" class="qa" :data-testid="`ask-turn-${tn.id}`">
@@ -330,7 +403,7 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
             <div class="composer">
               <div class="box">
                 <textarea v-model="question" class="textarea" rows="2" :placeholder="$t('ask.askPh')" data-testid="ask-input" @keydown.enter.exact.prevent="ask" />
-                <button class="btn btn-primary" type="button" :disabled="!question.trim()" data-testid="ask-submit" @click="ask"><Icon name="send" small /><span>{{ $t('ask.askBtn') }}</span></button>
+                <button class="btn btn-primary" type="button" :disabled="!question.trim() || (!scope.length && usable.length > 0)" data-testid="ask-submit" @click="ask"><Icon name="send" small /><span>{{ $t('ask.askBtn') }}</span></button>
               </div>
               <div class="sugg"><button v-for="s in SUGG" :key="s" type="button" @click="question = $t(s)">{{ $t(s) }}</button></div>
             </div>
@@ -482,10 +555,32 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
 .aw { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 12px; align-items: start; }
 .side-sticky { position: sticky; top: 0; max-height: 92vh; overflow: auto; }
 .thread { display: flex; flex-direction: column; }
-.scope { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 12.5px; }
+.scope { border-bottom: 1px solid var(--line); font-size: 12.5px; }
 .scope .k { color: var(--ink-3); }
-.scopechip { border: 1px solid var(--line-strong); border-radius: 5px; background: var(--surface); padding: 2px 6px; cursor: pointer; font: inherit; color: var(--ink); }
+.scope-h { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 10px 14px; }
+.scope-h .grow { flex: 1; }
+.netsel { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: var(--r-ctl); padding: 2px 8px; background: var(--surface); }
+.netsel .nw-sq { width: 8px; height: 8px; border-radius: 2px; background: var(--nc); flex: none; }
+.netsel select { border: 0; background: transparent; font: inherit; color: var(--ink); font-weight: 600; padding: 3px 0; outline: none; max-width: 260px; }
+.netsel select option { background: var(--surface); color: var(--ink); }
+.sumtag { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.scope-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 0 14px 10px; }
+.scope-tools .input-wrap { flex: 1; min-width: 180px; max-width: 300px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; }
+.chips.is-clamped { max-height: 64px; overflow: hidden; -webkit-mask-image: linear-gradient(#000 65%, transparent); mask-image: linear-gradient(#000 65%, transparent); }
+.chips-more { display: flex; justify-content: center; padding: 0 14px 8px; }
+.scope-note { display: flex; gap: 6px; align-items: center; padding: 0 14px 10px; }
+.scopechip { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line-strong); border-radius: 5px; background: var(--surface); padding: 2px 6px; cursor: pointer; font: inherit; color: var(--ink); }
 .scopechip[aria-pressed="false"] { opacity: .5; border-style: dashed; }
+.scopechip[aria-pressed="true"] { border-color: var(--blue-line); background: var(--blue-soft); }
+.scopechip.is-raw { cursor: not-allowed; opacity: .65; border-style: dashed; background: var(--surface-2); }
+.rawtag { font: 600 10.5px var(--font-ui); color: var(--amber-ink); background: var(--amber-soft); border: 1px solid var(--amber-line); border-radius: 4px; padding: 0 4px; }
+.aistrip .tools { margin-left: auto; display: inline-flex; gap: 14px; align-items: center; }
+.foldbtn { display: inline-flex; align-items: center; gap: 4px; background: none; border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; font: inherit; font-size: 12px; color: var(--ink-2); cursor: pointer; }
+.foldbtn:hover { border-color: var(--line-strong); color: var(--ink); }
+.foldbtn .chev { display: inline-block; transition: transform .18s ease; }
+.aipanel.is-folded .foldbtn .chev { transform: rotate(-90deg); }
+.aipanel.is-folded .aistrip { padding: 6px 14px; }
 .qa { border-bottom: 1px solid var(--line); padding: 14px 16px 16px; }
 .q { display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
 .q .who { width: 26px; height: 26px; border-radius: 50%; background: var(--blue-soft); color: var(--blue-ink); display: inline-flex; align-items: center; justify-content: center; flex: none; font: 700 11px var(--font-ui); }

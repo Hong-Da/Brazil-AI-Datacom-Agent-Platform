@@ -12,7 +12,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from lmesh import __version__, paths
 from lmesh.api import scoping
-from lmesh.api.common import E_INTERNAL, E_NOT_FOUND, E_PARAM, ApiError, error_response, project_error
+from lmesh.api.common import E_INTERNAL, E_NOT_FOUND, E_PARAM, E_STATE, ApiError, error_response, project_error
 from lmesh.api.routes_ai import admin as ai_admin_router
 from lmesh.api.routes_ai import router as ai_router
 from lmesh.api.routes_ai_change import router as ai_change_router
@@ -55,7 +55,7 @@ from lmesh.api.routes_topology import router as topology_router
 from lmesh.api.routes_translate import router as translate_router
 from lmesh.api.routes_translate_rules import router as translate_rules_router
 from lmesh.api.routes_workbench import router as workbench_router
-from lmesh.core import config, projects
+from lmesh.core import analysis, config, history, projects
 
 API_PREFIX = "/api/v1"
 _log = logging.getLogger("lmesh.api")
@@ -66,6 +66,12 @@ _NOT_BUILT = """<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>�
 <p>The web UI has not been built yet. Run <code>start.bat</code> / <code>./start.sh</code>.</p>
 <p>A interface web ainda não foi gerada. Execute <code>start.bat</code> / <code>./start.sh</code>.</p>
 <p>API: <a href="/api/v1/health">/api/v1/health</a> · <a href="/docs">/docs</a></p></body></html>"""
+
+
+def _parse_error(key: str) -> ApiError:
+    if key == "parse.no_profile":
+        return ApiError(E_STATE, 409, "model.raw_only", data={"raw_only": True})
+    return ApiError(E_PARAM, 422, key, profile="")
 
 
 def create_app(settings: config.Settings | None = None, listen_host: str | None = None) -> FastAPI:
@@ -94,6 +100,19 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     async def _project_error(request: Request, exc: projects.ProjectError) -> JSONResponse:
         # 守卫或延迟解析默认项目时的项目错误（例如没有项目也不能创建项目：projects.no_project → 409）
         return error_response(request, project_error(exc))
+
+    # 兜底（REQ-044）：只存原文的设备（认不出厂商或没有可用 Profile）没有配置图；某条路径没单独处理时也不报 500
+    @app.exception_handler(analysis.AnalysisError)
+    async def _analysis_error(request: Request, exc: analysis.AnalysisError) -> JSONResponse:
+        return error_response(request, _parse_error(str(exc)))
+
+    @app.exception_handler(history.HistoryError)
+    async def _history_error(request: Request, exc: history.HistoryError) -> JSONResponse:
+        if exc.key.startswith("parse."):
+            return error_response(request, _parse_error(exc.key))
+        status = {"not_found": 404, "state": 409}.get(exc.kind, 422)
+        code = {404: E_NOT_FOUND, 409: E_STATE}.get(status, E_PARAM)
+        return error_response(request, ApiError(code, status, exc.key, **exc.fmt))
 
     @app.exception_handler(RequestValidationError)
     async def _validation(request: Request, exc: RequestValidationError) -> JSONResponse:

@@ -225,11 +225,14 @@ class PrefsBody(BaseModel):
     icon_set: Literal["cyl", "geo", "line"] | None = Field(
         None, description="设备图标风格：cyl 圆柱、geo 几何徽章、line 线框"
     )
+    ask_intro: Literal["open", "folded"] | None = Field(
+        None, description="AI 查询页顶部的接口信息与说明：open 展开、folded 收起（REQ-051）"
+    )
 
 
 @router.get(
     "/me/prefs",
-    summary="我的个人偏好（REQ-047）：语言、主题、显示风格、图标风格；prefs 为 null 表示账号还没保存过（全局令牌没有账号）",
+    summary="我的个人偏好（REQ-047）：语言、主题、显示风格、图标风格、AI 查询页说明的折叠；prefs 为 null 表示账号还没保存过（全局令牌没有账号）",
 )
 def get_prefs(request: Request, p: Principal = Depends(require_token)) -> dict[str, Any]:
     if p.user_id is None:

@@ -1,10 +1,10 @@
 /** 个人偏好登录时的合并（REQ-047）：纯逻辑，prefs-sync.ts 使用。 */
 import type { Lang } from '@/i18n'
-import type { IconSetPref, Theme } from '@/stores/prefs'
+import type { AskIntro, IconSetPref, Theme } from '@/stores/prefs'
 
-export interface AccountPrefs { lang?: Lang; theme?: Theme; term_style?: string; icon_set?: IconSetPref }
+export interface AccountPrefs { lang?: Lang; theme?: Theme; term_style?: string; icon_set?: IconSetPref; ask_intro?: AskIntro }
 
-export const PREF_KEYS = ['lang', 'theme', 'term_style', 'icon_set'] as const
+export const PREF_KEYS = ['lang', 'theme', 'term_style', 'icon_set', 'ask_intro'] as const
 
 /** 登录时的合并：apply 是要用到界面上的账号值，push 是要写入账号的本地值（都可能为空）。 */
 export function mergeOnLogin(local: AccountPrefs, account: AccountPrefs | null): { apply: AccountPrefs; push: AccountPrefs | null } {

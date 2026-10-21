@@ -125,11 +125,46 @@ test('AI 查询（未配置 AI）：降级说明 + 校验粘贴的配置（拦�
   expect(errors).toEqual([])
 })
 
+test('AI 查询（REQ-051）：范围按网络、只存原文的设备置灰、顶部说明可折叠并随账号记住', async ({ page }) => {
+  const errors = collectErrors(page)
+  await login(page)
+  await page.route('**/api/v1/ask/status', (r) => r.fulfill({ json: { code: 0, message: 'ok', data: FIX.status } }))
+  // 范围里的设备按网络取：/projects/<项目>/n/<网络>/devices（一台能查询、一台只存原文）
+  const devs = [
+    { id: 901, name: 'R51-OK-01', vendor: 'cisco', profile: 'cisco-iosxe-asr920-17.15', versions: 1, latest_version_id: 1, sw_version: '', source_name: '', collected_at: null },
+    { id: 902, name: 'R51-RAW-01', vendor: '', profile: '', versions: 1, latest_version_id: 2, sw_version: '', source_name: '', collected_at: null },
+  ]
+  await page.route(/\/api\/v1\/projects\/[^/]+\/n\/[^/]+\/devices$/, (r) => r.fulfill({ json: { code: 0, message: 'ok', data: { devices: devs } } }))
+  await page.goto('/ask')
+  await expect(page.getByTestId('ask-on')).toBeVisible()
+  await expect(page.getByTestId('ask-scope-net')).toBeVisible()
+  await expect(page.getByTestId('ask-scope-dev-901')).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByTestId('ask-scope-raw-902')).toBeDisabled()
+  await expect(page.getByTestId('ask-scope-sum')).toContainText('1 / 1')
+  // 清空后不能提问；全选后恢复
+  await page.getByTestId('ask-input').fill('哪些接口没有描述？')
+  await page.getByTestId('ask-scope-clear').click()
+  await expect(page.getByTestId('ask-submit')).toBeDisabled()
+  await page.getByTestId('ask-scope-all').click()
+  await expect(page.getByTestId('ask-submit')).toBeEnabled()
+  // 顶部说明收起后刷新仍收起（随账号保存），再展开
+  await page.getByTestId('ask-intro-fold').click()
+  await expect(page.getByTestId('ask-on')).toHaveClass(/is-folded/)
+  await expect(page.locator('[data-testid="ask-on"] .rule')).toHaveCount(0)
+  await page.waitForTimeout(800)
+  await page.reload()
+  await expect(page.getByTestId('ask-on')).toHaveClass(/is-folded/)
+  await page.getByTestId('ask-intro-fold').click()
+  await expect(page.locator('[data-testid="ask-on"] .rule')).toHaveCount(1)
+  await page.waitForTimeout(800)
+  expect(errors).toEqual([])
+})
+
 test('AI 查询（假 AI）：三步过程、引用角标、逐句核对、更正文字、发送内容', async ({ page }) => {
   await login(page)
   await page.route('**/api/v1/ask/status', (r) => r.fulfill({ json: { code: 0, message: 'ok', data: FIX.status } }))
   // AI 查询属于项目接口（M6）：/api/v1/projects/<项目>/ask
-  await page.route(/\/api\/v1\/(projects\/[^/]+\/)?ask$/, (r) => r.fulfill({ json: { code: 0, message: 'ok', data: FIX.ask } }))
+  await page.route(/\/api\/v1\/(projects\/[^/]+\/(n\/[^/]+\/)?)?ask$/, (r) => r.fulfill({ json: { code: 0, message: 'ok', data: FIX.ask } }))
   await page.goto('/ask')
   await expect(page.getByTestId('ask-on')).toBeVisible()
   await page.getByTestId('ask-input').fill(FIX.ask.question)

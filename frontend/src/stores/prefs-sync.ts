@@ -24,13 +24,14 @@ export function startPrefsSync(): void {
   let timer: ReturnType<typeof setTimeout> | undefined
   let gen = 0
 
-  const local = (): AccountPrefs => ({ lang: prefs.lang, theme: prefs.theme, term_style: prefs.termStyle || undefined, icon_set: prefs.iconSet })
+  const local = (): AccountPrefs => ({ lang: prefs.lang, theme: prefs.theme, term_style: prefs.termStyle || undefined, icon_set: prefs.iconSet, ask_intro: prefs.askIntro })
   function apply(p: AccountPrefs): void {
     applying = true
     if (p.lang) prefs.lang = p.lang
     if (p.theme) prefs.theme = p.theme
     if (p.term_style) prefs.termStyle = p.term_style
     if (p.icon_set) prefs.iconSet = p.icon_set
+    if (p.ask_intro) prefs.askIntro = p.ask_intro
     // 让 watch 回调先跑完再放开（它们在同一轮里排队）
     queueMicrotask(() => { applying = false })
   }
@@ -55,7 +56,7 @@ export function startPrefsSync(): void {
   }
 
   watch(() => (auth.me ? `${auth.me.username}|${auth.me.via}` : ''), () => { clearTimeout(timer); void attach() }, { immediate: true })
-  watch(() => [prefs.lang, prefs.theme, prefs.termStyle, prefs.iconSet], () => {
+  watch(() => [prefs.lang, prefs.theme, prefs.termStyle, prefs.iconSet, prefs.askIntro], () => {
     if (applying || mode !== 'rw') return
     clearTimeout(timer)
     prefs.syncState = 'saving'

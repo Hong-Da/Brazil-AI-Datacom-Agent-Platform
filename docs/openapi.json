@@ -426,7 +426,7 @@
         "tags": [
           "auth"
         ],
-        "summary": "我的个人偏好（REQ-047）：语言、主题、显示风格、图标风格；prefs 为 null 表示账号还没保存过（全局令牌没有账号）",
+        "summary": "我的个人偏好（REQ-047）：语言、主题、显示风格、图标风格、AI 查询页说明的折叠；prefs 为 null 表示账号还没保存过（全局令牌没有账号）",
         "operationId": "get_prefs_api_v1_me_prefs_get",
         "responses": {
           "200": {
@@ -29885,6 +29885,22 @@
             ],
             "title": "Icon Set",
             "description": "设备图标风格：cyl 圆柱、geo 几何徽章、line 线框"
+          },
+          "ask_intro": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "folded"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ask Intro",
+            "description": "AI 查询页顶部的接口信息与说明：open 展开、folded 收起（REQ-051）"
           }
         },
         "type": "object",

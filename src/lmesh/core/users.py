@@ -493,6 +493,7 @@ PREF_CHOICES: dict[str, tuple[str, ...]] = {
     "theme": ("auto", "light", "dark"),
     "term_style": ("huawei", "cisco", "nokia"),
     "icon_set": ("cyl", "geo", "line"),
+    "ask_intro": ("open", "folded"),  # AI 查询页顶部的接口信息与说明（REQ-051）
 }
 
 
