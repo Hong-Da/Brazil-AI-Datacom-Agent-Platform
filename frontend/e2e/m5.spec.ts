@@ -166,11 +166,55 @@ test('AI 查询（REQ-051）：范围按网络、反选、隐藏或置灰只存�
   expect(errors).toEqual([])
 })
 
+test('AI 查询会话（REQ-052～054）：保存、列表、重命名、附件、下载链接、AI 报告、归档', async ({ page }) => {
+  const errors = collectErrors(page)
+  await login(page)
+  await page.route('**/api/v1/ask/status', (r) => r.fulfill({ json: { code: 0, message: 'ok', data: FIX.status } }))
+  await page.route(/\/ask\/sessions\/\d+\/turns$/, (r) => r.fulfill({ json: { code: 0, message: 'ok', data: { id: 7001, position: 1, current: 0, versions: [{ question: FIX.ask.question, result: FIX.ask, context: 0, attachments: [], at: '2026-10-21T10:00:00Z' }] } } }))
+  await page.route(/\/ask\/sessions\/\d+\/ai-report$/, (r) => r.fulfill({ json: { code: 0, message: 'ok', data: { markdown: '## 发现\n- R1\n', blocks: [{ type: 'h', level: 2, segments: [{ text: '发现', ok: true }] }, { type: 'li', level: 0, segments: [{ text: 'R1 上有 2 个接口。', ok: true }, { text: '还有 3 个没有描述。', ok: false }] }], verified: 1, unverified: 1, lang: 'zh-CN', filename: 'ask-session-1-ai-report.zh-CN.md' } } }))
+  await page.goto('/ask')
+  await expect(page.getByTestId('ask-rail')).toBeVisible()
+  // 附件：先建会话再上传（文档提取文字，不需要 AI）
+  await page.getByTestId('ask-attach-input').setInputFiles({ name: 'plan.csv', mimeType: 'text/csv', buffer: Buffer.from('接口,地址\nGE0/2/0,10.1.1.1/30\n') })
+  await expect(page.getByTestId('ask-atts')).toContainText('plan.csv')
+  await page.getByTestId('ask-input').fill(FIX.ask.question)
+  await page.getByTestId('ask-submit').click()
+  await expect(page.getByTestId('ask-answer')).toBeVisible()
+  await expect(page.getByTestId('ask-csv-7001')).toHaveAttribute('href', /\/ask\/sessions\/\d+\/turns\/7001\/table\?format=csv/)
+  await expect(page).toHaveURL(/[?&]s=\d+/)
+  // 列表里有这个会话（提问被替换，后端没保存这一轮，标题在重命名后检查）；带 1 个附件
+  await expect(page.getByTestId('ask-rail').locator('.it')).toHaveCount(1)
+  await page.getByTestId('ask-ses-menu').click()
+  await page.getByTestId('ask-ses-rename').click()
+  await page.getByTestId('ask-ses-title-in').fill('VPN 会话')
+  await page.getByTestId('ask-ses-title-ok').click()
+  await expect(page.getByTestId('ask-ses-title')).toHaveText('VPN 会话')
+  await expect(page.getByTestId('ask-rail')).toContainText('VPN 会话')
+  // 下载菜单：会话报告链接、AI 报告（核对结果标出未经核对的句子）
+  await page.getByTestId('ask-ses-dl').click()
+  await expect(page.getByTestId('ask-dl-html-zh')).toHaveAttribute('href', /report\?lang=zh-CN&format=html/)
+  const rep = await page.request.get((await page.getByTestId('ask-dl-md-en').getAttribute('href'))!)
+  expect(rep.ok()).toBeTruthy()
+  expect(await rep.text()).toContain('# AI Query Session Report')
+  await page.getByTestId('ask-dl-ai').click()
+  await expect(page.getByTestId('ask-ai-report')).toContainText('还有 3 个没有描述')
+  await expect(page.getByTestId('ask-ai-report').locator('.unv')).toHaveCount(1)
+  await page.getByTestId('ask-ai-report').getByRole('button', { name: /关闭/ }).last().click()
+  // 归档后在“已归档”里，不能再提问
+  await page.getByTestId('ask-ses-menu').click()
+  await page.getByTestId('ask-ses-archive').click()
+  await expect(page.getByTestId('ask-ses-restore')).toBeVisible()
+  await expect(page.getByTestId('ask-input')).toHaveCount(0)
+  await expect(page.getByTestId('ask-ses-tab-archived')).toHaveAttribute('aria-pressed', 'true')
+  expect(errors).toEqual([])
+})
+
 test('AI 查询（假 AI）：三步过程、引用角标、逐句核对、更正文字、发送内容', async ({ page }) => {
   await login(page)
   await page.route('**/api/v1/ask/status', (r) => r.fulfill({ json: { code: 0, message: 'ok', data: FIX.status } }))
   // AI 查询属于项目接口（M6）：/api/v1/projects/<项目>/ask
-  await page.route(/\/api\/v1\/(projects\/[^/]+\/(n\/[^/]+\/)?)?ask$/, (r) => r.fulfill({ json: { code: 0, message: 'ok', data: FIX.ask } }))
+  // REQ-052：提问保存在会话里（会话由后端真实创建），这里只替换会话里的提问：/ask/sessions/<编号>/turns
+  await page.route(/\/ask\/sessions\/\d+\/turns$/, (r) => r.fulfill({ json: { code: 0, message: 'ok', data: { id: 7001, position: 1, current: 0, versions: [{ question: FIX.ask.question, result: FIX.ask, context: 0, attachments: [], at: '2026-10-21T10:00:00Z' }] } } }))
   await page.goto('/ask')
   await expect(page.getByTestId('ask-on')).toBeVisible()
   await page.getByTestId('ask-input').fill(FIX.ask.question)

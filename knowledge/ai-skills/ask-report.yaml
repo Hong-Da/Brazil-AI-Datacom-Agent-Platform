@@ -1,0 +1,79 @@
+# 内置 AI skill（只读）：AI 查询会话报告（REQ-054）：根据会话中代码算出的结果写一份 Markdown 报告。
+# 管理员修改后的版本保存在 data/ai-skills/ask-report/，可回滚或恢复为本文件的内置版本。
+# 提示词中的 {变量} 由代码填入，{{ 与 }} 表示字面的花括号。数字一律写 <<键>>、对象写 [[编号]]，由代码填入；直接写出数字的句子标为未经核对。
+id: ask-report
+version: 1
+title: {zh-CN: 问答：会话报告, en: 'Ask: session report', pt-BR: 'Perguntar: relatório da sessão'}
+description: {zh-CN: '根据一个 AI 查询会话中代码执行的结果与逐句核对状态，写一份 Markdown 报告（概要、发现、建议）。AI 只写句子，数字用 <<键>>、对象用 [[编号]]，由代码从会话结果填入并核对；AI 自己写了数字或引用了不存在的键的句子标为“未经核对”。', en: 'Writes a Markdown report (summary, findings, recommendations) from the results computed by code and the per-statement checks of an AI query session. The AI writes sentences only; numbers are <<key>> and objects [[id]], filled in and checked by code from the session results; sentences where the AI typed a number or used an unknown key are marked unverified.', pt-BR: 'Escreve um relatório em Markdown (resumo, constatações, recomendações) a partir dos resultados calculados pelo código e das verificações de uma sessão de consulta. A IA só escreve frases; números são <<chave>> e objetos [[id]], preenchidos e conferidos pelo código; frases com números digitados pela IA ou chaves desconhecidas ficam marcadas como não verificadas.'}
+task: ask
+used_by: ask
+group: qa
+enabled: true
+system: |-
+  You write a short report in Markdown about a network configuration Q&A session, for engineers and managers.
+  All facts come from code: the questions asked, the number of matching rows, the devices involved and which
+  statements were verified or corrected. Write in {lang}.
+  Structure: "## " headings for Summary, Findings and Recommendations (translated), short paragraphs or "- " bullets.
+  Rules:
+  - Write EVERY number ONLY as <<key>> with the fact keys given (for example <<t1.rows>>). Never type a digit yourself.
+  - Mention questions, devices and objects ONLY as [[id]] (q1, d1, o1 ...). Do not type names, addresses or interfaces.
+  - Do not invent results that are not in the facts; recommendations are advice and need no facts.
+  Reply with the Markdown only.
+prompt: |-
+  Session title: {title}
+
+  Facts (key = value):
+  {facts}
+
+  Objects (id | type | name):
+  {objects}
+templates: {}
+variables:
+  - name: lang
+    in: system
+    desc: {zh-CN: 报告语言（中文或英文）, en: Report language (Chinese or English), pt-BR: Idioma do relatório (chinês ou inglês)}
+  - name: title
+    in: prompt
+    desc: {zh-CN: 会话标题, en: Session title, pt-BR: Título da sessão}
+  - name: facts
+    in: prompt
+    desc: {zh-CN: 代码给出的数字（键 = 值：轮数、各轮结果行数、核对状态计数、各设备行数）, en: 'Numbers from code (key = value: turns, rows per turn, check counts, rows per device)', pt-BR: 'Números do código (chave = valor: rodadas, linhas, contagens, linhas por dispositivo)'}
+  - name: objects
+    in: prompt
+    desc: {zh-CN: 对象（编号 | 类型 | 名称：问题、设备、结果对象、被更正的陈述）, en: 'Objects (id | type | name: questions, devices, result objects, corrected statements)', pt-BR: 'Objetos (id | tipo | nome: perguntas, dispositivos, objetos, frases corrigidas)'}
+examples: []
+tools:
+  - sanitize
+output:
+  format: text
+  schema: ''
+checks:
+  - report.placeholders
+samples:
+  - title: {zh-CN: 全部用占位符, en: Placeholders only, pt-BR: Só marcadores}
+    input:
+      lang: zh-CN
+      title: VPN 接口
+      facts:
+        numbers: {turns: 1, attachments: 0, devices: 1, t1.rows: 2, t1.passed: 1, t1.corrected: 0, t1.unverifiable: 0, t1.devices: 1, t1.d1.rows: 2}
+        objects:
+          q1: {type: question, label: 哪些接口绑定了 VPN 实例？}
+          d1: {type: device, label: ATN-DEMO-01}
+    reply: |-
+      ## 概要
+      本会话共 <<turns>> 轮，围绕 [[q1]]。
+      ## 发现
+      - [[d1]] 上有 <<t1.rows>> 个接口绑定了 VPN 实例。
+      ## 建议
+      - 核对这些接口的描述是否完整。
+  - title: {zh-CN: 自己写了数字（演示标记）, en: Typed a number (shows the mark), pt-BR: Número digitado (mostra a marca)}
+    input:
+      lang: zh-CN
+      title: VPN 接口
+      facts:
+        numbers: {turns: 1, t1.rows: 2}
+        objects:
+          d1: {type: device, label: ATN-DEMO-01}
+    reply: |-
+      ## 发现
+      - [[d1]] 上有 3 个接口的 MTU 为 9000。

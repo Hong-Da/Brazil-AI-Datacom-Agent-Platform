@@ -51,6 +51,7 @@ def status(settings: config.Settings) -> dict[str, Any]:
         },
         "sanitize": "always",
         "guard_without_ai": True,
+        "images": bool(settings.get("ai.ask_images")),  # REQ-053：AI 查询可以附带图片（管理员开启）
     }
 
 
@@ -172,14 +173,47 @@ def devices_list(devices: list[Any]) -> list[dict[str, Any]]:
     return [{"name": d.name, "profile": d.g.graph.get("profile"), "family": d.g.graph.get("family")} for d in devices]
 
 
+# 管理员改过的 skill 版本里可能没有这两个模板（REQ-052、REQ-053 之前改的），这时用内置的写法
+_CONTEXT_FALLBACK = (
+    "Earlier questions in this conversation (oldest first) and the queries that answered them.\n"
+    'The new question may refer to them (for example "only those on device X"); still write ONE complete query.\n'
+    "{history}"
+)
+_REFERENCES_FALLBACK = (
+    "Reference material attached by the user (documents, sanitised; images if any are attached to this message).\n"
+    "Code cannot verify it: when a statement relies only on this material, give it no cites and no facts.\n"
+    "{references}"
+)
+HISTORY_TURNS = 5
+REFERENCE_CHARS = 30000
+
+
+def history_text(history: list[dict[str, Any]]) -> str:
+    """会话前几轮（REQ-052）：[{question, query}] → 给 AI 的文字（最多 HISTORY_TURNS 轮；发送前整体再脱敏）。"""
+    lines = []
+    for i, h in enumerate(history[-HISTORY_TURNS:], 1):
+        lines.append(f"{i}. Q: {str(h.get('question') or '').strip()[:1000]}")
+        if h.get("query"):
+            lines.append(f"   query: {str(h['query'])[:1000]}")
+    return "\n".join(lines)
+
+
 def query_messages(
-    skill: skills.Skill, question: str, devices: list[dict[str, Any]], kb: KnowledgeBase, error: str | None
+    skill: skills.Skill,
+    question: str,
+    devices: list[dict[str, Any]],
+    kb: KnowledgeBase,
+    error: str | None,
+    history: list[dict[str, Any]] | None = None,
 ) -> tuple[str, str]:
-    """ask-query 的系统提示与正文。"""
+    """ask-query 的系统提示与正文；history 是同一会话前几轮的问题与查询（REQ-052）。"""
     g = gquery.grammar()
     system = skill.system_text(syntax=g["syntax"], ops=", ".join(g["ops"]), notes="; ".join(g["notes"]))
     devs = "\n".join(f"- {d['name']} (profile {d.get('profile')}, family {d.get('family')})" for d in devices)
     prompt = skill.prompt_text(devices=devs, catalog=catalog(kb), question=question)
+    if history:
+        tpl = skill.templates.get("context") or _CONTEXT_FALLBACK
+        prompt += "\n\n" + skills.render(tpl, {"history": history_text(history)})
     if error:
         prompt += "\n\n" + skill.prompt_text("retry", error=error)
     return system, prompt
@@ -188,10 +222,16 @@ def query_messages(
 LANG_NAMES = {"zh-CN": "Simplified Chinese", "en": "English", "pt-BR": "Brazilian Portuguese"}
 
 
-def answer_messages(skill: skills.Skill, question: str, result: dict[str, Any], lang: str) -> tuple[str, str]:
-    """ask-answer 的系统提示与正文。"""
+def answer_messages(
+    skill: skills.Skill, question: str, result: dict[str, Any], lang: str, references: str = ""
+) -> tuple[str, str]:
+    """ask-answer 的系统提示与正文；references 是附件文档的文字（REQ-053，参考资料，代码无法核对）。"""
     system = skill.system_text(lang=LANG_NAMES.get(lang, "English"))
-    return system, skill.prompt_text(question=question, query=result["text"], result=result_body(result))
+    prompt = skill.prompt_text(question=question, query=result["text"], result=result_body(result))
+    if references.strip():
+        tpl = skill.templates.get("references") or _REFERENCES_FALLBACK
+        prompt += "\n\n" + skills.render(tpl, {"references": references[:REFERENCE_CHARS]})
+    return system, prompt
 
 
 def slim_result(result: dict[str, Any], limit: int = 500) -> dict[str, Any]:
@@ -366,8 +406,15 @@ def ask(
     lang: str = "zh-CN",
     attempts: int = 2,
     actor: skills.Actor | None = None,
+    history: list[dict[str, Any]] | None = None,
+    references: str = "",
+    images: list[tuple[str, str]] | None = None,
 ) -> dict[str, Any]:
-    """自然语言查询。devices：topology.Device 列表（查询范围）。"""
+    """自然语言查询。devices：topology.Device 列表（查询范围）。
+    会话（REQ-052、REQ-053）：history 为前几轮 [{question, query}]；references 为附件文档文字；images 为用户确认过的图片。"""
+    if images:
+        with ai.with_images(images):
+            return ask(question, devices, kb, settings, lang, attempts, actor, history, references, None)
     _require(settings)
     if not question.strip():
         raise AskError("ask.empty")
@@ -383,8 +430,10 @@ def ask(
     result: dict[str, Any] | None = None
     error: str | None = None
     for _ in range(max(1, attempts)):
-        system, prompt = query_messages(sk_q, question, devs, kb, error)
+        system, prompt = query_messages(sk_q, question, devs, kb, error, history)
         inp: dict[str, Any] = {"question": question, "devices": devs, "error": error}
+        if history:
+            inp["history"] = len(history[-HISTORY_TURNS:])
         reply = call_logged(sess, sk_q, "query", system, prompt, "ask", inp, actor)
         q_text = reply
         failure: dict[str, Any] | None = None
@@ -426,8 +475,10 @@ def ask(
             "ai": sess.info(),
             "skill_runs": runs,
         }
-    system, prompt = answer_messages(sk_a, question, result, lang)
+    system, prompt = answer_messages(sk_a, question, result, lang, references)
     inp = {"question": question, "lang": lang, "result": slim_result(result)}
+    if references.strip():
+        inp["references"] = len(references)
     reply = call_logged(sess, sk_a, "answer", system, prompt, "ask", inp, actor)
     try:
         answer = _json_reply(reply)

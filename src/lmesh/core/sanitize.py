@@ -386,9 +386,12 @@ class Sanitizer:
             r for r in reps if r.category in ("secret", "community") and len(r.original) >= 4 and r.original in out
         ]
         if leaked:
-            raise SanitizeLeak(
-                f"脱敏后仍残留 {len(leaked)} 处秘密值（行 {', '.join(str(r.line) for r in leaked[:10])}）"
-            )
+            # 残留在脱敏结果的哪些行（只给行号，不给值）：用户据此找到没认出来的命令写法
+            vals = {r.original for r in leaked}
+            lines = [i for i, ln in enumerate(out.split("\n"), 1) if any(v in ln for v in vals)]
+            err = SanitizeLeak(f"脱敏后仍残留 {len(leaked)} 处秘密值（行 {', '.join(str(n) for n in lines[:10])}）")
+            err.lines = lines
+            raise err
 
 
 def local_key() -> bytes:
@@ -407,4 +410,6 @@ def _apply(fn, cat: str, fmt: str, m: re.Match[str]) -> str:  # type: ignore[no-
 
 
 class SanitizeLeak(RuntimeError):
-    pass
+    """脱敏自检发现秘密值仍然残留；lines 是残留所在的行号（不含值）。"""
+
+    lines: list[int] = []

@@ -48,6 +48,7 @@ class ImportResult:
     unknown: int = 0
     coverage: float | None = None
     error: str = ""  # 文案键
+    error_lines: list[int] = field(default_factory=list)  # 脱敏自检残留秘密值的行号（只有行号）
     duplicate: bool = False  # 内容与该设备最新的快照相同：没有存新快照，只记了一条导入记录（版本历史）
     # REQ-044：Profile 来源（auto / fallback / rule / manual / none）、匹配程度（exact / approx / none）、
     # 按哪条型号规则选的、这次“记住”新建的规则、是否只存原文（认不出厂商或没有可用的 Profile）
@@ -98,6 +99,14 @@ def iter_bytes(name: str, data: bytes) -> Iterator[tuple[str, bytes]]:
     yield name, data
 
 
+def error_message(t: Any, key: str, lines: list[int] | None = None) -> str:
+    """导入失败的提示：t 是翻译函数；脱敏自检失败时附上残留所在的行号（不含值）。"""
+    msg = str(t(key))
+    if lines:
+        msg += str(t("import.leak_lines", lines=", ".join(str(n) for n in lines[:10])))
+    return msg
+
+
 def guess_profile(vendor: str, version: str, kb: Any = None, fmt: str = "") -> str:
     """按厂商与版本选 Profile：优先用知识库中各 Profile 的匹配规则；没有知识库时按命名约定推断。"""
     if kb is not None:
@@ -133,9 +142,9 @@ def sanitize_one(
     fmt = detect_format(text, vendor) if vendor else ""
     try:
         result = sanitizer.sanitize(text)
-    except SanitizeLeak:
-        # 自检发现脱敏后仍残留秘密值：这个文件不入库（只报告，不写日志原文），批次里的其他文件照常导入
-        return ImportResult(name, False, error="import.sanitize_leak"), ""
+    except SanitizeLeak as e:
+        # 自检发现脱敏后仍残留秘密值：这个文件不入库（只报告行号，不写日志原文），批次里的其他文件照常导入
+        return ImportResult(name, False, error="import.sanitize_leak", error_lines=list(e.lines)[:20]), ""
     m = (_NOKIA_HOST if vendor == "nokia" else _HOST if vendor else _GENERIC_HOST).search(result.text)
     device = m.group(1) if m else Path(name).stem
     return ImportResult(
@@ -370,7 +379,7 @@ def inspect_sources(
         rules = model_support.ordered_rules(s, project_id)
         for name, raw in sources:
             res, text = sanitize_one(name, raw, sanitizer, kb, allow_unknown=True)
-            row: dict[str, Any] = {"source": name, "ok": res.ok, "error": res.error}
+            row: dict[str, Any] = {"source": name, "ok": res.ok, "error": res.error, "error_lines": res.error_lines}
             if not res.ok:
                 out.append(row)
                 continue

@@ -80,6 +80,16 @@ PROJECT: set[str] = {
     "/templates/extract",
     "/query",
     "/ask",
+    "/ask/sessions",
+    "/ask/sessions/{sid}",
+    "/ask/sessions/{sid}/turns",
+    "/ask/sessions/{sid}/turns/{tid}/versions",
+    "/ask/sessions/{sid}/turns/{tid}",
+    "/ask/sessions/{sid}/attachments",
+    "/ask/sessions/{sid}/attachments/{aid}",
+    "/ask/sessions/{sid}/report",
+    "/ask/sessions/{sid}/turns/{tid}/table",
+    "/ask/sessions/{sid}/ai-report",
     "/guard",
     "/generate",
     "/check-projects",
@@ -95,6 +105,19 @@ PROJECT: set[str] = {
     "/check-projects/diff",
     "/check-projects/diff/report",
     "/scripts",
+}
+
+# AI 查询会话（REQ-052～054）是个人的：只读成员也能保存、管理自己的会话（只有本人能改由 core/ask_sessions 判断）
+ASK_SESSIONS: set[tuple[str, str]] = {
+    ("POST", "/ask/sessions"),
+    ("PATCH", "/ask/sessions/{sid}"),
+    ("DELETE", "/ask/sessions/{sid}"),
+    ("POST", "/ask/sessions/{sid}/turns"),
+    ("POST", "/ask/sessions/{sid}/turns/{tid}/versions"),
+    ("PUT", "/ask/sessions/{sid}/turns/{tid}"),
+    ("POST", "/ask/sessions/{sid}/attachments"),
+    ("DELETE", "/ask/sessions/{sid}/attachments/{aid}"),
+    ("POST", "/ask/sessions/{sid}/ai-report"),
 }
 
 # 不修改数据的 POST（只读成员、只读令牌也可以调用）
@@ -214,7 +237,7 @@ def level(method: str, path: str, project_only: bool = False) -> str:
         return "self"
     if (method, path) in KB:
         return "kb"
-    if (method, path) in COMPUTE:
+    if (method, path) in COMPUTE or (method, path) in ASK_SESSIONS:
         return "compute"
     return "write"
 

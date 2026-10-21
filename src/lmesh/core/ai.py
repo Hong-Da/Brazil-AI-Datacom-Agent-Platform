@@ -81,8 +81,15 @@ def _call_provider(conn: ai_connections.Conn, settings: config.Settings, model: 
         if conn.base_url:
             kwargs["base_url"] = conn.base_url
         client = anthropic.Anthropic(**kwargs)
+        imgs = _IMAGES.get()
+        content: Any = prompt
+        if imgs:
+            content = [
+                *({"type": "image", "source": {"type": "base64", "media_type": m, "data": b64}} for m, b64 in imgs),
+                {"type": "text", "text": prompt},
+            ]
         msg = client.messages.create(
-            model=model, max_tokens=max_tokens, system=system, messages=[{"role": "user", "content": prompt}]
+            model=model, max_tokens=max_tokens, system=system, messages=[{"role": "user", "content": content}]
         )
         text = "".join(getattr(b, "text", "") for b in msg.content)
         return Reply(text, model, msg.usage.input_tokens, msg.usage.output_tokens)
@@ -91,10 +98,17 @@ def _call_provider(conn: ai_connections.Conn, settings: config.Settings, model: 
     except ImportError as e:
         raise AIError("ai.sdk_missing") from e
     client_o = openai.OpenAI(api_key=conn.api_key() or "not-needed", base_url=conn.base_url, timeout=timeout)
+    imgs = _IMAGES.get()
+    user: Any = prompt
+    if imgs:
+        user = [
+            *({"type": "image_url", "image_url": {"url": f"data:{m};base64,{b64}"}} for m, b64 in imgs),
+            {"type": "text", "text": prompt},
+        ]
     resp = client_o.chat.completions.create(
         model=model,
         max_tokens=max_tokens,
-        messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
+        messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
     )
     usage = resp.usage
     return Reply(
@@ -113,6 +127,26 @@ def _default_hook(conn: ai_connections.Conn, model: str, system: str, prompt: st
 provider_hook: Callable[[Any, str, str, str], Reply] = _default_hook
 _HOOK_SETTINGS: ContextVar[config.Settings] = ContextVar("lmesh_ai_settings")
 _CALL_IDS: ContextVar[list[int] | None] = ContextVar("lmesh_ai_call_ids", default=None)
+# 随下一次调用一起发送的图片 [(媒体类型, base64)]（REQ-053：AI 查询的图片附件，用户确认后才设置；不脱敏）
+_IMAGES: ContextVar[tuple[tuple[str, str], ...]] = ContextVar("lmesh_ai_images", default=())
+
+
+class with_images:
+    """在这段代码里的 AI 调用都带上这些图片：with ai.with_images([(mime, b64), …]): …"""
+
+    def __init__(self, images: list[tuple[str, str]]):
+        self._images = tuple(images)
+
+    def __enter__(self) -> None:
+        self._token = _IMAGES.set(self._images)
+
+    def __exit__(self, *exc: object) -> None:
+        _IMAGES.reset(self._token)
+
+
+def pending_images() -> tuple[tuple[str, str], ...]:
+    """当前调用会带上的图片（测试替身用来确认图片有没有发出去）。"""
+    return _IMAGES.get()
 
 
 def _record_call_id(call_id: int) -> None:

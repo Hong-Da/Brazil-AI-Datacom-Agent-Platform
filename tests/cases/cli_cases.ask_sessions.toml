@@ -1,0 +1,41 @@
+# AI 查询会话（REQ-052～054）的 CLI 用例（加载器与主文件 cli_cases.toml 合并）。
+# 准备方式 configured-fullkb-history：默认项目里有已导入的设备，没有配置 AI；每个用例的数据各自独立。
+
+[[case]]
+id = "ask-session-cli-new"
+title = { zh-CN = "新建 AI 查询会话", en = "Create an AI query session", pt-BR = "Criar uma sessão de consulta IA" }
+args = ["--output", "json", "ask-session", "new", "--title", "VPN 接口"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_json = { "ok" = true, "data.title" = "VPN 接口", "data.turns" = 0, "data.mine" = true }
+in_docs = true
+
+[[case]]
+id = "ask-session-cli-list-empty"
+title = { zh-CN = "列出我的会话（还没有）", en = "List my sessions (none yet)", pt-BR = "Listar minhas sessões (nenhuma)" }
+args = ["--output", "json", "ask-session", "list"]
+setup = "configured-fullkb-history"
+expect_exit = 0
+expect_json = { "ok" = true, "data.sessions" = [] }
+
+[[case]]
+id = "ask-session-cli-show-missing"
+title = { zh-CN = "会话不存在：退出码 4", en = "Unknown session: exit 4", pt-BR = "Sessão inexistente: saída 4" }
+args = ["--lang", "en", "ask-session", "show", "99"]
+setup = "configured-fullkb-history"
+expect_exit = 4
+expect_stderr = ["Session 99 not found"]
+
+[[case]]
+id = "ask-session-cli-ask-no-ai"
+title = { zh-CN = "没有配置 AI 时提问：退出码 3", en = "Asking without AI configured: exit 3", pt-BR = "Perguntar sem IA configurada: saída 3" }
+args = ["ask-session", "ask", "1", "哪些接口没有描述？"]
+setup = "configured-fullkb-history"
+expect_exit = 3
+
+[[case]]
+id = "ask-session-cli-table-bad-format"
+title = { zh-CN = "结果表格式不对：退出码 2", en = "Wrong table format: exit 2", pt-BR = "Formato de tabela inválido: saída 2" }
+args = ["ask-session", "table", "1", "1", "-o", "x.pdf", "--format", "pdf"]
+setup = "configured-fullkb-history"
+expect_exit = 2

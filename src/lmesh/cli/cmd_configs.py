@@ -78,7 +78,7 @@ def register(app: typer.Typer, config_app: typer.Typer) -> None:
                 target.write_bytes(text.encode("utf-8"))  # 统一 LF 换行，不随系统转换
                 results.append({**res.as_dict(), "output": str(target)})
             else:
-                results.append({**res.as_dict(), "error": c.t(res.error)})
+                results.append({**res.as_dict(), "error": importer.error_message(c.t, res.error, res.error_lines)})
         if map_out:
             map_out.parent.mkdir(parents=True, exist_ok=True)
             map_out.write_text(json.dumps(sanitizer.mapping(), ensure_ascii=False, indent=2), encoding="utf-8")
@@ -162,7 +162,7 @@ def register(app: typer.Typer, config_app: typer.Typer) -> None:
         ]
         for r in results:
             if not r["ok"]:
-                r["error"] = c.t(r["error"])
+                r["error"] = importer.error_message(c.t, r["error"], r.get("error_lines"))
         rows = [
             [
                 r["source"],

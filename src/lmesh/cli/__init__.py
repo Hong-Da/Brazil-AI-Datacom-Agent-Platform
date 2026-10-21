@@ -464,6 +464,10 @@ cmd_export.register(app)
 cmd_feature.register(app)
 cmd_ask.register(app)
 
+from lmesh.cli import cmd_ask_sessions  # noqa: E402
+
+cmd_ask_sessions.register(app)
+
 from lmesh.cli import cmd_user  # noqa: E402
 
 cmd_user.register(app)

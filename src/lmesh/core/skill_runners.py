@@ -306,10 +306,34 @@ def _evolve_check(s: skills.Skill, inp: dict[str, Any], reply: str, ctx: Ctx) ->
     return _result("passed", [_item(True, "evolve.placeholders", rationale)], rationale=rationale)
 
 
+def _ask_report_build(s: skills.Skill, inp: dict[str, Any], ctx: Ctx) -> tuple[str, str]:
+    from lmesh.core import ask_report
+
+    facts = inp.get("facts") or {"numbers": {}, "objects": {}}
+    return ask_report.report_messages(s, facts, str(inp.get("lang") or ctx.lang), str(inp.get("title") or ""))
+
+
+def _ask_report_check(s: skills.Skill, inp: dict[str, Any], reply: str, ctx: Ctx) -> dict[str, Any]:
+    from lmesh.core import ask_report
+
+    r = ask_report.replay_check(reply, inp)
+    ok = r["unverified"] == 0
+    items = [
+        _item(seg["ok"], "report.placeholders", seg["text"])
+        for b in r["blocks"]
+        if b["type"] != "h"
+        for seg in b["segments"]
+    ]
+    return _result(
+        "passed" if ok else "corrected", items, summary={"verified": r["verified"], "unverified": r["unverified"]}
+    )
+
+
 RUNNERS: dict[str, tuple[Callable[..., tuple[str, str]], Callable[..., dict[str, Any]]]] = {
     "card-extract": (_card_build, _card_check),
     "ask-query": (_query_build, _query_check),
     "ask-answer": (_answer_build, _answer_check),
+    "ask-report": (_ask_report_build, _ask_report_check),
     "config-generate": (_generate_build, _generate_check),
     "script-review": (_review_build, _review_check),
     "skill-evolve": (_evolve_build, _evolve_check),

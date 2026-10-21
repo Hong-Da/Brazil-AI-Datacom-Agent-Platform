@@ -4986,7 +4986,7 @@ HTTP 状态：`200`；返回中的关键字段：
 - `data.skills.2.active` = `"builtin"`
 - `data.skills.2.stats.calls` = `0`
 - `data.groups.0.id` = `"qa"`
-- `data.groups.0.count` = `2`
+- `data.groups.0.count` = `3`
 - `data.groups.0.title.en` = `"Q&A"`
 
 ### 普通账号不能管理 skill（403）

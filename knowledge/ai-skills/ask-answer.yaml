@@ -23,8 +23,15 @@ prompt: |-
 
   Result:
   {result}
-templates: {}
+templates:
+  references: |-
+    Reference material attached by the user (documents, sanitised; images if any are attached to this message).
+    Code cannot verify it: when a statement relies only on this material, give it no cites and no facts.
+    {references}
 variables:
+  - name: references
+    in: references
+    desc: {zh-CN: 附件文档提取并脱敏的文字（参考资料，代码无法核对）, en: 'Text extracted from attached documents, sanitised (reference only, not verifiable)', pt-BR: 'Texto extraído dos documentos anexados, anonimizado (só referência)'}
   - name: lang
     in: system
     desc: {zh-CN: 回答语言（按界面语言）, en: Answer language (from the UI language), pt-BR: Idioma da resposta (do idioma da interface)}

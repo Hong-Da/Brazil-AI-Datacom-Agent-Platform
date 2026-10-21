@@ -826,3 +826,52 @@ class NetworkMember(Base):
     joined_by: Mapped[str] = mapped_column(String(200), default="")
     joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     __table_args__ = (UniqueConstraint("network_id", "device_id", name="uq_network_members_network_device"),)
+
+
+class AskSession(Base):
+    """AI 查询会话（REQ-052）：属于项目，只有本人可见；shared 时同项目成员可以只读查看。
+    network_id / network_slug：创建或最近更改范围时的网络；devices：范围（设备名列表，None 为网络全部可查询设备）。
+    全局 API 令牌与没有账号的命令行 user_id 为空（按 owner 名称区分）。"""
+
+    __tablename__ = "ask_sessions"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    project_id: Mapped[int] = mapped_column(ForeignKey("projects.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
+    owner: Mapped[str] = mapped_column(String(200), default="")
+    title: Mapped[str] = mapped_column(String(200), default="")
+    network_id: Mapped[int | None] = mapped_column(ForeignKey("networks.id", ondelete="SET NULL"), nullable=True)
+    network_slug: Mapped[str] = mapped_column(String(64), default="")
+    devices: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    archived: Mapped[bool] = mapped_column(default=False)
+    shared: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class AskTurn(Base):
+    """会话中的一轮（REQ-052）：versions 是这一轮的各个版本 [{question, result, at}]（改问重答时追加），
+    current 是正在显示的版本下标；context 是提问时交给 AI 的前几轮轮数。"""
+
+    __tablename__ = "ask_turns"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("ask_sessions.id", ondelete="CASCADE"), index=True)
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    versions: Mapped[Any] = mapped_column(JSONType, default=list)
+    current: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class AskAttachment(Base):
+    """会话附件（REQ-053）：kind 为 config（临时设备，content 是脱敏后的配置原文）、doc（text 是提取并脱敏的文字）、
+    image（data 是图片原样，发给 AI 前需要确认）。meta：{vendor, profile, device, chars, truncated, mime}。"""
+
+    __tablename__ = "ask_attachments"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    session_id: Mapped[int] = mapped_column(ForeignKey("ask_sessions.id", ondelete="CASCADE"), index=True)
+    name: Mapped[str] = mapped_column(String(255))
+    kind: Mapped[str] = mapped_column(String(10))
+    size: Mapped[int] = mapped_column(Integer, default=0)
+    text: Mapped[str] = mapped_column(Text, default="")
+    data: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    meta: Mapped[Any] = mapped_column(JSONType, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

@@ -39,6 +39,7 @@ ORDER = (
     "card-extract",
     "ask-query",
     "ask-answer",
+    "ask-report",
     "config-generate",
     "script-review",
     "skill-evolve",

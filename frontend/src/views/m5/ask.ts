@@ -4,7 +4,7 @@
  * AI 的输出只在代码核对之后显示：回答的每句话带核对状态，生成的配置逐行带护栏结论。
  */
 
-export interface AskStatus { configured: boolean; status: 'ready' | 'not_configured'; provider: string | null; models: { ask: string | null; generate: string | null }; sanitize: string; guard_without_ai: boolean; grammar?: { syntax: string } }
+export interface AskStatus { configured: boolean; status: 'ready' | 'not_configured'; provider: string | null; models: { ask: string | null; generate: string | null }; sanitize: string; guard_without_ai: boolean; images?: boolean; grammar?: { syntax: string } }
 export interface QCell { value: unknown; origin: string; nodes: string[]; lines: number[]; secret?: boolean }
 export interface QRow { n: number; device: string; device_id: number | null; version_id: number | null; node: string; schema: string; key: unknown; label: string; lines: number[]; cells: Record<string, QCell> }
 export interface QueryResult { text: string; object: string; columns: { field: string; schema: string | null; type: string; secret: boolean }[]; rows: QRow[]; count: number; truncated?: boolean }

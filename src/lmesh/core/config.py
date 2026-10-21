@@ -365,6 +365,17 @@ FIELDS: tuple[Field, ...] = (
         minimum=0,
         maximum=10000000,
     ),
+    Field(
+        "ai.ask_images",
+        False,
+        "ai",
+        "bool",
+        _d(
+            "AI 查询可以附带图片（图片无法自动脱敏，会原样发给 AI；开启后每次发送前仍需确认）",
+            "AI query may include images (images cannot be sanitized and go to the AI as-is; each send still needs confirmation)",
+            "A consulta de IA pode incluir imagens (imagens não são anonimizadas e vão como estão; cada envio ainda pede confirmação)",
+        ),
+    ),
 )
 
 FIELD_MAP = {f.key: f for f in FIELDS}

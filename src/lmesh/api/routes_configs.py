@@ -83,7 +83,7 @@ async def import_configs(
     ):
         d = r.as_dict()
         if not r.ok:
-            d["error"] = i18n.t(r.error, lang)
+            d["error"] = importer.error_message(lambda k, **kw: i18n.t(k, lang, **kw), r.error, r.error_lines)
         results.append(d)
     return ok(request, {"files": results})
 

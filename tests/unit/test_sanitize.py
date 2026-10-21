@@ -135,3 +135,16 @@ def test_md5_keys_after_keyword_are_replaced() -> None:
     )
     out = Sanitizer("basic", b"k" * 32).sanitize(text).text
     assert "0822455D0A16" not in out
+
+
+def test_leak_reports_line_numbers_only() -> None:
+    """脱敏自检：秘密值在没认出来的写法里残留时拒绝，并给出残留所在的行号（错误里不含值）。"""
+    from lmesh.core.sanitize import SanitizeLeak
+
+    text = (
+        "sysname R1\n#\nlocal-user admin password irreversible-cipher Zx9-Secret-Val\n#\n"
+        "interface GigabitEthernet0/2/0\n description Zx9-Secret-Val\n#\nreturn"
+    )
+    with pytest.raises(SanitizeLeak) as e:
+        Sanitizer("basic", b"k" * 32).sanitize(text)
+    assert e.value.lines == [6] and "Zx9-Secret-Val" not in str(e.value)

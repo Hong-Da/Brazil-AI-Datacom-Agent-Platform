@@ -20,6 +20,7 @@ from lmesh.api.routes_ai_kb import router as ai_kb_router
 from lmesh.api.routes_ai_suggest import router as ai_suggest_router
 from lmesh.api.routes_analysis import router as analysis_router
 from lmesh.api.routes_ask import router as ask_router
+from lmesh.api.routes_ask_sessions import router as ask_sessions_router
 from lmesh.api.routes_auth import admin as users_router
 from lmesh.api.routes_auth import router as auth_router
 from lmesh.api.routes_baseline import router as baseline_router
@@ -158,6 +159,7 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     scoping.mount(app, export_router, API_PREFIX, "export")
     scoping.mount(app, features_router, API_PREFIX, "features")
     scoping.mount(app, ask_router, API_PREFIX, "ask")
+    scoping.mount(app, ask_sessions_router, API_PREFIX, "ask")
     scoping.mount(app, skills_router, API_PREFIX, "ai-skills")
     scoping.mount(app, skills_admin_router, API_PREFIX, "ai-skills")
     scoping.mount(app, projects_router, API_PREFIX, "projects")

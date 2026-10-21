@@ -1023,6 +1023,21 @@ JSON 输出中的关键字段：
 - `data.script.available` = `true`
 - `data.script.verify_ok` = `true`
 
+### 新建 AI 查询会话
+
+```bash
+lmesh --output json ask-session new --title 'VPN 接口'
+```
+
+退出码：`0`
+
+JSON 输出中的关键字段：
+
+- `ok` = `true`
+- `data.title` = `"VPN 接口"`
+- `data.turns` = `0`
+- `data.mine` = `true`
+
 ### 对现网 ATN 配置跑基础基线
 
 ```bash
@@ -2462,17 +2477,18 @@ JSON 输出中的关键字段：
 - `ok` = `true`
 - `data.days` = `30`
 - `data.groups.0.id` = `"qa"`
-- `data.groups.0.count` = `2`
+- `data.groups.0.count` = `3`
 - `data.skills.0.id` = `"ask-query"`
 - `data.skills.0.group` = `"qa"`
 - `data.skills.0.active` = `"builtin"`
 - `data.skills.0.enabled` = `true`
 - `data.skills.0.model_key` = `"ai.model_ask"`
 - `data.skills.0.stats.calls` = `0`
-- `data.skills.3.id` = `"device-summary"`
-- `data.skills.3.group` = `"analysis"`
-- `data.skills.18.id` = `"card-extract"`
-- `data.skills.23.id` = `"skill-evolve"`
+- `data.skills.2.id` = `"ask-report"`
+- `data.skills.4.id` = `"device-summary"`
+- `data.skills.4.group` = `"analysis"`
+- `data.skills.19.id` = `"card-extract"`
+- `data.skills.24.id` = `"skill-evolve"`
 
 ### 只列一个功能分组的 skill
 

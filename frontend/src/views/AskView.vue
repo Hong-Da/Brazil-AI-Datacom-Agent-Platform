@@ -11,7 +11,7 @@ import { useI18n } from 'vue-i18n'
 import Icon from '@/components/Icon.vue'
 import AiOffHint from '@/components/ai-off-hint.vue'
 import DevChip from '@/components/m4-dev.vue'
-import { ApiError, errorText, get, post } from '@/api'
+import { ApiError, api, apiUrl, del, errorText, get, post, put } from '@/api'
 import { pickLang } from '@/i18n'
 import { useStatus } from '@/stores/status'
 import { useTerms } from '@/stores/terms'
@@ -20,6 +20,10 @@ import { useNetwork } from '@/stores/network'
 import { rememberedFlag, usePrefs } from '@/stores/prefs'
 import { colorClass, netName, type NetRow } from '@/views/networks/logic'
 import { applyBulk, scopeList, scopeVendors, vendorLabel, type BulkOp } from './m5/ask-scope'
+import SessionRail from './m5/SessionRail.vue'
+import SessionHead from './m5/SessionHead.vue'
+import AttachBar from './m5/AttachBar.vue'
+import { currentOf, type Attachment, type SessionBrief, type SessionFull, type SessionList, type SessionTurn, type SessionWhich } from './m5/ask-sessions'
 import type { Device } from '@/views/devices/logic'
 import GuardResult from './m5/GuardResult.vue'
 import AiFeedback from '@/components/ai-feedback.vue'
@@ -83,7 +87,8 @@ function notConfigured(e: unknown): boolean {
 }
 
 // ---------------------------------------------------------------- 问配置
-interface Turn { id: number; question: string; res: AskResult | null; error: string; busy: boolean }
+/** 显示的一轮：tid 是会话里的编号（还没保存的为空）；nv / cur 是版本数与当前版本；edit 是正在修改的问题。 */
+interface Turn { id: number; question: string; res: AskResult | null; error: string; busy: boolean; tid?: number; nv?: number; cur?: number; ctx?: number; edit?: string | null }
 const scope = ref<string[]>([])
 /** 范围（REQ-051）：按网络选设备；默认当前网络（没有时为默认网络，包含项目全部设备）。只存原文的设备置灰、不参与查询。 */
 const nets = ref<NetRow[]>([])
@@ -116,12 +121,16 @@ async function loadNets(): Promise<void> {
     scopeNet.value = keep || (network.cur && nets.value.some((n) => n.slug === network.cur) ? network.cur : nets.value.find((n) => n.default)?.slug ?? '')
   } catch { nets.value = [] }
 }
+/** 打开会话时要恢复的范围（网络切换后设备列表重新加载，再按它选中） */
+let pendingScope: string[] | null | undefined
 async function loadScope(): Promise<void> {
   try {
     const d = await get<{ devices: Device[] }>('/devices', scopeNet.value ? { network: scopeNet.value } : {})
     netDevices.value = [...d.devices].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
   } catch { netDevices.value = [] }
-  scope.value = usable.value.map((d) => d.name)
+  const want = pendingScope
+  pendingScope = undefined
+  scope.value = want ? usable.value.map((d) => d.name).filter((n) => want.includes(n)) : usable.value.map((d) => d.name)
   scopeQ.value = ''
   scopeVendor.value = ''
   scopeOpen.value = false
@@ -130,6 +139,159 @@ watch(scopeNet, () => { void loadScope() })
 watch(() => project.ref, () => { void loadNets() })
 const turns = ref<Turn[]>([])
 const question = ref('')
+
+// ---------------------------------------------------------------- 会话（REQ-052～054）
+const MAX_ATT = 10
+const which = ref<SessionWhich>('active')
+const sesList = ref<SessionBrief[]>([])
+const sesCounts = ref<Record<SessionWhich, number>>({ active: 0, archived: 0, shared: 0 })
+const sesQ = ref('')
+const sesBusy = ref(false)
+const session = ref<SessionFull | null>(null)
+const sesError = ref('')
+const readOnly = computed(() => !!session.value && !session.value.mine)
+const archived = computed(() => !!session.value?.archived)
+const hasImages = computed(() => !!session.value?.attachment_list.some((a) => a.kind === 'image'))
+const imgConfirm = ref(false)
+const netOpt = () => (scopeNet.value ? { network: scopeNet.value } : {})
+async function loadSessions(): Promise<void> {
+  if (!on.value) return
+  sesBusy.value = true
+  try {
+    const r = await get<SessionList>(`/ask/sessions?which=${which.value}&q=${encodeURIComponent(sesQ.value)}`)
+    sesList.value = r.sessions
+    sesCounts.value = r.counts
+  } catch { /* 列表取不到时仍可提问 */ } finally { sesBusy.value = false }
+}
+function turnOf(t: SessionTurn): Turn {
+  const v = currentOf(t)
+  return { id: t.id, tid: t.id, question: v.question, res: v.result, error: '', busy: false, nv: t.versions.length, cur: t.current, ctx: v.context, edit: null }
+}
+async function openSession(id: number): Promise<void> {
+  sesError.value = ''
+  try {
+    const s = await get<SessionFull>(`/ask/sessions/${id}`)
+    session.value = s
+    turns.value = s.turn_list.map(turnOf)
+    selCite.value = null
+    imgConfirm.value = false
+    if (s.network && nets.value.some((n) => n.slug === s.network) && s.network !== scopeNet.value) {
+      pendingScope = s.devices
+      scopeNet.value = s.network
+    } else {
+      scope.value = s.devices ? usable.value.map((d) => d.name).filter((n) => s.devices!.includes(n)) : usable.value.map((d) => d.name)
+    }
+    void router.replace({ query: { ...route.query, s: String(id) } })
+  } catch (e) { sesError.value = errorText(e) }
+}
+function newSession(): void {
+  session.value = null
+  turns.value = []
+  selCite.value = null
+  imgConfirm.value = false
+  scope.value = usable.value.map((d) => d.name)
+  const q = { ...route.query }
+  delete q.s
+  void router.replace({ query: q })
+}
+function briefOf(s: SessionFull): SessionBrief {
+  const { turn_list: _t, attachment_list: _a, ...b } = s
+  return b
+}
+/** 还没有会话时（第一次提问或添加附件）先建一个，范围与网络取当前选择。 */
+async function ensureSession(): Promise<SessionFull> {
+  if (session.value) return session.value
+  const b = await post<SessionBrief>('/ask/sessions', { devices: allScope.value ? null : scope.value }, netOpt())
+  session.value = { ...b, turn_list: [], attachment_list: [] }
+  void router.replace({ query: { ...route.query, s: String(b.id) } })
+  return session.value
+}
+/** 范围改了：之后的提问按新范围（会话记下新的网络与设备）。 */
+async function syncScope(s: SessionFull): Promise<void> {
+  const want = allScope.value ? null : [...scope.value].sort()
+  const have = s.devices ? [...s.devices].sort() : null
+  if (JSON.stringify(want) === JSON.stringify(have) && (s.network ?? '') === (scopeNet.value || (s.network ?? ''))) return
+  const b = await api<SessionBrief>(`/ask/sessions/${s.id}`, { method: 'PATCH', body: JSON.stringify(want ? { devices: want } : { clear_devices: true }), ...netOpt() })
+  Object.assign(s, b)
+}
+async function patchSession(changes: Record<string, unknown>): Promise<void> {
+  if (!session.value) return
+  try {
+    const b = await api<SessionBrief>(`/ask/sessions/${session.value.id}`, { method: 'PATCH', body: JSON.stringify(changes) })
+    Object.assign(session.value, b)
+    if ('archived' in changes) which.value = b.archived ? 'archived' : 'active'
+    void loadSessions()
+  } catch (e) { flash(errorText(e)) }
+}
+async function deleteSession(): Promise<void> {
+  if (!session.value) return
+  try {
+    await del(`/ask/sessions/${session.value.id}`)
+    newSession()
+    void loadSessions()
+  } catch (e) { flash(errorText(e)) }
+}
+const fileIn = ref<HTMLInputElement | null>(null)
+const uploading = ref(false)
+async function onFiles(ev: Event): Promise<void> {
+  const input = ev.target as HTMLInputElement
+  const files = Array.from(input.files ?? [])
+  input.value = ''
+  if (!files.length) return
+  uploading.value = true
+  try {
+    const s = await ensureSession()
+    const fd = new FormData()
+    for (const f of files) fd.append('files', f, f.name)
+    const r = await post<{ attachments: Attachment[] }>(`/ask/sessions/${s.id}/attachments`, fd, netOpt())
+    s.attachment_list = [...s.attachment_list, ...r.attachments]
+    s.attachments = s.attachment_list.length
+    void loadSessions()
+  } catch (e) { flash(errorText(e)) } finally { uploading.value = false }
+}
+async function removeAttachment(id: number): Promise<void> {
+  const s = session.value
+  if (!s) return
+  try {
+    await del(`/ask/sessions/${s.id}/attachments/${id}`)
+    s.attachment_list = s.attachment_list.filter((a) => a.id !== id)
+    s.attachments = s.attachment_list.length
+  } catch (e) { flash(errorText(e)) }
+}
+function editTurn(tn: Turn): void { tn.edit = tn.question; turns.value = [...turns.value] }
+async function reanswer(tn: Turn): Promise<void> {
+  const q = (tn.edit ?? '').trim()
+  const s = session.value
+  if (!q || !s || !tn.tid) return
+  tn.busy = true
+  tn.error = ''
+  turns.value = [...turns.value]
+  try {
+    const t = await post<SessionTurn>(`/ask/sessions/${s.id}/turns/${tn.tid}/versions`, { question: q, lang: lang.value, confirm_images: imgConfirm.value }, netOpt())
+    Object.assign(tn, turnOf(t))
+    s.turn_list = s.turn_list.map((x) => (x.id === t.id ? t : x))
+    void loadSessions()
+  } catch (e) {
+    if (!notConfigured(e)) tn.error = errorText(e)
+  } finally {
+    tn.busy = false
+    turns.value = [...turns.value]
+  }
+}
+async function switchVersion(tn: Turn, delta: number): Promise<void> {
+  const s = session.value
+  if (!s || !tn.tid || tn.cur === undefined || !tn.nv) return
+  const cur = Math.max(0, Math.min(tn.nv - 1, tn.cur + delta))
+  if (cur === tn.cur) return
+  try {
+    const t = s.mine ? await put<SessionTurn>(`/ask/sessions/${s.id}/turns/${tn.tid}`, { current: cur }) : { ...s.turn_list.find((x) => x.id === tn.tid)!, current: cur }
+    Object.assign(tn, turnOf(t))
+    s.turn_list = s.turn_list.map((x) => (x.id === t.id ? t : x))
+    turns.value = [...turns.value]
+  } catch (e) { flash(errorText(e)) }
+}
+watch(which, () => { void loadSessions() })
+watch(sesQ, () => { void loadSessions() })
 let tid = 0
 const SUGG = ['ask.sugg1', 'ask.sugg2', 'ask.sugg3']
 const allScope = computed(() => scope.value.length === usable.value.length)
@@ -138,14 +300,22 @@ function toggleScope(n: string): void {
 }
 async function ask(): Promise<void> {
   const q = question.value.trim()
-  if (!q || (!scope.value.length && usable.value.length > 0)) return
-  const turn: Turn = { id: ++tid, question: q, res: null, error: '', busy: true }
+  if (!q || (!scope.value.length && usable.value.length > 0) || readOnly.value || archived.value) return
+  if (hasImages.value && !imgConfirm.value) return
+  const turn: Turn = { id: -(++tid), question: q, res: null, error: '', busy: true }
   turns.value = [...turns.value, turn]
   question.value = ''
   try {
-    const r = await post<AskResult>('/ask', { question: q, devices: allScope.value ? null : scope.value, lang: lang.value }, scopeNet.value ? { network: scopeNet.value } : {})
-    turn.res = r
-    const first = r.answer?.statements.find((s) => s.cites.length)?.cites[0] ?? r.result?.rows[0]?.n
+    const s = await ensureSession()
+    await syncScope(s)
+    const t = await post<SessionTurn>(`/ask/sessions/${s.id}/turns`, { question: q, lang: lang.value, confirm_images: imgConfirm.value }, netOpt())
+    Object.assign(turn, turnOf(t))
+    s.turn_list = [...s.turn_list, t]
+    s.turns = s.turn_list.length
+    if (!s.title) s.title = q.slice(0, 60)
+    void loadSessions()
+    const r = turn.res
+    const first = r?.answer?.statements.find((x) => x.cites.length)?.cites[0] ?? r?.result?.rows[0]?.n
     if (first) pickCite(turn.id, first)
   } catch (e) {
     if (!notConfigured(e)) turn.error = errorText(e)
@@ -248,6 +418,9 @@ const tplTitle = (x: { id: string; title: Record<string, string> }) => pickLang(
 onMounted(async () => {
   await Promise.all([loadStatus(), loadBase(), loadNets()])
   if (!scopeNet.value) void loadScope()
+  void loadSessions()
+  const sq = Number(route.query.s)
+  if (sq) void openSession(sq)
   if (!on.value) mode.value = 'paste'
 })
 watch(on, (v) => { if (!v) mode.value = 'paste' })
@@ -292,9 +465,13 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
           <button type="button" role="tab" :aria-selected="tab === 'gen'" data-testid="ask-tab-gen" @click="tab = 'gen'"><Icon name="shield" small /><span>{{ $t('ask.tabGen') }}</span></button>
         </div>
 
-        <div v-if="tab === 'ask'" class="aw">
+        <div v-if="tab === 'ask'" class="aw aw3">
+          <SessionRail :net-names="Object.fromEntries(nets.map((n) => [n.slug, netLabel(n)]))" :sessions="sesList" :counts="sesCounts" :which="which" :current="session?.id ?? null" :loading="sesBusy" @which="which = $event" @select="openSession" @new="newSession" @search="sesQ = $event" />
           <section class="panel thread" aria-label="Conversation">
-            <div class="scope" data-testid="ask-scope">
+            <div v-if="sesError" class="notice err" style="margin: 10px 14px"><Icon name="err" small /><div class="grow">{{ sesError }}</div></div>
+            <SessionHead v-if="session" :session="session" :ai-on="on" @patch="patchSession" @delete="deleteSession" />
+            <AttachBar v-if="session" :attachments="session.attachment_list" :can-edit="session.mine && !session.archived" :max="MAX_ATT" @remove="removeAttachment" />
+            <div v-if="!readOnly" class="scope" data-testid="ask-scope">
               <div class="scope-h">
                 <span class="k">{{ $t('ask.scope') }}</span>
                 <label v-if="nets.length" class="netsel" :class="colorClass(curNet?.color)" :title="$t('ask.scopeNetTip')">
@@ -332,10 +509,21 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
               <div class="q">
                 <span class="who">{{ $t('ask.q') }}</span>
                 <div class="txt">{{ tn.question }}</div>
+                <span v-if="(tn.nv ?? 0) > 1" class="ver" :data-testid="`ask-ver-${tn.id}`"><button type="button" :disabled="!tn.cur" :aria-label="$t('ask.ses.prevVer')" @click="switchVersion(tn, -1)">‹</button>{{ $t('ask.ses.ver', { n: (tn.cur ?? 0) + 1, m: tn.nv }) }}<button type="button" :disabled="(tn.cur ?? 0) >= (tn.nv ?? 1) - 1" :aria-label="$t('ask.ses.nextVer')" @click="switchVersion(tn, 1)">›</button></span>
+                <button v-if="tn.tid && session?.mine && !archived && tn.edit == null && !tn.busy" class="link-btn small" type="button" :data-testid="`ask-edit-${tn.id}`" @click="editTurn(tn)">{{ $t('ask.ses.editQ') }}</button>
                 <div v-if="tn.res?.answer" class="vsum">
                   <span v-if="stmtCounts(tn.res.answer.statements).passed" class="vs ok">{{ $t('ask.cPassed', { n: stmtCounts(tn.res.answer.statements).passed }) }}</span>
                   <span v-if="stmtCounts(tn.res.answer.statements).corrected" class="vs fix">{{ $t('ask.cCorrected', { n: stmtCounts(tn.res.answer.statements).corrected }) }}</span>
                   <span v-if="stmtCounts(tn.res.answer.statements).unverifiable" class="vs na">{{ $t('ask.cNa', { n: stmtCounts(tn.res.answer.statements).unverifiable }) }}</span>
+                </div>
+              </div>
+              <span v-if="tn.ctx" class="ctxchip astep"><Icon name="link" small />{{ $t('ask.ses.ctx', { n: tn.ctx }) }}</span>
+              <div v-if="tn.edit != null" class="editq astep">
+                <textarea v-model="tn.edit" class="textarea" rows="2" :data-testid="`ask-edit-in-${tn.id}`" />
+                <div class="row" style="gap: 8px">
+                  <button class="btn btn-sm btn-primary" type="button" :disabled="!tn.edit.trim() || tn.busy || (hasImages && !imgConfirm)" :data-testid="`ask-edit-ok-${tn.id}`" @click="reanswer(tn)">{{ $t('ask.ses.reanswer') }}</button>
+                  <button class="btn btn-sm" type="button" @click="tn.edit = null">{{ $t('c.cancel') }}</button>
+                  <span class="small faint">{{ $t('ask.ses.reanswerNote') }}</span>
                 </div>
               </div>
               <div v-if="tn.busy" class="astep small muted">{{ $t('ask.thinking') }}</div>
@@ -350,7 +538,7 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
                 </div>
                 <!-- 2 -->
                 <div v-if="tn.res.result" class="astep">
-                  <div class="astep-h"><span class="sn">2</span><span>{{ $t('ask.s2') }}</span><span class="by"><span class="tag t-teal">{{ $t('ask.byCode') }}</span> <span class="faint small">{{ $t('ask.nRows', { n: tn.res.result.count }) }}<template v-if="tn.res.result.truncated"> · {{ $t('ask.truncated', { n: tn.res.result.rows.length }) }}</template></span></span></div>
+                  <div class="astep-h"><span class="sn">2</span><span>{{ $t('ask.s2') }}</span><span class="by"><span class="tag t-teal">{{ $t('ask.byCode') }}</span> <span class="faint small">{{ $t('ask.nRows', { n: tn.res.result.count }) }}<template v-if="tn.res.result.truncated"> · {{ $t('ask.truncated', { n: tn.res.result.rows.length }) }}</template></span><span v-if="tn.tid && session" class="tdl" :title="$t('ask.tableDl')"><a :href="apiUrl(`/ask/sessions/${session.id}/turns/${tn.tid}/table?format=csv`)" :data-testid="`ask-csv-${tn.id}`"><Icon name="download" small />CSV</a><a :href="apiUrl(`/ask/sessions/${session.id}/turns/${tn.tid}/table?format=xlsx`)" :data-testid="`ask-xlsx-${tn.id}`"><Icon name="table" small />Excel</a></span></span></div>
                   <div class="rtbl">
                     <table class="tbl compact" data-testid="ask-result">
                       <thead><tr><th style="width: 34px">#</th><th>{{ $t('ask.object') }}</th><th v-for="c in tn.res.result.columns" :key="c.field">{{ c.field }}</th><th>{{ $t('ask.device') }}</th></tr></thead>
@@ -409,12 +597,17 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
                 </div>
               </template>
             </div>
-            <div class="composer">
+            <div v-if="session && archived && !readOnly" class="composer"><div class="hint"><Icon name="inbox" small />{{ $t('ask.ses.archivedNote') }} <button class="link-btn small" type="button" data-testid="ask-ses-restore" @click="patchSession({ archived: false })">{{ $t('ask.ses.restore') }}</button></div></div>
+            <div v-else-if="!readOnly" class="composer">
+              <div v-if="hasImages" class="imgwarn" data-testid="ask-img-warn"><Icon name="warn" small /><div><b>{{ $t('ask.att.imgWarn') }}</b><br><label><input v-model="imgConfirm" type="checkbox" data-testid="ask-img-confirm"> {{ $t('ask.att.imgConfirm') }}</label></div></div>
               <div class="box">
-                <textarea v-model="question" class="textarea" rows="2" :placeholder="$t('ask.askPh')" data-testid="ask-input" @keydown.enter.exact.prevent="ask" />
-                <button class="btn btn-primary" type="button" :disabled="!question.trim() || (!scope.length && usable.length > 0)" data-testid="ask-submit" @click="ask"><Icon name="send" small /><span>{{ $t('ask.askBtn') }}</span></button>
+                <button class="btn" type="button" :disabled="uploading || (session?.attachment_list.length ?? 0) >= MAX_ATT" :title="$t(st?.images ? 'ask.att.hintAll' : 'ask.att.hintNoImg')" data-testid="ask-attach" @click="fileIn?.click()"><Icon name="upload" small /><span>{{ uploading ? $t('ask.att.uploading') : $t('ask.att.add') }}</span></button>
+                <input ref="fileIn" type="file" multiple hidden :accept="st?.images ? '.cfg,.conf,.txt,.log,.md,.csv,.pdf,.docx,.xlsx,.zip,.png,.jpg,.jpeg,.webp' : '.cfg,.conf,.txt,.log,.md,.csv,.pdf,.docx,.xlsx,.zip'" data-testid="ask-attach-input" @change="onFiles">
+                <textarea v-model="question" class="textarea" rows="2" :placeholder="turns.some((x) => x.tid) ? $t('ask.ses.followPh') : $t('ask.askPh')" data-testid="ask-input" @keydown.enter.exact.prevent="ask" />
+                <button class="btn btn-primary" type="button" :disabled="!question.trim() || (!scope.length && usable.length > 0) || (hasImages && !imgConfirm)" data-testid="ask-submit" @click="ask"><Icon name="send" small /><span>{{ turns.some((x) => x.tid) ? $t('ask.ses.follow') : $t('ask.askBtn') }}</span></button>
               </div>
-              <div class="sugg"><button v-for="s in SUGG" :key="s" type="button" @click="question = $t(s)">{{ $t(s) }}</button></div>
+              <div v-if="turns.some((x) => x.tid)" class="hint"><Icon name="link" small />{{ $t('ask.ses.followNote') }}</div>
+              <div v-else class="sugg"><button v-for="sg in SUGG" :key="sg" type="button" @click="question = $t(sg)">{{ $t(sg) }}</button></div>
             </div>
           </section>
 
@@ -562,6 +755,16 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
 .main-tabs { margin: 14px 0 12px; }
 .main-tabs .dis { opacity: .5; cursor: not-allowed; }
 .aw { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 12px; align-items: start; }
+.aw.aw3 { grid-template-columns: 250px minmax(0, 1fr) 360px; }
+.ver { display: inline-flex; align-items: center; gap: 2px; font-size: 12px; color: var(--ink-2); border: 1px solid var(--line); border-radius: 999px; padding: 0 4px; flex: none; }
+.ver button { background: none; border: 0; cursor: pointer; color: var(--ink-2); padding: 0 4px; font: inherit; }
+.ver button:disabled { opacity: .4; cursor: default; }
+.tdl { display: inline-flex; gap: 10px; margin-left: 10px; font-weight: 400; }
+.tdl a { display: inline-flex; gap: 4px; align-items: center; font-size: 12px; }
+.ctxchip { display: inline-flex; gap: 6px; align-items: center; font-size: 11.5px; color: var(--ai-ink); background: var(--ai-soft); border: 1px solid var(--ai-line); border-radius: 999px; padding: 1px 8px; }
+.editq { display: grid; gap: 8px; }
+.composer .hint { font-size: 12px; color: var(--ink-3); display: flex; gap: 6px; align-items: center; margin-top: 6px; }
+.imgwarn { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; padding: 8px 10px; margin-bottom: 8px; border: 1px solid var(--amber-line); background: var(--amber-soft); color: var(--amber-ink); border-radius: 6px; }
 .side-sticky { position: sticky; top: 0; max-height: 92vh; overflow: auto; }
 .thread { display: flex; flex-direction: column; }
 .scope { border-bottom: 1px solid var(--line); font-size: 12.5px; }
@@ -657,8 +860,10 @@ watch(on, (v) => { if (!v) mode.value = 'paste' })
 .modal pre.block { max-height: 300px; overflow: auto; white-space: pre-wrap; }
 @media (max-width: 1400px) {
   .aw { grid-template-columns: minmax(0, 1fr) 340px; }
+  .aw.aw3 { grid-template-columns: 220px minmax(0, 1fr) 300px; }
   .gform { grid-template-columns: 1fr 1fr; }
   .gform .span-all { grid-column: 1 / -1; }
 }
-@media (max-width: 1000px) { .aw, .off-hero, .rule { grid-template-columns: minmax(0, 1fr); } .off-hero > div + div { border-left: 0; border-top: 1px solid var(--line); } .side-sticky { position: static; } }
+@media (max-width: 1200px) { .aw.aw3 { grid-template-columns: 220px minmax(0, 1fr); } .aw.aw3 > .evp { grid-column: 1 / -1; } }
+@media (max-width: 1000px) { .aw, .aw.aw3, .off-hero, .rule { grid-template-columns: minmax(0, 1fr); } .off-hero > div + div { border-left: 0; border-top: 1px solid var(--line); } .side-sticky { position: static; } }
 </style>

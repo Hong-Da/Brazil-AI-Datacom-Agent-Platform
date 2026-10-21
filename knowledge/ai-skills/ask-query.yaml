@@ -28,6 +28,10 @@ templates:
   retry: |-
     Your previous query was rejected by the validator: {error}
     Write a corrected query.
+  context: |-
+    Earlier questions in this conversation (oldest first) and the queries that answered them.
+    The new question may refer to them (for example "only those on device X"); still write ONE complete query.
+    {history}
 variables:
   - name: syntax
     in: system
@@ -47,6 +51,9 @@ variables:
   - name: question
     in: prompt
     desc: {zh-CN: 用户的问题（脱敏后）, en: The user's question (sanitised), pt-BR: A pergunta do usuário (anonimizada)}
+  - name: history
+    in: context
+    desc: {zh-CN: 本会话前几轮的问题与图查询（脱敏后，最多 5 轮）, en: 'Earlier questions and queries in this session (sanitised, up to 5)', pt-BR: 'Perguntas e consultas anteriores da sessão (anonimizadas, até 5)'}
   - name: error
     in: retry
     desc: {zh-CN: 上一次查询被校验拒绝的原因, en: Why the previous query was rejected, pt-BR: Por que a consulta anterior foi rejeitada}

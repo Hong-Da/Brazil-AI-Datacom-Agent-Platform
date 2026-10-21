@@ -17461,6 +17461,2615 @@
         "deprecated": true
       }
     },
+    "/api/v1/projects/{project}/n/{network}/ask/sessions": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "我的 AI 查询会话（which=active 进行中 / archived 已归档 / shared 别人分享给我的），最近更新的在前",
+        "operationId": "list_sessions_api_v1_projects__project__n__network__ask_sessions_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          },
+          {
+            "name": "which",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "active",
+                "archived",
+                "shared"
+              ],
+              "type": "string",
+              "default": "active",
+              "title": "Which"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "按标题搜索",
+              "default": "",
+              "title": "Q"
+            },
+            "description": "按标题搜索"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Sessions Api V1 Projects  Project  N  Network  Ask Sessions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "新建会话：记下当前网络与范围",
+        "operationId": "create_session_api_v1_projects__project__n__network__ask_sessions_post",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Session Api V1 Projects  Project  N  Network  Ask Sessions Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/n/{network}/ask/sessions/{sid}": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "会话全文：各轮的版本（问题与结果）、附件（不含内容）；别人分享的会话 mine 为 false",
+        "operationId": "get_session_api_v1_projects__project__n__network__ask_sessions__sid__get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Session Api V1 Projects  Project  N  Network  Ask Sessions  Sid  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "重命名、归档 / 恢复、分享 / 取消分享、更改范围（只有本人）",
+        "operationId": "patch_session_api_v1_projects__project__n__network__ask_sessions__sid__patch",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Patch Session Api V1 Projects  Project  N  Network  Ask Sessions  Sid  Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "删除会话（连同各轮与附件；只有本人）",
+        "operationId": "delete_session_api_v1_projects__project__n__network__ask_sessions__sid__delete",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Session Api V1 Projects  Project  N  Network  Ask Sessions  Sid  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/n/{network}/ask/sessions/{sid}/report": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "下载会话报告：HTML（自包含、可打印为 PDF）或 Markdown，中文 / English（pt-BR 用英文）",
+        "operationId": "get_report_api_v1_projects__project__n__network__ask_sessions__sid__report_get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "zh-CN",
+                    "en",
+                    "pt-BR"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lang"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "html",
+                "md"
+              ],
+              "type": "string",
+              "default": "html",
+              "title": "Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/n/{network}/ask/sessions/{sid}/turns/{tid}/table": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "下载这一轮（当前版本）的结果表：CSV（UTF-8 带 BOM）或 Excel",
+        "operationId": "get_table_api_v1_projects__project__n__network__ask_sessions__sid__turns__tid__table_get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "tid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ],
+              "type": "string",
+              "default": "csv",
+              "title": "Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ask/sessions": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "我的 AI 查询会话（which=active 进行中 / archived 已归档 / shared 别人分享给我的），最近更新的在前",
+        "operationId": "list_sessions_api_v1_projects__project__ask_sessions_get",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "which",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "active",
+                "archived",
+                "shared"
+              ],
+              "type": "string",
+              "default": "active",
+              "title": "Which"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "按标题搜索",
+              "default": "",
+              "title": "Q"
+            },
+            "description": "按标题搜索"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Sessions Api V1 Projects  Project  Ask Sessions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "新建会话：记下当前网络与范围",
+        "operationId": "create_session_api_v1_projects__project__ask_sessions_post",
+        "parameters": [
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Session Api V1 Projects  Project  Ask Sessions Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ask/sessions/{sid}": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "会话全文：各轮的版本（问题与结果）、附件（不含内容）；别人分享的会话 mine 为 false",
+        "operationId": "get_session_api_v1_projects__project__ask_sessions__sid__get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Session Api V1 Projects  Project  Ask Sessions  Sid  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "重命名、归档 / 恢复、分享 / 取消分享、更改范围（只有本人）",
+        "operationId": "patch_session_api_v1_projects__project__ask_sessions__sid__patch",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Patch Session Api V1 Projects  Project  Ask Sessions  Sid  Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "删除会话（连同各轮与附件；只有本人）",
+        "operationId": "delete_session_api_v1_projects__project__ask_sessions__sid__delete",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Session Api V1 Projects  Project  Ask Sessions  Sid  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ask/sessions/{sid}/report": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "下载会话报告：HTML（自包含、可打印为 PDF）或 Markdown，中文 / English（pt-BR 用英文）",
+        "operationId": "get_report_api_v1_projects__project__ask_sessions__sid__report_get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "zh-CN",
+                    "en",
+                    "pt-BR"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lang"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "html",
+                "md"
+              ],
+              "type": "string",
+              "default": "html",
+              "title": "Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ask/sessions/{sid}/turns/{tid}/table": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "下载这一轮（当前版本）的结果表：CSV（UTF-8 带 BOM）或 Excel",
+        "operationId": "get_table_api_v1_projects__project__ask_sessions__sid__turns__tid__table_get",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "tid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ],
+              "type": "string",
+              "default": "csv",
+              "title": "Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ask/sessions": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "我的 AI 查询会话（which=active 进行中 / archived 已归档 / shared 别人分享给我的），最近更新的在前",
+        "operationId": "list_sessions_api_v1_ask_sessions_get",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "which",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "active",
+                "archived",
+                "shared"
+              ],
+              "type": "string",
+              "default": "active",
+              "title": "Which"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200,
+              "description": "按标题搜索",
+              "default": "",
+              "title": "Q"
+            },
+            "description": "按标题搜索"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response List Sessions Api V1 Ask Sessions Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "新建会话：记下当前网络与范围",
+        "operationId": "create_session_api_v1_ask_sessions_post",
+        "deprecated": true,
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Create Session Api V1 Ask Sessions Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ask/sessions/{sid}": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "会话全文：各轮的版本（问题与结果）、附件（不含内容）；别人分享的会话 mine 为 false",
+        "operationId": "get_session_api_v1_ask_sessions__sid__get",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Get Session Api V1 Ask Sessions  Sid  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "重命名、归档 / 恢复、分享 / 取消分享、更改范围（只有本人）",
+        "operationId": "patch_session_api_v1_ask_sessions__sid__patch",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionPatch"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Patch Session Api V1 Ask Sessions  Sid  Patch"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "删除会话（连同各轮与附件；只有本人）",
+        "operationId": "delete_session_api_v1_ask_sessions__sid__delete",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Session Api V1 Ask Sessions  Sid  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ask/sessions/{sid}/report": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "下载会话报告：HTML（自包含、可打印为 PDF）或 Markdown，中文 / English（pt-BR 用英文）",
+        "operationId": "get_report_api_v1_ask_sessions__sid__report_get",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "lang",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "zh-CN",
+                    "en",
+                    "pt-BR"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lang"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "html",
+                "md"
+              ],
+              "type": "string",
+              "default": "html",
+              "title": "Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ask/sessions/{sid}/turns/{tid}/table": {
+      "get": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "下载这一轮（当前版本）的结果表：CSV（UTF-8 带 BOM）或 Excel",
+        "operationId": "get_table_api_v1_ask_sessions__sid__turns__tid__table_get",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "tid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tid"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "csv",
+                "xlsx"
+              ],
+              "type": "string",
+              "default": "csv",
+              "title": "Format"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/n/{network}/ask/sessions/{sid}/turns": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "在会话里提问 / 追问（带前几轮上下文与附件；需要 AI）：返回新的一轮（含结果）",
+        "operationId": "post_turn_api_v1_projects__project__n__network__ask_sessions__sid__turns_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TurnBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Turn Api V1 Projects  Project  N  Network  Ask Sessions  Sid  Turns Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/n/{network}/ask/sessions/{sid}/turns/{tid}/versions": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "改问题重新回答：追加一个版本并切到它（上下文为这一轮之前的各轮；之后的轮次不受影响）",
+        "operationId": "post_version_api_v1_projects__project__n__network__ask_sessions__sid__turns__tid__versions_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "tid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TurnBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Version Api V1 Projects  Project  N  Network  Ask Sessions  Sid  Turns  Tid  Versions Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/n/{network}/ask/sessions/{sid}/turns/{tid}": {
+      "put": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "切换这一轮显示的版本（之后追问的上下文用它）",
+        "operationId": "put_turn_api_v1_projects__project__n__network__ask_sessions__sid__turns__tid__put",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "tid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CurrentBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Turn Api V1 Projects  Project  N  Network  Ask Sessions  Sid  Turns  Tid  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/n/{network}/ask/sessions/{sid}/attachments": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "添加附件（配置文件作为临时设备、文档提取文字并脱敏、图片需要 ai.ask_images）；每会话最多 10 个、单个 10 MB",
+        "operationId": "post_attachments_api_v1_projects__project__n__network__ask_sessions__sid__attachments_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_post_attachments_api_v1_projects__project__n__network__ask_sessions__sid__attachments_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Attachments Api V1 Projects  Project  N  Network  Ask Sessions  Sid  Attachments Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/n/{network}/ask/sessions/{sid}/attachments/{aid}": {
+      "delete": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "删除附件（只有本人）",
+        "operationId": "delete_attachment_api_v1_projects__project__n__network__ask_sessions__sid__attachments__aid__delete",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "aid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Aid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Attachment Api V1 Projects  Project  N  Network  Ask Sessions  Sid  Attachments  Aid  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/n/{network}/ask/sessions/{sid}/ai-report": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "AI 写会话报告（Markdown；需要 AI）：数字与对象名由代码从会话结果填入并核对，blocks 标出未经核对的句子",
+        "operationId": "post_ai_report_api_v1_projects__project__n__network__ask_sessions__sid__ai_report_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识、属主/标识或项目编号（同项目路径）",
+              "title": "Project"
+            },
+            "description": "项目：标识、属主/标识或项目编号（同项目路径）"
+          },
+          {
+            "name": "network",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "网络：项目内的网络标识或编号",
+              "title": "Network"
+            },
+            "description": "网络：项目内的网络标识或编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiReportBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Ai Report Api V1 Projects  Project  N  Network  Ask Sessions  Sid  Ai Report Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ask/sessions/{sid}/turns": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "在会话里提问 / 追问（带前几轮上下文与附件；需要 AI）：返回新的一轮（含结果）",
+        "operationId": "post_turn_api_v1_projects__project__ask_sessions__sid__turns_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TurnBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Turn Api V1 Projects  Project  Ask Sessions  Sid  Turns Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ask/sessions/{sid}/turns/{tid}/versions": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "改问题重新回答：追加一个版本并切到它（上下文为这一轮之前的各轮；之后的轮次不受影响）",
+        "operationId": "post_version_api_v1_projects__project__ask_sessions__sid__turns__tid__versions_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "tid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TurnBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Version Api V1 Projects  Project  Ask Sessions  Sid  Turns  Tid  Versions Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ask/sessions/{sid}/turns/{tid}": {
+      "put": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "切换这一轮显示的版本（之后追问的上下文用它）",
+        "operationId": "put_turn_api_v1_projects__project__ask_sessions__sid__turns__tid__put",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "tid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CurrentBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Turn Api V1 Projects  Project  Ask Sessions  Sid  Turns  Tid  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ask/sessions/{sid}/attachments": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "添加附件（配置文件作为临时设备、文档提取文字并脱敏、图片需要 ai.ask_images）；每会话最多 10 个、单个 10 MB",
+        "operationId": "post_attachments_api_v1_projects__project__ask_sessions__sid__attachments_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_post_attachments_api_v1_projects__project__ask_sessions__sid__attachments_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Attachments Api V1 Projects  Project  Ask Sessions  Sid  Attachments Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ask/sessions/{sid}/attachments/{aid}": {
+      "delete": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "删除附件（只有本人）",
+        "operationId": "delete_attachment_api_v1_projects__project__ask_sessions__sid__attachments__aid__delete",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "aid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Aid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Attachment Api V1 Projects  Project  Ask Sessions  Sid  Attachments  Aid  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects/{project}/ask/sessions/{sid}/ai-report": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "AI 写会话报告（Markdown；需要 AI）：数字与对象名由代码从会话结果填入并核对，blocks 标出未经核对的句子",
+        "operationId": "post_ai_report_api_v1_projects__project__ask_sessions__sid__ai_report_post",
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "project",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号",
+              "title": "Project"
+            },
+            "description": "项目：标识（先找自己的，其次能访问的；多个匹配时 409）、属主/标识（路径里写 属主%2F标识 或 属主~标识）或项目编号"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiReportBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Ai Report Api V1 Projects  Project  Ask Sessions  Sid  Ai Report Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ask/sessions/{sid}/turns": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "在会话里提问 / 追问（带前几轮上下文与附件；需要 AI）：返回新的一轮（含结果）",
+        "operationId": "post_turn_api_v1_ask_sessions__sid__turns_post",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TurnBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Turn Api V1 Ask Sessions  Sid  Turns Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ask/sessions/{sid}/turns/{tid}/versions": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "改问题重新回答：追加一个版本并切到它（上下文为这一轮之前的各轮；之后的轮次不受影响）",
+        "operationId": "post_version_api_v1_ask_sessions__sid__turns__tid__versions_post",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "tid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TurnBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Version Api V1 Ask Sessions  Sid  Turns  Tid  Versions Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ask/sessions/{sid}/turns/{tid}": {
+      "put": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "切换这一轮显示的版本（之后追问的上下文用它）",
+        "operationId": "put_turn_api_v1_ask_sessions__sid__turns__tid__put",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "tid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Tid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CurrentBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Put Turn Api V1 Ask Sessions  Sid  Turns  Tid  Put"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ask/sessions/{sid}/attachments": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "添加附件（配置文件作为临时设备、文档提取文字并脱敏、图片需要 ai.ask_images）；每会话最多 10 个、单个 10 MB",
+        "operationId": "post_attachments_api_v1_ask_sessions__sid__attachments_post",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_post_attachments_api_v1_ask_sessions__sid__attachments_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Attachments Api V1 Ask Sessions  Sid  Attachments Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ask/sessions/{sid}/attachments/{aid}": {
+      "delete": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "删除附件（只有本人）",
+        "operationId": "delete_attachment_api_v1_ask_sessions__sid__attachments__aid__delete",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          },
+          {
+            "name": "aid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Aid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Delete Attachment Api V1 Ask Sessions  Sid  Attachments  Aid  Delete"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ask/sessions/{sid}/ai-report": {
+      "post": {
+        "tags": [
+          "ask"
+        ],
+        "summary": "AI 写会话报告（Markdown；需要 AI）：数字与对象名由代码从会话结果填入并核对，blocks 标出未经核对的句子",
+        "operationId": "post_ai_report_api_v1_ask_sessions__sid__ai_report_post",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "sid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Sid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiReportBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Post Ai Report Api V1 Ask Sessions  Sid  Ai Report Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/ai/skills/feedback": {
       "post": {
         "tags": [
@@ -26545,6 +29154,29 @@
         "type": "object",
         "title": "AdminBody"
       },
+      "AiReportBody": {
+        "properties": {
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "zh-CN",
+                  "en",
+                  "pt-BR"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang",
+            "description": "报告语言；pt-BR 时用英文"
+          }
+        },
+        "type": "object",
+        "title": "AiReportBody"
+      },
       "AiTestBody": {
         "properties": {
           "provider": {
@@ -27242,6 +29874,57 @@
         ],
         "title": "Body_kb_import_api_v1_kb_import_post"
       },
+      "Body_post_attachments_api_v1_ask_sessions__sid__attachments_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_post_attachments_api_v1_ask_sessions__sid__attachments_post"
+      },
+      "Body_post_attachments_api_v1_projects__project__ask_sessions__sid__attachments_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_post_attachments_api_v1_projects__project__ask_sessions__sid__attachments_post"
+      },
+      "Body_post_attachments_api_v1_projects__project__n__network__ask_sessions__sid__attachments_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "type": "string",
+              "contentMediaType": "application/octet-stream"
+            },
+            "type": "array",
+            "title": "Files"
+          }
+        },
+        "type": "object",
+        "required": [
+          "files"
+        ],
+        "title": "Body_post_attachments_api_v1_projects__project__n__network__ask_sessions__sid__attachments_post"
+      },
       "Body_public_import_api_v1_public_devices_post": {
         "properties": {
           "files": {
@@ -27890,6 +30573,21 @@
           "device_id"
         ],
         "title": "CopyInBody"
+      },
+      "CurrentBody": {
+        "properties": {
+          "current": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Current",
+            "description": "要显示的版本下标（从 0 开始）"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current"
+        ],
+        "title": "CurrentBody"
       },
       "DefaultBody": {
         "properties": {
@@ -30743,6 +33441,97 @@
         "type": "object",
         "title": "ScriptPatch"
       },
+      "SessionBody": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Title",
+            "description": "标题；不填时用第一个问题",
+            "default": ""
+          },
+          "devices": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Devices",
+            "description": "范围（设备名）；不给时为当前网络全部可查询设备"
+          }
+        },
+        "type": "object",
+        "title": "SessionBody"
+      },
+      "SessionPatch": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "archived": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived",
+            "description": "归档 / 恢复"
+          },
+          "shared": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shared",
+            "description": "分享给项目成员只读查看 / 取消分享"
+          },
+          "devices": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Devices",
+            "description": "更改范围（之后的提问生效；网络取当前网络）"
+          },
+          "clear_devices": {
+            "type": "boolean",
+            "title": "Clear Devices",
+            "description": "范围改回网络全部可查询设备",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "SessionPatch"
+      },
       "SettingsBody": {
         "properties": {
           "values": {
@@ -31616,6 +34405,44 @@
         ],
         "title": "TranslateBody",
         "description": "源配置：给出 text（配置文本）、version_id（配置版本）或 device_id（设备的最新版本）之一；\nrule_set / rules：翻译自定义规则（REQ-032），结果另有 naming。"
+      },
+      "TurnBody": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Question"
+          },
+          "lang": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "zh-CN",
+                  "en",
+                  "pt-BR"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lang",
+            "description": "回答语言；不填时按请求的语言"
+          },
+          "confirm_images": {
+            "type": "boolean",
+            "title": "Confirm Images",
+            "description": "会话里有图片附件时必须为 true（图片不经脱敏原样发给 AI）",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "TurnBody"
       },
       "UpdateUserBody": {
         "properties": {
