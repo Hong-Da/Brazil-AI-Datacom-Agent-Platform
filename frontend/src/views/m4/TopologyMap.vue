@@ -208,6 +208,12 @@ function refresh(): void {
     const layout = props.positions
       ? ({ name: 'preset', fit: true, padding: 40 } as cytoscape.LayoutOptions)
       : ({ name: 'cose', animate: false, randomize: false, fit: true, padding: 40, nodeRepulsion: () => 400000, nodeOverlap: 40, idealEdgeLength: () => 180, componentSpacing: 120, gravity: 0.25, numIter: 2000, nodeDimensionsIncludeLabels: true } as cytoscape.LayoutOptions)
+    if (!props.positions) {
+      // 起始位置按编号排在圆上：cose 不随机，每次打开同一份拓扑布局相同（REQ-055-22）
+      const ns = cy.nodes().sort((x, y) => x.id().localeCompare(y.id()))
+      const r = 60 + ns.length * 18
+      ns.forEach((n, i) => { n.position({ x: r * Math.cos((2 * Math.PI * i) / ns.length), y: r * Math.sin((2 * Math.PI * i) / ns.length) }) })
+    }
     cy.layout(layout).one('layoutstop', () => { if (cy && cy.zoom() > 1.2) { cy.zoom(1.2); cy.center() } }).run()
   } else decorate()
 }
@@ -244,6 +250,17 @@ onBeforeUnmount(() => {
 })
 watch(() => [props.nodes, props.groups, props.extra, props.positions, props.show, props.iconSet], refresh)
 watch(() => [props.sel, props.layers], marks, { deep: true })
+// 选中一条线（例如点了一致性问题）：地图移到它的两端（REQ-055-22）
+watch(() => props.sel, (sel) => {
+  if (!cy || sel?.k !== 'link') return
+  const g = props.groups.find((x) => x.id === sel.id)
+  const ends = g ? cy.nodes().filter((n) => n.id() === g.a || n.id() === g.b) : null
+  if (!ends || ends.empty()) return
+  const ext = cy.extent()
+  let inView = true
+  ends.nodes().forEach((n) => { const q = n.position(); if (q.x < ext.x1 || q.x > ext.x2 || q.y < ext.y1 || q.y > ext.y2) inView = false })
+  if (!inView) cy.animate({ fit: { eles: ends, padding: 120 } }, { duration: 220 }) // 两端都在视野里时不动
+})
 </script>
 
 <template>

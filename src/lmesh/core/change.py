@@ -373,9 +373,11 @@ class _Planner:
             for n, side in cand:
                 cids = self.cids_t(n) if side == "target" else self.cids_c(n)
                 owner = self.owner_cid(cids[0]) if cids else ""
-                if not owner or owner not in self.ca.items or owner not in self.cb.items:
-                    continue  # 新建的对象没有旧地址；删除的对象不用补发
+                if not owner or owner not in self.cb.items:
+                    continue  # 删除的对象不用补发
                 triggers.append((n, side, owner, note))
+                if owner not in self.ca.items:
+                    continue  # 新建的对象没有旧地址，不用补发；但仍要先触发再写 dst（例如先绑定 VPN 再配地址）
                 for cid, it in self.cb.items.items():
                     if it.schema != dst or not self.in_view(cid, owner) or it.origin != "explicit":
                         continue
@@ -463,6 +465,15 @@ class _Planner:
                 if covers and all(n in self.side_nodes for n in covers):
                     action = "side_effect"
                 subject = _deepest(sorted(new_objs)) or _deepest(sorted(cids))
+                # 修改已有的取值：当前配置里被改的那几行（REQ-055-20，界面“当前配置第 N 行”）
+                cur_lines = sorted(
+                    {
+                        x
+                        for c in cids
+                        if c in self.ca.items and self.cid_kind.get(c) != "object"
+                        for x in self.cur.nodes[self.ca.items[c].node].get("lines") or []
+                    }
+                )
                 self._new_op(
                     action,
                     text,
@@ -477,6 +488,7 @@ class _Planner:
                     refs=self._refs_of(covers),
                     subject=subject,
                     lines_target=sorted({x for n in covers for x in self.tgt.nodes[n].get("lines") or []}),
+                    lines_current=cur_lines,
                 )
             if opens:
                 text0 = ln.text
@@ -660,8 +672,8 @@ class _Planner:
         negative = self.fam.negative
         for key in sorted(set(ga) | set(gb)):
             owner = key[0]
-            if owner and not (owner in self.ca.items and owner in self.cb.items):
-                continue  # 所属对象整体新增 / 删除：随对象处理
+            if owner and owner in self.ca.items and owner not in self.cb.items:
+                continue  # 所属对象整体删除：随对象处理（整体新增的对象，规范渲染不写 ext 行，在这里按原文补上）
             ma, mb = list(ga.get(key, [])), list(gb.get(key, []))
             for m in list(ma):
                 hit = next((x for x in mb if x.sig == m.sig), None)
@@ -764,7 +776,7 @@ class _Planner:
             t = by_target.get(n) if side == "target" else next((o for o in ops if n in o.current_nodes), None)
             if t is None:
                 continue
-            if "side_effect" not in t.notes:
+            if "side_effect" not in t.notes and owner in self.ca.items:  # 新建对象只排顺序，不算有副作用的高风险命令
                 t.notes.append("side_effect")
             src_cid = next(iter(self.cids_t(n) if side == "target" else self.cids_c(n)), n)
             dst_schemas = {

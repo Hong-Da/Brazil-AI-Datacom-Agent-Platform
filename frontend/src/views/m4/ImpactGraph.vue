@@ -72,11 +72,31 @@ function elements(): ElementDefinition[] {
   return out
 }
 
+/** 按距离分层：每个距离一列，一列超过 LAYER_ROWS 个节点时折成几列（几十上百个节点时不挤成一列，REQ-055-21）。 */
+const LAYER_ROWS = 18
+function layerPositions(): Record<string, { x: number; y: number }> {
+  const byDepth = new Map<number, string[]>()
+  for (const n of props.nodes) byDepth.set(n.depth, [...(byDepth.get(n.depth) ?? []), n.node])
+  const pos: Record<string, { x: number; y: number }> = {}
+  let x = 0
+  for (const d of [...byDepth.keys()].sort((p, q) => p - q)) {
+    const ids = byDepth.get(d)!
+    const cols = Math.ceil(ids.length / LAYER_ROWS)
+    const rows = Math.min(ids.length, LAYER_ROWS)
+    ids.forEach((id, i) => { pos[id] = { x: x + Math.floor(i / LAYER_ROWS) * 210, y: ((i % LAYER_ROWS) - (rows - 1) / 2) * 36 } })
+    x += cols * 210 + 70
+  }
+  return pos
+}
+
 function run(): void {
   if (!cy) return
+  const n = props.nodes.length
+  const pos = props.layout === 'layer' ? layerPositions() : {}
   const opts: cytoscape.LayoutOptions = props.layout === 'layer'
-    ? ({ name: 'breadthfirst', directed: true, roots: cy.nodes('.h0'), spacingFactor: 0.9, padding: 20, fit: true, transform: (_n: unknown, p: { x: number; y: number }) => ({ x: p.y, y: p.x }) } as unknown as cytoscape.LayoutOptions)
-    : ({ name: 'cose', animate: false, randomize: true, fit: true, padding: 24, nodeRepulsion: () => 7000, idealEdgeLength: () => 60, gravity: 0.5, numIter: 1000 } as cytoscape.LayoutOptions)
+    ? ({ name: 'preset', positions: (node: cytoscape.NodeSingular) => pos[node.id()], padding: 20, fit: true } as unknown as cytoscape.LayoutOptions)
+    // 节点多时加大斥力与边长，并把标签算进节点大小，减少标签重叠
+    : ({ name: 'cose', animate: false, randomize: true, fit: true, padding: 24, nodeDimensionsIncludeLabels: true, nodeRepulsion: () => 7000 * Math.max(1, n / 25), idealEdgeLength: () => 60 + Math.min(120, n), gravity: 0.5, numIter: 1500 } as cytoscape.LayoutOptions)
   const lay = cy.layout(opts)
   // 节点少时不要放得过大
   lay.one('layoutstop', () => { if (cy && cy.zoom() > 1.3) { cy.zoom(1.3); cy.center() } })

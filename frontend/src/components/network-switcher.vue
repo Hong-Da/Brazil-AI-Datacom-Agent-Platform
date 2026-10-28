@@ -31,7 +31,10 @@ const cur = computed(() => network.info)
 const isAll = computed(() => !network.cur || !cur.value)
 const label = (n: NetRow) => netName(n, t('net.defaultName'))
 const allLabel = computed(() => t('net.all'))
-const curLabel = computed(() => (isAll.value ? allLabel.value : label(cur.value!)))
+// 项目只有默认网络时它就是全部设备：按网络的页面会自动进默认网络（网址 /n/default/…），仍显示“全部设备”，
+// 免得看起来像被切换了网络（REQ-055-12）
+const onlyDefault = computed(() => !!cur.value?.default && network.networks.length <= 1)
+const curLabel = computed(() => (isAll.value || onlyDefault.value ? allLabel.value : label(cur.value!)))
 const curCount = computed(() => (isAll.value ? network.list?.overview.devices : cur.value?.counts.devices))
 
 const tree = computed(() => netTree(network.list))

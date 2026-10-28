@@ -24,7 +24,7 @@ title = { zh-CN = "BGP 邻居表（JSON）：每格带来源、节点与行号�
 args = ["--output", "json", "export", "table", "{samples}/topology/rr-01.cfg", "--preset", "bgp", "--format", "json"]
 setup = "fresh-fullkb"
 expect_exit = 0
-expect_json = { "ok" = true, "data.summary.secret_columns" = 1, "data.columns.9.key" = "password", "data.columns.9.secret" = true, "data.rows.0.cells.9.secret" = true, "data.rows.0.cells.2.value" = "iBGP" }
+expect_json = { "ok" = true, "data.summary.secret_columns" = 1, "data.columns.9.key" = "derive:peer_password", "data.columns.9.secret" = true, "data.rows.0.cells.9.secret" = true, "data.rows.0.cells.2.value" = "iBGP" }
 in_docs = true
 
 [[case]]

@@ -176,5 +176,5 @@ def register(app: typer.Typer) -> None:
             text += "\n\n" + c.t("report.written", path=report_out)
         emit(c, res, text)
         if res["summary"]["has_errors"]:  # 与 lmesh check 一致：error 级规则不通过时退出码 1，摘要同时写 stderr
-            typer.echo(text.splitlines()[0], err=True)
+            output.err_summary(c, text.splitlines()[0])
             raise typer.Exit(output.EXIT_ERROR)

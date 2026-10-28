@@ -317,6 +317,18 @@ def test_generate_json_huawei(kb) -> None:  # type: ignore[no-untyped-def]
     assert "interface GigabitEthernet0/2/4.2401" in r["rows"][0]["text"]
 
 
+def test_generate_single_instance_extracts_block_only_base_var(kb) -> None:  # type: ignore[no-untyped-def]
+    """REQ-055-04：只在重复块里出现的基础变量（{{port}}），块只有 1 个实例时也能从生成结果里提取，校验通过。"""
+    t = tmod.load(KB_ROOT, "huawei-atn-l2-bd-vbdif", kb)
+    csv_text = (
+        "device,port,svc.bd,svc.bd_desc,svc.desc,svc.vrf,svc.lan\n"
+        "S1,GigabitEthernet0/2/0,1584,BD-OAM,RAN-OAM,GERENCIA,10.0.183.128/29\n"
+    )
+    r = template_gen.generate(t, template_gen.parse_params(csv_text), kb)
+    assert r["summary"]["failed"] == 0, r["rows"][0]["errors"]
+    assert r["rows"][0]["checks"]["template"]["mismatched"] == []
+
+
 def test_param_errors(kb, asr) -> None:  # type: ignore[no-untyped-def]
     raw = {"device": "X", "hostname": "X1", "nope": "1", "svc.vlan": "1;2", "svc.vrf": "A"}
     _, errors = template_gen.prepare_row(asr, raw)

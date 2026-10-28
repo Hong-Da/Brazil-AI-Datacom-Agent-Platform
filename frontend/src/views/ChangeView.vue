@@ -42,6 +42,7 @@ const terms = useTerms()
 const devices = ref<Device[]>([])
 const profiles = ref<ProfileLite[]>([])
 const loadError = ref('')
+const baseLoaded = ref(false) // 设备列表加载完之前下拉框显示“加载中”（带 ?device= 打开时不显示空白，REQ-055-20）
 const versions = ref<Record<number, VersionInfo[]>>({})
 
 async function loadBase(): Promise<void> {
@@ -52,6 +53,8 @@ async function loadBase(): Promise<void> {
     profiles.value = p.profiles
   } catch (e) {
     loadError.value = errorText(e)
+  } finally {
+    baseLoaded.value = true
   }
 }
 async function loadVersions(id: number | null): Promise<void> {
@@ -269,7 +272,7 @@ onMounted(async () => {
               <div class="end-h"><span class="side-b">A</span><span>{{ $t('change.current') }}</span></div>
               <div class="end-sel">
                 <select v-model="setup.device" class="select" :aria-label="$t('change.device')" data-testid="chg-device">
-                  <option v-if="!devices.length" :value="null">{{ $t('change.noDevices') }}</option>
+                  <option v-if="!devices.length" :value="baseLoaded ? null : setup.device">{{ baseLoaded ? $t('change.noDevices') : $t('c.loading') }}</option>
                   <option v-for="d in devices" :key="d.id" :value="d.id">{{ d.name }}{{ d.versions > 1 ? ` (${d.versions})` : '' }}</option>
                 </select>
                 <select v-model="setup.cv" class="select" :aria-label="$t('change.version')" data-testid="chg-cv">

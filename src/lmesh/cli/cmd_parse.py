@@ -52,8 +52,13 @@ def register(app: typer.Typer) -> None:
             raw=cnt.get("raw", 0),
             coverage=f"{res.parsed.coverage():.1%}",
         )
-        for ln in res.parsed.unknown()[:20]:
-            text_out += f"\n  ? {ln.no:5}  {ln.view:<14} {ln.text}"
+        if lines:  # 逐行明细（REQ-055-09）：行号、类别、所在视图、命令卡、原文
+            for d in data.get("lines") or []:
+                card = d.get("card") or "-"
+                text_out += f"\n{d['no']:6}  {d['kind']:<10} {d.get('view') or '-':<16} {card:<40} {d['text']}"
+        else:
+            for ln in res.parsed.unknown()[:20]:
+                text_out += f"\n  ? {ln.no:5}  {ln.view:<14} {ln.text}"
         emit(c, data, text_out)
 
     @unknown_app.command("list", help="已导入配置中的未识别行，按出现次数汇总 / list unknown lines")

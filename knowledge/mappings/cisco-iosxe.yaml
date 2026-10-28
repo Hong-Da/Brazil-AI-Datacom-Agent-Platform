@@ -162,8 +162,8 @@ rules:
   - view: ^router-bgp$
     syntax: '^neighbor .* description <text>$'
     maps:
-      bgp.peer: *peer
-      bgp.peer.description: $text
+      bgp.peer | bgp.peer_group: *peer
+      bgp.peer.description | bgp.peer_group.description: $text
   - view: ^router-bgp$
     syntax: '^address-family ipv4 '
     maps: {bgp.af: {afi: ipv4, vrf: "$vrf-name||"}}

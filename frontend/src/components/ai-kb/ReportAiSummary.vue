@@ -15,7 +15,7 @@ import { reportScope, type ReportKind } from '@/components/ai-suggest/logic'
 const props = defineProps<{ kind: ReportKind; params: Record<string, unknown> | null }>()
 const include = defineModel<boolean>({ default: true })
 const { t } = useI18n()
-const T = (k: string) => t(`kb-ai.${k}`)
+const T = (k: string) => t(`ai-kb.${k}`)
 
 const panel = ref<InstanceType<typeof AiSuggestPanel> | null>(null)
 const aiState = ref('loading')

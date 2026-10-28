@@ -130,6 +130,25 @@ def test_implicit_object_not_dangling(kb: KnowledgeBase, rules: list[rulesmod.Ru
     assert not [f for f in res["findings"] if f["rule"].startswith("ref.dangling") or "bridge_domain" in f["node"]]
 
 
+def test_peer_group_description_is_not_a_peer(kb: KnowledgeBase, rules: list[rulesmod.Rule]) -> None:
+    """REQ-055-01：peer <组名> description / neighbor <组名> description 写在对等体组上，不当成缺少对端 AS 的对等体。"""
+    hw = (
+        "bgp 65019\n group G1 internal\n peer G1 description X\n peer G1 connect-interface LoopBack100\n"
+        " peer 10.1.1.1 as-number 65019\n peer 10.1.1.1 group G1\n#\n"
+    )
+    cs = (
+        "router bgp 65000\n neighbor G2 peer-group\n neighbor G2 remote-as 65000\n neighbor G2 description X\n"
+        " neighbor 10.1.1.2 peer-group G2\n!\n"
+    )
+    for text, name in ((hw, "hw"), (cs, "cs")):
+        res = analysis.parse_text(text, kb)
+        g = graphmod.build(res.parsed, kb, res.profile, name)
+        assert not [f for f in checks.check(g, kb, rules)["findings"] if f["rule"] == "bgp.peer.remote_as_missing"], (
+            name
+        )
+        assert any(d.get("schema") == "bgp.peer_group.description" for _, d in g.nodes(data=True)), name
+
+
 # ---------- 样本基准（发现均已人工确认是真问题，见 docs/project-spec.md） ----------
 
 

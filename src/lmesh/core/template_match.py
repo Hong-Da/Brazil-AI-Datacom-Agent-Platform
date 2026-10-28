@@ -957,8 +957,9 @@ def check(
             ]
             best = max(s for s, _, _ in scored)
             cands = [next((a, b2) for s, a, b2 in scored if s == best)]
-        if blk.kind == "repeat" and len(cands) > 1 and anchor.kind == "object":
+        if blk.kind == "repeat" and cands and anchor.kind == "object":
             # 锚点的键里有还没绑定的基础变量（例如只在块里出现的 {{port}}）：按它的取值分组，取能对上最多的一组
+            # （只有一个实例时也要绑定，REQ-055-04）
             free = sorted(e for e in anchor.exprs if e not in bind and t.vars[comp.exprs[e].var].block is None)
             if free:
                 groups: dict[tuple[str, ...], list[tuple[Item, dict[str, str]]]] = defaultdict(list)

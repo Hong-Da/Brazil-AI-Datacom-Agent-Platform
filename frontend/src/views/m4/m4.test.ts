@@ -113,6 +113,12 @@ describe('拓扑与一致性', () => {
     const rows = topo.factRows(L('s1', 'subnet', null))
     expect(rows.find((r) => r.k === 'mtu')).toEqual({ k: 'mtu', a: '9000', b: '1500', diff: true })
     expect(rows.find((r) => r.k === 'vrf')?.diff).toBe(false)
+    // BGP 两端视角互为镜像：交叉一致不算不一致，交叉不一致才算（REQ-055-22）
+    const bgp = (fb: Record<string, unknown>): topo.Link => ({ ...L('b1', 'bgp', null), a: end('A', '', { local_address: '1.1.1.1', peer_address: '2.2.2.2', local_as: '1', remote_as: '2', update_source: 'Lo0' }), b: end('B', '', fb) })
+    const ok = topo.factRows(bgp({ local_address: '2.2.2.2', peer_address: '1.1.1.1', local_as: '2', remote_as: '1', update_source: 'LoopBack0' }))
+    expect(ok.filter((r) => r.diff)).toEqual([])
+    const bad = topo.factRows(bgp({ local_address: '2.2.2.2', peer_address: '1.1.1.1', local_as: '2', remote_as: '9' }))
+    expect(bad.filter((r) => r.diff).map((r) => r.k).sort()).toEqual(['local_as', 'remote_as'])
     expect(topo.shortIf('GigabitEthernet0/0/1')).toBe('GE0/0/1')
     expect(topo.statusOf('info')).toBe('warn')
     expect(topo.maxSeverity([null, 'info', 'error', 'warning'])).toBe('error')

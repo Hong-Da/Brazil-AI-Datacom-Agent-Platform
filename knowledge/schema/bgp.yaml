@@ -235,4 +235,8 @@ deps:
   - {kind: reference, from: bgp.af.peer.export_policy, to: rp.policy}
   - {kind: reference, from: bgp.af.network.policy, to: rp.policy}
   - {kind: reference, from: bgp.af.redistribute.policy, to: rp.policy}
+  # 建立会话的源接口（华为 connect-interface、Cisco update-source）：影响分析能看到环回口被哪些对等体依赖（REQ-055-17）
+  - {kind: reference, from: bgp.peer.update_source, to: interface}
+  - {kind: reference, from: bgp.peer_group.update_source, to: interface}
+  - {kind: reference, from: bgp.af.peer.update_source, to: interface}
   - {kind: cross_device, from: bgp.peer, to: interface.ipv4.address, note: {zh-CN: 对等体地址应是另一台设备的接口地址，且对端 AS 一致, en: 'The peer address should be an interface address on another device, with a matching remote AS', pt-BR: 'O endereço do par deve ser um endereço de interface de outro dispositivo, com o AS remoto correspondente'}}

@@ -77,6 +77,7 @@
 | REQ-052 | AI 查询会话：问答按会话保存；同一会话可带上下文追问、任一轮改问题重新回答（旧回答保留为历史版本）；会话可重命名、归档、恢复、删除；会话只有本人可见，可分享给同项目成员只读查看；会话属于项目并记下网络与设备范围 | 用户 2026-10-21 | 0.9.2 | AI 查询页、会话数据表与迁移、会话 API、CLI | 已完成（0.9.2；预览评审通过） | 设计见“AI 查询会话（REQ-052）”一节，经用户确认 |
 | REQ-053 | AI 查询附件：会话中可添加配置文件（解析入图、作为本会话的临时设备加入范围）、文档（txt/md/csv/pdf/docx/xlsx，提取文字脱敏后作为参考资料）、图片（管理员开启后可用，发送前确认，不经脱敏，只作参考） | 用户 2026-10-21 | 0.9.2 | AI 查询会话、附件表、AI 调用支持图片、系统设置 | 已完成（0.9.2；预览评审通过） | 设计见“AI 查询附件与下载（REQ-053、REQ-054）”一节 |
 | REQ-054 | AI 查询下载：会话报告 HTML / Markdown（中英双语各一份，可打印为 PDF）、结果表 CSV / Excel、AI 撰写的 Markdown 报告（代码核对数字与名称） | 用户 2026-10-21 | 0.9.2 | AI 查询会话、报告生成、新 skill ask-report | 已完成（0.9.2；预览评审通过） | 设计见“AI 查询附件与下载（REQ-053、REQ-054）”一节 |
+| REQ-055 | 问题修复：Huawei-SI 现网配置演示与功能示例运行中发现的问题（基线页文案键、BGP 对等体组误报、规则说明占位符、配置图定位、脱敏 ACL 通配符、脚本检查漏计悬空引用等，逐项见“REQ-055 问题清单”） | 演示中发现 2026-10-28 | 0.9.3 | 安全基线、配置检查、配置图、脱敏、脚本检查、模板生成、CLI 输出、增量变更、割接迁移、翻译、影响分析、拓扑、设备配置分析 | 已完成（055-34 中 PTP、EVPN send-community 留作知识库缺口） | 用户 2026-10-28 要求全部修复；结果见“REQ-055 修复结果” |
 
 ## 待确认
 
@@ -2227,3 +2228,87 @@ SAP 引用的过滤器 / QoS 策略、业务引用的客户不存在由内置 `r
 - 同时改进：导入时脱敏自检失败（`import.sanitize_leak`）的提示附上残留所在的行号（只有行号，不含值），便于找到没认出来的命令写法。
 - 测试：API `test_ask_sessions_api.py`（会话、上下文、版本、归档、附件、图片确认、下载、AI 报告）、单元 `test_ask_sessions.py`（分享权限、文档提取、报告核对）、`test_sanitize.py`（残留行号）、CLI `cli_cases.ask_sessions.toml`、vitest `ask-sessions.test.ts`、e2e `m5.spec.ts`“AI 查询会话（REQ-052～054）”。
 
+## REQ-055 问题清单
+
+来源：2026-10-28 用 Huawei-SI 现网配置（5 台华为 VRP V8，严格脱敏后导入独立演示环境）在 Web 界面逐场景操作，以及此前功能示例案例的 CLI 运行。复现所用数据在演示环境 tmp/si-demo/（脱敏配置），原始日志只在 DevelopDocs/设备配置案例/Huawei-SI/。
+
+| 编号 | 严重程度 | 位置 | 现象 | 复现 |
+|---|---|---|---|---|
+| 055-01 | 高 | 配置检查 `bgp.peer.remote_as_missing` | 把对等体组当成没有 AS 的对等体报错：`group AGG-CSG-REGIAO-380 internal` 之后的 `peer AGG-CSG-REGIAO-380 description …` 被报“缺少 remote-as”；RMD01 的 4 个错误、RMC02 的 5 个错误全部来自这条 | 演示环境 /check?device=1（第 1719～1722 行）、/check?device=4（第 6291～6292 行） |
+| 055-02 | 高 | 脚本检查 | 脚本删除仍被引用的 route-policy 时，ref.dangling 只出现在 JSON 的 findings_new，没有计入 issues 和错误数 | 功能示例 script-check 案例 |
+| 055-03 | 中 | 安全基线页 AI 摘要框 | 显示未翻译的文案键 `kb-ai.ra.include`、`kb-ai.ra.note`（中英文都有）；`ReportAiSummary.vue` 用了前缀 `kb-ai.`，文案在 `ai-kb.json`，应为 `ai-kb.` | 打开 /baseline |
+| 055-04 | 中 | 模板生成 | `template generate huawei-atn-l2-bd-vbdif` 对只有 1 个 svc 实例的行校验失败 | 功能示例 template 案例 |
+| 055-05 | 中 | 脱敏 | strict 级把 ACL 通配符对应的网络地址替换成带主机位的地址（`10.95.0.0 0.0.255.255` → `x.x.121.144 0.0.255.255`），网段语义被破坏 | 对含 `rule … source <网络> <通配符>` 的配置执行 `lmesh sanitize --level strict` |
+| 055-06 | 低 | 安全基线规则详情 | `sec.vty_ssh_only` 的“不通过时”说明显示未替换的 `{key}`（中英文都有）；逐设备的行正常 | /baseline 点击规则名 |
+| 055-07 | 低 | 设备配置图 | 带 `?node=` 打开时详情面板选中了节点，但画布停在设备根节点，看不到该节点 | /graph/1?node=interface[GigabitEthernet0/1/0] |
+| 055-08 | 低 | 设备配置图 | 原文面板显示 2,766 行，设备列表为 2,767 行；Gi0/1/0 引用了 traffic-policy，节点详情的“依赖”却为 0 | /graph/1 |
+| 055-09 | 低 | CLI 输出 | `parse --lines` 文本模式只打印汇总，逐行明细只在 `--output json` 中出现 | 功能示例 parse 案例 |
+| 055-10 | 低 | CLI 输出 | guard 与 consistency 的汇总行打印两次；英文 change 输出含全角冒号 | 功能示例 guard、consistency、change 案例 |
+| 055-11 | 低 | 界面文案 | 冗余清理英文单数写成 “1 lines”；英文界面里项目名“默认项目”未翻译；未识别行详情面板第一列右侧被截断 | /cleanup、页头项目选择、/unknown-lines |
+| 055-12 | 低 | 网络切换 | 打开配置检查、冗余清理、安全基线时，网络选择器从“全部设备”变成“默认网络”（网址变为 /n/default/…） | 在“全部设备”下进入这三个页面 |
+| 055-13 | 低 | 导出 | bgp-peer 导出时，从对等体组继承的 Connect interface 为空 | 功能示例 export-table 案例 |
+| 055-14 | 待核实 | 翻译 | ASR 920 翻译的警告说默认是 per-route，翻译结果里却是 `mpls label mode … per-vrf` | 功能示例 translate 案例 |
+
+| 055-15 | 高 | 增量变更 | 新子接口里的 ` statistic enable` 没有进入下发脚本，模拟复检报“新增 interface[…]/ext[huawei-vrp8.statistic-enable]”不通过 | /change?device=1&mode=paste，目标配置的新子接口带 statistic enable |
+| 055-16 | 高 | 增量变更 | `ip address` 与 `ip binding vpn-instance` 之间没有顺序依赖（只依赖所在对象）；华为上绑定 VPN 会清掉 IP，顺序必须是先绑定后配地址，目前只是碰巧按原文顺序 | 新子接口同时带两行时查看命令依赖 |
+| 055-17 | 中 | 影响分析 / 配置图 | `connect-interface LoopBack100` 没有引用边指向接口，LoopBack100 的影响分析两个方向都是 0（所有对等体组都靠它建连） | /impact 选 interface[LoopBack100] |
+| 055-18 | 中 | 影响分析 | GE0/1/9“受影响”为 0：接口自身的 OSPF、MPLS、LDP 设置没有算作受影响 | /impact 选 interface[GigabitEthernet0/1/9] |
+| 055-19 | 中 | 跨设备一致性 | xd.ip_duplicate 行的“链路 / 会话”列显示未翻译的 `topology.type.null`（link_type 为空） | /consistency |
+| 055-20 | 低 | 增量变更 | 修改类命令（#9 mtu 9208）显示“当前配置第 — 行”，实际在第 1287 行；脚本窗格长行被截断；带 ?device= 打开时设备下拉在列表加载完前为空 | /change?device=1 |
+| 055-21 | 低 | 影响分析 | 96 个节点时力导向布局标签重叠，“按距离分层”挤成一列无法阅读 | /impact 选 route-policy AGG-CSG-PREFIXOS-IPV4-REGIAO-380 |
+| 055-22 | 低 | 拓扑视图侧栏 | “两端配置”加载时先显示“没有找到这一端的配置块”且无加载提示；BGP 链路的 local/peer 地址镜像行被标成不一致；片段长行截断；点击问题后地图不重新适配到所选链路；cose 布局每次不同 | /topology 选 BGP 链路 |
+| 055-23 | 低 | 跨设备一致性 | subnet.mtu 问题记录的是接口头所在行（1285），不是 mtu 所在行 | /consistency 点 RMD01 GE0/1/9 MTU 问题 |
+
+| 055-24 | 高 | 设备配置分析 | 21k 行设备分析很慢：`/devices/3/analysis?parts=graph,layers,script` 并发负载下 433 秒、返回 24.7 MB，`parts=summary` 47 秒；页面长时间停在“正在分析配置…” | 演示环境打开 RMC01（21,305 行）的设备配置分析 |
+| 055-25 | 中 | 设备配置分析 | 大设备“配置分层”树从根节点散出几十个 flow-queue 节点无法阅读，“折叠到功能域”无明显变化；结构化脚本“全部折叠”只折叠一个块（华为顶层是平的） | 同上 |
+| 055-26 | 中 | 配置翻译 | 跨厂商翻译（华为 → Cisco）时接口映射默认“保持原名”，输出里留下 `100GE0/2/24` 这类华为接口名；割接迁移能正确映射 | /translate 选 RMP01 → cisco-iosxe-asr920 |
+| 055-27 | 低 | 配置翻译 | 英文汇总最后一格文字截断（“…compared with the sour”）；页面显示 1,513 行，设备列表为 1,514 行（与 055-08 同类，行数统计差 1） | /translate 英文界面 |
+| 055-28 | 低 | 表格导出 | BGP 对等体导出第一行是对等体组（地址 CSG-AGG、无 remote AS），与“对等体”表语义不符；点单元格后原文片段有时只显示行号 | /export 选 BGP 对等体模板 |
+| 055-29 | 低 | 设备配置分析 | 结构化脚本工具栏“显示默认配置3311”数字前缺空格 | /analysis/3 |
+| 055-30 | 高 | 翻译 / 割接迁移（Cisco → 华为） | VRRP 抢占翻译反了：Cisco `vrrp 10 … preempt delay minimum 30` 译成 `vrrp vrid 10 preempt-mode disable` 加 `preempt-mode timer delay 30`；割接校验报“旧 true、新 false”并拦下割接包 | 源 PE-ASR920-04（knowledge/samples/cisco-iosxe-asr920-synthetic/pe-asr920-04-advanced.cfg）翻译到 huawei-atn-v800r025 |
+| 055-31 | 高 | 割接迁移 | 合并到已有配置时新增第二个 BGP 进程（`bgp 65000` 并入已运行 `bgp 65019` 的 RMP01），华为只允许一个 BGP 实例，下发会失败，且没有报为冲突 | 源 PE-ASR920-04，目标现有配置 = RMP01，查看增量配置与割接步骤 10、12 |
+| 055-32 | 中 | 翻译 / 割接迁移 | 接口映射没有作用到 `clock source`：输出仍为 `clock source GigabitEthernet0/0/1 priority 1` | 同 055-30，接口映射 Gi0/0/1 → GigabitEthernet0/2/1 |
+| 055-33 | 中 | 配置翻译 | 网址带 `?device=` 打开时源配置显示 0 个接口，从下拉框重新选设备才加载（源图只在 deviceId 的 watch 中加载，初始值不触发） | /translate?device=6&to=huawei-atn-v800r025 |
+| 055-34 | 中 | 知识库 | 华为 ATN Profile 没有 IS-IS 写出命令（`router isis` 报“目标平台族没有能写出它的命令”）；PTP hybrid / port / profile、BGP EVPN 对等体 send-community 也不支持 | 同 055-30，看“目标不支持”告警 |
+| 055-35 | 低 | 配置翻译 | 接口映射里只改大小写（Loopback0 → LoopBack0）被当作同名，输出仍为 `interface Loopback0`；割接迁移会改名 | /translate 手填 LoopBack0 |
+| 055-36 | 低 | 割接迁移 | 英文单复数：“1 differences are unexplained” | /migration 英文界面校验卡片 |
+
+## REQ-055 修复结果
+
+全部 36 项都已处理；除 055-34 的两项知识库缺口外都已修复，并补了测试。按根因归类如下：
+
+| 编号 | 根因与修法 | 测试 |
+|---|---|---|
+| 055-01、055-28 | 华为 `peer <组> description`、Cisco `neighbor <组> description` 的映射只写对等体，组名被当成一个没有 AS 的对等体；映射改成 `bgp.peer \| bgp.peer_group`（按取值是不是地址区分），重新汇总命令卡与 Profile | 单元 `test_checks.py`、`test_export_tables.py` |
+| 055-02 | 引用方在基线里、被删的是脚本里的对象时，发现找不到脚本行，不计入问题；改为标到删除被引用对象的那一行 | 单元 `test_script_check.py` |
+| 055-03 | `ReportAiSummary.vue` 用错了文案前缀（`kb-ai.` → `ai-kb.`） | 类型检查 |
+| 055-04 | 只在重复块里出现的基础变量（`{{port}}`）只在块有 2 个以上实例时才绑定；改为有实例就绑定 | 单元 `test_template.py` |
+| 055-05 | 前缀保持的地址替换会翻转主机位；地址后面跟掩码、反掩码或前缀长度、且原地址主机位全 0 时，替换后也清零主机位 | 单元 `test_sanitize.py` |
+| 055-06 | 规则详情显示的是说明模板；没有具体对象时占位符显示为 `…` | 类型检查 |
+| 055-07 | 首次布局完成后画布重新适配到根节点，覆盖了定位；首次布局后居中到已选中的节点 | 类型检查 |
+| 055-08、055-27（行数） | 行数按“换行数 + 1”计算，末尾换行多算一行；统一用 `parser.line_count`。依赖数只算节点自身的边；改为算上子树里的边（接口的 traffic-policy 引用挂在子节点上） | vitest `model.test.ts` |
+| 055-09 | `parse --lines` 文本模式补逐行明细（行号、类别、视图、命令卡、原文） | 手工核对 |
+| 055-10 | 摘要同时写 stdout 与 stderr；两者是同一个终端时不再重复写 stderr（`output.err_summary`）；英文冒号用 `common.colon` | CLI 用例 |
+| 055-11、055-36 | 英文单复数改用复数文案；默认项目名按界面语言显示（`projectLabel`）；未识别行详情面板允许换行 | 类型检查 |
+| 055-12 | 只有默认网络时按设计进默认网络；切换器此时显示“全部设备”，不再像是被切换了 | e2e `m9.spec.ts` |
+| 055-13 | 新增计算列 `peer_update_source`、`peer_password`：对等体没配时取对等体组的（密码仍只导出“已配置”） | 单元 `test_export_tables.py` |
+| 055-14 | 核实为正确行为：源设备依赖华为默认 per-instance，目标默认 per-route，所以显式写出 per-vrf（Cisco 对 per-instance 的写法）；告警文案改为说明“按目标平台写法显式写出” | — |
+| 055-15 | 整体新增的对象，规范渲染不写未映射命令（ext），ext 比较又跳过了它；改为只跳过整体删除的对象 | 单元 `test_change.py` |
+| 055-16 | 副作用规则（绑定 VPN 会清掉地址）对新建对象完全跳过；现在新建对象也加“先绑定后配地址”的顺序约束（不补发） | 单元 `test_change.py` |
+| 055-17、055-18 | Schema 增加 BGP 源接口 → 接口的引用（接口名统一写法匹配；Nokia 的 local-address 是 IP，不算引用；接口不算孤儿对象）；影响分析的起点自身里属于别的功能域的设置（接口上的 OSPF、MPLS）算作受影响 | 单元 `test_change.py`、`test_topology.py` |
+| 055-19 | 链路类型为空时不显示类型文案 | 类型检查 |
+| 055-20 | 修改类命令补上当前配置行号；脚本窗格文字列不再被压缩（可横向滚动）；设备列表加载前下拉框显示“加载中” | 单元 `test_change.py` |
+| 055-21 | 按距离分层改为固定位置布局，一列超过 18 个节点折成多列；关系图谱按节点数加大斥力与边长，标签计入节点大小 | 类型检查 |
+| 055-22 | 两端配置加载中显示“加载中”；BGP 两端视角互为镜像的事实（本端 / 对端地址、本端 / 对端 AS）交叉一致不算不一致；选中的线不在视野里时地图移到它的两端；布局起始位置按编号排在圆上，结果稳定 | vitest `m4.test.ts` |
+| 055-23 | 比较的属性写在配置里时，发现定位到该属性的行（mtu 行），不是接口头 | 单元 `test_topology.py` |
+| 055-24 | 规范渲染排序依赖时每次遍历全图的边（平方级），改为只看子树出边；隐藏默认值行只渲染默认值节点；接口响应开启 gzip 压缩。2 万行设备：结构化脚本 116 秒 → 2 秒，整页接口约 7 秒 | 全量测试 |
+| 055-25 | 按视图层级时没有上下文的顶层对象（flow-queue 等）超过 40 个按功能域收成组，顶层未映射命令超过 8 个收成一组；“全部折叠”后滚到原先所在块的块头 | 类型检查 |
+| 055-26 | 跨平台族翻译时，没有给出映射的接口按目标平台写法换名、编号不变（割接迁移的建议，不用端口清单），结果 `interface_map_auto` 列出；CLI 报告列出自动换名 | 单元 `test_translate.py` |
+| 055-27 | 校验格说明允许换行 | 类型检查 |
+| 055-29 | 数字与文字之间用外边距（父元素为 flex 时开头空格会被吞掉） | 类型检查 |
+| 055-30 | 合并到现有配置时没带默认值节点，VRRP 抢占缺节点被写成 `preempt-mode disable`；合并时默认值节点一起带过去（不计入新增） | 单元 `test_migration.py` |
+| 055-31 | `knowledge/migration/<平台族>.yaml` 增加 `single: [bgp.instance]`：合并时编号不同也并入现有进程，告警 `target_single`（error 级），割接步骤用新设备的进程号 | 单元 `test_migration.py` |
+| 055-32 | 键字段可能是接口名的对象（时钟源）：取值正好是映射表里的接口时按接口改名（翻译与对比一致） | 单元 `test_migration.py` |
+| 055-33 | 源配置只在设备变化时加载，网址带的初始值不触发；监听改为立即执行 | 类型检查 |
+| 055-34 | IS-IS：Cisco 进程名是标签（CORE），华为进程号必须是整数，所以写不出；翻译时自动编号（引用一起改，告警 `key_renumbered`）。PTP hybrid / port / profile（两家结构不同）与 EVPN send-community both（华为标准 / 扩展团体是两条命令，当前 Schema 不能拆成两张卡）留作知识库缺口 | 手工核对 |
+| 055-35 | 接口映射表只差大小写的行也传给后端 | vitest `compare.test.ts` |

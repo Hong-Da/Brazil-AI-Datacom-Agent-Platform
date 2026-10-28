@@ -152,6 +152,9 @@ function rebuild(): void {
       cy.pan({ x: before.x - pos.x * z, y: before.y - pos.y * z })
     } else {
       initialView()
+      // 带 ?node= 打开时已经选中了节点：首次布局后把它移到视野里，而不是停在根节点（REQ-055-07）
+      const s = props.selected ? cy.getElementById(props.selected) : null
+      if (s && s.nonempty()) cy.center(s)
     }
     firstLayout = false
     syncGrid()

@@ -13,7 +13,7 @@ from typing import Any
 from sqlalchemy import select
 
 from lmesh.core import store
-from lmesh.core.parser import normalize_pattern
+from lmesh.core.parser import line_count, normalize_pattern
 from lmesh.core.sanitize import (
     Level,
     SanitizeLeak,
@@ -154,7 +154,7 @@ def sanitize_one(
         vendor=vendor,
         version=version,
         profile=guess_profile(vendor, version, kb, fmt) if vendor else "",
-        lines=text.count("\n") + 1,
+        lines=line_count(text),
         sanitized=result.summary(),
     ), result.text
 

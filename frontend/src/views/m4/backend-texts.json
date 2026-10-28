@@ -334,6 +334,11 @@
   "en": "{target_node}: existing value {existing} conflicts with migrated value {value} ({resolution})",
   "pt-BR": "{target_node}: valor existente {existing} conflita com o valor migrado {value} ({resolution})"
  },
+ "migrate.warn.target_single": {
+  "zh-CN": "{target_node}：新设备只能有一个这类对象，迁移的 {value} 已并入现有的 {existing}；两者编号不同（例如本地 AS），请人工确认",
+  "en": "{target_node}: the new device allows only one of these; the migrated {value} was merged into the existing {existing}. Their numbers differ (for example the local AS); confirm manually",
+  "pt-BR": "{target_node}: o novo equipamento permite apenas um destes; {value} migrado foi incorporado ao {existing} existente. Os números são diferentes (por exemplo o AS local); confirme manualmente"
+ },
  "migrate.warn.target_is_management": {
   "zh-CN": "{name} → {target}：目标接口是新设备的管理口",
   "en": "{name} → {target}: target is the management port of the new device",
@@ -450,9 +455,14 @@
   "pt-BR": "Linha {line}: linha não reconhecida; não traduzida: {text}"
  },
  "translate.warn.default_differs": {
-  "zh-CN": "{node}：源设备依赖默认值 {src_default}，{profile} 的默认值是 {dst_default}，已显式写出",
-  "en": "{node}: the source relies on the default {src_default}, but the default on {profile} is {dst_default}; written explicitly",
-  "pt-BR": "{node}: a origem depende do padrão {src_default}, mas o padrão em {profile} é {dst_default}; escrito explicitamente"
+  "zh-CN": "{node}：源设备依赖默认值 {src_default}，{profile} 的默认值是 {dst_default}，已把 {src_default} 按目标平台的写法显式写出",
+  "en": "{node}: the source relies on the default {src_default}, but the default on {profile} is {dst_default}; {src_default} was written explicitly in the target platform's syntax",
+  "pt-BR": "{node}: a origem depende do padrão {src_default}, mas o padrão em {profile} é {dst_default}; {src_default} foi escrito explicitamente na sintaxe da plataforma de destino"
+ },
+ "translate.warn.key_renumbered": {
+  "zh-CN": "{node}：目标平台要求编号是数字，{old} 改为 {new}（引用它的地方一起改）",
+  "en": "{node}: the target platform needs a numeric ID; {old} became {new} (references updated too)",
+  "pt-BR": "{node}: a plataforma de destino exige um ID numérico; {old} passou a {new} (referências atualizadas também)"
  },
  "translate.warn.default_unknown": {
   "zh-CN": "{node}：源设备依赖默认值 {src_default}，{profile} 没有登记这个默认值，未写出，请人工确认",

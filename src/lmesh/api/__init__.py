@@ -6,6 +6,7 @@ import logging
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -92,6 +93,8 @@ def create_app(settings: config.Settings | None = None, listen_host: str | None 
     app.state.boot_settings = app.state.settings  # 启动时的配置：系统设置页据此判断哪些修改要重启后才生效（REQ-049）
     # 创建项目的总开关（M9-8，REQ-050）：core 判断权限时用；保存设置时随之更新
     projects.set_create_open(bool(app.state.settings.get("auth.user_create_projects")))
+    # 大响应压缩（REQ-055-24）：2 万行设备的配置分析 JSON 有二十多 MB，压缩后约十分之一；小响应不压
+    app.add_middleware(GZipMiddleware, minimum_size=4096, compresslevel=5)
 
     @app.exception_handler(ApiError)
     async def _api_error(request: Request, exc: ApiError) -> JSONResponse:

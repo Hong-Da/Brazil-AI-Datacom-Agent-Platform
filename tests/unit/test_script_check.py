@@ -113,6 +113,19 @@ def test_undo_removes_baseline_line_and_new_dangling_found(kb, atn) -> None:  # 
     assert any(x.startswith("ref.dangling") for x in rule)
 
 
+def test_deleting_referenced_policy_counts_as_issue(kb) -> None:  # type: ignore[no-untyped-def]
+    """REQ-055-02：删掉仍被引用的 route-policy，悬空引用计入问题和错误数，标在删除命令上。"""
+    base = (
+        "route-policy RP permit node 10\n#\nbgp 65000\n peer 10.1.1.1 as-number 65001\n #\n"
+        " ipv4-family unicast\n  peer 10.1.1.1 enable\n  peer 10.1.1.1 route-policy RP import\n#\n"
+    )
+    b = script_check.baseline_from_text(base, kb, "huawei-atn-v800r025", device="RP-DEL")
+    r = script_check.check_text("undo route-policy RP\n", kb, b)
+    assert [f["script_lines"] for f in r["result"]["findings_new"] if f["rule"] == "ref.dangling"] == [[1]]
+    assert [(i["line"], i["rule"]) for i in r["issues"] if i["severity"] == "error"] == [(1, "ref.dangling")]
+    assert r["summary"]["errors"] >= 1 and not r["summary"]["ok"]
+
+
 def test_cisco_change_script(kb, asr) -> None:  # type: ignore[no-untyped-def]
     text = _read(SCRIPTS / "asr-change-order.txt")
     on = script_check.check_text(text, kb, asr, "change", order=True)

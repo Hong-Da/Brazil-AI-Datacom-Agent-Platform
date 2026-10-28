@@ -1073,12 +1073,15 @@ class _Renderer:
                 member[x] = c
                 stack.extend(self.children.get(x, []))
         before: dict[str, set[str]] = defaultdict(set)
-        for a, b, d in self.g.edges(data=True):
-            if d.get("kind") in ("reference", "prerequisite") and a in member and b in member:
-                ma, mb = member[a], member[b]
-                if ma != mb:
-                    before[ma].add(mb)
+        # 只看子树内节点的出边（逐次遍历全图的边在大配置上是平方级：2 万行的设备要几分钟）
+        for a in member:
+            for _, b, d in self.g.out_edges(a, data=True):
+                if d.get("kind") in ("reference", "prerequisite") and b in member:
+                    ma, mb = member[a], member[b]
+                    if ma != mb:
+                        before[ma].add(mb)
         base = sorted(items, key=lambda c: (self.first_line(c), self.order.get(c, 0)))
+        pos = {c: i for i, c in enumerate(base)}
         out: list[str] = []
         done: set[str] = set()
         visiting: set[str] = set()
@@ -1087,7 +1090,7 @@ class _Renderer:
             if c in done or c in visiting:
                 return
             visiting.add(c)
-            for dep in sorted(before.get(c, ()), key=lambda x: base.index(x)):
+            for dep in sorted(before.get(c, ()), key=lambda x: pos[x]):
                 visit(dep)
             visiting.discard(c)
             done.add(c)

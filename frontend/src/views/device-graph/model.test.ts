@@ -162,6 +162,8 @@ describe('可见部分', () => {
     expect(agg[0]).toMatchObject({ source: 'domain:interface', target: 'domain:vrf', count: 1, hot: true, notes: ['binds VRF'] })
     expect(aggregateEdges(m, vis, new Set(['mutex']), null)).toHaveLength(0)
     expect(nodeDeps(m, 'vrf.instance[A]').in).toHaveLength(1)
+    // 对象的依赖挂在子节点上时也算（REQ-055-08）
+    expect(nodeDeps(m, 'interface[GE0/2/1]').out.map((e) => e.to)).toEqual(['vrf.instance[A]'])
   })
   it('三语说明聚合时去重，空说明不计入', () => {
     const g = sample()

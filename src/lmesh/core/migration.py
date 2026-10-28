@@ -282,6 +282,7 @@ class _Suggester:
         interface_map: dict[str, str] | None,
         target_graph: nx.MultiDiGraph | None,
         model: str | None,
+        inventory: bool = True,
     ):
         for pid in (src_profile, dst_profile):
             if pid not in kb.profiles:
@@ -294,7 +295,8 @@ class _Suggester:
         self.user = {cmp.interface_name(str(k)): str(v).strip() for k, v in (interface_map or {}).items()}
         self.warnings: list[dict[str, Any]] = []
         src_ops, dst_ops = family_ops(kb, self.src_family), family_ops(kb, self.dst_family)
-        self.inv = port_inventory(kb, dst_profile)
+        # inventory=False：不按端口清单分配（翻译只换类型写法、编号不变）
+        self.inv = port_inventory(kb, dst_profile) if inventory else None
         self.src_mgmt = [str(x) for x in src_ops.get("management") or []]
         self.dst_mgmt = [str(x) for x in dst_ops.get("management") or []] + [
             str(x) for x in (self.inv or {}).get("management") or []
@@ -633,9 +635,11 @@ def suggest_map(
     interface_map: dict[str, str] | None = None,
     target_graph: nx.MultiDiGraph | None = None,
     model: str | None = None,
+    inventory: bool = True,
 ) -> dict[str, Any]:
-    """接口映射建议：{map[], unmapped[], warnings[], inventory, stats}。"""
-    return _Suggester(g_old, kb, src_profile, dst_profile, interface_map, target_graph, model).run()
+    """接口映射建议：{map[], unmapped[], warnings[], inventory, stats}。
+    inventory=False：不用端口清单（配置翻译用：跨平台族时只按类型换写法、编号不变）。"""
+    return _Suggester(g_old, kb, src_profile, dst_profile, interface_map, target_graph, model, inventory).run()
 
 
 # ---------------------------------------------------------------- 2～7. 迁移
@@ -666,6 +670,8 @@ class _Migrator:
         self.sug = suggest_map(g_old, kb, src_profile, dst_profile, interface_map, target_graph, model)
         self.warnings: list[dict[str, Any]] = list(self.sug["warnings"])
         self.explained: set[str] = set()  # 旧图中有原因的节点（校验时不算差异）
+        self.new_asn: Any = None  # 并入新设备现有 BGP 进程时，新设备上的进程号（割接步骤用）
+        self.explained_exact: set[str] = set()  # 只解释这个节点本身、不含其下节点（例如并入现有 BGP 进程后的 AS 号）
         self.kept_b: set[str] = set()  # 冲突时保留的现有取值（新配置中的节点，统一写法）
         self.unsupported: list[dict[str, Any]] = []
         self.final_map: dict[str, str] = {r["source"]: r["target"] for r in self.sug["map"]}
@@ -825,6 +831,13 @@ class _Migrator:
                 has_fact[n] = n in facts_t or any(fact_below(c) for c in kids_t.get(n, []))
             return has_fact[n]
 
+        # 设备上只能有一个的对象（例如 BGP 进程）：现有配置里已有的那一个
+        single = set(family_ops(self.kb, self.dst_family).get("single") or [])
+        e_single = {
+            str(ge.nodes[c].get("schema")): c
+            for c in kids_e.get(DEVICE, [])
+            if ge.nodes[c].get("schema") in single and ge.nodes[c].get("origin") != "default"
+        }
         changed: set[str] = set()
         stats = {"added": 0, "changed": 0, "same": 0, "conflicts": 0, "kept": 0}
         to_m: dict[str, str] = {DEVICE: DEVICE}
@@ -843,6 +856,25 @@ class _Migrator:
                 if kind == "attr" and c not in facts_t and not is_default:
                     continue
                 hit = e_index.get(_norm_id(c))
+                one = e_single.get(str(d.get("schema"))) if tp == DEVICE and kind == "object" else None
+                if hit is None and one is not None and one in gm:
+                    # 编号不同也不能再建一个：并入现有的那一个，告警请人工确认（例如本地 AS 不同）
+                    stats["conflicts"] += 1
+                    self.warnings.append(
+                        _warn(
+                            "target_single",
+                            "error",
+                            None,
+                            target_node=one,
+                            schema=d.get("schema"),
+                            existing=ge.nodes[one].get("key"),
+                            value=d.get("key"),
+                        )
+                    )
+                    hit = one
+                    self.explained_exact.add(c)
+                    if d.get("schema") == "bgp.instance":
+                        self.new_asn = ge.nodes[one].get("key")
                 if hit is not None and hit in gm:
                     if kind == "object":
                         to_m[c] = hit
@@ -888,8 +920,8 @@ class _Migrator:
                     changed.add(hit)
                     stats["changed"] += 1
                     continue
-                if is_default:
-                    continue
+                # 默认值节点也带过去（不计入新增）：渲染时缺了默认值节点会被当成另一种取值
+                # （例如 VRRP 抢占缺省开启，缺节点时写出了 preempt-mode disable）
                 seg = c[len(tp) + 1 :] if tp != DEVICE else c
                 nid = seg if mp == DEVICE else f"{mp}/{seg}"
                 attrs = {k: v for k, v in d.items() if k not in ("lines", "cards")}
@@ -959,7 +991,7 @@ class _Migrator:
         unexplained = existing = 0
         for d in r["diffs"]:
             na, nb = (d.get("a") or {}).get("node"), (d.get("b") or {}).get("node")
-            if covered(na) or (na is None and covered(nb)):
+            if covered(na) or (na is None and covered(nb)) or na in self.explained_exact:
                 continue
             if nb and (_norm_id(nb) in self.kept_b or (na is None and _norm_id(nb) in e_ids)):
                 existing += 1
@@ -1067,7 +1099,15 @@ class _Migrator:
             else {"checked": False, "equal": False, "diffs": 0, "unexplained": 0, "target_existing": 0}
         )
         script = self.script(text)
-        steps = build_steps(self.g, self.kb, self.src, self.dst, self.sug["map"], has_existing=self.target is not None)
+        steps = build_steps(
+            self.g,
+            self.kb,
+            self.src,
+            self.dst,
+            self.sug["map"],
+            has_existing=self.target is not None,
+            new_asn=self.new_asn,
+        )
         levels: dict[str, int] = defaultdict(int)
         for w in self.warnings:
             levels[str(w["params"].get("level") or "warning")] += 1
@@ -1228,8 +1268,10 @@ def build_steps(
     dst_profile: str,
     rows: list[dict[str, Any]],
     has_existing: bool = False,
+    new_asn: Any = None,
 ) -> list[dict[str, Any]]:
-    """割接步骤清单：每步 {no, phase, device(old/new/site), key, params, commands[]}；回退步骤 phase=rollback。"""
+    """割接步骤清单：每步 {no, phase, device(old/new/site), key, params, commands[]}；回退步骤 phase=rollback。
+    new_asn：新设备上的 BGP 进程号（并入现有进程时与旧设备不同），不给时同旧设备。"""
     so = family_ops(kb, kb.profiles[src_profile].family)
     do = family_ops(kb, kb.profiles[dst_profile].family)
     core = _core_bases(g_old)
@@ -1250,6 +1292,7 @@ def build_steps(
     core_rows = [r for r in phys if is_core(r)]
     access_rows = [r for r in phys if not is_core(r)]
     asn, peers = _bgp_peers(g_old)
+    nasn = new_asn if new_asn is not None else asn
     dom = {str(d.get("schema") or "").split(".", 1)[0] for _, d in g_old.nodes(data=True) if d.get("schema")}
     has = {
         "bgp": bool(peers),
@@ -1297,7 +1340,7 @@ def build_steps(
         "prepare",
         "new",
         "hold_new",
-        _ops_lines(do, _if_cmds(do, new_names(phys), "shutdown") + _bgp_cmds(do, asn, peers, "drain")),
+        _ops_lines(do, _if_cmds(do, new_names(phys), "shutdown") + _bgp_cmds(do, nasn, peers, "drain")),
         ports=len(phys),
         peers=len(peers),
     )
@@ -1335,14 +1378,14 @@ def build_steps(
         ports=len(access_rows),
     )
     if peers:
-        add("enable", "new", "restore_bgp", _ops_lines(do, _bgp_cmds(do, asn, peers, "restore")), peers=len(peers))
+        add("enable", "new", "restore_bgp", _ops_lines(do, _bgp_cmds(do, nasn, peers, "restore")), peers=len(peers))
     add("verify", "new", "postcheck", shows(do, check_items))
     # 回退
     add(
         "rollback",
         "new",
         "rb_hold_new",
-        _ops_lines(do, _if_cmds(do, new_names(phys), "shutdown") + _bgp_cmds(do, asn, peers, "drain")),
+        _ops_lines(do, _if_cmds(do, new_names(phys), "shutdown") + _bgp_cmds(do, nasn, peers, "drain")),
         ports=len(phys),
     )
     add(

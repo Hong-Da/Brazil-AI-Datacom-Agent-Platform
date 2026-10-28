@@ -188,7 +188,9 @@ describe('接口映射表', () => {
     expect(rows).toEqual([{ a: 'GE0/2/1', b: '', how: 'none' }, { a: 'LoopBack0', b: 'loopback0', how: 'same' }])
     rows = setRow(rows, 'GE0/2/1', 'GigabitEthernet0/0/1')
     expect(rows[0].how).toBe('manual')
-    expect(toInterfaceMap(rows)).toEqual({ 'GE0/2/1': 'GigabitEthernet0/0/1' })
+    // 只差大小写的也传（翻译时 Loopback0 → LoopBack0 要改名，REQ-055-35）；完全同名的不传
+    expect(toInterfaceMap(rows)).toEqual({ 'GE0/2/1': 'GigabitEthernet0/0/1', LoopBack0: 'loopback0' })
+    expect(toInterfaceMap([{ a: 'LoopBack0', b: 'LoopBack0', how: 'same' }])).toEqual({})
     expect(setRow(rows, 'GE0/2/1', '')[0].how).toBe('none')
   })
   it('解析 CSV 与 CLI 两列格式', () => {

@@ -411,12 +411,17 @@ def _finding(
     suffix: str,
     msg_key: str,
     sug_key: str,
+    specs: tuple[str | None, str | None] = (None, None),
 ) -> dict[str, Any]:
     sa, sb = ("b", "a") if flip else ("a", "b")
     ends = []
-    for side, node, val in ((sa, nodes[0], values[0]), (sb, nodes[1], values[1])):
+    for side, node, val, spec in ((sa, nodes[0], values[0], specs[0]), (sb, nodes[1], values[1], specs[1])):
         e = lk[side]
         ix = topo.facts[e["device"]].ix
+        # 比较的是对象下的一个属性（例如 mtu）且配置里写了它：定位到那一行，而不是对象头（REQ-055-23）
+        attr = f"{node}/{spec}" if node and spec and ":" not in spec and "." not in spec else None
+        if attr is not None and attr in ix.g and ix.d(attr).get("origin") != "default" and ix.lines(attr):
+            node = attr
         ends.append(
             {
                 "device": e["device"],
@@ -506,6 +511,7 @@ def evaluate(topo: topomod.Topology, kb: KnowledgeBase, rules: list[LinkRule]) -
                                 unit["suffix"],
                                 mk,
                                 sk,
+                                (rule.a, rule.b),  # 翻转时 nodes[0] 也是按 rule.a 取的值
                             )
                         )
                         break

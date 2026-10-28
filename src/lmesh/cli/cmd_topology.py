@@ -145,5 +145,5 @@ def register(app: typer.Typer) -> None:
             lines.append("    " + c.t("check.fix") + checks.render_text(f["suggestion"], c.lang, res["texts"]))
         emit(c, res, "\n".join(lines))
         if s["has_errors"]:
-            typer.echo(lines[0], err=True)
+            output.err_summary(c, lines[0])
             raise typer.Exit(output.EXIT_ERROR)

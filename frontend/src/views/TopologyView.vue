@@ -538,7 +538,8 @@ watch(() => project.ref, () => void reloadMarks())
                           <div v-if="x" class="l" :class="{ bad: x.bad }"><span class="n">{{ x.no }}</span><span class="g" /><span class="t">{{ x.text }}</span></div>
                           <div v-else class="l gap"><span class="n">⋯</span><span class="g" /><span class="t" /></div>
                         </template>
-                        <div v-if="!endLines(end.d, end.i).length" class="empty" style="padding: 14px"><p>{{ $t('topology.noBlock') }}</p></div>
+                        <div v-if="!texts[end.d]" class="empty" style="padding: 14px"><p>{{ $t('c.loading') }}</p></div>
+                        <div v-else-if="!endLines(end.d, end.i).length" class="empty" style="padding: 14px"><p>{{ $t('topology.noBlock') }}</p></div>
                       </div>
                     </div>
                   </div>
@@ -654,7 +655,7 @@ watch(() => project.ref, () => void reloadMarks())
                   <tr v-for="f in rows" :key="f.id" data-testid="topo-finding" @click="goFinding(f)">
                     <td><span class="sev" :class="f.severity"><Icon :name="sevIcon(f.severity)" small />{{ $t(`topology.sev.${f.severity}`) }}</span></td>
                     <td><code class="small">{{ f.rule }}</code></td>
-                    <td class="small">{{ $t(`topology.type.${f.link_type}`) }}<br><span class="lk">{{ f.ends[0]?.device }} <code>{{ shortIf(f.ends[0]?.end ?? '') }}</code> ⟷ {{ f.ends[1]?.device }} <code>{{ shortIf(f.ends[1]?.end ?? '') }}</code></span></td>
+                    <td class="small"><template v-if="f.link_type">{{ $t(`topology.type.${f.link_type}`) }}<br></template><span class="lk">{{ f.ends[0]?.device }} <code>{{ shortIf(f.ends[0]?.end ?? '') }}</code> ⟷ {{ f.ends[1]?.device }} <code>{{ shortIf(f.ends[1]?.end ?? '') }}</code></span></td>
                     <td class="mono small">{{ String(f.ends[0]?.value ?? '—') }}</td>
                     <td class="mono small">{{ String(f.ends[1]?.value ?? '—') }}</td>
                     <td class="why">{{ ftext(f, 'message') }}<div class="faint">{{ ftext(f, 'suggestion') }}</div></td>

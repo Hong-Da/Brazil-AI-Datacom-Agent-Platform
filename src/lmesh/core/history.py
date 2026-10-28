@@ -26,6 +26,7 @@ from sqlalchemy import delete, select
 
 from lmesh.core import compare, store
 from lmesh.core.kb import KnowledgeBase
+from lmesh.core.parser import line_count
 from lmesh.core.store.models import ConfigImport, ConfigVersion, Device, iso
 
 DEFAULT_KEEP = 50
@@ -267,7 +268,7 @@ def _snap_info(ver: ConfigVersion, seq: int, imps: list[ConfigImport], current_k
         "kb_current": ver.kb_version == current_kb,
         "fingerprint": ver.content_hash or content_hash(ver.raw_text),
         "tag": ver.tag,
-        "lines": len(ver.raw_text.split("\n")),
+        "lines": line_count(ver.raw_text),
         "nodes": summary.get("nodes"),
         "graph_stored": bool(ver.graph_gz),
         "vs_previous": summary.get("vs_previous"),

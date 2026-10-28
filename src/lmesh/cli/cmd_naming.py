@@ -3,7 +3,6 @@ lmesh translate / migrate / template generate 的 --rules 也在这里取规则�
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 from typing import Annotated, Any, NoReturn
 
@@ -141,7 +140,7 @@ def register(app: typer.Typer) -> None:
         rep["source"] = {"device": g.graph.get("device"), "profile": g.graph.get("profile")}
         emit(c, rep, report_text(c, rep))
         if rep["conflicts"]:
-            sys.stderr.write(c.t("naming.has_conflicts", n=len(rep["conflicts"])) + "\n")
+            output.err_summary(c, c.t("naming.has_conflicts", n=len(rep["conflicts"])))
             raise typer.Exit(output.EXIT_ERROR)
 
     @napp.command("match", help="测试一个名称或接口名经过规则后的结果 / test one name or interface")

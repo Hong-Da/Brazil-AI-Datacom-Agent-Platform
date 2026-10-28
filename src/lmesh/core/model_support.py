@@ -25,6 +25,7 @@ from sqlalchemy import func, or_, select
 
 from lmesh.core import store
 from lmesh.core.kb import KnowledgeBase
+from lmesh.core.parser import line_count
 from lmesh.core.sanitize import detect_format, detect_vendor, detect_version, family_of
 from lmesh.core.store.models import ConfigVersion, Device, ModelRule, Project, UnknownLine, iso
 
@@ -589,7 +590,7 @@ def request_support(
             "vendor": dev.vendor,
             "family": det.family or "",
             "version": dev.sw_version,
-            "lines": ver.raw_text.count("\n") + 1 if ver is not None else 0,
+            "lines": line_count(ver.raw_text) if ver is not None else 0,
             "command": int(counts.get("command", 0)),
             "unknown": int(counts.get("unknown", 0)),
             "patterns": rows,

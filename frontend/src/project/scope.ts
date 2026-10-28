@@ -298,3 +298,9 @@ export function networkPath(path: string, ref: string | null | undefined, net: s
   if (rest.startsWith('/n/') || !networkable(method, rest)) return path
   return `${pre}/n/${encodeURIComponent(net)}${rest}`
 }
+
+/** 项目的显示名：自动建的默认项目在库里叫“默认项目”，按界面语言显示（REQ-055-11）。 */
+export const DEFAULT_PROJECT_NAME = '默认项目'
+export function projectLabel(name: string | null | undefined, t: (k: string) => string): string {
+  return name === DEFAULT_PROJECT_NAME ? t('proj.defaultName') : (name ?? '')
+}

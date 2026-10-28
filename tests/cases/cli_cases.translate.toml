@@ -11,12 +11,12 @@ in_docs = true
 
 [[case]]
 id = "translate-text"
-title = { zh-CN = "译文写到标准输出，摘要与告警写到标准错误", en = "Translation on stdout, summary and warnings on stderr", pt-BR = "Tradução na saída padrão, resumo e avisos no erro padrão" }
+title = { zh-CN = "译文写到标准输出，摘要、自动换名的接口与告警写到标准错误", en = "Translation on stdout, summary and warnings on stderr", pt-BR = "Tradução na saída padrão, resumo e avisos no erro padrão" }
 args = ["--lang", "zh-CN", "translate", "{inputs}/translate/cs-small.cfg", "--to", "huawei-atn-v800r025"]
 setup = "fresh-fullkb"
 expect_exit = 0
-expect_stdout = ["interface Port-channel1", "ip route-static 0.0.0.0 0.0.0.0 10.0.0.2", "return"]
-expect_stderr = ["校验通过", "Port-channel 不是 huawei-vrp8 的接口类型", "已省略"]
+expect_stdout = ["interface Eth-Trunk1", "ip route-static 0.0.0.0 0.0.0.0 10.0.0.2", "return"]
+expect_stderr = ["校验通过", "Port-channel1 → Eth-Trunk1", "已省略"]
 in_docs = true
 
 [[case]]

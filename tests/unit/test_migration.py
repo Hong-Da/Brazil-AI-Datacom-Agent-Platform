@@ -172,6 +172,32 @@ def test_migrate_merge_conflicts_keep_and_migrate(kb) -> None:  # type: ignore[n
         migration.migrate(old, kb, CISCO, HUAWEI, None, tg, on_conflict="bad")
 
 
+def test_merge_single_bgp_vrrp_default_and_clock_source(kb) -> None:  # type: ignore[no-untyped-def]
+    """REQ-055-30、31、32：合并到已有 BGP 进程的华为设备时并入现有进程（并告警），割接步骤用新设备的进程号；
+    VRRP 抢占的缺省值不被写成 preempt-mode disable；接口映射作用到 clock source <接口>。"""
+    old_text = (
+        "hostname OLD\n!\nnetwork-clock input-source 1 interface GigabitEthernet0/0/1\n!\n"
+        "interface GigabitEthernet0/0/1\n ip address 10.0.0.1 255.255.255.252\n!\n"
+        "interface GigabitEthernet0/0/5\n ip address 10.20.1.3 255.255.255.0\n vrrp 10 address-family ipv4\n"
+        "  priority 110\n  preempt delay minimum 30\n  address 10.20.1.1 primary\n exit-vrrp\n!\n"
+        "router bgp 65000\n neighbor 10.0.0.2 remote-as 65001\n!\nend\n"
+    )
+    old = graph(kb, old_text, CISCO)
+    existing = "#\nsysname NEW\n#\nbgp 65019\n router-id 10.9.9.9\n#\nreturn\n"
+    tg = migration.target_graph_from_text(existing, kb, HUAWEI)
+    imap = {"Gi0/0/1": "GigabitEthernet0/2/1", "Gi0/0/5": "GigabitEthernet0/2/5"}
+    r = migration.migrate(old, kb, CISCO, HUAWEI, imap, tg)
+    assert [ln for ln in r["text"].splitlines() if ln.startswith("bgp ")] == ["bgp 65019"]
+    single = [w for w in r["warnings"] if w["kind"] == "target_single"]
+    assert len(single) == 1 and single[0]["params"]["level"] == "error"
+    assert (single[0]["params"]["existing"], single[0]["params"]["value"]) == ("65019", "65000")
+    assert "preempt-mode disable" not in r["text"] and "vrrp vrid 10 preempt-mode timer delay 30" in r["text"]
+    assert "GigabitEthernet0/0/1" not in r["text"] and "clock source GigabitEthernet0/2/1 priority 1" in r["text"]
+    assert r["verify"]["unexplained"] == 0
+    drain = next(s for s in r["steps"] if s["key"] == "migrate.step.hold_new")
+    assert "bgp 65019" in drain["commands"] and "bgp 65000" not in drain["commands"]
+
+
 def test_steps_order(kb) -> None:  # type: ignore[no-untyped-def]
     text = (KB_ROOT / "samples" / "cisco-iosxe-asr920-synthetic" / "pe-asr920-01.cfg").read_text(encoding="utf-8")
     g = graph(kb, text, CISCO)

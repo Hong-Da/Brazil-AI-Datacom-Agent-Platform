@@ -164,7 +164,9 @@ def default_lines(
     try:
         from lmesh.core import canon
 
-        r = canon.render_full(g, kb, str(g.graph.get("profile")), include_defaults=True)
+        # 只渲染默认值节点（对象的入口行随之写出）：渲染整份配置在 2 万行的设备上要几十秒
+        facts = {n for n, d in g.nodes(data=True) if d.get("kind") == "attr" and d.get("origin") == "default"}
+        r = canon.render_full(g, kb, str(g.graph.get("profile")), include_defaults=True, facts=facts, extras=False)
         for ln in r.lines:
             if ln.origin == "default" and ln.kind == "command":
                 for n in ln.nodes:

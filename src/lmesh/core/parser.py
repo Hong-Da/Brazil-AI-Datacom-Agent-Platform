@@ -598,6 +598,13 @@ def index_card_enters(index: CardIndex, line: Line) -> str | None:
     return index.enters.get(line.card)
 
 
+def line_count(text: str) -> int:
+    """配置的行数：末尾的换行不算多出一行（与编辑器、wc -l 和原文面板一致，REQ-055-08）。"""
+    if not text:
+        return 0
+    return text.count("\n") + (0 if text.endswith("\n") else 1)
+
+
 def normalize_pattern(text: str) -> str:
     """未识别行的归一化形态：数字、IP、名称替换成占位符，便于按频率汇总。"""
     t = re.sub(r"\b\d+\.\d+\.\d+\.\d+(/\d+)?\b", "<ip>", text)

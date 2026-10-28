@@ -304,6 +304,9 @@ tr.ul-row { cursor: pointer; }
 .cand .h { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 8px; }
 .cand .why { font-size: 12px; color: var(--ink-2); margin-top: 6px; }
 .ai-off { display: flex; gap: 8px; align-items: flex-start; font-size: 12px; color: var(--ink-3); padding: 8px 2px; }
-.bigpat { font: 13px var(--font-mono); padding: 9px 11px; border-radius: 6px; background: var(--red-soft); border: 1px solid var(--red-line); white-space: pre; overflow-x: auto; color: var(--ink); }
+.bigpat { font: 13px var(--font-mono); padding: 9px 11px; border-radius: 6px; background: var(--red-soft); border: 1px solid var(--red-line); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); }
+/* 详情面板较窄：字段名列不压缩、取值列可换行，长行不在右侧被截断（REQ-055-11） */
+.ul-detail .kv { grid-template-columns: minmax(72px, max-content) minmax(0, 1fr); }
+.ul-detail .kv dt { white-space: nowrap; }
 .empty > .ico { width: 32px; height: 32px; color: var(--teal-ink); }
 </style>

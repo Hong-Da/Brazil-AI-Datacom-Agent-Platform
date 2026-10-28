@@ -13,7 +13,7 @@ import { useAuth } from '@/stores/auth'
 import { useProject, type ProjectRow } from '@/stores/project'
 import { useStatus } from '@/stores/status'
 import { matchProject } from '@/views/projects/logic'
-import { basePage } from '@/project/scope'
+import { basePage, projectLabel } from '@/project/scope'
 
 const project = useProject()
 const auth = useAuth()
@@ -83,7 +83,7 @@ watch(() => route.fullPath, close)
       <button type="button" class="sw-btn" aria-haspopup="listbox" :aria-expanded="open" :title="$t('proj.switch')" data-testid="project-switcher-button" @click.stop="toggle">
         <Icon :name="project.foreign ? 'shield' : 'folder'" small />
         <span class="sw-k">{{ $t('proj.label') }}</span>
-        <span class="sw-cur" data-testid="project-current">{{ project.info?.name ?? $t('proj.none') }}</span>
+        <span class="sw-cur" data-testid="project-current">{{ project.info ? projectLabel(project.info.name, $t) : $t('proj.none') }}</span>
         <span v-if="project.role === 'read'" class="sw-ro">{{ $t('proj.readOnly') }}</span>
         <span v-if="project.foreign" class="sw-fo">{{ $t('proj.foreign') }}</span>
         <Icon name="chevD" small />
@@ -99,14 +99,14 @@ watch(() => route.fullPath, close)
           <div v-if="!mine.length" class="sw-none">{{ $t('proj.empty') }}</div>
           <button v-for="p in mine" :key="p.ref" type="button" role="option" :class="['sw-item', { 'is-cur': p.ref === project.ref }]" :aria-selected="p.ref === project.ref" :data-testid="`sw-item-${p.ref}`" @click="go(p)">
             <span class="sw-ic"><Icon :name="p.ref === project.ref ? 'check' : 'folder'" small /></span>
-            <span class="sw-main"><span class="sw-n">{{ p.name }}</span><span class="sw-m">{{ $t('proj.devices', { n: p.counts.devices }) }} · {{ $t('proj.scripts', { n: p.counts.scripts }) }}</span></span>
+            <span class="sw-main"><span class="sw-n">{{ projectLabel(p.name, $t) }}</span><span class="sw-m">{{ $t('proj.devices', { n: p.counts.devices }) }} · {{ $t('proj.scripts', { n: p.counts.scripts }) }}</span></span>
           </button>
           <template v-if="shared.length || !auth.isAdmin">
             <div class="sw-gh">{{ $t('proj.shared') }}<b>{{ shared.length }}</b></div>
             <div v-if="!shared.length" class="sw-none">{{ $t('proj.empty') }}</div>
             <button v-for="p in shared" :key="p.ref" type="button" role="option" :class="['sw-item', { 'is-cur': p.ref === project.ref }]" :aria-selected="p.ref === project.ref" :data-testid="`sw-item-${p.ref}`" @click="go(p)">
               <span class="sw-ic"><Icon :name="p.ref === project.ref ? 'check' : 'folder'" small /></span>
-              <span class="sw-main"><span class="sw-n">{{ p.name }}</span><span class="sw-m">{{ $t('proj.devices', { n: p.counts.devices }) }} · {{ $t('proj.scripts', { n: p.counts.scripts }) }} · {{ $t('proj.ownerIs', { u: p.owner ?? '—' }) }}</span></span>
+              <span class="sw-main"><span class="sw-n">{{ projectLabel(p.name, $t) }}</span><span class="sw-m">{{ $t('proj.devices', { n: p.counts.devices }) }} · {{ $t('proj.scripts', { n: p.counts.scripts }) }} · {{ $t('proj.ownerIs', { u: p.owner ?? '—' }) }}</span></span>
               <ProjRole :role="p.role" />
             </button>
           </template>
@@ -115,7 +115,7 @@ watch(() => route.fullPath, close)
             <div class="sw-note">{{ $t('proj.othersNote') }}</div>
             <button v-for="p in others" :key="p.ref" type="button" role="option" :class="['sw-item', { 'is-cur': p.ref === project.ref }]" :aria-selected="p.ref === project.ref" :data-testid="`sw-item-${p.ref}`" @click="go(p)">
               <span class="sw-ic"><Icon :name="p.ref === project.ref ? 'check' : 'folder'" small /></span>
-              <span class="sw-main"><span class="sw-n">{{ p.name }}</span><span class="sw-m">{{ $t('proj.devices', { n: p.counts.devices }) }} · {{ $t('proj.scripts', { n: p.counts.scripts }) }} · {{ $t('proj.ownerIs', { u: p.owner ?? '—' }) }}</span></span>
+              <span class="sw-main"><span class="sw-n">{{ projectLabel(p.name, $t) }}</span><span class="sw-m">{{ $t('proj.devices', { n: p.counts.devices }) }} · {{ $t('proj.scripts', { n: p.counts.scripts }) }} · {{ $t('proj.ownerIs', { u: p.owner ?? '—' }) }}</span></span>
             </button>
           </template>
         </div>

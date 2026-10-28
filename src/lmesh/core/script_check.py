@@ -1228,6 +1228,14 @@ def _check_change(
                 for no, nodes in cx.merged.nodes.items()
                 if any(nd == f["node"] or nd.startswith(f["node"] + "/") for nd in nodes)
             )[:1]
+        if not sl and f["rule"].startswith("ref.dangling"):  # 引用方在基线里：标到删掉被引用对象的脚本行
+            p = f["message"]["params"]
+            target = f"{p.get('target_type')}[{p.get('value')}]"
+            sl = sorted(
+                no
+                for no, nodes in cx.merged.nodes.items()
+                if any(nd == target or nd.endswith("/" + target) for nd in nodes)
+            )[:1]
         findings_new.append(_finding_row(f, sl, bl))
         if sl:
             iss.add(

@@ -127,9 +127,16 @@ export function factRows(l: Link): { k: string; a: string; b: string; diff: bool
   return keys.map((k) => {
     const a = show(fa[k])
     const b = show(fb[k])
-    return { k, a, b, diff: a !== b && !['address', 'network', 'ip', 'local', 'peer'].includes(k) }
+    // 两端各自视角的取值（本端地址 ↔ 对端地址、本端 AS ↔ 对端 AS）：交叉一致就不算不一致（REQ-055-22）
+    const m = MIRROR[k]
+    if (m) return { k, a, b, diff: show(fa[k]) !== show(fb[m]) || show(fa[m]) !== show(fb[k]) }
+    return { k, a, b, diff: a !== b && !PER_END.has(k) }
   })
 }
+/** 两端视角互为镜像的事实。 */
+const MIRROR: Record<string, string> = { local_address: 'peer_address', peer_address: 'local_address', local_as: 'remote_as', remote_as: 'local_as' }
+/** 每端本来就不同的事实（地址、源接口），不比较。 */
+const PER_END = new Set(['address', 'network', 'ip', 'local', 'peer', 'update_source'])
 
 export type SevFilter = '' | Severity
 

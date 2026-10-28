@@ -206,6 +206,22 @@ def _domain(kb: KnowledgeBase, g: nx.MultiDiGraph, n: str) -> str:
     return sn.domain if sn else ""
 
 
+def _foreign_parts(g: nx.MultiDiGraph, kb: KnowledgeBase, w: _Walk, n: str) -> list[str]:
+    """对象子树里功能域与它不同的最上层节点（接口下的 ospf / mpls / isis 设置）。"""
+    own = _domain(kb, g, n)
+    out: list[str] = []
+    stack = list(w.children.get(n, []))
+    while stack:
+        x = stack.pop()
+        if g.nodes[x].get("origin") == "default":
+            continue
+        if _domain(kb, g, x) not in ("", own):
+            out.append(x)
+            continue
+        stack.extend(w.children.get(x, []))
+    return sorted(out)
+
+
 def analyze(
     g: nx.MultiDiGraph,
     kb: KnowledgeBase,
@@ -238,6 +254,9 @@ def analyze(
                 nxt += [(lk.src, lk.kind) for lk in w.ref_in.get(n, []) if not (via_alias and lk.kind == "alias")]
                 # 键别名指向的是同一个实体：影响也传给它（再传给组内的对等体）
                 nxt += [(lk.dst, lk.kind) for lk in w.ref_out.get(n, []) if lk.kind == "alias"]
+                if depth[n] == 0:
+                    # 起点自身里属于别的功能域的设置（接口上的 OSPF、MPLS、LDP…）也受影响（REQ-055-18）
+                    nxt += [(x, "contains") for x in _foreign_parts(g, kb, w, n)]
             else:
                 stack, sub = [n], []
                 while stack:  # 节点的子树引用的对象

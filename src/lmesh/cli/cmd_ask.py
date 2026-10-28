@@ -188,7 +188,7 @@ def register(app: typer.Typer) -> None:
         r.pop("merged_text", None)
         emit(c, r, guard_text(c, r))
         if r["verdict"] != "passed":
-            sys.stderr.write(c.t("guard.verdict.blocked", bad=r["summary"]["bad"], warn=r["summary"]["warn"]) + "\n")
+            output.err_summary(c, c.t("guard.verdict.blocked", bad=r["summary"]["bad"], warn=r["summary"]["warn"]))
             raise typer.Exit(output.EXIT_ERROR)
 
     @app.command("generate", help="AI 生成配置（需要配置 AI）：生成后经护栏检查，被拦截时交回 AI 修改")

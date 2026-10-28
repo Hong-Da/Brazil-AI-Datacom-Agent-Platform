@@ -559,6 +559,9 @@ class _Translator:
         f = sn.key[0] if sn.key else "name"
         if (len(sn.key) <= 1 and sn.id in NODE_TYPES and sn.id == "interface") or self.is_if_field(sn, f):
             return self.rename(key)
+        # 取值可能是接口名、也可能是别的的键（例如时钟源 ptp / bits0 / 接口名）：正好是映射表里的接口时才换
+        if isinstance(key, str) and self.ifmap and cmp.interface_name(key).lower() in self.ifmap:
+            return self.ifmap[cmp.interface_name(key).lower()]
         return key
 
     # ----- 1. 换目标 -----
@@ -1215,9 +1218,28 @@ def translate(
 
     rules（naming.RuleSet，REQ-032）：先在源图副本上按规则集改名（对象与引用一起改），端口映射并入接口映射表
     （显式给出的 interface_map 优先），结果另有 naming（改名清单、冲突、命名规范告警）；不给时结果与原来完全一致。
-    target_graph：目标设备现有配置的图（新名与其中已有的名称重名时报冲突）。"""
+    target_graph：目标设备现有配置的图（新名与其中已有的名称重名时报冲突）。
+
+    跨平台族时，没有给出映射的接口按目标平台的类型写法改名、编号不变（LoopBack ↔ Loopback、Eth-Trunk ↔ Port-channel…），
+    结果的 interface_map_auto 列出这些自动换名（REQ-055-26）。"""
+    auto = _auto_map(g_src, kb, src_profile, dst_profile, interface_map)
+    if auto:
+        interface_map = {**auto, **(interface_map or {})}
     if rules is None:
-        return _Translator(g_src, kb, src_profile, dst_profile, interface_map).run(verify)
+        res = _Translator(g_src, kb, src_profile, dst_profile, interface_map).run(verify)
+        res["interface_map_auto"] = auto
+        renum = _renumber(res, g_src, kb, dst_profile)
+        if not renum:
+            return res
+        # 目标平台要求编号是数字的对象（Cisco IS-IS 的进程名 CORE → 华为 isis 1）：编上号、引用一起改，再译一次
+        res = _Translator(_apply_renumber(g_src, kb, renum), kb, src_profile, dst_profile, interface_map).run(verify)
+        res["interface_map_auto"] = auto
+        res["warnings"] += [
+            _item("key_renumbered", "translate.warn.key_renumbered", f"{_short(t, None)}[{k}]", schema=t, old=k, new=v)
+            for t, k, v in renum
+        ]
+        res["stats"]["warnings"] = len(res["warnings"])
+        return res
     from lmesh.core import naming
 
     if dst_profile not in kb.profiles:
@@ -1225,7 +1247,78 @@ def translate(
     g2, ports, report = naming.run(g_src, kb, rules, dst_profile, target_graph)
     result = _Translator(g2, kb, src_profile, dst_profile, {**ports, **(interface_map or {})}).run(verify)
     result["naming"] = report
+    result["interface_map_auto"] = {k: v for k, v in auto.items() if k not in ports}
     return result
+
+
+def _int_keyed(kb: KnowledgeBase, family: str, schema: str) -> bool:
+    """目标平台族里写出这类对象的命令卡，键参数都是整数（华为 isis <process-id>）。"""
+    types = set()
+    for card in kb.cards.values():
+        if card.family != family:
+            continue
+        expr = str((card.maps or {}).get(schema) or "")
+        if expr.startswith("$") and "||" not in expr and expr[1:] in card.params:
+            types.add(str(card.params[expr[1:]].get("type") or ""))
+    return types == {"integer"}
+
+
+def _apply_renumber(g: nx.MultiDiGraph, kb: KnowledgeBase, renum: list[tuple[str, str, str]]) -> nx.MultiDiGraph:
+    """图副本上给顶层对象换键（节点编号与子树一起换），并改掉按名称引用它的属性取值。"""
+    g2 = g.copy()
+    for schema, old, new in renum:
+        src_id, dst_id = f"{_short(schema, None)}[{old}]", f"{_short(schema, None)}[{new}]"
+        mapping = {n: dst_id + n[len(src_id) :] for n in g2.nodes if n == src_id or n.startswith(src_id + "/")}
+        nx.relabel_nodes(g2, mapping, copy=False)
+        g2.nodes[dst_id]["key"] = g2.nodes[dst_id]["raw"] = new
+        refs = {d.src for d in kb.deps if d.kind == "reference" and d.dst == schema}
+        refs |= {n.id for n in kb.nodes.values() if n.type == "ref" and n.ref == schema}
+        for _, d in g2.nodes(data=True):
+            if d.get("kind") == "attr" and d.get("schema") in refs and str(d.get("value")) == old:
+                d["value"] = d["raw"] = new
+    return g2
+
+
+def _renumber(res: dict[str, Any], g: nx.MultiDiGraph, kb: KnowledgeBase, dst: str) -> list[tuple[str, str, str]]:
+    """没能写出、键不是数字、而目标平台要求数字编号的顶层对象：[(Schema, 旧键, 新编号)]，新编号从 1 起取没用过的。"""
+    fam = kb.profiles[dst].family
+    out: list[tuple[str, str, str]] = []
+    used: dict[str, set[str]] = defaultdict(set)
+    for _, d in g.nodes(data=True):
+        if d.get("kind") == "object" and isinstance(d.get("key"), (str, int)):
+            used[str(d.get("schema"))].add(str(d.get("key")))
+    for u in res.get("unsupported") or []:
+        node = str(u.get("node") or "")
+        d = g.nodes.get(node) if node in g else None
+        if u.get("kind") != "node" or d is None or d.get("kind") != "object" or "/" in node:
+            continue
+        key, schema = d.get("key"), str(d.get("schema"))
+        if not isinstance(key, str) or key.isdigit() or not _int_keyed(kb, fam, schema):
+            continue
+        n = 1
+        while str(n) in used[schema]:
+            n += 1
+        used[schema].add(str(n))
+        out.append((schema, key, str(n)))
+    return out
+
+
+def _auto_map(g: nx.MultiDiGraph, kb: KnowledgeBase, src: str, dst: str, user: dict[str, str] | None) -> dict[str, str]:
+    """跨平台族时没有给出映射的接口：{源接口: 目标平台写法}（割接迁移的建议，不用端口清单）。"""
+    if src not in kb.profiles or dst not in kb.profiles or kb.profiles[src].family == kb.profiles[dst].family:
+        return {}
+    from lmesh.core import migration
+
+    try:
+        sug = migration.suggest_map(g, kb, src, dst, user, inventory=False)
+    except migration.MigrateError:
+        return {}
+    given = {cmp.interface_name(str(k)).lower() for k in (user or {})}
+    return {
+        r["source"]: r["target"]
+        for r in sug["map"]
+        if r.get("target") and r["target"] != r["source"] and cmp.interface_name(r["source"]).lower() not in given
+    }
 
 
 def translate_text(

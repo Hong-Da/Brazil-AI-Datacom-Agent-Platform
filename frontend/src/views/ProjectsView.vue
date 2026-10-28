@@ -26,6 +26,7 @@ import WaitHero from './join/WaitHero.vue'
 import MyRequests from './join/MyRequests.vue'
 import { createPermission, myRequests, type CreatePermission, type JoinRequest } from './join/join'
 import { useNotify } from '@/stores/notify'
+import { projectLabel } from '@/project/scope'
 
 type Tab = 'mine' | 'shared' | 'others'
 type Dlg = { kind: 'new' } | { kind: 'copy' | 'transfer' | 'delete' | 'leave'; p: ProjectRow }
@@ -225,7 +226,7 @@ function closeNew(): void {
           <article v-for="p in rows" :key="p.ref" :class="['pcard', { 'is-cur': p.ref === project.ref }]" :data-testid="`project-card-${p.ref}`">
             <div class="pc-h">
               <div class="ttl">
-                <router-link :to="{ name: 'devices', params: { project: p.ref } }">{{ p.name }}</router-link>
+                <router-link :to="{ name: 'devices', params: { project: p.ref } }">{{ projectLabel(p.name, $t) }}</router-link>
                 <span class="slug">{{ p.ref }}<template v-if="p.ref === project.ref"> · {{ $t('projects.current') }}</template><template v-if="p.default"> · {{ $t('projects.default') }}</template></span>
               </div>
               <ProjRole v-if="p.role !== 'owner'" :role="p.role" />
@@ -273,7 +274,7 @@ function closeNew(): void {
               </thead>
               <tbody>
                 <tr v-for="p in rows" :key="p.ref" :class="{ 'is-cur-row': p.ref === project.ref }" :data-testid="`project-row-${p.ref}`">
-                  <td><router-link class="pname" :to="{ name: 'devices', params: { project: p.ref } }">{{ p.name }}</router-link><div class="small faint mono">{{ p.ref }}</div></td>
+                  <td><router-link class="pname" :to="{ name: 'devices', params: { project: p.ref } }">{{ projectLabel(p.name, $t) }}</router-link><div class="small faint mono">{{ p.ref }}</div></td>
                   <td><ProjRole :role="p.role" /></td>
                   <td class="num">{{ p.counts.devices }}</td>
                   <td class="small muted">{{ $t('projects.privRef', { p: p.counts.private, r: p.counts.refs }) }}</td>

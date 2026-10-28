@@ -81,6 +81,28 @@ def test_prefix_preserving() -> None:
     assert ipaddress.IPv4Address(s.anon_ip("10.20.30.1")) in ipaddress.ip_network("10.0.0.0/8")
 
 
+def test_network_addresses_keep_zero_host_bits() -> None:
+    """REQ-055-05：网段地址后跟反掩码 / 掩码 / 前缀长度时，替换后主机位仍为 0；主机地址不受影响。"""
+    text = (
+        "acl number 3001\n rule 5 permit ip source 10.95.0.0 0.0.255.255\n#\n"
+        "ip route-static 10.96.0.0 255.255.0.0 10.95.1.254\n#\n"
+        "interface GigabitEthernet0/1/0\n ip address 10.95.1.1 255.255.255.0\n#\nip ip-prefix P index 10 permit 10.97.4.0 24\n"
+        "ip prefix-list PL seq 5 permit 10.98.0.0/16\n"
+    )
+    out = Sanitizer("strict", KEY).sanitize(text).text.splitlines()
+    acl = out[1].split()
+    assert int(ipaddress.IPv4Address(acl[5])) & 0xFFFF == 0 and acl[6] == "0.0.255.255"
+    route = out[3].split()
+    assert int(ipaddress.IPv4Address(route[2])) & 0xFFFF == 0 and route[3] == "255.255.0.0"
+    pfx = out[8].split()
+    assert int(ipaddress.IPv4Address(pfx[-2])) & 0xFF == 0 and pfx[-1] == "24"
+    pl = out[-1].split()[-1]
+    assert ipaddress.ip_network(pl, strict=True).prefixlen == 16
+    host = out[6].split()[2]
+    assert ipaddress.IPv4Address(host) in ipaddress.ip_network(f"{acl[5]}/16")  # 前缀仍一致
+    assert int(ipaddress.IPv4Address(host)) & 0xFF != 0
+
+
 def test_public_report_has_no_originals() -> None:
     r = Sanitizer("basic", KEY).sanitize(HW)
     assert r.summary()["secret"] >= 3

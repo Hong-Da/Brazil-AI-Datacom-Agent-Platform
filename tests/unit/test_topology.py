@@ -129,6 +129,10 @@ def test_expected_findings(topo: topology.Topology, kb: KnowledgeBase, ruleset: 
     text = checks.render_text(f["message"], "zh-CN", res["texts"])
     assert text == "TOPO-ATN-A2 把 TOPO-RR-01 配置为 AS 64513，但 TOPO-RR-01 的 AS 是 64512"
     assert res["summary"]["by_device"]["TOPO-ATN-A2"] == 6
+    # REQ-055-23：比较的属性写在配置里时，定位到那一行（mtu 行），不是接口头
+    mtu = next(x for x in res["findings"] if x["rule"] == "xd.subnet.mtu")
+    explicit = [e for e in mtu["ends"] if e["node"] and e["node"].endswith("/mtu")]
+    assert explicit and all(e["schema"] == "interface.mtu" and e["lines"] for e in explicit)
     warn = consistency.check(topo, kb, ruleset, "error")
     assert warn["summary"]["total"] == 10 and warn["summary"]["unfiltered"] == 13
 

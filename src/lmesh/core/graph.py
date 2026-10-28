@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -45,6 +46,21 @@ def _short(schema_id: str, parent_schema: str | None) -> str:
     if parent_schema and schema_id.startswith(parent_schema + "."):
         return schema_id[len(parent_schema) + 1 :]
     return schema_id
+
+
+def _is_ip(v: str) -> bool:
+    try:
+        ipaddress.ip_address(v.split("/")[0])
+    except ValueError:
+        return False
+    return True
+
+
+def cmp_iface(name: str) -> str:
+    """接口名统一写法（同 compare.interface_name；延迟导入避免循环依赖）。"""
+    from lmesh.core.compare import interface_name
+
+    return interface_name(name)
 
 
 class Builder:
@@ -487,6 +503,16 @@ class Builder:
 
     # ----- 依赖边 -----
 
+    def _iface_index(self) -> dict[str, str]:
+        """统一写法的接口名（小写）→ 接口对象节点。"""
+        if getattr(self, "_ifx", None) is None:
+            self._ifx = {
+                cmp_iface(str(d.get("key"))).lower(): n
+                for n, d in self.g.nodes(data=True)
+                if d.get("schema") == "interface" and d.get("kind") == "object"
+            }
+        return self._ifx
+
     def _aliases(self) -> None:
         """Schema 标了 alias 的属性：取值登记为所属对象的另一个键（引用按别名也能找到对象，已有同键对象时不覆盖）。"""
         for nid, d in list(self.g.nodes(data=True)):
@@ -543,6 +569,14 @@ class Builder:
                         if v in (None, "", True, False):
                             continue
                         target = self.index.get((r.dst, str(v)))
+                        if target is None and r.dst == "interface":
+                            # 引用接口（BGP 源接口等）：按统一的接口名找（Lo0 → Loopback0）；
+                            # 取值是 IP 地址时（Nokia local-address）不是接口引用，不算悬空
+                            if _is_ip(str(v)):
+                                continue
+                            target = self._iface_index().get(cmp_iface(str(v)).lower())
+                            if target is None:
+                                continue  # 接口可能是设备上没有写进配置的物理口：不报悬空
                         if target is None and r.dst in resolved.implicit and r.dst in self.kb.nodes:
                             # 被引用即隐式存在的对象：作为派生节点补上（例如 ASR 920 业务实例引用的桥域）
                             target = f"{_short(r.dst, None)}[{v}]"

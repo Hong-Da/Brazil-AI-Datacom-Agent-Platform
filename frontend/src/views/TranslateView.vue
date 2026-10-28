@@ -99,8 +99,9 @@ watch(deviceId, async (id) => {
     versions.value = (await get<{ versions: VersionInfo[] }>(`/devices/${id}/versions`)).versions
   } catch { /* 版本列表取不到时用最新版本 */ }
   if (versionId.value !== null && !versions.value.some((v) => v.id === versionId.value)) versionId.value = null
-})
-watch([mode, deviceId, versionId], () => { void loadSource() })
+}, { immediate: true })
+// immediate：网址带 ?device= 打开时初始值也要加载源配置（REQ-055-33）
+watch([mode, deviceId, versionId], () => { void loadSource() }, { immediate: true })
 
 /** 目标默认选另一个平台族的 Profile */
 watch([srcFamily, profiles], () => {
@@ -509,7 +510,7 @@ onMounted(async () => {
           </button>
           <div>
             <span class="n" :class="`v-${verifyState}`">{{ verifyState === 'off' ? '—' : verify.equal ? $t('translate.consistent') : $t('translate.diffN', { n: verify.diffs ?? 0 }) }}</span>
-            <span class="k">{{ $t('translate.verifyK') }}</span>
+            <span class="k wrap" :title="$t('translate.verifyK')">{{ $t('translate.verifyK') }}</span>
           </div>
         </div>
 
@@ -626,6 +627,8 @@ onMounted(async () => {
 .sumbar .n.v-ok { color: var(--teal-ink); }
 .sumbar .n.v-diff { color: var(--amber-ink); }
 .sumbar .k { font-size: 12px; color: var(--ink-2); display: flex; gap: 6px; align-items: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 校验格的说明较长（英文、葡语）：允许换行，不截断（REQ-055-27） */
+.sumbar .k.wrap { white-space: normal; display: block; }
 
 .verify { margin-top: 10px; }
 .vlist { margin-top: 8px; border: 1px solid var(--amber-line); border-radius: 6px; background: var(--surface); overflow: hidden; }

@@ -211,6 +211,28 @@ def _is_netmask(ip: ipaddress.IPv4Address) -> bool:
     return v >> 24 == 255 and (inv & (inv + 1)) == 0
 
 
+_MASK_AFTER = re.compile(r"\s+(\d+\.\d+\.\d+\.\d+)(?![\w.])|(?:/|\s+)(\d{1,2})(?![\w.])")
+
+
+def _mask_after(text: str, pos: int) -> int | None:
+    """地址后面紧跟的掩码（255.255.0.0）、反掩码（0.0.255.255）或前缀长度（/16、华为 ip-prefix 的 “ 16”），换算成掩码；没有时 None。"""
+    m = _MASK_AFTER.match(text, pos)
+    if m is None:
+        return None
+    if m.group(2) is not None:
+        n = int(m.group(2))
+        return (0xFFFFFFFF << (32 - n)) & 0xFFFFFFFF if 0 < n <= 32 else None
+    try:
+        v = int(ipaddress.IPv4Address(m.group(1)))
+    except ValueError:
+        return None
+    if _is_netmask(ipaddress.IPv4Address(v)):
+        return v
+    if v and v >> 24 == 0 and (v & (v + 1)) == 0:  # 连续的反掩码
+        return (~v) & 0xFFFFFFFF
+    return None
+
+
 class Sanitizer:
     def __init__(self, level: Level = "basic", key: bytes | None = None, redact: list[str] | None = None):
         """redact：组织相关的词或正则（客户名、站点编码规则等），任何强度下都全文替换成 ORG-xxxxxx。"""
@@ -375,6 +397,14 @@ class Sanitizer:
 
         def ip(m: re.Match[str]) -> str:
             rep = self.anon_ip(m.group(1))
+            mask = _mask_after(m.string, m.end())
+            if (
+                mask is not None
+                and rep != m.group(1)
+                and int(ipaddress.IPv4Address(m.group(1))) & ~mask & 0xFFFFFFFF == 0
+            ):
+                # 网段地址（主机位全 0，后面跟掩码 / 反掩码 / 前缀长度）：替换后主机位仍为 0，网段语义不变（REQ-055-05）
+                rep = str(ipaddress.IPv4Address(int(ipaddress.IPv4Address(rep)) & mask))
             if rep != m.group(1):
                 reps.append(Replacement(idx, "ip", m.group(1), rep))
             return rep

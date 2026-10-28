@@ -72,7 +72,7 @@ def test_ip_table_cells_trace_and_defaults(kb, devices) -> None:  # type: ignore
 
 def test_bgp_secret_and_derives(kb, devices) -> None:  # type: ignore[no-untyped-def]
     t = build(kb, devices, preset="bgp")
-    pw = col(t, "password")
+    pw = col(t, "derive:peer_password")
     assert t["columns"][pw]["secret"] and t["summary"]["secret_columns"] == 1
     rr = [r for r in t["rows"] if r["device"] == "TOPO-RR-01" and r["key"] == "10.255.1.21"][0]
     assert rr["cells"][pw] == {
@@ -86,6 +86,23 @@ def test_bgp_secret_and_derives(kb, devices) -> None:  # type: ignore[no-untyped
     name, data = export_tables.to_csv(t, "zh-CN")
     text = data.decode("utf-8")
     assert "LMESH-SECRET-EXAMPLE" not in text and "已配置" in text and "未配置" in text
+
+
+def test_bgp_peer_inherits_from_group_and_groups_are_not_rows(kb) -> None:  # type: ignore[no-untyped-def]
+    """REQ-055-13、28：对等体的连接接口与认证密码从对等体组继承；组上的 description 不把组变成“对等体”行。"""
+    text = (
+        "bgp 65019\n group G1 internal\n peer G1 description GRP\n peer G1 connect-interface LoopBack100\n"
+        " peer G1 password cipher LMESH-SECRET-EXAMPLE\n peer 10.1.1.1 as-number 65019\n peer 10.1.1.1 group G1\n#\n"
+    )
+    devs = topology.from_texts([{"name": "hw.cfg", "text": text}], kb)
+    t = build(kb, devs, preset="bgp")
+    assert [r["key"] for r in t["rows"]] == ["10.1.1.1"]
+    cells = t["rows"][0]["cells"]
+    src = cells[col(t, "derive:peer_update_source")]
+    assert src["value"] == "LoopBack100" and src["origin"] == "derived" and src["lines"] == [4]
+    pw = cells[col(t, "derive:peer_password")]
+    assert pw["value"] is True and pw["secret"] and t["columns"][col(t, "derive:peer_password")]["secret"]
+    assert "LMESH-SECRET-EXAMPLE" not in export_tables.to_csv(t, "en")[1].decode("utf-8")
 
 
 def test_csv_bom_headers_and_source(kb, devices) -> None:  # type: ignore[no-untyped-def]

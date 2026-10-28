@@ -231,7 +231,7 @@ onMounted(async () => {
                       <span v-if="r.o.reason === 'cascade'" class="tag t-violet">{{ $t('cleanup.cascadeTag') }}</span>
                       <span v-else class="tag">{{ $t('cleanup.noRef') }}</span>
                     </div>
-                    <span class="ometa">{{ r.o.lines.length }} {{ $t('c.lines') }}</span>
+                    <span class="ometa">{{ $t('c.nLines', { n: r.o.lines.length }, r.o.lines.length) }}</span>
                     <div v-if="r.o.reason === 'cascade'" class="owhy" :class="{ block: locked(r.o) }">
                       {{ locked(r.o) ? $t('cleanup.lockedWhy', { p: parentName(r.o) }) : $t('cleanup.withParent', { p: parentName(r.o) }) }}
                     </div>

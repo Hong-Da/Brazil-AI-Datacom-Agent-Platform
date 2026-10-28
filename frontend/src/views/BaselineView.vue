@@ -27,6 +27,10 @@ const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
 const lang = computed(() => String(locale.value))
+// 规则详情里的说明是模板：没有具体对象，{key} 等占位符显示为 …（REQ-055-06）
+function ruleTemplate(v: Parameters<typeof pickLang>[0]): string {
+  return pickLang(v, lang.value).replace(/\{\w+\}/g, '…')
+}
 const terms = useTerms()
 
 const devices = ref<Device[]>([])
@@ -278,8 +282,8 @@ onMounted(async () => {
               <div class="panel-h"><h2>{{ pickLang(ruleInfo.title, lang) }}</h2><button class="btn btn-xs btn-ghost" type="button" @click="mode = 'dev'"><Icon name="chevL" small />{{ $t('baseline.backDev') }}</button></div>
               <div class="rdef">
                 <div class="row wrap" style="gap: 8px 14px"><span class="sev" :class="ruleInfo.severity"><Icon :name="sevIcon(ruleInfo.severity)" small />{{ $t(`baseline.sev.${ruleInfo.severity}`) }}</span><code class="small">{{ ruleInfo.id }}</code><span v-for="tg in ruleInfo.tags" :key="tg" class="tag">{{ tg }}</span></div>
-                <div class="cond"><h4>{{ $t('baseline.whatFails') }}</h4><p>{{ pickLang(ruleInfo.message, lang) }}</p></div>
-                <div class="cond"><h4>{{ $t('baseline.suggestion') }}</h4><p>{{ pickLang(ruleInfo.suggestion, lang) }}</p></div>
+                <div class="cond"><h4>{{ $t('baseline.whatFails') }}</h4><p>{{ ruleTemplate(ruleInfo.message) }}</p></div>
+                <div class="cond"><h4>{{ $t('baseline.suggestion') }}</h4><p>{{ ruleTemplate(ruleInfo.suggestion) }}</p></div>
                 <template v-for="rk in REMEDY_KEYS" :key="rk.key">
                   <div v-if="ruleInfo.remedy[rk.key]?.length" class="cond" :data-testid="`bl-remedy-${rk.key}`"><h4><DevChip :name="$t(rk.label)" :vendor="rk.key" /></h4><pre class="block">{{ ruleInfo.remedy[rk.key]!.join('\n') }}</pre></div>
                 </template>

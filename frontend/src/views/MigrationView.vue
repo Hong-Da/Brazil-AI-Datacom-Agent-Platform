@@ -232,7 +232,7 @@ const railSub = (i: number) => {
   if (i === 1) return t('migration.st.map', { m: r.stats.mapped, p: rows.value.filter((x) => rowState(x) === 'low').length + r.unmapped.length })
   if (i === 2) return dirty.value ? t('migration.st.dirty') : t('migration.st.cfg', { n: r.stats.lines })
   if (i === 3) return t('migration.st.cut', { n: steps.value.run.length, r: steps.value.rollback.length })
-  return !r.verify.checked ? t('migration.verOff') : ok.value ? t('migration.st.verOk') : t('migration.st.verBad', { n: r.verify.unexplained ?? 0 })
+  return !r.verify.checked ? t('migration.verOff') : ok.value ? t('migration.st.verOk') : t('migration.st.verBad', { n: r.verify.unexplained ?? 0 }, r.verify.unexplained ?? 0)
 }
 const STEPS = ['tr', 'map', 'cfg', 'cut', 'ver']
 
@@ -437,7 +437,7 @@ onMounted(async () => {
           <div class="verify" :class="!result.verify.checked ? 'off' : ok ? 'ok' : 'diff'" data-testid="mig-verify">
             <span class="vi"><Icon :name="!result.verify.checked ? 'info' : ok ? 'ok' : 'warn'" /></span>
             <div>
-              <h3>{{ !result.verify.checked ? $t('migration.verOff') : result.verify.equal ? $t('migration.verEqual') : ok ? $t('migration.verExplained', { n: result.verify.diffs ?? 0 }) : $t('migration.verBad', { n: result.verify.unexplained ?? 0 }) }}</h3>
+              <h3>{{ !result.verify.checked ? $t('migration.verOff') : result.verify.equal ? $t('migration.verEqual') : ok ? $t('migration.verExplained', { n: result.verify.diffs ?? 0 }, result.verify.diffs ?? 0) : $t('migration.verBad', { n: result.verify.unexplained ?? 0 }, result.verify.unexplained ?? 0) }}</h3>
               <div v-if="result.verify.checked" class="vnums">
                 <span>{{ $t('migration.v.diffs') }} <b>{{ result.verify.diffs ?? 0 }}</b></span>
                 <span>{{ $t('migration.v.unexplained') }} <b>{{ result.verify.unexplained ?? 0 }}</b></span>

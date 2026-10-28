@@ -7,6 +7,11 @@ withDefaults(defineProps<{ count?: number | null; testid?: string }>(), { count:
 <template>
   <label class="check small" :title="$t('hid.defaultTip')">
     <input v-model="model" type="checkbox" :data-testid="testid">
-    <span>{{ $t('hid.showDefault') }}<span v-if="count !== null" class="faint"> {{ count }}</span></span>
+    <span>{{ $t('hid.showDefault') }}<span v-if="count !== null" class="faint cnt">{{ count }}</span></span>
   </label>
 </template>
+
+<style scoped>
+/* 数字与文字之间的间隔用外边距：父元素是 flex 时开头的空格会被吞掉（REQ-055-29） */
+.cnt { margin-left: 4px; }
+</style>

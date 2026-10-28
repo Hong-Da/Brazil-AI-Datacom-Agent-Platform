@@ -100,7 +100,7 @@ def register(app: typer.Typer) -> None:
             lines.append("    " + c.t("check.fix") + checks.render_text(f["suggestion"], c.lang, res["texts"]))
         emit(c, res, "\n".join(lines))
         if s["has_errors"]:  # 退出码 1，摘要同时写 stderr（脚本里只看 stderr 也能知道原因）
-            typer.echo(lines[0], err=True)
+            output.err_summary(c, lines[0])
             raise typer.Exit(output.EXIT_ERROR)
 
     @app.command("cleanup", help="冗余清理：为孤儿对象（含级联孤儿）生成删除脚本 / generate a cleanup script")
@@ -144,5 +144,5 @@ def register(app: typer.Typer) -> None:
         lines.append(c.t("cleanup.verify_ok") if ok else c.t("cleanup.verify_failed"))
         emit(c, res, "\n".join(lines))
         if not ok:
-            typer.echo(c.t("cleanup.verify_failed"), err=True)
+            output.err_summary(c, c.t("cleanup.verify_failed"))
             raise typer.Exit(output.EXIT_ERROR)

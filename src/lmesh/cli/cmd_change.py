@@ -58,7 +58,7 @@ def text_report(c: Ctx, r: dict[str, Any]) -> str:
                 issues=len(v["issues"]),
             )
         )
-        lines.append((c.t("change.rollback", ops=len(part["ops"])) + "：" if title else "") + msg)
+        lines.append((c.t("change.rollback", ops=len(part["ops"])) + c.t("common.colon") if title else "") + msg)
     imp = r.get("impact") or {}
     if imp.get("business"):
         types = ", ".join(f"{k} {len(v)}" for k, v in imp["by_business"].items())

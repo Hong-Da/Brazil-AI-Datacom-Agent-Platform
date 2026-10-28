@@ -48,6 +48,14 @@ def emit(c: Ctx, data: Any, text: str | None = None) -> None:
         sys.stdout.write(text.rstrip("\n") + "\n")
 
 
+def err_summary(c: Ctx, line: str) -> None:
+    """有错误发现时把摘要再写一份到 stderr（脚本只看 stderr 也知道原因）。文字模式下 stdout 与 stderr 都是同一个终端时，
+    摘要已经是 stdout 的第一行，不再重复（REQ-055-10）。"""
+    if c.output == "text" and not c.quiet and sys.stdout.isatty() and sys.stderr.isatty():
+        return
+    sys.stderr.write(line.rstrip("\n") + "\n")
+
+
 def fail(c: Ctx, code: int, message: str, data: Any = None) -> NoReturn:
     """错误：提示写 stderr；json 模式下 stdout 同时给出结构化错误，方便程序解析。"""
     if c.output == "json":

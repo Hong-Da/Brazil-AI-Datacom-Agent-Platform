@@ -282,6 +282,27 @@ export function buildModel(data: GraphData, domainOf: (schema: string) => string
       ctxFirst.delete(g.id)
     }
   }
+  // 按视图层级时没有上下文路径的顶层对象（华为 flow-queue、flow-wred…）：数量多时按功能域收成组，
+  // 免得几十上百个对象直接挂在根上（REQ-055-25）；“折叠到功能域”也就有了可折叠的一层
+  if (!byDomain) {
+    const loose = [...nodes.values()].filter((n) => n.parent === root && n.kind === 'object' && !n.top)
+    if (loose.length > 40) {
+      const byDom = new Map<string, TNode[]>()
+      for (const n of loose) byDom.set(n.domain, [...(byDom.get(n.domain) ?? []), n])
+      for (const [d, arr] of byDom) {
+        if (arr.length < 5) continue
+        const gid = `${CTX_PREFIX}${d}`
+        if (!nodes.has(gid)) {
+          nodes.set(gid, {
+            id: gid, kind: 'domain', label: d, value: '', schema: null, origin: 'explicit', lines: [], domain: d,
+            parent: root, children: [], depth: 0, size: 0, hasUnknown: false, ctxDomains: new Set([d]),
+          })
+        }
+        ctxFirst.set(gid, Math.min(ctxFirst.get(gid) ?? Number.MAX_SAFE_INTEGER, ...arr.map(firstLine)))
+        for (const n of arr) { n.parent = gid; n.top = true }
+      }
+    }
+  }
   const sortLine = (n: TNode): number => ctxFirst.get(n.id) ?? firstLine(n)
 
   // 原文节点分组（在对象下；按功能域时顶层原文已由 raw 功能域收起，按视图层级时设备下的原文也收成一组）
@@ -301,6 +322,16 @@ export function buildModel(data: GraphData, domainOf: (schema: string) => string
         lines, domain: pid === root ? RAW_DOMAIN : nodes.get(pid)!.domain, parent: pid, children: [], depth: 0, size: 0, hasUnknown: false,
       })
       for (const n of arr) n.parent = gid
+    }
+    // 顶层未映射命令（华为 flow-queue 等）多时也收成一组：大配置里几十上百个直接挂在根上无法阅读（REQ-055-25）
+    const tops = [...nodes.values()].filter((n) => n.kind === 'ext' && n.parent === root)
+    if (tops.length > 8) {
+      const gid = `rawgroup:ext:${root}`
+      nodes.set(gid, {
+        id: gid, kind: 'rawgroup', label: `ext ×${tops.length}`, value: '', schema: null, origin: 'explicit',
+        lines: tops.flatMap((n) => n.lines).sort((a, b) => a - b), domain: RAW_DOMAIN, parent: root, children: [], depth: 0, size: 0, hasUnknown: false,
+      })
+      for (const n of tops) n.parent = gid
     }
   }
 
@@ -513,9 +544,16 @@ export function aggregateEdges(m: Model, visible: Set<string>, kinds: Set<string
   return [...agg.values()]
 }
 
-/** 节点的依赖边：出边（本节点依赖谁）与入边（谁依赖本节点）。 */
+/**
+ * 节点的依赖边：出边（本节点依赖谁）与入边（谁依赖本节点）。对象的依赖常挂在它下面的属性上
+ * （接口的 traffic-policy 引用在 …/qos_policy[inbound]/policy），子树里的边也算，子树内部互相的边不算（REQ-055-08）。
+ */
 export function nodeDeps(m: Model, id: string): { out: ApiEdge[]; in: ApiEdge[] } {
-  return { out: m.deps.filter((e) => e.from === id), in: m.deps.filter((e) => e.to === id) }
+  const inside = (x: string): boolean => x === id || x.startsWith(`${id}/`)
+  return {
+    out: m.deps.filter((e) => inside(e.from) && !inside(e.to)),
+    in: m.deps.filter((e) => inside(e.to) && !inside(e.from)),
+  }
 }
 
 /** 搜索：匹配名字、取值、Schema、id，最多 limit 个。 */

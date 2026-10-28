@@ -463,7 +463,7 @@ onMounted(async () => {
                     <div class="src"><span class="mono">{{ deviceName || '—' }}</span><span>{{ $t('check.linesAt', { list: selected.lines.join(', ') }) }}</span></div>
                     <div class="code">
                       <template v-for="(row, i) in code" :key="i">
-                        <div v-if="row.type === 'gap'" class="gap">⋯ {{ row.n }} {{ $t('c.lines') }}</div>
+                        <div v-if="row.type === 'gap'" class="gap">⋯ {{ $t('c.nLines', { n: row.n }, row.n) }}</div>
                         <div v-else class="l" :class="{ 'is-hl': row.hl, 'c-cmt': isComment(row.text) }"><span class="n">{{ row.no }}</span><span class="g"></span><span class="t">{{ row.text }}</span></div>
                       </template>
                     </div>

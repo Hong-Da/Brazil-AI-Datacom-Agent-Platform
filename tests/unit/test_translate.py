@@ -147,9 +147,17 @@ def test_translate_basic(kb) -> None:  # type: ignore[no-untyped-def]
 
 
 def test_translate_interface_type_warning(kb) -> None:  # type: ignore[no-untyped-def]
+    """REQ-055-26：跨平台族时没给映射的接口自动按目标写法换名（编号不变），不再留下源平台的接口名。"""
     r = translate.translate(graph(kb, SMALL, CISCO), kb, CISCO, HUAWEI)
-    w = [x for x in r["warnings"] if x["kind"] == "interface_type"]
-    assert w and w[0]["params"]["name"] == "Port-channel1"
+    assert r["interface_map_auto"].get("Port-channel1") == "Eth-Trunk1"
+    assert "interface Eth-Trunk1" in r["text"] and "Port-channel" not in r["text"]
+    assert not [x for x in r["warnings"] if x["kind"] == "interface_type"]
+    assert r["verify"]["unexplained"] == 0
+    # 用户给出的映射优先，不在自动换名里
+    r2 = translate.translate(graph(kb, SMALL, CISCO), kb, CISCO, HUAWEI, {"Port-channel1": "Eth-Trunk7"})
+    assert "Port-channel1" not in r2["interface_map_auto"] and "interface Eth-Trunk7" in r2["text"]
+    # 同平台族不自动换名
+    assert translate.translate(graph(kb, SMALL, CISCO), kb, CISCO, CISCO)["interface_map_auto"] == {}
 
 
 def test_translate_default_differs(kb, monkeypatch: pytest.MonkeyPatch) -> None:  # type: ignore[no-untyped-def]

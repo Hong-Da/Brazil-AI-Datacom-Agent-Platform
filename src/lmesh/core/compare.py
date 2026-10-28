@@ -28,6 +28,7 @@ import networkx as nx
 from lmesh.core.graph import DEVICE, _short
 from lmesh.core.kb import KnowledgeBase
 from lmesh.core.kb.model import NODE_TYPES, SchemaNode
+from lmesh.core.parser import line_count
 
 KINDS = ("added", "removed", "changed", "renamed")
 
@@ -457,6 +458,9 @@ class _Canonicalizer:
         if sn.id in self.sch.ref_types:  # 被改名的对象本身
             key = self.renames.get((sn.id, str(key)), key)
         key = self._rename(ref, key)
+        # 取值可能是接口名、也可能是别的的键（例如时钟源 ptp / 接口名）：正好是映射表里的接口时按接口换（同 translate）
+        if t == "string" and self.ifmap and isinstance(key, str) and interface_name(key).lower() in self.ifmap:
+            return self.ifmap[interface_name(key).lower()]
         return norm_scalar(t, key, self.ifmap) if key not in (None, "") else key
 
     def run(self) -> _Canon:
@@ -1012,7 +1016,7 @@ def versions(db_url: str, device_id: int) -> list[dict[str, Any]] | None:
                 "source_name": v.source_name,
                 "collected_at": iso(v.collected_at),
                 "kb_version": v.kb_version,
-                "lines": len(v.raw_text.split("\n")),
+                "lines": line_count(v.raw_text),
                 "latest": i == len(rows) - 1,
                 "current": v.id == cur,
             }

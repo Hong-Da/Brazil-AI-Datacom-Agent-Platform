@@ -13,6 +13,7 @@ from lmesh import paths
 from lmesh.core import analysis, config, graphstore, kbservice, review, store
 from lmesh.core import graph as graphmod
 from lmesh.core.kb import repo
+from lmesh.core.parser import line_count
 from lmesh.core.renderer import render_roundtrip
 from lmesh.core.store.models import ConfigVersion, Device, UnknownLine, iso
 
@@ -54,7 +55,7 @@ def _status(ver: ConfigVersion) -> dict[str, Any]:
     st = ver.structured or {}
     counts = st.get("counts") or {}
     return {
-        "lines": ver.raw_text.count("\n") + 1,
+        "lines": line_count(ver.raw_text),
         "parsed": bool(st),
         "unknown": int(counts.get("unknown", 0)),
         "coverage": st.get("coverage"),

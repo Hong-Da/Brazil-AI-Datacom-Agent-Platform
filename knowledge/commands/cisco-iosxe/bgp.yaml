@@ -414,8 +414,8 @@ cards:
       version: '17.15'
     status: draft
     maps:
-      bgp.peer: $ip-address||$ipv6-address||$peer-group-name
-      bgp.peer.description: $text
+      bgp.peer | bgp.peer_group: $ip-address||$ipv6-address||$peer-group-name
+      bgp.peer.description | bgp.peer_group.description: $text
   - id: cisco-iosxe.neighbor-ebgp-multihop
     syntax: neighbor { <ip-address> | <ipv6-address> | <peer-group-name> } ebgp-multihop [ <ttl> ]
     view: router-bgp
@@ -2144,8 +2144,8 @@ cards:
       version: '17.15'
     status: draft
     maps:
-      bgp.peer: $ip-address||$ipv6-address||$peer-group-name
-      bgp.peer.description: $text
+      bgp.peer | bgp.peer_group: $ip-address||$ipv6-address||$peer-group-name
+      bgp.peer.description | bgp.peer_group.description: $text
   - id: cisco-iosxe.neighbor-description@bgp-af
     syntax: neighbor { <ip-address> | <peer-group-name> } description <text>
     view: bgp-af

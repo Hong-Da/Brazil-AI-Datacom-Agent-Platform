@@ -94,13 +94,13 @@
 | `lmesh review approve <编号>… [--note]` / `review reject <编号>…` | 通过或驳回；通过时写回知识库并提交 |
 | `lmesh review approve-all [--kind card] [--contains 文字] [--rules 规则]` | 批量通过符合条件的待审条目（需要确认，`--yes` 跳过） |
 | `lmesh kb map [--family F]…` | 把 `knowledge/mappings/` 中的映射规则写进命令卡（手工编辑过的 `maps_manual` 卡不覆盖），并按命令卡重新汇总各 Profile 的支持情况；`--family`（可重复）只处理这些平台族的命令卡与 Profile，接入新平台族时不重写其他平台族的文件 |
-| `lmesh parse <文件> [--profile P] [--lines/--summary]` | 解析配置：每行的视图、命令卡、参数、类别（command / raw 功能域外 / unknown 未识别 / separator / comment / blank / end）；不填 `--profile` 时按厂商与版本自动选择，识别不了时退出码 2 |
+| `lmesh parse <文件> [--profile P] [--lines/--summary]` | 解析配置：每行的视图、命令卡、参数、类别（command / raw 功能域外 / unknown 未识别 / separator / comment / blank / end）；不填 `--profile` 时按厂商与版本自动选择，识别不了时退出码 2；`--lines` 时文本输出也逐行列出（行号、类别、视图、命令卡、原文） |
 | `lmesh unknown list [--limit N]` | 已导入配置中的未识别行，按归一化后的模式与出现次数汇总（用来补命令卡） |
 | `lmesh graph show <文件\|设备名> [--domain D] [--profile P]` | 显示配置图：语义节点（含 Profile 补出的隐藏默认节点）、依赖边（contains / reference / prerequisite / side_effect / mutex）、悬空引用 |
 | `lmesh analyze <文件\|设备名> [--part summary\|layers\|script]… [--profile P]` | 设备配置分析（REQ-034，默认 `summary` 与 `layers`）：`summary` 为各功能域对象数、行的分类计数与覆盖率、配置检查发现（按级别）、安全基线（basic）得分与不符合项、依赖默认值的关键配置（取值来自 Profile 默认值、而其他平台族默认值不同的属性）、悬空引用数，目标是已导入的设备时另有与上一版本相比的变化；`layers` 按 `knowledge/layers.yaml` 把节点归到 TCP/IP 各层（物理、数据链路、2.5 层 MPLS、网络、传输、应用，QoS 与时钟同步为跨层特性）并列出跨层依赖；`script` 为结构化脚本（每行的层级、所属节点、功能域与层、关键字 / 参数 / 引用的字符区间、被引用处、隐藏的默认值行）。`--part` 写错时退出码 2 |
 | `lmesh render <文件\|设备名> [--profile P] [--canonical] [--with-defaults]` | 解析建图后按图渲染回配置文本。默认往返模式：保留原有顺序、缩进与写法；`--canonical` 规范模式：只看图中的语义节点，按平台族写法重新生成命令（按视图分块、被引用的先出现，华为 `#` 分隔、`return` 结尾，Cisco `!` 与 `end`），未映射命令与功能域外原文按原文写回原位置；`--with-defaults` 含默认值的完整配置（规范模式，Profile 默认值也写成命令，集中放在所在块的显式行之后，前面一行注释 `! default`）。`--output json` 时 `lines` 给出每一行的来源节点、`origin`（explicit / default）、`kind`（command / original 按原文写回的命令 / extra 原文行 / separator / comment / exit / end），`default_lines` 为默认值行的行号，`uncovered` 为没能写成命令的节点（在 stderr 提示个数） |
-| `lmesh translate <文件\|设备名> --to <Profile> [--interface-map 文件] [-o 文件] [--profile P] [--no-verify] [--rules 规则集]` | 配置翻译：按有效值把配置翻译到目标 Profile（另一个平台族），接口名按映射表改写（子接口按父接口映射，没给映射表时同名）。默认值差异：源设备依赖默认值而目标默认值不同时显式写出并告警（`default_differs`），目标没有登记默认值时只提示（`default_unknown`），两边相同时不写；源设备显式值等于目标默认值时省略（`defaults`）。目标 Profile 不支持或写不出命令的节点、跨平台族的密码类取值（需重新设置）、未映射命令、功能域外原文、未识别行列在 `unsupported`（附原文行号），人工处理；目标写法必须给出、源配置没有的取值按推导规则写出并告警（`inferred_value`）；接口类型不属于目标平台族时告警（`interface_type`）。译文再解析建图后与源图按有效值对比（`verify`），列出项之外的差异记为 `verify_diff`。不给 `-o` 时译文写到 stdout、摘要与告警写到 stderr；**校验发现没有解释的差异时退出码 1**；`--rules <规则集编号或文件>` 先按翻译规则集改名（REQ-032，对象与引用一起改、端口按规则映射，显式映射表优先），结果另有 `naming` |
-| `lmesh migrate <文件\|设备名> --to <Profile> [--interface-map 文件] [--target-config 文件] [--model 型号] [--on-conflict migrate\|keep] [-o 目录] [--suggest-only] [--profile P] [--no-verify] [--rules 规则集]` | 割接迁移：翻译 + 接口映射，一次完成整机迁移。接口映射表可以只给部分（CSV / JSON / YAML / 两列文本，新接口写 `-` 表示不迁移），其余自动建议：逻辑接口（聚合口、环回口、桥域三层口等）编号不变换类型写法，物理口按同名 → 同速率同端口号 → 同速率依次 → 更高速率在端口清单中分配，每条附依据（`basis`）与置信度（`confidence`）；端口清单依次取 `--model` 指定型号的知识库清单（`knowledge/migration/ports/`）、`--target-config` 中的接口、知识库默认型号（提示 `port_inventory_assumed`）。管理口不迁移；没有映射的接口连同子接口、引用它们的配置不迁移；子接口跟随主接口；聚合口编号变化时成员口跟着改。给出新设备现有配置时在其上合并，只生成需要新增 / 修改的部分（`delta.cfg`），冲突按 `--on-conflict` 处理并告警。新配置再解析与旧设备按有效值对比（`verify`）。`-o` 目录里写 `new-config.cfg`、`delta.cfg`（有现有配置时）、`interface-map.csv`（可修改后用 `--interface-map` 传回）、`warnings.csv`、`steps.txt`（割接步骤：文字 + 命令，含回退）、`migration.json`，复用增量变更模块生成的下发与回滚脚本 `script.txt`、`rollback.txt`；`--suggest-only` 只给映射建议。不给 `-o` 时新配置写到 stdout、摘要与步骤写到 stderr；**校验发现没有解释的差异时退出码 1**，型号不存在等参数错误 2，文件不存在 4；`--rules` 按翻译规则集改名并把端口映射规则并入映射表（用户映射表 > 规则集 > 自动建议，REQ-032） |
+| `lmesh translate <文件\|设备名> --to <Profile> [--interface-map 文件] [-o 文件] [--profile P] [--no-verify] [--rules 规则集]` | 配置翻译：按有效值把配置翻译到目标 Profile（另一个平台族），接口名按映射表改写（子接口按父接口映射；跨平台族时没给映射的接口按目标平台写法换名、编号不变，列在 `interface_map_auto`；同平台族没给时同名）。目标平台要求编号是数字、源配置是名称的对象（Cisco IS-IS 进程名 → 华为 isis 进程号）自动编号并告警（`key_renumbered`）。默认值差异：源设备依赖默认值而目标默认值不同时显式写出并告警（`default_differs`），目标没有登记默认值时只提示（`default_unknown`），两边相同时不写；源设备显式值等于目标默认值时省略（`defaults`）。目标 Profile 不支持或写不出命令的节点、跨平台族的密码类取值（需重新设置）、未映射命令、功能域外原文、未识别行列在 `unsupported`（附原文行号），人工处理；目标写法必须给出、源配置没有的取值按推导规则写出并告警（`inferred_value`）；接口类型不属于目标平台族时告警（`interface_type`）。译文再解析建图后与源图按有效值对比（`verify`），列出项之外的差异记为 `verify_diff`。不给 `-o` 时译文写到 stdout、摘要与告警写到 stderr；**校验发现没有解释的差异时退出码 1**；`--rules <规则集编号或文件>` 先按翻译规则集改名（REQ-032，对象与引用一起改、端口按规则映射，显式映射表优先），结果另有 `naming` |
+| `lmesh migrate <文件\|设备名> --to <Profile> [--interface-map 文件] [--target-config 文件] [--model 型号] [--on-conflict migrate\|keep] [-o 目录] [--suggest-only] [--profile P] [--no-verify] [--rules 规则集]` | 割接迁移：翻译 + 接口映射，一次完成整机迁移。接口映射表可以只给部分（CSV / JSON / YAML / 两列文本，新接口写 `-` 表示不迁移），其余自动建议：逻辑接口（聚合口、环回口、桥域三层口等）编号不变换类型写法，物理口按同名 → 同速率同端口号 → 同速率依次 → 更高速率在端口清单中分配，每条附依据（`basis`）与置信度（`confidence`）；端口清单依次取 `--model` 指定型号的知识库清单（`knowledge/migration/ports/`）、`--target-config` 中的接口、知识库默认型号（提示 `port_inventory_assumed`）。管理口不迁移；没有映射的接口连同子接口、引用它们的配置不迁移；子接口跟随主接口；聚合口编号变化时成员口跟着改。给出新设备现有配置时在其上合并，只生成需要新增 / 修改的部分（`delta.cfg`），冲突按 `--on-conflict` 处理并告警；设备上只能有一个的对象（`knowledge/migration/<平台族>.yaml` 的 `single`，例如 BGP 进程）编号不同时并入现有的那一个，告警 `target_single`（error 级），割接步骤用新设备的进程号。新配置再解析与旧设备按有效值对比（`verify`）。`-o` 目录里写 `new-config.cfg`、`delta.cfg`（有现有配置时）、`interface-map.csv`（可修改后用 `--interface-map` 传回）、`warnings.csv`、`steps.txt`（割接步骤：文字 + 命令，含回退）、`migration.json`，复用增量变更模块生成的下发与回滚脚本 `script.txt`、`rollback.txt`；`--suggest-only` 只给映射建议。不给 `-o` 时新配置写到 stdout、摘要与步骤写到 stderr；**校验发现没有解释的差异时退出码 1**，型号不存在等参数错误 2，文件不存在 4；`--rules` 按翻译规则集改名并把端口映射规则并入映射表（用户映射表 > 规则集 > 自动建议，REQ-032） |
 | `lmesh naming list` | 翻译规则集（REQ-032）列表：内置示例（`knowledge/translate-rules/`，只读）与我的（`data/translate-rules/`），三类规则的条数；规则集有问题时列出问题数 |
 | `lmesh naming show <规则集>` | 显示规则集的 YAML 原文（编号或文件）；规则集不存在退出码 4 |
 | `lmesh naming test <规则集> <文件\|设备名> [--to Profile] [--target-config 文件] [--profile P]` | 试运行：按规则集在图上改名，列出改名清单（原名 → 新名、命中的规则、整理动作、同步改的引用）、端口映射（子接口随主接口）、冲突（多对一、与未改名的同类对象重名、与目标设备已有名称重名：都不执行）、命名规范告警、原文行中的旧名、知识缺口（目标平台没有登记名称长度上限）；**有冲突时退出码 1** |
@@ -1412,7 +1412,7 @@ JSON 输出中的关键字段：
 
 - `ok` = `true`
 - `data.summary.secret_columns` = `1`
-- `data.columns.9.key` = `"password"`
+- `data.columns.9.key` = `"derive:peer_password"`
 - `data.columns.9.secret` = `true`
 - `data.rows.0.cells.9.secret` = `true`
 - `data.rows.0.cells.2.value` = `"iBGP"`
@@ -2738,7 +2738,7 @@ JSON 输出中的关键字段：
 - `data.unsupported.0.params.text` = `"hostname R1"`
 - `data.lines.5.text` = `"interface Eth-Trunk1"`
 
-### 译文写到标准输出，摘要与告警写到标准错误
+### 译文写到标准输出，摘要、自动换名的接口与告警写到标准错误
 
 ```bash
 lmesh --lang zh-CN translate tests/inputs/translate/cs-small.cfg --to huawei-atn-v800r025
@@ -2746,9 +2746,9 @@ lmesh --lang zh-CN translate tests/inputs/translate/cs-small.cfg --to huawei-atn
 
 退出码：`0`
 
-输出包含：`interface Port-channel1`、`ip route-static 0.0.0.0 0.0.0.0 10.0.0.2`、`return`
+输出包含：`interface Eth-Trunk1`、`ip route-static 0.0.0.0 0.0.0.0 10.0.0.2`、`return`
 
-错误提示（stderr）包含：`校验通过`、`Port-channel 不是 huawei-vrp8 的接口类型`、`已省略`
+错误提示（stderr）包含：`校验通过`、`Port-channel1 → Eth-Trunk1`、`已省略`
 
 ### 规范模式渲染（按视图分块，Cisco 写 exit-address-family）
 

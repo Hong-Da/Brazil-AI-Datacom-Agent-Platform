@@ -93,6 +93,29 @@ def test_side_effect_restore_and_verify_catches_missing(kb) -> None:  # type: ig
     assert not v["ok"] and not v["equal"]
 
 
+def test_new_subinterface_keeps_ext_lines_and_binds_vpn_first(kb) -> None:  # type: ignore[no-untyped-def]
+    """REQ-055-15、16：新建子接口里未映射的命令（statistic enable）也要下发；目标配置先写地址后绑 VPN 时，
+    脚本仍先绑定 VPN 再配地址（绑定会清掉地址），并且地址命令依赖绑定命令。"""
+    cur = "ip vpn-instance V1\n ipv4-family\n  route-distinguisher 1:1\n#\ninterface GigabitEthernet0/1/1\n undo shutdown\n#\n"
+    tgt = cur + (
+        "interface GigabitEthernet0/1/1.1599\n vlan-type dot1q 1599\n ip address 10.1.1.1 255.255.255.248\n"
+        " ip binding vpn-instance V1\n statistic enable\n#\n"
+    )
+    r = change.change_text(cur, tgt, kb, "huawei-atn-v800r025", rollback=False, with_impact=False)
+    texts = [d["text"] for d in r["ops"]]
+    assert "statistic enable" in texts and r["verify"]["ok"]
+    bind, addr = texts.index("ip binding vpn-instance V1"), texts.index("ip address 10.1.1.1 255.255.255.248")
+    assert bind < addr
+    assert any(x["kind"] == "side_effect" and x["seq"] == r["ops"][bind]["seq"] for x in r["ops"][addr]["after"])
+
+
+def test_modify_records_current_line(kb) -> None:  # type: ignore[no-untyped-def]
+    """REQ-055-20：修改已有取值的命令带上当前配置里被改的行号（界面“当前配置第 N 行”）。"""
+    cur = "interface GigabitEthernet0/1/9\n description X\n mtu 1500\n#\n"
+    r = change.change_text(cur, cur.replace("mtu 1500", "mtu 9208"), kb, "huawei-atn-v800r025", rollback=False)
+    assert [(o["action"], o["lines"]) for o in r["ops"]] == [("modify", {"current": [3], "target": [3]})]
+
+
 def test_verify_catches_bad_order(kb) -> None:  # type: ignore[no-untyped-def]
     """先删前缀列表、后改路由策略的引用：模拟执行发现“删除了还被引用的对象”。"""
     a, b = _side(kb, "atn-base.cfg"), _side(kb, "atn-policy-rename.cfg")
@@ -180,6 +203,20 @@ def test_impact_down_and_partial_name(kb) -> None:  # type: ignore[no-untyped-de
     assert "rp.prefix_list[LOOPBACKS]" in {x["node"] for x in r["objects"]}
     r2 = impact.analyze(g, kb, ["GigabitEthernet0/2/1.101"], "both")
     assert r2["seeds"][0]["node"] == "interface[GigabitEthernet0/2/1.101]"
+
+
+def test_impact_loopback_source_and_own_protocol_settings(kb) -> None:  # type: ignore[no-untyped-def]
+    """REQ-055-17、18：对等体组靠 connect-interface 建连，环回口的影响能到对等体组与组内对等体；
+    接口自身的 OSPF / MPLS 设置算作受影响。"""
+    g = _side(kb, "atn-base.cfg").graph
+    up = impact.analyze(g, kb, ["interface[LoopBack0]"], "up")
+    hit = {x["node"] for x in up["nodes"]}
+    assert "bgp.instance[65000]/bgp.peer_group[RR]" in hit
+    assert any(e["edge"] == "reference" and "update_source" in e["node"] for e in up["nodes"])
+    text = "interface GigabitEthernet0/1/9\n ip address 10.1.1.1 255.255.255.252\n ospf network-type p2p\n mpls\n mpls ldp\n#\n"
+    g2 = compare.side_from_text(text, kb, "huawei-atn-v800r025", "x").graph
+    own = {x["node"] for x in impact.analyze(g2, kb, ["interface[GigabitEthernet0/1/9]"], "up")["nodes"]}
+    assert {"interface[GigabitEthernet0/1/9]/ospf[_]", "interface[GigabitEthernet0/1/9]/mpls[_]"} <= own
 
 
 def test_impact_errors(kb) -> None:  # type: ignore[no-untyped-def]

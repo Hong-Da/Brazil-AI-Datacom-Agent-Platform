@@ -189,7 +189,7 @@ def register(app: typer.Typer) -> None:
             template_fail(c, e)
         emit(c, r, check_text(c, r))
         if not r["compliant"]:  # 退出码 1，摘要同时写 stderr
-            typer.echo(c.t("template.not_compliant", n=r["summary"]["by_severity"]["error"]), err=True)
+            output.err_summary(c, c.t("template.not_compliant", n=r["summary"]["by_severity"]["error"]))
             raise typer.Exit(output.EXIT_ERROR)
 
     @tapp.command("extract", help="按模板提取变量（可直接作为 generate 的参数表）/ extract variables")
@@ -321,7 +321,7 @@ def register(app: typer.Typer) -> None:
         data = r if out_dir is None else {**r, "out_dir": str(out_dir)}
         emit(c, data, "\n".join(lines))
         if s["failed"]:
-            typer.echo(lines[0], err=True)
+            output.err_summary(c, lines[0])
             raise typer.Exit(output.EXIT_ERROR)
 
     @tapp.command("save", help="校验并保存模板到运行时知识库 / save a template into the knowledge base")

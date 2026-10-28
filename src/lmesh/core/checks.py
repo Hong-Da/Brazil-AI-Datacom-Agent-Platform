@@ -118,10 +118,14 @@ def list_rules(kb: KnowledgeBase, directory: Path) -> dict[str, Any]:
 # ---------- 图上的辅助结构 ----------
 
 
+NOT_ORPHAN = {"interface"}
+
+
 def ref_target_types(kb: KnowledgeBase) -> set[str]:
     out = {n.ref for n in kb.nodes.values() if n.type == "ref" and n.ref}
     out |= {d.dst for d in kb.deps if d.kind == "reference"}
-    return {t for t in out if t in kb.nodes}
+    # 接口是端口而不是“定义了等着被引用”的对象：被 BGP 源接口等引用，但没人引用时不算孤儿（REQ-055-17）
+    return {t for t in out if t in kb.nodes and t not in NOT_ORPHAN}
 
 
 @dataclass

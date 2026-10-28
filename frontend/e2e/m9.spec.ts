@@ -33,7 +33,7 @@ test('网络：新建、成员与规则、切换、全部设备汇总、网络�
     // 只有默认网络：项目层的按网络页面（升级前的旧网址）直接进默认网络
     await page.goto(`/p/${SLUG}/scripts`)
     await expect(page).toHaveURL(new RegExp(`/p/${SLUG}/n/default/scripts$`))
-    await expect(page.getByTestId('network-current')).toContainText('默认网络')
+    await expect(page.getByTestId('network-current')).toContainText('全部设备') // 只有默认网络时它就是全部设备（REQ-055-12）
     await expect(page.getByTestId('net-scope')).toContainText('5 台设备')
 
     // 新建网络 → 进入成员页

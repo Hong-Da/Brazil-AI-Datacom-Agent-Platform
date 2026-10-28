@@ -3,6 +3,8 @@
 family: cisco-iosxe
 management: ['^GigabitEthernet0$', '^MgmtEth', '^Management']
 management_vrf: ['^Mgmt-intf$', '^(?i:mgmt-intf)$']
+# 设备上只能有一个的对象（Schema 节点）：合并到现有配置时，编号不同也并入现有的那一个并告警（例如只能有一个 BGP 进程）
+single: [bgp.instance]
 # 逻辑接口在本平台族的类型写法（跨平台族迁移时编号不变、换类型写法；Null 要加引号，否则 YAML 读成空值）
 logical_types: {lag: Port-channel, loopback: Loopback, bdi: BDI, vlanif: Vlan, 'null': 'Null', tunnel: Tunnel}
 enter: [configure terminal]

@@ -160,7 +160,7 @@ def register(app: typer.Typer) -> None:
         res = script_check.public(r)
         emit(c, res, text_report(c, res))
         if res["summary"]["errors"]:
-            typer.echo(text_report(c, res).split("\n")[0], err=True)
+            output.err_summary(c, text_report(c, res).split("\n")[0])
             raise typer.Exit(output.EXIT_ERROR)
 
     @app.command(

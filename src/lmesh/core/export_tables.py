@@ -266,6 +266,23 @@ def _peer_remote_as(c: Ctx) -> Cell:
     return own
 
 
+def _peer_inherit(attr: str) -> Callable[[Ctx], Cell]:
+    """对等体自己没配时取所属对等体组的（连接接口、认证密码等，REQ-055-13）。"""
+
+    def f(c: Ctx) -> Cell:
+        own = c.ex.cell(c.node, c.obj, attr)
+        if own.origin not in ("none", "unsupported"):
+            return own
+        gn = _peer_group_node(c)
+        if gn is not None and f"bgp.peer_group.{attr}" in c.kb.nodes:
+            gc = c.ex.cell(gn, c.kb.nodes["bgp.peer_group"], attr)
+            if gc.origin not in ("none", "unsupported"):
+                return Cell(gc.value, "derived", gc.nodes, gc.lines, gc.secret)  # 敏感字段仍只给出“已配置”
+        return own
+
+    return f
+
+
 def _peer_type(c: Ctx) -> Cell:
     ras = _peer_remote_as(c)
     inst = _instance(c)
@@ -425,12 +442,16 @@ DERIVES: dict[str, tuple[str, Callable[[Ctx], Cell]]] = {
     "peer_afs": ("bgp.peer", _peer_afs),
     "peer_import": ("bgp.peer", _peer_policy("import_policy")),
     "peer_export": ("bgp.peer", _peer_policy("export_policy")),
+    "peer_update_source": ("bgp.peer", _peer_inherit("update_source")),
+    "peer_password": ("bgp.peer", _peer_inherit("password")),
     "vrf_rt_import": ("vrf.instance", _vrf_rt("import")),
     "vrf_rt_export": ("vrf.instance", _vrf_rt("export")),
     "vrf_interfaces": ("vrf.instance", _vrf_interfaces),
     "bd_members": ("bridge_domain", _bd_members),
     "bd_l3_interface": ("bridge_domain", _bd_l3),
 }
+# 取值是敏感字段的计算列：同字段列一样只导出“已配置 / 未配置”
+SECRET_DERIVES = {"peer_password"}
 
 
 # ---------------------------------------------------------------- 列
@@ -449,6 +470,7 @@ def _column(kb: KnowledgeBase, obj: str, c: Any, style: str, spec: dict[str, Any
         if der not in DERIVES or DERIVES[der][0] != sn.id:
             raise ExportError("export.bad_derive", derive=str(der), object=sn.id)
         out["key"] = f"derive:{der}"
+        out["secret"] = der in SECRET_DERIVES
     elif fld:
         try:
             fs = field_schema(kb, sn, str(fld))

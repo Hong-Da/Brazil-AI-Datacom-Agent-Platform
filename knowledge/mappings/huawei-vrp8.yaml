@@ -178,8 +178,8 @@ rules:
   - view: ^bgp$
     syntax: '^peer <[\w-]+> description '
     maps:
-      bgp.peer: *peer
-      bgp.peer.description: "$description-text||$description"
+      bgp.peer | bgp.peer_group: *peer
+      bgp.peer.description | bgp.peer_group.description: "$description-text||$description"
 
   # ---------- BGP 地址族 ----------
   - view: ^bgp$

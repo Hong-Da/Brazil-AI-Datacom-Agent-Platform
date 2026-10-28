@@ -66,6 +66,12 @@ def text_report(c: Ctx, r: dict[str, Any]) -> str:
         lines.append(
             c.t("translate.verify_ok") if not v["unexplained"] else c.t("translate.verify_bad", n=v["unexplained"])
         )
+    auto = r.get("interface_map_auto") or {}
+    if auto:  # 跨平台族自动换名的接口（REQ-055-26）
+        lines.append(f"[{c.t('translate.section.ifmap_auto')}] {len(auto)}")
+        lines += [f"  {a} → {b}" for a, b in list(auto.items())[:_SHOW]]
+        if len(auto) > _SHOW:
+            lines.append("  " + c.t("translate.more", n=len(auto) - _SHOW))
     for title, items in (
         ("translate.section.warnings", r["warnings"]),
         ("translate.section.unsupported", [u for u in r["unsupported"] if u["kind"] == "node"]),

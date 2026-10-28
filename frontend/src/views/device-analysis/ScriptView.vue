@@ -117,7 +117,17 @@ function scrollToDefault(node: string): void {
   })
 }
 function foldAll(): void {
+  // 折叠后滚到原先所在块的块头：大配置（华为顶层上千个块）滚动条停在深处时，看起来像只折了一个块（REQ-055-25）
+  const first = rows.value[Math.floor((box.value?.scrollTop ?? 0) / ROW)]
+  let top = first && first.type === 'line' ? first.no : null
+  let hops = 0
+  while (top !== null && props.ix.byNo.get(top)?.parent && hops++ < 64) top = props.ix.byNo.get(top)!.parent ?? null
   fold.value = foldAllOf(props.ix)
+  nextTick(() => {
+    const i = top === null ? 0 : Math.max(0, rowIndex(rows.value, { line: top }))
+    if (box.value) box.value.scrollTop = i * ROW
+    onScroll()
+  })
 }
 function unfoldAll(): void {
   fold.value = new Set()

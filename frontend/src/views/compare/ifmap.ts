@@ -27,10 +27,10 @@ export function setRow(rows: MapRow[], a: string, b: string): MapRow[] {
   return rows.map((r) => (r.a === a ? { a, b, how: !b ? 'none' : sameName(a, b) ? 'same' : 'manual' } : r))
 }
 
-/** 传给后端的映射：同名的不必传（后端本来就按名字配对），未映射的不传。 */
+/** 传给后端的映射：完全同名的不必传（后端本来就按名字配对），未映射的不传；只差大小写的要传（Loopback0 → LoopBack0，REQ-055-35）。 */
 export function toInterfaceMap(rows: MapRow[]): Record<string, string> {
   const m: Record<string, string> = {}
-  for (const r of rows) if (r.how === 'manual' && r.a && r.b) m[r.a] = r.b
+  for (const r of rows) if (r.a && r.b && (r.how === 'manual' || (r.how === 'same' && r.a.trim() !== r.b.trim()))) m[r.a] = r.b
   return m
 }
 

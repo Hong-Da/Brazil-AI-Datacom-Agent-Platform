@@ -7,9 +7,12 @@
 #   interface       端口开关：enter / exit / shutdown / no_shutdown，{name} 为接口名
 #   bgp             BGP 会话隔离与恢复：{asn} 本地 AS、{vrf} VPN 实例、{peer} 对等体地址
 #   show            核对命令（割接前后各执行一次对比）
+#   single          设备上只能有一个的对象：合并到现有配置时并入现有的那一个，并告警 target_single
 family: huawei-vrp8
 management: ['^MEth', '^Ethernet0/0/0$']
 management_vrf: ['^__LOCAL_OAM_VPN__$', '^(?i:mgmt)']
+# 设备上只能有一个的对象（Schema 节点）：合并到现有配置时，编号不同也并入现有的那一个并告警（例如只能有一个 BGP 进程）
+single: [bgp.instance]
 logical_types: {lag: Eth-Trunk, loopback: LoopBack, bdi: Vbdif, vlanif: Vlanif, 'null': 'NULL', tunnel: Tunnel}
 enter: [system-view]
 commit: [commit]
