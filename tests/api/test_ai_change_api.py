@@ -130,6 +130,12 @@ def test_cutover_plan_api_export(env, monkeypatch: pytest.MonkeyPatch) -> None: 
     en = alice.get(f"{P}/ai/cutover-plan/{b['id']}/export?lang=en")
     assert zh.status_code == 200 and "attachment" in zh.headers["content-disposition"]
     assert "把 ATN-CHANGE-01 换成" in zh.text and "Replace ATN-CHANGE-01 with" in en.text
+    # 没有选新设备现有配置时标题写“替换为”；并入已导入设备时写“并入”（REQ-056-07）
+    assert "割接方案：ATN-CHANGE-01 替换为" in zh.text and "Cutover plan: replace ATN-CHANGE-01 with" in en.text
+    from lmesh.core import ai_suggest_change as asc
+
+    assert asc._DOC_T["zh-CN"]["title_merge"].format(device="A", target="B") == "割接方案：A 并入 B"
+    assert asc._DOC_T["en"]["title_merge"].format(device="A", target="B") == "Cutover plan: merge A into B"
     assert alice.get(f"{P}/ai/cutover-plan/{b['id']}/export?lang=fr").status_code == 422
 
 

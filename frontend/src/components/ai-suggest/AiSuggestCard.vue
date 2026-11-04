@@ -27,6 +27,11 @@ const c = computed(() => (it.value.content ?? {}) as Record<string, unknown>)
 const VI: Record<string, string> = { pass: 'ok', warn: 'warn', reject: 'err' }
 const vchip = computed(() => (fail.value ? 'fail' : it.value.check_status))
 const blockedKb = computed(() => it.value.kb && !props.canKb)
+// 报告摘要一次给出中英两段（kind 为段落语言），AI 写的标题语言不定；标题按界面语言取文案（REQ-056-06）
+const title = computed(() => {
+  const para = it.value.skill === 'report-summary' ? `reportPara.${it.value.kind === 'zh-CN' ? 'zh' : it.value.kind}` : ''
+  return para && te(`ai-suggest.${para}`) ? T(para) : it.value.check.title_display || it.value.title || `#${it.value.id}`
+})
 
 function reasonText(code: string): string {
   return te(`ai-suggest.r.${code}`) ? T(`r.${code}`) : code
@@ -78,7 +83,7 @@ defineExpose({ stopEdit: () => { editing.value = false }, setEditError: (m: stri
     <div class="sg-h" @click="emit('toggle')">
       <button class="tw" type="button" :aria-expanded="open" :aria-label="it.title"><Icon name="chevR" small /></button>
       <div class="sg-t">
-        <div class="tl"><span class="cat">{{ te(`ai-suggest.cat.${it.category}`) ? T(`cat.${it.category}`) : it.category }}</span><span>{{ it.check.title_display || it.title || `#${it.id}` }}</span></div>
+        <div class="tl"><span class="cat">{{ te(`ai-suggest.cat.${it.category}`) ? T(`cat.${it.category}`) : it.category }}</span><span>{{ title }}</span></div>
         <div class="rt">
           <span v-if="adopted" class="adopted-chip"><Icon name="spark" small />{{ it.edited ? T('editedChip') : T('adoptedChip') }}</span>
           <span v-else-if="it.status === 'dismissed'" class="tag">{{ T('dismissedTag') }}</span>

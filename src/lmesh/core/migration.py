@@ -814,6 +814,35 @@ class _Migrator:
 
     # ----- 4. 合并到新设备现有配置 -----
 
+    def ibgp_to_ebgp(
+        self, g_t: nx.MultiDiGraph, kids_t: dict[str, list[str]], inst: str, old_as: Any, new_as: Any
+    ) -> None:
+        """BGP 并入新设备上 AS 不同的现有进程时，原来与本地 AS 相同的对等体（iBGP）会变成跨 AS（REQ-056-08）。"""
+        if old_as is None or new_as is None or str(old_as) == str(new_as):
+            return
+        peers = sorted(
+            {
+                str(g_t.nodes[_parent(g_t, n)].get("key"))
+                for n in _subtree(kids_t, inst)
+                if str(g_t.nodes[n].get("schema") or "").endswith("remote_as")
+                and str(g_t.nodes[n].get("value")) == str(old_as)
+                and _parent(g_t, n) in g_t
+            }
+        )
+        if peers:
+            self.warnings.append(
+                _warn(
+                    "ibgp_to_ebgp",
+                    "error",
+                    None,
+                    target_node=inst,
+                    peers=", ".join(peers),
+                    old=old_as,
+                    new=new_as,
+                    count=len(peers),
+                )
+            )
+
     def merge(self, g_t: nx.MultiDiGraph) -> tuple[nx.MultiDiGraph, set[str], dict[str, Any]]:
         assert self.target is not None
         ge = self.target
@@ -875,6 +904,7 @@ class _Migrator:
                     self.explained_exact.add(c)
                     if d.get("schema") == "bgp.instance":
                         self.new_asn = ge.nodes[one].get("key")
+                        self.ibgp_to_ebgp(g_t, kids_t, c, d.get("key"), self.new_asn)
                 if hit is not None and hit in gm:
                     if kind == "object":
                         to_m[c] = hit
@@ -981,17 +1011,38 @@ class _Migrator:
             self.warnings.append(_warn("verify_failed", "error", None, error=e.key))
             return {"checked": False, "equal": False, "diffs": 0, "unexplained": 0, "target_existing": 0}
         self.reshape_back(b.graph)
-        r = cmp.compare(cmp.Side(self.g, "old"), b, self.kb, interface_map=self.final_map or None)
-        explained = self.explained | {w["node"] for w in self.warnings + self.unsupported if w.get("node")}
+        # 翻译时改了编号的对象（IS-IS 进程名 CORE → 1，REQ-056-01）：旧图按同样的编号改过再比，
+        # 有原因的节点编号跟着改；改号告警本身只说明改号，不覆盖新对象下的差异
+        renum = [
+            (str(w["params"]["schema"]), str(w["params"]["old"]), str(w["params"]["new"]))
+            for w in self.warnings
+            if w.get("kind") == "key_renumbered"
+        ]
+        base = tr._apply_renumber(self.g, self.kb, renum) if renum else self.g
+        r = cmp.compare(cmp.Side(base, "old"), b, self.kb, interface_map=self.final_map or None)
+        explained = self.explained | {
+            w["node"] for w in self.warnings + self.unsupported if w.get("node") and w.get("kind") != "key_renumbered"
+        }
+        for schema, old, new in renum:
+            a_id, b_id = f"{tr._short(schema, None)}[{old}]", f"{tr._short(schema, None)}[{new}]"
+            explained |= {b_id + x[len(a_id) :] for x in explained if x == a_id or x.startswith(a_id + "/")}
         e_ids = {_norm_id(n) for n in self.target.nodes} if self.target is not None else set()
 
         def covered(node: str | None) -> bool:
             return bool(node) and any(node == x or str(node).startswith(x + "/") for x in explained)
 
+        src_entries = self.kb.resolve_profile(self.src).entries
+        dst_entries = self.kb.resolve_profile(self.dst).entries
         unexplained = existing = 0
         for d in r["diffs"]:
             na, nb = (d.get("a") or {}).get("node"), (d.get("b") or {}).get("node")
             if covered(na) or (na is None and covered(nb)) or na in self.explained_exact:
+                continue
+            # 与翻译校验同样的两条（REQ-056-01）：源平台没有这个开关时目标取缺省值；按 assume 显式写出的管理状态
+            se, de = src_entries.get(str(d.get("schema") or "")), dst_entries.get(str(d.get("schema") or ""))
+            if d["kind"] == "added" and se is not None and not se.supported:
+                continue
+            if d["kind"] == "added" and se is None and de is not None and de.assume is not None:
                 continue
             if nb and (_norm_id(nb) in self.kept_b or (na is None and _norm_id(nb) in e_ids)):
                 existing += 1
@@ -1008,8 +1059,8 @@ class _Migrator:
                     schema=d.get("schema"),
                     diff=d["kind"],
                     cid=d["node"],
-                    src_value=(d.get("a") or {}).get("value"),
-                    dst_value=(d.get("b") or {}).get("value"),
+                    src_value=tr._shown((d.get("a") or {}).get("value")),
+                    dst_value=tr._shown((d.get("b") or {}).get("value")),
                     lines=(d.get("a") or {}).get("lines") or [],
                 )
             )

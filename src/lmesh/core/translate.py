@@ -494,6 +494,11 @@ class TranslateError(ValueError):
         self.key, self.kind, self.fmt = key, kind, fmt
 
 
+def _shown(v: Any) -> Any:
+    """校验差异文案里的取值：没有值（新增 / 删除的一侧）显示为“—”，不让占位符原样出现（REQ-056-02）。"""
+    return "—" if v is None else v
+
+
 def _item(kind: str, key: str, node: str | None = None, **params: Any) -> dict[str, Any]:
     """告警 / 不支持 / 省略项：kind 与文案键 key 固定，params 是文案参数（含 node、schema，取值不随语言变化）。"""
     lines = params.pop("lines", [])
@@ -970,8 +975,8 @@ class _Translator:
                     schema=d.get("schema"),
                     diff=d["kind"],
                     cid=d["node"],
-                    src_value=(d.get("a") or {}).get("value"),
-                    dst_value=(d.get("b") or {}).get("value"),
+                    src_value=_shown((d.get("a") or {}).get("value")),
+                    dst_value=_shown((d.get("b") or {}).get("value")),
                     lines=(d.get("a") or {}).get("lines") or [],
                 )
             )

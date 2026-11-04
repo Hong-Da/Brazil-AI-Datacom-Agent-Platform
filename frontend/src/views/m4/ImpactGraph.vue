@@ -93,10 +93,15 @@ function run(): void {
   if (!cy) return
   const n = props.nodes.length
   const pos = props.layout === 'layer' ? layerPositions() : {}
+  // 标签算进节点大小后节点又宽又矮，cose 会把一个中心的几十个叶子竖着堆成细柱（REQ-056-03）；
+  // 给出与画布同宽高比、按节点数定面积的 boundingBox，结果铺满画布且标签不重叠
+  const aspect = box.value && box.value.clientHeight > 0 ? box.value.clientWidth / box.value.clientHeight : 1.6
+  const area = n * 30000
+  const bb = { x1: 0, y1: 0, w: Math.sqrt(area * aspect), h: Math.sqrt(area / aspect) }
   const opts: cytoscape.LayoutOptions = props.layout === 'layer'
     ? ({ name: 'preset', positions: (node: cytoscape.NodeSingular) => pos[node.id()], padding: 20, fit: true } as unknown as cytoscape.LayoutOptions)
     // 节点多时加大斥力与边长，并把标签算进节点大小，减少标签重叠
-    : ({ name: 'cose', animate: false, randomize: true, fit: true, padding: 24, nodeDimensionsIncludeLabels: true, nodeRepulsion: () => 7000 * Math.max(1, n / 25), idealEdgeLength: () => 60 + Math.min(120, n), gravity: 0.5, numIter: 1500 } as cytoscape.LayoutOptions)
+    : ({ name: 'cose', animate: false, randomize: true, fit: true, padding: 24, boundingBox: bb, nodeDimensionsIncludeLabels: true, nodeRepulsion: () => 7000 * Math.max(1, n / 25), idealEdgeLength: () => 60 + Math.min(120, n), gravity: 0.5, numIter: 1500 } as cytoscape.LayoutOptions)
   const lay = cy.layout(opts)
   // 节点少时不要放得过大
   lay.one('layoutstop', () => { if (cy && cy.zoom() > 1.3) { cy.zoom(1.3); cy.center() } })

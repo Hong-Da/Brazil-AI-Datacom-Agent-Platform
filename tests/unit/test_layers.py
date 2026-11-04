@@ -167,6 +167,14 @@ def test_script_lines_refs_and_defaults(kb: KnowledgeBase, lay: layers.Layers) -
     assert ca.script(g, kb, lay, with_defaults=False)["defaults"] == []
 
 
+def test_script_line_count_ignores_trailing_newline(kb: KnowledgeBase, lay: layers.Layers) -> None:
+    """REQ-056-04：末尾换行不多算一行，与 parser.line_count（设备列表的行数）一致。"""
+    from lmesh.core.parser import line_count
+
+    for text in (TEXT, TEXT + "\n", TEXT + "\n\n"):
+        assert len(ca.script(_g(kb, text), kb, lay)["lines"]) == line_count(text)
+
+
 def test_script_cisco_refs(kb: KnowledgeBase, lay: layers.Layers) -> None:
     g = _g(kb, (SAMPLES / "cisco-iosxe-asr920-synthetic" / "pe-asr920-04-advanced.cfg").read_text(encoding="utf-8"))
     s = ca.script(g, kb, lay)

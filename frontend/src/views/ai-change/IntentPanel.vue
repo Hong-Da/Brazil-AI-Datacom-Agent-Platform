@@ -32,17 +32,22 @@ const params = computed(() => ({ device_id: props.deviceId, intent: intent.value
 const steps = computed(() => flowSteps(aiState.value, plan.value?.adopted.length ?? 0))
 const rows = computed(() => (showRb.value ? (plan.value?.rollback ?? '').split('\n').map((text) => ({ text, k: 'frame', seq: null })) : plan.value?.rows ?? []))
 
-/** 最近一次运行（面板显示的那一批）里已采纳的改动合并后的变更。 */
+/** 最近一次运行（面板显示的那一批）里已采纳的改动合并后的变更。
+ * 连续采纳时几次请求同时在途，只用最后一次的结果，先发后到的旧计划不覆盖新的（REQ-056-05）。 */
+let planSeq = 0
 async function loadPlan(): Promise<void> {
+  const seq = ++planSeq
   planErr.value = ''
   if (!scope.value || !project.ref) { plan.value = null; return }
   try {
     const r = await get<ListResult>(projectPath(project.ref, `/ai/suggestions${query({ skill: 'intent-script', scope: scope.value, limit: 1 })}`))
     const bid = r.items[0]?.batch_id
+    const p = bid ? await get<ChangePlan>(projectPath(project.ref, `/ai/change/plan?batch_id=${bid}`)) : null
+    if (seq !== planSeq) return
     hasRun.value = !!bid
-    plan.value = bid ? await get<ChangePlan>(projectPath(project.ref, `/ai/change/plan?batch_id=${bid}`)) : null
+    plan.value = p
   } catch (e) {
-    planErr.value = errorText(e)
+    if (seq === planSeq) planErr.value = errorText(e)
   }
 }
 function run(): void {

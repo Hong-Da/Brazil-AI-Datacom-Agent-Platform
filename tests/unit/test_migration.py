@@ -198,6 +198,42 @@ def test_merge_single_bgp_vrrp_default_and_clock_source(kb) -> None:  # type: ig
     assert "bgp 65019" in drain["commands"] and "bgp 65000" not in drain["commands"]
 
 
+def test_merge_bgp_ibgp_peers_turn_ebgp(kb) -> None:  # type: ignore[no-untyped-def]
+    """REQ-056-08：并入 AS 不同的现有 BGP 进程时，原来的 iBGP 对等体（remote-as 等于本地 AS）逐个告警。"""
+    old_text = (
+        "hostname OLD\n!\nrouter bgp 65000\n neighbor 10.0.0.2 remote-as 65001\n"
+        " neighbor 10.255.0.4 remote-as 65000\n!\nend\n"
+    )
+    existing = "#\nsysname NEW\n#\nbgp 65019\n router-id 10.9.9.9\n#\nreturn\n"
+    tg = migration.target_graph_from_text(existing, kb, HUAWEI)
+    r = migration.migrate(graph(kb, old_text, CISCO), kb, CISCO, HUAWEI, {}, tg)
+    w = [x for x in r["warnings"] if x["kind"] == "ibgp_to_ebgp"]
+    assert len(w) == 1 and w[0]["params"]["level"] == "error"
+    p = w[0]["params"]
+    assert (p["peers"], str(p["old"]), str(p["new"])) == ("10.255.0.4", "65000", "65019")
+    # 同一个 AS 时不告警
+    tg2 = migration.target_graph_from_text("#\nsysname NEW\n#\nbgp 65000\n#\nreturn\n", kb, HUAWEI)
+    r2 = migration.migrate(graph(kb, old_text, CISCO), kb, CISCO, HUAWEI, {}, tg2)
+    assert not [x for x in r2["warnings"] if x["kind"] == "ibgp_to_ebgp"]
+
+
+def test_migrate_renumbered_isis_and_source_switch_explained(kb) -> None:  # type: ignore[no-untyped-def]
+    """REQ-056-01：翻译时 IS-IS 进程名改号（CORE → 1）、源平台没有的开关（SSH 服务）在迁移校验里算已说明，
+    空设备与并入现有配置都不拦割接包；没有旧值的校验差异文案显示“—”而不是占位符（REQ-056-02）。"""
+    sample = KB_ROOT / "samples" / "cisco-iosxe-asr920-synthetic" / "pe-asr920-04-advanced.cfg"
+    old = graph(kb, sample.read_text(encoding="utf-8"), CISCO)
+    r = migration.migrate(old, kb, CISCO, HUAWEI)
+    assert any(w["kind"] == "key_renumbered" and w["params"]["old"] == "CORE" for w in r["warnings"])
+    left = [w for w in r["warnings"] if w["kind"].startswith("verify")]
+    assert r["verify"]["checked"] and r["verify"]["unexplained"] == 0, left
+    tg = migration.target_graph_from_text("#\nsysname NEW\n#\nbgp 65019\n#\nreturn\n", kb, HUAWEI)
+    r2 = migration.migrate(old, kb, CISCO, HUAWEI, None, tg)
+    assert r2["verify"]["unexplained"] == 0
+    from lmesh.core import translate as tr
+
+    assert tr._shown(None) == "—" and tr._shown(0) == 0
+
+
 def test_steps_order(kb) -> None:  # type: ignore[no-untyped-def]
     text = (KB_ROOT / "samples" / "cisco-iosxe-asr920-synthetic" / "pe-asr920-01.cfg").read_text(encoding="utf-8")
     g = graph(kb, text, CISCO)

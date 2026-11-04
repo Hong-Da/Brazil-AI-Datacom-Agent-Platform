@@ -113,6 +113,9 @@ def script(g: nx.MultiDiGraph, kb: KnowledgeBase, lay: layers.Layers, with_defau
                         refs[tgt].append(ln.no)
             row["spans"] = sp
         lines.append(row)
+    # 末尾换行之后切出的空行不算一行，与 parser.line_count 和设备列表一致（REQ-056-04）
+    if lines and lines[-1]["kind"] == "blank" and lines[-1]["text"] == "":
+        lines.pop()
     defs = {}
     for tgt in refs:
         d = g.nodes[tgt]
