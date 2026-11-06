@@ -131,3 +131,7 @@ lmesh/
 - 开发中的增量测试：`--changed`（只跑与未提交改动相关的类别，`--changed main` 对比分支），会打印选了哪些
 - 只运行某一类：`--unit` / `--cli` / `--api` / `--docs` / `--roundtrip` / `--frontend`；端到端测试 `--e2e` 单独运行（需要浏览器：Windows 用系统 Edge，Linux 先在 frontend 目录运行 `corepack pnpm exec playwright install chromium`，浏览器装在项目内）
 - 规则见 [tests/README.md](tests/README.md)
+
+## 许可证
+
+[Apache-2.0](LICENSE)。`knowledge/samples/cisco-ios-public/` 中的样本来自 Batfish 项目，同样使用 Apache-2.0，许可证随样本附带。
