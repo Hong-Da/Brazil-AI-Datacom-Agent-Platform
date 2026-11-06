@@ -916,12 +916,12 @@ REQ-021～REQ-024。界面在 M5 界面阶段单独做；后端返回结构按 `
 - L1 Linux 环境：提供 Linux 机器（用户确认）【默认】
 - L2 用途：开发、测试【默认】
 - L3 开发方式：本机编写，同步到 Linux 运行【默认】
-- 地址与端口：linux-test-host:22
+- 地址与端口：私有测试机，SSH 端口 22；地址写在 `config/linux.env`（`LMESH_LINUX_HOST`，不入库）
 - 用户名：root【用户修改；警告：建议改用专门的用户】，认证方式：本项目专用 SSH 密钥 `~/.ssh/lmesh_dev_ed25519`（由一次性密码安装，密码不记录）
 - 工作目录：`~/lmesh/`，允许 sudo：是（每次使用前仍先说明并征得同意）【用户修改】
 - L4 在本机查看 Web 界面：SSH 端口转发【默认】
 - 环境信息：Ubuntu 26.04 LTS，x86_64，4 核，16 GB 内存，磁盘可用 174 GB，可访问外网；已有 python3、git、curl、rsync，没有 uv、node（由 start.sh 安装到工作目录内）；连接检查日期 2026-10-17
-- 端口：默认 9090（2026-10-18 起）；Linux 测试机上 9090 被 docker-proxy（其他服务）占用，不动它，在 Linux 上开发和测试时临时用 9091 运行（只覆盖运行参数，不改默认值 D3）；端口转发 `ssh -i ~/.ssh/lmesh_dev_ed25519 -N -L 9091:127.0.0.1:9091 root@linux-test-host`
+- 端口：默认 9090（2026-10-18 起）；Linux 测试机上 9090 被 docker-proxy（其他服务）占用，不动它，在 Linux 上开发和测试时临时用 9091 运行（只覆盖运行参数，不改默认值 D3）；端口转发 `ssh -i "$LMESH_LINUX_KEY" -N -L 9091:127.0.0.1:9091 "$LMESH_LINUX_HOST"`
 
 ## G 远程仓库
 

@@ -136,7 +136,7 @@ def test_redact_custom_terms_and_inline_description() -> None:
         HW
         + "\nospf 1\n area 0.0.0.0\n  network 10.9.8.7 0.0.0.0 description TO_SITEX01-RMP01-1/1/1\ntraffic policy ACME_NNI\n"
     )
-    out = Sanitizer("strict", KEY, redact=["ACME", r"<站点编码规则>"]).sanitize(text).text
+    out = Sanitizer("strict", KEY, redact=["ACME", r"SITE[A-Z]\d{2}"]).sanitize(text).text
     assert "ACME" not in out and "SITEX01" not in out
     assert "traffic policy ORG-" in out and "description DESC-" in out
 

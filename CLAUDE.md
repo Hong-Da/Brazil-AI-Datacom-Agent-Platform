@@ -25,7 +25,7 @@
 - CLI 与 API 共用 core；CLI 支持 --output json，退出码见 docs/cli.md
 - API 前缀 /api/v1，认证方式：API 令牌；调用文档示例来自测试用例
 - 每完成一项功能就补测试（单元测试、CLI 测试、API 测试、文档测试）并更新调用文档；目录变化时更新 README
-- Linux 环境：root@linux-test-host，工作目录 ~/lmesh/（密码不记录）
+- Linux 环境：地址见 config/linux.env（LMESH_LINUX_HOST，不入库），工作目录 ~/lmesh/（密码不记录）
 - 开工前和每步完成后展示里程碑进度，并更新 DevelopDocs/progress/progress.html
 - 版本号：M1 开发期间用 0.0.x，M1 验收打 0.1.0，之后 M2–M9 依次对应 0.2.0–0.9.0
 - 确定性结论（解析、对比、翻译、校验）由代码在图上计算；AI 输出一律先入图经代码校验再展示；未配置 AI 时核心功能照常可用
